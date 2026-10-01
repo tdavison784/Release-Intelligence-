@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 10 product definitions, 10 onboarding records, 10 saved relationship reports.
+- 11 product definitions, 11 onboarding records, 11 saved relationship reports.
 - 143 distinct constructs are used across all definitions; the records introduce 143.
-- 1 of 10 recorded products introduced no new construct. The latest product that introduced one has order 10.
+- 2 of 11 recorded products introduced no new construct. The latest product that introduced one has order 10.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -80,6 +80,7 @@ What convergence looks like:
 | 8 | 1 | crossplane | 306 (243) | 9 | 5 | 11 | 2 | 18 | 30 | 2 | 0 | 3 | 8 |
 | 9 | 1 | external-secrets | 271 (223) | 6 | 6 | 8 | 4 | 12 | 16 | 5 | 0 | 1 | 1 |
 | 10 | 1 | ingress-nginx | 342 (299) | 7 | 12 | 14 | 11 | 9 | 19 | 11 | 0 | 1 | 5 |
+| 11 | 2 | grafana | 380 (302) | 10 | 7 | 11 | 4 | 58 | 22 | 5 | 1 | 1 | 8 |
 
 ### Constructs and effort
 
@@ -95,6 +96,7 @@ What convergence looks like:
 | 8 | crossplane | 72 | 1 | 71 | 99% | 138 | 2 / 0 | 18 | partial |
 | 9 | external-secrets | 85 | 0 | 85 | 100% | 138 | 0 / 0 | 18 | full |
 | 10 | ingress-nginx | 93 | 5 | 88 | 95% | 143 | 9 / 0 | 25 | full |
+| 11 | grafana | 91 | 0 | 91 | 100% | 143 | 0 / 0 | 27 | full |
 
 ### Discovery and relationship validation
 
@@ -110,6 +112,7 @@ What convergence looks like:
 | crossplane | 2/4/8 (43%) | 8/0/5/0 | 86/0/0/56/14 | 0 → 0 | 6 | 9 |
 | external-secrets | 4/4/4 (67%) | 12/0/1/0 | 212/0/0/8/19 | 5 → 0 | 3 | 6 |
 | ingress-nginx | 6/4/9 (53%) | 25/0/2/3 | 663/0/47/115/18 | 0 → 0 | 9 | 7 |
+| grafana | 5/3/9 (47%) | 14/0/3/0 | 70/0/0/32/0 | 0 → 0 | 4 | 0 |
 
 ## Construct-introduction curve
 
@@ -125,6 +128,7 @@ What convergence looks like:
 | 8 | crossplane | 1 | 138 | 72 | 71 | 99% | 0 | 138 |
 | 9 | external-secrets | 0 | 138 | 85 | 85 | 100% | 0 | 138 |
 | 10 | ingress-nginx | 5 | 143 | 93 | 88 | 95% | 5 | 143 |
+| 11 | grafana | 0 | 143 | 91 | 91 | 100% | 0 | 143 |
 
 New constructs per product, in onboarding order (records):
 
@@ -139,6 +143,7 @@ New constructs per product, in onboarding order (records):
   8  crossplane                1  █
   9  external-secrets          0  
  10  ingress-nginx             5  ███
+ 11  grafana                   0  
 ```
 
 Cumulative constructs introduced:
@@ -154,6 +159,7 @@ Cumulative constructs introduced:
   8  crossplane              138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   9  external-secrets        138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  10  ingress-nginx           143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 11  grafana                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -251,12 +257,17 @@ No new constructs: the definition is configuration only.
 - `field:lifecycle.state`: The declared state of the statement's version range (end-of-life here; deprecated is the other one): what the edge keys the action-required versus informational deprecation on.
 - `field:lifecycle.summary`: The one-line statement carried into the edge: 'ingress-nginx is retired: best-effort maintenance ended in March 2026 and there will be no further releases, bug fixes or security fixes.'
 
+### grafana (order 11, wave 2): 0 new
+
+No new constructs: the definition is configuration only.
+
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 30 (4.3) | 93% | 55 / 0 | 25 (n=7) | 20/24/56 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
+| 2 | grafana | 1 of 1 (grafana) | 0 (0.0) | 100% | 0 / 0 | 27 (n=1) | 5/3/9 (47%) | 14/0/3/0 (1 of 1 reports) | 0 | full 1 |
 
 ## Notes from the records
 
@@ -279,6 +290,8 @@ No new constructs: the definition is configuration only.
 **external-secrets**: Other edges exercised: 0.15.1 -> 0.16.0 (v1alpha1 removed, v1 added, storage version change: 5 breaking, 4 action required), 0.16.2 -> 0.17.0 (v1beta1 no longer served: 7 breaking), 0.20.4 -> 1.0.0, 2.10.0 -> 2.11.0 (18 changes, 0 breaking), 2.0.0 -> 2.11.0 (11-step path, 1 breaking, 2 action required). The major bump to 2.0.0 (removal of unmaintained secret stores) is visible only through the CRD diff (spec.provider.alibaba/device42 removed) and one commit subject. The v0.x -> v1.0 and v1alpha1/v1beta1 -> v1 transitions are fully captured by the existing CRD version diff; no new construct was needed. ri check over all 77 releases v0.9.0..v2.11.0 found only the upstream anomalies recorded as exceptions. Classify rules are tuned on commit-log subjects only; the GitHub release-body source could not be exercised.
 
 **ingress-nginx**: The retired state made two things visible. (1) A product is not only its releases: the strongest upgrade-relevant fact here (do not rely on future fixes) lives outside any release. (2) Verification is weakest where it matters least: the chart (gh-pages index), manifests (git) and notes are all verifiable; only the registry is not. The definition is 7 sources, 12 artifacts, one lifecycle statement; 25 minutes, 0 product-specific Go lines.
+
+**grafana**: Zero new constructs, zero Go changes: the wave-2 convergence point the plan predicts — everything this product needed (docs-at-main sources with release-kind and availability windows, a monorepo chart lookup by unprefixed appVersion, optional artifacts, exceptions for a removed-from-distribution release, package channels on a downloads host, CRD repo-dirs) already existed after ten onboardings. The two definition corrections that mattered (read the changelog and the upgrade guides at main; attach guides at majors too) were upstream timing facts found by research, and the classify tuning (whole-word deprecation, delete as removal, skip (Enterprise) items and plugin-development churn) was found by reading the edges, not by failing checks. Discovery's strengthened resolver was closer than for any earlier product: it had the right versioning, the right chart relation at the right post-migration index, and it validated the CRD artifact itself — its two wrong drops were both "the relationship template was rendered at the tag / with a v prefix", which is exactly the class of correction a reviewer can make in seconds.
 
 ## Data quality
 
