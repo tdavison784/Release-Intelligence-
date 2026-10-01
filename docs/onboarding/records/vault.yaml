@@ -1,0 +1,139 @@
+product: vault
+order: 7
+wave: 1
+repository: github.com/hashicorp/vault
+onboarding:
+  startedAt: "2026-10-01T11:50:12Z"
+  finishedAt: "2026-10-01T12:13:05Z"
+  minutes: 23
+discovery:
+  proposal: docs/onboarding/discovery/vault.proposed.yaml
+  report: docs/onboarding/discovery/vault.report.md
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags'; same locator, equivalent strict tagPattern (beta|rc)"}
+  - {id: github-advisories, origin: discovered, note: "default GitHub advisory feed; unreachable here (api.github.com 403)"}
+  - {id: changelog, origin: manual, note: "discovery listed CHANGELOG.md as a high-confidence candidate but read it at the v2.1.1 tag, where it stops at 1.21.4, and suggested it was abandoned; it is only current on ref main. Needs extract.labelParagraphs (new construct) and exceptions for 1.17.5/1.18.0"}
+  - {id: changelog-1-10, origin: manual, note: "CHANGELOG-v1.10-v1.15.md, linked from 'Previous versions'"}
+  - {id: changelog-1-0, origin: manual, note: "CHANGELOG-pre-v1.10.md; heading dialects with dates and combined versions"}
+  - {id: upgrade-guide, origin: manual, note: "docs/upgrading/upgrade-to-X.Y.x.mdx in the versioned docs directory of web-unified-docs (<= 1.18)"}
+  - {id: important-changes, origin: manual, note: "docs/updates/important-changes.mdx per docs line (1.19-1.21)"}
+  - {id: important-changes-v2, origin: manual, note: "same page in the v2.x docs directory (no v2.0.x directory exists), major releases only"}
+artifacts:
+  - {id: cli-linux-amd64, origin: manual, note: "releases.hashicorp.com zip, version == release"}
+  - {id: checksums, origin: manual, note: "SHA256SUMS next to the zip"}
+  - {id: image, origin: manual, note: "docker.io/hashicorp/vault (low-confidence candidate in the report, workflow reference only) + public.ecr.aws; tag has no v prefix; availability >= 1.5.2"}
+  - {id: rpm-package, origin: manual, note: "rpm.releases.hashicorp.com RHEL 9 x86_64; availability >= 1.10.1"}
+  - {id: ent-cli-linux-amd64, origin: manual, note: "Enterprise zip, version '<release>+ent'"}
+  - {id: ent-image, origin: manual, note: "docker.io/hashicorp/vault-enterprise (low-confidence candidate in the report), tag '<release>-ent'"}
+  - {id: helm-chart, origin: manual, note: "chart in a separate repository (vault-helm), independent 0.x versions, lookup on appVersion; helm.releases.hashicorp.com blocked, helm-git over the repository tags is the reachable channel. Discovery found helm.releases.hashicorp.com only as a docs reference and the wrong chart repo (consul-helm)"}
+discoveryRejected:
+  - {id: release-notes-line, reason: "proposal pointed at content/consul/.../release-notes/consul-api-gateway/v0_1_x.mdx: another product's file in the shared docs repository (path scoping by product directory missing); 1 of 3 sampled releases failed and the rest were not-applicable"}
+  - {id: release-notes-docs, reason: "terraform-enterprise release files from the same shared docs repository; failed validation, dropped by discovery"}
+  - {id: upgrade-guide (nomad), reason: "content/nomad/.../upgrade/index.mdx; wrong product, dropped by discovery"}
+  - {id: compatibility (consul k8s table), reason: "content/consul/.../compatibility/k8s/version.mdx; wrong product, dropped by discovery"}
+  - {id: chart-repo github.com/hashicorp/consul-helm, reason: "wrong product (referenced from Consul docs)"}
+  - {id: changelog 'confirm it is abandoned', reason: "false conclusion drawn from reading CHANGELOG.md at a release tag; it is maintained on main"}
+  - {id: registry/image candidates (41 registries), reason: "mostly registry.terraform.io module links in other products' docs; only docker.io/hashicorp/vault and vault-enterprise were relevant"}
+relationships:
+  historicalReleasesChecked: [1.0.0, 1.1.4, 1.3.0, 1.4.2, 1.9.0, 1.9.10, 1.10.0, 1.10.11, 1.11.0, 1.12.0, 1.13.0, 1.14.0, 1.14.10, 1.15.0, 1.15.6, 1.16.0, 1.16.3, 1.17.0, 1.17.5, 1.17.6, 1.18.0, 1.18.5, 1.19.0, 1.19.5, 1.20.0, 1.20.4, 1.21.0, 1.21.4, 2.0.0, 2.0.4, 2.1.0, 2.1.1]
+  # first run of the first complete draft (default 6 releases 1.21.0-2.1.1): 0
+  # failing subjects. The same draft failed 1 subject on `-n 14` (rpm-package)
+  # and 2 subjects (image, rpm-package) when swept back to 1.0.0; see
+  # manualInterventions. 15 subjects in the final run: 14 validated, 1
+  # insufficient (important-changes-v2: 2.0.0 is the only major in 2.x).
+  initialFailures: 0
+  finalFailures: 0
+  manualInterventions:
+    - {subject: rpm-package, change: "availability >= 1.10.1", reason: "1.10.0 and 31 earlier releases are 404 in the rpm repository"}
+    - {subject: image, change: "availability >= 1.5.2", reason: "Docker Hub has no tags for 1.0.0-1.5.1 (29 releases)"}
+    - {subject: ent-image, change: "availability >= 1.9.1 + exception 1.16.0", reason: "no enterprise tag before 1.9.1; hashicorp/vault-enterprise:1.16.0-ent was never pushed"}
+    - {subject: ent-cli-linux-amd64, change: "availability >= 1.2.3", reason: "13 earlier +ent zips missing"}
+    - {subject: changelog, change: "exceptions 1.17.5, 1.18.0", reason: "date written as a second H2 so the version section is empty; ri check passed on the empty section, found by counting items per section"}
+    - {subject: changelog-1-0, change: "heading regex accepts '(date)' suffix and 'X/Y' combined headings; exception 1.3.0", reason: "headings up to 1.4 are '## 1.4.2 (May 21st, 2020)'; 1.3.0 has no section"}
+    - {subject: changelog, change: "labelParagraphs + classify rules (IMPROVEMENTS, BREAKING CHANGES, License:, dependency bumps)", reason: "ri upgrade classified every bullet as other/heuristic before the label construct"}
+    - {subject: important-changes*, change: "classify: known issues -> other, workaround -> skip", reason: "a heading containing 'removal' made a known issue a removal; numbered workaround steps became separate action-required items"}
+  unverifiable:
+    - {subject: github-advisories, reason: "api.github.com blocked by sandbox egress policy"}
+    - {subject: helm-chart (helm-repo channel), reason: "helm.releases.hashicorp.com blocked; the helm-git channel verified the same chart versions"}
+constructs:
+  new:
+    - name: extract.labelParagraphs
+      kind: extract option (markdown-section, whole) + DocInput.LabelPattern in normalize
+      justification: >-
+        HashiCorp-family changelogs group bullets under uppercase label
+        paragraphs (SECURITY:, BUG FIXES:, BREAKING CHANGES:, ...) that are not
+        markdown headings. Without the option every bullet loses its category
+        (ri upgrade 2.0.3 -> 2.0.4 before: 0 bug fixes, 0 features, 2
+        security items, 54 other, nothing breaking; after: 29 bug fixes, 20
+        features, 5 security, 1 breaking). A matching standalone paragraph is
+        promoted to a heading one level below the last real heading, so the
+        existing section classification (declared, high confidence) applies
+        unchanged and product rules can match the label via `section:`.
+      otherProducts: [terraform-aws-provider (wave 3, ENHANCEMENTS:/BUG FIXES:/NOTES:), terraform core, consul, nomad, packer, boundary]
+  considered:
+    - {name: "include resolution for MDX '@include' partials (extract.includeBase)", rejected: "needs a second fetch per include, evidence line mapping and a docs-platform path convention; consumers named (Consul, Nomad, Boundary docs) are not in the onboarding plan. Recorded as a gap (measured: 4 of 7 breaking items and 12 of 14 known issues of the 2.x important-changes page are includes)"}
+    - {name: "section end option for markdown-section (stop at the next heading matching a regex)", rejected: "only 2 of 135 changelog sections (1.17.5, 1.18.0) need it; represented as exceptions with a reason"}
+    - {name: "per-item version applicability filter for cumulative docs ('Affected version' table cell)", rejected: "only Vault documents it this way; important-changes-v2 is limited to major releases instead"}
+    - {name: "license snapshot / lifecycle fact diffed between releases", rejected: "needs a new domain snapshot kind, upgrade diff and schema changes in packages other agents are changing; strong case (Redis, Elasticsearch, Grafana, Terraform and Vault all relicensed) so recorded as the top gap"}
+    - {name: "versions locator over a JSON release index (releases.hashicorp.com/vault/index.json)", rejected: "git tags are authoritative for the community train; only needed to enumerate Enterprise-only releases, i.e. a separate vault-enterprise product"}
+    - {name: "conditional templates ({{if ge .Major 2}}) for the v2.x docs directory", rejected: "availability-split sources are clearer and already supported"}
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/normalize/labels.go, purpose: "promoteLabels: label paragraphs become headings one level below the last real heading (not inside code, indented text or wrapped paragraphs)"}
+    - {file: internal/normalize/api.go, purpose: "DocInput.LabelPattern"}
+    - {file: internal/normalize/notes.go, purpose: "compile LabelPattern and promote labels before splitting a document into items"}
+    - {file: internal/normalize/scan.go, purpose: "docLine.label flag; MDX @include lines are not prose; headings are normalised through stripMDXHeadingNoise"}
+    - {file: internal/normalize/mdx.go, purpose: "MDX dialect of the HashiCorp docs platform: @include directive lines, '((#anchor))' and JSX components in headings (without it a section holding one @include line folded all its sub-sections into one item)"}
+    - {file: internal/catalog/definition.go, purpose: "Extract.LabelParagraphs"}
+    - {file: internal/catalog/validate.go, purpose: "labelParagraphs must compile and only applies to whole / markdown-section extracts"}
+    - {file: schemas/product-definition.schema.json, purpose: "extract.labelParagraphs"}
+    - {file: internal/ingest/docs.go, purpose: "pass extract.labelParagraphs to the notes parser"}
+    - {file: "internal/normalize/labels_test.go, internal/normalize/mdx_test.go, internal/catalog/labels_test.go, internal/ingest/labels_test.go", purpose: "unit tests for the above"}
+unreachableSources:
+  - {host: api.github.com, reason: "egress policy 403 (github-advisories, GitHub releases)"}
+  - {host: helm.releases.hashicorp.com, reason: "proxy refuses CONNECT (403); chart read from vault-helm tags"}
+  - {host: developer.hashicorp.com, reason: "rendered docs; source is web-unified-docs on raw.githubusercontent.com"}
+  - {host: www.vaultproject.io, reason: "blocked"}
+  - {host: discuss.hashicorp.com, reason: "HCSEC security bulletins; blocked"}
+  - {host: checkpoint-api.hashicorp.com, reason: "blocked"}
+  - {host: endoflife.date, reason: "blocked"}
+  - {host: registry.terraform.io, reason: "blocked"}
+  - {host: ghcr.io, reason: "token endpoint 403; no Vault image is published there"}
+ambiguousRelationships:
+  - "chart appVersion == Vault version means 'the default Vault in that chart', not 'compatible with'; the chart CHANGELOG lists several tested Vault versions (v2.0.4, v1.21.9, v1.20.14, v1.19.20) that appVersion does not carry"
+  - "only 7 of 32 sampled releases are an appVersion of any chart (no chart for 2.1.0 or 2.1.1); chart is optional"
+  - "changelog and docs are read at ref main: their content evolves after a release (the 2.x important-changes page was modified on 2026-08-25 and says 'Last updated 2026-05-21'), so an edge reflects today's text, not the text at release time"
+  - "2.x docs live in one v2.x directory for every 2.y line, so a cumulative page cannot be keyed by release; only the major gets it"
+  - "ri check passes on a section that yields zero note items (1.17.5, 1.18.0): relationship 'resolves' is weaker than 'has content'"
+  - "rpm is declared for RHEL 9 x86_64 only; other distributions and arches exist and share the version"
+  - "Enterprise zips also exist as +ent.hsm, +ent.fips1402, +ent.fips1403: not modelled"
+representability: partial
+gaps:
+  - "License change (MPL-2.0 until 1.14.8, BUSL-1.1 from 1.14.9; 2.1.0 client licensing terms) is a release-level fact that no source or snapshot kind can carry; only a changelog line starting 'License:' is flagged (action required). The BUSL switch itself is announced nowhere in the changelog (needs a license snapshot diff; Redis, Elasticsearch, Grafana, Terraform have the same lifecycle event)"
+  - "Enterprise-only releases (1.21.5+ent ... 1.21.11+ent, 1.19.6+ent ..., 4 +ent tags in the OSS repo) can only be enumerated from releases.hashicorp.com/vault/index.json, for which no versions locator exists; their changelog sections ('## 1.21.11 Enterprise') are unreachable and the Enterprise LTS line 1.21.x is invisible after 1.21.4"
+  - "MDX '@include' partials are not resolved: in the 2.x important-changes page 4 of 7 breaking items and 12 of 14 known issues live in content/vault/global/partials and are missing from the edge (breaking items still appear through the changelog BREAKING CHANGES label)"
+  - "Cumulative docs with per-item 'Affected version' / 'Fixed version' table cells cannot be filtered by the release being upgraded to; important-changes-v2 is therefore restricted to major releases and 2.1.x upgrades carry no doc-derived items"
+  - "Kubernetes support is a bullet list partial (kubernetes-supported-versions.mdx), not a table; only the chart kubeVersion floor (>= 1.20) reaches the compatibility section, and only for releases that ship a chart"
+  - "Support lifecycle (LTS 1.19.x, extended maintenance 1.16.x, EOL dates) is prose/tables with no constraint model; support policy page unreachable"
+  - "Two changelog sections (1.17.5, 1.18.0) have their date as a second H2 and are unreachable by a heading selector: no notes for those releases (exceptions)"
+  - "HCSEC bulletin ids are not extracted as references (only CVE/GHSA/GO ids); the bulletin channel (discuss.hashicorp.com) and GitHub advisories are unreachable here"
+  - "Companion components with independent versions (vault-k8s 1.7.x, vault-csi-provider 1.7.x, Vault Secrets Operator, Vault Agent images) appear only as helm-values default changes, not as related products"
+  - "Docs release notes (updates/release-notes.mdx) and deprecation page were not added: their 'Bug fixes and security patches' group would classify every fix as security and they duplicate the changelog"
+sampleEdge:
+  from: 1.21.4
+  to: 2.1.1
+  summary: "4 breaking · 9 action required · 314 changes · 2 warnings"
+  evidenceRecords: 368
+notes: >-
+  Cross-major edge: path 2.0.0 -> 2.1.0 -> 2.1.1 (4 backport releases skipped).
+  314 changes: 255 declared (SECURITY/BUG FIXES/FEATURES/BREAKING CHANGES labels,
+  docs headings) and 59 heuristic. Discovery (deterministic, no LLM) found only
+  the tag scheme and the default advisory feed and mistook the shared docs
+  repository for other HashiCorp products; useful improvements: scope docs
+  paths to the product directory (content/vault/), read changelogs on the
+  default branch as well as at tags, detect chart repositories named
+  <product>-helm. Two edges were also exercised: 2.0.3 -> 2.0.4 (BREAKING
+  CHANGES paragraph now flagged breaking + action required) and 1.17.6 ->
+  1.18.0 (upgrade-to-1.18.x guide). Elapsed time is agent wall-clock and
+  excludes this record.

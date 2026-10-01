@@ -1,0 +1,267 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: vault
+name: HashiCorp Vault
+description: >-
+  Secrets management and encryption service. Community edition releases are
+  git tags (vX.Y.Z) of hashicorp/vault, shipped as zip archives on
+  releases.hashicorp.com, a multi-arch image on Docker Hub, OS packages and a
+  Helm chart that lives in a separate repository (vault-helm) with its own,
+  independent 0.x versions. Release notes are one cumulative CHANGELOG.md
+  maintained on main (never on the release tags); upgrade documentation lives
+  in the versioned website content repository (web-unified-docs).
+homepage: https://developer.hashicorp.com/vault
+
+versioning:
+  scheme: semver
+  tagPrefix: v
+  # vX.Y.Z plus vX.Y.Z-rcN / -betaN. Enterprise-only tags (v1.14.11+ent),
+  # sub-module tags (api/v1.x, sdk/v0.x) and legacy oddities (v0.2.0.rc1,
+  # v1.5.0-rc, v0.6.0-rebuild) do not match.
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-(?:beta|rc)\d+)?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions -------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/hashicorp/vault
+
+  # --- release notes ------------------------------------------------------
+  # CHANGELOG.md is only updated on main: the file at a release tag stops at
+  # the previous release, so every read uses ref main. One "## X.Y.Z" section
+  # per release, then uppercase label paragraphs (SECURITY:, CHANGES:, ...)
+  # with bullet lists.
+  - id: changelog
+    roles: [release-notes]
+    availability: ">= 1.16.0"
+    exceptions:
+      - versions: [1.17.5, 1.18.0]
+        reason: >-
+          Upstream formatting defect: in these two sections the release date is
+          a second H2 ("## October 9, 2024") instead of an H3, so the version
+          section is empty (L3252-L3252) and the notes sit under the sibling
+          date heading, which a heading selector cannot reach. `ri check`
+          passes on the empty section; found by counting items per section.
+    locator:
+      kind: repo-file
+      repository: github.com/hashicorp/vault
+      ref: main
+      path: CHANGELOG.md
+    extract: &changelog-extract
+      type: markdown-section
+      heading: '^{{regexQuote .Version}}$'
+      # SECURITY:, CHANGES:, FEATURES:, IMPROVEMENTS:, BUG FIXES:,
+      # DEPRECATIONS:, BREAKING CHANGES: are plain paragraphs, not headings
+      labelParagraphs: '^[A-Z][A-Z0-9 /&-]*:$'
+    classify: &changelog-classify
+      # plugin / toolchain / library bumps (a bump that fixes a CVE sits under
+      # SECURITY and keeps that category)
+      - section: '^(CHANGES|IMPROVEMENTS)$'
+        text: '(?i)\bupdate (?:\S+ )?plugin to\b|\bbump go version\b|^(?:core|ui|sdk|api): bump \S+ (?:to|from)\b'
+        category: dependency
+      # the labels themselves are classified by the generic heading rules
+      # (SECURITY, BUG FIXES, FEATURES, DEPRECATIONS); these two are not
+      - section: '^IMPROVEMENTS$'
+        category: feature
+      - section: '^BREAKING CHANGES$'
+        breaking: true
+        actionRequired: true
+      # licence terms changed (client licensing model); needs a human review
+      - text: '^License:'
+        actionRequired: true
+  - id: changelog-1-10
+    roles: [release-notes]
+    availability: ">= 1.10.0, < 1.16.0"
+    locator:
+      kind: repo-file
+      repository: github.com/hashicorp/vault
+      ref: main
+      path: CHANGELOG-v1.10-v1.15.md
+    extract: *changelog-extract
+    classify: *changelog-classify
+  - id: changelog-1-0
+    roles: [release-notes]
+    availability: ">= 1.0.0, < 1.10.0"
+    locator:
+      kind: repo-file
+      repository: github.com/hashicorp/vault
+      ref: main
+      path: CHANGELOG-pre-v1.10.md
+    # headings carry the date up to 1.4 ("## 1.4.2 (May 21st, 2020)") and some
+    # list two releases ("## 1.1.4/1.1.5 (July 25th/30th, 2019)")
+    extract:
+      type: markdown-section
+      heading: '^(?:[0-9.]+/)?{{regexQuote .Version}}(?:/[0-9.]+)?(?:\s+\(.*\))?$'
+      labelParagraphs: '^[A-Z][A-Z0-9 /&-]*:$'
+    classify: *changelog-classify
+    exceptions:
+      - versions: [1.3.0]
+        reason: No "## 1.3.0" section exists in CHANGELOG-pre-v1.10.md (the 1.3 line starts at 1.3.1 there).
+
+  # --- upgrade guides -----------------------------------------------------
+  # The website content repository keeps one directory per docs version
+  # (v1.18.x ... v2.x) and the layout changed twice:
+  #   <= 1.18  docs/upgrading/upgrade-to-X.Y.x.mdx (one guide per minor)
+  #   1.19-1.21 docs/updates/important-changes.mdx (per docs line)
+  #   >= 2.0   docs/updates/important-changes.mdx in v2.x (one for the major)
+  - id: upgrade-guide
+    roles: [upgrade-guide]
+    releaseKinds: [major, minor]
+    availability: ">= 1.10.0, < 1.19.0"
+    classify: &docs-classify
+      # a known issue titled "... group membership removal ..." is not a removal
+      - section: '(?i)^known issues'
+        category: other
+      # numbered UI/CLI steps of a known-issue workaround are not changes
+      - section: '(?i)^workaround'
+        skip: true
+    locator:
+      kind: repo-file
+      repository: github.com/hashicorp/web-unified-docs
+      ref: main
+      path: content/vault/v{{.Major}}.{{.Minor}}.x/content/docs/upgrading/upgrade-to-{{.Major}}.{{.Minor}}.x.mdx
+  - id: important-changes
+    roles: [upgrade-guide]
+    releaseKinds: [major, minor]
+    availability: ">= 1.19.0, < 2.0.0"
+    classify: *docs-classify
+    locator:
+      kind: repo-file
+      repository: github.com/hashicorp/web-unified-docs
+      ref: main
+      path: content/vault/v{{.Major}}.{{.Minor}}.x/content/docs/updates/important-changes.mdx
+  - id: important-changes-v2
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 2.0.0"
+    classify: *docs-classify
+    locator:
+      kind: repo-file
+      repository: github.com/hashicorp/web-unified-docs
+      ref: main
+      path: content/vault/v{{.Major}}.x/content/docs/updates/important-changes.mdx
+
+  # --- security -----------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: hashicorp/vault
+    notes: HCSEC bulletins on discuss.hashicorp.com are the primary channel but are not machine readable; SECURITY paragraphs of the changelog carry the fixes.
+
+artifacts:
+  - id: cli-linux-amd64
+    type: binary
+    name: vault_linux_amd64.zip
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: https://releases.hashicorp.com/vault/{{.Version}}/vault_{{.Version}}_linux_amd64.zip
+
+  # Enterprise builds of the same release: versions are "<release>+ent" on
+  # releases.hashicorp.com and "<release>-ent" on Docker Hub. (Enterprise-only
+  # patch releases such as 1.21.11+ent have no tag here and cannot be listed.)
+  - id: ent-cli-linux-amd64
+    type: binary
+    name: vault_+ent_linux_amd64.zip
+    availability: ">= 1.2.3"
+    version: {strategy: template, template: "{{.Version}}+ent"}
+    channels:
+      - kind: http
+        url: https://releases.hashicorp.com/vault/{{.Version}}+ent/vault_{{.Version}}+ent_linux_amd64.zip
+
+  - id: ent-image
+    type: container-image
+    name: hashicorp/vault-enterprise
+    availability: ">= 1.9.1"
+    version: {strategy: template, template: "{{.Version}}-ent"}
+    exceptions:
+      - versions: [1.16.0]
+        reason: >-
+          Docker Hub has no hashicorp/vault-enterprise:1.16.0-ent tag (every
+          release from 1.9.1 on has one). Found by listing all tags.
+    channels:
+      - kind: oci
+        repository: docker.io/hashicorp/vault-enterprise
+
+  - id: checksums
+    type: binary
+    name: vault_SHA256SUMS
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: https://releases.hashicorp.com/vault/{{.Version}}/vault_{{.Version}}_SHA256SUMS
+
+  - id: image
+    type: container-image
+    name: hashicorp/vault
+    version: {strategy: template, template: "{{.Version}}"}
+    # Docker Hub has no tags for 1.0.0 - 1.5.1 (29 releases) and none missing since.
+    availability: ">= 1.5.2"
+    channels:
+      - kind: oci
+        repository: docker.io/hashicorp/vault
+      - kind: oci
+        repository: public.ecr.aws/hashicorp/vault
+
+  - id: rpm-package
+    type: package
+    name: vault rpm (RHEL 9, x86_64)
+    version: {strategy: template, template: "{{.Version}}"}
+    # The package repository only has a contiguous history from 1.10.1
+    # (1.10.0 is a 404 on RHEL 8 and 9; 31 earlier releases are missing).
+    availability: ">= 1.10.1"
+    channels:
+      - kind: http
+        url: https://rpm.releases.hashicorp.com/RHEL/9/x86_64/stable/vault-{{.Version}}-1.x86_64.rpm
+
+  # Separate repository, independent 0.x chart versions; the chart's
+  # appVersion is the Vault version it defaults to, and only a few Vault
+  # releases are ever an appVersion.
+  - id: helm-chart
+    type: helm-chart
+    name: vault
+    optional: true
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Version}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://helm.releases.hashicorp.com
+        chart: vault
+      - kind: helm-git
+        repository: github.com/hashicorp/vault-helm
+        path: .   # Chart.yaml at the repository root
+        tagPattern: '^v(?P<version>\d+\.\d+\.\d+)$'
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/hashicorp/vault-helm
+          ref: "v{{.ArtifactVersion}}"
+          path: values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/hashicorp/vault-helm
+          ref: "v{{.ArtifactVersion}}"
+          path: Chart.yaml
+
+provenance:
+  method: manual+research
+  updated: "2026-10-01"
+  validatedReleases: [1.10.0, 1.15.0, 1.16.0, 1.18.0, 1.19.0, 1.20.0, 1.21.0, 1.21.4, 2.0.0, 2.0.4, 2.1.0, 2.1.1]
+  notes: >-
+    Authored from docs/research/vault.md after `ri discover` (which found only
+    the tag scheme and the GitHub advisory feed and mistook the shared docs
+    repository for Consul content). api.github.com, helm.releases.hashicorp.com,
+    developer.hashicorp.com and discuss.hashicorp.com were unreachable: the
+    chart is read from the vault-helm repository (helm-git), security fixes from
+    the changelog's SECURITY paragraphs. Lines before 1.10 are covered by the
+    changelog only.
