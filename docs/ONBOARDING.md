@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 21 product definitions, 21 onboarding records, 21 saved relationship reports.
-- 152 distinct constructs are used across all definitions; the records introduce 152.
-- 9 of 21 recorded products introduced no new construct. The latest product that introduced one has order 15.
+- 22 product definitions, 22 onboarding records, 22 saved relationship reports.
+- 153 distinct constructs are used across all definitions; the records introduce 153.
+- 9 of 22 recorded products introduced no new construct. The latest product that introduced one has order 18.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -87,6 +87,7 @@ What convergence looks like:
 | 15 | 2 | flux | 495 (398) | 14 | 14 | 18 | 2 | 21 | 25 | 0 | 1 | 0 | 7 |
 | 16 | 2 | otel-collector | 444 (356) | 7 | 13 | 21 | 0 | 23 | 32 | 22 | 0 | 0 | 9 |
 | 17 | 2 | redis | 238 (170) | 6 | 4 | 6 | 0 | 22 | 11 | 1 | 0 | 1 | 5 |
+| 18 | 3 | elasticsearch | 340 (271) | 10 | 6 | 6 | 0 | 36 | 18 | 0 | 0 | 0 | 11 |
 | 19 | 3 | terraform-provider-aws | 345 (274) | 10 | 9 | 9 | 0 | 58 | 39 | 5 | 0 | 1 | 13 |
 | 20 | 3 | actions-runner-controller | 266 (208) | 5 | 6 | 6 | 6 | 11 | 9 | 0 | 0 | 0 | 7 |
 | 21 | 3 | kyverno | 432 (359) | 7 | 13 | 15 | 4 | 33 | 22 | 1 | 0 | 1 | 7 |
@@ -113,10 +114,11 @@ What convergence looks like:
 | 15 | flux | 91 | 4 | 87 | 96% | 152 | 7 / 0 | 46 | full |
 | 16 | otel-collector | 57 | 0 | 57 | 100% | 152 | 0 / 0 | 28 | full |
 | 17 | redis | 61 | 0 | 61 | 100% | 152 | 2 / 0 | 43 | full |
-| 19 | terraform-provider-aws | 65 | 0 | 65 | 100% | 152 | 0 / 0 | 24 | full |
-| 20 | actions-runner-controller | 68 | 0 | 68 | 100% | 152 | 0 / 0 | 15 | full |
-| 21 | kyverno | 96 | 0 | 96 | 100% | 152 | 0 / 0 | 17 | full |
-| 22 | falco | 75 | 0 | 75 | 100% | 152 | 0 / 0 | 21 | full |
+| 18 | elasticsearch | 73 | 1 | 72 | 99% | 153 | 6 / 0 | 43 | partial |
+| 19 | terraform-provider-aws | 65 | 0 | 65 | 100% | 153 | 0 / 0 | 24 | full |
+| 20 | actions-runner-controller | 68 | 0 | 68 | 100% | 153 | 0 / 0 | 15 | full |
+| 21 | kyverno | 96 | 0 | 96 | 100% | 153 | 0 / 0 | 17 | full |
+| 22 | falco | 75 | 0 | 75 | 100% | 153 | 0 / 0 | 21 | full |
 
 ### Discovery and relationship validation
 
@@ -139,6 +141,7 @@ What convergence looks like:
 | flux | 4/11/13 (54%) | 19/0/1/0 | 110/0/0/10/0 | 2 → 0 | 4 | 2 |
 | otel-collector | 2/7/11 (45%) | 15/0/1/0 | 848/0/0/192/0 | 12 → 0 | 4 | 2 |
 | redis | 4/0/6 (40%) | 7/0/0/0 | 72/0/0/11/8 | 1 → 0 | 4 | 2 |
+| elasticsearch | 2/0/14 (12%) | 10/0/3/0 | 165/0/0/95/0 | 0 → 0 | 3 | 0 |
 | terraform-provider-aws | 2/1/16 (16%) | 11/0/6/0 | 116/0/0/118/4 | 0 → 0 | 4 | 0 |
 | actions-runner-controller | 3/6/2 (82%) | 14/0/0/0 | 284/0/0/4/0 | 2 → 0 | 3 | 0 |
 | kyverno | 5/6/9 (55%) | 20/0/1/0 | 117/0/0/9/0 | 1 → 0 | 4 | 0 |
@@ -165,10 +168,11 @@ What convergence looks like:
 | 15 | flux | 4 | 152 | 91 | 87 | 96% | 4 | 152 |
 | 16 | otel-collector | 0 | 152 | 57 | 57 | 100% | 0 | 152 |
 | 17 | redis | 0 | 152 | 61 | 61 | 100% | 0 | 152 |
-| 19 | terraform-provider-aws | 0 | 152 | 65 | 65 | 100% | 0 | 152 |
-| 20 | actions-runner-controller | 0 | 152 | 68 | 68 | 100% | 0 | 152 |
-| 21 | kyverno | 0 | 152 | 96 | 96 | 100% | 0 | 152 |
-| 22 | falco | 0 | 152 | 75 | 75 | 100% | 0 | 152 |
+| 18 | elasticsearch | 1 | 153 | 73 | 72 | 99% | 1 | 153 |
+| 19 | terraform-provider-aws | 0 | 153 | 65 | 65 | 100% | 0 | 153 |
+| 20 | actions-runner-controller | 0 | 153 | 68 | 68 | 100% | 0 | 153 |
+| 21 | kyverno | 0 | 153 | 96 | 96 | 100% | 0 | 153 |
+| 22 | falco | 0 | 153 | 75 | 75 | 100% | 0 | 153 |
 
 New constructs per product, in onboarding order (records):
 
@@ -190,6 +194,7 @@ New constructs per product, in onboarding order (records):
  15  flux                          4  ██
  16  otel-collector                0  
  17  redis                         0  
+ 18  elasticsearch                 1  █
  19  terraform-provider-aws        0  
  20  actions-runner-controller     0  
  21  kyverno                       0  
@@ -200,10 +205,10 @@ Cumulative constructs introduced:
 
 ```text
   1  cert-manager                 87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  2  istio                        99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  2  istio                        99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   3  argo-cd                     113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   4  cilium                      115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  5  postgresql                  122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  5  postgresql                  122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   6  kube-prometheus-stack       131  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   7  vault                       138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   8  crossplane                  139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
@@ -211,15 +216,16 @@ Cumulative constructs introduced:
  10  ingress-nginx               144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  11  grafana                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  12  strimzi                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 13  traefik                     145  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 13  traefik                     145  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  14  karpenter                   148  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  15  flux                        152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  16  otel-collector              152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  17  redis                       152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 19  terraform-provider-aws      152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 20  actions-runner-controller   152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 21  kyverno                     152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 22  falco                       152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 18  elasticsearch               153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 19  terraform-provider-aws      153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 20  actions-runner-controller   153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 21  kyverno                     153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 22  falco                       153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -351,6 +357,10 @@ No new constructs: the definition is configuration only.
 
 No new constructs: the definition is configuration only.
 
+### elasticsearch (order 18, wave 3): 1 new
+
+- `format:adoc`: Elasticsearch's per-major migration guides — its highest-value upgrade intelligence — exist in the repository only as AsciiDoc: docs/reference/migration/migrate_7_0.asciidoc + migrate_7_0/*.asciidoc, migrate_8_0.asciidoc + migrate_8_0/*.asciidoc (the aggregator only include::s 15 topic files) and migrate_9_0.asciidoc ("== Migrating to 9.0" with .Block-title [%collapsible] ==== topics, *Details* + / *Impact* + labels and |==== pipe tables). No markdown twin exists in-repo for 7.0 and 8.0; the 9.0 markdown twin (docs/release-notes/breaking-changes.md) embeds AsciiDoc definition lists ("Area" / ":   * entry") that the markdown reader folds into one item per area — the same file is therefore also declared adoc, and the ':'-marker stripping makes every bullet an item. The converter parallels normalize.RSTToMarkdown: line-preserving, one-line "="-prefix titles and two-line underline titles (AsciiDoc's FIXED style-to-level mapping, unlike rst's first-use ordering), anchors/attribute lists/macros/comments/block delimiters blanked, .Block titles bolded, link macros flattened, hard breaks stripped, pipe tables converted; converted markup is read in list-item mode like docbook/rst. This is the third format in the slot created for docbook and filled for rst; cilium's record and strimzi's both named Elasticsearch as the AsciiDoc decision to make, and the answer is yes on its own evidence. (also needed by opensearch (the fork of this very repository keeps the same migrate_N_0.asciidoc conventions), neo4j (upgrade/migration docs are AsciiDoc), the elastic stack siblings (kibana/logstash/beats docs are AsciiDoc; logstash ships per-version breaking-changes asciidoc), the wider Asciidoctor/Antora ecosystem (WildFly, Groovy/Gradle docs))
+
 ### terraform-provider-aws (order 19, wave 3): 0 new
 
 No new constructs: the definition is configuration only.
@@ -374,7 +384,7 @@ No new constructs: the definition is configuration only.
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) +1 unclassified | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 31 (4.4) | 93% | 59 / 0 | 25 (n=7) | 20/24/57 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
 | 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 99% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) | 93/0/12/0 (7 of 7 reports) | 10 | full 7 |
-| 3 | terraform-provider-aws, actions-runner-controller, kyverno, falco | 4 of 4 (terraform-provider-aws, actions-runner-controller, kyverno, falco) | 0 (0.0) | 100% | 0 / 0 | 19 (n=4) | 13/19/33 (49%) | 59/0/7/2 (4 of 4 reports) | 1 | full 4 |
+| 3 | elasticsearch, terraform-provider-aws, actions-runner-controller, kyverno, falco | 4 of 5 (terraform-provider-aws, actions-runner-controller, kyverno, falco) | 1 (0.2) | 100% | 6 / 0 | 21 (n=5) | 15/19/47 (42%) | 69/0/10/2 (5 of 5 reports) | 1 | full 4, partial 1 |
 
 ## Notes from the records
 
@@ -411,6 +421,8 @@ No new constructs: the definition is configuration only.
 **otel-collector**: Third zero-new wave-2 product: onboarding was research plus configuration. The scope decision: the product is the RELEASES repository (the six distributions users deploy — binaries, deb/rpm/msi packages, images on docker.io + ghcr), not the core framework and not the contrib component repo; core and contrib are modeled as the distribution's content — their changelog sections read at the same-numbered tags (the release body itself links exactly those two), plus a core-release artifact with the honest distribution-only-patch exceptions. The k8s operator is noted as a related product. The definition is the construct-leanest big-product shape so far (57 constructs, all reused; no fallback groups needed — raw git hosts answered everything). Discovery quality was the highest yet for images (six ghcr channels historically-validated by itself) but its binary-asset proposer still cannot template per-OS/arch asset families, and it missed the multi-repository topology entirely — the one class of finding research had to supply. The upstream anomalies this product exposed (three releases that published nothing, a missing multi-arch index tag on the newest release, sections mis-headed as follow-up patches) are exactly what the exceptions construct exists for; none required Go changes.
 
 **redis**: Third wave-2 zero-new-construct product (grafana, strimzi): the whole non-Kubernetes topology — in-repo per-line release notes, GitHub advisory feed, download.redis.io tarballs, Docker official image with a mirror fallback, EOL-dated lifecycle statements — is configuration over existing constructs. The one generic change (setext headings) completes CommonMark in the shared markdown scanner rather than adding definition vocabulary; it benefits any product whose upstream documents underline titles (no catalog field, schema entry or ingest branch was added). Discovery baseline: right versioning and channels-from-tags, zero artifacts, and it mistook the website notes copy for the source; its own historical validation of the GitHub release body was correct and kept.
+
+**elasticsearch**: The headline decision: format:adoc implemented. Two records deferred it to this product (cilium's rst justification: 'Strimzi/Elasticsearch are AsciiDoc'; strimzi's: 'Elasticsearch should decide on its own evidence'), and the evidence says yes — the per-major migration guides exist only as AsciiDoc, and even the 9.x markdown breaking-changes file embeds AsciiDoc definition lists. The stale lead (docs/changelog.asciidoc) does not exist at any tag. Dual majors are represented the traefik/redis way: one semver space, lifecycle statements scoped by constraint — everything below 8.x end-of-life (7.17's support ended 2026-01-15), 8.x deprecated since 9.0's GA with the published 2027-01-15 end of maintenance quoted (v8.19.22 shipped eight days before v9.5.4). The AGPL re-licensing era (8.19/9.0+) is descriptive only. Second and third edges exercised: 9.5.0 → 9.5.4 (1 breaking · 134 changes · 4 CVE-carrying dependency upgrades; lucene 10.5.0 → 10.5.1) and 7.17.23 → 8.19.22 (165 breaking · 167 changes · 1 warning: the target line is deprecated — the deprecated-major edge cites the 15-file 8.0 guide). Discovery quality: right versioning and the advisories feed, one structurally-perfect proposal that yields zero intelligence (the item-yield blind spot), zero artifacts, and the real image excluded as docs-only. First onboarding with every canonical host reachable (docker.elastic.co via the anonymous token flow, artifacts.elastic.co, www.elastic.co, repo1.maven.org): nothing is unverified and no mirror was needed. Elapsed time is agent wall-clock and excludes this record.
 
 **terraform-provider-aws**: The v5 -> v6 boundary edge: path = 6.0.0 exactly (minor-lineage over an essentially linear history). 26 breaking = 19 OpsWorks + 2 Worklink resource removals and 3 removed provider arguments from the v6 guide's removal sections (declared), 2 breaking changelog items (s3_prefix now required, sagemaker exclusive blocks) and SimpleDB. 153 changes: 148 guide items (the per-resource Data Source/Resource sections as action-required migrations) and 5 changelog items. Two more edges were exercised: 6.66.0 -> 6.67.0, the weekly hop (23 changes = exactly the changelog's 23 bullets, 22 declared + 1 heuristic, 0 breaking — classification quality is 1:1 with the document) and 6.57.0 -> 6.57.1, a true patch (1 bug fix; the edge also shows the aws-sdk-go-v2 pin being REVERTED v1.43.1 -> v1.43.0 with go.mod + module proxy evidence — the fix for the UnknownError regression introduced in 6.57.0). Discovery baseline at this velocity: 15 seconds end to end over 521 tags (blobless clone, 4-release validation window); it coped trivially because the topology is simple — but it found no artifacts (there are none in the tree; binaries are attached by the release workflow) and no upgrade guides (website/docs/guides/), and it excluded the registry reference that is actually the publication index. No host was unreachable from the sandbox: releases.hashicorp.com, registry.terraform.io (/v1 API), proxy.golang.org, api.github.com (quota-limited), developer.hashicorp.com and discuss.hashicorp.com all answered. Elapsed time is agent wall-clock and excludes this record.
 

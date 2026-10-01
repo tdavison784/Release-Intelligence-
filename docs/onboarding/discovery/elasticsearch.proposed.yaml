@@ -1,0 +1,55 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: elasticsearch
+name: elasticsearch
+homepage: https://github.com/elastic/elasticsearch
+versioning:
+  scheme: semver
+  tagPrefix: v
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/elastic/elasticsearch
+  - id: release-note-files
+    roles:
+      - release-notes
+    locator:
+      kind: repo-dir
+      repository: github.com/elastic/elasticsearch
+      baseRef: '{{.PrevTag}}'
+      path: docs/changelog
+      glob: '*.yaml'
+    extract:
+      type: release-note-yaml
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 9.3.0
+      - 9.3.8
+      - 9.4.0
+      - 9.4.7
+      - 9.5.0
+      - 9.5.4
+    notes: Structured per-change notes accumulate in this directory; a release's notes are the files added since the previous release.
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: elastic/elasticsearch
+artifacts: []
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  validatedReleases:
+    - v9.3.0
+    - v9.3.8
+    - v9.4.0
+    - v9.4.7
+    - v9.5.0
+    - v9.5.4
+  notes: Proposed by automated discovery; relationship checks run against v9.3.0, v9.3.8, v9.4.0, v9.4.7, v9.5.0, v9.5.4.
