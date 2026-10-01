@@ -1,0 +1,114 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: crossplane
+name: crossplane
+homepage: https://github.com/crossplane/crossplane
+versioning:
+  scheme: semver
+  tagPrefix: v
+  tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:preview\.\d+|rc\.\d+))?)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/crossplane/crossplane
+      tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:preview\.\d+|rc\.\d+))?)$
+  - id: release-notes-line
+    roles:
+      - release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/crossplane/docs
+      ref: master
+      path: content/v{{.Major}}.{{.Minor}}/whats-new/_index.md
+    releaseKinds:
+      - minor
+      - major
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 2.2.0
+      - 2.3.0
+      - 2.4.0
+  - id: upgrade-guide
+    roles:
+      - upgrade-guide
+    locator:
+      kind: repo-file
+      repository: github.com/crossplane/docs
+      ref: master
+      path: content/v{{.Major}}.{{.Minor}}/guides/upgrade-crossplane.md
+    releaseKinds:
+      - minor
+      - major
+    validatedAgainst:
+      - 2.2.0
+      - 2.3.0
+      - 2.4.0
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: crossplane/crossplane
+    notes: 'Security policy: SECURITY.md → https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability https://github.com/crossplane/crossplane/security https://docs.github.com/en/code-security/security-advisories/repository-security-advisories/about-repository-security-advisories'
+artifacts:
+  - id: crossplane-chart
+    type: helm-chart
+    name: crossplane
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: helm-repo
+        url: https://charts.crossplane.io/stable
+        chart: crossplane
+      - kind: helm-repo
+        url: https://charts.crossplane.io/master
+        chart: crossplane
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/crossplane/crossplane
+          path: cluster/charts/crossplane/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/crossplane/crossplane
+          path: cluster/charts/crossplane/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 2.2.0 unverifiable (not verifiable: https://charts.crossplane.io/stable/crossplane:2.2.0 (helm-repo: unavailable), https://charts.crossplane.io/master/crossplane:2.2.0 (helm-repo: unavailable)); 2.2.6 unverifiable (not verifiable: https://charts.crossplane.io/stable/crossplane:2.2.6 (helm-repo: unavailable), https://charts.crossplane.io/master/crossplane:2.2.6 (helm-repo: unavailable)); 2.3.0 unverifiable (not verifiable: https://charts.crossplane.io/stable/crossplane:2.3.0 (helm-repo: unavailable), https://charts.crossplane.io/master/crossplane:2.3.0 (helm-repo: unavailable)); 2.3.6 unverifiable (not verifiable: https://charts.crossplane.io/stable/crossplane:2.3.6 (helm-repo: unavailable), https://charts.crossplane.io/master/crossplane:2.3.6 (helm-repo: unavailable)); …).'
+  - id: crds
+    type: crd
+    name: CustomResourceDefinitions
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-dir
+        repository: github.com/crossplane/crossplane
+        path: cluster/crds
+        glob: '*.yaml'
+    contents:
+      - kind: crds
+    validatedAgainst:
+      - 2.2.0
+      - 2.2.6
+      - 2.3.0
+      - 2.3.6
+      - 2.4.0
+      - 2.4.2
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  validatedReleases:
+    - v2.2.0
+    - v2.2.6
+    - v2.3.0
+    - v2.3.6
+    - v2.4.0
+    - v2.4.2
+  notes: Proposed by automated discovery; relationship checks run against v2.2.0, v2.2.6, v2.3.0, v2.3.6, v2.4.0, v2.4.2.
