@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 11 product definitions, 11 onboarding records, 11 saved relationship reports.
+- 12 product definitions, 12 onboarding records, 12 saved relationship reports.
 - 143 distinct constructs are used across all definitions; the records introduce 143.
-- 2 of 11 recorded products introduced no new construct. The latest product that introduced one has order 10.
+- 3 of 12 recorded products introduced no new construct. The latest product that introduced one has order 10.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -81,6 +81,7 @@ What convergence looks like:
 | 9 | 1 | external-secrets | 271 (223) | 6 | 6 | 8 | 4 | 12 | 16 | 5 | 0 | 1 | 1 |
 | 10 | 1 | ingress-nginx | 342 (299) | 7 | 12 | 14 | 11 | 9 | 19 | 11 | 0 | 1 | 5 |
 | 11 | 2 | grafana | 380 (302) | 10 | 7 | 11 | 4 | 58 | 22 | 5 | 1 | 1 | 8 |
+| 12 | 2 | strimzi | 305 (226) | 5 | 10 | 16 | 3 | 10 | 19 | 0 | 0 | 1 | 3 |
 
 ### Constructs and effort
 
@@ -97,6 +98,7 @@ What convergence looks like:
 | 9 | external-secrets | 85 | 0 | 85 | 100% | 138 | 0 / 0 | 18 | full |
 | 10 | ingress-nginx | 93 | 5 | 88 | 95% | 143 | 9 / 0 | 25 | full |
 | 11 | grafana | 91 | 0 | 91 | 100% | 143 | 0 / 0 | 27 | full |
+| 12 | strimzi | 77 | 0 | 77 | 100% | 143 | 0 / 0 | 26 | full |
 
 ### Discovery and relationship validation
 
@@ -113,6 +115,7 @@ What convergence looks like:
 | external-secrets | 4/4/4 (67%) | 12/0/1/0 | 212/0/0/8/19 | 5 → 0 | 3 | 6 |
 | ingress-nginx | 6/4/9 (53%) | 25/0/2/3 | 663/0/47/115/18 | 0 → 0 | 9 | 7 |
 | grafana | 5/3/9 (47%) | 14/0/3/0 | 70/0/0/32/0 | 0 → 0 | 4 | 0 |
+| strimzi | 6/4/5 (67%) | 15/0/0/0 | 551/0/0/60/4 | 0 → 0 | 3 | 1 |
 
 ## Construct-introduction curve
 
@@ -129,6 +132,7 @@ What convergence looks like:
 | 9 | external-secrets | 0 | 138 | 85 | 85 | 100% | 0 | 138 |
 | 10 | ingress-nginx | 5 | 143 | 93 | 88 | 95% | 5 | 143 |
 | 11 | grafana | 0 | 143 | 91 | 91 | 100% | 0 | 143 |
+| 12 | strimzi | 0 | 143 | 77 | 77 | 100% | 0 | 143 |
 
 New constructs per product, in onboarding order (records):
 
@@ -144,6 +148,7 @@ New constructs per product, in onboarding order (records):
   9  external-secrets          0  
  10  ingress-nginx             5  ███
  11  grafana                   0  
+ 12  strimzi                   0  
 ```
 
 Cumulative constructs introduced:
@@ -160,6 +165,7 @@ Cumulative constructs introduced:
   9  external-secrets        138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  10  ingress-nginx           143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  11  grafana                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 12  strimzi                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -261,13 +267,17 @@ No new constructs: the definition is configuration only.
 
 No new constructs: the definition is configuration only.
 
+### strimzi (order 12, wave 2): 0 new
+
+No new constructs: the definition is configuration only.
+
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 30 (4.3) | 93% | 55 / 0 | 25 (n=7) | 20/24/56 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
-| 2 | grafana | 1 of 1 (grafana) | 0 (0.0) | 100% | 0 / 0 | 27 (n=1) | 5/3/9 (47%) | 14/0/3/0 (1 of 1 reports) | 0 | full 1 |
+| 2 | grafana, strimzi | 2 of 2 (grafana, strimzi) | 0 (0.0) | 100% | 0 / 0 | 26.5 (n=2) | 11/7/14 (56%) | 29/0/3/0 (2 of 2 reports) | 1 | full 2 |
 
 ## Notes from the records
 
@@ -292,6 +302,8 @@ No new constructs: the definition is configuration only.
 **ingress-nginx**: The retired state made two things visible. (1) A product is not only its releases: the strongest upgrade-relevant fact here (do not rely on future fixes) lives outside any release. (2) Verification is weakest where it matters least: the chart (gh-pages index), manifests (git) and notes are all verifiable; only the registry is not. The definition is 7 sources, 12 artifacts, one lifecycle statement; 25 minutes, 0 product-specific Go lines.
 
 **grafana**: Zero new constructs, zero Go changes: the wave-2 convergence point the plan predicts — everything this product needed (docs-at-main sources with release-kind and availability windows, a monorepo chart lookup by unprefixed appVersion, optional artifacts, exceptions for a removed-from-distribution release, package channels on a downloads host, CRD repo-dirs) already existed after ten onboardings. The two definition corrections that mattered (read the changelog and the upgrade guides at main; attach guides at majors too) were upstream timing facts found by research, and the classify tuning (whole-word deprecation, delete as removal, skip (Enterprise) items and plugin-development churn) was found by reading the edges, not by failing checks. Discovery's strengthened resolver was closer than for any earlier product: it had the right versioning, the right chart relation at the right post-migration index, and it validated the CRD artifact itself — its two wrong drops were both "the relationship template was rendered at the tag / with a v prefix", which is exactly the class of correction a reviewer can make in seconds.
+
+**strimzi**: Second wave-2 product, first one with zero new constructs: every channel is covered by existing constructs (markdown changelog sections, fallback groups, OCI/helm-repo channels, availability eras, references cross-checks, and version.strategy field for the bridge pin introduced by kube-prometheus-stack two orders earlier). Onboarding was configuration plus critical reading: the two substantive decisions were negative — no format:adoc construct (Strimzi's per-release intelligence is markdown/YAML, the adoc docs are generic procedures; Elasticsearch should decide that on its own evidence) and no kafka-versions compatibility source (a point constraint diffed as a set change states falsehoods; the changelog carries the matrix truthfully). The definition also demonstrates the placeholder- Chart.yaml trap: a chart whose in-tree metadata is rewritten at packaging can only be related to releases through the published artifact. Discovery quality: it proposed the right skeleton (versions, notes, chart, CRDs, zip, operator image with references, advisories) and validated 9 elements itself; its two wrong calls were the chart "independent" version (read the placeholder) and four overlapping install manifests.
 
 ## Data quality
 

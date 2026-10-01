@@ -1,0 +1,123 @@
+product: strimzi
+order: 12
+wave: 2
+repository: github.com/strimzi/strimzi-kafka-operator
+onboarding:
+  startedAt: "2026-10-01T14:06:18Z"
+  finishedAt: "2026-10-01T14:32:44Z"
+  minutes: 26
+discovery:
+  proposal: docs/onboarding/discovery/strimzi.proposed.yaml
+  report: docs/onboarding/discovery/strimzi.report.md
+# Discovery proposed git-tags, the GitHub releases fallback, CHANGELOG.md as
+# changelog (right heading), the release-body notes source, the chart (wrongly
+# "independent" — it read the placeholder in-tree Chart.yaml on the default
+# branch), four install manifests, the strimzi zip + CRD release assets, the
+# quay operator image with manifest cross-references and github-advisories,
+# and validated 9 elements against 1.0.0-1.2.0 by itself. It found no
+# upgrade-docs or compatibility source (both live as AsciiDoc / YAML shapes it
+# does not read) and no kafka/bridge/build-tooling images. Research corrected
+# the chart relation, collapsed the manifests, added the compatibility story,
+# the build-tooling images with their availability eras and the bridge pin.
+sources:
+  - {id: git-tags, origin: discovered, note: "kept as proposed (id 'tags' -> git-tags); tagPattern tightened to '^(?P<version>\\d+\\.\\d+\\.\\d+(?:-rc\\d+)?)$' (only -rcN pre-releases exist); lineage linear -> minor (upgrade paths are consecutive minors)"}
+  - {id: github-releases, origin: discovered, note: "versions fallback priority 1"}
+  - {id: changelog, origin: discovered-modified, note: "locator + '## <version>' section selection kept; classify rules added (Kafka support add/remove, k8s floor bumps, feature-gate stage moves, companion updates, feature bullets, actionRequired on the 'Major changes, deprecations' subsection)"}
+  - {id: github-release-notes, origin: discovered-modified, note: "kept as the changelog's fallback, but the body is NOT the changelog section verbatim (unlike Cilium): a curated announcement (⚠️ warnings, 'Main Changes since X.Y', Maven coordinates, image digest table); skip rules for the digest lines added"}
+  - {id: github-advisories, origin: discovered, note: "changelog CVE bullets link these GHSAs"}
+artifacts:
+  - {id: chart, origin: discovered-modified, note: "discovery said version 'independent' (in-tree Chart.yaml is a 0.1.1/0.1.0 placeholder rewritten by packaging); corrected to template {{.Version}} verified on the published OCI chart (quay.io/strimzi-helm, 65 tags == release versions); strimzi.io/charts kept as second channel (alive, newest 1.2.0); no chart-metadata content (placeholder source, no kubeVersion set)"}
+  - {id: crds, origin: discovered, note: "strimzi-crds-<v>.yaml release asset, multi-doc bundle; kept"}
+  - {id: install-zip, origin: discovered, note: "strimzi-<v>.zip release asset; kept"}
+  - {id: cluster-operator-manifest, origin: discovered-modified, note: "discovery proposed four install manifests (install/ + packaging/install/ duplicates, topic/user-operator deployments); collapsed to the one packaging/install cluster-operator Deployment — the canonical install file that embeds every default image env — with image-refs content and the operator-image reference pattern"}
+  - {id: operator-image, origin: discovered, note: "quay channel + manifest cross-references kept; docker.io/strimzi mirror added"}
+  - {id: kaniko-executor-image, origin: manual, note: "release-tagged build-tooling image on quay (+ docker.io mirror)"}
+  - {id: maven-builder-image, origin: manual, note: "same; availability >= 0.26.0 (0.25.0 was never pushed to quay)"}
+  - {id: buildah-image, origin: manual, note: "same; availability >= 0.49.0 (STRIMZI_DEFAULT_BUILDAH_IMAGE appears then)"}
+  - {id: jmxtrans-image, origin: manual, note: "availability >= 0.17.0, < 0.35.0 (JmxTrans removed in 0.35.0)"}
+  - {id: kafka-bridge-image, origin: manual, note: "independently versioned companion (own release train) pinned per release by chart values kafkaBridge.image.tag -> version.strategy field (the kube-prometheus-stack construct); quay carries every pin (verified 0.22.3 at 0.32.0 through 1.1.0 at 1.2.0)"}
+discoveryRejected:
+  - {id: api-conversion-binary, reason: "discovery itself dropped it after validation (the 0.22-era asset no longer exists at 1.x tags)"}
+  - {id: "install-topic-operator / install-user-operator / install/ manifest duplicates", reason: "install/ mirrors packaging/install/ (same files); the topic/user operator deployments run the same operator image as the cluster-operator Deployment already modeled"}
+  - {id: strimzi-kafka-operator-chart-2, reason: "helm-charts/ and packaging/helm-charts/ are the same chart (mirrored trees); one chart artifact"}
+  - {id: "images drain-cleaner, access-operator", reason: "separate products with own repositories and version trains (1.6.1, 0.3.0), pinned into Strimzi's install files; their bumps surface as changelog dependency bullets"}
+  - {id: "image quay.io/strimzi/kafka", reason: "matrix artifact: one tag per supported Kafka version (<release>-kafka-<kafkaVersion>), no single version relation expressible (see gaps)"}
+relationships:
+  historicalReleasesChecked: [0.25.0, 0.26.0, 0.26.1, 0.27.0, 0.27.1, 0.28.0, 0.29.0, 0.30.0, 0.31.0, 0.31.1, 0.32.0, 0.33.0, 0.33.2, 0.34.0, 0.35.0, 0.35.1, 0.36.0, 0.36.1, 0.37.0, 0.38.0, 0.39.0, 0.40.0, 0.41.0, 0.42.0, 0.43.0, 0.44.0, 0.45.0, 0.45.2, 0.46.0, 0.46.1, 0.47.0, 0.48.0, 0.49.0, 0.49.1, 0.50.0, 0.50.1, 0.51.0, 1.0.0, 1.0.1, 1.1.0, 1.2.0]
+  # First complete draft, first run (`ri check strimzi`, the four 1.x
+  # releases): every subject passed — 0 failures, 0 unverifiable. The -n 30
+  # run (41 releases, 0.25.0-1.2.0, chosen to exercise the jmxtrans/buildah
+  # availability eras) found 1 unverifiable (maven-builder @ 0.25.0) and 4
+  # "covered" changelog lookups; after the availability fix the final run is
+  # 551 pass / 0 fail / 0 unverifiable / 4 covered / 60 not-applicable.
+  initialFailures: 0
+  finalFailures: 0
+  manualInterventions:
+    - {subject: maven-builder-image, change: "availability >= 0.26.0", reason: "quay.io/strimzi/maven-builder starts at 0.26.0; 0.25.0 was never pushed (unverifiable in the -n 30 run)"}
+    - {subject: kafka-versions, change: "removed the compatibility source after reading the sample edge", reason: "the yaml-records single-record selector (record with default: true) produced a point constraint that the compat diff renders as a set change — 'Kafka support narrowed: 4.2 → 4.3 (drops 4.2)' is false, 4.2.x remains supported in 1.2.0; the changelog bullets carry the matrix changes accurately"}
+    - {subject: changelog classify, change: "added the feature rule '^((added |new )?support for |in-place .*support)'", reason: "the first edge reported 0 features ('Support for Gateway API-based type: tlsroute listener' etc. fell into other/low); anchored so 'Remove support for Kafka' stays breaking"}
+  unverifiable: []
+constructs:
+  new: []                  # zero: the first wave-2 product adds no construct
+  considered:
+    - "extract.format adoc: REJECTED. Strimzi's documentation is AsciiDoc, but every per-release upgrade fact lives outside it: release notes are CHANGELOG.md (markdown), the Kafka support matrix is kafka-versions.yaml (YAML), and the adoc assemblies are generic procedures parameterised by attributes (no per-release sections to select). A line-preserving adoc->markdown renderer would parallel rst/docbook but has no load-bearing content to read here. Elasticsearch (wave 3) is the named second AsciiDoc product: it should decide on its own evidence, not on Strimzi's — building it now would be speculative. (The one adoc-located fact, the :KubernetesVersion: attribute, is a one-line attribute assignment, not a document; an attribute reader would be a different, smaller construct — also not justified by one line.)"
+    - "kafka-versions.yaml as a compatibility source (yaml-records over the version/supported/default records): REMOVED after reading the edge output. Any single-record selection (default version, oldest supported) yields a point constraint whose set-diff language is half-true ('drops 4.2' / 'adds 4.2'); representing the supported SET needs multi-record selection AND set-aware compat diffing (constraints are keyed by (platform, kind) alone) — a deep change whose cross-product demand is arguable (other onboarded matrices are one-row-per-release). Recorded as a gap instead."
+    - "version.strategy field with a root-scalar path (bridge.version is a whole-file '1.1.0'): NOT needed — the same pin lives at kafkaBridge.image.tag of the chart values.yaml, a plain YAML path (the construct's intended shape, per kube-prometheus-stack)."
+    - "extending the image-refs scanner to env values (STRIMZI_DEFAULT_*_IMAGE / STRIMZI_KAFKA_IMAGES of the install manifest): rejected — bare 'value: repo:tag' lines have no image key and would false-positive across products; the bridge pin is already an artifact, the kaniko/buildah/maven pins restate the release tag their artifacts verify."
+    - "operator image on docker.io as mirror: kept as second channel (token-auth pull verified 200), unexercised while quay answers — same declaration pattern as Cilium."
+goChanges:
+  productSpecific: 0
+  generic: []              # none: configuration only
+unreachableSources:
+  - {host: api.github.com, reason: "transient: the anonymous 60/h quota was exhausted by the discovery run during research (curl probes returned rate-limit errors); it recovered before the final check — github-release-notes validated 41/41 — so no source of the final definition is unreachable"}
+ambiguousRelationships:
+  - "Tags are bare semver (no 'v'); the wave brief's 'v0.x.y' assumption was wrong in detail and is corrected here from the tag list (182 tags: 81 stable, 100 -rcN, 1 ancient v-prefixed)"
+  - "0-major semantics: minors carry the breaking changes in both eras ('Major changes, deprecations, and removals' subsections exist only on N.M.0; the docs define upgrade paths as consecutive minors) — lineage minor, no releaseKinds needed; 0.51.0 -> 1.0.0 is simply the next line"
+  - "The in-tree Chart.yaml is a placeholder (version 0.1.1 / appVersion 0.1.0 at every tag) — the chart relation only holds on the published chart (OCI/Helm repo), which is what the definition probes"
+  - "The GitHub release body is a curated announcement, not the changelog section (⚠️ callouts, digest tables); declared as fallback only, so the two cannot double-count"
+  - "Four patch releases (0.26.1, 0.27.1, 0.33.2, 0.35.1) have no CHANGELOG.md section at their own tags — upstream anomalies the release-notes fallback group covers (outcome 'covered')"
+  - "quay.io/strimzi/kafka carries both '<release>-kafka-<kv>' (referenced by the install manifests) and '<release>-0-kafka-<kv>' (build-counter) tag forms"
+  - "The bridge's own release train moved to 1.x in lockstep numbering with the operator (bridge 1.1.0 pinned by operator 1.2.0), so quay tags alone cannot distinguish the two products' versions — the field pin reads the operator's pin, not the train"
+representability: full
+gaps:
+  - "kafka-versions.yaml (the per-release supported-Kafka set + default) has no accurate machine-diffed form: single-record selection mis-renders as a set change and the full set needs multi-record selection plus set-aware compat diffing (see constructs.considered). The matrix changes surface as classified changelog bullets ('Remove support for Kafka 4.1.x' -> breaking/action-required) — accurate but not computed from the matrix file itself."
+  - "The Kubernetes minimum ('1.30 and later' at 1.2.0) is only an AsciiDoc attribute (:KubernetesVersion:) plus changelog prose; captured as action-required compatibility notes, not a platform constraint."
+  - "The Kafka broker image (quay.io/strimzi/kafka, one tag per supported Kafka version) is a matrix artifact no version relation expresses; it is visible only through the changelog bullets and (partially) the CRD/values diffs."
+  - "Install-manifest env image pins (STRIMZI_KAFKA_IMAGES map) are not scanned by the image-refs content (it reads image:/--x-image= lines only), so per-Kafka-version image moves do not appear as image changes; the release-tagged images (operator, kaniko, buildah, maven-builder, bridge) are artifacts and do."
+  - "The OLM/OperatorHub channel (stable + version channels) is not modeled."
+sampleEdge:
+  from: 1.0.1
+  to: 1.2.0
+  summary: "2 breaking · 5 action required · 37 changes · 3 warnings"
+  evidenceRecords: 74
+  notes: >-
+    Path 1.1.0 → 1.2.0 (minor-lineage). Breaking = the Kafka 4.1.x support
+    removal and the ServerSideApplyPhase1 feature gate going GA/permanent —
+    both from classify rules over changelog evidence. Action required
+    includes the entity-operator healthcheck port renames, the
+    Restricted-PSA security-context default (5 new securityContext.* Helm
+    values in the values diff) and three GHSAs still affecting 1.2.0. CRD
+    schema diffs (5) are exactly 1.1/1.2.0's new v1 fields (Gateway API
+    parentRefs, per-broker templates, Maven mirrors/scope, templatedVolumes,
+    KafkaUser validity/renewal). Artifact table: chart/crds/zip/operator/
+    kaniko/maven-builder/buildah 1.0.1 → 1.2.0 verified against quay and the
+    release assets; kafka-bridge-image 1.0.0 → 1.1.0 from the values.yaml
+    field pin, verified on quay.
+notes: >-
+  Second wave-2 product, first one with zero new constructs: every channel is
+  covered by existing constructs (markdown changelog sections, fallback
+  groups, OCI/helm-repo channels, availability eras, references
+  cross-checks, and version.strategy field for the bridge pin introduced by
+  kube-prometheus-stack two orders earlier). Onboarding was configuration
+  plus critical reading: the two substantive decisions were negative — no
+  format:adoc construct (Strimzi's per-release intelligence is markdown/YAML,
+  the adoc docs are generic procedures; Elasticsearch should decide that on
+  its own evidence) and no kafka-versions compatibility source (a point
+  constraint diffed as a set change states falsehoods; the changelog carries
+  the matrix truthfully). The definition also demonstrates the placeholder-
+  Chart.yaml trap: a chart whose in-tree metadata is rewritten at packaging
+  can only be related to releases through the published artifact. Discovery
+  quality: it proposed the right skeleton (versions, notes, chart, CRDs,
+  zip, operator image with references, advisories) and validated 9 elements
+  itself; its two wrong calls were the chart "independent" version (read the
+  placeholder) and four overlapping install manifests.

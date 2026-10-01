@@ -1,0 +1,234 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: strimzi
+name: strimzi-kafka-operator
+homepage: https://github.com/strimzi/strimzi-kafka-operator
+versioning:
+  scheme: semver
+  lineage: linear
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/strimzi/strimzi-kafka-operator
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: strimzi/strimzi-kafka-operator
+    priority: 1
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: strimzi/strimzi-kafka-operator
+      ref: '{{.Tag}}'
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 1.0.0
+      - 1.0.1
+      - 1.1.0
+      - 1.2.0
+  - id: changelog
+    roles:
+      - changelog
+    locator:
+      kind: repo-file
+      repository: github.com/strimzi/strimzi-kafka-operator
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: ^\[?v?{{regexQuote .Version}}\]?(\s|$)
+    validatedAgainst:
+      - 1.0.0
+      - 1.0.1
+      - 1.1.0
+      - 1.2.0
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: strimzi/strimzi-kafka-operator
+artifacts:
+  - id: strimzi-kafka-operator-chart
+    type: helm-chart
+    name: strimzi-kafka-operator
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: quay.io/strimzi-helm/strimzi-kafka-operator
+      - kind: helm-repo
+        url: https://strimzi.io/charts
+        chart: strimzi-kafka-operator
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/strimzi/strimzi-kafka-operator
+          path: helm-charts/helm3/strimzi-kafka-operator/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/strimzi/strimzi-kafka-operator
+          path: helm-charts/helm3/strimzi-kafka-operator/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 1.0.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 1.0.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 1.1.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 1.2.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable)).'
+  - id: strimzi-kafka-operator-chart-2
+    type: helm-chart
+    name: strimzi-kafka-operator
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: quay.io/strimzi-helm/strimzi-kafka-operator
+      - kind: helm-repo
+        url: https://strimzi.io/charts
+        chart: strimzi-kafka-operator
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/strimzi/strimzi-kafka-operator
+          path: packaging/helm-charts/helm3/strimzi-kafka-operator/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/strimzi/strimzi-kafka-operator
+          path: packaging/helm-charts/helm3/strimzi-kafka-operator/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 1.0.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 1.0.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 1.1.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 1.2.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable)).'
+  - id: install-cluster-operator-060-deployment-strimzi-cluster-oper
+    type: manifest
+    name: 060-Deployment-strimzi-cluster-operator.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/strimzi/strimzi-kafka-operator
+        path: install/cluster-operator/060-Deployment-strimzi-cluster-operator.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 1.0.0
+      - 1.0.1
+      - 1.1.0
+      - 1.2.0
+  - id: install-topic-operator-05-deployment-strimzi-topic-operator
+    type: manifest
+    name: 05-Deployment-strimzi-topic-operator.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/strimzi/strimzi-kafka-operator
+        path: install/topic-operator/05-Deployment-strimzi-topic-operator.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 1.0.0
+      - 1.0.1
+      - 1.1.0
+      - 1.2.0
+  - id: install-user-operator-05-deployment-strimzi-user-operator
+    type: manifest
+    name: 05-Deployment-strimzi-user-operator.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/strimzi/strimzi-kafka-operator
+        path: install/user-operator/05-Deployment-strimzi-user-operator.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 1.0.0
+      - 1.0.1
+      - 1.1.0
+      - 1.2.0
+  - id: packaging-install-cluster-operator-060-deployment-strimzi-cl
+    type: manifest
+    name: 060-Deployment-strimzi-cluster-operator.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/strimzi/strimzi-kafka-operator
+        path: packaging/install/cluster-operator/060-Deployment-strimzi-cluster-operator.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 1.0.0
+      - 1.0.1
+      - 1.1.0
+      - 1.2.0
+  - id: strimzi-binary
+    type: binary
+    name: strimzi
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: http
+        url: https://github.com/strimzi/strimzi-kafka-operator/releases/download/{{.Tag}}/strimzi-{{.Version}}.zip
+    validatedAgainst:
+      - 1.0.0
+      - 1.0.1
+      - 1.1.0
+      - 1.2.0
+  - id: strimzi-crds
+    type: crd
+    name: strimzi-crds-{{.Version}}.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: http
+        url: https://github.com/strimzi/strimzi-kafka-operator/releases/download/{{.Tag}}/strimzi-crds-{{.Version}}.yaml
+    contents:
+      - kind: crds
+    validatedAgainst:
+      - 1.0.0
+      - 1.0.1
+      - 1.1.0
+      - 1.2.0
+  - id: operator
+    type: container-image
+    name: operator
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/strimzi/operator
+    references:
+      - artifact: install-cluster-operator-060-deployment-strimzi-cluster-oper
+        pattern: quay.io/strimzi/operator:{{.Tag}}
+      - artifact: install-topic-operator-05-deployment-strimzi-topic-operator
+        pattern: quay.io/strimzi/operator:{{.Tag}}
+      - artifact: install-user-operator-05-deployment-strimzi-user-operator
+        pattern: quay.io/strimzi/operator:{{.Tag}}
+      - artifact: packaging-install-cluster-operator-060-deployment-strimzi-cl
+        pattern: quay.io/strimzi/operator:{{.Tag}}
+    validatedAgainst:
+      - 1.0.0
+      - 1.0.1
+      - 1.1.0
+      - 1.2.0
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  validatedReleases:
+    - 1.0.0
+    - 1.0.1
+    - 1.1.0
+    - 1.2.0
+  notes: Proposed by automated discovery; relationship checks run against 1.0.0, 1.0.1, 1.1.0, 1.2.0.
