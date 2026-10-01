@@ -87,10 +87,12 @@ environment:
       match:
         subject: global.rbac.disableHTTPChallengesRole
       rule: impact:values-new-key
+      classification: review-required
       why: the values file already sets this key, which only exists from v1.18.0, so it starts taking effect on upgrade
     - id: F3
       match:
         rule: impact:kubernetes-in-range
+      classification: informational
       why: cluster Kubernetes 1.31 is inside cert-manager v1.18's supported range 1.29-1.33 (README support table), which should be confirmed, not flagged
   notExpectedFindings:
     - title: no CRD removed by this upgrade

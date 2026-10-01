@@ -1,0 +1,26 @@
+case: argo-cd-2.14-3.0
+reviewedAt: "2026-10-01"
+method: >-
+    Sample-based human adjudication (G9): every change matching a notExpected
+    entry plus a sample of unmatched changes, each read against the case's
+    cited upstream documents. Dataset false positives are confirmed or
+    overturned; unmatched samples get true-positive / false-positive /
+    uncertain verdicts. Verdicts feed labeledPrecision and the false-action
+    rate.
+adjudications:
+  - changeId: chg-8dbedd5824fc
+    verdict: true-positive
+    reason: "the release body tells upgraders to read the per-minor upgrade docs when skipping minors — real upgrade-path guidance"
+    # output was: Upgrading: If upgrading from a different minor version, be sure to read the upgrading documentation
+  - changeId: chg-2dd090ac5612
+    verdict: false-positive
+    reason: "internal race-condition fix; no operator action"
+    # output was: 43e594104212bae8ec15bacf7f31c504061842ee: fix: Race condition occurs during initial sharding
+  - changeId: chg-5f5cfcebade0
+    verdict: false-positive
+    reason: "commit-level fix (JSON format); no upgrade meaning"
+    # output was: e3b333a8609134daa570c2b098134ef26e35ffa4: fix: JSON format
+  - changeId: chg-174f313e59db
+    verdict: false-positive
+    reason: "chore: linter enablement; development noise"
+    # output was: f245e8beb52e2dd08860f9222a33a2c215b7f291: chore: enable err-error and strconcat of perfsprint linter

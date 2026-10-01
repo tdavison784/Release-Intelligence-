@@ -306,3 +306,237 @@ in a later round: 83 of the 103 stored false positives are routine-marked
 (vault 53, cilium 16, ingress 14), so excluding them would move brief
 precision from 0.49 (100/(100+103)) to ≈ 0.87 (100/120) — but that is a
 metrics decision, not this round's.
+
+---
+
+# Phase 3, Goals 8–12: the expanded dataset, classification scoring, honest metrics, hard gates, adversarial pack (2026-10-01)
+
+This round grows the dataset from 9 to **17 cases (115 expected items)**, adds
+the classification axis to every expectation, scores runs against it
+(confusion matrix with severity weighting), replaces the single precision
+number with the honest metric set, installs the pre-registered hard gates,
+adds a sample-based human adjudication layer, and ships an adversarial
+environment pack that tries to fool the join offline.
+
+## Dataset composition (G8)
+
+Eight new cases, each authored blind from the cited upstream documents (per
+case: `NOTES.md` records sources and judgement calls) and, where the join
+vocabulary supports it, carrying a reconstructed pre-upgrade environment
+fixture:
+
+| new case | product | transition | env fixture | expectations | change types covered |
+|---|---|---|---|---|---|
+| cert-manager-1.16-1.17 | cert-manager | v1.16.0 → v1.17.0 | values + manifests (RSA-4096 CA hierarchy, ValidateCAA pin) | 5 | breaking behaviour (signature hashes), feature-gate deprecation, gate promotion defaults, CRD field addition, log-format change |
+| cilium-1.15-1.17 | cilium | v1.15.6 → v1.17.0 | values + images (two-hop value drift) | 9 | **multi-hop upgrade** (two upgrade notes in one edge), version-gated path, CRD field removal, API version move, Helm default change, integration removal, deprecation lifecycle across hops |
+| argo-cd-2.14-3.0 | argo-cd | v2.14.5 → v3.0.0 | manifests (RBAC CM, ApplicationSet) | 9 | **mandatory migration guide** (nine breaking changes with detection/remediation), default-config change, removed metrics/repo channel, dependency (Helm 3.17.1) |
+| karpenter-0.37.8-1.0.0 | karpenter | v0.37.8 → v1.0.0 | values + manifests (v1beta1 NodePool/EC2NodeClass) + images | 10 | **CRD/API migration** (v1beta1→v1 with conversion webhooks), API renames, removed annotations/taints, schema tightening (required fields), IMDS default, env-var drops, compatibility matrix |
+| strimzi-0.45-0.46 | strimzi | 0.45.0 → 0.46.0 | manifests + CRDs + images | 8 | **architecture removal** (ZooKeeper, MirrorMaker 1 incl. its CRD), storage-override removal, plugin removals, Kafka support window, OPA deprecation |
+| istio-1.23-1.24 | istio | 1.23.4 → 1.24.0 | values + manifests (ambient + telemetry CR) | 7 | **ordered upgrade procedure**, third-party compatibility (istio-csr/ALPN), chart replacement, Helm-managed CRDs, conflict-resolution behaviour, telemetry attribute migration |
+| postgresql-17.2-17.3 | postgresql | REL_17_2 → REL_17_3 | — | 5 | **security remediation** (CVE-2025-1094), behavioural reverts, tzdata bump, upgrade-blocking extension fix |
+| terraform-provider-aws-5.99-6.0 | terraform-provider-aws | v5.99.1 → v6.0.0 | — | 9 | **breaking behavioural changes** (state/output semantics), attribute removals, default change, validation tightening, provider deprecations |
+
+Dataset totals: **17 cases, 115 expected items** (28 critical, 70 important,
+17 minor), 8 with environment fixtures, 21 environment-impact links, 19
+expected findings. Every expectation carries at least one upstream citation
+with a quote; per-expectation `classification` follows
+docs/ACTION_CLASSIFICATION.md and `notExpected` entries may carry the class
+such output must NOT have carried.
+
+## Headline numbers (deterministic run, stored under eval/results)
+
+| metric | value |
+|---|---|
+| pipeline failures | **0** (execution errors counted separately; none occurred) |
+| recall | **1.00** (115/115) — criticalRecall **1.00** (28/28), importantRecall **1.00** (70/70) |
+| raw precision (deprecated `precision`) | 0.64 (211 matched, 117 notExpected-matched) |
+| labeledPrecision (adjudicated) | **0.57** (189 true / 140 false across the adjudicated output) |
+| falseActionRate | **0.00** (0 of 3 ACTION findings wrong) |
+| actionFindingEvidence | **1.00** (3/3 ACTION findings with fully-resolving two-chain provenance) |
+| classificationAccuracy | **0.46** (26/57 observable class expectations matched) |
+| unknownRate | **0.74** (findings that honestly say "cannot tell") |
+| applicabilityAccuracy | **0.10** (2 of 21 claimed environment links reach the environment) |
+| evidenceCoverage | **1.00** (every matched change cites resolving evidence) |
+| duplicateRate | 0.03 (47 groups; mostly the known multi-source restatement + CRD-diff fragmentation shapes) |
+| unsupported | **0** |
+
+**Recall is perfect and every conclusion is evidence-backed; the honest
+failures are applicability and classification.** The join reaches this
+environment for 2 of the 21 links the fixtures claim (both Cilium cases: a
+removed values key and a changed image), leaves 74% of findings at UNKNOWN,
+and answers "not-affected" where the fixtures say work is required — the
+confusion matrix below quantifies exactly that.
+
+## Confusion matrix (G9)
+
+Expected class × actual class over labelled units. A unit is labelled by the
+`expectedImpact` relevance of the expected item its change belongs to, or by
+an `expectedFindings` classification clause; the actual class is the
+strongest class among the findings joining that change (one cell per
+expected-item × change pair — counting every finding would let a 25-key
+values-section removal manufacture dozens of cells out of one judgement).
+47 cells across 8 environment cases:
+
+```
+expected\actual   ACTION REVIEW  INFO  NOTAFF UNKNOWN
+ACTION                 0      0     2      5      28
+REVIEW                 0      0     0      0       9
+INFORMATIONAL          0      0     0      0       3
+```
+
+Weighted miss **221** under the pre-registered severity weighting
+(docs/ACTION_CLASSIFICATION.md): ACTION → NOT AFFECTED ×10 (catastrophic),
+ACTION → UNKNOWN and NOT AFFECTED → ACTION ×5 (serious), ACTION → REVIEW ×1
+(tolerable but imperfect); the full table is in
+`internal/eval/classification.go`.
+
+Reading: **the join never invents required action** (0 cells of
+NOT-AFFECTED→ACTION; falseActionRate 0), never waves away a needed check
+silently — it says UNKNOWN (28+9+3 cells) — but when it does decide, it
+decides "checked, clear" (5×) where the fixtures say the operator must act.
+That asymmetry is the finding: the join's conservatism is safe but
+under-informative, and its UNKNOWN rate (0.74) is the honest cost.
+
+## The gate panel (G11)
+
+`ri eval` now prints the gate panel and exits non-zero when a gate fails.
+Thresholds live in `eval/gates.yaml` and are **pre-registered**: they were
+fixed from the phase plan before the expanded dataset was scored (the
+dataset landed first, then gates activated on the stored results). Failures
+are findings; nothing in this round tunes the pipeline against them.
+
+| gate | threshold | actual | verdict |
+|---|---|---|---|
+| criticalRecall | ≥ 0.95 | 1.00 | PASS |
+| importantRecall | ≥ 0.90 | 1.00 | PASS |
+| applicabilityAccuracy | ≥ 0.80 | **0.10** | **FAIL** |
+| falseActionRate | < 0.05 | 0.00 | PASS |
+| actionFindingEvidence | ≥ 1.00 | 1.00 | PASS |
+| unsupported | ≤ 0 | 0 | PASS |
+| pipelineFailures | ≤ 0 | 0 | PASS |
+
+**The applicability gate fails, and that is the round's headline finding.**
+The dataset's 21 environment-impact links encode "this fixture is affected"
+claims a competent operator derives from the upgrade brief plus the fixture
+(a pin of a deprecated feature gate, an ingress controller below the fixed
+version, a v1beta1 NodePool). The deterministic join — values keys, CRD/GVK
+identity, images, cluster version — can see only 2 of the 21. The three
+causes, in order of mass:
+
+1. **Note-derived changes carry no comparable subjects** (the majority): a
+   deprecated feature gate named in prose, an RBAC default flip, a taint
+   rename — the join has no rule connecting them to a values key or manifest
+   field, so the finding is UNKNOWN while the fixture says action-required.
+2. **Cross-product context** (argo-cd's default exclusions meeting
+   cert-manager, istio-csr's ALPN breakage): no input carries the other
+   product's version, so applicability is genuinely undecidable from the
+   supplied environment — the correct pipeline answer for these is UNKNOWN,
+   and the dataset's link expectation is the *operator's* truth, not the
+   join's reach. The distinction matters and the per-link `why` fields carry
+   it.
+3. **Compatibility as prose** (karpenter's upgrade warning, strimzi's Kafka
+   window): constraint knowledge that never became a machine-readable
+   compatibility record.
+
+## Adjudications (G9)
+
+`eval/adjudications/<case>.yaml` records 150 human verdicts: every
+notExpected-matched change of the 9 FP-bearing cases plus a sample of
+unmatched changes per new case, each read against the case's cited sources.
+Effects, raw vs adjudicated:
+
+- raw precision 0.64 → **labeledPrecision 0.57** (13 unmatched changes were
+  adjudicated TRUE — real upgrade knowledge the must-find lists lacked, e.g.
+  karpenter's "v1.0.0 is end-of-life since 2026-02", strimzi's
+  upgrade-from-0.38 preconditions and the kafkaMirrorMaker values-section
+  removal, aws's resiliencehub nested-block breaking change — and 9
+  uncertain verdicts left both sides).
+- The Vault/ingress/cilium FP masses were confirmed false positives (per
+  reasons in the files); the two known Vault carve-outs remain non-routine
+  and stand as FPs here.
+- Every adjudication is committed data: deterministic scoring, auditable
+  reasons, and the false-action rate now includes findings joined to
+  adjudicated-false changes.
+
+## Adversarial pack (G12)
+
+`eval/adversarial/` — ten join-fooling fixtures with contract-derived
+expectations, asserted offline against the real join by
+`go test ./internal/eval -run TestAdversarialPack`:
+
+| attack | verdict |
+|---|---|
+| removed Helm key with similarly-named sibling set by the customer | **held** — segment-wise comparison; sibling never flagged; removed key checked-and-clear |
+| customer explicitly pins an old default | **held** — informational values-pinned, never action |
+| deciding config source not supplied | **held** — UNKNOWN (insufficient-visibility) with neededToDetermine, never not-affected |
+| cluster exactly at minimum boundary | **held** — in-range informational |
+| cluster exactly at maximum boundary | **held** — in-range informational |
+| image with unrelated tag / different repository | **held** — image-not-referenced, not-affected |
+| unrelated resource with identical spec.* path (other API group) | **held** — GVK scoping; crd-field-unset, never crd-field-removed |
+| same API group, different kind | **held at the contract line** — review-required ("kind unconfirmed"), never action-required |
+| duplicated statement from three sources | **held** — duplicate detection groups all three |
+| runtime-dependent behaviour static config cannot prove | **held** — UNKNOWN (not-joined), never action, never not-affected |
+
+"Upstream doc unavailable" is pinned by `TestUpstreamUnavailableIsExecutionFailure`:
+a pipeline that cannot run is an execution failure (`pipelineFailures`),
+never a silent zero and never a reasoning miss. **No fixture fooled the join
+into a wrong action class** — the failures the gates measure are absence of
+insight, not wrong certainty.
+
+## Enriched run: the first suggestion-precision number (G10)
+
+`ri eval -enriched` replays the committed answer cache
+(`internal/app/testdata/impact-llm-cache`, recorded from glm-5.3-flash)
+against the recorded e2e fixture environment and scores the AI layer's
+applicability suggestions against the fixture labels:
+
+- **13 suggestions** on unknown findings, all review-required (the only
+  class the AI may suggest) — the provenance-preserving contract holds.
+- **1 of the 13 carries a fixture label** (suggestionPrecision **0.00**:
+  0/1 — the labelled one joins the HTTP01/ingress-nginx item whose ground
+  truth is action-required; a review suggestion there is under-escalation).
+  The other 12 are unlabelled (their changes match no expectation) and are
+  counted, not judged. suggestionRecall is 0/0 — the cert-manager fixture
+  declares no unknown-expected finding, so the gate is vacuous.
+- Caveat, documented on the flags: the committed cache replays only against
+  the recorded inputs (state, clock, and the environment fixture with its
+  exact path spelling — paths are part of the prompt digest), so the
+  enriched run joins with kubernetes 1.28 (the recorded fixture) and F3
+  (in-range at 1.31) legitimately misses. Enriched runs are an overlay;
+  they are not stored into eval/results.
+
+The measurement to act on is the 12/13 unlabelled rate: the dataset can only
+score suggestions where fixtures state the correct class. Future environment
+fixtures should declare `classification` on every expected finding they can
+defend.
+
+## Dataset corrections made during the round (all upstream-verified, recorded in NOTES.md)
+
+- strimzi 0.46.0 **does** remove a CRD: `045-Crd-kafkamirrormaker.yaml`
+  (MirrorMaker 1) leaves packaging/install/cluster-operator between the tags.
+  The blind draft forbade crd-removed findings; the dataset now expects the
+  finding (F3), and the join produces it.
+- karpenter's chart artifact ships no values snapshots (chart rewritten in
+  CI, OCI-only), so values-diff findings are unsupportable there; the
+  fixture keeps the operator-relevance link (E7) and its honest miss.
+- argo-cd/karpenter cluster-version checks: the admitted-tested/minimum
+  vocabulary is `impact:compatibility-satisfied`, not
+  `impact:kubernetes-in-range`.
+- istio E1's matchers were tightened from a bare "Ztunnel" keyword (which
+  matched 29 ambient notes) to the upstream section heading
+  "Ambient upgrade with DNS proxy" — removing a false environment-link hit
+  the loose matcher had granted.
+- aws E4/E8 matchers extended to the v6 upgrade guide's own wording
+  (cited): the CHANGELOG channel and the guide phrase the same removals
+  differently, and the validation-tightening entries exist only in the
+  guide's "Nullable Boolean Validation Update" section.
+
+## Reproducing
+
+```
+ri eval                    # full dataset, gate panel, exit non-zero on regression or gate failure
+ri eval -o json            # machine-readable: per-hit audit, confusion matrix, adjudications, gates
+ri eval -update            # after review: rewrite eval/results (never case.yaml)
+ri eval cert-manager-1.17-1.18 -enriched    # opt-in AI-suggestion scoring (offline replay)
+go test ./internal/eval    # offline: replayed entry, adversarial pack, routine gate, mechanics
+```

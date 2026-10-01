@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/tdavison784/release-intelligence/internal/app"
 	"github.com/tdavison784/release-intelligence/internal/domain"
@@ -51,6 +52,8 @@ func (c *cli) eval(args []string) error {
 	enriched := fs.Bool("enriched", false, "score the AI layer's suggestions against the fixtures (replays cached answers; offline-safe)")
 	llmCache := fs.String("llm-cache", "internal/app/testdata/impact-llm-cache", "enrichment answer cache for -enriched (the committed replay fixtures)")
 	enrichedState := fs.String("enriched-state", "internal/app/testdata/e2e/state", "recorded state dir for -enriched (the fixtures were recorded from it; keeps prompt digests stable)")
+	enrichedEnvDir := fs.String("enriched-env", "internal/app/testdata/e2e/env/cert-manager", "environment inputs for -enriched, spelled exactly as the recording harness passed them (paths are part of the prompt digest)")
+	enrichedKubernetes := fs.String("enriched-kubernetes", "1.28", "cluster version for -enriched-env (the recorded fixture's)")
 	model := fs.String("model", "glm-5.3-flash", "model requested for -enriched (part of the prompt digest; the fixtures were recorded from this one)")
 	pos, err := parse(fs, args)
 	if err != nil {
@@ -61,14 +64,20 @@ func (c *cli) eval(args []string) error {
 		return err
 	}
 	if *enriched {
-		// The committed fixtures were recorded with a fixed state and clock;
-		// rebuilding the app offline against the recorded state + the given
-		// answer cache keeps the prompt digests stable (a live call would
-		// silently mint new ones).
+		// The committed fixtures were recorded with a fixed state, a fixed
+		// clock and the recorded fixture environment (the prompt digest
+		// covers the environment inputs and their path spelling); rebuild the
+		// app offline against exactly those, or every prompt misses the
+		// cache and the suggestion scoring silently degrades to zero.
+		recordingClock := func() time.Time { return time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC) }
+		logf := func(string, ...any) {}
+		if c.g.verbose {
+			logf = func(f string, a ...any) { fmt.Fprintf(c.err, "· "+f+"\n", a...) }
+		}
 		a2, err := app.New(app.Config{
 			ProductsDir: c.g.products, StateDir: *enrichedState, Offline: true,
 			LLMCacheDir: *llmCache, GitHubToken: app.GitHubTokenFromEnv(),
-			Logf: func(string, ...any) {},
+			Now: recordingClock, Logf: logf,
 		})
 		if err != nil {
 			return err
@@ -83,7 +92,15 @@ func (c *cli) eval(args []string) error {
 	if err != nil {
 		return err
 	}
-	r := &eval.Runner{Pipeline: appPipeline{a, *model}, CasesDir: *dataset, Adjudications: adj, Enriched: *enriched}
+	var enrichedEnv *env.Inputs
+	if *enriched {
+		envInputs, enverr := eval.DirInputs(*enrichedEnvDir, *enrichedKubernetes)
+		if enverr != nil {
+			return enverr
+		}
+		enrichedEnv = &envInputs
+	}
+	r := &eval.Runner{Pipeline: appPipeline{a, *model}, CasesDir: *dataset, Adjudications: adj, Enriched: *enriched, EnrichedEnv: enrichedEnv}
 	var cases []*eval.Case
 	if len(pos) == 0 {
 		cases, err = r.LoadAll()

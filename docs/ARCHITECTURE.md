@@ -84,13 +84,21 @@ internal/enrich        AI enrichment of edges: deterministic candidate groups â†
 internal/store         local JSON store for ingested releases and edges
 internal/eval          validation dataset: loads eval/cases ground truth, runs the
                        real pipeline per entry (via an injected Pipeline port) and
-                       scores recall, false positives, duplicates, unsupported
-                       conclusions and environment-impact accuracy; compares against
-                       committed snapshots in eval/results and reports regressions
+                       scores recall (per importance), the five-class confusion
+                       matrix, honest precision (raw + adjudicated), the
+                       false-action/unknown/evidence rates and environment
+                       applicability; evaluates pre-registered hard gates
+                       (eval/gates.yaml, non-zero exit on failure), folds human
+                       adjudications (eval/adjudications/) into labeledPrecision
+                       and replays committed LLM answers for suggestion scoring
+                       (-enriched); compares against committed snapshots in
+                       eval/results and reports regressions
                        (eval/FORMAT.md, eval/REPORT.md)
 products/              checked-in product definitions
 eval/                  validation dataset (cases with hand-curated ground truth +
-                       stored result snapshots) consumed by `ri eval`
+                       stored result snapshots), pre-registered gates.yaml, human
+                       adjudications/ and the adversarial/ join-fooling pack â€”
+                       consumed by `ri eval` and `go test ./internal/eval`
 schemas/               JSON Schemas (draft 2020-12): product-definition (hand-written); upgrade-edge,
                        release and impact-report (generated from internal/domain, run
                        `go run ./internal/domain/schemagen`; a test fails when they are stale)

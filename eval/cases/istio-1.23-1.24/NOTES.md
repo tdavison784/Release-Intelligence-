@@ -33,3 +33,14 @@ Authored blind on 2026-10-01 from the upstream documents below.
   values diff, though the fixture makes no explicit finding claims about
   them (the chart is vendored by istioctl upgrades in most meshes, so the
   operator impact of the internal rename is deliberately left unclaimed).
+
+## Correction after the first live run
+
+E1's original matchers included the bare word "Ztunnel", which matches ~29
+ambient-related release notes (the structured-notes channel emits one change
+per upstream note file) rather than the one upgrade-notes section the
+expectation was authored from ("## Ambient upgrade with DNS proxy"). The
+matchers now cite that exact heading and the `cni.ambient.dnsCapture` value;
+the change is grounded in the upstream document's own wording, not in
+pipeline output (the pipeline's per-note decomposition was already visible in
+the cited channel).

@@ -1,0 +1,46 @@
+case: strimzi-0.45-0.46
+reviewedAt: "2026-10-01"
+method: >-
+    Sample-based human adjudication (G9): every change matching a notExpected
+    entry plus a sample of unmatched changes, each read against the case's
+    cited upstream documents. Dataset false positives are confirmed or
+    overturned; unmatched samples get true-positive / false-positive /
+    uncertain verdicts. Verdicts feed labeledPrecision and the false-action
+    rate.
+adjudications:
+  - changeId: chg-cf1e4f88ab62
+    verdict: false-positive
+    reason: "bare 'Update <component> to <version>' dependency bullets of the changelog"
+    # output was: Update HTTP bridge to 0.32.0
+  - changeId: chg-a40e6d6cc13a
+    verdict: false-positive
+    reason: "bare 'Update <component> to <version>' dependency bullets of the changelog"
+    # output was: Update Kafka Exporter to 1.9.0
+  - changeId: chg-628bf5003ce3
+    verdict: false-positive
+    reason: "bare 'Update <component> to <version>' dependency bullets of the changelog"
+    # output was: Update OAuth library to 0.16.2
+  - changeId: chg-4706e3b7a8e2
+    verdict: false-positive
+    reason: "bare 'Update <component> to <version>' dependency bullets of the changelog"
+    # output was: Update standalone User Operator to handle Cluster CA cert Secret being missing when TLS is not neede
+  - changeId: chg-c02e25f3066e
+    verdict: true-positive
+    reason: "upgrading-from-0.38 preconditions (StableConnectIdentities gate, StrimziPodSets) — a real upgrade precondition the must-find list lacked"
+    # output was: When using Kafka Connect or Kafka MirrorMaker 2 operands and upgrading from Strimzi 0.38 or older, m
+  - changeId: chg-d8333d8de3b2
+    verdict: true-positive
+    reason: "HTTP bridge configuration moved to an operator-managed ConfigMap — operator-visible restructuring of managed state"
+    # output was: Moved HTTP bridge configuration to the ConfigMap setup by the operator
+  - changeId: chg-c3675527969d
+    verdict: true-positive
+    reason: "helm values section kafkaMirrorMaker.* removed — the MirrorMaker 1 withdrawal surfacing in the chart diff; consistent with E2/F3"
+    # output was: Helm values section `kafkaMirrorMaker.*` removed (4 keys)
+  - changeId: chg-136cfee8ad80
+    verdict: false-positive
+    reason: "Drain Cleaner 1.3.0 bundled-tool bump"
+    # output was: Strimzi Drain Cleaner updated to 1.3.0 (included in the Strimzi installation files)
+  - changeId: chg-a4c05dc0e298
+    verdict: uncertain
+    reason: "Kubernetes events regardingObject change — matters only to field-selector users; niche but real"
+    # output was: Kubernetes events emitted during a Pod restart updated to have the Kafka resource as the `regardingO

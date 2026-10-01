@@ -28,6 +28,12 @@ type Runner struct {
 	// enriched ImpactReport (AI suggestions attached) so suggestion
 	// precision/recall get scored. Deterministic content is unchanged.
 	Enriched bool
+	// EnrichedEnv, when set, replaces the case's environment inputs for the
+	// enriched pass only: the committed answer caches replay only against the
+	// environment (and path spelling) they were recorded with. The scored
+	// expectations remain the case's; env-conditional expectations may
+	// legitimately miss under the recorded inputs.
+	EnrichedEnv *env.Inputs
 }
 
 // EnrichingPipeline is implemented by pipelines that can attach the AI
@@ -100,21 +106,31 @@ func (r *Runner) datasetRoot() string {
 // directory. Paths are used as given (relative to the dataset root, exactly
 // how the CLI would pass them), so evidence URIs stay stable.
 func environmentInputs(c *Case) (env.Inputs, error) {
-	var in env.Inputs
 	if c.Environment == nil {
-		return in, nil
+		return env.Inputs{}, nil
 	}
-	in.KubernetesVersion = c.Environment.Kubernetes
-	for _, f := range c.EnvironmentFiles() {
-		switch name := filepath.Base(f); name {
+	return DirInputs(filepath.Join(c.Dir, EnvironmentDir), c.Environment.Kubernetes)
+}
+
+// DirInputs builds env.Inputs from a directory laid out like a case
+// environment (values.yaml, manifests/, crds/, images.txt).
+func DirInputs(dir, kubernetes string) (env.Inputs, error) {
+	var in env.Inputs
+	in.KubernetesVersion = kubernetes
+	for _, n := range envFileNames {
+		p := filepath.Join(dir, n)
+		if _, err := os.Stat(p); err != nil {
+			continue
+		}
+		switch n {
 		case "values.yaml":
-			in.ValuesFiles = append(in.ValuesFiles, f)
+			in.ValuesFiles = append(in.ValuesFiles, p)
 		case "manifests":
-			in.Manifests = append(in.Manifests, f)
+			in.Manifests = append(in.Manifests, p)
 		case "crds":
-			in.CRDs = append(in.CRDs, f)
+			in.CRDs = append(in.CRDs, p)
 		case "images.txt":
-			imgs, err := readImagesFile(f)
+			imgs, err := readImagesFile(p)
 			if err != nil {
 				return in, err
 			}
@@ -170,6 +186,9 @@ func (r *Runner) runCase(ctx context.Context, c *Case) EntryResult {
 			return res
 		}
 		if r.Enriched {
+			if r.EnrichedEnv != nil {
+				inputs = *r.EnrichedEnv
+			}
 			if ep, ok := r.Pipeline.(EnrichingPipeline); ok {
 				report, err = ep.EnrichedImpact(ctx, c.Product, c.From, c.To, inputs)
 			} else {
