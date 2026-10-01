@@ -361,6 +361,13 @@ func (v *validator) locator(path string, l Locator, rc RenderContext) {
 }
 
 func (v *validator) extract(path string, e Extract, rc RenderContext) {
+	if e.LabelParagraphs != "" {
+		if e.Type != ExtractWhole && e.Type != ExtractMarkdownSection && e.Type != "" {
+			v.errf(path+".labelParagraphs", "only valid for %s and %s extracts", ExtractWhole, ExtractMarkdownSection)
+		} else if _, err := regexp.Compile(e.LabelParagraphs); err != nil {
+			v.errf(path+".labelParagraphs", "invalid regex: %v", err)
+		}
+	}
 	switch e.Type {
 	case ExtractWhole, ExtractReleaseNoteYAML:
 	case ExtractMarkdownSection:

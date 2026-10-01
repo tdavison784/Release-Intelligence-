@@ -36,6 +36,13 @@ func parseNotes(in DocInput, rules []catalog.ClassifyRule) ([]domain.NoteItem, [
 		return nil, nil, err
 	}
 	d := scanDocument(in.Content)
+	if in.LabelPattern != "" {
+		re, err := regexp.Compile(in.LabelPattern)
+		if err != nil {
+			return nil, nil, fmt.Errorf("normalize: label pattern: %w", err)
+		}
+		d.promoteLabels(re)
+	}
 	root, flat := d.buildSections()
 	p := &noteParser{d: d}
 	p.walk(root, len(flat) == 0)
