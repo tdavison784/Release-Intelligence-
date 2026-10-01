@@ -1,0 +1,17 @@
+- feat(appset): add foo generator option (#21234) ([abc1234](https://github.com/argoproj/argo-cd/commit/abc1234def5678))
+- fix(ui): do not crash on empty sync status (#21301) ([bcd2345](https://github.com/argoproj/argo-cd/commit/bcd2345def5678))
+- fix!: remove legacy repo config from argocd-cm (#21402) ([cde3456](https://github.com/argoproj/argo-cd/commit/cde3456def5678))
+- feat(server)!: logs RBAC is now enforced by default (#21410) ([def4567](https://github.com/argoproj/argo-cd/commit/def4567abc1234))
+- chore(deps): bump github.com/foo/bar from 1.2.3 to 1.2.4 (#21500) ([efa5678](https://github.com/argoproj/argo-cd/commit/efa5678abc1234))
+- build(deps): bump golang from 1.24.0 to 1.24.1 (#21501) ([fab6789](https://github.com/argoproj/argo-cd/commit/fab6789abc1234))
+- fix(deps): update module example.com/lib to v2 (#21502) ([abc7890](https://github.com/argoproj/argo-cd/commit/abc7890abc1234))
+- docs: clarify the upgrade notes for 3.0 (#21600) ([bcd8901](https://github.com/argoproj/argo-cd/commit/bcd8901abc1234))
+- refactor(controller): simplify reconcile loop (#21601) ([cde9012](https://github.com/argoproj/argo-cd/commit/cde9012abc1234))
+- test(e2e): stabilise the sync wave test (#21602) ([def0123](https://github.com/argoproj/argo-cd/commit/def0123abc1234))
+- ci: pin the release workflow action versions (#21603) ([efa1234](https://github.com/argoproj/argo-cd/commit/efa1234abc1234))
+- perf(cache): reduce redis round trips (#21604) ([fab2345](https://github.com/argoproj/argo-cd/commit/fab2345abc1234))
+- Merge pull request #21605 from argoproj/fix-something (cd0ee1f)
+- feat(cli): add --foo flag
+
+  BREAKING CHANGE: the --legacy-foo flag has been removed (#21606) ([abc3456](https://github.com/argoproj/argo-cd/commit/abc3456abc1234))
+- Deprecate the v1 actions API (#21607)

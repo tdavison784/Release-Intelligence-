@@ -64,6 +64,17 @@ type Section struct {
 
 // SelectSection returns the first section whose heading matches re, including
 // its subsections. Returns ErrNoMatch when none matches.
+//
+// Only ATX headings ("#".."######") count; lines inside fenced code blocks
+// (``` or ~~~), Hugo {{< text >}} blocks, HTML/MDX comments and a leading
+// YAML/TOML front matter block are never headings. re is matched against the
+// normalised heading text (leading/trailing '#', surrounding backticks and
+// emphasis, a trailing "{#anchor}" and markdown links removed: "## `v1.18.0`"
+// becomes "v1.18.0"); the heading text with backticks and the full heading
+// line are tried as fallbacks. The section ends before the next heading of the
+// same or a higher level (or at the end of the document) and trailing blank
+// lines are not part of it. StartLine/EndLine are 1-based lines of md; Body is
+// exactly those lines joined by "\n".
 func SelectSection(md []byte, re *regexp.Regexp) (*Section, error) {
 	return selectSection(md, re)
 }
@@ -74,13 +85,39 @@ func SelectSection(md []byte, re *regexp.Regexp) (*Section, error) {
 // defaults. Items matched via a section heading or an upstream label get
 // MethodDeclared; keyword-based classification gets MethodHeuristic.
 // Each item gets exactly one Evidence pointing at its line range.
+//
+// Splitting: every top-level list item (with continuation lines, nested items
+// and embedded code) is an item; a heading section that starts with prose
+// instead of a list is ONE item "Heading: first paragraphs" (<= 1200 bytes)
+// that folds in its lists and detail sub-sections ("Detection", "Option 1").
+// Sections that contain category headings (Feature, Bug or Regression,
+// Breaking Changes, ...), level-1 titles and grouping headings ("Major
+// Themes") are containers whose sub-sections hold the items; their own prose
+// becomes an introductory item only when it is substantive (level >= 2).
+// Tables, comments, shortcode-only lines, Hugo {{< tip >}} asides, link
+// reference definitions and front matter are never items, nor are the
+// Community / Contributors / Next steps style sections (unless a product rule
+// matches them). Items with identical text in one document are merged: the
+// first classification wins and the item then references the evidence of every
+// location.
+//
+// Classification order (every fired signal is listed in Provenance.Rule):
+// product rules, upstream labels (section headings, bold verbs, "Security
+// (HIGH):", conventional commits, breaking markers), keyword heuristics,
+// role defaults (upgrade-guide => migration + ActionRequired), fallback
+// "other". See classify.go for the exact tables.
 func ParseNotes(in DocInput, rules []catalog.ClassifyRule) ([]domain.NoteItem, []domain.Evidence, error) {
 	return parseNotes(in, rules)
 }
 
 // ParseReleaseNoteYAML parses structured release-note YAML files (one
 // document per input, Istio "releasenotes/notes/*.yaml" style: kind, area,
-// releaseNotes, upgradeNotes, securityNotes, ...).
+// releaseNotes, upgradeNotes, securityNotes, ...). Every entry of
+// releaseNotes / upgradeNotes / securityNotes is one item with its own
+// Evidence (URI of the file, locator "<file name> L<first>-L<last>"); files of
+// kind "test" are skipped. Keys are matched leniently ("upgradeNodes" typos,
+// singular/plural). A file that does not parse is skipped and reported in the
+// returned error, together with the items of the other files.
 func ParseReleaseNoteYAML(files []DocInput, rules []catalog.ClassifyRule) ([]domain.NoteItem, []domain.Evidence, error) {
 	return parseReleaseNoteYAML(files, rules)
 }
@@ -134,6 +171,12 @@ func CompatibilityFromRow(in DocInput, row *TableRow, columns []catalog.ColumnSp
 // matrices and charts: "1.29 → 1.33", "1.22 - 1.27", "1.29, 1.30, 1.31",
 // "1.31-1.33", ">= 1.22.0-0", "4.14 to 4.18". It returns a semver constraint
 // string and, when the source enumerates versions, the explicit list.
+//
+// Minor-level versions cover whole lines: "1.29 → 1.33" is
+// ">=1.29.0-0, <1.34.0-0" with versions [1.29 1.30 1.31 1.32 1.33]; lists
+// merge contiguous minors and join gaps with " || "; "1.25+" is
+// ">=1.25.0-0"; strings with comparison operators are validated and passed
+// through. The full grammar is documented in versionrange.go.
 func ParseVersionRange(raw string) (constraint string, versions []string, err error) {
 	return parseVersionRange(raw)
 }
@@ -153,20 +196,27 @@ func ParseChartMetadata(chartYAML []byte) (*ChartMetadata, error) {
 
 // ValuesSnapshot flattens a Helm values.yaml into dotted paths with JSON
 // encoded leaf values (lists are leaves), keeping the comment directly above
-// each key when present.
+// each key when present. Keys containing "." or whitespace are written as
+// ["key"], empty mappings are the leaf "{}"; comments are stripped of "#",
+// helm-docs "-- " and "@param"-style markers and bounded to 300 bytes.
 func ValuesSnapshot(chart, version string, valuesYAML []byte) (*domain.ValuesSnapshot, error) {
 	return valuesSnapshot(chart, version, valuesYAML)
 }
 
 // CRDSnapshot summarises CustomResourceDefinitions found in one or more YAML
-// streams (multi-document; non-CRD documents are ignored).
+// streams (multi-document; non-CRD documents are ignored), sorted by name.
+// SchemaPaths are sorted dotted property paths of the openAPIV3Schema below
+// the root ("spec.issuerRef.name"; arrays as "spec.dnsNames[]" and
+// "spec.foo[].bar"); x-kubernetes-* keys are skipped, additionalProperties is
+// not descended into and at most MaxSchemaPaths paths are kept per version.
 func CRDSnapshot(streams ...[]byte) (*domain.CRDSnapshot, error) {
 	return crdSnapshot(streams...)
 }
 
 // ImageRefs extracts container image references from manifests or values
-// (lines like `image: repo:tag`, `image: "repo@sha256:..."`), de-duplicated
-// and sorted.
+// (lines like `image: repo:tag`, `image: "repo@sha256:..."` and flags like
+// `--foo-image=repo:tag`), de-duplicated and sorted. Templated values
+// ("{{", "${", "$(") and empty values are skipped.
 func ImageRefs(content []byte) []domain.ImageRef {
 	return imageRefs(content)
 }
@@ -177,7 +227,12 @@ func ParseImageRef(s string) (domain.ImageRef, error) {
 }
 
 // ExtractReferences finds CVE ids, GHSA ids, and pull-request / issue
-// references (GitHub URLs or "#1234" when repository is given).
+// references (GitHub URLs or "#1234" when repository is given), de-duplicated
+// and in order of first appearance. Reference IDs of GitHub items are
+// "owner/name#N"; a "#N" that is also present as a PR/issue URL of the same
+// repository is folded into the URL reference. repository may be "owner/name",
+// "github.com/owner/name" or a github.com URL; other hosts yield no bare
+// references.
 func ExtractReferences(text, repository string) []domain.Reference {
 	return extractReferences(text, repository)
 }
