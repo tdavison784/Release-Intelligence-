@@ -180,6 +180,9 @@ func Validate(d *ProductDefinition) ValidationReport {
 				v.errf(fmt.Sprintf("%s.releaseKinds[%d]", p, j), "must be major, minor or patch, got %q", k)
 			}
 		}
+		if s.FallbackGroup != "" && !idRe.MatchString(s.FallbackGroup) {
+			v.errf(p+".fallbackGroup", "must be a lowercase DNS label, got %q", s.FallbackGroup)
+		}
 		if s.HasRole(domain.RoleVersions) && s.Locator.Kind != LocatorGitHubReleases && s.Locator.Kind != LocatorGitTags && s.Locator.Kind != LocatorHelmRepo {
 			v.errf(p+".locator.kind", "a versions source must use %s, %s or %s", LocatorGitHubReleases, LocatorGitTags, LocatorHelmRepo)
 		}

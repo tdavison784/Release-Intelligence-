@@ -88,10 +88,13 @@ type Source struct {
 	// ReleaseKinds limits the source to some release kinds: "major", "minor"
 	// (X.Y.0 with Y>0 or X.0.0), "patch". Empty means all.
 	ReleaseKinds []string `yaml:"releaseKinds,omitempty" json:"releaseKinds,omitempty"`
-	// Priority orders sources sharing a role (lower first). Sources with the
-	// same role act as fallbacks for each other when Fallback is true.
-	Priority int  `yaml:"priority,omitempty" json:"priority,omitempty"`
-	Fallback bool `yaml:"fallback,omitempty" json:"fallback,omitempty"`
+	// Priority orders sources sharing a role (lower first).
+	Priority int `yaml:"priority,omitempty" json:"priority,omitempty"`
+	// FallbackGroup names a set of alternative sources: sources with the same
+	// non-empty group are tried in priority order and consultation stops at
+	// the first one that answers (state ok). Sources without a group are
+	// always consulted.
+	FallbackGroup string `yaml:"fallbackGroup,omitempty" json:"fallbackGroup,omitempty"`
 	// ValidatedAgainst lists release versions for which this source was
 	// verified to resolve (written by discovery / relationship checks).
 	ValidatedAgainst []string `yaml:"validatedAgainst,omitempty" json:"validatedAgainst,omitempty"`
