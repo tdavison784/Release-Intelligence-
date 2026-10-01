@@ -1,0 +1,112 @@
+product: redis
+order: 17
+wave: 2
+repository: github.com/redis/redis
+onboarding:
+  startedAt: "2026-10-01T14:43:07Z"
+  finishedAt: "2026-10-01T15:25:51Z"
+  minutes: 43
+discovery:
+  proposal: docs/onboarding/discovery/redis.proposed.yaml
+  report: docs/onboarding/discovery/redis.report.md
+# Discovery (deterministic) found the versioning (269 stable tags, correct
+# pattern, lineage minor), the git-tags channel, the GitHub notes/versions
+# channels (it historically-validated the GitHub release body against 6
+# releases) and the advisory feed. It missed every artifact (no Docker
+# official image, no download.redis.io tarball) and pointed the notes at the
+# redis/docs website copy instead of the repository file.
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags': locator and tagPattern kept as proposed"}
+  - {id: github-releases-versions, origin: discovered, note: "proposal id 'github-releases': kept as the priority-1 fallback version list"}
+  - {id: release-notes, origin: manual, note: "00-RELEASENOTES at the release tag: setext-H1 section per release; one heading regex covers six GA title shapes and the patch shape; generic setext-heading scanner support had to be added first (see goChanges); 8.0.0 exception (notes are the file intro)"}
+  - {id: release-notes-github, origin: discovered, note: "proposal id 'release-notes-github': kept as the fallbackGroup member (same content published by the release workflow); covers 8.0.0 and would cover 6.2-7.0 if needed"}
+  - {id: support-policy, origin: manual, note: "redis/docs version-mgmt.md supported-versions table (EOL dates per line); evidence of the lifecycle statements"}
+  - {id: github-advisories, origin: discovered, note: "proposal id 'advisories': 47 GHSA/CVE advisories incl. the 2023-2024 Lua/RCE set"}
+artifacts:
+  - {id: source-tarball, origin: manual, note: "download.redis.io tarball (reachable; verified for every checked release back to 7.2.0)"}
+  - {id: full-source-asset, origin: manual, note: "redis-full.tar.gz GitHub release asset, availability >= 8.10.0 (no release before 8.10 has assets)"}
+  - {id: redis-image, origin: manual, note: "docker.io/library/redis exact-version tags (verified directly on registry-1.docker.io this run; mirror.gcr.io declared as fallback), availability >= 5.0.0 (4.0.0 tag absent)"}
+  - {id: redis-image-alpine, origin: manual, note: "-alpine variants, >= 5.0.0"}
+discoveryRejected:
+  - {id: release-notes-docs, reason: "the redis/docs redisos-*.md website copy: discovery's own checks failed (headings are 'Redis Open Source X.Y.Z (Month YYYY)'), it misses the 7.2-and-older lines entirely, and it is a generation behind the repository file it mirrors; the repo file at the tag is the source"}
+relationships:
+  historicalReleasesChecked: [7.2.0, 7.2.11, 7.4.0, 7.4.2, 7.4.11, 8.0.0, 8.0.6, 8.2.0, 8.2.10, 8.4.0, 8.4.7, 8.6.0, 8.6.7, 8.8.0, 8.8.3, 8.10.0, 8.10.1, 8.10.2]
+  # First complete draft (correct tag pattern, repo-file notes with a heading
+  # regex, docker + tarball artifacts): release-notes failed 6/6 — twice over:
+  # the shared markdown scanner did not recognise setext headings at all
+  # (fixed generically, see goChanges), and the first heading regex nested its
+  # optional prefix groups so "Redis " alone could never match. After both
+  # fixes every subject passes.
+  initialFailures: 1
+  finalFailures: 0
+  manualInterventions:
+    - {subject: release-notes, change: "generic setext-heading support in the markdown scanner (internal/normalize/scan.go)", reason: "Redis's per-release sections are 'Title / ====' setext H1s; the scanner only knew ATX '#', so no section was ever found"}
+    - {subject: release-notes, change: "heading regex: optional groups unnested — ^(?:Redis )?(?:Open Source |Community Edition )?X.Y.Z...", reason: "the first draft's (?:Redis (?:Open Source |Community Edition ))? made 'Redis ' unmatchable without a qualifier; 8.2 GA headings also drop the 'Redis' prefix entirely"}
+    - {subject: release-notes, change: "availability >= 5.0.0 -> >= 7.2.0", reason: "through 7.0 the subsections are underlined with ==== at the same H1 level as the release headers, so a release section truncates at its first subsection"}
+    - {subject: release-notes-github, change: "classify rules shared with the repository source via a YAML anchor (skip OS/binary-distribution matrices, migration for 'Supported upgrade paths')", reason: "the 7.4.11 -> 8.0.0 edge fell back to the release body for 8.0.0, whose 'Operating systems we test' and 'Binary distributions' bullets surfaced as 11 'other' changes"}
+  unverifiable: []               # api.github.com answered 403 (anonymous quota exhausted) for stretches of the run; the same adapter passed when quota freed — transient, recorded under unreachableSources
+constructs:
+  new: []                       # confirmed empty against `ri stats redis -o json` (unaccountedConstructs)
+  considered:
+    - "artifact type source-release for redis-full.tar.gz: rejected — source-release channels may only be github-releases/git-tags, which probe the release, not a named asset (every release >= 6.2 has a GitHub release, so the relationship would falsely pass); http asset URL as type package (postgresql's tarball precedent) states it exactly"
+    - "compatibility source from src/redismodule.h MODULE_API_VERSION: rejected — REDISMODULE_APIVER_1 is 1 at 7.2.11, 7.4.11 and 8.10.2 alike; the API surface grows without a per-release version number, so there is no machine-readable constraint to declare (gap)"
+    - "markdown-table source over the version-mgmt.md support table: rejected as a source — it is support status, not platform compatibility; modelled as lifecycle statements citing the page (karpenter's SUPPORT.md precedent)"
+    - "a support-window/lifecycle-table source role: rejected — lifecycle statements + a cited evidence source already express it (ingress-nginx/karpenter constructs)"
+    - "extract format for setext: rejected — setext headings are core CommonMark, not another format; fixed in the shared markdown scanner, so every existing construct (markdown-section, whole, classify sections) works unchanged and no definition vocabulary was added"
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/normalize/scan.go, purpose: "setext heading recognition (CommonMark): a paragraph closed by an '='/'-' underline becomes a heading (level 1/2), decorative bar lines above the title are dropped from the heading text, fences/front matter never participate; a '-' underline directly after a paragraph wins over its thematic-break reading"}
+    - {file: internal/normalize/setext_test.go, purpose: "tests: scanner classification, section selection over setext documents (Redis GA shapes incl. the no-prefix '8.2 GA (v8.2.0)'), fence immunity, thematic-break/table non-interference"}
+unreachableSources:
+  - {host: git.redis.io, reason: "canonical git host; CONNECT blocked (000) — the GitHub mirror is used (postgresql's git.postgresql.org precedent)"}
+  - {host: api.github.com, reason: "anonymous quota exhausted for stretches of this run (shared 60/h egress address; HTTP 403); answers when quota is free — transient, not blocked"}
+ambiguousRelationships:
+  - "7.x GA notes at their own tags are stubs: the 7.2.0 and 7.4.0 sections contain 1 item at tag time; the full GA notes were backfilled upstream by later patches of the line (the file is cumulative per line). 8.x GAs carry full notes at their tags. A tool reading only the release's own tag under-reports 7.x GA changes."
+  - "8.0.0's notes are the 00-RELEASENOTES intro (no per-release section): encoded as a source exception with the GitHub release body as fallback."
+  - "through 7.0 the subsections are setext-H1 (same level as release headers), truncating release sections; the source is availability-scoped to >= 7.2.0 and 6.2-7.0 would read through the GitHub fallback only."
+  - "redis-full.tar.gz exists only on 8.10.0+ (first release with any assets at all); whether the artifact persists is unknown — availability >= 8.10.0 records today's truth."
+  - "docker.io/library/redis 4.0.0 is absent (404 on both channels) while 4.0.14 exists; images are scoped >= 5.0.0 instead of enumerating 4.x holes."
+  - "the 'Update urgency:' line of a section never surfaces as a note item (the parser drops section-intro prose); the urgency classify rules are dormant insurance for a heading-less future section."
+  - "release names ('Redis 8.10 GA', '8.10-RC2 (v8.9.241)') differ from tags (8.10.0; RCs are untagged internals), so the notes' names must be pattern-matched, not parsed as versions."
+representability: full
+gaps:
+  - "No per-version upgrade guide: redis.io docs install/upgrade pages are version-generic procedures; per-release upgrade intelligence lives only in the GA notes ('Major changes compared to X.Y', license change). No upgrade-guide source is declared."
+  - "Module ecosystem compatibility is not machine-readable: REDISMODULE_APIVER_1 stays 1 while the API grows; a module's required server version lives in the third-party module. The compatibility role stays empty (nothing Kubernetes-style exists to declare)."
+  - "Official packaging (snap/brew/RPM/APT via redis/redis-snap, homebrew-redis, redis-rpm, redis-debian) is unmodelled: per-distro revisions and channels, same as postgresql's PGDG gap. The Bitnami Helm chart is third-party (explicit non-goal)."
+  - "Historical SA-xxxxxx security bulletins are website posts; only the GitHub advisory feed is machine-readable (CVEs also appear inline in the release notes)."
+  - "Support-window/EOL dates are carried as declared lifecycle text citing version-mgmt.md, not as ingested data; a query 'is X.Y still supported on date D' needs the table parsed (out of model)."
+sampleEdge:
+  from: 7.4.11
+  to: 8.0.0
+  summary: "0 breaking · 18 action required · 32 changes · 45 warnings"
+  evidenceRecords: 53
+  notes: >-
+    The dual-live-major edge: from the extended 7.4 line straight across to
+    the 8.x major (path: 8.0.0). 32 changes = 16 security (15 GitHub
+    advisories matched as still-affecting the target plus the declared
+    CVE-2025-21605 fix), 3 migration ("Supported upgrade paths" bullets of
+    the 8.0.0 body), 7 features, 5 bug fixes; the 18 action-required items
+    are the advisory matches and the target-line deprecation warning (8.0 is
+    a standard line, last release 8.0.6, EOL 2026-12-01) cites version-mgmt.md
+    lines. Reading critically: several "still affects target" matches are
+    conservative false positives — GitHub advisory patched-lists name the
+    lines released at publication time (e.g. CVE-2024-31228 patched
+    6.2.16/7.2.6/7.4.1), so 8.0.0, cut later with those fixes, is not
+    listed and reads as affected; the data is shown verbatim (severity +
+    patched versions) precisely so a human can make that call. Patch edge
+    8.10.1 -> 8.10.2: 0 breaking · 0 action required · 5 changes · 1 warning
+    (5 security fixes, every item line-cited in 00-RELEASENOTES), 33
+    evidence records.
+notes: >-
+  Third wave-2 zero-new-construct product (grafana, strimzi): the whole
+  non-Kubernetes topology — in-repo per-line release notes, GitHub advisory
+  feed, download.redis.io tarballs, Docker official image with a mirror
+  fallback, EOL-dated lifecycle statements — is configuration over existing
+  constructs. The one generic change (setext headings) completes CommonMark
+  in the shared markdown scanner rather than adding definition vocabulary;
+  it benefits any product whose upstream documents underline titles (no
+  catalog field, schema entry or ingest branch was added). Discovery
+  baseline: right versioning and channels-from-tags, zero artifacts, and it
+  mistook the website notes copy for the source; its own historical
+  validation of the GitHub release body was correct and kept.

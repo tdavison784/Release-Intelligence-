@@ -1,0 +1,238 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: redis
+name: Redis
+description: >-
+  In-memory data structure server (Redis Open Source; the 7.4 line was branded
+  Redis Community Edition). Not a Kubernetes product: plain semver tags, a
+  source tarball per release on download.redis.io, the Docker official image
+  and release notes maintained in the repository (00-RELEASENOTES, one
+  cumulative file per release line). Dual live majors: the 7.4 line (extended
+  support, EOL 2029-12) receives patches alongside the 8.x minor lines; the
+  bundled modules (Query Engine, JSON, TimeSeries, probabilistic structures)
+  ship with the server since 8.0.
+homepage: https://redis.io
+
+versioning:
+  scheme: semver
+  # Bare X.Y.Z plus rc/beta pre-releases. Milestone tags (8.10-m03-int,
+  # 8.0-rc1-int2), ancient 2.2-alpha0 / 2.6.x-1 / 2.2.105-scripting shapes and
+  # submodule tags do not match; a line is X.Y (8.10 is a minor line).
+  tagPattern: '^(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions -------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/redis/redis
+      tagPattern: '^(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$'
+
+  # hosted fallback when the git host is unreachable (same tags)
+  - id: github-releases-versions
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: redis/redis
+
+  # --- release notes --------------------------------------------------------
+  # 00-RELEASENOTES at the release's own tag: one cumulative file per line
+  # (title "Redis Open Source 8.10 release notes"), one setext-H1 section per
+  # release (title line underlined with ====), newest first:
+  # "Redis 8.10.2    Released Thu 17 Sep 2026 ...". A GA release's section is
+  # titled "Redis 8.10 GA" / "Redis 8.8 GA  (v8.8.0)" / "8.2 GA (v8.2.0)" (no
+  # "Redis" prefix) / "Redis 7.2.0 GA" / "Redis Community Edition 7.4.0 GA".
+  # Subsections are ATX (###) from 7.2 on, which keeps them inside the
+  # release's H1 section; through 7.0 they are underlined with ==== at the
+  # same level, truncating the section, so the source starts at 7.2.0 and the
+  # GitHub release body (same content, published by the release workflow)
+  # covers 6.2 - 7.0 and the 8.0.0 anomaly (its notes are the file intro,
+  # with no per-release heading at all).
+  - id: release-notes
+    roles: [release-notes]
+    availability: ">= 7.2.0"
+    fallbackGroup: release-notes
+    exceptions:
+      - versions: [8.0.0]
+        reason: >-
+          Upstream formatting defect: the 8.0 line's 00-RELEASENOTES has no
+          per-release section for the GA release - its notes are the file
+          introduction under the title heading ("Major changes compared to
+          7.4.2", license change to RSALv2/SSPLv1/AGPLv3), which a section
+          selector cannot reach. Covered by the GitHub release body fallback.
+    locator:
+      kind: repo-file
+      repository: github.com/redis/redis
+      ref: "{{.Tag}}"
+      path: 00-RELEASENOTES
+    extract:
+      type: markdown-section
+      heading: '^(?:Redis )?(?:Open Source |Community Edition )?{{.Major}}\.{{.Minor}}(?:\.{{.Patch}})?[ ]*(?:GA)?[ ]*(?:\([v0-9.]+\))?[ ]*Released'
+    classify: &redis-notes-classify
+      # packaging and platform matrices are not changes of the release
+      - section: '(?i)^Operating systems we test'
+        skip: true
+      - section: '(?i)^Binary distributions'
+        skip: true
+      # statements of known issues, not fixes for them
+      - section: '(?i)^known bugs and limitations'
+        category: other
+      # the section's own urgency line; SECURITY/CRITICAL urge an upgrade
+      - text: '^(?:Update|Upgrade) urgency:? .*(?:SECURITY|CRITICAL)'
+        category: security
+        actionRequired: true
+      - text: '^(?:Update|Upgrade) urgency:? .*HIGH'
+        actionRequired: true
+      - text: '^(?:Update|Upgrade) urgency'
+        skip: true
+      # section titles the generic heading rules do not know
+      - section: '(?i)^(?:Major changes|Headlines)'
+        category: feature
+      - section: '(?i)^Supported upgrade paths'
+        category: migration
+      - section: '(?i)^Performance'
+        category: feature
+      - section: '(?i)^Modules API'
+        category: api
+      - section: '(?i)^Configuration parameters'
+        category: configuration
+
+  # The GitHub release body is the same section published by the release
+  # workflow (post-release-automation.yml); it backs the group up when the
+  # repository file has no section (8.0.0) and would carry 6.2 - 7.0 if the
+  # repository source were ever scoped away. Same classification rules.
+  - id: release-notes-github
+    roles: [release-notes]
+    availability: ">= 6.2.0"
+    priority: 1
+    fallbackGroup: release-notes
+    classify: *redis-notes-classify
+    locator:
+      kind: github-releases
+      repository: redis/redis
+      ref: "{{.Tag}}"
+
+  # --- support lifecycle (evidence of the statements below) -----------------
+  # Supported-versions table of the docs site (Version / Release type /
+  # Status / EOL Date) plus the release model: standard lines are fixed for
+  # 6 months after the next minor, extended lines for 5 years. Exists only on
+  # main; cited by the lifecycle statements, which is how its items are
+  # reported.
+  - id: support-policy
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/redis/docs
+      ref: main
+      path: content/operate/oss_and_stack/install/version-mgmt.md
+    extract:
+      type: whole
+
+  # --- security --------------------------------------------------------------
+  # The project publishes its advisories (GHSA/CVE, 47 as of 2026-10-01,
+  # including the 2023-2024 Lua/RCE disclosures) on the repository;
+  # SECURITY.md adds the backport policy ("generally ... a single previous
+  # major version"). Security fixes also appear per release in the notes
+  # above ("### Security fixes", CVE ids inline).
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: redis/redis
+
+lifecycle:
+  # table: the oldest listed line is 6.2 (extended, EOL 2027-04-01); no
+  # documented end date for the retired 5.x-and-older lines exists.
+  - state: end-of-life
+    versions: "< 6.2.0"
+    summary: >-
+      Every release line below 6.2 is past its support window: none appears
+      in the supported-versions table (the oldest, 6.2, is an extended line
+      with EOL 2027-04-01). Upgrading off these lines is the only way to
+      keep receiving fixes.
+    sources: [support-policy]
+  # 8.0 is a standard line: its 6-month window after 8.2 (GA 2025-08-04)
+  # closed in Feb 2026 (last release 8.0.6, 2026-02-23); the published EOL
+  # date is 2026-12-01. Extended lines 7.2/7.4 (EOL 2029-12-01) and 8.2
+  # (EOL 2030-09-01) remain fully supported.
+  - state: deprecated
+    since: "2026-02"
+    versions: ">= 8.0.0, < 8.2.0"
+    summary: >-
+      The 8.0 line is a standard release: security and critical fixes ended
+      with its 6-month window after 8.2 (8.0.6, Feb 2026, was its last
+      release) and its published EOL date is 2026-12-01. Do not land new
+      deployments on it; prefer the current 8.x line or an extended line.
+    sources: [support-policy]
+
+artifacts:
+  # --- source tarball -------------------------------------------------------
+  # The project's primary artifact: download.redis.io/releases/redis-X.Y.Z.tar.gz
+  # (285 tarballs, every 7.4/8.x release; no .sha256 sidecar files exist).
+  - id: source-tarball
+    type: package
+    name: redis-X.Y.Z.tar.gz
+    description: Source distribution tarball on download.redis.io.
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://download.redis.io/releases/redis-{{.Version}}.tar.gz"
+
+  # --- full source asset (GitHub release) -------------------------------------
+  # redis-full.tar.gz (the source tree with the bundled module submodules)
+  # exists as a release asset from 8.10.0 on; no release before 8.10 has any
+  # asset (checked 7.0.15 - 8.8.0).
+  - id: full-source-asset
+    type: package
+    name: redis-full.tar.gz
+    availability: ">= 8.10.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/redis/redis/releases/download/{{.Tag}}/redis-full.tar.gz"
+
+  # --- Docker official image --------------------------------------------------
+  # docker.io/library/redis:X.Y.Z (also X.Y.Z-trixie); mirror.gcr.io is the
+  # reachable fallback when Docker Hub answers 429 to anonymous pulls.
+  # Exact-version tags exist from 5.0.0 on (4.0.0: 404 on both channels).
+  - id: redis-image
+    type: container-image
+    name: redis
+    availability: ">= 5.0.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/library/redis
+      - kind: oci
+        repository: mirror.gcr.io/library/redis
+
+  - id: redis-image-alpine
+    type: container-image
+    name: redis-alpine
+    availability: ">= 5.0.0"
+    version: {strategy: template, template: "{{.Version}}-alpine"}
+    channels:
+      - kind: oci
+        repository: docker.io/library/redis
+      - kind: oci
+        repository: mirror.gcr.io/library/redis
+
+provenance:
+  method: manual+research
+  updated: "2026-10-01"
+  validatedReleases: [7.2.0, 7.2.11, 7.4.0, 7.4.11, 8.0.0, 8.0.6, 8.2.0, 8.2.10, 8.4.0, 8.4.7, 8.6.0, 8.6.7, 8.8.0, 8.8.3, 8.10.0, 8.10.1, 8.10.2]
+  notes: >-
+    Authored from docs/research/redis.md. Discovery proposed the versioning
+    (kept), the git-tags channel (kept), the GitHub notes/versions fallbacks
+    (kept) and the redis/docs notes file (rejected: the website copy, missing
+    the 7.2 and older lines, with "Redis Open Source X.Y.Z (Month YYYY)"
+    headings); the in-repo 00-RELEASENOTES at the tag is primary. git.redis.io
+    (canonical git) is unreachable; the tarball host download.redis.io is
+    reachable, so the source artifact is HTTP-verified. Snap, brew, RPM and
+    APT packaging and the Bitnami chart are out of scope (gaps). The
+    setext-H1 section headers of 00-RELEASENOTES needed a generic scanner fix
+    (CommonMark setext headings), not a new construct.

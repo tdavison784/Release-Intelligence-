@@ -1,0 +1,73 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: redis
+name: redis
+homepage: https://github.com/redis/redis
+versioning:
+  scheme: semver
+  tagPattern: ^(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/redis/redis
+      tagPattern: ^(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: redis/redis
+    priority: 1
+  - id: release-notes-docs
+    roles:
+      - release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/redis/docs
+      ref: main
+      path: content/operate/oss_and_stack/stack-with-enterprise/release-notes/redisce/redisos-{{.Major}}.{{.Minor}}-release-notes.md
+    extract:
+      type: markdown-section
+      heading: ^v?{{regexQuote .Version}}$
+    fallbackGroup: release-notes
+    notes: 'Unverified by discovery (insufficient: 8.6.0 covered (covered by release-notes-github (fallback group release-notes): no section matching "^v?8\\.6\\.0$" in https://github.com/redis/docs/blob/main/content/operate/oss_and_stack/stack-with-enterprise/release-notes/redisce/redisos-8.6-release-notes.md); 8.6.7 covered (covered by release-notes-github (fallback group release-notes): no section matching "^v?8\\.6\\.7$" in https://github.com/redis/docs/blob/main/content/operate/oss_and_stack/stack-with-enterprise/release-notes/redisce/redisos-8.6-release-notes.md); 8.8.0 covered (covered by release-notes-github (fallback group release-notes): no section matching "^v?8\\.8\\.0$" in https://github.com/redis/docs/blob/main/content/operate/oss_and_stack/stack-with-enterprise/release-notes/redisce/redisos-8.8-release-notes.md); 8.8.3 covered (covered by release-notes-github (fallback group release-notes): no section matching "^v?8\\.8\\.3$" in https://github.com/redis/docs/blob/main/content/operate/oss_and_stack/stack-with-enterprise/release-notes/redisce/redisos-8.8-release-notes.md); …).'
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: redis/redis
+      ref: '{{.Tag}}'
+    priority: 1
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 8.6.0
+      - 8.6.7
+      - 8.8.0
+      - 8.8.3
+      - 8.10.0
+      - 8.10.2
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: redis/redis
+    notes: 'Security policy: SECURITY.md → https://redis.io/redis-responsible-vulnerability-disclosure/'
+artifacts: []
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  validatedReleases:
+    - 8.6.0
+    - 8.6.7
+    - 8.8.0
+    - 8.8.3
+    - 8.10.0
+    - 8.10.2
+  notes: Proposed by automated discovery; relationship checks run against 8.6.0, 8.6.7, 8.8.0, 8.8.3, 8.10.0, 8.10.2.
