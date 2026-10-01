@@ -537,6 +537,11 @@ defend.
 ri eval                    # full dataset, gate panel, exit non-zero on regression or gate failure
 ri eval -o json            # machine-readable: per-hit audit, confusion matrix, adjudications, gates
 ri eval -update            # after review: rewrite eval/results (never case.yaml)
-ri eval cert-manager-1.17-1.18 -enriched    # opt-in AI-suggestion scoring (offline replay)
+(cd internal/app && go run ../../cmd/ri -products ../../products -state testdata/e2e/state \
+  eval -dir ../../eval cert-manager-1.17-1.18 -enriched -enriched-state testdata/e2e/state \
+  -llm-cache testdata/impact-llm-cache -enriched-env testdata/e2e/env/cert-manager)
+                           # opt-in AI-suggestion scoring: the replay hits the committed
+                           # answers only when every input is spelled exactly as the
+                           # recording harness spelled it (paths are part of the digest)
 go test ./internal/eval    # offline: replayed entry, adversarial pack, routine gate, mechanics
 ```
