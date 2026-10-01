@@ -1,0 +1,340 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: elasticsearch
+name: Elasticsearch
+description: >-
+  Distributed search and analytics engine (the Elastic Stack's server; not a
+  Kubernetes product — ECK, the operator, is separate). Plain v-prefixed
+  semver tags; images on docker.elastic.co and tarball/deb/rpm on
+  artifacts.elastic.co. Dual live majors: the 8.19 line is patched alongside
+  the 9.x lines (8.x End of Maintenance 2027-01-15, 7.x end-of-life since
+  2026-01). Re-licensed from 8.19/9.0 (ELv2 or SSPL, with AGPLv3 added).
+  Per-release notes are markdown in-repo from 9.0 (docs/release-notes, merged
+  to main after each release); 7.14-8.x notes exist only as the per-PR
+  changelog-dir YAML schema and on elastic.co. Per-major migration guides
+  are AsciiDoc (docs/reference/migration/migrate_N_0*.asciidoc).
+homepage: https://www.elastic.co/elasticsearch
+
+versioning:
+  scheme: semver
+  tagPrefix: v
+  # vX.Y.Z plus alphaN/betaN/rcN prereleases (v9.0.0-beta1, v8.0.0-rc2);
+  # pre-1.0 dot-shapes (v0.19.0.RC1, v0.90.0.Beta1) do not match. Prereleases
+  # are parsed but stay outside the canonical list.
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/elastic/elasticsearch
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: elastic/elasticsearch
+
+  # --- release notes (9.x era, markdown, merged to main after release) -------
+  # docs/release-notes/index.md: one "## X.Y.Z [anchor]" section per release,
+  # "### Features and enhancements" / "### Fixes" subsections and area label
+  # paragraphs (ES|QL:, Machine Learning:, Infra/Logging:). A release's own
+  # section is NOT in the file at its own tag (it lands on main afterwards;
+  # at v9.5.4 the newest section is 9.4.3), so the file is read at main.
+  # Every 9.x version has a section (all 51 of 9.0.0-9.5.4).
+  - id: release-notes
+    roles: [release-notes]
+    availability: ">= 9.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/elastic/elasticsearch
+      ref: main
+      path: docs/release-notes/index.md
+    extract:
+      type: markdown-section
+      heading: '^{{regexQuote .Version}} '
+      labelParagraphs: '^[A-Z][A-Za-z0-9|/&+ .-]*:$'
+    classify: &notes-classify
+      # a fix to a deprecation warning is a bugfix, not a deprecation
+      - section: '(?i)^Fixes$'
+        text: '(?i)^Fix\b'
+        category: bugfix
+      - section: '(?i)^Fixes$'
+        text: '(?i)\bdeprecat\w+'
+        category: deprecation
+      - section: '(?i)^Fixes$'
+        category: bugfix
+      - section: '(?i)^(Highlights|Features and enhancements)$'
+        category: feature
+      - text: 'CVE-\d{4}-\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+        category: security
+      - text: '(?i)\bdeprecat\w+'
+        category: deprecation
+
+  # Per-version breaking changes, same file family and per-version sections.
+  # The file is markdown with AsciiDoc definition lists inside ("Area" on one
+  # line, ":   * bullet" entries), so it is read with format:adoc, which
+  # strips the ":" markers and lets labelParagraphs promote the areas.
+  - id: breaking-changes
+    roles: [release-notes]
+    availability: ">= 9.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/elastic/elasticsearch
+      ref: main
+      path: docs/release-notes/breaking-changes.md
+    extract:
+      format: adoc
+      type: markdown-section
+      heading: '^{{regexQuote .Version}} '
+      labelParagraphs: '^[A-Z][A-Za-z0-9|/&+ -]{2,40}$'
+    classify: &breaking-classify
+      - text: '(?i)no breaking changes'
+        skip: true
+      - text: '(?i)^review (the|these)|^before (you )?upgrade'
+        skip: true
+      - section: '.*'
+        breaking: true
+        actionRequired: true
+
+  # Per-version deprecations, same shape as breaking-changes.
+  - id: deprecations
+    roles: [release-notes]
+    availability: ">= 9.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/elastic/elasticsearch
+      ref: main
+      path: docs/release-notes/deprecations.md
+    extract:
+      format: adoc
+      type: markdown-section
+      heading: '^{{regexQuote .Version}} '
+      labelParagraphs: '^[A-Z][A-Za-z0-9|/&+ -]{2,40}$'
+    classify:
+      - text: '(?i)no deprecations'
+        skip: true
+      - text: '(?i)^review (the|these)|^before (you )?upgrade|deprecated functionality'
+        skip: true
+      - section: '.*'
+        category: deprecation
+
+  # --- upgrade guides (per major, AsciiDoc) ----------------------------------
+  # migrate_9_0.asciidoc at the 9.0.0 tag: "== Migrating to 9.0" with
+  # "=== Breaking changes" / "=== Deprecations" and one ".Block title"
+  # collapsible topic per change. format:adoc renders it as line-preserving
+  # markdown (the aggregator include:: lines stay empty).
+  - id: migration-9-0
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 9.0.0, < 10.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/elastic/elasticsearch
+      ref: "{{.Tag}}"
+      path: docs/reference/migration/migrate_9_0.asciidoc
+    extract:
+      format: adoc
+      type: whole
+    classify: &migration-classify
+      # pass-through and label fragments of the converted blocks
+      - text: '<titleabbrev>'
+        skip: true
+      # section intros (folded as "Heading: first paragraphs", so unanchored)
+      - text: '(?i)this section discusses the changes'
+        skip: true
+      - text: '(?i)might affect your applications and prevent them from operating'
+        skip: true
+      - text: '(?i)the following functionality has been deprecated in \{es\}'
+        skip: true
+      - text: '^\*?(Details|Impact)\*?$'
+        skip: true
+      - text: '(?i)^this section discusses|^the following (changes|functionality)|^see also|^to find out'
+        skip: true
+      - section: '(?i)Deprecations'
+        category: deprecation
+      # a whole-major migration guide IS the breaking-change list
+      - section: '.*'
+        breaking: true
+        actionRequired: true
+
+  # 8.0: the breaking changes live in migrate_8_0/*.asciidoc (the aggregator
+  # file only include::s them), one topic per change with .Block title /
+  # [%collapsible] blocks and pipe tables.
+  - id: migration-8-0
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 8.0.0, < 9.0.0"
+    locator:
+      kind: repo-dir
+      repository: github.com/elastic/elasticsearch
+      ref: "{{.Tag}}"
+      path: docs/reference/migration/migrate_8_0
+      glob: "*.asciidoc"
+    extract:
+      format: adoc
+      type: whole
+    classify: *migration-classify
+
+  # 7.0: same layout, [float]-era style (plain ==== topic headings).
+  - id: migration-7-0
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 7.0.0, < 8.0.0"
+    locator:
+      kind: repo-dir
+      repository: github.com/elastic/elasticsearch
+      ref: "{{.Tag}}"
+      path: docs/reference/migration/migrate_7_0
+      glob: "*.asciidoc"
+    extract:
+      format: adoc
+      type: whole
+    classify: *migration-classify
+
+  # --- lifecycle evidence -----------------------------------------------------
+  # The end-of-life page of the support policy: 8.x EOM 2027-01-15 / EOS
+  # 2027-07-15; 9.x EOM 2027-10-15; 7.17 EOS 2026-01-15; maintenance = the
+  # longer of 30 months from GA or 18 months after the next major. It is the
+  # evidence of the lifecycle statements below (its note items are reported
+  # through them, not as per-release notes).
+  - id: eol-page
+    roles: [release-notes]
+    locator:
+      kind: http
+      url: https://www.elastic.co/support/eol
+    extract:
+      type: whole
+
+  # --- security ----------------------------------------------------------------
+  # The GHSA feed of the repository is the machine-readable channel;
+  # elastic.co also publishes ESA announcements on the security-announcements
+  # forum and detailed write-ups in the security labs.
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: elastic/elasticsearch
+
+# 8.x is the maintained prior major (only its final minor 8.19 receives
+# fixes, alongside the 9.x lines); 7.x is past its published end of support.
+lifecycle:
+  - state: end-of-life
+    since: "2026-01"
+    versions: "< 8.0.0"
+    summary: >-
+      Every Elasticsearch line below 8.x is past its published end of support:
+      7.17, the last 7.x line, ended support on 2026-01-15 and older lines
+      ended earlier (elastic.co/support/eol). New vulnerabilities are fixed on
+      the 8.19 and 9.x lines only; upgrades that stay below 8.x target
+      unpatched releases.
+    sources: [eol-page]
+  - state: deprecated
+    since: "2025-04"
+    versions: ">= 8.0.0, < 9.0.0"
+    summary: >-
+      8.x is the prior major: only its final minor, 8.19, is maintained
+      (End of Maintenance 2027-01-15, End of Support 2027-07-15), and
+      migrating to 9.x requires upgrading to the last 8.x version first.
+      Prefer the current 9.x lines for new deployments.
+    sources: [eol-page]
+
+artifacts:
+  # --- Docker image (the official registry; not on docker.io) -----------------
+  # Anonymous token flow (docker-auth.elastic.co), tags are bare X.Y.Z; every
+  # stable tag from 5.0.0 on is present (332/332 checked).
+  - id: image
+    type: container-image
+    name: docker.elastic.co/elasticsearch/elasticsearch
+    description: The Elasticsearch server image on the official Elastic registry.
+    availability: ">= 5.0.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.elastic.co/elasticsearch/elasticsearch
+
+  # --- distributions on artifacts.elastic.co -----------------------------------
+  # The arch-suffixed tarball name is the stable one (the plain
+  # elasticsearch-7.0.0.tar.gz shape answers 404); .sha512 sidecars exist.
+  - id: tarball
+    type: package
+    name: elasticsearch-X.Y.Z-linux-x86_64.tar.gz
+    description: Linux x86_64 tarball distribution.
+    availability: ">= 7.0.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{.Version}}-linux-x86_64.tar.gz"
+  - id: deb
+    type: package
+    name: elasticsearch-X.Y.Z-amd64.deb
+    description: Debian package distribution.
+    availability: ">= 7.0.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{.Version}}-amd64.deb"
+  - id: rpm
+    type: package
+    name: elasticsearch-X.Y.Z-x86_64.rpm
+    description: RPM package distribution.
+    availability: ">= 7.0.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{.Version}}-x86_64.rpm"
+
+  # --- source archive ------------------------------------------------------------
+  - id: source-archive
+    type: package
+    name: elasticsearch-source.tar.gz
+    description: Source tarball of the release tag.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/elastic/elasticsearch/archive/refs/tags/{{.Tag}}.tar.gz"
+
+  # --- bundled Apache Lucene (per-release pin, verified on Maven Central) -------
+  # The build pins the Lucene version per release (also the compatibility
+  # signal for plugin authors); the pin is a Java properties file, so the
+  # pattern strategy (not field) reads it. build-tools-internal/version.properties
+  # exists from 7.14 on (buildSrc/version.properties before that).
+  - id: lucene-core
+    type: package
+    name: lucene-core
+    description: Bundled Apache Lucene version of the release.
+    availability: ">= 7.14.0"
+    version:
+      strategy: pattern
+      pattern: '(?m)^lucene[ \t]*=[ \t]*(?P<version>\d+\.\d+\.\d+)[ \t]*$'
+      from:
+        kind: repo-file
+        repository: github.com/elastic/elasticsearch
+        ref: "{{.Tag}}"
+        path: build-tools-internal/version.properties
+    channels:
+      - kind: http
+        url: "https://repo1.maven.org/maven2/org/apache/lucene/lucene-core/{{.ArtifactVersion}}/lucene-core-{{.ArtifactVersion}}.jar"
+
+provenance:
+  method: discovery+research
+  updated: "2026-10-01"
+  notes: >-
+    Authored from docs/research/elasticsearch.md after `ri discover` (which
+    proposed the tag scheme, the github-advisories feed and the structured
+    docs/changelog note directory; the changelog-dir proposal validates but
+    yields zero note items because extract:release-note-yaml reads Istio's
+    releaseNotes schema, not the summary/pr/type schema — see the record).
+    9.x notes come from the markdown docs/release-notes files at main
+    (sections are merged after each release); 7.14-8.x per-release notes are
+    a recorded gap (changelog-dir YAML unreadable, elastic.co pages HTML).
+    The per-major migration guides are AsciiDoc and motivated the generic
+    format:adoc construct. docker.elastic.co, artifacts.elastic.co,
+    www.elastic.co and repo1.maven.org were all reachable, so every artifact
+    relationship is verified against its canonical host. No upstream Helm
+    chart exists for the server (elastic/helm-charts is deprecated; ECK is a
+    separate product).

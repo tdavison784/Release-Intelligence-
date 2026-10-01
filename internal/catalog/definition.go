@@ -203,14 +203,24 @@ const (
 	// "markdown-section" selects a section by title and "markdown-table" can
 	// read converted grid tables.
 	FormatRST = "rst"
+	// FormatAsciiDoc: the document is AsciiDoc; it is rendered as
+	// line-preserving markdown before extraction
+	// (normalize.ASCIIDocToMarkdown): one-line "="-prefix titles and
+	// two-line underline titles become headings (fixed style levels),
+	// anchors, attribute lists, macros, comments and block delimiters are
+	// blanked, block titles become bold text, link macros become markdown
+	// links and pipe tables become markdown tables, so "markdown-section"
+	// selects a section by title, "markdown-table" reads converted tables
+	// and "whole" parses the topics as notes.
+	FormatAsciiDoc = "adoc"
 )
 
 // Extract configures how to extract information from a fetched document.
 type Extract struct {
-	// Format is the markup of the document ("markdown" when empty); "docbook"
-	// and "rst" documents are converted to markdown first (docbook for the
-	// types "whole" and "markdown-section"; rst also for "markdown-table",
-	// because grid tables are converted to pipe tables).
+	// Format is the markup of the document ("markdown" when empty); "docbook",
+	// "rst" and "adoc" documents are converted to markdown first (docbook for
+	// the types "whole" and "markdown-section"; rst and adoc also for
+	// "markdown-table", because their tables are converted to pipe tables).
 	Format string `yaml:"format,omitempty" json:"format,omitempty"`
 	Type   string `yaml:"type" json:"type"`
 	// Heading is a regex template selecting the section (markdown-section).

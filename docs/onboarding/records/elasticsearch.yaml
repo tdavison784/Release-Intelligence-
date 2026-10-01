@@ -1,0 +1,134 @@
+product: elasticsearch
+order: 18
+wave: 3
+repository: github.com/elastic/elasticsearch
+onboarding:
+  startedAt: "2026-10-01T15:36:04Z"
+  finishedAt: "2026-10-01T16:18:45Z"
+  minutes: 43
+discovery:
+  proposal: docs/onboarding/discovery/elasticsearch.proposed.yaml
+  report: docs/onboarding/discovery/elasticsearch.report.md
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags'; the strict pattern (476 stable, alphaN/betaN/rcN prereleases out, pre-1.0 dot-shapes out) was kept verbatim"}
+  - {id: github-releases, origin: manual, note: "versions fallback; releases exist for both majors but the bodies are stubs ('Downloads: … Release notes: <elastic.co link>')"}
+  - {id: release-notes, origin: manual, note: "docs/release-notes/index.md at main (9.x era): one '## X.Y.Z' section per release, Features/Fixes subsections, area label paragraphs; a release's own section lands on main only after the release, hence the fixed ref"}
+  - {id: breaking-changes, origin: manual, note: "docs/release-notes/breaking-changes.md at main, per-version sections; markdown carrying AsciiDoc definition lists, declared format:adoc"}
+  - {id: deprecations, origin: manual, note: "docs/release-notes/deprecations.md at main, same shape"}
+  - {id: migration-9-0, origin: manual, note: "migrate_9_0.asciidoc at the 9.0.0 tag, format:adoc, releaseKinds [major] — the motivating source of the format:adoc construct"}
+  - {id: migration-8-0, origin: manual, note: "migrate_8_0/*.asciidoc directory (the aggregator only include::s the 15 topic files), format:adoc"}
+  - {id: migration-7-0, origin: manual, note: "migrate_7_0/*.asciidoc directory, [float]-era style, format:adoc"}
+  - {id: eol-page, origin: manual, note: "https://www.elastic.co/support/eol — lifecycle evidence (8.x EOM 2027-01-15 / EOS 2027-07-15, 7.17 EOS 2026-01-15); reachable, so the statements cite fetched evidence"}
+  - {id: github-advisories, origin: discovered, note: "proposal id 'advisories'; the GHSA feed is the machine-readable channel next to the elastic.co ESA announcements"}
+artifacts:
+  - {id: image, origin: manual, note: "docker.elastic.co/elasticsearch/elasticsearch — discovery excluded it as image.docs-only (built by the DRA release pipeline, not an in-repo workflow); anonymous token flow like ghcr, all 332 stable tags 5.0.0-9.5.4 present"}
+  - {id: tarball, origin: manual, note: "artifacts.elastic.co elasticsearch-X.Y.Z-linux-x86_64.tar.gz (the plain elasticsearch-7.0.0.tar.gz name is 404; the arch suffix is the stable naming)"}
+  - {id: deb, origin: manual, note: "artifacts.elastic.co elasticsearch-X.Y.Z-amd64.deb"}
+  - {id: rpm, origin: manual, note: "artifacts.elastic.co elasticsearch-X.Y.Z-x86_64.rpm"}
+  - {id: source-archive, origin: manual, note: "GitHub tag archive"}
+  - {id: lucene-core, origin: manual, note: "per-release Lucene pin read from build-tools-internal/version.properties (version:pattern — a properties file is not YAML; the file lives in buildSrc/ before 7.14) and verified on repo1.maven.org"}
+discoveryRejected:
+  - {id: release-note-files (docs/changelog/*.yaml), reason: "the proposal was historically-validated and looks perfect: the directory exists at every tag from 7.14 on and is REPLACED per release (the dir at the tag is exactly that release's notes). But extract:release-note-yaml reads Istio's releaseNotes-list schema; the ES per-PR schema (area/pr/summary/type) parses cleanly and yields ZERO note items. A discovery validator that measured item yield, not just document resolution, would have caught it"}
+  - {id: "image docker.elastic.co/elasticsearch/elasticsearch", reason: "excluded by the docs-only rule (only referenced from docs, no build config in the repository): the image is built by Elastic's DRA release infrastructure; improvement idea for discovery: read distribution/ release packaging"}
+  - {id: docs-repo github.com/elastic/docs, reason: "the shared docs build toolchain, not a release-notes channel for this product"}
+relationships:
+  historicalReleasesChecked: [9.5.4, 9.5.0, 9.4.7, 9.4.0, 9.3.8, 9.3.0, 9.1.0, 9.0.1, 9.0.0, 8.19.22, 8.19.0, 8.12.0, 8.1.0, 8.0.1, 8.0.0, 7.17.23, 7.17.5, 7.17.0, 7.0.0, 6.8.0]
+  # first run of the first complete draft (default window 9.3.0-9.5.4): 0
+  # failing subjects; the boundary sweep (majors, both live majors, 7.x,
+  # 6.8.0) also failed nothing. No exceptions were needed anywhere.
+  initialFailures: 0
+  finalFailures: 0
+  manualInterventions:
+    - {subject: "breaking-changes, deprecations, eol-page", change: "removed the single fallbackGroup that grouped the four note channels into standalone sources", reason: "a fallback group keeps only the first answering member's notes: the first edge showed 6 breaking changes instead of 81 because release-notes satisfied the group — found by reading the edge, not by a failing check"}
+    - {subject: "migration-9-0, migration-8-0", change: "skip rules for section intros ('might affect your applications', 'this section discusses the changes', 'the following functionality has been deprecated') and the <titleabbrev> pass-through", reason: "converted sections fold their intro paragraphs into 'Heading: paragraphs' items that surfaced as breaking changes"}
+    - {subject: release-notes, change: "a '^Fix' rule ahead of the deprecat rule in the Fixes section", reason: "'Fix _type deprecation on simulate pipeline API' is a bugfix of a warning, not a deprecation"}
+  unverifiable: []
+constructs:
+  new:
+    - name: "format:adoc"
+      kind: extract-format converter (normalize.ASCIIDocToMarkdown + catalog format value + ingest branch + schema enum)
+      justification: >-
+        Elasticsearch's per-major migration guides — its highest-value
+        upgrade intelligence — exist in the repository only as AsciiDoc:
+        docs/reference/migration/migrate_7_0.asciidoc + migrate_7_0/*.asciidoc,
+        migrate_8_0.asciidoc + migrate_8_0/*.asciidoc (the aggregator only
+        include::s 15 topic files) and migrate_9_0.asciidoc ("== Migrating to
+        9.0" with .Block-title [%collapsible] ==== topics, *Details* + / *Impact* +
+        labels and |==== pipe tables). No markdown twin exists in-repo for 7.0
+        and 8.0; the 9.0 markdown twin (docs/release-notes/breaking-changes.md)
+        embeds AsciiDoc definition lists ("Area" / ":   * entry") that the
+        markdown reader folds into one item per area — the same file is
+        therefore also declared adoc, and the ':'-marker stripping makes every
+        bullet an item. The converter parallels normalize.RSTToMarkdown:
+        line-preserving, one-line "="-prefix titles and two-line underline
+        titles (AsciiDoc's FIXED style-to-level mapping, unlike rst's
+        first-use ordering), anchors/attribute lists/macros/comments/block
+        delimiters blanked, .Block titles bolded, link macros flattened,
+        hard breaks stripped, pipe tables converted; converted markup is read
+        in list-item mode like docbook/rst. This is the third format in the
+        slot created for docbook and filled for rst; cilium's record and
+        strimzi's both named Elasticsearch as the AsciiDoc decision to make,
+        and the answer is yes on its own evidence.
+      otherProducts: [opensearch (the fork of this very repository keeps the same migrate_N_0.asciidoc conventions), neo4j (upgrade/migration docs are AsciiDoc), the elastic stack siblings (kibana/logstash/beats docs are AsciiDoc; logstash ships per-version breaking-changes asciidoc), the wider Asciidoctor/Antora ecosystem (WildFly, Groovy/Gradle docs)]
+  considered:
+    - {name: "extract:changelog-yaml (the ES per-PR docs/changelog schema: summary/pr/type/area per file)", rejected: "generic constructs need named cross-product users and the convention's other users are unverified (kibana generates .md; logstash uses a different per-version yaml); recorded as a gap instead — the gap is real: 8.19.x→8.19.x edges carry no note items"}
+    - {name: "format:html (elastic.co per-version release-notes pages, the only per-release notes of 7.0-7.13 and the readable rendering of 7.14-8.x)", rejected: "a second converter with a much bigger surface; the markdown files and migration guides cover 9.x and the majors, so the gap is bounded to 8.x-era patch notes and older lines"}
+    - {name: "reading docs/release-notes/index.md at the release's own tag", rejected: "a release's own section lands on main only after the release (at v9.5.4's tag the newest section is 9.4.3; main has all 51); main is the fixed ref that always has the section (traefik's migration-v2 precedent)"}
+    - {name: "docker.io mirror channel for the image", rejected: "the official registry answers the anonymous token flow end to end (the first product whose whole publication chain is reachable); no server-image mirror exists"}
+    - {name: "bundled JDK as a second version:pattern artifact", rejected: "no stable anonymous URL serves the exact openjdk vendor build (26.0.2+10@hash); declared for lucene only, JDK recorded as a gap"}
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/normalize/asciidoc.go, purpose: "ASCIIDocToMarkdown, the line-preserving AsciiDoc renderer (headings, anchors/attrs/macros blanked, block titles, inline macros, definition markers, pipe tables)"}
+    - {file: internal/catalog/definition.go, purpose: "FormatAsciiDoc constant + Extract.Format doc"}
+    - {file: internal/catalog/validate.go, purpose: "adoc accepted for whole/markdown-section/markdown-table (the rst rule)"}
+    - {file: internal/ingest/docs.go, purpose: "adoc branch of the format conversion (list-item reading, like docbook/rst)"}
+    - {file: schemas/product-definition.schema.json, purpose: "format enum + description"}
+    - {file: "internal/normalize/asciidoc_test.go, internal/ingest/asciidoc_test.go, internal/ingest/docbook_test.go", purpose: "unit tests on real migration-guide shapes; the docbook test's 'unknown format must be rejected' case moved off the now-valid value"}
+unreachableSources: []
+ambiguousRelationships:
+  - "docs/changelog/*.yaml at the tag is exactly that release's notes (the directory is replaced, not accumulated — 27 files at v9.0.1 replace v9.0.0's 28, and v9.1.0's 342 files match its generated bundle's 343 summaries); discovery's baseRef {{.PrevTag}} would select the same set, but no extract reads the schema"
+  - "breaking-changes.md / deprecations.md are markdown files carrying AsciiDoc definition lists; format:adoc is correct for them even though the extension is .md, and the area labelParagraphs regex differs accordingly (no trailing colon)"
+  - "docs/release-notes/*.md sections are merged to main after the release: an edge for 9.5.4 reads today's copy of the section, not the release-time one (the traefik fixed-ref trade)"
+  - "the migration guide and the per-version breaking-changes file describe some of the same changes twice (TLS_RSA ciphers in both); dual channels kept, each citing its own evidence"
+  - "docker.elastic.co lists 49156 tags (snapshots and build suffices); only bare X.Y.Z tags were treated as releases, and every stable tag from 5.0.0 on is present"
+  - "the eol page's per-line footnotes (8.17 maintained until 8.19's release, 8.18 until 9.2's) are quoted inside the lifecycle statement rather than modelled per line"
+  - "maintenance state vs version list: 8.19.x tags continue next to 9.x tags in one semver space (dual live majors); the deprecated statement covers >= 8.0.0 < 9.0.0 and the EOL one everything older"
+representability: partial
+gaps:
+  - "Per-release notes for 7.14-8.x are not represented: in-repo they exist only as the ES changelog-dir YAML schema (summary/pr/type/area — no extract reads it; release-note-yaml is Istio's releaseNotes lists) and the elastic.co pages are HTML; 8.19.x → 8.19.x edges (a still-patched line!) carry artifact and lifecycle facts but zero note items. Same for 7.0-7.13, which has no in-repo notes at all"
+  - "docs/release-notes/changelog-bundles/X.Y.Z.yml (9.x, generated per version with pr/summary/area/type/highlight) have the same schema problem and only exist at later tags than their own release"
+  - "The bundled JDK pin is machine-readable (bundled_jdk in the same properties file) but no stable anonymous URL serves the exact openjdk vendor build (Adoptium publishes temurin; 9.x bundles openjdk): lucene is the declared pin, JDK is not"
+  - "elastic.co/support/matrix (per-version JVM/OS/stack compatibility) is HTML; the lucene artifact is the only machine-readable compatibility pin represented. No Kubernetes matrix exists for the server — the karpenter-record expectation of 'max Kubernetes per stack version' belongs to ECK, the separate operator product"
+  - "No upstream Helm chart exists for the server (elastic/helm-charts is deprecated); ECK (elastic/cloud-on-kubernetes) is a related product not onboarded here"
+  - "MyST dropdown fences in index.md Highlights (::::{dropdown}) fold each highlight into one prose item with the fence text in its title (the repository-s3 AWS-SDK-v2 migration reads correctly but noisily)"
+  - "The migration sources are per major: exactly one applicable release each, so they can never reach 'validated' (insufficient by construction, like every whole-major guide)"
+sampleEdge:
+  from: 8.19.22
+  to: 9.5.4
+  summary: "81 breaking · 0 action required · 2068 changes · 0 warnings"
+  evidenceRecords: 2215
+notes: >-
+  The headline decision: format:adoc implemented. Two records deferred it to
+  this product (cilium's rst justification: 'Strimzi/Elasticsearch are
+  AsciiDoc'; strimzi's: 'Elasticsearch should decide on its own evidence'),
+  and the evidence says yes — the per-major migration guides exist only as
+  AsciiDoc, and even the 9.x markdown breaking-changes file embeds AsciiDoc
+  definition lists. The stale lead (docs/changelog.asciidoc) does not exist
+  at any tag. Dual majors are represented the traefik/redis way: one semver
+  space, lifecycle statements scoped by constraint — everything below 8.x
+  end-of-life (7.17's support ended 2026-01-15), 8.x deprecated since 9.0's
+  GA with the published 2027-01-15 end of maintenance quoted (v8.19.22
+  shipped eight days before v9.5.4). The AGPL re-licensing era (8.19/9.0+)
+  is descriptive only. Second and third edges exercised: 9.5.0 → 9.5.4 (1
+  breaking · 134 changes · 4 CVE-carrying dependency upgrades; lucene
+  10.5.0 → 10.5.1) and 7.17.23 → 8.19.22 (165 breaking · 167 changes · 1
+  warning: the target line is deprecated — the deprecated-major edge cites
+  the 15-file 8.0 guide). Discovery quality: right versioning and the
+  advisories feed, one structurally-perfect proposal that yields zero
+  intelligence (the item-yield blind spot), zero artifacts, and the real
+  image excluded as docs-only. First onboarding with every canonical host
+  reachable (docker.elastic.co via the anonymous token flow,
+  artifacts.elastic.co, www.elastic.co, repo1.maven.org): nothing is
+  unverified and no mirror was needed. Elapsed time is agent wall-clock and
+  excludes this record.

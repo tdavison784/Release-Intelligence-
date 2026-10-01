@@ -154,17 +154,21 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 		}
 	}
 	// extract.listItems selects the structural reading for markdown too;
-	// docbook/rst conversions always use it
+	// docbook/rst/adoc conversions always use it
 	structuralLists := ex.ListItems
-	if ex.Format == catalog.FormatDocBook || ex.Format == catalog.FormatRST {
-		// render DocBook / reStructuredText as markdown (line for line) on a
-		// copy: documents are shared with other sources through the memo
+	if ex.Format == catalog.FormatDocBook || ex.Format == catalog.FormatRST || ex.Format == catalog.FormatAsciiDoc {
+		// render DocBook / reStructuredText / AsciiDoc as markdown (line for
+		// line) on a copy: documents are shared with other sources through
+		// the memo
 		conv := make([]sources.Document, len(f.docs))
 		for k, d := range f.docs {
-			if ex.Format == catalog.FormatDocBook {
+			switch ex.Format {
+			case catalog.FormatDocBook:
 				d.Content = normalize.DocBookToMarkdown(d.Content)
-			} else {
+			case catalog.FormatRST:
 				d.Content = normalize.RSTToMarkdown(d.Content)
+			default:
+				d.Content = normalize.ASCIIDocToMarkdown(d.Content)
 			}
 			conv[k] = d
 		}

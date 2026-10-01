@@ -394,12 +394,12 @@ func (v *validator) extract(path string, e Extract, rc RenderContext) {
 		if e.Type != ExtractWhole && e.Type != ExtractMarkdownSection && e.Type != "" {
 			v.errf(path+".format", "%q documents are supported by extract types %s and %s only", e.Format, ExtractWhole, ExtractMarkdownSection)
 		}
-	case FormatRST:
+	case FormatRST, FormatAsciiDoc:
 		if e.Type != ExtractWhole && e.Type != ExtractMarkdownSection && e.Type != ExtractMarkdownTable && e.Type != "" {
 			v.errf(path+".format", "%q documents are supported by extract types %s, %s and %s only", e.Format, ExtractWhole, ExtractMarkdownSection, ExtractMarkdownTable)
 		}
 	default:
-		v.errf(path+".format", "must be %q, %q or %q, got %q", FormatMarkdown, FormatDocBook, FormatRST, e.Format)
+		v.errf(path+".format", "must be %q, %q, %q or %q, got %q", FormatMarkdown, FormatDocBook, FormatRST, FormatAsciiDoc, e.Format)
 	}
 	switch e.Type {
 	case ExtractWhole, ExtractReleaseNoteYAML:

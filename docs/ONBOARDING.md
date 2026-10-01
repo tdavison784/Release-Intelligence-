@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 17 product definitions, 17 onboarding records, 17 saved relationship reports.
-- 151 distinct constructs are used across all definitions; the records introduce 151.
-- 5 of 17 recorded products introduced no new construct. The latest product that introduced one has order 15.
+- 18 product definitions, 18 onboarding records, 18 saved relationship reports.
+- 152 distinct constructs are used across all definitions; the records introduce 152.
+- 5 of 18 recorded products introduced no new construct. The latest product that introduced one has order 18.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -87,6 +87,7 @@ What convergence looks like:
 | 15 | 2 | flux | 495 (398) | 14 | 14 | 18 | 2 | 21 | 25 | 0 | 1 | 0 | 7 |
 | 16 | 2 | otel-collector | 444 (356) | 7 | 13 | 21 | 0 | 23 | 32 | 22 | 0 | 0 | 9 |
 | 17 | 2 | redis | 238 (170) | 6 | 4 | 6 | 0 | 22 | 11 | 1 | 0 | 1 | 5 |
+| 18 | 3 | elasticsearch | 340 (271) | 10 | 6 | 6 | 0 | 36 | 18 | 0 | 0 | 0 | 11 |
 
 ### Constructs and effort
 
@@ -109,6 +110,7 @@ What convergence looks like:
 | 15 | flux | 91 | 4 | 87 | 96% | 151 | 7 / 0 | 46 | full |
 | 16 | otel-collector | 57 | 0 | 57 | 100% | 151 | 0 / 0 | 28 | full |
 | 17 | redis | 61 | 0 | 61 | 100% | 151 | 2 / 0 | 43 | full |
+| 18 | elasticsearch | 73 | 1 | 72 | 99% | 152 | 6 / 0 | 43 | partial |
 
 ### Discovery and relationship validation
 
@@ -131,6 +133,7 @@ What convergence looks like:
 | flux | 4/11/13 (54%) | 19/0/1/0 | 110/0/0/10/0 | 2 → 0 | 4 | 2 |
 | otel-collector | 2/7/11 (45%) | 15/0/1/0 | 848/0/0/192/0 | 12 → 0 | 4 | 2 |
 | redis | 4/0/6 (40%) | 7/0/0/0 | 72/0/0/11/8 | 1 → 0 | 4 | 2 |
+| elasticsearch | 2/0/14 (12%) | 10/0/3/0 | 165/0/0/95/0 | 0 → 0 | 3 | 0 |
 
 ## Construct-introduction curve
 
@@ -153,6 +156,7 @@ What convergence looks like:
 | 15 | flux | 4 | 151 | 91 | 87 | 96% | 4 | 151 |
 | 16 | otel-collector | 0 | 151 | 57 | 57 | 100% | 0 | 151 |
 | 17 | redis | 0 | 151 | 61 | 61 | 100% | 0 | 151 |
+| 18 | elasticsearch | 1 | 152 | 73 | 72 | 99% | 1 | 152 |
 
 New constructs per product, in onboarding order (records):
 
@@ -174,12 +178,13 @@ New constructs per product, in onboarding order (records):
  15  flux                      4  ██
  16  otel-collector            0  
  17  redis                     0  
+ 18  elasticsearch             1  █
 ```
 
 Cumulative constructs introduced:
 
 ```text
-  1  cert-manager             87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  1  cert-manager             87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   2  istio                    99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   3  argo-cd                 113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   4  cilium                  115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
@@ -191,11 +196,12 @@ Cumulative constructs introduced:
  10  ingress-nginx           143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  11  grafana                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  12  strimzi                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 13  traefik                 144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 13  traefik                 144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  14  karpenter               147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  15  flux                    151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  16  otel-collector          151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  17  redis                   151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 18  elasticsearch           152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -326,6 +332,10 @@ No new constructs: the definition is configuration only.
 
 No new constructs: the definition is configuration only.
 
+### elasticsearch (order 18, wave 3): 1 new
+
+- `format:adoc`: Elasticsearch's per-major migration guides — its highest-value upgrade intelligence — exist in the repository only as AsciiDoc: docs/reference/migration/migrate_7_0.asciidoc + migrate_7_0/*.asciidoc, migrate_8_0.asciidoc + migrate_8_0/*.asciidoc (the aggregator only include::s 15 topic files) and migrate_9_0.asciidoc ("== Migrating to 9.0" with .Block-title [%collapsible] ==== topics, *Details* + / *Impact* + labels and |==== pipe tables). No markdown twin exists in-repo for 7.0 and 8.0; the 9.0 markdown twin (docs/release-notes/breaking-changes.md) embeds AsciiDoc definition lists ("Area" / ":   * entry") that the markdown reader folds into one item per area — the same file is therefore also declared adoc, and the ':'-marker stripping makes every bullet an item. The converter parallels normalize.RSTToMarkdown: line-preserving, one-line "="-prefix titles and two-line underline titles (AsciiDoc's FIXED style-to-level mapping, unlike rst's first-use ordering), anchors/attribute lists/macros/comments/block delimiters blanked, .Block titles bolded, link macros flattened, hard breaks stripped, pipe tables converted; converted markup is read in list-item mode like docbook/rst. This is the third format in the slot created for docbook and filled for rst; cilium's record and strimzi's both named Elasticsearch as the AsciiDoc decision to make, and the answer is yes on its own evidence. (also needed by opensearch (the fork of this very repository keeps the same migrate_N_0.asciidoc conventions), neo4j (upgrade/migration docs are AsciiDoc), the elastic stack siblings (kibana/logstash/beats docs are AsciiDoc; logstash ships per-version breaking-changes asciidoc), the wider Asciidoctor/Antora ecosystem (WildFly, Groovy/Gradle docs))
+
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
@@ -333,6 +343,7 @@ No new constructs: the definition is configuration only.
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) +1 unclassified | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 30 (4.3) | 93% | 55 / 0 | 25 (n=7) | 20/24/56 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
 | 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 99% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) | 93/0/12/0 (7 of 7 reports) | 10 | full 7 |
+| 3 | elasticsearch | 0 of 1 | 1 (1.0) | 99% | 6 / 0 | 43 (n=1) | 2/0/14 (12%) | 10/0/3/0 (1 of 1 reports) | 0 | partial 1 |
 
 ## Notes from the records
 
@@ -369,6 +380,8 @@ No new constructs: the definition is configuration only.
 **otel-collector**: Third zero-new wave-2 product: onboarding was research plus configuration. The scope decision: the product is the RELEASES repository (the six distributions users deploy — binaries, deb/rpm/msi packages, images on docker.io + ghcr), not the core framework and not the contrib component repo; core and contrib are modeled as the distribution's content — their changelog sections read at the same-numbered tags (the release body itself links exactly those two), plus a core-release artifact with the honest distribution-only-patch exceptions. The k8s operator is noted as a related product. The definition is the construct-leanest big-product shape so far (57 constructs, all reused; no fallback groups needed — raw git hosts answered everything). Discovery quality was the highest yet for images (six ghcr channels historically-validated by itself) but its binary-asset proposer still cannot template per-OS/arch asset families, and it missed the multi-repository topology entirely — the one class of finding research had to supply. The upstream anomalies this product exposed (three releases that published nothing, a missing multi-arch index tag on the newest release, sections mis-headed as follow-up patches) are exactly what the exceptions construct exists for; none required Go changes.
 
 **redis**: Third wave-2 zero-new-construct product (grafana, strimzi): the whole non-Kubernetes topology — in-repo per-line release notes, GitHub advisory feed, download.redis.io tarballs, Docker official image with a mirror fallback, EOL-dated lifecycle statements — is configuration over existing constructs. The one generic change (setext headings) completes CommonMark in the shared markdown scanner rather than adding definition vocabulary; it benefits any product whose upstream documents underline titles (no catalog field, schema entry or ingest branch was added). Discovery baseline: right versioning and channels-from-tags, zero artifacts, and it mistook the website notes copy for the source; its own historical validation of the GitHub release body was correct and kept.
+
+**elasticsearch**: The headline decision: format:adoc implemented. Two records deferred it to this product (cilium's rst justification: 'Strimzi/Elasticsearch are AsciiDoc'; strimzi's: 'Elasticsearch should decide on its own evidence'), and the evidence says yes — the per-major migration guides exist only as AsciiDoc, and even the 9.x markdown breaking-changes file embeds AsciiDoc definition lists. The stale lead (docs/changelog.asciidoc) does not exist at any tag. Dual majors are represented the traefik/redis way: one semver space, lifecycle statements scoped by constraint — everything below 8.x end-of-life (7.17's support ended 2026-01-15), 8.x deprecated since 9.0's GA with the published 2027-01-15 end of maintenance quoted (v8.19.22 shipped eight days before v9.5.4). The AGPL re-licensing era (8.19/9.0+) is descriptive only. Second and third edges exercised: 9.5.0 → 9.5.4 (1 breaking · 134 changes · 4 CVE-carrying dependency upgrades; lucene 10.5.0 → 10.5.1) and 7.17.23 → 8.19.22 (165 breaking · 167 changes · 1 warning: the target line is deprecated — the deprecated-major edge cites the 15-file 8.0 guide). Discovery quality: right versioning and the advisories feed, one structurally-perfect proposal that yields zero intelligence (the item-yield blind spot), zero artifacts, and the real image excluded as docs-only. First onboarding with every canonical host reachable (docker.elastic.co via the anonymous token flow, artifacts.elastic.co, www.elastic.co, repo1.maven.org): nothing is unverified and no mirror was needed. Elapsed time is agent wall-clock and excludes this record.
 
 ## Data quality
 
