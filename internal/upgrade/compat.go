@@ -5,8 +5,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Masterminds/semver/v3"
-
 	"github.com/tdavison784/release-intelligence/internal/domain"
 )
 
@@ -48,14 +46,6 @@ func orderIndex(m map[string]int, k string) int {
 		return i
 	}
 	return len(m)
-}
-
-// versionSet is the set of platform minor versions a constraint admits,
-// evaluated over a finite list of candidate minors.
-type versionSet struct {
-	ok      bool // membership could be computed
-	members map[lineKey]bool
-	open    bool // also admits versions beyond the candidate range
 }
 
 const maxMinorSpan = 200
@@ -113,97 +103,7 @@ func candidateLines(cs ...*domain.CompatibilityConstraint) []lineKey {
 	return out
 }
 
-func evalSet(c *domain.CompatibilityConstraint, cands []lineKey) versionSet {
-	if c == nil {
-		return versionSet{}
-	}
-	if len(c.Versions) > 0 {
-		s := versionSet{ok: true, members: map[lineKey]bool{}}
-		for _, v := range c.Versions {
-			if k, ok := parseLine(v); ok {
-				s.members[k] = true
-			}
-		}
-		if len(s.members) > 0 {
-			return s
-		}
-	}
-	if strings.TrimSpace(c.Constraint) == "" {
-		return versionSet{}
-	}
-	cs, err := semver.NewConstraint(c.Constraint)
-	if err != nil {
-		return versionSet{}
-	}
-	check := func(major, minor, patch uint64) bool {
-		return cs.Check(semver.New(major, minor, patch, "", ""))
-	}
-	s := versionSet{ok: true, members: map[lineKey]bool{}}
-	for _, k := range cands {
-		if check(k.major, k.minor, 0) || check(k.major, k.minor, 999) {
-			s.members[k] = true
-		}
-	}
-	if len(cands) > 0 {
-		last := cands[len(cands)-1]
-		s.open = check(last.major, last.minor+100, 0)
-	}
-	return s
-}
-
-type run struct{ from, to lineKey }
-
-// runs groups members into consecutive ranges over the candidate list.
-func runs(members map[lineKey]bool, cands []lineKey) []run {
-	var out []run
-	for i, k := range cands {
-		if !members[k] {
-			continue
-		}
-		if n := len(out); n > 0 && i > 0 && cands[i-1] == out[n-1].to && members[cands[i-1]] && cands[i-1].major == k.major {
-			out[n-1].to = k
-			continue
-		}
-		out = append(out, run{k, k})
-	}
-	return out
-}
-
-func (r run) String() string {
-	if r.from == r.to {
-		return r.from.String()
-	}
-	return r.from.String() + "–" + r.to.String()
-}
-
-func formatRuns(rs []run) string {
-	parts := make([]string, len(rs))
-	for i, r := range rs {
-		parts[i] = r.String()
-	}
-	return strings.Join(parts, ", ")
-}
-
-func (s versionSet) display(cands []lineKey) string {
-	rs := runs(s.members, cands)
-	if len(rs) == 0 {
-		if s.open {
-			return "any"
-		}
-		return "none"
-	}
-	if s.open && len(cands) > 0 && rs[len(rs)-1].to == cands[len(cands)-1] {
-		head := formatRuns(rs[:len(rs)-1])
-		tail := "≥ " + rs[len(rs)-1].from.String()
-		if head == "" {
-			return tail
-		}
-		return head + ", " + tail
-	}
-	return formatRuns(rs)
-}
-
-func maxMember(s versionSet, cands []lineKey) string {
+func maxMember(s versionRange, cands []lineKey) string {
 	for i := len(cands) - 1; i >= 0; i-- {
 		if s.members[cands[i]] {
 			return cands[i].String()
@@ -235,7 +135,7 @@ type compatResult struct {
 
 func compareConstraints(f, t *domain.CompatibilityConstraint) compatResult {
 	cands := candidateLines(f, t)
-	fs, ts := evalSet(f, cands), evalSet(t, cands)
+	fs, ts := versionRangeOf(f, cands), versionRangeOf(t, cands)
 	var r compatResult
 	if f != nil {
 		r.fromDisp = rawOf(f)
@@ -272,14 +172,22 @@ func compareConstraints(f, t *domain.CompatibilityConstraint) compatResult {
 	if s := formatRuns(runs(dropped, cands)); s != "" {
 		drops = append(drops, s)
 	}
-	if fs.open && !ts.open {
-		drops = append(drops, "> "+maxMember(ts, cands))
-	}
 	if s := formatRuns(runs(added, cands)); s != "" {
 		adds = append(adds, s)
 	}
-	if ts.open && !fs.open {
+	// An open side that closes is a narrowing the candidate list cannot
+	// express ("≥ 1.22" → "≥ 1.25" still drops every line below 1.25).
+	if fs.openAbove && !ts.openAbove {
+		drops = append(drops, "> "+maxMember(ts, cands))
+	}
+	if ts.openAbove && !fs.openAbove {
 		adds = append(adds, "> "+maxMember(fs, cands))
+	}
+	if fs.openBelow && !ts.openBelow {
+		drops = append(drops, "< "+minMember(ts, cands))
+	}
+	if ts.openBelow && !fs.openBelow {
+		adds = append(adds, "< "+minMember(fs, cands))
 	}
 	r.drops, r.adds = strings.Join(drops, ", "), strings.Join(adds, ", ")
 	r.narrowed = r.drops != ""
@@ -297,6 +205,8 @@ func compatLabel(platform, kind string) string {
 		return p + " tested versions"
 	case "minimum":
 		return p + " minimum version"
+	case "maximum":
+		return p + " maximum version"
 	case "chart-kubeVersion":
 		return p + " chart kubeVersion"
 	}
@@ -477,8 +387,11 @@ func (b *builder) compatChanges() {
 }
 
 // evaluatePlatformConstraint checks a single platform version against one
-// constraint, reusing the range machinery of the endpoint diff. A version
-// given as a line ("1.31") counts as admitted when any patch of the line is.
+// constraint. It evaluates through versionRangeOf — the exact machinery of
+// the endpoint diff — over the candidates extended by the checked line, so
+// the join and the diff can never disagree about what a constraint admits.
+// A version given as a line ("1.31") counts as admitted when any patch of
+// the line is.
 func evaluatePlatformConstraint(c *domain.CompatibilityConstraint, version string) PlatformVersionCheck {
 	var out PlatformVersionCheck
 	if c == nil {
@@ -486,8 +399,7 @@ func evaluatePlatformConstraint(c *domain.CompatibilityConstraint, version strin
 	}
 	out.Display = rawOf(c)
 	cands := candidateLines(c)
-	set := evalSet(c, cands)
-	if set.ok {
+	if set := versionRangeOf(c, cands); set.ok {
 		out.Display = set.display(cands)
 	}
 	vk, ok := parseLine(version)
@@ -497,32 +409,20 @@ func evaluatePlatformConstraint(c *domain.CompatibilityConstraint, version strin
 		out.Computable = false
 		return out
 	}
-	switch {
-	case len(c.Versions) > 0:
-		out.Computable = true
-		for _, v := range c.Versions {
-			if k, isLine := parseLine(v); isLine && k == vk {
-				out.Admits = true
-				break
-			}
-		}
-	case strings.TrimSpace(c.Constraint) != "":
-		cs, err := semver.NewConstraint(c.Constraint)
-		if err != nil {
-			return out
-		}
-		out.Computable = true
-		// A bare line admits when any patch of it does; the check uses the
-		// line's first and last conceivable patch, mirroring evalSet.
-		out.Admits = cs.Check(semver.New(vk.major, vk.minor, 0, "", "")) ||
-			cs.Check(semver.New(vk.major, vk.minor, 999, "", ""))
+	set := versionRangeOf(c, withLine(cands, vk))
+	if !set.ok {
+		out.Computable = false
+		return out
 	}
-	if out.Admits || !set.ok || len(set.members) == 0 {
+	out.Computable = true
+	out.Admits = set.members[vk]
+	if out.Admits {
 		return out
 	}
 	// Position the missed version relative to the admitted lines, for the
-	// "below/above the supported range" wording. Open-ended sets have no
-	// boundary on the open side.
+	// "below/above the supported range" wording. Because the checked line is
+	// part of the candidates, an open side already admitted it — a miss is
+	// always inside the closed part of the range.
 	var min, max lineKey
 	first := true
 	for k := range set.members {
@@ -534,10 +434,26 @@ func evaluatePlatformConstraint(c *domain.CompatibilityConstraint, version strin
 		}
 		first = false
 	}
-	if vk.less(min) {
-		out.Below = min.String()
-	} else if max.less(vk) {
-		out.Above = max.String()
+	if !first {
+		if vk.less(min) {
+			out.Below = min.String()
+		} else if max.less(vk) {
+			out.Above = max.String()
+		}
 	}
 	return out
+}
+
+// withLine inserts a line into a sorted candidate list (deduplicated).
+func withLine(cands []lineKey, k lineKey) []lineKey {
+	out := append([]lineKey{}, cands...)
+	out = append(out, k)
+	sort.Slice(out, func(i, j int) bool { return out[i].less(out[j]) })
+	dedup := out[:0]
+	for i, c := range out {
+		if i == 0 || out[i-1] != c {
+			dedup = append(dedup, c)
+		}
+	}
+	return dedup
 }

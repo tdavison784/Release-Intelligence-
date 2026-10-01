@@ -170,13 +170,21 @@ import `ingest` or `upgrade`.
 8. `env.Load` parses the local environment inputs (values files, manifest
    directories, installed CRDs, an image list, a cluster version flag) into
    an `env.Environment`: every extracted fact carries local evidence
-   (file, line/YAML path, excerpt, file digest).
+   (file, line/YAML path, excerpt, file digest). Streams are decoded with a
+   real YAML stream decoder (a `---` inside a block scalar does not split
+   documents), parse failures and truncation surface as warnings, and each
+   input dimension carries a health status — `absent`, `ok` or `partial` —
+   via `Environment.Health`/`Statuses`, so no consumer can mistake missing
+   or partial facts for a healthy environment.
 9. `impact.Build` joins the edge's computed changes and compatibility
    constraints with the environment facts (key-path, apiVersion, constraint
    and image matching; docs/IMPACT.md) into a `domain.ImpactReport`. Each
    finding cites the upstream evidence of the change AND the environment
    evidence of the matched fact; `ImpactReport.Validate()` enforces both
-   chains. `impact.RenderText` prints the funnel summary and per-finding
+   chains. Compatibility constraints are evaluated through the same shared
+   range representation as the edge diff (`upgrade.versionRangeOf`), so a
+   `minimum`/`maximum` column means `>=`/`<=` on both sides.
+   `impact.RenderText` prints the funnel summary and per-finding
    why-blocks; `-o json` prints the report
    (`schemas/impact-report.schema.json`).
 

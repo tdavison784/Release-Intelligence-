@@ -11,6 +11,7 @@
 package env
 
 import (
+	"bytes"
 	"fmt"
 	"io/fs"
 	"os"
@@ -27,6 +28,46 @@ import (
 
 // Producer identifies the parser in warnings.
 const Producer = "env@v1"
+
+// The input dimensions of the environment model, as named by
+// Environment.Health and Environment.Statuses.
+const (
+	DimKubernetes = "kubernetes"
+	DimValues     = "values"
+	DimManifests  = "manifests"
+	DimCRDs       = "crds"
+	DimImages     = "images"
+)
+
+// dimensionOrder is the fixed reporting order of the dimensions.
+var dimensionOrder = []string{DimKubernetes, DimValues, DimManifests, DimCRDs, DimImages}
+
+// Health states what one input dimension of the environment can support.
+// Absence is NOT knowledge: a dimension the caller did not supply must never
+// be read by the join as "the environment is not affected" — there is
+// nothing to be not-affected about. A partial dimension (parse failures,
+// documents dropped at a cap, a stream that stopped midway) supports only
+// weakened conclusions.
+type Health string
+
+const (
+	// HealthAbsent: no input was supplied for the dimension.
+	HealthAbsent Health = "absent"
+	// HealthOK: supplied, and every file parsed completely.
+	HealthOK Health = "ok"
+	// HealthPartial: supplied, but parsing was incomplete. The dimension's
+	// warnings (in Environment.Warnings, or DimensionStatus.Warnings) say
+	// exactly what is missing.
+	HealthPartial Health = "partial"
+)
+
+// DimensionStatus is the state of one input dimension: what was supplied,
+// how trustworthy the extracted facts are, and which warnings belong to it.
+type DimensionStatus struct {
+	Dimension string   `json:"dimension"`
+	Health    Health   `json:"health"`
+	Warnings  []string `json:"warnings,omitempty"`
+}
 
 // Caps that bound extraction on hostile inputs; hitting one is a warning,
 // never a silent truncation.
@@ -146,24 +187,63 @@ type Environment struct {
 	Files    []File
 	Evidence []domain.Evidence
 	Warnings []string
+
+	// health and dimWarnings back Health and Statuses; built by Load.
+	health      map[string]Health
+	dimWarnings map[string][]string
+}
+
+// Health reports the state of one input dimension (see Health). Unknown
+// dimension names report HealthAbsent. The impact layer consults this before
+// drawing any "not affected"-style conclusion from missing facts: absent
+// means "nothing was supplied", not "nothing is there"; partial means the
+// facts that exist are a subset of what the files state.
+func (e *Environment) Health(dimension string) Health {
+	if e == nil || e.health == nil {
+		return HealthAbsent
+	}
+	if h, ok := e.health[dimension]; ok {
+		return h
+	}
+	return HealthAbsent
+}
+
+// Statuses returns the state of every input dimension in fixed order.
+func (e *Environment) Statuses() []DimensionStatus {
+	out := make([]DimensionStatus, 0, len(dimensionOrder))
+	for _, d := range dimensionOrder {
+		s := DimensionStatus{Dimension: d, Health: e.Health(d)}
+		if e != nil && e.dimWarnings != nil {
+			s.Warnings = e.dimWarnings[d]
+		}
+		out = append(out, s)
+	}
+	return out
 }
 
 // loader accumulates state while Load runs.
 type loader struct {
-	env      *Environment
-	evidence map[domain.EvidenceID]bool
-	files    map[string]string // path → digest
-	warned   map[string]bool
-	capped   map[string]int
+	env         *Environment
+	evidence    map[domain.EvidenceID]bool
+	files       map[string]string // path → digest
+	warned      map[string]bool
+	dimWarnings map[string][]string
 }
 
-func (l *loader) warnf(format string, args ...any) {
+// warnf records a warning on the Environment and attributes it to the input
+// dimension it degrades. Identical warnings are recorded once.
+func (l *loader) warnf(dim, format string, args ...any) {
 	w := fmt.Sprintf(format, args...)
-	if l.warned[w] {
-		return
+	if !l.warned[w] {
+		l.warned[w] = true
+		l.env.Warnings = append(l.env.Warnings, w)
 	}
-	l.warned[w] = true
-	l.env.Warnings = append(l.env.Warnings, w)
+	for _, x := range l.dimWarnings[dim] {
+		if x == w {
+			return
+		}
+	}
+	l.dimWarnings[dim] = append(l.dimWarnings[dim], w)
 }
 
 // ev records one piece of local-file evidence and returns its id.
@@ -186,11 +266,13 @@ func (l *loader) record(e domain.Evidence) domain.EvidenceID {
 
 // Load parses the inputs. It returns an error only when nothing can be done
 // at all (an input path does not exist / cannot be read); per-document
-// problems are warnings.
+// problems are warnings. Every dimension the inputs name gets a health
+// status on the result: supplied-and-healthy, supplied-with-warnings
+// (partial) or absent.
 func Load(in Inputs) (*Environment, error) {
 	l := &loader{
 		env: &Environment{}, evidence: map[domain.EvidenceID]bool{},
-		files: map[string]string{}, warned: map[string]bool{}, capped: map[string]int{},
+		files: map[string]string{}, warned: map[string]bool{}, dimWarnings: map[string][]string{},
 	}
 	if v := strings.TrimSpace(in.KubernetesVersion); v != "" {
 		id := l.evInput("flag:--kubernetes", v)
@@ -230,6 +312,26 @@ func Load(in Inputs) (*Environment, error) {
 		}
 		return l.env.Images[i].Reference < l.env.Images[j].Reference
 	})
+
+	supplied := map[string]bool{
+		DimKubernetes: strings.TrimSpace(in.KubernetesVersion) != "",
+		DimValues:     len(in.ValuesFiles) > 0,
+		DimManifests:  len(in.Manifests) > 0,
+		DimCRDs:       len(in.CRDs) > 0,
+		DimImages:     len(in.Images) > 0,
+	}
+	l.env.health = map[string]Health{}
+	l.env.dimWarnings = l.dimWarnings
+	for _, d := range dimensionOrder {
+		switch {
+		case !supplied[d]:
+			l.env.health[d] = HealthAbsent
+		case len(l.dimWarnings[d]) > 0:
+			l.env.health[d] = HealthPartial
+		default:
+			l.env.health[d] = HealthOK
+		}
+	}
 	return l.env, nil
 }
 
@@ -288,23 +390,33 @@ func (l *loader) loadValues(path string) error {
 	if err != nil {
 		return err
 	}
+	if len(files) == 0 {
+		l.warnf(DimValues, "%s contains no .yaml/.yml/.json files", path)
+		return nil
+	}
 	for _, f := range files {
 		b, err := l.readFile(f)
 		if err != nil {
 			return fmt.Errorf("env: %w", err)
 		}
-		if len(strings.TrimSpace(string(b))) == 0 {
+		if len(bytes.TrimSpace(b)) == 0 {
 			continue
 		}
 		flat, err := normalize.FlattenValues(b)
 		if err != nil {
-			l.warnf("%s was not parsed as a Helm values mapping: %v", f, err)
+			l.warnf(DimValues, "%s was not parsed as a Helm values mapping: %v", f, err)
 			continue
+		}
+		// yaml.Unmarshal decodes only a stream's FIRST document and silently
+		// drops the rest; a Helm values file must be a single document, so
+		// make any extra ones an explicit, dimension-degrading warning.
+		if n := countDocs(b); n > 1 {
+			l.warnf(DimValues, "%s holds %d YAML documents; a Helm values file is one document — the rest was ignored", f, n)
 		}
 		for _, kv := range flat {
 			if len(l.env.ValuesKeys) >= maxValuesKeys {
-				l.warnf("more than %d values keys; the rest of %s was ignored", maxValuesKeys, f)
-				break
+				l.warnf(DimValues, "more than %d values keys; the rest was ignored", maxValuesKeys)
+				return nil
 			}
 			l.env.ValuesKeys = append(l.env.ValuesKeys, ValuesKey{
 				Path: kv.Path, Value: kv.Value, Line: kv.Line,
@@ -353,30 +465,47 @@ type doc struct {
 
 // loadStream parses one manifest/CRD input (file or directory). Only CRD
 // documents are kept from crdOnly inputs; manifest inputs keep everything.
+// Documents come from parseDocs (a real stream decoder), so separators
+// inside block scalars never split documents; a stream that stops midway
+// keeps its prefix and warns about the rest.
 func (l *loader) loadStream(path string, crdOnly bool) error {
+	dim := DimManifests
+	if crdOnly {
+		dim = DimCRDs
+	}
 	files, err := expand(path)
 	if err != nil {
 		return err
+	}
+	if len(files) == 0 {
+		l.warnf(dim, "%s contains no .yaml/.yml/.json files", path)
+		return nil
 	}
 	for _, f := range files {
 		b, err := l.readFile(f)
 		if err != nil {
 			return fmt.Errorf("env: %w", err)
 		}
-		docs, err := splitDocs(b)
-		if err != nil {
-			l.warnf("%s was not parsed: %v", f, err)
+		if len(bytes.TrimSpace(b)) == 0 {
 			continue
 		}
-		for i := range docs {
-			docs[i].file = f
+		docs, perr := parseDocs(b, func(key string, line int) {
+			l.warnf(dim, "%s L%d: duplicate key %s; the last value wins", f, line, key)
+		})
+		switch {
+		case perr != nil && len(docs) == 0:
+			l.warnf(dim, "%s was not parsed: %v", f, perr)
+			continue
+		case perr != nil:
+			l.warnf(dim, "%s: parsing stopped after %d document(s): %v", f, len(docs), perr)
 		}
 		for i, d := range docs {
+			d.file = f
 			if d.node == nil {
 				continue
 			}
 			if l.env.ManifestDocCount >= maxManifestDocs {
-				l.warnf("more than %d manifest documents; the rest of %s was ignored", maxManifestDocs, f)
+				l.warnf(dim, "more than %d manifest documents; the rest was ignored", maxManifestDocs)
 				return nil
 			}
 			l.env.ManifestDocCount++
@@ -386,7 +515,7 @@ func (l *loader) loadStream(path string, crdOnly bool) error {
 				continue
 			}
 			if crdOnly {
-				l.warnf("%s doc %d is a %q document, not a CustomResourceDefinition", f, i+1, kind)
+				l.warnf(dim, "%s doc %d is a %q document, not a CustomResourceDefinition", f, i+1, kind)
 				continue
 			}
 			l.loadManifest(d)
@@ -398,7 +527,7 @@ func (l *loader) loadStream(path string, crdOnly bool) error {
 func (l *loader) loadCRD(d doc) {
 	spec := fieldOf(d.node, "spec")
 	if spec == nil {
-		l.warnf("%s L%d: CustomResourceDefinition without spec", d.file, d.startLine)
+		l.warnf(DimCRDs, "%s L%d: CustomResourceDefinition without spec", d.file, d.startLine)
 		return
 	}
 	group := scalarOf(spec, "group")
@@ -418,7 +547,7 @@ func (l *loader) loadCRD(d doc) {
 		}
 	}
 	if name == "" || group == "" {
-		l.warnf("%s L%d: CustomResourceDefinition without name or group", d.file, d.startLine)
+		l.warnf(DimCRDs, "%s L%d: CustomResourceDefinition without name or group", d.file, d.startLine)
 		return
 	}
 	crd := InstalledCRD{Name: name, Group: group, Kind: kind}
@@ -474,7 +603,7 @@ func (l *loader) loadManifest(d doc) {
 	}
 	walkFieldPaths(d.node, "", func(path string, val *yaml.Node) {
 		if len(l.env.ManifestFields) >= maxManifestPaths {
-			l.warnf("more than %d manifest field paths; the rest of %s was ignored", maxManifestPaths, d.file)
+			l.warnf(DimManifests, "more than %d manifest field paths; the rest of %s was ignored", maxManifestPaths, d.file)
 			return
 		}
 		line := 0
@@ -511,7 +640,7 @@ func (l *loader) addImageAt(ref, source, file string, line int) {
 		if source != "list" {
 			return // manifest/values fields are often not references
 		}
-		l.warnf("%q is not a parsable image reference", ref)
+		l.warnf(DimImages, "%q is not a parsable image reference", ref)
 		return
 	}
 	var evidence []domain.EvidenceID

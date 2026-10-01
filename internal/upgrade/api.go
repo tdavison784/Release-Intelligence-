@@ -95,6 +95,9 @@ type PlatformVersionCheck struct {
 	Computable bool
 	// Admits reports whether the version satisfies the constraint. A version
 	// given as a line ("1.31") is admitted when any patch of the line is.
+	// A "minimum" kind admits the bound line and everything above it
+	// ("minimum: 1.30" means ">= 1.30"); a "maximum" kind the bound line and
+	// everything below.
 	Admits bool
 	// Display is the human form of the constraint's range ("1.29–1.33",
 	// "≥ 1.22"), or its raw text when not computable.

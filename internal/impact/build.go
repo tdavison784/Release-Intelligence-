@@ -591,6 +591,20 @@ func (b *builder) kubernetesFindings() {
 					belowAboveDetail(toTag, fromTag, cluster, chk, wasAdmitted, chk.Display),
 					change, []domain.ImpactMatch{match}, upstream...)
 			}
+		case "maximum":
+			// A cluster above a stated maximum is outside the support matrix
+			// just as much as one below a minimum (karpenter-style
+			// minK8sVersion/maxK8sVersion columns).
+			if !chk.Admits {
+				limit := chk.Above
+				if limit == "" {
+					limit = chk.Display
+				}
+				b.add(RuleKubernetesAbove, domain.ImpactActionRequired, domain.ConfidenceHigh,
+					fmt.Sprintf("Cluster Kubernetes %s is above the maximum %s supports (%s)", cluster, toTag, chk.Display),
+					fmt.Sprintf("%s supports Kubernetes %s; the cluster runs %s, above the stated maximum. Plan a cluster version at or below %s, or stay on a release that admits it.", toTag, chk.Display, cluster, limit),
+					change, []domain.ImpactMatch{match}, upstream...)
+			}
 		case "chart-kubeVersion":
 			if !chk.Admits {
 				b.add(RuleKubeVersionBlocked, domain.ImpactActionRequired, domain.ConfidenceHigh,
