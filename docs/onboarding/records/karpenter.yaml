@@ -100,16 +100,6 @@ constructs:
         product used it: karpenter's minK8sVersion is its first exercise. Accounted
         here so the product's unaccounted-construct list is empty; no code change.
       otherProducts: ["cert-manager and Istio declared minimums in their matrices but used supported/tested kinds"]
-    - name: field:lifecycle.versions
-      kind: "definition field `lifecycle[].versions` (semver constraint scoping a lifecycle statement; leaf of the lifecycle construct)"
-      justification: >-
-        The lifecycle construct landed with ingress-nginx (order 9), whose record
-        declared the free-text family name "field:lifecycle" and explicitly called
-        the versions constraint data, not a construct; stats counts the leaf
-        separately. Karpenter is the first product to need TWO scoped statements
-        (end-of-life of "< 1.9.0" and of "1.10.0 - 1.13.x"), so the leaf is
-        accounted here. No code change.
-      otherProducts: ["ingress-nginx (order 9) used one unscoped statement"]
   considered:
     - {name: "contents from OCI chart layers (helm-values/chart-metadata of the release's real chart)", rejected: "the chart a release ships is rewritten in CI and published only to public.ecr.aws; the in-repo files at the tag lag one release in every era, so a repo-file snapshot would misattribute the previous release's values. An OCI chart-layer content fetch (manifest -> layer blob -> tgz member) is the G8 shape and would also serve grafana/loki (OCI-only charts), but it is a new adapter capability, not a definition construct; recorded as a gap"}
     - {name: "version.strategy field on go.mod (the sigs.k8s.io/karpenter pin)", rejected: "field walks YAML documents (normalize.ReadYAMLPath); go.mod's require blocks are not YAML. The pin is also sometimes a pseudo-version (v1.14.1-0.20260819221709-6e7eab7a0f48) or lagged (v0.37.8 -> v0.37.7); gap recorded"}
