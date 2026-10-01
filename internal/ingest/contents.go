@@ -235,7 +235,11 @@ func (i *Ingester) readRepresentation(ctx context.Context, r *run, loc catalog.L
 			return nil, nil, nil, "", err
 		}
 		if strings.TrimSpace(av) == "" {
-			return nil, nil, nil, "", fmt.Errorf("content: reading a packaged chart needs the artifact version, which did not resolve")
+			// The artifact version did not resolve (an optional lookup
+			// artifact not published for this release): the content is not
+			// applicable, not unreachable — the same semantic the template
+			// path gives a locator whose {{.ArtifactVersion}} is unknown.
+			return nil, nil, nil, "", &unresolvedError{"package", "artifact version"}
 		}
 		pkg, err := reader.ReadChartPackage(ctx, loc, av)
 		if err != nil {

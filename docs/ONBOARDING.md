@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 24 product definitions, 24 onboarding records, 24 saved relationship reports.
-- 153 distinct constructs are used across all definitions; the records introduce 153.
-- 11 of 24 recorded products introduced no new construct. The latest product that introduced one has order 18.
+- 25 product definitions, 25 onboarding records, 25 saved relationship reports.
+- 158 distinct constructs are used across all definitions; the records introduce 158.
+- 11 of 25 recorded products introduced no new construct. The latest product that introduced one has order 26.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -94,6 +94,7 @@ What convergence looks like:
 | 22 | 3 | falco | 325 (263) | 5 | 10 | 14 | 2 | 13 | 18 | 1 | 0 | 1 | 3 |
 | 23 | 3 | linkerd | 419 (343) | 11 | 11 | 16 | 3 | 28 | 22 | 0 | 1 | 1 | 20 |
 | 24 | 3 | prometheus-operator | 346 (273) | 6 | 10 | 17 | 2 | 12 | 17 | 0 | 2 | 0 | 5 |
+| 26 | 4 | loki | 519 (415) | 12 | 8 | 13 | 2 | 65 | 27 | 1 | 1 | 1 | 9 |
 
 ### Constructs and effort
 
@@ -123,6 +124,7 @@ What convergence looks like:
 | 22 | falco | 75 | 0 | 75 | 100% | 153 | 0 / 0 | 21 | full |
 | 23 | linkerd | 82 | 0 | 82 | 100% | 153 | 0 / 0 | 30 | full |
 | 24 | prometheus-operator | 78 | 0 | 78 | 100% | 153 | 0 / 0 | 25 | full |
+| 26 | loki | 93 | 5 | 88 | 95% | 158 | 2 / 0 | 34 | full |
 
 ### Discovery and relationship validation
 
@@ -152,6 +154,7 @@ What convergence looks like:
 | falco | 3/6/6 (60%) | 14/0/0/2 | 65/0/2/3/0 | 0 → 0 | 3 | 1 |
 | linkerd | 3/2/17 (23%) | 15/0/6/0 | 134/0/0/262/0 | 5 → 0 | 5 | 1 |
 | prometheus-operator | 7/2/7 (56%) | 14/0/1/0 | 81/0/0/9/0 | 0 → 0 | 4 | 0 |
+| loki | 2/4/14 (30%) | 13/0/6/0 | 73/0/0/39/2 | 2 → 0 | 6 | 0 |
 
 ## Construct-introduction curve
 
@@ -181,6 +184,7 @@ What convergence looks like:
 | 22 | falco | 0 | 153 | 75 | 75 | 100% | 0 | 153 |
 | 23 | linkerd | 0 | 153 | 82 | 82 | 100% | 0 | 153 |
 | 24 | prometheus-operator | 0 | 153 | 78 | 78 | 100% | 0 | 153 |
+| 26 | loki | 5 | 158 | 93 | 88 | 95% | 5 | 158 |
 
 New constructs per product, in onboarding order (records):
 
@@ -209,6 +213,7 @@ New constructs per product, in onboarding order (records):
  22  falco                         0  
  23  linkerd                       0  
  24  prometheus-operator           0  
+ 26  loki                          5  ███
 ```
 
 Cumulative constructs introduced:
@@ -216,28 +221,29 @@ Cumulative constructs introduced:
 ```text
   1  cert-manager                 87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   2  istio                        99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  3  argo-cd                     113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  4  cilium                      115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  5  postgresql                  122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  6  kube-prometheus-stack       131  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  7  vault                       138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  8  crossplane                  139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  9  external-secrets            139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 10  ingress-nginx               144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 11  grafana                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 12  strimzi                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 13  traefik                     145  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 14  karpenter                   148  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 15  flux                        152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 16  otel-collector              152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 17  redis                       152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 18  elasticsearch               153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 19  terraform-provider-aws      153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 20  actions-runner-controller   153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 21  kyverno                     153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 22  falco                       153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 23  linkerd                     153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 24  prometheus-operator         153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  3  argo-cd                     113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  4  cilium                      115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  5  postgresql                  122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  6  kube-prometheus-stack       131  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault                       138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane                  139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets            139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 10  ingress-nginx               144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 11  grafana                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 12  strimzi                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 13  traefik                     145  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 14  karpenter                   148  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 15  flux                        152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 16  otel-collector              152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 17  redis                       152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 18  elasticsearch               153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 19  terraform-provider-aws      153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 20  actions-runner-controller   153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 21  kyverno                     153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 22  falco                       153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 23  linkerd                     153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 24  prometheus-operator         153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 26  loki                        158  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -397,6 +403,14 @@ No new constructs: the definition is configuration only.
 
 No new constructs: the definition is configuration only.
 
+### loki (order 26, wave 4): 5 new
+
+- `field:artifacts.contents.compareWith`: First definition exercise of the G8 material-difference guard: the loki chart's values are declared from the published OCI chart layer (the artifact users install) with the community repository's source tree at the chart's own tag as the alternate representation, so a divergence is a recorded fact instead of a silent preference. The construct existed since the G8 work (docs/ARTIFACTS.md credits istio's packaged-vs-source values as the motivating case) but no earlier definition declared it — ri stats listed it unaccounted until this one. (also needed by istio (retire the ignoreKeys caveat on its rewritten packaged values), kube-prometheus-stack (packaged subchart CRDs vs source tree), cilium (chart tarball release assets), ingress-nginx (packaged chart vs source tree))
+- `field:artifacts.contents.compareWith.kind`: leaf of compareWith (stats counts parent and leaf separately) (also needed by [same as field:artifacts.contents.compareWith])
+- `field:artifacts.contents.compareWith.path`: leaf of compareWith (also needed by [same])
+- `field:artifacts.contents.compareWith.ref`: leaf of compareWith (charts/loki/values.yaml at tag loki-{{.ArtifactVersion}}) (also needed by [same])
+- `field:artifacts.contents.compareWith.repository`: leaf of compareWith (github.com/grafana-community/helm-charts) (also needed by [same])
+
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
@@ -405,6 +419,7 @@ No new constructs: the definition is configuration only.
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 31 (4.4) | 93% | 59 / 0 | 25 (n=7) | 20/24/57 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
 | 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 99% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) | 93/0/12/0 (7 of 7 reports) | 10 | full 7 |
 | 3 | elasticsearch, terraform-provider-aws, actions-runner-controller, kyverno, falco, linkerd, prometheus-operator | 6 of 7 (terraform-provider-aws, actions-runner-controller, kyverno, falco, linkerd, prometheus-operator) | 1 (0.1) | 100% | 6 / 0 | 24 (n=7) | 25/23/71 (40%) | 98/0/17/2 (7 of 7 reports) | 2 | full 6, partial 1 |
+| 4 | loki | 0 of 1 | 5 (5.0) | 95% | 2 / 0 | 34 (n=1) | 2/4/14 (30%) | 13/0/6/0 (1 of 1 reports) | 0 | full 1 |
 
 ## Notes from the records
 
@@ -455,6 +470,8 @@ No new constructs: the definition is configuration only.
 **linkerd**: The topology surprise: the mission brief's hypothesis (stable-2.X.N and edge tags, stable canonical, edge possibly dead) was inverted by research — the stable TAG scheme itself changed in February 2024 (stable-2.14.10 was the last OSS stable release; since 2.15 stable releases are version-2.Y designation markers on edge commits with NO open-source artifacts, upstream announcing "producing stable Linkerd releases will be in the hands of the vendor community"), while the weekly edge channel lives on. Canonical = stable lineage via one component-group pattern (postgresql construct). Highest-value edge output: the cross-era edge 2.14.10 -> 2.15.0 shows the entire stable artifact set (chart 1.16.11, five images, CLI) verified -> removed with evidence, next to the kubeVersion narrowing; 2.19.0 -> 2.20.0 shows the proxy pin v2.326.0 -> v2.359.0, cni v1.6.4 -> v1.6.8, the proxy-init pin removed (native sidecars default) and kubeVersion 1.23 -> 1.31, all registry/tag-verified. Classification tuning was two iterations found by reading edges, not checks: "circuit breaking" false-positived the breaking rule (now "breaking change|no longer|deprecat|incompatible") and the blog's boilerplate sections (Photo credit, Linkerd is for everyone) are skipped. Zero new constructs, zero Go changes: the dual tag scheme (component groups), the chart join (lookup), the three per-release pins (field/pattern), the optional artifact-less era and the announcement sources are all wave-0/1/2 vocabulary.
 
 **prometheus-operator**: The appVersion join, from this side: kube-prometheus-stack (order 6) pins THIS operator in its Chart.yaml appVersion and already models the pin with version.strategy: field ('prometheus-operator-image'); this definition models the mirror image — a lookup artifact resolving, per operator release, the chart whose appVersion == the release tag, verified against the prometheus-community index. The cross-product query the join was designed for ('which chart versions ship operator X') therefore works TODAY, deterministically, in one direction and one product at a time: the operator's edge names the chart version ('kube-prometheus-stack 91.8.2 [verified]' for v0.94.1), and the chart's edge names the operator version it pins; nothing yet joins the two edges into one cross-product view, and each side probes the other's channel independently (both reached the same pairs from their own definitions). The pinned-operator-notes construct that may exist on the chart side by merge time does not exist in this worktree's products/kube-prometheus-stack.yaml; this record is written against what is merged here. Sixth zero-new-construct onboarding (external-secrets, grafana, strimzi, otel-collector, redis, kyverno): the operator + pinned-operands + out-of-repo-chart-joins topology decomposed into lookup (argo-cd), pattern pins (flux), availability windows, optional artifacts (argo-cd) and role mixing (kyverno's support-policy). 78 constructs used, 0 new, 0 product-specific Go, 0 check failures on the first run of both windows, no blocked hosts. 25 minutes.
+
+**loki**: The OCI-chart G8 verdict karpenter's record hoped for: YES, and it works end to end on ghcr.io anonymous tokens. The loki chart is read as a published-oci-chart (config media type + content layer, digest-verified) for BOTH helm-values and chart-metadata; kubeVersion lands as the Kubernetes constraint and appVersion as the pin evidence. The lookup still needs the index (a bare OCI tag list has no appVersion), so the OCI channel serves packages/probes while the community index serves the relation — ARTIFACTS.md already records that split as deliberate. The compareWith divergence the mission asked about is real but is NOT production/helm-vs-published (those are different charts since the March 2026 fork — comparing them would be apples/oranges and the definition does not): it is published-OCI-layer vs the community repo's own source tag, and it found that the re-published pre-fork tags do not reconstruct the originally published packages (6.31.0: +360/-143/~47 keys) while current releases agree exactly (18.13.7: 2112 keys, representations agree) — exactly the silent-preference problem the construct exists to surface. Everything else was configuration over existing constructs (the 5 new constructs are the compareWith family, first exercised here after existing as G8 code): the tag-family trap cost discovery its canonical channel, the branch-read changelog is the grafana docs-at-main pattern per branch, the promtail EOL is the ingress-nginx lifecycle construct, the chart fork is an optional lookup with the old index explicitly excluded, and the 3.x-upgrade-pain (schema v13/v14, storage backends) rides the upgrade-guide role with karpenter's listItems making every topic its own item. One small generic ingest fix landed (unresolved-artifact contents are n/a, not unverifiable); zero product-specific Go. 34 minutes wall-clock.
 
 ## Data quality
 
