@@ -75,10 +75,6 @@ type resolution struct {
 	coordinate string
 }
 
-func isDocumentKind(kind string) bool {
-	return kind == catalog.LocatorHTTP || kind == catalog.LocatorRepoFile || kind == catalog.LocatorRepoDir
-}
-
 func contentUsesChannel(a catalog.Artifact) bool {
 	for _, c := range a.Contents {
 		if c.Locator == nil {
@@ -323,7 +319,8 @@ func (i *Ingester) fieldVersion(ctx context.Context, r *run, ar *artifactRun) re
 	return resolution{versions: []resolvedVersion{{version: value, evidence: []domain.Evidence{ev}}}}
 }
 
-func typeNoun(t domain.ArtifactType) string {	switch t {
+func typeNoun(t domain.ArtifactType) string {
+	switch t {
 	case domain.ArtifactHelmChart:
 		return "chart"
 	case domain.ArtifactContainerImage:

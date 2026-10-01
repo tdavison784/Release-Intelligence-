@@ -79,7 +79,7 @@
       "additionalProperties": false,
       "required": ["kind"],
       "properties": {
-        "kind": {"enum": ["github-releases", "github-advisories", "git-tags", "repo-file", "repo-dir", "git-log", "http", "helm-repo", "oci", "helm-git"]},
+        "kind": {"enum": ["github-releases", "github-advisories", "git-tags", "repo-file", "repo-dir", "git-log", "http", "helm-repo", "oci", "helm-git", "chart-tgz"]},
         "repository": {"type": "string"},
         "ref": {"type": "string"},
         "baseRef": {"type": "string"},
@@ -95,6 +95,7 @@
         {"if": {"properties": {"kind": {"const": "git-log"}}}, "then": {"required": ["repository", "ref"]}},
         {"if": {"properties": {"kind": {"const": "http"}}}, "then": {"required": ["url"]}},
         {"if": {"properties": {"kind": {"const": "helm-repo"}}}, "then": {"required": ["url", "chart"]}},
+        {"if": {"properties": {"kind": {"const": "chart-tgz"}}}, "then": {"required": ["url"]}},
         {"if": {"properties": {"kind": {"const": "helm-git"}}}, "then": {"required": ["repository", "path", "tagPattern"]}}
       ]
     },
@@ -207,7 +208,8 @@
             "required": ["kind"],
             "properties": {
               "kind": {"enum": ["helm-values", "chart-metadata", "crds", "image-refs"]},
-              "locator": {"$ref": "#/$defs/locator"},
+              "locator": {"$ref": "#/$defs/locator", "description": "Where the content is read from. Kinds helm-repo, oci (a chart repository) and chart-tgz read the packaged chart archive (the published-artifact representation); http, repo-file and repo-dir read documents. When omitted, the artifact's first readable channel is used."},
+              "compareWith": {"$ref": "#/$defs/locator", "description": "Alternate representation of the same content (e.g. the published chart archive vs the source tree), read for comparison only; a representation.divergence fact records when they differ so preferring one representation is never silent."},
               "availability": {"$ref": "#/$defs/constraint"},
               "stripPrefix": {"type": "string"},
               "ignoreKeys": {

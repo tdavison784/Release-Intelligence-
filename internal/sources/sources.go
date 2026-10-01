@@ -108,6 +108,8 @@ type Registry struct {
 	probes      map[string]ArtifactProbe
 	indexes     map[string]VersionIndex
 	advisories  map[string]AdvisorySource
+	packages    map[string]ChartPackageReader
+	images      map[string]ImageManifestReader
 }
 
 // NewRegistry returns an empty registry.
@@ -119,6 +121,8 @@ func NewRegistry() *Registry {
 		probes:      map[string]ArtifactProbe{},
 		indexes:     map[string]VersionIndex{},
 		advisories:  map[string]AdvisorySource{},
+		packages:    map[string]ChartPackageReader{},
+		images:      map[string]ImageManifestReader{},
 	}
 }
 
@@ -166,6 +170,18 @@ func (r *Registry) RegisterAdvisorySource(kind string, a AdvisorySource) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.advisories[kind] = a
+}
+
+func (r *Registry) RegisterChartPackageReader(kind string, a ChartPackageReader) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.packages[kind] = a
+}
+
+func (r *Registry) RegisterImageManifestReader(kind string, a ImageManifestReader) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.images[kind] = a
 }
 
 func (r *Registry) VersionLister(kind string) (VersionLister, error) {
@@ -222,6 +238,26 @@ func (r *Registry) AdvisorySource(kind string) (AdvisorySource, error) {
 	return nil, &ErrNoAdapter{"advisory", kind}
 }
 
+// ChartPackageReader returns the chart-package reader serving locator kind.
+func (r *Registry) ChartPackageReader(kind string) (ChartPackageReader, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	if a, ok := r.packages[kind]; ok {
+		return a, nil
+	}
+	return nil, &ErrNoAdapter{"chart-package", kind}
+}
+
+// ImageManifestReader returns the image-manifest reader serving locator kind.
+func (r *Registry) ImageManifestReader(kind string) (ImageManifestReader, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	if a, ok := r.images[kind]; ok {
+		return a, nil
+	}
+	return nil, &ErrNoAdapter{"image-manifest", kind}
+}
+
 // Kinds returns the registered locator kinds per capability (for diagnostics).
 func (r *Registry) Kinds() map[string][]string {
 	r.mu.RLock()
@@ -237,6 +273,8 @@ func (r *Registry) Kinds() map[string][]string {
 	add("probe", keysOf(r.probes))
 	add("version-index", keysOf(r.indexes))
 	add("advisory", keysOf(r.advisories))
+	add("chart-package", keysOf(r.packages))
+	add("image-manifest", keysOf(r.images))
 	return out
 }
 

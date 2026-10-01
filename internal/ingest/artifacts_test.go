@@ -345,7 +345,7 @@ func TestIngestReleaseContentsIgnoreKeys(t *testing.T) {
 	if values.Values.Entries["logLevel"] != `"info"` || values.Values.Entries["replicaCount"] != `"1"` {
 		t.Errorf("other keys must be kept: %v", values.Values.Entries)
 	}
-	if s := statusOf(t, rel, "chart/helm-values"); s.State != domain.SourceOK || !strings.Contains(s.Detail, "2 values keys (1 ignored)") {
+	if s := statusOf(t, rel, "chart/helm-values"); s.State != domain.SourceOK || !strings.Contains(s.Detail, "2 values keys from source-tree (1 ignored)") {
 		t.Errorf("status must say how many keys were ignored: %+v", s)
 	}
 }

@@ -72,6 +72,11 @@ var enums = []enumSet{
 	enumOf(
 		domain.FactReleasePublished, domain.FactArtifactPublished, domain.FactDocumentRetrieved,
 		domain.FactCompatibility, domain.FactSnapshot, domain.FactAdvisory, domain.FactRelationship,
+		domain.FactRepresentationDivergence,
+	),
+	enumOf(
+		domain.RepresentationSourceTree, domain.RepresentationChartTGZ, domain.RepresentationOCIChart,
+		domain.RepresentationReleaseAsset, domain.RepresentationHTTPDocument, domain.RepresentationRegistryManifest,
 	),
 	enumOf(domain.ImpactActionRequired, domain.ImpactReview, domain.ImpactInformational),
 	enumOf(
@@ -329,13 +334,22 @@ var descriptions = map[string]string{
 	// --- evidence and facts ------------------------------------------------
 	"Evidence": "A verifiable pointer to source material supporting a fact or conclusion. `uri` is something a " +
 		"human can open; `locator` narrows it down; `excerpt` and `contentDigest` pin what was read.",
-	"EvidenceID":             "Stable identifier derived from the evidence content (\"ev-\" followed by a short hash).",
-	"Evidence.sourceId":      "Id of the product-definition source or artifact that produced the evidence.",
-	"Evidence.uri":           "Location a human or a later run can open to check the claim.",
-	"Evidence.locator":       "Position within the document, e.g. a line range (\"L120-L131\"), a heading (\"## Breaking Changes\") or a JSONPath (\"$.spec.versions[1]\").",
-	"Evidence.excerpt":       "Short verbatim excerpt of the source, truncated.",
+	"EvidenceID":        "Stable identifier derived from the evidence content (\"ev-\" followed by a short hash).",
+	"Evidence.sourceId": "Id of the product-definition source or artifact that produced the evidence.",
+	"Evidence.uri":      "Location a human or a later run can open to check the claim.",
+	"Evidence.locator":  "Position within the document, e.g. a line range (\"L120-L131\"), a heading (\"## Breaking Changes\") or a JSONPath (\"$.spec.versions[1]\").",
+	"Evidence.excerpt":  "Short verbatim excerpt of the source, truncated.",
+	"Representation": "Which published form of an artifact a fact came from. The same content (chart defaults, " +
+		"CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers " +
+		"rewrite content at packaging time; the representation keeps the two apart. Orthogonal to " +
+		"Provenance.method (how knowledge was derived).",
 	"Evidence.contentDigest": "sha256 of the complete retrieved document, so the exact bytes the conclusion was drawn from can be identified later.",
-	"Evidence.retrievedAt":   "When the source was fetched (UTC).",
+	"Evidence.representation": "Which published form of the artifact these bytes came from: source-tree (a file in the " +
+		"source repository), published-chart-tgz (a chart tarball from a chart repository), published-oci-chart (a chart " +
+		"pulled as an OCI artifact), release-asset (a file attached to a release), http-document (a plain HTTP document) " +
+		"or registry-manifest (an OCI manifest/config). Orthogonal to Provenance.method, which states how knowledge was " +
+		"derived, not from which bytes.",
+	"Evidence.retrievedAt": "When the source was fetched (UTC).",
 	"Fact": "A deterministic statement extracted from sources, with evidence. Facts hold no interpretation; " +
 		"interpretation lives in Changes.",
 	"FactID":         "Stable identifier derived from the fact content (\"fact-\" followed by a short hash).",
