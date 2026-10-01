@@ -27,20 +27,28 @@ type ImpactOptions struct {
 // locally parsed environment: which changes matter to THAT environment, each
 // explained by two provenance chains. Deterministic end to end; no LLM.
 func (a *App) Impact(ctx context.Context, productID, from, to string, opts ImpactOptions) (*domain.ImpactReport, error) {
+	rep, _, _, err := a.ImpactParts(ctx, productID, from, to, opts)
+	return rep, err
+}
+
+// ImpactParts is Impact with the inputs the optional AI enrichment step
+// (`EnrichImpact`) needs: the report, the edge it was built from and the
+// parsed environment. The report alone is identical to Impact's.
+func (a *App) ImpactParts(ctx context.Context, productID, from, to string, opts ImpactOptions) (*domain.ImpactReport, *domain.UpgradeEdge, *env.Environment, error) {
 	if opts.Environment.Empty() {
-		return nil, ErrNoEnvironmentInput
+		return nil, nil, nil, ErrNoEnvironmentInput
 	}
 	edge, err := a.Upgrade(ctx, productID, from, to, UpgradeOptions{Policy: opts.Policy})
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 	e, err := env.Load(opts.Environment)
 	if err != nil {
-		return nil, fmt.Errorf("environment: %w", err)
+		return nil, nil, nil, fmt.Errorf("environment: %w", err)
 	}
 	rep, err := impact.Build(impact.Input{Edge: edge, Env: e, Now: a.now().UTC()})
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
-	return rep, nil
+	return rep, edge, e, nil
 }

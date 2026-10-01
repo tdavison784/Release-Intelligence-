@@ -86,6 +86,7 @@ func (r *renderer) render() {
 	r.header()
 	r.environmentSection()
 	r.findingSections()
+	r.enrichmentSection()
 	r.warnings()
 	r.evidenceLegend()
 }
@@ -121,6 +122,11 @@ func (r *renderer) header() {
 	}
 	for _, c := range counts {
 		r.line("%s %*d", r.paint(c.color, c.label+":"), width+2, c.n)
+	}
+	// The AI layer's review suggestions never move a finding out of UNKNOWN:
+	// they are counted here, under the class whose verdict they may replace.
+	if s.SuggestedReview > 0 {
+		r.line("%s %*d", r.paint(ansiMagenta, "of which AI SUGGESTS REVIEW (verify; the human decides):"), width+2, s.SuggestedReview)
 	}
 }
 
@@ -194,10 +200,14 @@ func (r *renderer) findingSections() {
 
 // unknownFinding renders one unknown verdict. The missing-evidence list is
 // the point of the class, so it is always printed; otherwise identical to a
-// normal finding.
+// normal finding. An AI review suggestion is marked on the finding itself,
+// with the reasoning in the enrichments section below.
 func (r *renderer) unknownFinding(n int, f domain.ImpactFinding) {
 	r.line("  %d. %s %s", n, f.Title, r.paint(ansiDim, "["+f.ID+"]"))
 	r.line("     missing: %s", strings.Join(f.NeededToDetermine, "; "))
+	if f.SuggestedClassification != "" {
+		r.line("     %s", r.paint(ansiMagenta, fmt.Sprintf("AI suggests %s (a suggestion with provenance — see AI enrichments; verify before acting)", f.SuggestedClassification)))
+	}
 	r.changeAndDetail(f)
 	r.upstreamChain(f)
 }
@@ -260,6 +270,99 @@ func (r *renderer) upstreamChain(f domain.ImpactFinding) {
 		ups = append(ups, r.citeUp(id))
 	}
 	r.line("     upstream evidence: %s", strings.Join(ups, ", "))
+}
+
+// EnrichedHeading is the section title of the AI enrichments.
+const EnrichedHeading = "AI enrichments (suggestions and notes · verify against evidence)"
+
+// enrichmentSection renders the AI enrichments apart from the deterministic
+// sections: kind, content, the findings they relate to and the evidence they
+// cite, followed by the run's prompt/acceptance record. Cited evidence is
+// listed inline and added to the legend, which therefore reads the same with
+// or without enrichment for a plain report. Without -enrich the section is
+// absent and the output is byte-identical to the deterministic render.
+func (r *renderer) enrichmentSection() {
+	run := r.r.EnrichmentRun
+	if len(r.r.Enrichments) == 0 && run == nil {
+		return
+	}
+	r.heading(ansiMagenta+";"+ansiBold, fmt.Sprintf("%s (%d):", EnrichedHeading, len(r.r.Enrichments)))
+	if len(r.r.Enrichments) == 0 {
+		r.line("  none accepted")
+	}
+	for _, en := range r.r.Enrichments {
+		r.enrichment(en)
+	}
+	if run != nil {
+		r.line("  Prompts: %d candidates, %d asked, %d accepted, %d rejected, %d pending, %d failed · %s (%s)",
+			run.CandidateGroups, run.Requests, run.Accepted, len(run.Rejected), run.Pending, run.Failed, run.Producer, run.PromptVersion)
+		for _, rej := range run.Rejected {
+			r.line("    %s rejected %s: %s", r.paint(ansiDim, "·"), rej.Group, rej.Reason)
+		}
+	}
+}
+
+func (r *renderer) enrichment(en domain.Enrichment) {
+	content := strings.TrimSpace(en.Content)
+	head := en.Title
+	if head == "" {
+		head = shorten(firstLine(content), 80)
+	}
+	kind := enrichmentLabel(en.Kind)
+	p := en.Provenance
+	r.line("  %s [%s] %s  %s", r.paint(ansiMagenta, "◆"), kind, head,
+		r.paint(ansiDim, fmt.Sprintf("(ai · %s · %s)", p.ModelVersion, p.Confidence)))
+	for _, ln := range strings.Split(content, "\n") {
+		if strings.TrimSpace(ln) == "" {
+			continue
+		}
+		r.line("      %s", ln)
+	}
+	findings := make([]string, len(en.RelatesTo))
+	copy(findings, en.RelatesTo)
+	r.line("      %s %s", r.paint(ansiDim, "finding(s):"), strings.Join(findings, ", "))
+	var cites []string
+	for _, id := range en.Citations {
+		if _, loc := r.locEv[id]; loc {
+			cites = append(cites, r.citeLoc(id))
+			continue
+		}
+		cites = append(cites, r.citeUp(id))
+	}
+	r.line("      %s %s", r.paint(ansiDim, "evidence:"), strings.Join(cites, ", "))
+}
+
+// enrichmentLabel names an enrichment kind for humans.
+func enrichmentLabel(k domain.EnrichmentKind) string {
+	switch k {
+	case domain.EnrichmentPlausiblyApplies:
+		return "suggests review"
+	case domain.EnrichmentNotApplicable:
+		return "AI note · probably not applicable"
+	case domain.EnrichmentUndetermined:
+		return "AI note · undetermined"
+	case domain.EnrichmentCluster:
+		return "cluster"
+	case domain.EnrichmentMigrationSummary:
+		return "migration steps"
+	}
+	return string(k)
+}
+
+func firstLine(s string) string {
+	if i := strings.IndexByte(s, '\n'); i >= 0 {
+		s = s[:i]
+	}
+	return strings.TrimSpace(s)
+}
+
+func shorten(s string, n int) string {
+	s = strings.TrimSpace(s)
+	rs := []rune(s)
+	if len(rs) <= n {
+		return s
+	}
+	return strings.TrimSpace(string(rs[:n])) + "…"
 }
 
 func (r *renderer) warnings() {

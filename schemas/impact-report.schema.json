@@ -55,6 +55,129 @@
         ]
       }
     },
+    "Enrichment": {
+      "type": "object",
+      "description": "AI-derived information that groups, summarises, connects or explains deterministic Changes. It never replaces or modifies a Change or a source fact: it refers to Changes by id and cites the evidence it relies on. It carries AIProvenance (model, model version, prompt version and digest, input evidence, generation time). Consumers must present it as AI-generated and verify it against the cited evidence.",
+      "required": ["id", "kind", "content", "relatesTo", "citations", "provenance"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^enr-",
+          "description": "Identifier starting with \"enr-\"; Change ids never use that prefix."
+        },
+        "kind": {
+          "$ref": "#/$defs/EnrichmentKind",
+          "description": "cluster: semantically equivalent Changes from different sources consolidated into one conclusion (≥2 changes). migration-summary: one migration requirement summarised from one or more Changes. diff-explanation: why a computed diff matters, citing the release-note statement that explains it. related: Changes that are potentially related; a hypothesis that requires verification (≥2 changes, unverified)."
+        },
+        "title": {"type": "string"},
+        "content": {"type": "string", "pattern": "\\S"},
+        "relatesTo": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Ids of the Changes the enrichment is about; each resolves within the edge's `changes`."
+        },
+        "citations": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Evidence ids the enrichment relies on: a subset of provenance.inputEvidence, which is a subset of the edge's `evidence`."
+        },
+        "unverified": {
+          "type": "boolean",
+          "description": "True exactly for kind \"related\": the relation was suggested by the model and is not established by the citations."
+        },
+        "provenance": {"$ref": "#/$defs/AIProvenance"}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {"properties": {"kind": {"enum": ["cluster", "related"]}}, "required": ["kind"]},
+          "then": {"properties": {"relatesTo": {"minItems": 2}}}
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {"enum": ["plausibly-applies", "not-applicable", "undetermined"]}
+            },
+            "required": ["kind"]
+          },
+          "then": {"properties": {"relatesTo": {"minItems": 1, "maxItems": 1}}}
+        },
+        {
+          "if": {"properties": {"kind": {"enum": ["related"]}}, "required": ["kind"]},
+          "then": {"required": ["unverified"], "properties": {"unverified": {"const": true}}},
+          "else": {"properties": {"unverified": {"const": false}}}
+        }
+      ]
+    },
+    "EnrichmentKind": {
+      "type": "string",
+      "enum": [
+        "cluster",
+        "migration-summary",
+        "diff-explanation",
+        "related",
+        "plausibly-applies",
+        "not-applicable",
+        "undetermined"
+      ]
+    },
+    "EnrichmentRejection": {
+      "type": "object",
+      "required": ["group", "reason"],
+      "properties": {
+        "group": {"type": "string"},
+        "promptDigest": {"type": "string"},
+        "kind": {"$ref": "#/$defs/EnrichmentKind"},
+        "relatesTo": {"type": "array", "items": {"type": "string"}},
+        "reason": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "EnrichmentRun": {
+      "type": "object",
+      "description": "How the enrichments of this edge were produced: deterministic candidate groups, prompts, answers pending or rejected by the validator, and the duplicate metric. Metadata about AI output, never a conclusion.",
+      "required": [
+        "producer",
+        "promptVersion",
+        "candidateGroups",
+        "requests",
+        "accepted",
+        "clusters",
+        "clusteredChanges",
+        "duplicatesConsolidated"
+      ],
+      "properties": {
+        "producer": {"type": "string"},
+        "promptVersion": {"type": "string"},
+        "candidateGroups": {
+          "type": "integer",
+          "description": "Deterministic candidate groups (changes sharing subjects, references, wording, a diffed key, or an upgrade-guide/release-note pairing) found before any model was asked."
+        },
+        "requests": {"type": "integer"},
+        "pending": {
+          "type": "integer",
+          "description": "Requests written to the file exchange that have no response yet."
+        },
+        "failed": {"type": "integer"},
+        "accepted": {"type": "integer"},
+        "rejected": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EnrichmentRejection"},
+          "description": "Model proposals refused by the validator (unknown change ids, citations outside the input, empty content, ...)."
+        },
+        "clusters": {"type": "integer"},
+        "clusteredChanges": {"type": "integer"},
+        "duplicatesConsolidated": {
+          "type": "integer",
+          "description": "clusteredChanges - clusters: how many Changes duplicate another Change of the same cluster."
+        }
+      },
+      "additionalProperties": false
+    },
     "EnvironmentDimension": {"type": "string", "enum": ["values", "manifests", "crds", "images", "cluster-version"]},
     "Evidence": {
       "type": "object",
@@ -240,6 +363,10 @@
           "type": "array",
           "items": {"type": "string"},
           "description": "What evidence was missing for an unknown verdict, e.g. \"Helm values files (--values) not supplied\"; unknown-only by contract."
+        },
+        "suggestedClassification": {
+          "$ref": "#/$defs/ImpactClass",
+          "description": "The AI layer's review suggestion for an unknown finding (\"review-required\" only; never action-required). The deterministic classification is not overwritten: the finding stays as the join produced it and the suggestion is carried by a plausibly-applies enrichment with full AI provenance."
         }
       },
       "additionalProperties": false,
@@ -393,6 +520,15 @@
         "definitionDigest": {
           "type": "string",
           "description": "Digest of the product definition revision the underlying edge was built from."
+        },
+        "enrichments": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Enrichment"},
+          "description": "AI-derived additions from the optional impact enrichment step (`ri impact … -enrich`): applicability suggestions on unknown findings, duplicate clusters and migration summaries. Always labelled method \"ai\" and never mixed into `findings`; the referential checks (finding ids resolve, citations ⊆ inputEvidence ⊆ the evidence pools) are domain.ImpactReport.Validate() in Go."
+        },
+        "enrichmentRun": {
+          "$ref": "#/$defs/EnrichmentRun",
+          "description": "Present when impact enrichment was attempted: how the AI enrichments were produced and what the validator rejected."
         }
       },
       "additionalProperties": false
@@ -417,7 +553,11 @@
         "reviewRequired": {"type": "integer"},
         "informational": {"type": "integer"},
         "notAffected": {"type": "integer"},
-        "unknown": {"type": "integer"}
+        "unknown": {"type": "integer"},
+        "suggestedReview": {
+          "type": "integer",
+          "description": "How many unknown findings carry an AI review suggestion; they still count under unknown. 0 without -enrich."
+        }
       },
       "additionalProperties": false
     },

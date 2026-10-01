@@ -6,6 +6,9 @@ edge's deterministic Changes. It never replaces or edits a source fact or a
 Change. Each enrichment names the Changes it is about and the evidence it
 relies on, and records which model produced it, from which exact prompt.
 
+(The impact report has its own enrichment step with the same machinery and
+stricter verdict rules: see docs/IMPACT-ENRICHMENT.md.)
+
 The motivating case is cert-manager v1.17 → v1.18. The deterministic merge
 leaves semantic duplicates and fragments:
 - The `Certificate.Spec.PrivateKey.RotationPolicy` default change appears

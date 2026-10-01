@@ -257,13 +257,33 @@
           "then": {"properties": {"relatesTo": {"minItems": 2}}}
         },
         {
+          "if": {
+            "properties": {
+              "kind": {"enum": ["plausibly-applies", "not-applicable", "undetermined"]}
+            },
+            "required": ["kind"]
+          },
+          "then": {"properties": {"relatesTo": {"minItems": 1, "maxItems": 1}}}
+        },
+        {
           "if": {"properties": {"kind": {"enum": ["related"]}}, "required": ["kind"]},
           "then": {"required": ["unverified"], "properties": {"unverified": {"const": true}}},
           "else": {"properties": {"unverified": {"const": false}}}
         }
       ]
     },
-    "EnrichmentKind": {"type": "string", "enum": ["cluster", "migration-summary", "diff-explanation", "related"]},
+    "EnrichmentKind": {
+      "type": "string",
+      "enum": [
+        "cluster",
+        "migration-summary",
+        "diff-explanation",
+        "related",
+        "plausibly-applies",
+        "not-applicable",
+        "undetermined"
+      ]
+    },
     "EnrichmentRejection": {
       "type": "object",
       "required": ["group", "reason"],
