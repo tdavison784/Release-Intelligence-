@@ -60,6 +60,7 @@ internal/ingest        deterministic pipeline: definition + registry → domain.
 internal/upgrade       pure: path selection, diffs, edge assembly, text rendering
 internal/discovery     AI-assisted source discovery: repo scanner → candidates →
                        (optional LLM resolution) → validation against ≥3 releases → proposed definition
+internal/app           composition root + use cases (wires adapters by locator kind; offline e2e tests)
 internal/llm           LLM port + Anthropic implementation
 internal/store         local JSON store for ingested releases and edges
 products/              checked-in product definitions
@@ -125,3 +126,24 @@ import `ingest` or `upgrade`.
   `normalize.notes@v1`.
 - Evidence IDs are content-derived (`domain.NewEvidence`), so re-running
   ingestion is idempotent.
+
+## Definition constructs and the cases that motivated them
+
+Each construct is generic and declarative. Each one exists because a real
+upstream channel needed it.
+
+| Construct | Meaning | Motivating case |
+|---|---|---|
+| `extract: markdown-section` + `heading` | Pick one release's section from a cumulative document | cert-manager per-minor notes with one section per patch |
+| `extract: markdown-table` / `yaml-records` | Pick a row from a support matrix | cert-manager README tables; Istio `supportStatus.yml` |
+| `columns[].separator/part` | Split a combined cell | "1.33 → 1.36 / 4.20 → 4.22" (Kubernetes / OpenShift) |
+| `locator.baseRef` (repo-dir) | Only the files added since another ref | Istio's accumulating `releasenotes/notes/*.yaml` |
+| `git-log` locator | Commit subjects between tags, as notes | Argo CD release notes exist only behind the GitHub API |
+| `fallbackGroup` | Alternatives tried in priority order | website notes vs GitHub release body; master vs release branch |
+| `releaseKinds`, `availability` | Restrict to minor releases or version ranges | upgrade guides exist only for X.Y.0; cert-manager-ctl < 1.15 |
+| `version.strategy: lookup` | Find artifact versions by a field in an index | Argo CD chart whose `appVersion` is the app tag |
+| `optional` | Absence is a fact, not a broken relationship | about half of Argo CD releases ship in no chart |
+| `exceptions` (with reason) | Curated releases where a relationship does not hold | Argo CD v3.4.0 has no release assets |
+| `references` | Cross-check an artifact inside another artifact | image tags in the install manifest when quay.io is unreachable |
+| `contents.stripPrefix` / `ignoreKeys` | Normalise Helm values to user-facing keys | Istio's `_internal_defaults_do_not_set`; source-tree hub/tag placeholders |
+| `classify` rules | Product-specific classification, evaluated first | cert-manager "⚠️ Breaking change" callouts; Argo CD noise filters |
