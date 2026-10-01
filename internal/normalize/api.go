@@ -141,6 +141,10 @@ type TableSelector struct {
 	// TableHeading, when set, restricts the search to tables under a
 	// heading matching it.
 	TableHeading *regexp.Regexp
+	// ValueColumns, when set, restricts the search to tables (or records)
+	// having at least one of these columns, so an unrelated table that shares
+	// the key column (e.g. a vendor table with a "Release" column) is skipped.
+	ValueColumns []string
 }
 
 // ExtractTableRow returns the first row (across all qualifying tables) whose

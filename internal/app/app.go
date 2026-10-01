@@ -121,15 +121,13 @@ func ResolveVersion(vl *ingest.VersionList, s string) (domain.Version, error) {
 	return domain.Version{}, fmt.Errorf("version %q is not a known release of %s", s, vl.Product)
 }
 
-// Release returns the ingested release, reusing the stored copy when it was
-// produced from the same definition revision (idempotent re-runs).
+// Release ingests one release and records the result in the store.
+//
+// Ingestion is always re-run: it is deterministic and served from the fetch
+// cache, so it is cheap, and re-running guarantees that results reflect the
+// current code as well as the current definition. The store is an output
+// record (inspectable JSON), not a cache.
 func (a *App) Release(ctx context.Context, def *catalog.ProductDefinition, v domain.Version, vl *ingest.VersionList) (*domain.Release, error) {
-	if !a.cfg.Refresh {
-		if r, err := a.Store.LoadRelease(def.ID, v.Semver); err == nil && r != nil && r.DefinitionDigest == def.Digest() {
-			a.cfg.Logf("using stored ingestion of %s %s", def.ID, v)
-			return r, nil
-		}
-	}
 	a.cfg.Logf("ingesting %s %s", def.ID, v)
 	r, err := a.Ingester.IngestRelease(ctx, def, v, vl)
 	if err != nil {

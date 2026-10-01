@@ -301,6 +301,9 @@ func tableSelector(ex catalog.Extract, rc catalog.RenderContext) (normalize.Tabl
 		return normalize.TableSelector{}, pattern, fmt.Errorf("keyMatch: %w", err)
 	}
 	sel := normalize.TableSelector{KeyColumns: ex.KeyColumns, KeyRe: re}
+	for _, c := range ex.Columns {
+		sel.ValueColumns = append(sel.ValueColumns, c.Headers...)
+	}
 	if ex.TableHeading != "" {
 		_, th, err := renderRegex(ex.TableHeading, rc)
 		if err != nil {

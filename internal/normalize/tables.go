@@ -103,6 +103,9 @@ func extractTableRow(md []byte, sel TableSelector) (*TableRow, error) {
 		if idx < 0 {
 			continue
 		}
+		if len(sel.ValueColumns) > 0 && columnIndex(t.headers, sel.ValueColumns) < 0 {
+			continue
+		}
 		for _, r := range t.rows {
 			key := stripMarkdown(r.cells[idx])
 			if sel.KeyRe != nil && !sel.KeyRe.MatchString(key) {
@@ -161,6 +164,9 @@ func extractRecord(content []byte, sel TableSelector) (*TableRow, error) {
 			}
 		}
 		if !ok {
+			continue
+		}
+		if len(sel.ValueColumns) > 0 && columnIndex(headers, sel.ValueColumns) < 0 {
 			continue
 		}
 		if sel.KeyRe != nil && !sel.KeyRe.MatchString(stripMarkdown(key)) {

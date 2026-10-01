@@ -489,6 +489,27 @@ func (c *classifier) classify(ci classInput) verdict {
 	}
 
 	// 3. keyword heuristics
+	// 3a. refine a weak category: an upstream "Other"/"Cleanup"/"Docs"
+	// heading says little, so a strong keyword in the item (CVE, deprecat,
+	// removed) refines it. Product rules are never overridden.
+	if v.category == domain.CategoryOther && !productSetCat && itemCat == "" {
+		refined, rule := domain.Category(""), ""
+		switch {
+		case kwSecurityRe.MatchString(ci.text):
+			refined, rule = domain.CategorySecurity, "kw:cve"
+		case kwDeprecatedRe.MatchString(ci.text):
+			refined, rule = domain.CategoryDeprecation, "kw:deprecat"
+		case kwRemovedRe.MatchString(ci.text):
+			refined, rule = domain.CategoryRemoval, "kw:removed"
+		}
+		if refined != "" {
+			v.category = refined
+			// the refining keyword decides method/confidence: put it first
+			sigs = append([]signal{{domain.MethodHeuristic, domain.ConfidenceMedium, rule}}, sigs...)
+			rules = append([]string{rule}, rules...)
+		}
+	}
+	// 3b. full keyword classification when nothing else fired
 	if v.category == "" && !v.breaking && !v.actionRequired {
 		txt := ci.text
 		var kwRules []string

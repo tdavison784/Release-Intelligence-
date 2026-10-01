@@ -99,8 +99,12 @@ func TestFixtureCertManager118PatchSection(t *testing.T) {
 	if got := countCat(items, domain.CategoryBugfix); got != 14 {
 		t.Errorf("bugfixes = %d, want 14", got)
 	}
-	if got := countCat(items, domain.CategoryOther); got < 8 {
-		t.Errorf("other = %d, want >= 8 (Documentation and Other (Cleanup or Flake))", got)
+	if got := countCat(items, domain.CategoryOther); got < 7 {
+		t.Errorf("other = %d, want >= 7 (Documentation and Other (Cleanup or Flake))", got)
+	}
+	// a weak "Other (Cleanup or Flake)" label is refined by a strong keyword
+	if got := countCat(items, domain.CategoryDeprecation); got != 1 {
+		t.Errorf("deprecations = %d, want 1 (Remove deprecated feature gate ValidateCAA)", got)
 	}
 	ids := map[string]bool{}
 	for _, it := range items {
@@ -111,7 +115,11 @@ func TestFixtureCertManager118PatchSection(t *testing.T) {
 		if !strings.HasPrefix(it.Section, "v1.18.0 › ") {
 			t.Errorf("section path of %q = %q", it.Text, it.Section)
 		}
-		if it.Classification.Method != domain.MethodDeclared || it.Classification.Confidence != domain.ConfidenceHigh {
+		wantMethod, wantConf := domain.MethodDeclared, domain.ConfidenceHigh
+		if it.Category == domain.CategoryDeprecation {
+			wantMethod, wantConf = domain.MethodHeuristic, domain.ConfidenceMedium
+		}
+		if it.Classification.Method != wantMethod || it.Classification.Confidence != wantConf {
 			t.Errorf("%q: %+v", it.Text, it.Classification)
 		}
 	}
