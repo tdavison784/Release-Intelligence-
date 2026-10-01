@@ -248,6 +248,45 @@ func TestProvenanceInvariantParity(t *testing.T) {
 		{"enrichment without inputEvidence", func(e *domain.UpgradeEdge) {
 			e.Enrichments[0].Provenance.InputEvidence = nil
 		}, "/enrichments/0/provenance"},
+		{"enrichment without modelVersion", func(e *domain.UpgradeEdge) {
+			e.Enrichments[0].Provenance.ModelVersion = ""
+		}, "/enrichments/0/provenance"},
+		{"enrichment without promptVersion", func(e *domain.UpgradeEdge) {
+			e.Enrichments[0].Provenance.PromptVersion = ""
+		}, "/enrichments/0/provenance"},
+		{"enrichment without generatedAt", func(e *domain.UpgradeEdge) {
+			e.Enrichments[0].Provenance.GeneratedAt = nil
+		}, "/enrichments/0/provenance"},
+		{"deterministic change carrying a model version", func(e *domain.UpgradeEdge) {
+			e.Changes[0].Provenance.ModelVersion = "fake-model-v1"
+		}, "/changes/0/provenance"},
+		{"enrichment of unknown kind", func(e *domain.UpgradeEdge) {
+			e.Enrichments[0].Kind = "summary"
+		}, "/enrichments/0/kind"},
+		{"enrichment with blank content", func(e *domain.UpgradeEdge) {
+			e.Enrichments[0].Content = " \n "
+		}, "/enrichments/0/content"},
+		{"enrichment without citations", func(e *domain.UpgradeEdge) {
+			e.Enrichments[0].Citations = []domain.EvidenceID{}
+		}, "/enrichments/0/citations"},
+		{"enrichment about no change", func(e *domain.UpgradeEdge) {
+			e.Enrichments[0].RelatesTo = []string{}
+		}, "/enrichments/0/relatesTo"},
+		{"cluster of a single change", func(e *domain.UpgradeEdge) {
+			e.Enrichments[0].RelatesTo = e.Enrichments[0].RelatesTo[:1]
+		}, "/enrichments/0/relatesTo"},
+		{"related changes not marked unverified", func(e *domain.UpgradeEdge) {
+			e.Enrichments[1].Unverified = false
+		}, "/enrichments/1"},
+		{"cluster marked unverified", func(e *domain.UpgradeEdge) {
+			e.Enrichments[0].Unverified = true
+		}, "/enrichments/0/unverified"},
+		{"enrichment id without the enrichment prefix", func(e *domain.UpgradeEdge) {
+			e.Enrichments[0].ID = "chg-ai-1"
+		}, "/enrichments/0/id"},
+		{"change using the enrichment id prefix", func(e *domain.UpgradeEdge) {
+			e.Changes[2].ID = "enr-smuggled"
+		}, "/changes/2/id"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -537,6 +576,8 @@ func sampleEdge() *domain.UpgradeEdge {
 		"appVersion: v1.19.0", domain.Digest([]byte("index")), t0)
 	evAdvisory := domain.NewEvidence(domain.EvidenceAdvisory, "advisories", "https://github.com/cert-manager/cert-manager/security/advisories/GHSA-xxxx-xxxx-xxxx", "",
 		"Example advisory text", domain.Digest([]byte("advisory")), t0)
+	evGuide := domain.NewEvidence(domain.EvidenceDocument, "upgrade-guide", "https://cert-manager.io/docs/releases/upgrading/upgrading-1.17-1.18", "L8-L10",
+		"We have changed the default value of Certificate.Spec.PrivateKey.RotationPolicy from Never to Always.", domain.Digest([]byte("guide")), t0)
 
 	fNotes := domain.NewFact(domain.FactDocumentRetrieved, "cert-manager@1.18.0", "1.18.0", "Release notes of v1.18.0 were retrieved",
 		"normalize.notes@v1", map[string]string{"bytes": "4312"}, evNotes.ID)
@@ -591,6 +632,12 @@ func sampleEdge() *domain.UpgradeEdge {
 				Provenance: domain.Provenance{Method: domain.MethodComputed, Producer: "upgrade@v1", Rule: "advisory.fixed", Confidence: domain.ConfidenceHigh},
 				Evidence:   []domain.EvidenceID{evAdvisory.ID},
 			},
+			{
+				ID: "chg-5", Category: domain.CategoryMigration, Breaking: true, Release: "1.18.0",
+				Title:      "We have changed the default value of Certificate.Spec.PrivateKey.RotationPolicy from Never to Always.",
+				Provenance: declaredProv("section:/upgrad/i"),
+				Evidence:   []domain.EvidenceID{evGuide.ID},
+			},
 		},
 		Compatibility: []domain.CompatibilityChange{{
 			Platform: "kubernetes",
@@ -618,15 +665,34 @@ func sampleEdge() *domain.UpgradeEdge {
 				Evidence: []domain.EvidenceID{evChart.ID},
 			},
 		},
-		Enrichments: []domain.Enrichment{{
-			ID: "enr-1", Kind: "summary", Title: "What to do first",
-			Content:   "Review the privateKey.rotationPolicy default before upgrading; set it to Never to keep today's behaviour.",
-			RelatesTo: []string{"chg-1"},
-			Provenance: domain.Provenance{Method: domain.MethodAI, Producer: "llm.enrich@v1", Confidence: domain.ConfidenceMedium,
-				Model: "claude-test-model", PromptDigest: "sha256:0123456789abcdef", InputEvidence: []domain.EvidenceID{evNotes.ID, evValues.ID}, GeneratedAt: &generated},
-		}},
+		Enrichments: []domain.Enrichment{
+			{
+				ID: "enr-1", Kind: domain.EnrichmentCluster, Title: "Private keys are rotated on every renewal by default",
+				Content:   "The release notes and the upgrade guide state the same change: rotationPolicy now defaults to Always; set it to Never to keep today's behaviour.",
+				RelatesTo: []string{"chg-1", "chg-5"},
+				Citations: []domain.EvidenceID{evNotes.ID, evGuide.ID},
+				Provenance: domain.Provenance{Method: domain.MethodAI, Producer: "enrich@v1", Rule: "group:cand-1", Confidence: domain.ConfidenceMedium,
+					Model: "fake-model", ModelVersion: "fake-model-2026-01", PromptVersion: "enrich/v1", PromptDigest: "sha256:0123456789abcdef",
+					InputEvidence: []domain.EvidenceID{evNotes.ID, evGuide.ID, evValues.ID}, GeneratedAt: &generated},
+			},
+			{
+				ID: "enr-2", Kind: domain.EnrichmentRelated, Unverified: true,
+				Content:   "Removing installCRDs and deprecating the owner-ref flag may both affect how CRDs are managed; verify.",
+				RelatesTo: []string{"chg-2", "chg-3"},
+				Citations: []domain.EvidenceID{evValues.ID},
+				Provenance: domain.Provenance{Method: domain.MethodAI, Producer: "enrich@v1", Rule: "group:cand-2", Confidence: domain.ConfidenceLow,
+					Model: "fake-model", ModelVersion: "fake-model-2026-01", PromptVersion: "enrich/v1", PromptDigest: "sha256:fedcba9876543210",
+					InputEvidence: []domain.EvidenceID{evValues.ID, evBody.ID}, GeneratedAt: &generated},
+			},
+		},
+		EnrichmentRun: &domain.EnrichmentRun{
+			Producer: "enrich@v1", PromptVersion: "enrich/v1", CandidateGroups: 3, Requests: 3, Pending: 1, Accepted: 2,
+			Rejected: []domain.EnrichmentRejection{{Group: "cand-2", PromptDigest: "sha256:fedcba9876543210", Kind: domain.EnrichmentCluster,
+				RelatesTo: []string{"chg-2", "chg-9"}, Reason: "unknown change id chg-9"}},
+			Clusters: 1, ClusteredChanges: 2, DuplicatesConsolidated: 1,
+		},
 		Facts:            []domain.Fact{fNotes, fChart},
-		Evidence:         []domain.Evidence{evNotes, evValues, evBody, evCompat, evChart, evAdvisory},
+		Evidence:         []domain.Evidence{evNotes, evValues, evBody, evCompat, evChart, evAdvisory, evGuide},
 		Warnings:         []string{"OCI images could not be probed (registry returned 403); image versions are expected, not verified"},
 		GeneratedAt:      t0,
 		DefinitionDigest: "sha256:def0",

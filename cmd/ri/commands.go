@@ -286,6 +286,7 @@ func (c *cli) upgrade(args []string) error {
 	verbose := fs.Bool("verbose", false, "include features, bug fixes and evidence excerpts")
 	policy := fs.String("policy", "", "path policy override: minor-lineage|all")
 	max := fs.Int("max", 25, "maximum items per section in text output (-1 = unlimited)")
+	ef := enrichFlags(fs)
 	pos, err := parse(fs, args)
 	if err != nil {
 		return err
@@ -294,12 +295,18 @@ func (c *cli) upgrade(args []string) error {
 		fs.Usage()
 		return fmt.Errorf("%w: expected <product> <from> <to>", app.ErrUsage)
 	}
+	if err := ef.check(); err != nil {
+		return err
+	}
 	a, err := c.newApp()
 	if err != nil {
 		return err
 	}
 	edge, err := a.Upgrade(c.ctx, pos[0], pos[1], pos[2], app.UpgradeOptions{Policy: *policy})
 	if err != nil {
+		return err
+	}
+	if err := c.enrich(a, edge, ef); err != nil {
 		return err
 	}
 	if *output == "json" {

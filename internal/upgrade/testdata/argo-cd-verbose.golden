@@ -64,10 +64,18 @@ Other notable changes (5):
       fix: application controller leaks goroutines on cluster removal (#22100)
   … and 1 more
 
-AI enrichments (1) — AI-derived, not deterministic; verify before acting:
-  • [migration-step] Grant log access before upgrading  (AI-derived · claude-test-model · ev-29a8cc75a0a8)
+Enriched conclusions (AI · verify against evidence) (1):
+  ◆ [migration-summary] Grant log access before upgrading  (ai · fake-model fake-model-v1 · medium)
       Add `p, role:dev, logs, get, */*, allow` to argocd-rbac-cm for every role that reads pod logs.
       Then upgrade the control plane.
+      changes:
+        chg-89165bfd0e35  [v3.1.0] The `server.rbac.log.enforce.enable` setting was removed; logs RBAC is now always enforced
+      evidence:
+        ev-29a8cc75a0a8  https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.0/docs/operator-manual/upgrading/3.0-3.1.md  L10-L11
+          │ The `server.rbac.log.enforce.enable` setting was removed; logs RBAC is now always enforced. Grant the `logs, get` permission to roles that need to read pod…
+      prompt enrich/v1 sha256:0123 · generated 2026-10-01T12:00:00Z · 1 input evidence record
+  Duplicates: 0 changes consolidated into 0 clusters (0 duplicates) · 2 candidate groups · 2 prompts · 1 pending · 1 rejected
+    ✗ rejected cluster (cand-1): unknown change id chg-unknown (not in the edge)
 
 Warnings (1):
   ! Security advisories were not fully retrieved (advisories: unavailable — api.github.com blocked); advisory matching may be incomplete

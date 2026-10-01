@@ -19,9 +19,11 @@ type FakeResponse struct {
 // when set, answers each request; otherwise Responses are consumed in order.
 type Fake struct {
 	// Model is reported as the serving model (default "fake-model").
-	Model     string
-	Responses []FakeResponse
-	Respond   func(req Request) (string, error)
+	Model string
+	// ModelVersion is reported as the model version (default: Model).
+	ModelVersion string
+	Responses    []FakeResponse
+	Respond      func(req Request) (string, error)
 
 	mu       sync.Mutex
 	requests []Request
@@ -40,12 +42,16 @@ func (f *Fake) Complete(ctx context.Context, req Request) (*Response, error) {
 	if model == "" {
 		model = "fake-model"
 	}
+	version := f.ModelVersion
+	if version == "" {
+		version = model
+	}
 	if f.Respond != nil {
 		text, err := f.Respond(req)
 		if err != nil {
 			return nil, err
 		}
-		return &Response{Text: text, Model: model}, nil
+		return &Response{Text: text, Model: model, ModelVersion: version, Origin: OriginFake}, nil
 	}
 	if f.next >= len(f.Responses) {
 		return nil, ErrFakeExhausted
@@ -55,7 +61,7 @@ func (f *Fake) Complete(ctx context.Context, req Request) (*Response, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-	return &Response{Text: r.Text, Model: model}, nil
+	return &Response{Text: r.Text, Model: model, ModelVersion: version, Origin: OriginFake}, nil
 }
 
 // Requests returns a copy of the recorded requests.

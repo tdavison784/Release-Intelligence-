@@ -6,12 +6,14 @@
   "$ref": "#/$defs/UpgradeEdge",
   "$defs": {
     "AIProvenance": {
-      "description": "Provenance of AI output: method is \"ai\" and model, promptDigest and inputEvidence (at least one evidence id) are required, so every enrichment can be traced to the model, the exact prompt and the evidence it was given.",
+      "description": "Provenance of AI output: method is \"ai\" and model, modelVersion, promptVersion, promptDigest, inputEvidence (at least one evidence id) and generatedAt are required, so every enrichment can be traced to the model that answered, the exact prompt and the evidence it was given.",
       "allOf": [{"$ref": "#/$defs/Provenance"}],
-      "required": ["model", "promptDigest", "inputEvidence"],
+      "required": ["model", "modelVersion", "promptVersion", "promptDigest", "inputEvidence", "generatedAt"],
       "properties": {
         "method": {"const": "ai"},
         "model": {"minLength": 1},
+        "modelVersion": {"minLength": 1},
+        "promptVersion": {"minLength": 1},
         "promptDigest": {"minLength": 1},
         "inputEvidence": {"minItems": 1}
       }
@@ -103,7 +105,7 @@
       "description": "A deterministic conclusion about the upgrade: from a release-note item (declared or heuristic) or from a computed diff of two releases (values, CRDs, images, compatibility, advisories).",
       "required": ["id", "category", "title", "provenance", "evidence"],
       "properties": {
-        "id": {"type": "string"},
+        "id": {"type": "string", "not": {"pattern": "^enr-"}},
         "category": {"$ref": "#/$defs/Category", "description": "Primary classification of the change."},
         "breaking": {
           "type": "boolean",
@@ -188,7 +190,7 @@
     },
     "Confidence": {"type": "string", "enum": ["high", "medium", "low"]},
     "DeterministicProvenance": {
-      "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
+      "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
       "allOf": [{"$ref": "#/$defs/Provenance"}],
       "properties": {
         "method": {"enum": ["declared", "computed", "heuristic"]}
@@ -198,28 +200,112 @@
           {"required": ["model"]},
           {"required": ["promptDigest"]},
           {"required": ["inputEvidence"]},
-          {"required": ["generatedAt"]}
+          {"required": ["generatedAt"]},
+          {"required": ["modelVersion"]},
+          {"required": ["promptVersion"]}
         ]
       }
     },
     "Enrichment": {
       "type": "object",
-      "description": "AI-derived information (summary, migration step, risk note). Kept apart from Changes: it must carry method \"ai\" together with model, promptDigest and inputEvidence. Consumers should present it as AI-generated.",
-      "required": ["id", "kind", "content", "provenance"],
+      "description": "AI-derived information that groups, summarises, connects or explains deterministic Changes. It never replaces or modifies a Change or a source fact: it refers to Changes by id and cites the evidence it relies on. It carries AIProvenance (model, model version, prompt version and digest, input evidence, generation time). Consumers must present it as AI-generated and verify it against the cited evidence.",
+      "required": ["id", "kind", "content", "relatesTo", "citations", "provenance"],
       "properties": {
-        "id": {"type": "string"},
-        "kind": {
+        "id": {
           "type": "string",
-          "description": "Kind of enrichment, e.g. \"summary\", \"migration-step\", \"classification\" or \"risk\"."
+          "pattern": "^enr-",
+          "description": "Identifier starting with \"enr-\"; Change ids never use that prefix."
+        },
+        "kind": {
+          "$ref": "#/$defs/EnrichmentKind",
+          "description": "cluster: semantically equivalent Changes from different sources consolidated into one conclusion (≥2 changes). migration-summary: one migration requirement summarised from one or more Changes. diff-explanation: why a computed diff matters, citing the release-note statement that explains it. related: Changes that are potentially related; a hypothesis that requires verification (≥2 changes, unverified)."
         },
         "title": {"type": "string"},
-        "content": {"type": "string"},
+        "content": {"type": "string", "pattern": "\\S"},
         "relatesTo": {
           "type": "array",
           "items": {"type": "string"},
-          "description": "Ids of the Changes the enrichment is about."
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Ids of the Changes the enrichment is about; each resolves within the edge's `changes`."
+        },
+        "citations": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Evidence ids the enrichment relies on: a subset of provenance.inputEvidence, which is a subset of the edge's `evidence`."
+        },
+        "unverified": {
+          "type": "boolean",
+          "description": "True exactly for kind \"related\": the relation was suggested by the model and is not established by the citations."
         },
         "provenance": {"$ref": "#/$defs/AIProvenance"}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {"properties": {"kind": {"enum": ["cluster", "related"]}}, "required": ["kind"]},
+          "then": {"properties": {"relatesTo": {"minItems": 2}}}
+        },
+        {
+          "if": {"properties": {"kind": {"enum": ["related"]}}, "required": ["kind"]},
+          "then": {"required": ["unverified"], "properties": {"unverified": {"const": true}}},
+          "else": {"properties": {"unverified": {"const": false}}}
+        }
+      ]
+    },
+    "EnrichmentKind": {"type": "string", "enum": ["cluster", "migration-summary", "diff-explanation", "related"]},
+    "EnrichmentRejection": {
+      "type": "object",
+      "required": ["group", "reason"],
+      "properties": {
+        "group": {"type": "string"},
+        "promptDigest": {"type": "string"},
+        "kind": {"$ref": "#/$defs/EnrichmentKind"},
+        "relatesTo": {"type": "array", "items": {"type": "string"}},
+        "reason": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "EnrichmentRun": {
+      "type": "object",
+      "description": "How the enrichments of this edge were produced: deterministic candidate groups, prompts, answers pending or rejected by the validator, and the duplicate metric. Metadata about AI output, never a conclusion.",
+      "required": [
+        "producer",
+        "promptVersion",
+        "candidateGroups",
+        "requests",
+        "accepted",
+        "clusters",
+        "clusteredChanges",
+        "duplicatesConsolidated"
+      ],
+      "properties": {
+        "producer": {"type": "string"},
+        "promptVersion": {"type": "string"},
+        "candidateGroups": {
+          "type": "integer",
+          "description": "Deterministic candidate groups (changes sharing subjects, references, wording, a diffed key, or an upgrade-guide/release-note pairing) found before any model was asked."
+        },
+        "requests": {"type": "integer"},
+        "pending": {
+          "type": "integer",
+          "description": "Requests written to the file exchange that have no response yet."
+        },
+        "failed": {"type": "integer"},
+        "accepted": {"type": "integer"},
+        "rejected": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EnrichmentRejection"},
+          "description": "Model proposals refused by the validator (unknown change ids, citations outside the input, empty content, ...)."
+        },
+        "clusters": {"type": "integer"},
+        "clusteredChanges": {"type": "integer"},
+        "duplicatesConsolidated": {
+          "type": "integer",
+          "description": "clusteredChanges - clusters: how many Changes duplicate another Change of the same cluster."
+        }
       },
       "additionalProperties": false
     },
@@ -355,7 +441,18 @@
           "$ref": "#/$defs/Confidence",
           "description": "Coarse confidence in the classification."
         },
-        "model": {"type": "string", "description": "AI only: model identifier."},
+        "model": {
+          "type": "string",
+          "description": "AI only: identifier of the model that answered, as reported by the API response or the exchange response file (never assumed from the request)."
+        },
+        "modelVersion": {
+          "type": "string",
+          "description": "AI only: the most precise version identifier of that model reported with the answer (a pinned snapshot id when the provider reports no separate version)."
+        },
+        "promptVersion": {
+          "type": "string",
+          "description": "AI only: version of the prompt templates, e.g. \"enrich/v1\"; promptDigest pins the exact rendered prompt."
+        },
         "promptDigest": {
           "type": "string",
           "description": "AI only: digest of the exact prompt, so the generation can be reproduced or audited."
@@ -472,7 +569,7 @@
         "enrichments": {
           "type": "array",
           "items": {"$ref": "#/$defs/Enrichment"},
-          "description": "AI-derived additions (summaries, migration steps, risk notes). Always labelled method \"ai\" and never mixed into `changes`."
+          "description": "AI-derived additions (clusters, migration summaries, diff explanations, related changes). Always labelled method \"ai\" and never mixed into `changes`."
         },
         "facts": {
           "type": "array",
@@ -497,6 +594,10 @@
         "definitionDigest": {
           "type": "string",
           "description": "Digest of the product definition revision the edge was built from."
+        },
+        "enrichmentRun": {
+          "$ref": "#/$defs/EnrichmentRun",
+          "description": "Present when enrichment was attempted: how the AI enrichments were produced and what the validator rejected."
         }
       },
       "additionalProperties": false
