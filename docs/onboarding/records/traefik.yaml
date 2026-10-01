@@ -1,0 +1,113 @@
+product: traefik
+order: 13
+wave: 2
+repository: github.com/traefik/traefik
+onboarding:
+  startedAt: "2026-10-01T14:06:19Z"
+  finishedAt: "2026-10-01T14:44:10Z"
+  minutes: 38
+discovery:
+  proposal: docs/onboarding/discovery/traefik.proposed.yaml
+  report: docs/onboarding/discovery/traefik.report.md
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags'; pattern accepted plus the ea.N (early access) prerelease family, which the proposal counted as junk"}
+  - {id: github-releases, origin: discovered, note: "versions fallback; releases exist for both majors (atom feed), so it lists v2 and v3"}
+  - {id: changelog, origin: discovered, note: "CHANGELOG.md at the release tag (discovery read it at the tag and validated it); needed labelParagraphs in the bold dialect (a standalone '**Label:**' paragraph, vault's construct) and classify rules"}
+  - {id: github-release-notes, origin: discovered-modified, note: "discovery made the GitHub release body the primary notes channel; the body duplicates the changelog section plus a GHSA list and api.github.com is rate-limited (60/h shared IP) — demoted to priority-1 fallbackGroup member"}
+  - {id: upgrade-guide-v1-to-v2, origin: manual, note: "whole-major guide, whole-document extract, releaseKinds [major]"}
+  - {id: upgrade-guide-v2-to-v3, origin: manual, note: "same; the guide IS the breaking-change list (CRD group rename, provider removals)"}
+  - {id: migration-v3, origin: manual, note: "per-minor within-v3 guide docs/content/migration/v3.md, '>= 3.1.0, < 3.5.1'"}
+  - {id: migration-v3-renamed, origin: manual, note: "same file after the migration/ -> migrate/ directory rename at v3.5.1"}
+  - {id: migration-v2, origin: manual, note: "per-minor within-v2 guide read at a FIXED ref (v2.11.57): the own-minor section is written after the minor ships, so the file at the release's own tag lacks it"}
+  - {id: support-policy, origin: manual, note: "docs/content/deprecation/releases.md on master; lifecycle evidence source (Versioning Scheme section)"}
+  - {id: github-advisories, origin: discovered, note: "SECURITY.md points at GitHub Security Advisories"}
+artifacts:
+  - {id: image, origin: manual, note: "discovery excluded every image candidate (docker.io/library/traefik 'no release evidence', ghcr.io/traefik/traefik 'no release evidence', docker.io/traefik/traefik 'test-only'): goreleaser builds no images, the official image is built via traefik-library-image and synced to ghcr by a daily workflow; channels docker.io/library -> ghcr.io -> mirror.gcr.io"}
+  - {id: cli-linux-amd64, origin: manual, note: "goreleaser archive traefik_vX.Y.Z_linux_amd64.tar.gz on the GitHub release; discovery saw the release workflow but proposed no binary artifact; availability >= 2.0.0 (v1 used other asset names)"}
+  - {id: crds, origin: discovered-modified, note: "kept the docs/content/reference/dynamic-configuration directory; channel = the combined kubernetes-crd-definition-v1.yml raw URL the migration guide tells users to apply, contents glob changed *.yml -> traefik.*.yaml (per-CRD files, both API groups), availability >= 2.5.0"}
+  - {id: helm-chart, origin: discovered-modified, note: "lookup appVersion == {{.Tag}} kept; discovery's helm-git tagPattern ^traefik-... matched 0 of 397 chart-repository tags (chart tags are plain vX.Y.Z); chart directory traefik/ was right"}
+discoveryRejected:
+  - {id: crds glob '*.yml', reason: "matches kubernetes-crd-rbac.yml / kubernetes-crd-resource.yml (not CRDs) and misses the per-CRD traefik.*.yaml files"}
+  - {id: "images (all three candidates)", reason: "the exclusion rules look for goreleaser docker builds; Traefik's image pipeline is traefik-library-image + a daily crane sync to ghcr — improvement idea for discovery: read deploy/sync workflows"}
+  - {id: manifests kubernetes-gateway-traefik-lb-svc.yml / kubernetes-whoami-svc.yml, reason: "sample deployments, correctly excluded (kept: they are where discovery saw the image names)"}
+relationships:
+  historicalReleasesChecked: [1.7.34, 2.0.0, 2.1.0, 2.2.3, 2.4.4, 2.5.0, 2.7.0, 2.10.2, 2.11.0, 2.11.47, 3.0.0, 3.1.0, 3.2.0, 3.3.0, 3.4.0, 3.5.0, 3.5.1, 3.5.5, 3.5.6, 3.6.0, 3.6.25, 3.7.0, 3.7.2, 3.7.13]
+  # first run of the first complete draft (default 6 releases 3.5.0-3.7.13):
+  # 0 failing subjects. The first boundary sweep (-versions across both
+  # majors) failed 4 subject/releases: migration-v2 @ 2.1.0, 2.5.0 and
+  # migration-v3 @ 3.1.0, 3.4.0 — one root cause, see manualInterventions.
+  initialFailures: 0
+  finalFailures: 0
+  manualInterventions:
+    - {subject: "migration-v3, migration-v2", change: "heading regexes accept the range dialect 'v3.0 to v3.1' / 'v2.4 to v2.5'", reason: "the range headings repeat the v prefix before BOTH numbers; the first draft omitted the second v and failed the 3.1.0/3.4.0/2.1.0/2.5.0 checks"}
+    - {subject: migration-v2, change: "ref fixed to v2.11.57 + exception 2.7.0", reason: "the own-minor section is added to v2.md only after the minor ships (at v2.4.0's tag the file stops at 'v2.2 to v2.3'); no section for the 2.7 line exists anywhere in the final file"}
+    - {subject: image, change: "19 exceptions in two groups", reason: "listing all ghcr.io tags: 17 canceled/never-published releases ('Release canceled.' changelog sections, no assets) and v1.7.27; 3 published releases (2.2.3, 2.10.2, 3.4.2) whose tag never reached the reachable mirrors"}
+    - {subject: cli-linux-amd64, change: "availability >= 2.0.0 + 16 exceptions", reason: "asset HEAD probes 404 exactly for the canceled/unpublished set; v1.x used different asset names"}
+    - {subject: changelog, change: "classify rules (dependency bumps, Documentation -> other, CVE-carrying docs -> security, Merge-branch skip)", reason: "'Remove dead link to Peka blog' was a removal and 'Update vulnerability submission guidelines' was a security change; 'Merge branch v2.11 into v3.0' bullets are backport mechanics"}
+  unverifiable:
+    - {subject: github-advisories, reason: "api.github.com anonymous quota (60/h, shared egress IP) was exhausted during the edge runs; the feed answers between resets (verified by curl) and check does not gate on it"}
+    - {subject: image (docker.io/library/traefik channel), reason: "anonymous Docker Hub 401; the daily ghcr.io mirror of the official image verified the same tags (2605 tags, v1.0.0 - v3.7.13 minus the exceptions)"}
+constructs:
+  new:
+    - name: field:lifecycle.versions
+      kind: catalog-field (first exerciser; the field shipped with the lifecycle construct in wave 1)
+      justification: >-
+        The lifecycle statement must be scoped by a semver constraint to
+        represent a dead major next to a live one: ">= 2.0.0, < 3.0.0" marks
+        all of v2 end-of-life (v2.11 security support ended 2026-09-07 per the
+        support-policy page) while v3 stays live in the same product and the
+        same version list. ingress-nginx's statement covered the whole
+        (retired) product, so the field existed but had never been used;
+        ri stats listed it as unaccounted until this definition.
+      otherProducts: [postgresql (parallel REL_N_STABLE majors, 5-year support windows), vault (LTS 1.19.x / extended maintenance 1.16.x, recorded as a gap in its record)]
+  considered:
+    - {name: "source-level optional (a markdown section may be absent for patch releases)", rejected: "absence is only curated per release (exceptions) and the patch-section set grows every release; restricted to releaseKinds [minor] and recorded as a gap instead"}
+    - {name: "conditional path template ({{if ge .Minor 6}}migrate{{else}}migration{{end}}/v3.md)", rejected: "vault already rejected conditional templates; two availability-split sources are clearer, and the boundary (3.5.1) is mid-minor anyway"}
+    - {name: "GitHub release body as a security source (per-release 'CVE fixed' GHSA list)", rejected: "same advisories as the github-advisories feed (deterministic, deduplicated); kept as the release-notes fallback only"}
+    - {name: "docker.io/traefik/traefik as a second image artifact", rejected: "legacy containous repository superseded by the official image; the ghcr mirror covers reachability"}
+    - {name: "docs/content/deprecation/features.md as a deprecation source", rejected: "three rows, a strict subset of the migration guides, and table rows are not note items"}
+goChanges:
+  productSpecific: 0
+  generic: []
+unreachableSources:
+  - {host: registry-1.docker.io, reason: "anonymous 401/rate-limited; canonical library/traefik tags could not be enumerated (ghcr.io mirror used instead)"}
+  - {host: api.github.com, reason: "anonymous quota 60/h exhausted on the shared egress IP during part of the session; git/raw/asset-download hosts unaffected"}
+  - {host: mirror.gcr.io/traefik/traefik, reason: "answers 200 with an EMPTY tag list: the mirror does not carry the non-library repository"}
+ambiguousRelationships:
+  - "ghcr.io/traefik/traefik is a daily crane mirror of docker.io/library/traefik (sync workflow): 'no tag on ghcr' is read as 'never published' — true for the canceled releases, only inferred for 2.2.3 / 2.10.2 / 3.4.2"
+  - "canceled releases are canonical versions: tag + 'Release canceled.' changelog section, no assets and no image; curated as artifact exceptions rather than removed from the version list"
+  - "chart appVersion == tag means 'the chart defaults to that release', not 'tested with'; only 63 of 311 stable releases are ever an appVersion (no chart for v2.11.57, v3.5.6, v3.6.25)"
+  - "migration-v2 is read at the final v2 tag (v2.11.57) and support-policy at master: their text evolves, so a v2 edge reports today's guide, not the release-time one (same as vault's changelog-on-main)"
+  - "v3.md/v2.md own-release sections exist for the release's own tag, but patch-level sections exist only for SOME patches (v3.7.13 yes, v3.7.5 no); GitHub release bodies link the anchors ('migrate/v3/#v3713')"
+  - "v2.md's within-major sections for 2.8+ use the short dialect '## v2.11' while 2.1-2.6 use '## v2.4 to v2.5'; v3.md used ranges until 3.4.0 and exact versions from 3.5.0"
+  - "the v2/v3 boundary releases interleave in one tag family: v2.11.x patches continued for 2.5 years next to v3.x (dual live majors in a single semver space)"
+representability: full
+gaps:
+  - "Patch-level migration steps (v3.md '## v3.7.13', v2.md '## v2.11.N') are not ingested: a source cannot declare 'the section exists only for some patches' (optional is an artifact fact), and the set grows each release; the v3.7.12 -> v3.7.13 edge therefore misses the h2c upgrade-requests step that the release body points at"
+  - "The support-policy table (per-line active/security support dates) is markdown table rows, not note items and not compatibility constraints: the EOL date reaches edges only as text inside the lifecycle statement; a machine-readable per-line lifecycle would benefit PostgreSQL and Vault equally (their records list the same gap)"
+  - "No Kubernetes support matrix exists upstream; only the chart kubeVersion floor (>= 1.25) is captured, and only for releases that ship a chart"
+  - "Image presence on the canonical Docker Hub registry is unverifiable from this sandbox (anonymous 401); verification relies on the daily ghcr.io mirror"
+  - "v3.md sub-topics are sometimes written at the version-section level ('## Dynamic configuration' inside the v3.7.13 area): those sub-items fall out of the extracted section (upstream formatting defect, content loss without a resolution failure)"
+  - "The -ea.N (early access) prerelease family is parsed but excluded from the canonical list together with all other prereleases (includePrereleases unset)"
+sampleEdge:
+  from: 2.11.57
+  to: 3.7.13
+  summary: "43 breaking · 16 action required · 775 changes · 2 warnings"
+  evidenceRecords: 1214
+notes: >-
+  Cross-major edge through the full dual-major history: path 3.0.0 -> 3.1.0
+  -> ... -> 3.7.13 (21 releases traversed, 59 backports skipped). 43 breaking
+  = the 23-topic v2-to-v3 guide (each topic breaking + action required) plus
+  crd-schema diffs; the leaves-end-of-life lifecycle change cites the
+  support-policy rules; the containo.us -> traefik.io CRD group change
+  appears as the CRD diff (9 breaking crd-schema items). Second edge
+  exercised: 3.6.25 -> 3.7.13 within v3 (0 breaking · 4 action required ·
+  494 changes · 2 warnings; ingressClassName and retry-middleware CRD
+  additions, Gateway API 1.5.1 pin, chart 35.x -> 41.6.1). Both edges were
+  read critically: two classify tunings later the major edge shows exactly
+  one deprecation item (the lifecycle statement) and no doc noise. Discovery
+  (deterministic) correctly found the tag scheme, changelog, CRD directory,
+  chart-by-appVersion relation and advisory feed, proposed an impossible
+  chart tagPattern, and excluded every image: its release-infrastructure
+  rules do not know the library-image + mirror-sync publishing model.
+  Elapsed time is agent wall-clock and excludes this record.

@@ -1,0 +1,339 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: traefik
+name: Traefik Proxy
+description: >-
+  Cloud-native edge router / reverse proxy. Community releases are git tags
+  (vX.Y.Z) of traefik/traefik: per-OS goreleaser archives on the GitHub
+  release, the Docker official image (library/traefik, mirrored daily to
+  ghcr.io/traefik/traefik), Kubernetes CRD definitions in the docs tree and
+  a Helm chart in a separate repository (traefik-helm-chart) with independent
+  versions. Release notes are one cumulative in-repo CHANGELOG.md (present at
+  every tag since v1.0.0); migration documentation is layered: whole-major
+  guides (v1-to-v2, v2-to-v3) and per-minor within-major guides (v2.md,
+  v3.md). v2 and v3 majors were maintained in parallel for over two years;
+  v2 is end-of-life since 2026-09-07. Not Traefik Hub / Enterprise.
+homepage: https://traefik.io
+
+versioning:
+  scheme: semver
+  tagPrefix: v
+  # vX.Y.Z plus -alphaN / -beta.N / -betaN / -rc.N / -rcN / -ea.N (early
+  # access, since 3.7.0). The 2015-2016 v1.0 / v1.0.alpha.<sha|N> family does
+  # not match. Prereleases are parsed but stay outside the canonical list.
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\d+|beta\.\d+|beta\d+|rc\.\d+|rc\d+|ea\.\d+))?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions -------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/traefik/traefik
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: traefik/traefik
+
+  # --- release notes ------------------------------------------------------
+  # One cumulative CHANGELOG.md, present and current at every tag (v1.0.0-rc2
+  # to v3.7.13), newest first: "## [vX.Y.Z](tree-url) (date)", an [All
+  # Commits] link, then bold label paragraphs (**Bug fixes:**, **Enhancements:**,
+  # **Documentation:**, **Misc:**; v1-era GitHub labels; **CVE's fixed:** once)
+  # with "- **[area]** text ([#PR](url) @author)" bullets. v2.x and v3.x
+  # sections interleave: both majors were live in parallel.
+  - id: changelog
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/traefik/traefik
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: '^\[?v?{{regexQuote .Version}}\]?(\s|$)'
+      # labels are bold paragraphs, not headings (the vault construct, bold
+      # dialect); promoted one level under the version heading
+      labelParagraphs: '^\*\*[A-Za-z][^*]*:\*\*$'
+    classify: &changelog-classify
+      # dependency / toolchain bumps, whatever the upstream group says
+      - text: '(?i)\bBump .{0,60}\bto (?:v?[0-9]|[0-9a-f]{9,})|\bBump (?:github\.com|golang\.org|google\.golang\.org|go\.uber\.org|k8s\.io|sigs\.k8s\.io|gopkg\.in)/|\bUpdate (?:github\.com|golang\.org|google\.golang\.org|go\.uber\.org|k8s\.io|sigs\.k8s\.io|gopkg\.in)/\S+ to\b'
+        category: dependency
+      # branch backport mechanics ("Merge branch v2.11 into v3.0") is not a
+      # change; "Merge pull request from GHSA-..." (if ever) stays
+      - text: '^Merge (?:branch|current|remote-tracking branch) '
+        skip: true
+      # a docs bullet citing an advisory id is still security
+      - section: '(?i)documentation'
+        text: '(?i)CVE-\d{4}-\d+|GHSA-'
+        category: security
+      # documentation-group bullets ("Fix typo", "Remove dead link",
+      # "Update vulnerability submission guidelines") are not removals,
+      # deprecations or security changes
+      - section: '(?i)documentation'
+        category: other
+  # The GitHub release body repeats the changelog section plus the GHSA list
+  # ("**CVE fixed:**") and the migration-guide pointer; api.github.com is
+  # rate-limited (60/h, shared IP), so it is the fallback, not the channel.
+  # Canceled releases ("Release canceled." sections) still resolve here.
+  - id: github-release-notes
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: release-notes
+    locator:
+      kind: github-releases
+      repository: traefik/traefik
+      ref: "{{.Tag}}"
+    extract:
+      type: whole
+      labelParagraphs: '^\*\*[A-Za-z][^*]*:\*\*$'
+    classify: *changelog-classify
+
+  # --- upgrade guides: whole-major boundaries ------------------------------
+  # docs/content/migration/v1-to-v2.md: the whole document is the guide.
+  # Read at the release tag (present from v2.0.0 through master, where the
+  # directory is now called migrate/).
+  - id: upgrade-guide-v1-to-v2
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 2.0.0, < 3.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/traefik/traefik
+      ref: "{{.Tag}}"
+      path: docs/content/migration/v1-to-v2.md
+    classify: &major-guide-classify
+      # every topic of a whole-major migration guide is a breaking config
+      # change (a bare flag rule matches nothing; '.*' matches every item)
+      - section: '.*'
+        breaking: true
+        actionRequired: true
+  - id: upgrade-guide-v2-to-v3
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 3.0.0, < 4.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/traefik/traefik
+      ref: "{{.Tag}}"
+      path: docs/content/migration/v2-to-v3.md
+    # CRD API group rename (traefik.containo.us -> traefik.io), option
+    # removals, provider splits: the guide IS the breaking-change list
+    classify: *major-guide-classify
+
+  # --- upgrade guides: per-minor within a major -----------------------------
+  # v3.md is cumulative with one section per release; dialects: "## v3.X-1 to
+  # v3.X" (3.1-3.4), "## v3.X.0" (3.5+). The section for a release exists at
+  # the release's own tag. The directory was renamed migration/ -> migrate/
+  # at v3.5.1, hence two availability windows. Patch-level sections exist
+  # only for some patches (e.g. v3.7.13, v3.6.25) and are not ingested.
+  - id: migration-v3
+    roles: [upgrade-guide]
+    releaseKinds: [minor]
+    availability: ">= 3.1.0, < 3.5.1"
+    locator:
+      kind: repo-file
+      repository: github.com/traefik/traefik
+      ref: "{{.Tag}}"
+      path: docs/content/migration/v3.md
+    extract: &migration-v3-extract
+      type: markdown-section
+      heading: '^v(?:{{.Major}}\.{{.PrevMinor}} to v{{.Major}}\.{{.Minor}}|{{regexQuote .Version}})$'
+  - id: migration-v3-renamed
+    roles: [upgrade-guide]
+    releaseKinds: [minor]
+    availability: ">= 3.5.1"
+    locator:
+      kind: repo-file
+      repository: github.com/traefik/traefik
+      ref: "{{.Tag}}"
+      path: docs/content/migrate/v3.md
+    extract: *migration-v3-extract
+  # v2.md: the own-minor section is written AFTER the minor ships (at v2.4.0's
+  # tag the file stops at "v2.2 to v2.3"), so it is read at the final v2 tag,
+  # where every section exists ("v2.X-1 to v2.X" up to 2.6, "v2.X" from 2.8).
+  # No section for 2.7.0 exists anywhere; patch sections (v2.11.N) exist for
+  # some patches only and are not ingested.
+  - id: migration-v2
+    roles: [upgrade-guide]
+    releaseKinds: [minor]
+    availability: ">= 2.1.0, < 3.0.0"
+    exceptions:
+      - versions: [2.7.0]
+        reason: >-
+          The final v2 migration guide (docs/content/migration/v2.md at
+          v2.11.57) has no section for the 2.7 line at all (its neighbours
+          "v2.6.0 to v2.6.1" and "v2.8" exist): upstream never wrote one.
+    locator:
+      kind: repo-file
+      repository: github.com/traefik/traefik
+      ref: v2.11.57
+      path: docs/content/migration/v2.md
+    extract:
+      type: markdown-section
+      heading: '^v2\.(?:{{.PrevMinor}} to v2\.)?{{.Minor}}$'
+
+  # --- lifecycle evidence ---------------------------------------------------
+  # The support-policy page (in-repo, master): every minor 6 months of
+  # support, the last minor of a major 2 years of security support. Its note
+  # items are the evidence of the v2 end-of-life statement below, not
+  # per-release notes.
+  - id: support-policy
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/traefik/traefik
+      ref: master
+      path: docs/content/deprecation/releases.md
+    extract:
+      type: markdown-section
+      heading: '^Versioning Scheme$'
+    notes: >-
+      The "Versions" table above this section carries the dates ("2.11 ...
+      Security Support: Ends Sept 07, 2026"); tables are not note items, so
+      the date is quoted in the lifecycle statement instead.
+
+  # --- security -----------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: traefik/traefik
+    notes: SECURITY.md points to GitHub Security Advisories; the same GHSAs are repeated per release in the GitHub release bodies ("CVE fixed").
+
+# v2 and v3 lived in parallel from v3.0.0 (2024-04-29) to v2.11.57
+# (2026-09-04). The last v2 minor (2.11) had 2 years of security support,
+# which ended 2026-09-07 (support-policy table); older v2 minors ended
+# earlier. Upgrades that stay on v2 target an unpatched line.
+lifecycle:
+  - state: end-of-life
+    since: "2026-09-07"
+    versions: ">= 2.0.0, < 3.0.0"
+    summary: >-
+      Traefik Proxy v2 is end-of-life: v2.11, the last v2 minor, received
+      security fixes for two years after v3.0.0 and that window ended on
+      2026-09-07 (older v2 minors ended earlier). New vulnerabilities are
+      fixed in v3 only; plan the v2-to-v3 migration instead of v2 patch
+      upgrades.
+    sources: [support-policy]
+
+artifacts:
+  # The published image is the Docker official image; goreleaser builds no
+  # images, the release workflow bumps traefik-library-image (Docker Hub) and
+  # a daily workflow mirrors every tag to ghcr.io. docker.io/traefik/traefik
+  # is the legacy containous repository, not the official one.
+  - id: image
+    type: container-image
+    name: library/traefik
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/library/traefik
+      - kind: oci
+        repository: ghcr.io/traefik/traefik
+      - kind: oci
+        repository: mirror.gcr.io/library/traefik
+    exceptions:
+      - versions: [1.7.27, 2.0.3, 2.1.5, 2.4.4, 2.4.10, 2.6.4, 2.6.5, 2.8.6, 2.9.2, 2.9.3, 2.11.23, 2.11.39, 2.11.47, 3.5.5, 3.6.3, 3.6.18, 3.7.2]
+        reason: >-
+          Canceled / never-published releases: the tag exists and the
+          changelog section says "Release canceled." (v2.4.4, v2.4.10,
+          v2.6.4, v2.6.5, v2.8.6, v2.9.2, v2.9.3, v2.11.23, v2.11.39,
+          v2.11.47, v3.5.5, v3.6.3, v3.6.18, v3.7.2; v2.0.3, v2.1.5, v1.7.27
+          have no mark but no release assets either). No image tag on the
+          ghcr.io mirror of the official image (2605 tags, every other stable
+          release v1.0.0 - v3.7.13 present). Found by listing all tags.
+      - versions: [2.2.3, 2.10.2, 3.4.2]
+        reason: >-
+          Published releases (release assets exist) whose image tag never
+          reached the reachable mirrors (ghcr.io / mirror.gcr.io); v3.4.2 is
+          a documentation-only release. Docker Hub itself is unreachable from
+          the sandbox, so presence there is unverifiable.
+  # goreleaser archive from the GitHub release; also traefik_vX.Y.Z_checksums.txt
+  # and traefik-vX.Y.Z.src.tar.gz (not modelled) and 16 more os/arch builds.
+  - id: cli-linux-amd64
+    type: binary
+    name: traefik_vX.Y.Z_linux_amd64.tar.gz
+    availability: ">= 2.0.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    exceptions:
+      - versions: [2.0.3, 2.1.5, 2.4.4, 2.4.10, 2.6.4, 2.6.5, 2.8.6, 2.9.2, 2.9.3, 2.11.23, 2.11.39, 2.11.47, 3.5.5, 3.6.3, 3.6.18, 3.7.2]
+        reason: >-
+          Canceled / never-published releases: no GitHub release assets at
+          all (HEAD 404; the changelog section says "Release canceled." for
+          14 of them, v2.0.3 and v2.1.5 carry no mark). v1.x used different
+          asset names, hence availability >= 2.0.0.
+    channels:
+      - kind: http
+        url: https://github.com/traefik/traefik/releases/download/{{.Tag}}/traefik_{{.Tag}}_linux_amd64.tar.gz
+  # Combined CRD install file in the docs tree (the file the v3 migration
+  # guide tells users to kubectl apply). v3: 10 traefik.io CRDs; v2.11 also
+  # carries the legacy traefik.containo.us group; v2.0 - v2.4 shipped a
+  # v1beta1 file under a different name. No TraefikProxy CRD exists in the
+  # OSS repository (that is the separate Traefik Hub product).
+  - id: crds
+    type: crd
+    name: kubernetes-crd-definition-v1.yml
+    availability: ">= 2.5.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://raw.githubusercontent.com/traefik/traefik/{{.Tag}}/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+    contents:
+      - kind: crds
+        locator:
+          kind: repo-dir
+          repository: github.com/traefik/traefik
+          path: docs/content/reference/dynamic-configuration
+          glob: "traefik.*.yaml"
+  # Chart in a separate repository with independent vX.Y.Z chart versions
+  # (now v41.x); the chart for a release is found by appVersion (v-prefixed).
+  # Only 63 of 311 stable releases ever ship as an appVersion. The
+  # hub-manager chart in the same repository is Traefik Hub, out of scope.
+  - id: helm-chart
+    type: helm-chart
+    name: traefik
+    optional: true
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Tag}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://traefik.github.io/charts
+        chart: traefik
+      - kind: helm-git
+        repository: github.com/traefik/traefik-helm-chart
+        path: traefik
+        tagPattern: '^v(?P<version>\d+\.\d+\.\d+)$'
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/traefik/traefik-helm-chart
+          ref: "v{{.ArtifactVersion}}"
+          path: traefik/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/traefik/traefik-helm-chart
+          ref: "v{{.ArtifactVersion}}"
+          path: traefik/Chart.yaml
+
+provenance:
+  method: manual+research
+  updated: "2026-10-01"
+  validatedReleases: [1.7.34, 2.0.0, 2.1.0, 2.2.3, 2.4.4, 2.5.0, 2.7.0, 2.10.2, 2.11.0, 2.11.47, 3.0.0, 3.1.0, 3.2.0, 3.3.0, 3.4.0, 3.5.0, 3.5.1, 3.5.5, 3.5.6, 3.6.0, 3.6.25, 3.7.0, 3.7.2, 3.7.13]
+  notes: >-
+    Authored from docs/research/traefik.md after `ri discover` (which found
+    the tag scheme, the changelog, the CRD directory, the chart relationship
+    and the advisory feed, but proposed an impossible helm-git tagPattern,
+    missed the ea prerelease family and excluded every image candidate).
+    Docker Hub itself is unreachable from the sandbox (anonymous 401); the
+    image is verified through the daily ghcr.io mirror of the official image.
