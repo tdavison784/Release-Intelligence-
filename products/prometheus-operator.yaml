@@ -1,0 +1,346 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: prometheus-operator
+name: Prometheus Operator
+description: >-
+  The Prometheus Operator (github.com/prometheus-operator/prometheus-operator):
+  the Kubernetes operator for the monitoring.coreos.com API group —
+  Prometheus/PrometheusAgent, Alertmanager/AlertmanagerConfig, ThanosRuler,
+  ServiceMonitor, PodMonitor, Probe, ScrapeConfig and PrometheusRule — plus the
+  prometheus-config-reloader sidecar and the admission webhook. Plain 0.x
+  semver, v-prefixed tags, minor lines cut every ~6 weeks, the newest line
+  patched; 203 pkg/apis + pkg/client Go-module tags ride along on every
+  release and are not product versions. Per release: three images on quay.io
+  (mirrored to ghcr.io since v0.49.0), the all-in-one bundle.yaml and
+  stripped-down-crds.yaml release assets, and per-release DEFAULT versions of
+  the operands it deploys (Prometheus, Alertmanager, Thanos) pinned in
+  pkg/operator/defaults.go. No Helm chart lives here (the charts moved to the
+  prometheus-community monorepo); the kube-prometheus-stack chart of order 6
+  pins this operator by appVersion — the designed cross-product join, modeled
+  from this side as chart lookups.
+homepage: https://prometheus-operator.dev
+
+versioning:
+  scheme: semver
+  tagPrefix: v
+  # v0.NN.N with three rc stragglers (v0.51.1-rc.0, v0.64.0-rc.0/1); the
+  # pkg/apis/monitoring/* and pkg/client/* module tags never match.
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-rc\.\d+)?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/prometheus-operator/prometheus-operator
+      tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-rc\.\d+)?)$'
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: prometheus-operator/prometheus-operator
+
+  # --- release notes: the in-repo CHANGELOG ---------------------------------
+  # One "## X.Y.Z / YYYY-MM-DD" section per release; bullets labelled
+  # [CHANGE]/[FEATURE]/[ENHANCEMENT]/[BUGFIX] (also [CHANGE/BUGFIX]), each
+  # closing with PR numbers; "> **Note:**" callouts carry feature-gate
+  # promotions. The GitHub release body is a byte-identical paste of this
+  # section (RELEASE.md instructs the shepherd to paste it), so it is NOT a
+  # second source: same text, plus the api.github.com quota tax.
+  - id: changelog
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/prometheus-operator/prometheus-operator
+      ref: "{{.Tag}}"
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: '^\[?v?{{regexQuote .Version}}\]?(\s|$)'
+    classify:
+      # operand requirement raises ("Require Thanos >= v0.42.0 ..., raised
+      # from v0.41.0") are the operator's compat-facing changes
+      - text: '(?i)raised from v\d+\.\d+'
+        category: migration
+        actionRequired: true
+      # feature-gate promotions ("... promoted to Beta in this release and are
+      # now enabled by default. ... removes the need for ...", the 0.92.0 Note
+      # callout): a gate turning on without opt-in is a feature whose behavior
+      # changes — the removal keyword rule would otherwise read "removes the
+      # need" as a removal
+      - text: '(?i)promoted to .?beta.?.{0,200}enabled by default|remov\w+ the need'
+        category: feature
+        breaking: true
+        actionRequired: true
+      - text: '(?i)\bremov(?:e|es|ed|al)\b'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - text: '(?i)\bdeprecat'
+        category: deprecation
+        actionRequired: true
+      - text: '(?i)\bCVE-\d{4}-\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+        category: security
+      # upstream labels (combined [CHANGE/...] takes the leading, stronger
+      # label); flags from any matching rule accumulate on top
+      - text: '^\[CHANGE'
+        category: other
+      - text: '^\[FEATURE'
+        category: feature
+      - text: '^\[ENHANCEMENT'
+        category: feature
+      - text: '^\[BUGFIX'
+        category: bugfix
+      # the "> **Note:**" callouts (feature-gate promotions)
+      - text: '^\*\*Note'
+        category: feature
+
+  # --- Kubernetes compatibility (per-release page at the tag) ---------------
+  # "## Kubernetes" of the compatibility page committed in-tree: the platform
+  # floor in prose ("requires Kubernetes >= v1.25.0 for >= v0.84.0 ...").
+  # The requirement is prose, not a table, so it cannot become a structured
+  # constraint; the source also carries the release-notes role (kyverno's
+  # support-policy precedent) so the statements surface as note items.
+  # Attached at minors only: the statement is steady within a line and would
+  # repeat on every patch. Read at the tag, so each release reports what was
+  # believed true then (the v1.25.0 sentence was retro-corrected upstream in
+  # Dec 2025 — first tag carrying it is v0.88.0).
+  - id: compatibility
+    roles: [compatibility, release-notes]
+    availability: ">= 0.80.0"
+    releaseKinds: [minor]
+    locator:
+      kind: repo-file
+      repository: github.com/prometheus-operator/prometheus-operator
+      ref: "{{.Tag}}"
+      path: Documentation/getting-started/compatibility.md
+    extract:
+      type: markdown-section
+      heading: '^Kubernetes$'
+    # the section is prose-only: the parser folds it into ONE item (heading +
+    # all paragraphs, client-go steady-state included), so no skip rule can
+    # live here — any matching skip rule drops the whole item
+    classify: &compat-classify
+      - text: 'requir\w+ Kubernetes'
+        category: migration
+        actionRequired: true
+  - id: compatibility-legacy
+    roles: [compatibility, release-notes]
+    availability: ">= 0.40.0, < 0.80.0"
+    releaseKinds: [minor]
+    locator:
+      kind: repo-file
+      repository: github.com/prometheus-operator/prometheus-operator
+      ref: "{{.Tag}}"
+      path: Documentation/compatibility.md
+    extract:
+      type: markdown-section
+      heading: '^Kubernetes$'
+    classify: *compat-classify
+
+  # --- security --------------------------------------------------------------
+  - id: advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: prometheus-operator/prometheus-operator
+    notes: >-
+      SECURITY.md points to the prometheus.io security process (private GitHub
+      vulnerability reporting); the GHSA feed is the machine-readable channel.
+
+artifacts:
+  # --- the operator's own images ----------------------------------------------
+  - id: operator-image
+    type: container-image
+    name: quay.io/prometheus-operator/prometheus-operator
+    description: The operator image (canonical registry; ghcr.io mirrors since v0.49.0).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/prometheus-operator/prometheus-operator
+      - kind: oci
+        repository: ghcr.io/prometheus-operator/prometheus-operator
+    references:
+      - artifact: bundle
+        pattern: 'quay\.io/prometheus-operator/prometheus-operator:{{.Tag}}'
+  - id: config-reloader-image
+    type: container-image
+    name: quay.io/prometheus-operator/prometheus-config-reloader
+    description: The config-reloader sidecar image.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/prometheus-operator/prometheus-config-reloader
+      - kind: oci
+        repository: ghcr.io/prometheus-operator/prometheus-config-reloader
+  - id: admission-webhook-image
+    type: container-image
+    name: quay.io/prometheus-operator/admission-webhook
+    description: The AlertmanagerConfig admission webhook image; first published at v0.55.0.
+    availability: ">= 0.55.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/prometheus-operator/admission-webhook
+      - kind: oci
+        repository: ghcr.io/prometheus-operator/admission-webhook
+
+  # --- the install manifest ----------------------------------------------------
+  # bundle.yaml is committed in-tree (canonical, RBAC + CRDs + Deployment) and
+  # attached to every release; one artifact, two channels.
+  - id: bundle
+    type: manifest
+    name: bundle.yaml
+    description: The all-in-one install manifest (also the YAML install path's artifact).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/prometheus-operator/prometheus-operator
+        path: bundle.yaml
+      - kind: http
+        url: https://github.com/prometheus-operator/prometheus-operator/releases/download/{{.Tag}}/bundle.yaml
+    contents:
+      - kind: image-refs
+
+  # --- CRDs --------------------------------------------------------------------
+  # example/prometheus-operator-crd (v1+v1alpha1) is the canonical set that
+  # bundle.yaml, stripped-down-crds.yaml and the jsonnet lib are generated
+  # from; the stripped-down asset (same CRDs minus descriptions) is the
+  # release-asset channel. example/prometheus-operator-crd-full (adds the
+  # v1beta1 AlertmanagerConfig for the conversion webhook) is the other
+  # in-tree representation, not modeled (see record).
+  - id: crds
+    type: crd
+    name: example/prometheus-operator-crd
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-dir
+        repository: github.com/prometheus-operator/prometheus-operator
+        path: example/prometheus-operator-crd
+        glob: "*.yaml"
+      - kind: http
+        url: https://github.com/prometheus-operator/prometheus-operator/releases/download/{{.Tag}}/stripped-down-crds.yaml
+    contents:
+      - kind: crds
+
+  # --- operand default pins (the compatibility dimension, per release) ---------
+  # pkg/operator/defaults.go at the tag names the exact images the operator
+  # deploys by default; pattern reads them out of the Go source (the
+  # flux-style pin-in-text). The full supported-version MATRIX is set-valued
+  # and stays a gap.
+  - id: prometheus-image
+    type: container-image
+    name: quay.io/prometheus/prometheus
+    description: Default Prometheus image = last entry of PrometheusCompatibilityMatrix.
+    version:
+      strategy: pattern
+      # the last quoted version of the matrix slice literal, immediately
+      # before its closing brace (matrix form verified v0.40.0 - v0.94.1)
+      pattern: '"(?P<version>v\d+\.\d+\.\d+)",\n\t\}'
+      from:
+        kind: repo-file
+        repository: github.com/prometheus-operator/prometheus-operator
+        ref: "{{.Tag}}"
+        path: pkg/operator/defaults.go
+    channels:
+      - kind: oci
+        repository: quay.io/prometheus/prometheus
+  - id: alertmanager-image
+    type: container-image
+    name: quay.io/prometheus/alertmanager
+    description: Default Alertmanager image = DefaultAlertmanagerVersion.
+    version:
+      strategy: pattern
+      pattern: 'DefaultAlertmanagerVersion = "(?P<version>v\d+\.\d+\.\d+)"'
+      from:
+        kind: repo-file
+        repository: github.com/prometheus-operator/prometheus-operator
+        ref: "{{.Tag}}"
+        path: pkg/operator/defaults.go
+    channels:
+      - kind: oci
+        repository: quay.io/prometheus/alertmanager
+  - id: thanos-image
+    type: container-image
+    name: quay.io/thanos/thanos
+    description: Default Thanos sidecar image = DefaultThanosVersion.
+    version:
+      strategy: pattern
+      pattern: 'DefaultThanosVersion = "(?P<version>v\d+\.\d+\.\d+)"'
+      from:
+        kind: repo-file
+        repository: github.com/prometheus-operator/prometheus-operator
+        ref: "{{.Tag}}"
+        path: pkg/operator/defaults.go
+    channels:
+      - kind: oci
+        repository: quay.io/thanos/thanos
+
+  # --- the chart join (the cross-product appVersion join, operator side) -------
+  # No chart lives in this repository (helm/ is a tombstone pointing at the
+  # prometheus-community monorepo). Both distribution charts pin THIS operator
+  # by Chart.yaml appVersion == the release tag (v-prefixed era), so the
+  # operator side of the join is a lookup — the mirror of kube-prometheus-stack
+  # (order 6) reading its own appVersion with version.strategy: field.
+  # Optional: the chart cadence skips operator releases (kube-prometheus-stack
+  # has no entry for v0.64.x, v0.84.0 or v0.90.0; prometheus-operator-crds
+  # skips v0.69.0) — absence is the chart's release rhythm, not a broken
+  # relationship.
+  - id: kube-prometheus-stack-chart
+    type: helm-chart
+    name: kube-prometheus-stack
+    description: >-
+      The aggregating community chart that pins this operator (appVersion),
+      also the product onboarded as order 6: this lookup is the operator side
+      of that join.
+    availability: ">= 0.62.0"   # v-prefixed appVersion era (chart 44.0.0 on)
+    optional: true
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Tag}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://prometheus-community.github.io/helm-charts
+        chart: kube-prometheus-stack
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/kube-prometheus-stack
+  - id: prometheus-operator-crds-chart
+    type: helm-chart
+    name: prometheus-operator-crds
+    description: The CRD-only distribution chart (appVersion == the operator tag).
+    availability: ">= 0.68.0"   # v-prefixed appVersion era (chart 6.0.0 on)
+    optional: true
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Tag}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://prometheus-community.github.io/helm-charts
+        chart: prometheus-operator-crds
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-operator-crds
+
+provenance:
+  method: discovery+review
+  author: onboarding wave 3
+  updated: "2026-10-01"
+  validatedReleases: [0.93.0, 0.93.1, 0.94.0, 0.94.1]
+  notes: >-
+    Started from the discovery proposal (git-tags family, the CHANGELOG
+    section selector, the three quay images, bundle.yaml in-tree and as a
+    release asset, ghcr channels, github-advisories) and completed from
+    docs/research/prometheus-operator.md: bundle + its release asset merged
+    into one artifact with two channels, the CRD directory corrected from the
+    resolver's crd.not-dedicated exclusion, the stripped-down-crds asset
+    added as the CRDs' second channel, the operand default pins read out of
+    pkg/operator/defaults.go with version.strategy: pattern, the Kubernetes
+    compatibility section attached at minors, and the two appVersion chart
+    lookups added as the operator side of the kube-prometheus-stack join.
