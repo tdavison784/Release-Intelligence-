@@ -59,8 +59,8 @@ What convergence looks like:
 
 ## Summary
 
-- 16 product definitions, 17 onboarding records, 17 saved relationship reports.
-- 147 distinct constructs are used across all definitions; the records introduce 151.
+- 17 product definitions, 17 onboarding records, 17 saved relationship reports.
+- 151 distinct constructs are used across all definitions; the records introduce 151.
 - 5 of 17 recorded products introduced no new construct. The latest product that introduced one has order 15.
 - Product-specific Go changes recorded: 0 (must be 0).
 
@@ -84,7 +84,7 @@ What convergence looks like:
 | 12 | 2 | strimzi | 305 (226) | 5 | 10 | 16 | 3 | 10 | 19 | 0 | 0 | 1 | 3 |
 | 13 | 2 | traefik | 339 (261) | 11 | 4 | 7 | 3 | 10 | 27 | 4 | 1 | 1 | 7 |
 | 14 | 2 | karpenter | 371 (296) | 9 | 8 | 8 | 1 | 23 | 18 | 0 | 0 | 2 | 10 |
-| 15 | 2 | flux | - | - | - | - | - | - | - | - | - | - | - |
+| 15 | 2 | flux | 495 (398) | 14 | 14 | 18 | 2 | 21 | 25 | 0 | 1 | 0 | 7 |
 | 16 | 2 | otel-collector | 444 (356) | 7 | 13 | 21 | 0 | 23 | 32 | 22 | 0 | 0 | 9 |
 | 17 | 2 | redis | 238 (170) | 6 | 4 | 6 | 0 | 22 | 11 | 1 | 0 | 1 | 5 |
 
@@ -106,7 +106,7 @@ What convergence looks like:
 | 12 | strimzi | 77 | 0 | 77 | 100% | 143 | 0 / 0 | 26 | full |
 | 13 | traefik | 97 | 1 | 96 | 99% | 144 | 0 / 0 | 38 | full |
 | 14 | karpenter | 83 | 3 | 80 | 96% | 147 | 9 / 0 | 35 | full |
-| 15 | flux | - | 4 | n/a | n/a | 151 | 7 / 0 | 46 | full |
+| 15 | flux | 91 | 4 | 87 | 96% | 151 | 7 / 0 | 46 | full |
 | 16 | otel-collector | 57 | 0 | 57 | 100% | 151 | 0 / 0 | 28 | full |
 | 17 | redis | 61 | 0 | 61 | 100% | 151 | 2 / 0 | 43 | full |
 
@@ -150,9 +150,9 @@ What convergence looks like:
 | 12 | strimzi | 0 | 143 | 77 | 77 | 100% | 0 | 143 |
 | 13 | traefik | 1 | 144 | 97 | 96 | 99% | 1 | 144 |
 | 14 | karpenter | 3 | 147 | 83 | 80 | 96% | 3 | 147 |
-| 15 | flux | 4 | 151 | 0 | 0 | n/a | 0 | 147 |
-| 16 | otel-collector | 0 | 151 | 57 | 57 | 100% | 0 | 147 |
-| 17 | redis | 0 | 151 | 61 | 61 | 100% | 0 | 147 |
+| 15 | flux | 4 | 151 | 91 | 87 | 96% | 4 | 151 |
+| 16 | otel-collector | 0 | 151 | 57 | 57 | 100% | 0 | 151 |
+| 17 | redis | 0 | 151 | 61 | 61 | 100% | 0 | 151 |
 
 New constructs per product, in onboarding order (records):
 
@@ -374,14 +374,6 @@ No new constructs: the definition is configuration only.
 
 Observations about the inputs (missing, inconsistent or later-adopted data). The report is computed regardless.
 
-- products/flux.yaml: definition not loaded: decode product definition: yaml: unmarshal errors:
-  line 290: field pattern not found in type catalog.VersionRelation
-  line 304: field pattern not found in type catalog.VersionRelation
-  line 318: field pattern not found in type catalog.VersionRelation
-  line 332: field pattern not found in type catalog.VersionRelation
-  line 346: field pattern not found in type catalog.VersionRelation
-  line 360: field pattern not found in type catalog.VersionRelation
-  line 376: field pattern not found in type catalog.VersionRelation
 - cert-manager uses constructs introduced by a later product (the definition was migrated after they appeared): field:sources.fallbackGroup (introduced by istio)
 - cilium uses constructs introduced by a later product (the definition was migrated after they appeared): artifact:package (introduced by postgresql), field:artifacts.channels.glob (introduced by kube-prometheus-stack), field:artifacts.channels.path (introduced by vault), field:sources.extract.format (introduced by postgresql), field:sources.extract.labelParagraphs (introduced by vault), field:sources.locator.tagPattern (introduced by crossplane)
 - kube-prometheus-stack uses constructs introduced by a later product (the definition was migrated after they appeared): field:artifacts.channels.path (introduced by vault), field:artifacts.channels.tagPattern (introduced by vault), locator:helm-git (introduced by vault)
