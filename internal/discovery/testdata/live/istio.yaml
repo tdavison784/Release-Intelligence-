@@ -1,0 +1,389 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: istio
+name: istio
+homepage: https://github.com/istio/istio
+versioning:
+  scheme: semver
+  tagPattern: ^(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\.\d+|beta\.\d+|rc\.\d+))?)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/istio/istio
+      tagPattern: ^(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\.\d+|beta\.\d+|rc\.\d+))?)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: istio/istio
+    priority: 1
+    fallback: true
+  - id: release-notes-docs
+    roles:
+      - release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/istio/istio.io
+      ref: master
+      path: content/en/news/releases/{{.Major}}.{{.Minor}}.x/announcing-{{.Version}}/index.md
+    releaseKinds:
+      - patch
+  - id: release-notes-line
+    roles:
+      - release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/istio/istio.io
+      ref: master
+      path: content/en/news/releases/{{.Major}}.{{.Minor}}.x/announcing-{{.Major}}.{{.Minor}}/change-notes/index.md
+    releaseKinds:
+      - minor
+      - major
+  - id: release-note-files
+    roles:
+      - release-notes
+    locator:
+      kind: repo-dir
+      repository: github.com/istio/istio
+      baseRef: '{{.PrevTag}}'
+      path: releasenotes/notes
+      glob: '*.yaml'
+    extract:
+      type: release-note-yaml
+    priority: 1
+    fallback: true
+    notes: Structured per-change notes accumulate in this directory; a release's notes are the files added since the previous release.
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: istio/istio
+      ref: '{{.Tag}}'
+    priority: 2
+    fallback: true
+  - id: upgrade-guide
+    roles:
+      - upgrade-guide
+    locator:
+      kind: repo-file
+      repository: github.com/istio/istio.io
+      ref: master
+      path: content/en/news/releases/{{.Major}}.{{.Minor}}.x/announcing-{{.Major}}.{{.Minor}}/upgrade-notes/index.md
+    releaseKinds:
+      - minor
+      - major
+  - id: compatibility
+    roles:
+      - compatibility
+    locator:
+      kind: repo-file
+      repository: github.com/istio/istio.io
+      ref: master
+      path: data/compatibility/supportStatus.yml
+    extract:
+      type: yaml-records
+      keyColumns:
+        - version
+      keyMatch: ^{{regexQuote .Line}}$
+      columns:
+        - platform: kubernetes
+          kind: supported
+          headers:
+            - k8sVersions
+        - platform: kubernetes
+          kind: tested
+          headers:
+            - testedK8sVersions
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: istio/istio
+artifacts:
+  - id: base-chart
+    type: helm-chart
+    name: base
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: registry.istio.io/release/charts/base
+      - kind: oci
+        repository: ghcr.io/istio/release/charts/base
+      - kind: helm-repo
+        url: https://istio-release.storage.googleapis.com/charts
+        chart: base
+      - kind: helm-repo
+        url: https://blob.istio.io/istio-release/charts
+        chart: base
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/charts/base/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/charts/base/Chart.yaml
+  - id: gateway-chart
+    type: helm-chart
+    name: gateway
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: registry.istio.io/release/charts/gateway
+      - kind: oci
+        repository: ghcr.io/istio/release/charts/gateway
+      - kind: helm-repo
+        url: https://istio-release.storage.googleapis.com/charts
+        chart: gateway
+      - kind: helm-repo
+        url: https://blob.istio.io/istio-release/charts
+        chart: gateway
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/charts/gateway/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/charts/gateway/Chart.yaml
+  - id: cni-chart
+    type: helm-chart
+    name: cni
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: registry.istio.io/release/charts/cni
+      - kind: oci
+        repository: ghcr.io/istio/release/charts/cni
+      - kind: helm-repo
+        url: https://istio-release.storage.googleapis.com/charts
+        chart: cni
+      - kind: helm-repo
+        url: https://blob.istio.io/istio-release/charts
+        chart: cni
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/charts/istio-cni/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/charts/istio-cni/Chart.yaml
+  - id: istiod-chart
+    type: helm-chart
+    name: istiod
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: registry.istio.io/release/charts/istiod
+      - kind: oci
+        repository: ghcr.io/istio/release/charts/istiod
+      - kind: helm-repo
+        url: https://istio-release.storage.googleapis.com/charts
+        chart: istiod
+      - kind: helm-repo
+        url: https://blob.istio.io/istio-release/charts
+        chart: istiod
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/charts/istio-control/istio-discovery/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/charts/istio-control/istio-discovery/Chart.yaml
+  - id: ztunnel-chart
+    type: helm-chart
+    name: ztunnel
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: registry.istio.io/release/charts/ztunnel
+      - kind: oci
+        repository: ghcr.io/istio/release/charts/ztunnel
+      - kind: helm-repo
+        url: https://istio-release.storage.googleapis.com/charts
+        chart: ztunnel
+      - kind: helm-repo
+        url: https://blob.istio.io/istio-release/charts
+        chart: ztunnel
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/charts/ztunnel/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/charts/ztunnel/Chart.yaml
+  - id: ambient-chart
+    type: helm-chart
+    name: ambient
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: registry.istio.io/release/charts/ambient
+      - kind: oci
+        repository: ghcr.io/istio/release/charts/ambient
+      - kind: helm-repo
+        url: https://blob.istio.io/istio-release/charts
+        chart: ambient
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/sample-charts/ambient/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/istio/istio
+          path: manifests/sample-charts/ambient/Chart.yaml
+  - id: istio-binary
+    type: binary
+    name: istio
+    description: 'Platform builds: istio-{{.Version}}-osx.tar.gz, istio-{{.Version}}-osx-amd64.tar.gz'
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: http
+        url: https://github.com/istio/istio/releases/download/{{.Tag}}/istio-{{.Version}}-osx.tar.gz
+  - id: istioctl-binary
+    type: binary
+    name: istioctl
+    description: 'Platform builds: istioctl-{{.Version}}-osx.tar.gz, istioctl-{{.Version}}-osx-amd64.tar.gz'
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: http
+        url: https://github.com/istio/istio/releases/download/{{.Tag}}/istioctl-{{.Version}}-osx.tar.gz
+  - id: crds
+    type: crd
+    name: CustomResourceDefinitions
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/istio/istio
+        path: manifests/charts/base/files/crd-all.gen.yaml
+    contents:
+      - kind: crds
+  - id: agentgateway
+    type: container-image
+    name: agentgateway
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: docker.io/istio/agentgateway
+      - kind: oci
+        repository: gcr.io/istio-release/agentgateway
+      - kind: oci
+        repository: registry.istio.io/release/agentgateway
+  - id: install-cni
+    type: container-image
+    name: install-cni
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: docker.io/istio/install-cni
+      - kind: oci
+        repository: gcr.io/istio-release/install-cni
+      - kind: oci
+        repository: registry.istio.io/release/install-cni
+  - id: istioctl
+    type: container-image
+    name: istioctl
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: docker.io/istio/istioctl
+      - kind: oci
+        repository: gcr.io/istio-release/istioctl
+      - kind: oci
+        repository: registry.istio.io/release/istioctl
+  - id: pilot
+    type: container-image
+    name: pilot
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: docker.io/istio/pilot
+      - kind: oci
+        repository: gcr.io/istio-release/pilot
+      - kind: oci
+        repository: registry.istio.io/release/pilot
+  - id: proxyv2
+    type: container-image
+    name: proxyv2
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: docker.io/istio/proxyv2
+      - kind: oci
+        repository: gcr.io/istio-release/proxyv2
+      - kind: oci
+        repository: registry.istio.io/release/proxyv2
+  - id: ztunnel
+    type: container-image
+    name: ztunnel
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: docker.io/istio/ztunnel
+      - kind: oci
+        repository: gcr.io/istio-release/ztunnel
+      - kind: oci
+        repository: registry.istio.io/release/ztunnel
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  notes: Proposed by automated discovery; NOT validated against releases (no relationship checker configured). Review before use.

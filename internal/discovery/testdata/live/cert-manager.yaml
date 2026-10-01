@@ -1,0 +1,184 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: cert-manager
+name: cert-manager
+homepage: https://github.com/cert-manager/cert-manager
+versioning:
+  scheme: semver
+  tagPrefix: v
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/cert-manager/cert-manager
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: cert-manager/cert-manager
+    priority: 1
+    fallback: true
+  - id: release-notes-docs
+    roles:
+      - release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/cert-manager/website
+      ref: master
+      path: content/docs/releases/release-notes/release-notes-{{.Major}}.{{.Minor}}.md
+    extract:
+      type: markdown-section
+      heading: ^v?{{regexQuote .Version}}$
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: cert-manager/cert-manager
+      ref: '{{.Tag}}'
+    priority: 1
+    fallback: true
+  - id: upgrade-guide
+    roles:
+      - upgrade-guide
+    locator:
+      kind: repo-file
+      repository: github.com/cert-manager/website
+      ref: master
+      path: content/docs/releases/upgrading/upgrading-{{.PrevMajor}}.{{.PrevMinor}}-{{.Major}}.{{.Minor}}.md
+    releaseKinds:
+      - minor
+      - major
+  - id: compatibility
+    roles:
+      - compatibility
+    locator:
+      kind: repo-file
+      repository: github.com/cert-manager/website
+      ref: master
+      path: content/docs/releases/README.md
+    extract:
+      type: markdown-table
+      keyColumns:
+        - Release
+      keyMatch: ^v?{{regexQuote .Line}}\b
+      columns:
+        - platform: kubernetes
+          kind: supported
+          headers:
+            - Compatible Kubernetes versions
+        - platform: kubernetes
+          kind: supported
+          headers:
+            - Supported Kubernetes / OpenShift Versions
+          separator: /
+        - platform: kubernetes
+          kind: tested
+          headers:
+            - Tested Kubernetes Versions
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: cert-manager/cert-manager
+artifacts:
+  - id: cert-manager-chart
+    type: helm-chart
+    name: cert-manager
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/charts/cert-manager
+      - kind: helm-repo
+        url: https://charts.jetstack.io
+        chart: cert-manager
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/cert-manager/cert-manager
+          path: deploy/charts/cert-manager/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/cert-manager/cert-manager
+          path: deploy/charts/cert-manager/Chart.yaml
+  - id: cert-manager-crds
+    type: crd
+    name: cert-manager.crds.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: http
+        url: https://github.com/cert-manager/cert-manager/releases/download/{{.Tag}}/cert-manager.crds.yaml
+    contents:
+      - kind: crds
+  - id: cert-manager-manifest
+    type: manifest
+    name: cert-manager.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: http
+        url: https://github.com/cert-manager/cert-manager/releases/download/{{.Tag}}/cert-manager.yaml
+    contents:
+      - kind: image-refs
+  - id: cert-manager-acmesolver
+    type: container-image
+    name: cert-manager-acmesolver
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/cert-manager-acmesolver
+  - id: cert-manager-cainjector
+    type: container-image
+    name: cert-manager-cainjector
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/cert-manager-cainjector
+  - id: cert-manager-controller
+    type: container-image
+    name: cert-manager-controller
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/cert-manager-controller
+  - id: cert-manager-startupapicheck
+    type: container-image
+    name: cert-manager-startupapicheck
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/cert-manager-startupapicheck
+  - id: cert-manager-webhook
+    type: container-image
+    name: cert-manager-webhook
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/cert-manager-webhook
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  notes: Proposed by automated discovery; NOT validated against releases (no relationship checker configured). Review before use.
