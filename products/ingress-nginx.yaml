@@ -1,0 +1,342 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: ingress-nginx
+name: ingress-nginx
+description: >-
+  Kubernetes Ingress controller built on NGINX (kubernetes/ingress-nginx).
+  One repository carries two release trains: the controller (tags
+  controller-vX.Y.Z, the product) and its Helm chart (tags helm-chart-A.B.C,
+  an independent 4.x version whose appVersion is the controller version).
+  The project is retired and its repository archived; controller v1.15.1
+  (2026-03-19) is the last release.
+homepage: https://github.com/kubernetes/ingress-nginx
+
+versioning:
+  scheme: semver
+  # The product is the controller. helm-chart-*, ingress-nginx-* (legacy
+  # chart tags) and nginx-* tags do not match and are ignored.
+  tagPrefix: controller-v
+  lineage: minor
+
+sources:
+  # --- canonical versions -------------------------------------------------
+  - id: github-releases
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: github-releases
+      repository: kubernetes/ingress-nginx
+    notes: Lists both tag families; the controller-v prefix selects the product.
+  - id: git-tags
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: git-tags
+      repository: github.com/kubernetes/ingress-nginx
+
+  # --- release notes ------------------------------------------------------
+  # One generated file per controller release: image digests, "All changes"
+  # (PR titles; breaking ones are wrapped in warning signs with an indented
+  # explanation) and "Dependency updates".
+  - id: controller-changelog
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: release-notes
+    availability: ">= 1.6.4"
+    exceptions:
+      - versions: [1.8.4, 1.8.5]
+        reason: >-
+          No changelog/controller-1.8.4.md or controller-1.8.5.md exists at
+          main (the other files were back-filled; these two never were).
+          Found by `ri check ingress-nginx -n 20` on 2026-10-01.
+    locator:
+      kind: repo-file
+      repository: github.com/kubernetes/ingress-nginx
+      ref: main
+      path: changelog/controller-{{.Version}}.md
+    classify:
+      # breaking items: "⚠️ Metrics: Disable by default. (#12153) ⚠️" followed
+      # by an indented explanation of the changed default or removal
+      - text: '⚠.*\b(Remove|Drop)\b'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - text: '⚠.*\bby default\b'
+        category: configuration
+        breaking: true
+        actionRequired: true
+      - text: '⚠'
+        breaking: true
+        actionRequired: true
+      # Contributor mechanics, not the shipped product: image-build triggers,
+      # CI/test/docs/tooling PRs and Go dependency churn are ~80% of the
+      # "All changes" bullets (467 "Images:", 219 "Go:", 143 "Docs:" ... in
+      # 1.6.4-1.15.1).
+      - text: '^(Images: (Trigger|Bump (other images|`?gcb|GCB|`?test-runner|`?e2e)|Update `?kubectl|Fix FromAsCasing)|Tests( & Docs)?: |Test: |CI: |Cloud Build: |GitHub: |Template: |Development: |Mage: |Repository: |Owners: |Make: |Hack: |Proposal: |README: |Docs: |Go: )'
+        skip: true
+      # free-form titles of older (pre-1.11) bullets
+      - text: '^Merge pull request |^(Update|Fix|Add) .*\.md$|(?i)\b(typos?|whitespaces?|space character)\b'
+        skip: true
+      - text: '^Chart: (Add `?[A-Za-z]+`? to maintainers|Add (unit )?tests|Extend .*tests)'
+        skip: true
+      - text: '(?i)\bsecurity (fix|fixes|vulnerabilit)'
+        category: security
+      - text: '^Chart: '
+        category: helm-values
+      - text: '^(Annotations|Config|Config/Annotations|Annotations/AuthTLS|Auth TLS): '
+        category: configuration
+  - id: github-release-notes
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: release-notes
+    locator:
+      kind: github-releases
+      repository: kubernetes/ingress-nginx
+      ref: "{{.Tag}}"
+
+  # --- lifecycle evidence -------------------------------------------------
+  # The "Retiring" banner at the top of the README (frozen: the repository is
+  # archived). Cited by the lifecycle statement below; its bullets are not
+  # reported as per-release notes.
+  - id: retirement-notice
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/kubernetes/ingress-nginx
+      ref: main
+      path: README.md
+    extract:
+      type: markdown-section
+      heading: '^Retiring$'
+
+  # --- compatibility ------------------------------------------------------
+  - id: supported-versions
+    roles: [compatibility]
+    availability: ">= 1.3.1"
+    exceptions:
+      - versions: [1.7.0, 1.8.0, 1.8.1, 1.8.2, 1.8.5]
+        reason: >-
+          The README table lists only some patch releases of each line; these
+          have no row (the neighbouring rows of the same line are not
+          substituted). Found by `ri check ingress-nginx -n 20` on 2026-10-01.
+    locator:
+      kind: repo-file
+      repository: github.com/kubernetes/ingress-nginx
+      ref: main
+      path: README.md
+    extract:
+      type: markdown-table
+      keyColumns: [Ingress-NGINX version]
+      keyMatch: '^v?{{regexQuote .Version}}$'
+      columns:
+        - platform: kubernetes
+          kind: supported
+          headers: [k8s supported version]
+
+  # --- security -----------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: kubernetes/ingress-nginx
+
+# The project is retired: upstream announced (2025-11-11) that best-effort
+# maintenance ends in March 2026; the last releases are controller-v1.15.1 /
+# helm-chart-4.15.1 (2026-03-19) and the repository is archived (read-only).
+# Existing artifacts stay available, which is why this is not an artifact
+# relationship but a lifecycle statement about every release.
+lifecycle:
+  - state: end-of-life
+    since: "2026-03"
+    summary: >-
+      ingress-nginx is retired: best-effort maintenance ended in March 2026
+      and there will be no further releases, bug fixes or security fixes.
+      Existing deployments keep working and the published images and charts
+      stay available, but vulnerabilities found from now on will not be
+      patched upstream.
+    sources: [retirement-notice]
+
+artifacts:
+  - id: controller-image
+    type: container-image
+    name: controller
+    version: {strategy: template, template: "v{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: registry.k8s.io/ingress-nginx/controller
+    references:
+      - artifact: deploy-cloud
+        pattern: "registry.k8s.io/ingress-nginx/controller:v{{.Version}}"
+      # up to 1.2.1 the manifests still name the pre-migration registry host
+      - artifact: deploy-cloud
+        pattern: "k8s.gcr.io/ingress-nginx/controller:v{{.Version}}"
+
+  - id: controller-chroot-image
+    type: container-image
+    name: controller-chroot
+    availability: ">= 1.2.0"
+    version: {strategy: template, template: "v{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: registry.k8s.io/ingress-nginx/controller-chroot
+
+  # Chart version is independent (4.x); the chart for a controller release is
+  # the one whose appVersion equals the controller version.
+  - id: helm-chart
+    type: helm-chart
+    name: ingress-nginx
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Version}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://kubernetes.github.io/ingress-nginx
+        chart: ingress-nginx
+      - kind: helm-repo
+        url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/gh-pages
+        chart: ingress-nginx
+      - kind: helm-git
+        repository: github.com/kubernetes/ingress-nginx
+        path: charts/ingress-nginx
+        tagPattern: '^helm-chart-(?P<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$'
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/kubernetes/ingress-nginx
+          ref: "helm-chart-{{.ArtifactVersion}}"
+          path: charts/ingress-nginx/values.yaml
+        # rewritten by the release tooling on every release; the controller
+        # image change is reported by the artifact diff, not as a value change
+        ignoreKeys: [controller.image.tag, controller.image.digest, controller.image.digestChroot]
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/kubernetes/ingress-nginx
+          ref: "helm-chart-{{.ArtifactVersion}}"
+          path: charts/ingress-nginx/Chart.yaml
+
+  # --- static install manifests (generated from the chart, one per provider)
+  - id: deploy-cloud
+    type: manifest
+    name: deploy/static/provider/cloud/deploy.yaml
+    exceptions: &stale-manifest
+      - versions: [0.47.0, 0.51.0, 1.6.4, 1.7.1, 1.8.2, 1.8.5, 1.9.0, 1.9.3]
+        reason: >-
+          The tag was cut before the follow-up commit that bumps the manifests,
+          so the manifest at the tag still references the previous release's
+          controller image (e.g. controller-v1.9.0 -> controller:v1.8.0). Found
+          by comparing the image tag in each manifest with its release tag.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/cloud/deploy.yaml
+    contents:
+      - kind: image-refs
+  - id: deploy-baremetal
+    type: manifest
+    name: deploy/static/provider/baremetal/deploy.yaml
+    exceptions: *stale-manifest
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/baremetal/deploy.yaml
+    contents:
+      - kind: image-refs
+  - id: deploy-aws
+    type: manifest
+    name: deploy/static/provider/aws/deploy.yaml
+    exceptions: *stale-manifest
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/aws/deploy.yaml
+    contents:
+      - kind: image-refs
+  - id: deploy-aws-nlb-tls
+    type: manifest
+    name: deploy/static/provider/aws/nlb-with-tls-termination/deploy.yaml
+    availability: ">= 1.1.2"
+    exceptions: *stale-manifest
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/aws/nlb-with-tls-termination/deploy.yaml
+    contents:
+      - kind: image-refs
+  - id: deploy-do
+    type: manifest
+    name: deploy/static/provider/do/deploy.yaml
+    exceptions: *stale-manifest
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/do/deploy.yaml
+    contents:
+      - kind: image-refs
+  - id: deploy-exoscale
+    type: manifest
+    name: deploy/static/provider/exoscale/deploy.yaml
+    exceptions: *stale-manifest
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/exoscale/deploy.yaml
+    contents:
+      - kind: image-refs
+  - id: deploy-kind
+    type: manifest
+    name: deploy/static/provider/kind/deploy.yaml
+    exceptions: *stale-manifest
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/kind/deploy.yaml
+    contents:
+      - kind: image-refs
+  - id: deploy-oracle
+    type: manifest
+    name: deploy/static/provider/oracle/deploy.yaml
+    availability: ">= 1.8.1"
+    exceptions: *stale-manifest
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/oracle/deploy.yaml
+    contents:
+      - kind: image-refs
+  - id: deploy-scw
+    type: manifest
+    name: deploy/static/provider/scw/deploy.yaml
+    exceptions: *stale-manifest
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/scw/deploy.yaml
+    contents:
+      - kind: image-refs
+
+provenance:
+  method: discovery+review
+  author: onboarding wave 1
+  updated: "2026-10-01"
+  validatedReleases: [1.13.0, 1.13.9, 1.14.0, 1.14.5, 1.15.0, 1.15.1]
+  notes: >-
+    Started from the discovery proposal and corrected from
+    docs/research/ingress-nginx.md: the proposal followed the helm-chart-
+    tag family; the product is the controller (controller-v). Checked with
+    `ri check -n 20` (34 releases, 0.47.0-1.15.1). registry.k8s.io,
+    kubernetes.github.io and the GitHub API were unreachable; the chart is
+    verified through gh-pages/index.yaml and the controller image through the
+    install manifests (or stays unverifiable).
