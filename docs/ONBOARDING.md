@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 17 product definitions, 17 onboarding records, 17 saved relationship reports.
+- 18 product definitions, 18 onboarding records, 18 saved relationship reports.
 - 151 distinct constructs are used across all definitions; the records introduce 151.
-- 5 of 17 recorded products introduced no new construct. The latest product that introduced one has order 15.
+- 6 of 18 recorded products introduced no new construct. The latest product that introduced one has order 15.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -87,6 +87,7 @@ What convergence looks like:
 | 15 | 2 | flux | 495 (398) | 14 | 14 | 18 | 2 | 21 | 25 | 0 | 1 | 0 | 7 |
 | 16 | 2 | otel-collector | 444 (356) | 7 | 13 | 21 | 0 | 23 | 32 | 22 | 0 | 0 | 9 |
 | 17 | 2 | redis | 238 (170) | 6 | 4 | 6 | 0 | 22 | 11 | 1 | 0 | 1 | 5 |
+| 19 | 3 | terraform-provider-aws | 345 (274) | 10 | 9 | 9 | 0 | 58 | 39 | 5 | 0 | 1 | 13 |
 
 ### Constructs and effort
 
@@ -109,6 +110,7 @@ What convergence looks like:
 | 15 | flux | 91 | 4 | 87 | 96% | 151 | 7 / 0 | 46 | full |
 | 16 | otel-collector | 57 | 0 | 57 | 100% | 151 | 0 / 0 | 28 | full |
 | 17 | redis | 61 | 0 | 61 | 100% | 151 | 2 / 0 | 43 | full |
+| 19 | terraform-provider-aws | 65 | 0 | 65 | 100% | 151 | 0 / 0 | 24 | full |
 
 ### Discovery and relationship validation
 
@@ -131,6 +133,7 @@ What convergence looks like:
 | flux | 4/11/13 (54%) | 19/0/1/0 | 110/0/0/10/0 | 2 → 0 | 4 | 2 |
 | otel-collector | 2/7/11 (45%) | 15/0/1/0 | 848/0/0/192/0 | 12 → 0 | 4 | 2 |
 | redis | 4/0/6 (40%) | 7/0/0/0 | 72/0/0/11/8 | 1 → 0 | 4 | 2 |
+| terraform-provider-aws | 2/1/16 (16%) | 11/0/6/0 | 116/0/0/118/4 | 0 → 0 | 4 | 0 |
 
 ## Construct-introduction curve
 
@@ -153,49 +156,52 @@ What convergence looks like:
 | 15 | flux | 4 | 151 | 91 | 87 | 96% | 4 | 151 |
 | 16 | otel-collector | 0 | 151 | 57 | 57 | 100% | 0 | 151 |
 | 17 | redis | 0 | 151 | 61 | 61 | 100% | 0 | 151 |
+| 19 | terraform-provider-aws | 0 | 151 | 65 | 65 | 100% | 0 | 151 |
 
 New constructs per product, in onboarding order (records):
 
 ```text
-  1  cert-manager             87  ████████████████████████████████████████
-  2  istio                    12  ██████
-  3  argo-cd                  14  ███████
-  4  cilium                    2  █
-  5  postgresql                7  ████
-  6  kube-prometheus-stack     8  ████
-  7  vault                     7  ████
-  8  crossplane                1  █
-  9  external-secrets          0  
- 10  ingress-nginx             5  ███
- 11  grafana                   0  
- 12  strimzi                   0  
- 13  traefik                   1  █
- 14  karpenter                 3  ██
- 15  flux                      4  ██
- 16  otel-collector            0  
- 17  redis                     0  
+  1  cert-manager              87  ████████████████████████████████████████
+  2  istio                     12  ██████
+  3  argo-cd                   14  ███████
+  4  cilium                     2  █
+  5  postgresql                 7  ████
+  6  kube-prometheus-stack      8  ████
+  7  vault                      7  ████
+  8  crossplane                 1  █
+  9  external-secrets           0  
+ 10  ingress-nginx              5  ███
+ 11  grafana                    0  
+ 12  strimzi                    0  
+ 13  traefik                    1  █
+ 14  karpenter                  3  ██
+ 15  flux                       4  ██
+ 16  otel-collector             0  
+ 17  redis                      0  
+ 19  terraform-provider-aws     0  
 ```
 
 Cumulative constructs introduced:
 
 ```text
-  1  cert-manager             87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  2  istio                    99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  3  argo-cd                 113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  4  cilium                  115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  5  postgresql              122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  6  kube-prometheus-stack   130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  7  vault                   137  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  8  crossplane              138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  9  external-secrets        138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 10  ingress-nginx           143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 11  grafana                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 12  strimzi                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 13  traefik                 144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 14  karpenter               147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 15  flux                    151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 16  otel-collector          151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 17  redis                   151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  1  cert-manager              87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  2  istio                     99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  3  argo-cd                  113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  4  cilium                   115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  5  postgresql               122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  6  kube-prometheus-stack    130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault                    137  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane               138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets         138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 10  ingress-nginx            143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 11  grafana                  143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 12  strimzi                  143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 13  traefik                  144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 14  karpenter                147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 15  flux                     151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 16  otel-collector           151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 17  redis                    151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 19  terraform-provider-aws   151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -326,6 +332,10 @@ No new constructs: the definition is configuration only.
 
 No new constructs: the definition is configuration only.
 
+### terraform-provider-aws (order 19, wave 3): 0 new
+
+No new constructs: the definition is configuration only.
+
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
@@ -333,6 +343,7 @@ No new constructs: the definition is configuration only.
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) +1 unclassified | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 30 (4.3) | 93% | 55 / 0 | 25 (n=7) | 20/24/56 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
 | 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 99% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) | 93/0/12/0 (7 of 7 reports) | 10 | full 7 |
+| 3 | terraform-provider-aws | 1 of 1 (terraform-provider-aws) | 0 (0.0) | 100% | 0 / 0 | 24 (n=1) | 2/1/16 (16%) | 11/0/6/0 (1 of 1 reports) | 0 | full 1 |
 
 ## Notes from the records
 
@@ -369,6 +380,8 @@ No new constructs: the definition is configuration only.
 **otel-collector**: Third zero-new wave-2 product: onboarding was research plus configuration. The scope decision: the product is the RELEASES repository (the six distributions users deploy — binaries, deb/rpm/msi packages, images on docker.io + ghcr), not the core framework and not the contrib component repo; core and contrib are modeled as the distribution's content — their changelog sections read at the same-numbered tags (the release body itself links exactly those two), plus a core-release artifact with the honest distribution-only-patch exceptions. The k8s operator is noted as a related product. The definition is the construct-leanest big-product shape so far (57 constructs, all reused; no fallback groups needed — raw git hosts answered everything). Discovery quality was the highest yet for images (six ghcr channels historically-validated by itself) but its binary-asset proposer still cannot template per-OS/arch asset families, and it missed the multi-repository topology entirely — the one class of finding research had to supply. The upstream anomalies this product exposed (three releases that published nothing, a missing multi-arch index tag on the newest release, sections mis-headed as follow-up patches) are exactly what the exceptions construct exists for; none required Go changes.
 
 **redis**: Third wave-2 zero-new-construct product (grafana, strimzi): the whole non-Kubernetes topology — in-repo per-line release notes, GitHub advisory feed, download.redis.io tarballs, Docker official image with a mirror fallback, EOL-dated lifecycle statements — is configuration over existing constructs. The one generic change (setext headings) completes CommonMark in the shared markdown scanner rather than adding definition vocabulary; it benefits any product whose upstream documents underline titles (no catalog field, schema entry or ingest branch was added). Discovery baseline: right versioning and channels-from-tags, zero artifacts, and it mistook the website notes copy for the source; its own historical validation of the GitHub release body was correct and kept.
+
+**terraform-provider-aws**: The v5 -> v6 boundary edge: path = 6.0.0 exactly (minor-lineage over an essentially linear history). 26 breaking = 19 OpsWorks + 2 Worklink resource removals and 3 removed provider arguments from the v6 guide's removal sections (declared), 2 breaking changelog items (s3_prefix now required, sagemaker exclusive blocks) and SimpleDB. 153 changes: 148 guide items (the per-resource Data Source/Resource sections as action-required migrations) and 5 changelog items. Two more edges were exercised: 6.66.0 -> 6.67.0, the weekly hop (23 changes = exactly the changelog's 23 bullets, 22 declared + 1 heuristic, 0 breaking — classification quality is 1:1 with the document) and 6.57.0 -> 6.57.1, a true patch (1 bug fix; the edge also shows the aws-sdk-go-v2 pin being REVERTED v1.43.1 -> v1.43.0 with go.mod + module proxy evidence — the fix for the UnknownError regression introduced in 6.57.0). Discovery baseline at this velocity: 15 seconds end to end over 521 tags (blobless clone, 4-release validation window); it coped trivially because the topology is simple — but it found no artifacts (there are none in the tree; binaries are attached by the release workflow) and no upgrade guides (website/docs/guides/), and it excluded the registry reference that is actually the publication index. No host was unreachable from the sandbox: releases.hashicorp.com, registry.terraform.io (/v1 API), proxy.golang.org, api.github.com (quota-limited), developer.hashicorp.com and discuss.hashicorp.com all answered. Elapsed time is agent wall-clock and excludes this record.
 
 ## Data quality
 

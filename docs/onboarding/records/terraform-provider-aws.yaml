@@ -1,0 +1,104 @@
+product: terraform-provider-aws
+order: 19
+wave: 3
+repository: github.com/hashicorp/terraform-provider-aws
+onboarding:
+  startedAt: "2026-10-01T15:36:08Z"
+  finishedAt: "2026-10-01T16:00:34Z"
+  minutes: 24
+discovery:
+  proposal: docs/onboarding/discovery/terraform-provider-aws.proposed.yaml
+  report: docs/onboarding/discovery/terraform-provider-aws.report.md
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags', same locator; the strict vX.Y.Z pattern is the proposal's tags.ls-remote finding (518 stable + 3 betas, no junk)"}
+  - {id: changelog, origin: discovered-modified, note: "the proposal historically-validated CHANGELOG.md at the tag (4 releases); corrected the heading selector (dropped never-occurring '[v' variants), added labelParagraphs with an OPTIONAL colon (v3-era labels have none) and the classify rules"}
+  - {id: changelog-github, origin: manual, note: "GitHub release body = the changelog section byte-for-byte; fallbackGroup twin behind the anonymous api.github.com quota, availability >= 4.5.0 (verified window; older bodies unverified, quota-exhausted at onboarding time)"}
+  - {id: upgrade-guide-v2, origin: manual, note: "website/docs/guides/version-N-upgrade.html.md, one per major, majors only; discovery's upgrade-docs target found nothing"}
+  - {id: upgrade-guide-v3, origin: manual, note: "same shape at the v3 major"}
+  - {id: upgrade-guide-v4, origin: manual, note: "same shape at the v4 major"}
+  - {id: upgrade-guide-v5, origin: manual, note: "v5 guide under the pre-rename .html.md extension (5.0.0 - 5.16.0)"}
+  - {id: upgrade-guide-v5-renamed, origin: manual, note: "same guide after the website-wide v5.17.0 extension rename (.html.markdown)"}
+  - {id: upgrade-guide-v6, origin: manual, note: "the v5 -> v6 guide (.html.markdown), 686 lines at release time"}
+  - {id: github-advisories, origin: discovered, note: "default GitHub advisory feed; reachable but 0 published advisories today"}
+artifacts:
+  - {id: provider-zip-linux-amd64, origin: manual, note: "releases.hashicorp.com zip, version == release; one of the 15 OS/arch zips declared in .release/terraform-provider-aws-artifacts.hcl; GitHub releases never carried the binaries"}
+  - {id: provider-zip-darwin-arm64, origin: manual, note: "same host; availability >= 3.30.0 (Apple Silicon) + pulled-release exceptions"}
+  - {id: checksums, origin: manual, note: "SHA256SUMS next to the zips, all eras"}
+  - {id: checksums-signature, origin: manual, note: "SHA256SUMS.72D7468F.sig (GPG key 34365D9472D7468F), all eras checked"}
+  - {id: registry-manifest, origin: manual, note: "_manifest.json on releases.hashicorp.com from 4.6.0 (GHA release workflow era); the in-repo terraform-registry-manifest.json only appears in-tree from ~v4.25"}
+  - {id: release-asset-checksums, origin: manual, note: "the GitHub release-asset channel in its real window: _SHA256SUMS (+_manifest.json) attached v4.5.0 - v6.0.0; every release from v6.1.0 on has an empty asset list"}
+  - {id: terraform-plugin-sdk, origin: manual, note: "go.mod pin read with version:pattern (flux's construct), probed at proxy.golang.org @v/<v>.info; >= 4.0.0 (v3 used sdk v1, a different module)"}
+  - {id: terraform-plugin-framework, origin: manual, note: "same; first pinned at v4.23.0"}
+  - {id: aws-sdk-go-v2, origin: manual, note: "same; the base module of the SDK v2 family (indirect at 4.0.0, direct later)"}
+discoveryRejected:
+  - {id: "image registry.terraform.io/hashicorp/aws", reason: "excluded by discovery as docs-only (correct as an image, wrong as a channel): it is the publication index users consume — no locator kind reads it; see gaps"}
+  - {id: "registry candidates (218)", reason: "registry.terraform.io doc links across the tree; noise"}
+  - {id: "images ghcr.io/tcort/markdown-link-check, ghcr.io/yakdriver/md-check-links", reason: "CI tooling images; discovery's third-party exclusion was correct"}
+relationships:
+  historicalReleasesChecked: [1.0.0, 2.0.0, 3.0.0, 3.30.0, 4.0.0, 4.5.0, 4.23.0, 5.0.0, 5.16.0, 5.17.0, 5.71.0, 5.100.0, 6.0.0, 6.1.0, 6.62.0, 6.63.0, 6.64.0, 6.65.0, 6.66.0, 6.67.0]
+  # first run of the first complete draft (default recent window): 0 failing
+  # subjects. The era run of the same draft failed 1 subject
+  # (provider-zip-darwin-arm64, 3 pre-3.30 releases) — fixed as a definition
+  # correction, see manualInterventions. Final era run: 17 subjects, 12
+  # validated, 5 insufficient (the guide sources: majors are rare by design —
+  # v2/v3/v4/v5/v6 each 1 pass, upgrade-guide-v5-renamed 0 because no v5 major
+  # is >= 5.17.0), 0 failing, 0 unverifiable.
+  initialFailures: 0
+  finalFailures: 0
+  manualInterventions:
+    - {subject: provider-zip-darwin-arm64, change: "availability >= 3.30.0 + exceptions 3.64.3, 5.71.0", reason: "darwin/arm64 zips start at 3.30.0 (probed 3.10-3.74); two pulled releases fall inside the window"}
+    - {subject: "provider-zip-linux-amd64, checksums, checksums-signature, registry-manifest", change: "exceptions for 10 pulled releases (3.26.1/.2/.3/.5/.10/.16/.17/.18, 3.64.3, 5.71.0)", reason: "version directory 404s on releases.hashicorp.com while the git tag, changelog section and GitHub release remain; found by diffing git tags against the registry version list"}
+    - {subject: guide-classify, change: "skip rules for TOC echo items", reason: "the guides' <!-- TOC --> link bullets resolve to bare section titles ('Data Source `aws_ami`'), which arrived as ~90 empty action-required items; found by reading the 5.100.0 -> 6.0.0 edge, not by failing checks (242 -> 153 changes, all of them real)"}
+    - {subject: changelog-classify, change: "NOTES deprecation rule + dependency rules (Go/SDK updates)", reason: "NOTES bullets were all heuristic-other before; 'sdk:/provider: Updates to Go' bullets were features"}
+  unverifiable: []
+constructs:
+  new: []
+  considered:
+    - {name: "locator:registry-terraform (versions + download endpoints of registry.terraform.io/v1)", rejected: "the JSON API answers anonymously (versions, per-OS/arch download metadata with shasums and GPG keys, all pointing back at releases.hashicorp.com), but git tags are the complete canonical channel — the registry delists 12 of 518 stable versions and cannot be the version source; beneficiaries would be other Terraform providers (google, azurerm, kubernetes) none of which are in the onboarding plan. Recorded as a gap"}
+    - {name: "registry download endpoint as an artifact channel", rejected: "it returns a JSON metadata document that redirects to releases.hashicorp.com, not the artifact bytes; a probe there would verify 200 while saying nothing about the zip. The host channel verifies the artifact itself"}
+    - {name: "extract:json-records (twin of yaml-records)", rejected: "the only JSON compatibility data is the registry manifest's constant protocol_versions ['5.0'] and the registry API's per-version protocols; a constant is not a compatibility matrix. No planned product publishes JSON matrices"}
+    - {name: "terraform-plugin-sdk v1 artifact for the v3 era", rejected: "different module path (no /v2), history dead since 2022; the >= 4.0.0 window covers the eras users upgrade within"}
+goChanges:
+  productSpecific: 0
+  generic: []
+unreachableSources: []
+ambiguousRelationships:
+  - "publication is two-channel and they disagree: 12 of 518 stable git tags are delisted from registry.terraform.io (6.1.0, 6.57.0, 5.71.0, 3.64.3, eight 3.26.x), and 10 of those are ALSO absent from releases.hashicorp.com (only git and the GitHub release remain); the exceptions encode the host side, the registry side is a gap"
+  - "the changelog section at the release's own tag may say (Unreleased) (whole v5 era) and majors are tiny at the tag (6.0.0: 5 bullets pointing at the upgrade guide); the full impact of a major lives in the guide, the changelog fills in over the following days on main"
+  - "guides are read at the tag, so each major sees its release-time guide; upstream keeps amending them after release (the v6 guide at v6.67.0 has 686 lines vs the release-time one)"
+  - "changelog-github shows 'covered' in check runs once the anonymous api.github.com quota (60/h, shared with research probes) is exhausted: the git fallback answered, so the GitHub endpoint itself is verified only within its quota windows — transient, not a block"
+  - "the 15 OS/arch zips are represented by 2 members (linux/amd64, darwin/arm64); the family shares the version relation and host, so the others add no relationship information"
+representability: full
+gaps:
+  - "registry.terraform.io — the channel Terraform users actually consume — is not declarable: /v1/providers/hashicorp/aws/versions and /…/download/{os}/{arch} answer anonymously as JSON, but no locator kind reads them; the registry's delisting of 12 releases (and its per-version protocol numbers) is therefore invisible to the edge"
+  - "Terraform Core compatibility is prose: the guides' Prerequisites sections say 'upgrade to latest 5.x first, expect no deprecation warnings'; the machine-readable fact is the provider protocol version (5.0, constant since 2019) inside terraform-registry-manifest.json — a JSON file no extract type reads, and a constant carries no per-release constraint either way"
+  - "provider protocol_versions ['5.0'] and the registry's per-version protocols (4/4.0/4.0,5.0/5.0) are not extracted (would need a JSON compatibility extract; see considered)"
+  - "SECURITY.md/.release/security-scan.hcl configure scanning, not advisories; historical provider CVEs (e.g. CVE-2018-15857) predate the GitHub advisory database and no machine-readable HashiCorp CVE feed exists for providers (discuss.hashicorp.com is reachable but renders HTML)"
+sampleEdge:
+  from: 5.100.0
+  to: 6.0.0
+  summary: "26 breaking · 126 action required · 153 changes · 0 warnings"
+  evidenceRecords: 220
+notes: >-
+  The v5 -> v6 boundary edge: path = 6.0.0 exactly (minor-lineage over an
+  essentially linear history). 26 breaking = 19 OpsWorks + 2 Worklink resource
+  removals and 3 removed provider arguments from the v6 guide's removal
+  sections (declared), 2 breaking changelog items (s3_prefix now required,
+  sagemaker exclusive blocks) and SimpleDB. 153 changes: 148 guide items (the
+  per-resource Data Source/Resource sections as action-required migrations)
+  and 5 changelog items. Two more edges were exercised: 6.66.0 -> 6.67.0, the
+  weekly hop (23 changes = exactly the changelog's 23 bullets, 22 declared + 1
+  heuristic, 0 breaking — classification quality is 1:1 with the document) and
+  6.57.0 -> 6.57.1, a true patch (1 bug fix; the edge also shows the
+  aws-sdk-go-v2 pin being REVERTED v1.43.1 -> v1.43.0 with go.mod + module
+  proxy evidence — the fix for the UnknownError regression introduced in
+  6.57.0). Discovery baseline at this velocity: 15 seconds end to end over 521
+  tags (blobless clone, 4-release validation window); it coped trivially
+  because the topology is simple — but it found no artifacts (there are none in
+  the tree; binaries are attached by the release workflow) and no upgrade
+  guides (website/docs/guides/), and it excluded the registry reference that
+  is actually the publication index. No host was unreachable from the sandbox:
+  releases.hashicorp.com, registry.terraform.io (/v1 API), proxy.golang.org,
+  api.github.com (quota-limited), developer.hashicorp.com and
+  discuss.hashicorp.com all answered. Elapsed time is agent wall-clock and
+  excludes this record.
