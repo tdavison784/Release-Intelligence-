@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 23 product definitions, 23 onboarding records, 23 saved relationship reports.
+- 24 product definitions, 24 onboarding records, 24 saved relationship reports.
 - 153 distinct constructs are used across all definitions; the records introduce 153.
-- 10 of 23 recorded products introduced no new construct. The latest product that introduced one has order 18.
+- 11 of 24 recorded products introduced no new construct. The latest product that introduced one has order 18.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -92,6 +92,7 @@ What convergence looks like:
 | 20 | 3 | actions-runner-controller | 266 (208) | 5 | 6 | 6 | 6 | 11 | 9 | 0 | 0 | 0 | 7 |
 | 21 | 3 | kyverno | 432 (359) | 7 | 13 | 15 | 4 | 33 | 22 | 1 | 0 | 1 | 7 |
 | 22 | 3 | falco | 325 (263) | 5 | 10 | 14 | 2 | 13 | 18 | 1 | 0 | 1 | 3 |
+| 23 | 3 | linkerd | 419 (343) | 11 | 11 | 16 | 3 | 28 | 22 | 0 | 1 | 1 | 20 |
 | 24 | 3 | prometheus-operator | 346 (273) | 6 | 10 | 17 | 2 | 12 | 17 | 0 | 2 | 0 | 5 |
 
 ### Constructs and effort
@@ -120,6 +121,7 @@ What convergence looks like:
 | 20 | actions-runner-controller | 68 | 0 | 68 | 100% | 153 | 0 / 0 | 15 | full |
 | 21 | kyverno | 96 | 0 | 96 | 100% | 153 | 0 / 0 | 17 | full |
 | 22 | falco | 75 | 0 | 75 | 100% | 153 | 0 / 0 | 21 | full |
+| 23 | linkerd | 82 | 0 | 82 | 100% | 153 | 0 / 0 | 30 | full |
 | 24 | prometheus-operator | 78 | 0 | 78 | 100% | 153 | 0 / 0 | 25 | full |
 
 ### Discovery and relationship validation
@@ -148,6 +150,7 @@ What convergence looks like:
 | actions-runner-controller | 3/6/2 (82%) | 14/0/0/0 | 284/0/0/4/0 | 2 → 0 | 3 | 0 |
 | kyverno | 5/6/9 (55%) | 20/0/1/0 | 117/0/0/9/0 | 1 → 0 | 4 | 0 |
 | falco | 3/6/6 (60%) | 14/0/0/2 | 65/0/2/3/0 | 0 → 0 | 3 | 1 |
+| linkerd | 3/2/17 (23%) | 15/0/6/0 | 134/0/0/262/0 | 5 → 0 | 5 | 1 |
 | prometheus-operator | 7/2/7 (56%) | 14/0/1/0 | 81/0/0/9/0 | 0 → 0 | 4 | 0 |
 
 ## Construct-introduction curve
@@ -176,6 +179,7 @@ What convergence looks like:
 | 20 | actions-runner-controller | 0 | 153 | 68 | 68 | 100% | 0 | 153 |
 | 21 | kyverno | 0 | 153 | 96 | 96 | 100% | 0 | 153 |
 | 22 | falco | 0 | 153 | 75 | 75 | 100% | 0 | 153 |
+| 23 | linkerd | 0 | 153 | 82 | 82 | 100% | 0 | 153 |
 | 24 | prometheus-operator | 0 | 153 | 78 | 78 | 100% | 0 | 153 |
 
 New constructs per product, in onboarding order (records):
@@ -203,6 +207,7 @@ New constructs per product, in onboarding order (records):
  20  actions-runner-controller     0  
  21  kyverno                       0  
  22  falco                         0  
+ 23  linkerd                       0  
  24  prometheus-operator           0  
 ```
 
@@ -231,6 +236,7 @@ Cumulative constructs introduced:
  20  actions-runner-controller   153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  21  kyverno                     153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  22  falco                       153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 23  linkerd                     153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  24  prometheus-operator         153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
@@ -383,6 +389,10 @@ No new constructs: the definition is configuration only.
 
 No new constructs: the definition is configuration only.
 
+### linkerd (order 23, wave 3): 0 new
+
+No new constructs: the definition is configuration only.
+
 ### prometheus-operator (order 24, wave 3): 0 new
 
 No new constructs: the definition is configuration only.
@@ -394,7 +404,7 @@ No new constructs: the definition is configuration only.
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) +1 unclassified | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 31 (4.4) | 93% | 59 / 0 | 25 (n=7) | 20/24/57 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
 | 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 99% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) | 93/0/12/0 (7 of 7 reports) | 10 | full 7 |
-| 3 | elasticsearch, terraform-provider-aws, actions-runner-controller, kyverno, falco, prometheus-operator | 5 of 6 (terraform-provider-aws, actions-runner-controller, kyverno, falco, prometheus-operator) | 1 (0.2) | 100% | 6 / 0 | 22.5 (n=6) | 22/21/54 (44%) | 83/0/11/2 (6 of 6 reports) | 1 | full 5, partial 1 |
+| 3 | elasticsearch, terraform-provider-aws, actions-runner-controller, kyverno, falco, linkerd, prometheus-operator | 6 of 7 (terraform-provider-aws, actions-runner-controller, kyverno, falco, linkerd, prometheus-operator) | 1 (0.1) | 100% | 6 / 0 | 24 (n=7) | 25/23/71 (40%) | 98/0/17/2 (7 of 7 reports) | 2 | full 6, partial 1 |
 
 ## Notes from the records
 
@@ -441,6 +451,8 @@ No new constructs: the definition is configuration only.
 **kyverno**: The fifth zero-new-construct onboarding (grafana, strimzi, otel-collector, redis): the multi-image + same-repository-chart + pinned-CRD-subchart topology decomposed entirely into constructs earlier products introduced — lookup (argo-cd), version:field pins (kube-prometheus-stack), availability windows, source exceptions (vault), lifecycle statements (ingress-nginx, traefik, flux) and listItems (karpenter). 96 constructs used, 0 new, 0 product-specific Go. Discovery contributed the versioning, both notes channels, the advisories, the install manifest and the readiness-checker boundary; research contributed the six release-workflow images, the chart relation correction, the kyverno-api pin and the website's deprecation channels. Fastest onboarding so far (17 minutes): every relationship validated from the first draft except one heading assumption, and no host was blocked.
 
 **falco**: The sixth zero-new-construct onboarding (grafana, strimzi, otel-collector, redis, actions-runner-controller, kyverno): the engine + pinned-driver + monorepo-chart + download-host topology decomposed entirely into constructs earlier products introduced — pattern pins (flux), field pins (kube-prometheus-stack), lookup (argo-cd), packaged-chart contents (G8), availability windows, source exceptions (vault), fallback groups. 75 constructs used, 0 new, 0 product-specific Go. Discovery contributed the versioning, both images, the chart relation (its best monorepo call yet — proposed and self-validated the appVersion lookup), the advisories and the changelog file; research contributed the master-read correction, the driver/libs/falcoctl pins, the download.falco.org packages and the source archive. 21 minutes wall-clock, ~10 of them waiting out the anonymous api.github.com quota that discovery had exhausted (the flux standing tax). download.falco.org verdict: REACHABLE — 307 to its CloudFront distribution which answers 200 anonymously.
+
+**linkerd**: The topology surprise: the mission brief's hypothesis (stable-2.X.N and edge tags, stable canonical, edge possibly dead) was inverted by research — the stable TAG scheme itself changed in February 2024 (stable-2.14.10 was the last OSS stable release; since 2.15 stable releases are version-2.Y designation markers on edge commits with NO open-source artifacts, upstream announcing "producing stable Linkerd releases will be in the hands of the vendor community"), while the weekly edge channel lives on. Canonical = stable lineage via one component-group pattern (postgresql construct). Highest-value edge output: the cross-era edge 2.14.10 -> 2.15.0 shows the entire stable artifact set (chart 1.16.11, five images, CLI) verified -> removed with evidence, next to the kubeVersion narrowing; 2.19.0 -> 2.20.0 shows the proxy pin v2.326.0 -> v2.359.0, cni v1.6.4 -> v1.6.8, the proxy-init pin removed (native sidecars default) and kubeVersion 1.23 -> 1.31, all registry/tag-verified. Classification tuning was two iterations found by reading edges, not checks: "circuit breaking" false-positived the breaking rule (now "breaking change|no longer|deprecat|incompatible") and the blog's boilerplate sections (Photo credit, Linkerd is for everyone) are skipped. Zero new constructs, zero Go changes: the dual tag scheme (component groups), the chart join (lookup), the three per-release pins (field/pattern), the optional artifact-less era and the announcement sources are all wave-0/1/2 vocabulary.
 
 **prometheus-operator**: The appVersion join, from this side: kube-prometheus-stack (order 6) pins THIS operator in its Chart.yaml appVersion and already models the pin with version.strategy: field ('prometheus-operator-image'); this definition models the mirror image — a lookup artifact resolving, per operator release, the chart whose appVersion == the release tag, verified against the prometheus-community index. The cross-product query the join was designed for ('which chart versions ship operator X') therefore works TODAY, deterministically, in one direction and one product at a time: the operator's edge names the chart version ('kube-prometheus-stack 91.8.2 [verified]' for v0.94.1), and the chart's edge names the operator version it pins; nothing yet joins the two edges into one cross-product view, and each side probes the other's channel independently (both reached the same pairs from their own definitions). The pinned-operator-notes construct that may exist on the chart side by merge time does not exist in this worktree's products/kube-prometheus-stack.yaml; this record is written against what is merged here. Sixth zero-new-construct onboarding (external-secrets, grafana, strimzi, otel-collector, redis, kyverno): the operator + pinned-operands + out-of-repo-chart-joins topology decomposed into lookup (argo-cd), pattern pins (flux), availability windows, optional artifacts (argo-cd) and role mixing (kyverno's support-policy). 78 constructs used, 0 new, 0 product-specific Go, 0 check failures on the first run of both windows, no blocked hosts. 25 minutes.
 
