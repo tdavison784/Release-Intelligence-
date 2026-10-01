@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 13 product definitions, 13 onboarding records, 13 saved relationship reports.
+- 14 product definitions, 14 onboarding records, 14 saved relationship reports.
 - 147 distinct constructs are used across all definitions; the records introduce 147.
-- 3 of 13 recorded products introduced no new construct. The latest product that introduced one has order 14.
+- 4 of 14 recorded products introduced no new construct. The latest product that introduced one has order 14.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -83,6 +83,7 @@ What convergence looks like:
 | 11 | 2 | grafana | 380 (302) | 10 | 7 | 11 | 4 | 58 | 22 | 5 | 1 | 1 | 8 |
 | 12 | 2 | strimzi | 305 (226) | 5 | 10 | 16 | 3 | 10 | 19 | 0 | 0 | 1 | 3 |
 | 14 | 2 | karpenter | 371 (296) | 9 | 8 | 8 | 1 | 23 | 18 | 0 | 0 | 2 | 10 |
+| 17 | 2 | redis | 238 (170) | 6 | 4 | 6 | 0 | 22 | 11 | 1 | 0 | 1 | 5 |
 
 ### Constructs and effort
 
@@ -101,6 +102,7 @@ What convergence looks like:
 | 11 | grafana | 91 | 0 | 91 | 100% | 143 | 0 / 0 | 27 | full |
 | 12 | strimzi | 77 | 0 | 77 | 100% | 143 | 0 / 0 | 26 | full |
 | 14 | karpenter | 83 | 4 | 79 | 95% | 147 | 9 / 0 | 35 | full |
+| 17 | redis | 61 | 0 | 61 | 100% | 147 | 2 / 0 | 43 | full |
 
 ### Discovery and relationship validation
 
@@ -119,6 +121,7 @@ What convergence looks like:
 | grafana | 5/3/9 (47%) | 14/0/3/0 | 70/0/0/32/0 | 0 → 0 | 4 | 0 |
 | strimzi | 6/4/5 (67%) | 15/0/0/0 | 551/0/0/60/4 | 0 → 0 | 3 | 1 |
 | karpenter | 4/5/8 (53%) | 11/0/4/0 | 63/0/0/24/3 | 0 → 0 | 3 | 0 |
+| redis | 4/0/6 (40%) | 7/0/0/0 | 72/0/0/11/8 | 1 → 0 | 4 | 2 |
 
 ## Construct-introduction curve
 
@@ -137,6 +140,7 @@ What convergence looks like:
 | 11 | grafana | 0 | 143 | 91 | 91 | 100% | 0 | 143 |
 | 12 | strimzi | 0 | 143 | 77 | 77 | 100% | 0 | 143 |
 | 14 | karpenter | 4 | 147 | 83 | 79 | 95% | 4 | 147 |
+| 17 | redis | 0 | 147 | 61 | 61 | 100% | 0 | 147 |
 
 New constructs per product, in onboarding order (records):
 
@@ -154,6 +158,7 @@ New constructs per product, in onboarding order (records):
  11  grafana                   0  
  12  strimzi                   0  
  14  karpenter                 4  ██
+ 17  redis                     0  
 ```
 
 Cumulative constructs introduced:
@@ -172,6 +177,7 @@ Cumulative constructs introduced:
  11  grafana                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  12  strimzi                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  14  karpenter               147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 17  redis                   147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -284,13 +290,17 @@ No new constructs: the definition is configuration only.
 - `field:lifecycle.versions`: The lifecycle construct landed with ingress-nginx (order 9), whose record declared the free-text family name "field:lifecycle" and explicitly called the versions constraint data, not a construct; stats counts the leaf separately. Karpenter is the first product to need TWO scoped statements (end-of-life of "< 1.9.0" and of "1.10.0 - 1.13.x"), so the leaf is accounted here. No code change. (also needed by ingress-nginx (order 9) used one unscoped statement)
 - `field:sources.extract.listItems`: Karpenter's upgrade-guide sections open with a Hugo warning shortcode ({{% alert %}}) before the bullet list; the markdown section reader treats a prose-led section as one item and folds the whole list into it, so the 1.14 guide bullets (CapacityBuffers graduation, DRA, balanced consolidation) were invisible and the folded item said breaking while containing "No breaking changes 🎉". The structural reading already existed for docbook/rst conversions (internal/ingest/docs.go structuralLists); this exposes it declaratively for markdown: catalog field + validation + schema + one condition in ingest, tests in normalize (per-bullet + callout items) and ingest (DocInput.ListItems pass-through). (also needed by Traefik (order 13, wave 2: migration guides open with warning/highlight fences before bullet lists), Grafana (order 11, wave 2: breaking-change docs use callouts above lists), any Hugo/MDX docs site with alert shortcodes ahead of change lists (HashiCorp platform docs use the same shape))
 
+### redis (order 17, wave 2): 0 new
+
+No new constructs: the definition is configuration only.
+
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 30 (4.3) | 93% | 55 / 0 | 25 (n=7) | 20/24/56 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
-| 2 | grafana, strimzi, karpenter | 2 of 3 (grafana, strimzi) | 4 (1.3) | 98% | 9 / 0 | 27 (n=3) | 15/12/22 (55%) | 40/0/7/0 (3 of 3 reports) | 1 | full 3 |
+| 2 | grafana, strimzi, karpenter, redis | 3 of 4 (grafana, strimzi, redis) | 4 (1.0) | 99% | 11 / 0 | 31 (n=4) | 19/12/28 (53%) | 47/0/7/0 (4 of 4 reports) | 3 | full 4 |
 
 ## Notes from the records
 
@@ -319,6 +329,8 @@ No new constructs: the definition is configuration only.
 **strimzi**: Second wave-2 product, first one with zero new constructs: every channel is covered by existing constructs (markdown changelog sections, fallback groups, OCI/helm-repo channels, availability eras, references cross-checks, and version.strategy field for the bridge pin introduced by kube-prometheus-stack two orders earlier). Onboarding was configuration plus critical reading: the two substantive decisions were negative — no format:adoc construct (Strimzi's per-release intelligence is markdown/YAML, the adoc docs are generic procedures; Elasticsearch should decide that on its own evidence) and no kafka-versions compatibility source (a point constraint diffed as a set change states falsehoods; the changelog carries the matrix truthfully). The definition also demonstrates the placeholder- Chart.yaml trap: a chart whose in-tree metadata is rewritten at packaging can only be related to releases through the published artifact. Discovery quality: it proposed the right skeleton (versions, notes, chart, CRDs, zip, operator image with references, advisories) and validated 9 elements itself; its two wrong calls were the chart "independent" version (read the placeholder) and four overlapping install manifests.
 
 **karpenter**: First ECR Public product: public.ecr.aws answered anonymously end to end (token, tags, manifests, chart configs), so every image and chart relationship is registry-verified — the fleet-level verdict is "reachable, channel it normally; throttle bursts are transient". Onboarding was research-dominated: the two structures that dominate this product (the 0.35.0 registry-tag boundary and the one-release chart/website lag around the tag) are invisible to per-tag probing from the newest release alone and are exactly what discovery's relationship checks flagged as failures; both recovered as declarations (template relations + legacy twins, preview-at-tag + main fallbacks). Two generic constructs landed (a vocabulary slot and a boolean exposing an existing reading), both small and both with wave-2/3 beneficiaries; zero product-specific Go. Classification quality: the conventional-commit sections map 1:1 to categories, and the guide's tuning (skip '^No breaking changes', role-default action-required accepted) was found by reading edges, not by failing checks — the checks passed from the first draft (0 failures, 12 releases, 2 eras).
+
+**redis**: Third wave-2 zero-new-construct product (grafana, strimzi): the whole non-Kubernetes topology — in-repo per-line release notes, GitHub advisory feed, download.redis.io tarballs, Docker official image with a mirror fallback, EOL-dated lifecycle statements — is configuration over existing constructs. The one generic change (setext headings) completes CommonMark in the shared markdown scanner rather than adding definition vocabulary; it benefits any product whose upstream documents underline titles (no catalog field, schema entry or ingest branch was added). Discovery baseline: right versioning and channels-from-tags, zero artifacts, and it mistook the website notes copy for the source; its own historical validation of the GitHub release body was correct and kept.
 
 ## Data quality
 
