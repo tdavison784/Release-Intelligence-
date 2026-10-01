@@ -1,0 +1,95 @@
+product: argo-cd
+order: 3
+wave: 0
+repository: github.com/argoproj/argo-cd
+# onboarding: minutes and timestamps were not measured (see the cert-manager record).
+discovery:
+  proposal: internal/discovery/testdata/live/argo-cd.yaml
+  report: internal/discovery/testdata/live/argo-cd.summary.md
+sources:
+  - {id: github-releases, origin: manual}
+  - {id: git-tags, origin: manual}
+  - {id: github-release-notes, origin: manual}
+  - {id: commit-log, origin: manual}
+  - {id: upgrade-guide, origin: manual}
+  - {id: tested-kubernetes-versions, origin: manual}
+  - {id: github-advisories, origin: manual}
+artifacts:
+  - {id: image, origin: manual}
+  - {id: install-manifest, origin: manual}
+  - {id: crds, origin: manual}
+  - {id: helm-chart, origin: manual}
+  - {id: cli-linux-amd64, origin: manual}
+relationships:
+  # from docs/onboarding/checks/argo-cd.json (ri check argo-cd -n 3)
+  historicalReleasesChecked: [3.3.0, 3.3.14, 3.4.0, 3.4.9, 3.5.0, 3.5.3]
+  finalFailures: 0
+  manualInterventions:
+    - {subject: helm-chart, change: "optional: true", reason: "only about half of the app releases ship as a chart appVersion (76 of 144 since v2.11.0)"}
+    - {subject: cli-linux-amd64, change: "exceptions: 3.4.0", reason: "the v3.4.0 GitHub release has no assets at all; v3.4.1 has them"}
+  unverifiable: []
+constructs:
+  new:
+    - name: locator:git-log
+      kind: enum-value
+      justification: >-
+        Curated release notes exist only behind the GitHub API, so the commit subjects between two tags are the deterministic fallback. Kind declared in the foundation (f2cb060), adapter in gitsrc (e0c56bf).
+      otherProducts: []
+    - name: version:lookup
+      kind: enum-value
+      justification: >-
+        The chart for an app release is found by its appVersion, because chart versions are independent of the app version. Declared in the foundation (f2cb060), served by the helm-repo/oci version index.
+      otherProducts: []
+    - name: field:artifacts.optional
+      kind: catalog-field
+      justification: >-
+        Only about half of Argo CD app releases ship as a chart appVersion (76 of 144 since v2.11.0): absence is a recorded fact, not a broken relationship (c623b20). Discovery keeps lookup artifacts as optional for the same reason (742447e).
+      otherProducts: []
+    - name: field:artifacts.exceptions
+      kind: catalog-field
+      justification: >-
+        Curated releases where a relationship does not hold, with a mandatory reason. Found by ri check: the v3.4.0 GitHub release has no assets (c623b20).
+      otherProducts: []
+    - field:artifacts.contents.locator.glob
+    - field:artifacts.contents.locator.ref
+    - field:artifacts.exceptions.reason
+    - field:artifacts.exceptions.versions
+    - field:artifacts.version.field
+    - field:artifacts.version.match
+    - field:artifacts.version.select
+    - role:changelog
+    - select:latest
+    - template-var:ArtifactVersion
+  considered: []
+goChanges:
+  productSpecific: 0
+  generic:
+    - file: internal/catalog/definition.go, internal/catalog/validate.go, internal/ingest/artifacts.go, internal/ingest/docs.go, internal/ingest/relationships.go
+      purpose: "exceptions (with a mandatory reason) on sources and artifacts, and optional artifacts (c623b20)"
+    - file: internal/gitsrc
+      purpose: "git-log adapter: commit subjects between two tags as a markdown bullet list, from a treeless mirror (e0c56bf)"
+    - file: internal/normalize
+      purpose: "commit URLs become commit references so git-log items link to their commit (a40e3ad)"
+    - file: internal/discovery/propose.go, internal/discovery/tags.go
+      purpose: "keep lookup artifacts that hold for only some sampled releases as optional, and sample each line's X.Y.0 (742447e)"
+unreachableSources:
+  - {host: api.github.com, reason: "egress policy 403 (curated release bodies and advisories); the commit log is the deterministic fallback"}
+  - {host: quay.io, reason: "egress policy 403 (image); verified through the install manifest cross-reference"}
+  - {host: argoproj.github.io, reason: "egress policy 403 (Helm index); the same index is read from the gh-pages branch on raw.githubusercontent.com"}
+ambiguousRelationships:
+  - "v2.14.0 and v3.0.10 install manifests reference the previous image tag (upstream errata), so the image cross-reference fails there by design"
+representability: full
+gaps:
+  - "Curated release notes are only reachable through the GitHub API; the commit-log fallback is deterministic but noisy (dependency bumps, docs, release mechanics), mitigated by skip rules"
+  - "Private-fork security fixes land as merge commits and do not appear in generated release notes; advisories need the GitHub API"
+sampleEdge:
+  from: v2.14.11
+  to: v3.0.6
+  summary: "18 breaking · 6 action required · 399 changes · 1 warning"
+  evidenceRecords: 503
+notes: >-
+  Phase 1, reconstructed from the version history and docs/FINDINGS.md. Several of
+  the constructs credited here (git-log, lookup) were declared in the
+  foundation contract before any definition existed; they are credited to
+  Argo CD as the first product that exercised them. exceptions and optional
+  were added after ri check ran against this definition (c623b20).
