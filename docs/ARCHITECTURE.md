@@ -8,13 +8,15 @@ every conclusion points back to source evidence.
 
 - **Deterministic first.** The recurring ingestion path (`ingest`, `normalize`,
   `upgrade`) never calls an LLM. LLMs are used only for discovery, for
-  resolving ambiguous sources and for optional enrichment (`discovery`, `llm`).
+  resolving ambiguous sources and for optional enrichment (`discovery`,
+  `enrich`, `llm`).
 - **Facts ≠ conclusions ≠ AI.** `domain.Fact` holds deterministic
   statements extracted from sources. `domain.Change` holds deterministic
   conclusions, with `Provenance.Method` set to `declared`, `computed` or
   `heuristic`. `domain.Enrichment` holds AI output and always carries
-  `method: ai` together with the model, the prompt digest and the input
-  evidence. `UpgradeEdge.Validate()` enforces this separation.
+  `method: ai` together with the model and model version, the prompt
+  version and digest, the input evidence and the evidence it cites.
+  `UpgradeEdge.Validate()` enforces this separation.
 - **Evidence everywhere.** Every Change, Fact, NoteItem, compatibility
   constraint and artifact instance references `domain.Evidence`. Each Evidence
   record carries a URI a human can open, a locator such as a line range, a
@@ -61,7 +63,9 @@ internal/upgrade       pure: path selection, diffs, edge assembly, text renderin
 internal/discovery     AI-assisted source discovery: repo scanner → candidates →
                        (optional LLM resolution) → validation against ≥3 releases → proposed definition
 internal/app           composition root + use cases (wires adapters by locator kind; offline e2e tests)
-internal/llm           LLM port + Anthropic implementation
+internal/llm           LLM port + Anthropic implementation, response cache (by prompt digest), file exchange
+internal/enrich        AI enrichment of edges: deterministic candidate groups → bounded prompts →
+                       validator → Enrichments with full provenance (docs/ENRICHMENT.md)
 internal/store         local JSON store for ingested releases and edges
 products/              checked-in product definitions
 schemas/               JSON Schemas (draft 2020-12): product-definition (hand-written); upgrade-edge and
@@ -72,8 +76,8 @@ schemas/               JSON Schemas (draft 2020-12): product-definition (hand-wr
 Dependency direction: `domain` ← `catalog` ← `sources` ← adapters; `normalize`
 depends on `domain` and `catalog`. `ingest` depends on `sources`, `normalize`,
 `catalog` and `domain`. `upgrade` depends only on `domain` and `catalog`.
-`discovery` depends on `ingest`, `catalog`, `llm` and `sources`. Adapters never
-import `ingest` or `upgrade`.
+`discovery` depends on `ingest`, `catalog`, `llm` and `sources`. `enrich`
+depends only on `domain` and `llm`. Adapters never import `ingest` or `upgrade`.
 
 ## Data flow of `ri upgrade <product> <from> <to>`
 

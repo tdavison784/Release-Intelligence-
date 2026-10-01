@@ -135,6 +135,13 @@ func Run(ctx context.Context, e *domain.UpgradeEdge, opts Options) (*Result, err
 			res.Run.Pending++
 			res.Requests = append(res.Requests, rec)
 			continue
+		case errors.Is(err, llm.ErrExchangeMismatch):
+			// A supplied answer that belongs to another prompt: refused
+			// model output, recorded like any other rejection.
+			rec.Status, rec.Detail, rec.Origin = StatusRejected, err.Error(), llm.OriginExchange
+			res.reject(cand.ID, digest, "", nil, rec.Detail)
+			res.Requests = append(res.Requests, rec)
+			continue
 		case err != nil:
 			rec.Status, rec.Detail = StatusFailed, err.Error()
 			res.Run.Failed++

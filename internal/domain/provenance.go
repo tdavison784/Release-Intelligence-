@@ -42,18 +42,17 @@ type Provenance struct {
 	Rule       string     `json:"rule,omitempty"` // rule identifier, e.g. "section:/breaking/i"
 	Confidence Confidence `json:"confidence"`
 
-	// AI-only fields.
+	// AI-only fields. Model and ModelVersion are as reported by whoever
+	// produced the answer (the API response or an exchange response file),
+	// never assumed from the request; ModelVersion is the most precise
+	// version identifier reported. PromptVersion names the prompt templates
+	// (e.g. "enrich/v1"); PromptDigest pins the exact rendered prompt.
 	Model         string       `json:"model,omitempty"`
+	ModelVersion  string       `json:"modelVersion,omitempty"`
+	PromptVersion string       `json:"promptVersion,omitempty"`
 	PromptDigest  string       `json:"promptDigest,omitempty"`
 	InputEvidence []EvidenceID `json:"inputEvidence,omitempty"`
 	GeneratedAt   *time.Time   `json:"generatedAt,omitempty"`
-	// ModelVersion is the most precise version identifier of the model as
-	// reported by whoever produced the answer (the API response or an
-	// exchange response file); it is never assumed from the request.
-	ModelVersion string `json:"modelVersion,omitempty"`
-	// PromptVersion names the prompt templates (e.g. "enrich/v1"); the
-	// digest pins the exact rendered prompt.
-	PromptVersion string `json:"promptVersion,omitempty"`
 }
 
 // Deterministic reports whether the provenance is not AI-derived.

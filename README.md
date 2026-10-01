@@ -67,14 +67,16 @@ Full examples are in [`internal/app/testdata/e2e/golden/`](internal/app/testdata
   and classification rules, and known exceptions are data, not code. Istio and
   Argo CD were added without product-specific Go code.
 - **Deterministic first.** The recurring ingestion path never calls an LLM. AI
-  is used only for source discovery and ambiguity resolution (and in future
-  for enrichment), and it always carries provenance.
+  is used only for source discovery, ambiguity resolution and optional
+  enrichment (`ri upgrade -enrich`, see [docs/ENRICHMENT.md](docs/ENRICHMENT.md)),
+  and it always carries provenance.
 - **Facts, conclusions and AI are kept apart.**
   - Facts are deterministic statements extracted from sources.
   - Changes are deterministic conclusions, marked `declared`, `computed` or
     `heuristic`.
-  - Enrichments are AI-derived and marked `ai`, together with the model, the
-    prompt digest and the input evidence.
+  - Enrichments are AI-derived and marked `ai`, together with the model and
+    its version, the prompt version and digest, the input evidence and the
+    evidence they cite.
   - `UpgradeEdge.Validate()` and the JSON Schema both enforce this.
 - **Honest about gaps.** An unreachable channel is reported as
   `unavailable`, and a predicted artifact as `expected`. Neither is ever
@@ -100,6 +102,7 @@ ri ingest cert-manager v1.18.0                  # one release: sources, artifact
 ri upgrade cert-manager v1.17.0 v1.18.0         # the upgrade edge (text)
 ri upgrade argo-cd v2.14.11 v3.0.6 -o json      # … as JSON (schemas/upgrade-edge.schema.json)
 ri upgrade istio 1.29.2 1.30.1 -verbose         # include features, bug fixes, dependency updates
+ri upgrade cert-manager v1.17.0 v1.18.0 -enrich # + AI clusters/explanations with provenance (docs/ENRICHMENT.md)
 ri discover github.com/cert-manager/cert-manager -out proposed.yaml -report report.md
 ```
 
@@ -117,6 +120,10 @@ Global flags go before the command:
   advisories.
 - `ANTHROPIC_API_KEY` enables `ri discover -llm`. AI proposals enter a
   definition only after validation against real releases.
+- `ANTHROPIC_API_KEY` also enables `ri upgrade -enrich`. Alternatively,
+  `-llm-exchange DIR` exchanges prompts and answers through files with any
+  model. Answers are cached under the state directory and replay with
+  `-offline`.
 
 ## Testing
 

@@ -457,19 +457,20 @@ func TestExchangeRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	failed := 0
+	rejected := 0
 	for _, r := range second.Requests {
 		if r.PromptDigest == mismatched {
-			if r.Status != StatusFailed || !strings.Contains(r.Detail, "does not match its request") {
+			if r.Status != StatusRejected || !strings.Contains(r.Detail, "does not match its request") {
 				t.Fatalf("mismatched response must be rejected: %+v", r)
 			}
-			failed++
+			rejected++
 		} else if r.Status != StatusAnswered || r.Origin != llm.OriginExchange {
 			t.Fatalf("request %+v", r)
 		}
 	}
-	if failed != 1 || second.Run.Failed != 1 {
-		t.Fatalf("failed: %d %+v", failed, second.Run)
+	if rejected != 1 || len(second.Run.Rejected) != 1 || second.Run.Rejected[0].PromptDigest != mismatched ||
+		!strings.Contains(second.Run.Rejected[0].Reason, "does not match its request") {
+		t.Fatalf("the mismatch must be recorded as a rejection: %+v", second.Run)
 	}
 	for _, en := range second.Enrichments {
 		if en.Provenance.Model != "batch-model" || en.Provenance.ModelVersion != "batch-model-2026-09" || !en.Provenance.GeneratedAt.Equal(t0.Add(time.Hour)) {

@@ -12,6 +12,7 @@
 //   - Facts and Changes are produced by deterministic code. Every Change
 //     carries a Provenance whose Method is Declared, Computed or Heuristic.
 //   - Enrichments are AI-derived. They always carry Method AI together with
-//     the model, a digest of the prompt and the evidence used as input. They
-//     are never merged into Changes.
+//     the model and model version, the prompt version and digest, the
+//     evidence used as input and the evidence they cite. They only refer to
+//     Changes by id and are never merged into Changes.
 package domain
