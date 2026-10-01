@@ -1,6 +1,7 @@
 package ingest
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -143,6 +144,8 @@ func (i *Ingester) resolveVersions(ctx context.Context, r *run, ar *artifactRun)
 		return i.lookupVersions(ctx, r, ar)
 	case catalog.VersionField:
 		return i.fieldVersion(ctx, r, ar)
+	case catalog.VersionPattern:
+		return i.patternVersion(ctx, r, ar)
 	case catalog.VersionIndependent:
 		return resolution{
 			status:     domain.ArtifactExpected,
@@ -316,6 +319,76 @@ func (i *Ingester) fieldVersion(ctx context.Context, r *run, ar *artifactRun) re
 		elocator = fmt.Sprintf("L%d", line)
 	}
 	ev := domain.NewEvidence(domain.EvidenceStructured, a.ID, d.URI, elocator, fmt.Sprintf("%s: %s", a.Version.Field, value), d.Digest, d.RetrievedAt)
+	return resolution{versions: []resolvedVersion{{version: value, evidence: []domain.Evidence{ev}}}}
+}
+
+// patternVersion resolves an artifact version with strategy "pattern": the
+// raw text of a document fetched at the release ref is searched with a
+// regular expression whose named capture group "version" holds the artifact
+// version — the text-mode twin of field, for per-release pins that live
+// inside strings rather than addressable YAML fields (a controller version
+// embedded in a kustomize remote-resource URL, a go.mod require line, a
+// Dockerfile FROM). The evidence is the document itself, with the line that
+// carried the match.
+func (i *Ingester) patternVersion(ctx context.Context, r *run, ar *artifactRun) resolution {
+	a := ar.art
+	from := a.Version.From
+	if from == nil {
+		return resolution{status: domain.ArtifactExpected, detail: "strategy pattern declares no from locator", coordinate: firstCoordinate(a, r.rc)}
+	}
+	re, err := catalog.CompileVersionPattern(a.Version.Pattern, r.rc)
+	if err != nil {
+		return resolution{status: domain.ArtifactExpected, detail: "version pattern: " + err.Error(), coordinate: firstCoordinate(a, r.rc)}
+	}
+	loc, err := renderLocator(*from, r.rc)
+	if err != nil {
+		return resolution{status: domain.ArtifactExpected, detail: "pattern from locator: " + err.Error(), coordinate: firstCoordinate(a, r.rc)}
+	}
+	f := i.fetch(ctx, r.memo, loc, r.now)
+	st := domain.SourceStatus{SourceID: a.ID, Kind: loc.Kind, Version: r.v.Semver, URI: locatorURI(loc)}
+	if f.err != nil {
+		state, detail, _ := stateFor(f.err)
+		st.State, st.Detail = state, detail
+		ar.statuses = append(ar.statuses, st)
+		return resolution{status: domain.ArtifactExpected, detail: fmt.Sprintf("cannot read %s: %s", describeLocator(loc), detail), coordinate: firstCoordinate(a, r.rc)}
+	}
+	if len(f.docs) == 0 {
+		st.State, st.Detail = domain.SourceNotFound, "no document at "+describeLocator(loc)
+		ar.statuses = append(ar.statuses, st)
+		return resolution{status: domain.ArtifactMissing, detail: "no document at " + describeLocator(loc), coordinate: firstCoordinate(a, r.rc)}
+	}
+	d := f.docs[0]
+	st.URI = d.URI
+	m := re.FindSubmatchIndex(d.Content)
+	if m == nil {
+		st.State, st.Detail = domain.SourceNotFound, fmt.Sprintf("no match for the version pattern in %s", describeLocator(loc))
+		ar.statuses = append(ar.statuses, st)
+		return resolution{status: domain.ArtifactMissing, detail: fmt.Sprintf("%s does not match the version pattern", describeLocator(loc)), coordinate: firstCoordinate(a, r.rc)}
+	}
+	gi := re.SubexpIndex(catalog.VersionPatternGroup)
+	value := ""
+	if gi >= 0 && 2*gi+1 < len(m) && m[2*gi] >= 0 {
+		value = string(d.Content[m[2*gi]:m[2*gi+1]])
+	}
+	if strings.TrimSpace(value) == "" {
+		st.State, st.Detail = domain.SourcePartial, "the version capture group matched an empty string"
+		ar.statuses = append(ar.statuses, st)
+		return resolution{status: domain.ArtifactExpected, detail: fmt.Sprintf("version capture group of %s is empty", describeLocator(loc)), coordinate: firstCoordinate(a, r.rc)}
+	}
+	line := 1 + bytes.Count(d.Content[:m[0]], []byte("\n"))
+	lineStart := bytes.LastIndexByte(d.Content[:m[0]], '\n')
+	lineEnd := bytes.IndexByte(d.Content[m[0]:], '\n')
+	excerpt := d.Content[m[0]:]
+	if lineStart >= 0 {
+		excerpt = d.Content[lineStart+1:]
+	}
+	if lineEnd >= 0 {
+		excerpt = excerpt[:lineEnd]
+	}
+	st.State = domain.SourceOK
+	st.Detail = fmt.Sprintf("pattern capture %s = %s (%s)", catalog.VersionPatternGroup, value, describeLocator(loc))
+	ar.statuses = append(ar.statuses, st)
+	ev := domain.NewEvidence(domain.EvidenceStructured, a.ID, d.URI, fmt.Sprintf("L%d", line), strings.TrimSpace(string(excerpt)), d.Digest, d.RetrievedAt)
 	return resolution{versions: []resolvedVersion{{version: value, evidence: []domain.Evidence{ev}}}}
 }
 

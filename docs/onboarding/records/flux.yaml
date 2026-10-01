@@ -1,0 +1,188 @@
+product: flux
+order: 15
+wave: 2
+repository: github.com/fluxcd/flux2
+onboarding:
+  startedAt: "2026-10-01T14:43:08Z"
+  finishedAt: "2026-10-01T15:28:43Z"
+  minutes: 46                   # wall-clock, agent time (incl. ~25 min waiting for the anonymous api.github.com hourly quota to reset mid-run; transient, recorded as such)
+discovery:
+  proposal: docs/onboarding/discovery/flux.proposed.yaml
+  report: docs/onboarding/discovery/flux.report.md
+# Discovery found the right skeleton and — the interesting part — failed in
+# exactly the way the topology predicts: it proposed all seven controller
+# images as template-versioned (tag = the flux2 tag), its relationship
+# checks failed for every release (controller registries have no v2.x tags)
+# and it dropped all seven. The fix is the aggregation representation (the
+# pattern strategy reading each controller's pin out of
+# manifests/bases/*/kustomization.yaml), not a different template.
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags'; 216 tags, 206 stable (v0.0.1-v0.41.2, no v1.x exists, then v2.0.0-v2.9.6), 10 pre-releases, 0 junk; tagPattern kept verbatim from the proposal"}
+  - {id: github-releases, origin: discovered, note: "versions fallback priority 1"}
+  - {id: release-notes, origin: discovered-modified, note: "proposal id release-notes (unverified: API quota); extract whole kept, labelParagraphs added for Fixes:/Improvements:/Overview of the new features:, classify added for the hand-written sections + the generated CLI PR list"}
+  - {id: kubernetes-compat, origin: manual, note: "discovery reported compatibility not-found; every minor body since v2.0.0 carries a '### Kubernetes compatibility' markdown table — markdown-table + tableHeading + first row as a minimum constraint (releaseKinds [minor, major]: v2.0.0 is major-kind and carries the table too)"}
+  - {id: upgrade-guide, origin: manual, note: "discovery reported upgrade-docs not-found; the website repo (found by discovery as a docs-repo candidate) carries the generic upgrade procedure at content/en/flux/installation/upgrade.md on main; NOT per-minor (verified), attached to minors >= 2.0.0"}
+  - {id: support-policy, origin: manual, note: "content/en/flux/releases/_index.md on main as lifecycle evidence ('we support the last three minor releases'), karpenter SUPPORT.md pattern"}
+  - {id: advisories, origin: discovered, note: "proposal id 'advisories' (fluxcd/flux2 carries ecosystem-wide advisories incl. controller ones)"}
+  - {id: source-controller-advisories, origin: manual, note: "controller feeds; 2 published (also kustomize-controller: 1)"}
+  - {id: kustomize-controller-advisories, origin: manual, note: ""}
+  - {id: helm-controller-advisories, origin: manual, note: "empty feed today; declared anyway — the channel is real"}
+  - {id: notification-controller-advisories, origin: manual, note: ""}
+  - {id: image-reflector-controller-advisories, origin: manual, note: ""}
+  - {id: image-automation-controller-advisories, origin: manual, note: ""}
+  - {id: source-watcher-advisories, origin: manual, note: ""}
+artifacts:
+  - {id: cli-image, origin: discovered-modified, note: "goreleaser manifest lists ghcr.io/fluxcd/flux-cli:{{.Tag}} (the resolver excluded the candidate as image.test-only because its evidence was the goreleaser file); template {{.Tag}}, verified 200 at v0.20.1 and v2.9.6"}
+  - {id: source-controller-image, origin: discovered-modified, note: "discovery proposed template {{.Tag}} and DROPPED it after failed validation; now version.strategy pattern over manifests/bases/source-controller/kustomization.yaml (the pin inside the kustomize remote-resource URL), probed at ghcr.io/fluxcd/source-controller"}
+  - {id: kustomize-controller-image, origin: discovered-modified, note: "same"}
+  - {id: helm-controller-image, origin: discovered-modified, note: "same"}
+  - {id: notification-controller-image, origin: discovered-modified, note: "same"}
+  - {id: image-reflector-controller-image, origin: discovered-modified, note: "same"}
+  - {id: image-automation-controller-image, origin: discovered-modified, note: "same"}
+  - {id: source-watcher-image, origin: manual, note: "the seventh controller (base added 2025-09-15, first release tag v2.7.0; discovery saw it at v2.9.6 and dropped it with the others); availability >= 2.7.0, same pattern relation"}
+  - {id: install-bundle, origin: discovered-modified, note: "proposal gotk-components-yaml as a container-image with ghcr.io/flux-system + docker.io/flux-system channels (both anonymously unreachable: the OCI artifact DENIES anonymous tokens, Docker Hub 401s); rebuilt as type package with the http install.yaml release asset (identical generated content, 200 for every era checked) serving probes AND the image-refs + crds contents snapshots"}
+  - {id: flux-manifests-oci, origin: discovered, note: "proposal flux-manifests, historically-validated 6/6 by discovery itself; availability >= 2.1.0 (the release-flux-manifests workflow job was added between v2.0.0 and v2.1.0)"}
+  - {id: cli-binary, origin: discovered-modified, note: "discovery's binary artifact died on its own static validation (a {{ .Binary }} template variable that does not exist); rebuilt with the concrete goreleaser name flux_{{.Version}}_linux_amd64.tar.gz"}
+  - {id: sbom, origin: discovered-modified, note: "proposal flux-sbom-spdx-manifest historically-validated; availability >= 0.25.3 found by the era check (404 at v0.20.1-v0.25.2, first shipped with v0.25.3 — the release the SBOM blog post cites)"}
+  - {id: source-archive, origin: manual, note: "goreleaser source archives, same v0.25.3 boundary"}
+  - {id: chart, origin: manual, note: "NOT in the flux2 repo: fluxcd-community/helm-charts (discovery only saw the OCI path as a docs reference); chart version != app version (chart 2.19.x tracks appVersion 2.9.5) — lookup by unprefixed appVersion select latest, optional (minor .0 releases often never get a chart; 2.9.6 released today has none yet)"}
+discoveryRejected:
+  - {id: "7 controller images as template-versioned (tag = release tag)", reason: "the aggregator-pins-components trap: discovery's image.tag-assumed-release heuristic failed every historical check (controller registries have no v2.x tags) and dropped all seven; the pins live in manifests/bases/*/kustomization.yaml URL strings — represented by the new pattern strategy instead"}
+  - {id: "gotk-components.yaml as container-image on ghcr.io/flux-system + docker.io/flux-system", reason: "the flux-system OCI artifact denies anonymous token requests (verified DENIED, not transient) and Docker Hub 401s anonymously; the install.yaml release asset is the same generated bundle and answers 200"}
+  - {id: "binary channel template with {{ .Binary }}", reason: "goreleaser's name_template variables are not render-context variables; static validation failed; concrete asset name instead"}
+  - {id: "ghcr.io/fluxcd/flux-cli as image.test-only", reason: "resolver misclassification: the goreleaser docker section is the publish configuration, not test tooling"}
+  - {id: "docs-only image noise (fluxcd/website, flagger, stefanprodan/podinfo, the 'contoller'-typo images of the SLSA assessment table)", reason: "documentation references and third-party products"}
+  - {id: "helm repos flagger.app / charts.jetstack.io / helm.traefik.io / eks-charts and chart-repos helm-controller, helm-operator, flux2-kustomize-helm-example", reason: "installation docs for other products; correctly excluded"}
+relationships:
+  # Default `ri check` (2.7.0, 2.7.5, 2.8.0, 2.8.8, 2.9.0, 2.9.6) plus an
+  # era run over 0.20.1, 0.25.3, 0.41.2, 2.0.0, 2.1.0, 2.3.0, 2.7.0.
+  historicalReleasesChecked: [0.20.1, 0.25.3, 0.41.2, 2.0.0, 2.1.0, 2.3.0, 2.7.0, 2.7.5, 2.8.0, 2.8.8, 2.9.0, 2.9.6]
+  # First complete draft (default window): 0 failing subjects; 4 unverifiable
+  # (release-notes x3, kubernetes-compat x1) purely from the anonymous
+  # api.github.com 60/h quota running out mid-run — transient, cleared after
+  # the hourly reset with no definition change. The era run then found the
+  # two real failures below.
+  initialFailures: 2            # sbom, source-archive at 0.20.1 (era run): absent before v0.25.3
+  finalFailures: 0
+  manualInterventions:
+    - {subject: sbom, change: "availability '>= 0.25.3'", reason: "era check: 404 at v0.20.1 (probed v0.20.1-v0.25.2 by hand: all 404; v0.25.3 is the release the SBOM blog post cites)"}
+    - {subject: source-archive, change: "availability '>= 0.25.3'", reason: "same boundary: goreleaser source archives ship with the SBOM config"}
+    - {subject: kubernetes-compat, change: "releaseKinds [minor] -> [minor, major]", reason: "v2.0.0 is a major-kind release and its body carries the table; without 'major' the 0.x -> 2.x boundary lost its compatibility statement (karpenter's guide hit the same kind boundary)"}
+    - {subject: release-notes/classify, change: "skip the Kubernetes/OpenShift compatibility sections and the release opener; CLI changelog: skip conventional-commit ci/refactor/docs prefixes and conformance/e2e churn, dependency category for k8s/cosign/helm bumps", reason: "reading the 2.7.0 -> 2.8.0 edge: 14 'other' items of which 8 were repo machinery, and the compat table prose leaked as an item while kubernetes-compat already extracts it structurally"}
+  unverifiable: []              # every channel of every applicable subject answered in the final runs; the only never-answering channel (ghcr.io/flux-system) has a reachable twin
+constructs:
+  new:
+    - name: version:pattern
+      kind: "version relation `version.strategy: pattern` + `pattern` (a regular expression with a named `(?P<version>…)` capture group, release-context templates allowed) + `from` (repo-file/http locator rendered at the release ref): the artifact version is the first capture in the raw text of the document"
+      justification: >-
+        The text-mode twin of version:field. field reads a version out of an addressable YAML
+        scalar; pattern reads it out of a document where the pin lives inside a string — required
+        for the umbrella-pins-controllers topology of this product: every controller version is
+        embedded in a kustomize remote-resource URL (manifests/bases/<controller>/kustomization.yaml
+        carries `resources: [https://github.com/fluxcd/source-controller/releases/download/v1.9.6/…]`),
+        there is no YAML field anywhere at the tag (go.mod pins the same versions but is not YAML,
+        the release body lists them as markdown links). Yields probe-able artifact instances with
+        line evidence, so the edge states "source-controller v1.8.5 → v1.9.6 [verified]" for every
+        controller of every release. Catalog gains the strategy + CompileVersionPattern (named
+        group enforced), ingest the resolution with the matched line as evidence, JSON Schema and
+        unit tests in all three packages.
+      otherProducts:
+        - karpenter (order 14: its record explicitly asks for this — 'the field strategy reads YAML only and go.mod is not YAML' for the sigs.k8s.io/karpenter pin; pattern over a raw go.mod at the tag reads it)
+        - cluster-api and the kustomize-remote-resource style generally (CAPI's kustomization files pin component versions in releases/download/vX.Y.Z URLs of the same shape)
+        - any aggregator pinning in Dockerfile FROM lines, Makefiles or .env files (the pin-in-text problem is the norm outside Helm charts)
+    - name: field:artifacts.version.pattern
+      kind: "definition field: the pattern of the pattern strategy (leaf; stats counts it separately from the strategy enum)"
+      justification: "the pattern half of version:pattern; the sibling leaf of field:artifacts.version.field"
+      otherProducts: ["same as version:pattern"]
+    - name: field:sources.extract.tableHeading
+      kind: "definition field `extract.tableHeading` (markdown-table): restrict the table search to tables under a heading matching a regex"
+      justification: >-
+        The field existed in the catalog since the Phase 1 table work (normalize.TableSelector
+        carried it) but no earlier product used it: flux's release bodies are one document in
+        which the compatibility table sits under '### Kubernetes compatibility' next to prose and
+        PR lists, so the selector must be scoped or it would grab an unrelated table. First
+        exercise; no code change.
+      otherProducts: ["cert-manager/Istio-style support pages that mix several tables in one document (their matrices are single-table documents today)"]
+    - name: field:artifacts.contents.locator.url
+      kind: "definition field `contents[].locator.url` (an http content locator: contents read from a URL rather than a repo path)"
+      justification: >-
+        Content locators were repo-file in every earlier product (kube-prometheus-stack reads
+        Chart.yaml/values.yaml from the repository). The install bundle's contents (image pins,
+        CRD versions) must be read from the published install.yaml release asset — the generated
+        manifests do not exist in the source tree (manifests/crds holds remote refs) and the OCI
+        artifact denies anonymous pulls. First exercise of the url leaf on a contents locator; no
+        code change.
+      otherProducts: ["ingress-nginx/karpenter-style products whose only readable representation of an artifact is a release asset (the release-asset representation already exists, G8)"]
+  considered:
+    - {name: "version.strategy field for the controller pins", rejected: "the pins are not YAML scalars: ReadYAMLPath addresses mappings and [field=value] list selectors, and even an index selector would return the URL string, not the version — pattern is the minimal generic capability that fits"}
+    - {name: "go.mod as the pin document (pattern over a raw go.mod)", rejected: "same versions today, but go.mod pins the /api Go modules whose minors can lag the controller releases; the bases kustomization is what the release actually ships (the manifests build resolves those URLs), so it is the canonical pin"}
+    - {name: "chart contents via {{.ArtifactVersion}} (community chart values.yaml controller tags)", rejected: "would duplicate the controller pins the pattern artifacts already report verified (kube-prometheus-stack ignoreKeys precedent), and the chart lags upstream so the snapshot would misattribute; recorded as a gap instead"}
+    - {name: "the 'Upgrade Procedure for Flux v2.7+' GitHub discussion as an upgrade-guide source", rejected: "a discussion page is HTML behind github.com, not a declaratively readable channel; the upgrade.md page and the per-release pointers carry the declarative parts"}
+    - {name: "Kubernetes compatibility from the e2e workflow's kind node version at the tag", rejected: "a point constraint in workflow YAML env (no table/records shape for the compatibility extract); the release-body table is upstream's own support statement"}
+    - {name: "per-controller CRD artifacts", rejected: "the CRDs of all controllers ship inside the install bundle; one contents snapshot (install-bundle/crds) diffs them without seven more artifacts"}
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/catalog/definition.go, purpose: "VersionPattern constant + VersionRelation.Pattern field with docs; VersionPatternGroup"}
+    - {file: internal/catalog/validate.go, purpose: "pattern strategy validation (pattern required, compiles, has the named version group; from must be a single-document locator; no field/match/template leftovers); CompileVersionPattern shared compiler"}
+    - {file: internal/catalog/yamlpath_test.go, purpose: "pattern validation cases + JSON Schema round-trip"}
+    - {file: schemas/product-definition.schema.json, purpose: "strategy enum + pattern property + required-if rule"}
+    - {file: internal/ingest/artifacts.go, purpose: "resolveVersions case pattern: patternVersion — fetch the from document, first regex match, capture group, line-numbered evidence, no-match → missing"}
+    - {file: internal/ingest/patternversion_test.go, purpose: "verified pin with line evidence, per-release pins, unreachable document, no-match missing"}
+    - {file: docs/ARCHITECTURE.md, purpose: "construct table row for version:pattern"}
+unreachableSources:
+  - {host: ghcr.io/flux-system, reason: "the gotk-components.yaml OCI artifact denies anonymous token requests (DENIED at the token endpoint, verified twice, stable — not throttling); the install.yaml release asset carries the same content and verifies the artifact"}
+  - {host: registry-1.docker.io, reason: "anonymous 401 (the standing Docker Hub restriction); docker.io/fluxcd/* mirror channels stay declared but never answer"}
+ambiguousRelationships:
+  - "The controller pins appear three times upstream with the same values: the bases kustomization URLs (what the manifests build resolves), go.mod require lines (the /api Go modules, occasionally lagging) and the release-body 'Components changelog' links. The definition reads the bases (the shipping pin) and skips the section in the notes (not-twice); the other two are unrepresented text."
+  - "The community chart has its own majors: chart 2.19.x tracks appVersion 2.9.5 while chart 2.9.x tracked appVersion 2.0.0 — only the lookup (appVersion == release) is stable; 50 of ~70 stable releases 0.20.1-2.9.6 have a chart, minor .0 releases often never do, and the newest release lags by days-to-weeks."
+  - "The Kubernetes compatibility table lists three supported minors per release; the table extract selects one row (the first = the floor) as a minimum constraint. The upper rows are a per-release supported SET the column model cannot express (karpenter's min/max columns are per-release rows, a different shape)."
+  - "Patch releases carry no compatibility table and no guide: edges between patches have no compat statement even though the line's minor declared one (constraints attach to the release that declared them)."
+  - "api.github.com anonymous is 60/h: both check runs exhausted it mid-run (release-note bodies are per-release API calls); every unverifiable was quota, cleared after the hourly reset — the definitions never changed."
+  - "source-watcher is a default component since v2.7.0 but a separate upstream product (own repo, v2.x tags, pre-releases on its own line); modeled as the seventh pinned artifact, not as a version-independent presence."
+representability: full             # of the release topology: the umbrella-pins-controllers shape is fully represented after one generic construct (pattern); the cuts below are the chart contents and the pin-text alternatives
+gaps:
+  - "The community chart's own files (values.yaml controller tags, Chart.yaml) are not snapshotted: their tags are per CHART version, and a contents locator would need the chart tag ({{.ArtifactVersion}} exists for channels but contents render at the release ref); the controller pins reach edges through the pattern artifacts instead."
+  - "The Kubernetes supported SET (three minors per release) is reduced to the floor row; a set-valued compatibility column does not exist."
+  - "Controller-CVE to flux-release joins: controller advisories declare affected ranges in their own version space (or none — the public endpoint returns null ranges, surfaced as check-manually warnings); pinning the join needs the pin map, the same cross-product question kube-prometheus-stack recorded."
+  - "go.mod require pins (the /api module versions) are unrepresented text: pattern could read them but they are a different (sometimes lagging) version of the same pins — declaring both would state two truths for one component."
+  - "The GitHub discussion 'Upgrade Procedure for Flux v2.7+' (the actual step-by-step migration guide every body points at) has no readable channel kind."
+  - "The gotk-components OCI artifact cannot be probed anonymously; the definition probes its http twin instead, so the canonical channel's availability is inferred, not verified."
+sampleEdge:
+  from: 2.8.8
+  to: 2.9.6
+  summary: "6 breaking · 2 action required · 119 changes · 7 warnings"
+  evidenceRecords: 303
+  notes: >-
+    Path v2.9.0 -> ... -> v2.9.6 (minor crossing, 6 patch steps). Breaking =
+    six computed v1beta2 API removals (ImagePolicy/ImageRepository/
+    ImageUpdateAutomation/Alert/Provider/Receiver — the real Flux 2.9 EOL
+    story), each citing the install.yaml CRDs of both ends; action required =
+    the upgrade-guide procedure; 1 removal from the guide's EOL warning; 1
+    security change: GHSA-mwcp-qpcg-fr7c (CVE) computed as fixed by the
+    upgrade at v2.9.3. The artifact table IS the aggregation topology: all
+    seven controllers verified at ghcr (source-controller v1.8.5 -> v1.9.6,
+    kustomize v1.8.5 -> v1.9.6, helm v1.5.5 -> v1.6.5, notification v1.8.4
+    -> v1.9.4, image-reflector v1.1.2 -> v1.2.5, image-automation v1.1.4 ->
+    v1.2.5, source-watcher v2.1.1 -> v2.2.4) plus CLI image/binary/sbom/
+    source/manifests at the release tag, and chart 2.18.4 -> missing (no
+    chart for 2.9.6 yet, warned). Warnings: the chart lag + 6 advisories
+    with no machine-readable range. Minor-within-2.x edge 2.7.0 -> 2.8.0:
+    7 breaking (the 2.8 v1beta2/v2beta2 removals of the source/kustomize/
+    helm APIs) · 2 action required · 56 changes, Kubernetes minimum >= 1.32
+    rendered from the body table.
+notes: >-
+  The umbrella-pins-controllers stress test resolved into one generic
+  construct (pattern, the text twin of field — asked for by karpenter's
+  record one order earlier) plus configuration: the umbrella is canonical
+  (v2 tags), each controller is a per-release pin read out of the release's
+  own kustomization URLs and verified at its own registry, the generated
+  install bundle is probed and snapshotted through its release-asset twin,
+  and the chart is an optional lookup in the community repository. Discovery
+  proposed the right skeleton and its failure on the controllers was the
+  topology speaking; 91 constructs used, 4 new (2 code, 2 first-exercise),
+  0 product-specific Go. Two definition corrections came from the era check
+  (the v0.25.3 asset boundary, the major-kind compat table), the rest from
+  reading edges. 46 minutes wall-clock, ~25 of them waiting out the
+  anonymous GitHub API quota (twice), the standing tax of a notes source
+  behind api.github.com.
