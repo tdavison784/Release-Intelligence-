@@ -28,7 +28,7 @@ Rules:
 - title: at most 12 words. content: at most 3 plain sentences. confidence: how well the cited evidence supports the content.`
 
 // answerSchema is the structured output every answer must conform to.
-const answerSchema = `{"type":"object","additionalProperties":false,"required":["enrichments"],"properties":{"enrichments":{"type":"array","maxItems":16,"items":{"type":"object","additionalProperties":false,"required":["kind","title","content","changes","citations","confidence"],"properties":{"kind":{"type":"string","enum":["cluster","migration-summary","diff-explanation","related"]},"title":{"type":"string"},"content":{"type":"string"},"changes":{"type":"array","items":{"type":"string"}},"citations":{"type":"array","items":{"type":"string"}},"confidence":{"type":"string","enum":["high","medium","low"]}}}}}}`
+const answerSchema = `{"type":"object","additionalProperties":false,"required":["enrichments"],"properties":{"enrichments":{"type":"array","maxItems":16,"items":{"type":"object","additionalProperties":false,"required":["kind","title","content","changes","citations","confidence"],"properties":{"kind":{"type":"string","enum":["cluster","migration-summary","diff-explanation","related"]},"title":{"type":"string","maxLength":200},"content":{"type":"string","maxLength":2000},"changes":{"type":"array","items":{"type":"string"}},"citations":{"type":"array","items":{"type":"string"}},"confidence":{"type":"string","enum":["high","medium","low"]}}}}}}`
 
 // Prompt bounds.
 const (

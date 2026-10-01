@@ -336,6 +336,8 @@ func TestWholeAnswersRejected(t *testing.T) {
 		"wrong schema":  `{"enrichments":[{"kind":"cluster","content":"x"}]}`,
 		"unknown kind":  `{"enrichments":[{"kind":"summary","title":"","content":"x","changes":[],"citations":[],"confidence":"low"}]}`,
 		"extra members": `{"enrichments":[],"note":"x"}`,
+		"unbounded content": `{"enrichments":[{"kind":"related","title":"t","content":"` + strings.Repeat("x", 2001) +
+			`","changes":["chg-port-note","chg-port-guide"],"citations":[],"confidence":"low"}]}`,
 	} {
 		t.Run(name, func(t *testing.T) {
 			e := cmEdge()
