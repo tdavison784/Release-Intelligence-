@@ -36,6 +36,9 @@ func NewFact(kind FactKind, subject, release, statement, extractor string, attrs
 	for _, e := range evidence {
 		ids = append(ids, string(e))
 	}
+	if evidence == nil {
+		evidence = []EvidenceID{} // serialise as [] rather than null
+	}
 	return Fact{
 		ID:         FactID("fact-" + ShortHash(ids...)),
 		Kind:       kind,

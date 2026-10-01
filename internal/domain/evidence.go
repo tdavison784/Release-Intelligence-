@@ -36,7 +36,7 @@ type Evidence struct {
 	// ContentDigest is the sha256 of the complete retrieved document, so the
 	// exact bytes the conclusion was drawn from can be identified later.
 	ContentDigest string    `json:"contentDigest,omitempty"`
-	RetrievedAt   time.Time `json:"retrievedAt,omitempty"`
+	RetrievedAt   time.Time `json:"retrievedAt,omitzero"`
 }
 
 // MaxExcerpt bounds stored excerpts.
