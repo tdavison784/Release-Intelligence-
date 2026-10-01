@@ -266,12 +266,9 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 	switch {
 	case ex.Type == catalog.ExtractReleaseNoteYAML:
 		parsed = true
-		items, evs, err := p.ParseReleaseNoteYAML(inputs, src.Classify)
-		if err != nil {
-			parseErr = err
-		} else {
-			o.notes, noteEv = items, evs
-		}
+		// The parser skips files that do not parse and returns the items of
+		// the others together with a joined error: keep what it produced.
+		o.notes, noteEv, parseErr = p.ParseReleaseNoteYAML(inputs, src.Classify)
 	case isNotesRole(src) && !isTableExtract(ex.Type):
 		parsed = true
 		for _, in := range inputs {
@@ -299,14 +296,41 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 		Producer, attrs(factAttrs...), evidenceIDs(docEv)...))
 	o.facts = append(o.facts, compatFacts(r.subject, r.v.Semver, o.compat)...)
 
-	if parseErr != nil {
+	if parseErr != nil && len(o.notes) == 0 {
 		return set(domain.SourcePartial, fmt.Sprintf("%s retrieved, but parsing failed: %v", extract, parseErr))
 	}
 	detail := extract
 	if parsed {
 		detail += fmt.Sprintf("; %d note items", len(o.notes))
 	}
+	if parseErr != nil {
+		// Some files parsed, others did not: the items are kept and the
+		// source counts as ok (it satisfies its fallback group); the files
+		// that failed are named in the detail.
+		failed := splitErrors(parseErr)
+		noun := "files"
+		if len(failed) == 1 {
+			noun = "file"
+		}
+		detail += fmt.Sprintf("; %d %s failed to parse: %s", len(failed), noun, strings.Join(failed, "; "))
+	}
 	return set(domain.SourceOK, detail)
+}
+
+// splitErrors returns the messages of the errors joined in err (one for a
+// plain error), each collapsed to a single line.
+func splitErrors(err error) []string {
+	var errs []error
+	if j, ok := err.(interface{ Unwrap() []error }); ok {
+		errs = j.Unwrap()
+	} else {
+		errs = []error{err}
+	}
+	out := make([]string, 0, len(errs))
+	for _, e := range errs {
+		out = append(out, strings.Join(strings.Fields(e.Error()), " "))
+	}
+	return out
 }
 
 func tableSelector(ex catalog.Extract, rc catalog.RenderContext) (normalize.TableSelector, string, error) {

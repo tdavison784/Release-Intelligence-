@@ -145,6 +145,75 @@ func TestRenderEveryChangeShowsProvenanceAndEvidence(t *testing.T) {
 	}
 }
 
+func TestRenderHidesDependencyNotesWithoutVerbose(t *testing.T) {
+	e := mustBuild(t, argoInput(t))
+	const note = "Dex was upgraded to v2.43.0"
+	const diff = "Third-party image `ghcr.io/dexidp/dex`: v2.41.1 → v2.43.0"
+	plain := string(render(t, e, RenderOptions{MaxPerSection: -1}))
+	if strings.Contains(plain, note) || strings.Contains(plain, "Helm was upgraded to 3.18.4") {
+		t.Errorf("dependency release notes must be hidden without Verbose:\n%s", plain)
+	}
+	if !strings.Contains(plain, "2 dependency updates") || !strings.Contains(plain, "not shown; use verbose output") {
+		t.Errorf("expected a count hint for the hidden dependency notes:\n%s", plain)
+	}
+	if !strings.Contains(plain, diff) || !strings.Contains(plain, "Image & dependency changes") {
+		t.Errorf("computed image diffs must stay visible:\n%s", plain)
+	}
+	verbose := string(render(t, e, RenderOptions{Verbose: true, MaxPerSection: -1}))
+	if !strings.Contains(verbose, note) || strings.Contains(verbose, "dependency updates") {
+		t.Errorf("verbose output lists the dependency notes and has no hint:\n%s", verbose)
+	}
+
+	// A dependency note that is breaking or needs action is never hidden.
+	from := bare("v1.0.0")
+	to := bare("v1.1.0").
+		note("notes", domain.RoleReleaseNotes, "https://notes", "Dependencies", "Bump the Go toolchain to 1.23", domain.CategoryDependency).
+		note("notes", domain.RoleReleaseNotes, "https://notes", "Dependencies", "Postgres 12 is no longer supported", domain.CategoryDependency, action)
+	out := string(render(t, mustBuild(t, simpleInput(from, to)), RenderOptions{}))
+	if strings.Contains(out, "Bump the Go toolchain") || !strings.Contains(out, "Postgres 12 is no longer supported") || !strings.Contains(out, "1 dependency update ") {
+		t.Errorf("only plain dependency notes are hidden:\n%s", out)
+	}
+}
+
+func TestRenderTruncatesSourceDetail(t *testing.T) {
+	long := "GET https://api.github.com/repos/acme/operator/releases/tags/v1.1.0: HTTP 403 rate limit exceeded\nsecond line of the error body " + strings.Repeat("x", 200)
+	from := bare("v1.0.0")
+	to := bare("v1.1.0").source("gh", "github-releases", domain.SourceUnavailable, long, domain.RoleChangelog)
+	e := mustBuild(t, simpleInput(from, to))
+	out := string(render(t, e, RenderOptions{}))
+	var line string
+	for _, l := range strings.Split(out, "\n") {
+		if strings.Contains(l, "github-releases") {
+			line = l
+		}
+	}
+	const prefix = "unavailable: "
+	i := strings.Index(line, prefix)
+	if line == "" || i < 0 {
+		t.Fatalf("source line missing:\n%s", out)
+	}
+	detail := line[i+len(prefix):]
+	if n := len([]rune(detail)); n > 110 || !strings.HasSuffix(detail, "…") || strings.Contains(detail, "\n") {
+		t.Errorf("detail must be one line of <= 110 characters ending in an ellipsis (%d): %q", n, detail)
+	}
+	if !strings.HasPrefix(detail, "GET https://api.github.com/repos/acme/operator/releases/tags/v1.1.0: HTTP 403 rate limit exceeded second") {
+		t.Errorf("detail keeps the start of the text: %q", detail)
+	}
+	found := false
+	for _, s := range e.Sources {
+		if s.Detail == long {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("the edge keeps the full detail")
+	}
+	// short details are untouched
+	if got := sourceDetail("quay.io blocked (HTTP 403)"); got != "quay.io blocked (HTTP 403)" {
+		t.Errorf("short detail changed: %q", got)
+	}
+}
+
 func TestRenderNilEdge(t *testing.T) {
 	if err := RenderText(&bytes.Buffer{}, nil, RenderOptions{}); err == nil {
 		t.Fatal("expected error for nil edge")

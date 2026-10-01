@@ -19,6 +19,9 @@ func TestCheckedInProducts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	for p, err := range cat.LoadErrors() {
+		t.Errorf("%s did not load: %v", p, err)
+	}
 	if len(cat.List()) == 0 {
 		t.Fatal("no product definitions found")
 	}

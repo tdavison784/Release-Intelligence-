@@ -327,6 +327,93 @@ func TestIngestReleaseReleaseNoteYAMLDirectory(t *testing.T) {
 	}
 }
 
+// yamlFailingParser makes ParseReleaseNoteYAML skip every file containing
+// "BROKEN", like the real parser: the items of the other files are returned
+// together with a joined error.
+type yamlFailingParser struct{ *fakeParser }
+
+func (p yamlFailingParser) ParseReleaseNoteYAML(files []normalize.DocInput, rules []catalog.ClassifyRule) ([]domain.NoteItem, []domain.Evidence, error) {
+	var good []normalize.DocInput
+	var errs []error
+	for _, f := range files {
+		if strings.Contains(string(f.Content), "BROKEN") {
+			errs = append(errs, errors.New(f.URI+": yaml: line 2: did not find expected key"))
+			continue
+		}
+		good = append(good, f)
+	}
+	items, evs, _ := p.fakeParser.ParseReleaseNoteYAML(good, rules)
+	return items, evs, errors.Join(errs...)
+}
+
+// ingestYAMLGroup ingests 1.2.0 with a fallback group "structured" made of a
+// release-note-yaml directory source and a markdown fallback behind it.
+func ingestYAMLGroup(t *testing.T, files map[string]string) *domain.Release {
+	t.Helper()
+	w, def := newWorld(), testDef()
+	ing := newTestIngester(w, yamlFailingParser{&fakeParser{}})
+	vl := mustVersions(t, ing, def)
+	w.dirs["repo-dir:github.com/acme/operator@v1.2.0:releasenotes/notes"] = files
+	def.Sources = append(def.Sources,
+		withFallbackGroup(catalog.Source{ID: "structured-notes", Roles: []domain.SourceRole{domain.RoleReleaseNotes},
+			Locator: catalog.Locator{Kind: catalog.LocatorRepoDir, Repository: "github.com/acme/operator", Path: "releasenotes/notes", Glob: "*.yaml"},
+			Extract: &catalog.Extract{Type: catalog.ExtractReleaseNoteYAML}}, "structured"),
+		withFallbackGroup(catalog.Source{ID: "structured-fallback", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Priority: 1,
+			Locator: catalog.Locator{Kind: catalog.LocatorGitHubReleases, Repository: "acme/operator", Ref: "{{.Tag}}"}}, "structured"))
+	rel, err := ing.IngestRelease(context.Background(), def, version(t, vl, "1.2.0"), vl)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertEvidenceIntegrity(t, rel)
+	return rel
+}
+
+func TestIngestReleaseNoteYAMLPartialKeepsItemsAndSatisfiesGroup(t *testing.T) {
+	rel := ingestYAMLGroup(t, map[string]string{
+		"a.yaml": "kind: bug-fix\nreleaseNotes: A\n",
+		"b.yaml": "BROKEN: [\n",
+		"c.yaml": "kind: feature\nreleaseNotes: C\n",
+	})
+	s := statusOf(t, rel, "structured-notes")
+	if s.State != domain.SourceOK || !strings.Contains(s.Detail, "3 files; 2 note items") ||
+		!strings.Contains(s.Detail, "1 file failed to parse") || !strings.Contains(s.Detail, "b.yaml") || strings.Contains(s.Detail, "a.yaml") {
+		t.Fatalf("structured-notes: %+v", s)
+	}
+	if strings.Contains(s.Detail, "\n") {
+		t.Errorf("detail must be one line: %q", s.Detail)
+	}
+	var texts []string
+	for _, n := range rel.Notes {
+		if n.SourceID == "structured-notes" {
+			texts = append(texts, n.Text)
+		}
+	}
+	if strings.Join(texts, ",") != "kind: bug-fix,kind: feature" {
+		t.Fatalf("items of the files that parsed must be kept: %v", texts)
+	}
+	// The group is satisfied, so the fallback is not consulted.
+	if fb := statusOf(t, rel, "structured-fallback"); fb.State != domain.SourceSkipped || !strings.Contains(fb.Detail, "satisfied by structured-notes") {
+		t.Fatalf("structured-fallback: %+v", fb)
+	}
+}
+
+func TestIngestReleaseNoteYAMLAllFilesBrokenIsPartial(t *testing.T) {
+	rel := ingestYAMLGroup(t, map[string]string{"a.yaml": "BROKEN: [\n", "b.yaml": "BROKEN: {\n"})
+	s := statusOf(t, rel, "structured-notes")
+	if s.State != domain.SourcePartial || !strings.Contains(s.Detail, "parsing failed") || !strings.Contains(s.Detail, "a.yaml") {
+		t.Fatalf("structured-notes: %+v", s)
+	}
+	for _, n := range rel.Notes {
+		if n.SourceID == "structured-notes" {
+			t.Fatalf("no items expected: %+v", n)
+		}
+	}
+	// Not satisfied: the fallback is consulted.
+	if fb := statusOf(t, rel, "structured-fallback"); fb.State == domain.SourceSkipped {
+		t.Fatalf("fallback must be consulted: %+v", fb)
+	}
+}
+
 func TestIngestReleaseDeterministic(t *testing.T) {
 	encode := func(concurrency int) []byte {
 		w, def := newWorld(), testDef()

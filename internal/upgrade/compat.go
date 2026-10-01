@@ -303,16 +303,35 @@ func compatLabel(platform, kind string) string {
 	return p + " " + kind
 }
 
-func verifyHint(platform, kind, versions string) string {
-	word := "supported"
-	if kind == "tested" {
-		word = "tested"
+// kindLabel names a constraint kind for display.
+func kindLabel(kind string) string {
+	if kind == "chart-kubeVersion" {
+		return "chart kubeVersion"
+	}
+	return kind
+}
+
+// informationalKind reports whether a kind is only informative. Tested lists
+// say what the project's CI covers, not what it supports, so a change in them
+// is shown but never requires action. "supported" and "minimum" are the
+// support promises; "chart-kubeVersion" is a hard install guard (Helm refuses
+// to install the chart), so a change there can break the upgrade.
+func informationalKind(kind string) bool { return kind == "tested" }
+
+// compatHint tells the reader what to do about (or how to read) a change of
+// the given kind.
+func compatHint(platform, kind, versions string) string {
+	switch kind {
+	case "tested":
+		return fmt.Sprintf("Informational: the project tests this release on %s %s; other versions may work but are not covered by its testing.", PlatformName(platform), versions)
+	case "chart-kubeVersion":
+		return fmt.Sprintf("Helm refuses to install the chart on a cluster outside its kubeVersion constraint (%s). Verify the cluster satisfies it before upgrading.", versions)
 	}
 	switch strings.ToLower(platform) {
 	case "kubernetes", "k8s", "openshift":
-		return fmt.Sprintf("Verify the cluster runs a %s %s version (%s) before upgrading.", word, PlatformName(platform), versions)
+		return fmt.Sprintf("Verify the cluster runs a supported %s version (%s) before upgrading.", PlatformName(platform), versions)
 	}
-	return fmt.Sprintf("Verify you use a %s %s version (%s) before upgrading.", word, PlatformName(platform), versions)
+	return fmt.Sprintf("Verify you use a supported %s version (%s) before upgrading.", PlatformName(platform), versions)
 }
 
 // compatChanges compares constraints of From and To per (platform, kind).
@@ -390,19 +409,34 @@ func (b *builder) compatChanges() {
 		}
 		label := compatLabel(k.platform, k.kind)
 		subject := k.platform + "/" + k.kind
+		action := !informationalKind(k.kind)
 		switch {
 		case t == nil:
-			b.warnf("No %s (%s) compatibility data for target %s (was %s for %s)", PlatformName(k.platform), k.kind, toTag, r.fromDisp, fromTag)
+			// A chart that declares no kubeVersion for the target (or whose
+			// chart is optional or absent for this release) is a normal
+			// state, not a gap in the data: the summary says "not stated".
+			if k.kind != "chart-kubeVersion" {
+				b.warnf("No %s (%s) compatibility data for target %s (was %s for %s)", PlatformName(k.platform), k.kind, toTag, r.fromDisp, fromTag)
+			}
 		case f == nil:
-			title := fmt.Sprintf("%s requires %s %s (%s)", toTag, PlatformName(k.platform), r.toDisp, k.kind)
-			if k.kind == "tested" {
+			title := fmt.Sprintf("%s requires %s %s (%s)", toTag, PlatformName(k.platform), r.toDisp, kindLabel(k.kind))
+			detail := fmt.Sprintf("No %s constraint was stated for %s, so it is unknown whether support narrowed. %s", kindLabel(k.kind), fromTag, compatHint(k.platform, k.kind, r.toDisp))
+			switch k.kind {
+			case "tested":
 				title = fmt.Sprintf("%s is tested on %s %s", toTag, PlatformName(k.platform), r.toDisp)
+				detail = fmt.Sprintf("No tested versions were stated for %s, so it is unknown how the tested list changed. %s", fromTag, compatHint(k.platform, k.kind, r.toDisp))
+			case "chart-kubeVersion":
+				// Newly declared (or the chart is new): an install guard to
+				// know about, not a regression.
+				action = false
+				title = fmt.Sprintf("%s chart requires %s %s (chart kubeVersion)", toTag, PlatformName(k.platform), r.toDisp)
+				detail = fmt.Sprintf("The chart declared no kubeVersion for %s. %s", fromTag, compatHint(k.platform, k.kind, r.toDisp))
 			}
 			b.addChange(domain.Change{
 				Category:       domain.CategoryCompatibility,
-				ActionRequired: k.kind != "tested",
+				ActionRequired: action,
 				Title:          title,
-				Detail:         fmt.Sprintf("No %s constraint was stated for %s, so it is unknown whether support narrowed. %s", k.kind, fromTag, verifyHint(k.platform, k.kind, r.toDisp)),
+				Detail:         detail,
 				Subjects:       []string{subject},
 				Provenance:     computed(RuleCompatTargetOnly),
 				Evidence:       ev,
@@ -413,9 +447,9 @@ func (b *builder) compatChanges() {
 			p.Confidence = domain.ConfidenceMedium
 			b.addChange(domain.Change{
 				Category:       domain.CategoryCompatibility,
-				ActionRequired: true,
+				ActionRequired: action,
 				Title:          fmt.Sprintf("%s changed: %s → %s", label, r.fromDisp, r.toDisp),
-				Detail:         "The ranges could not be compared automatically. " + verifyHint(k.platform, k.kind, r.toDisp),
+				Detail:         "The ranges could not be compared automatically. " + compatHint(k.platform, k.kind, r.toDisp),
 				Subjects:       []string{subject},
 				Provenance:     p,
 				Evidence:       ev,
@@ -423,9 +457,9 @@ func (b *builder) compatChanges() {
 		case r.narrowed:
 			b.addChange(domain.Change{
 				Category:       domain.CategoryCompatibility,
-				ActionRequired: true,
+				ActionRequired: action,
 				Title:          fmt.Sprintf("%s narrowed: %s → %s (drops %s)", label, r.fromDisp, r.toDisp, r.drops),
-				Detail:         verifyHint(k.platform, k.kind, r.toDisp),
+				Detail:         compatHint(k.platform, k.kind, r.toDisp),
 				Subjects:       []string{subject},
 				Provenance:     computed(RuleCompatNarrowed),
 				Evidence:       ev,

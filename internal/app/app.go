@@ -57,6 +57,12 @@ func New(cfg Config) (*App, error) {
 	if err != nil {
 		return nil, fmt.Errorf("load product definitions: %w", err)
 	}
+	// A malformed product file does not stop the others from loading; it is
+	// logged here and named by Product when its id is requested.
+	loadErrs := cat.LoadErrors()
+	for _, p := range cat.LoadErrorPaths() {
+		cfg.Logf("product definition %s was not loaded: %v", p, loadErrs[p])
+	}
 	mode := fetch.ModeOnline
 	switch {
 	case cfg.Offline:
@@ -90,7 +96,15 @@ func (a *App) Product(id string) (*catalog.ProductDefinition, error) {
 		for _, p := range a.Catalog.List() {
 			ids = append(ids, p.ID)
 		}
-		return nil, fmt.Errorf("unknown product %q (known: %s)", id, strings.Join(ids, ", "))
+		msg := fmt.Sprintf("unknown product %q (known: %s)", id, strings.Join(ids, ", "))
+		if errs := a.Catalog.LoadErrors(); len(errs) > 0 {
+			var failed []string
+			for _, p := range a.Catalog.LoadErrorPaths() {
+				failed = append(failed, fmt.Sprintf("%s: %v", p, errs[p]))
+			}
+			msg += fmt.Sprintf("; %d product file(s) failed to load, one of them may define it: %s", len(failed), strings.Join(failed, "; "))
+		}
+		return nil, errors.New(msg)
 	}
 	if rep := catalog.Validate(d); !rep.OK() {
 		return nil, fmt.Errorf("product definition %s is invalid: %v", d.Path(), rep.Errors())

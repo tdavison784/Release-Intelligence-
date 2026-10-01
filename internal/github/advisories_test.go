@@ -251,6 +251,38 @@ func TestListAdvisories(t *testing.T) {
 	}
 }
 
+// One range that cannot be converted must not leave the others behind as if
+// they were the whole story: Vulnerable stays empty and the raw ranges stay in
+// the evidence.
+func TestConvertAdvisoryPartiallyConvertibleRangesLeaveVulnerableEmpty(t *testing.T) {
+	var ga advisory
+	ga.GHSAID, ga.Summary, ga.Severity = "GHSA-pppp-aaaa-rrrr", "Partly described", "high"
+	for _, r := range []string{">= 1.0.0, < 1.17.2", "some builds of 1.x"} {
+		ga.Vulnerabilities = append(ga.Vulnerabilities, struct {
+			VulnerableVersionRange string `json:"vulnerable_version_range"`
+			PatchedVersions        string `json:"patched_versions"`
+		}{r, "1.17.2"})
+	}
+	adv, ev := convertAdvisory("example", "project", ga, []byte(`{}`), time.Time{})
+	if adv.Vulnerable != "" {
+		t.Errorf("Vulnerable = %q, want empty when any range is unconvertible", adv.Vulnerable)
+	}
+	for _, want := range []string{">= 1.0.0, < 1.17.2", "some builds of 1.x", "patched: 1.17.2"} {
+		if !strings.Contains(ev.Excerpt, want) {
+			t.Errorf("evidence excerpt %q must keep %q", ev.Excerpt, want)
+		}
+	}
+	if strings.Join(adv.Patched, ",") != "1.17.2" || len(adv.Evidence) != 1 || adv.Evidence[0] != ev.ID {
+		t.Errorf("patched and evidence are unaffected: %+v", adv)
+	}
+
+	// All ranges convertible: unchanged behaviour.
+	ga.Vulnerabilities = ga.Vulnerabilities[:1]
+	if adv, _ := convertAdvisory("example", "project", ga, []byte(`{}`), time.Time{}); adv.Vulnerable != ">= 1.0.0, < 1.17.2" {
+		t.Errorf("Vulnerable = %q", adv.Vulnerable)
+	}
+}
+
 func TestListAdvisoriesEvidence(t *testing.T) {
 	api := advisoriesAPI(t)
 	c, _ := newClient(t, api, t.TempDir(), "", fetch.ModeOnline)

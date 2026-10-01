@@ -152,6 +152,13 @@ func (v Version) Equal(o Version) bool { return v.Compare(o) == 0 }
 
 // Satisfies reports whether v satisfies a semver constraint such as ">= 1.6.0".
 // An empty constraint is always satisfied.
+//
+// A prerelease version is evaluated as its release version: 1.21.0-alpha.1
+// satisfies ">= 1.21.0" and does not satisfy "< 1.21.0". (Plain semver
+// constraint checking never matches a prerelease against a constraint that
+// has no prerelease part, so ">= 1.5.0" would exclude 1.19.0-alpha.0.) This
+// is what availability constraints need: a prerelease of a release belongs to
+// the same generation as the release itself.
 func (v Version) Satisfies(constraint string) (bool, error) {
 	if strings.TrimSpace(constraint) == "" {
 		return true, nil
@@ -163,6 +170,9 @@ func (v Version) Satisfies(constraint string) (bool, error) {
 	sv := v.parsed()
 	if sv == nil {
 		return false, fmt.Errorf("version %q is not semver", v.Semver)
+	}
+	if sv.Prerelease() != "" || sv.Metadata() != "" {
+		sv = semver.New(sv.Major(), sv.Minor(), sv.Patch(), "", "")
 	}
 	return c.Check(sv), nil
 }

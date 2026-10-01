@@ -25,6 +25,36 @@ func TestVersionParse(t *testing.T) {
 	}
 }
 
+func TestSatisfiesTreatsPrereleaseAsItsRelease(t *testing.T) {
+	p := VersionParser{Pattern: DefaultTagPattern("v")}
+	tests := []struct {
+		tag, constraint string
+		want            bool
+	}{
+		{"v1.19.0-alpha.0", ">= 1.5.0", true},
+		{"v1.21.0-alpha.1", ">= 1.21.0", true},
+		{"v1.21.0-alpha.1", "< 1.21.0", false},
+		{"v1.21.0-rc.2", "< 1.22.0", true},
+		{"v1.21.0-rc.2", ">= 1.22.0", false},
+		{"v1.21.0-rc.2", "", true},
+		{"v1.20.3", ">= 1.21.0", false},
+		{"v1.21.0", ">= 1.21.0", true},
+	}
+	for _, tt := range tests {
+		v, err := p.Parse(tt.tag)
+		if err != nil {
+			t.Fatal(err)
+		}
+		got, err := v.Satisfies(tt.constraint)
+		if err != nil || got != tt.want {
+			t.Errorf("%s satisfies %q = %v, %v; want %v", tt.tag, tt.constraint, got, err, tt.want)
+		}
+	}
+	if _, err := MustVersion("v1.0.0-rc.1", "1.0.0-rc.1").Satisfies("not a constraint"); err == nil {
+		t.Error("invalid constraint must still fail")
+	}
+}
+
 func TestEdgeValidate(t *testing.T) {
 	ev := NewEvidence(EvidenceDocument, "notes", "https://example/notes.md", "L1-L2", "text", "", time.Now())
 	e := &UpgradeEdge{

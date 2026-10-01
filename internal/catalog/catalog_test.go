@@ -87,6 +87,32 @@ func TestRenderContextPrevLine(t *testing.T) {
 	}
 }
 
+// The first release of a product has no previous line: it must not be
+// invented when the known versions are given.
+func TestRenderContextFirstReleaseHasNoPrevLine(t *testing.T) {
+	known := []domain.Version{
+		domain.MustVersion("v0.3.0", "0.3.0"),
+		domain.MustVersion("v0.3.1", "0.3.1"),
+		domain.MustVersion("v0.4.0", "0.4.0"),
+	}
+	first := NewRenderContext("x", known[0], known)
+	if first.PrevLine != "" || first.PrevMajor != 0 || first.PrevMinor != 0 || first.PrevTag != "" || first.PrevVersion != "" {
+		t.Fatalf("first release must have empty Prev* fields: %+v", first)
+	}
+	// a patch of the first line still has its previous patch
+	if p := NewRenderContext("x", known[1], known); p.PrevLine != "" || p.PrevTag != "v0.3.0" {
+		t.Fatalf("patch of the first line: line=%q tag=%q", p.PrevLine, p.PrevTag)
+	}
+	// later lines are unaffected
+	if next := NewRenderContext("x", known[2], known); next.PrevLine != "0.3" || next.PrevTag != "v0.3.0" {
+		t.Fatalf("second line: %+v", next)
+	}
+	// without any list the fallback to Minor-1 remains
+	if fb := NewRenderContext("x", known[0], nil); fb.PrevLine != "0.2" || fb.PrevTag != "v0.2.0" {
+		t.Fatalf("fallback without known versions: %+v", fb)
+	}
+}
+
 func TestAppliesTo(t *testing.T) {
 	v := domain.MustVersion("v1.18.2", "1.18.2")
 	ok, _ := AppliesTo(v, ">= 1.15.0", []string{"minor"})
@@ -100,5 +126,19 @@ func TestAppliesTo(t *testing.T) {
 	ok, _ = AppliesTo(domain.MustVersion("v2.0.0", "2.0.0"), "", []string{"major"})
 	if !ok {
 		t.Fatal("major release should match")
+	}
+}
+
+func TestAppliesToPrereleaseUsesReleaseVersion(t *testing.T) {
+	alpha := domain.MustVersion("v1.19.0-alpha.0", "1.19.0-alpha.0")
+	if ok, err := AppliesTo(alpha, ">= 1.5.0", nil); err != nil || !ok {
+		t.Fatalf("1.19.0-alpha.0 must satisfy >= 1.5.0: %v %v", ok, err)
+	}
+	pre := domain.MustVersion("v1.21.0-alpha.1", "1.21.0-alpha.1")
+	if ok, _ := AppliesTo(pre, ">= 1.21.0", nil); !ok {
+		t.Error("1.21.0-alpha.1 must satisfy >= 1.21.0")
+	}
+	if ok, _ := AppliesTo(pre, "< 1.21.0", nil); ok {
+		t.Error("1.21.0-alpha.1 must not satisfy < 1.21.0")
 	}
 }

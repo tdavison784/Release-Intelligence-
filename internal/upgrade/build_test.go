@@ -644,6 +644,110 @@ func TestCompatibilityChanges(t *testing.T) {
 	}
 }
 
+// Tested lists say what the project's CI covers, not what it supports: a
+// narrowed (or uncomparable) tested list is shown but never requires action,
+// while the same change of the supported list does.
+func TestTestedNarrowingIsInformational(t *testing.T) {
+	from := bare("v1.0.0").
+		compat("kubernetes", "tested", "", "1.29, 1.30, 1.31", "https://c", "1.29", "1.30", "1.31").
+		compat("kubernetes", "supported", ">=1.29.0-0 <=1.31.x", "1.29 → 1.31", "https://c")
+	to := bare("v1.1.0").
+		compat("kubernetes", "tested", "", "1.30, 1.31, 1.32", "https://c", "1.30", "1.31", "1.32").
+		compat("kubernetes", "supported", ">=1.30.0-0 <=1.32.x", "1.30 → 1.32", "https://c")
+	e := mustBuild(t, simpleInput(from, to))
+
+	tested := findTitle(e, "Kubernetes tested versions narrowed")
+	if tested == nil {
+		t.Fatalf("narrowed tested list must stay visible as a change: %+v", e.Changes)
+	}
+	if tested.ActionRequired || tested.Breaking || tested.Category != domain.CategoryCompatibility || tested.Provenance.Rule != RuleCompatNarrowed {
+		t.Errorf("tested narrowing must not require action: %+v", tested)
+	}
+	if want := "Informational: the project tests this release on Kubernetes 1.30–1.32; other versions may work but are not covered by its testing."; tested.Detail != want {
+		t.Errorf("detail = %q, want %q", tested.Detail, want)
+	}
+	if strings.Contains(tested.Detail, "Verify") {
+		t.Errorf("tested hint must not ask for verification: %q", tested.Detail)
+	}
+	if sup := findTitle(e, "Kubernetes support narrowed"); sup == nil || !sup.ActionRequired {
+		t.Errorf("supported narrowing is action required: %+v", sup)
+	}
+	var narrowed bool
+	for _, cc := range e.Compatibility {
+		if cc.To != nil && cc.To.Kind == "tested" {
+			narrowed = cc.Narrowed
+		}
+	}
+	if !narrowed {
+		t.Error("the compatibility summary still records that the tested list narrowed")
+	}
+
+	// Uncomparable tested lists are informational as well.
+	from = bare("v1.0.0").compat("kubernetes", "tested", "", "see matrix", "https://c")
+	to = bare("v1.1.0").compat("kubernetes", "tested", "", "see the new matrix", "https://c")
+	e = mustBuild(t, simpleInput(from, to))
+	if c := findTitle(e, "Kubernetes tested versions changed"); c == nil || c.ActionRequired {
+		t.Errorf("uncomparable tested change: %+v", c)
+	}
+}
+
+// Chart kubeVersion is a hard install guard of the chart (kind
+// "chart-kubeVersion"), separate from the "minimum" support statement.
+func TestChartKubeVersionConstraints(t *testing.T) {
+	const kv = "chart-kubeVersion"
+	// Narrowing the guard can break the Helm upgrade: action required, and
+	// labelled as a chart kubeVersion rather than the support matrix.
+	from := bare("v1.0.0").compat("kubernetes", kv, ">=1.22.0-0", ">= 1.22.0-0", "https://chart")
+	to := bare("v1.1.0").compat("kubernetes", kv, ">=1.25.0-0", ">= 1.25.0-0", "https://chart")
+	e := mustBuild(t, simpleInput(from, to))
+	c := findTitle(e, "Kubernetes chart kubeVersion narrowed: ≥ 1.22 → ≥ 1.25")
+	if c == nil || !c.ActionRequired || !strings.Contains(c.Detail, "Helm refuses to install the chart") || strings.Contains(c.Detail, "supported") {
+		t.Fatalf("chart kubeVersion narrowing: %+v", c)
+	}
+	out := string(render(t, e, RenderOptions{}))
+	if !strings.Contains(out, "  chart kubeVersion: ≥ 1.22 → ≥ 1.25") || strings.Contains(out, "chart-kubeVersion:") {
+		t.Errorf("renderer must label the kind clearly:\n%s", out)
+	}
+
+	// Absent on the target (an optional chart missing for this release, or no
+	// kubeVersion declared): no warning about missing data, no change.
+	e = mustBuild(t, simpleInput(
+		bare("v1.0.0").compat("kubernetes", kv, ">=1.22.0-0", ">= 1.22.0-0", "https://chart"),
+		bare("v1.1.0")))
+	for _, w := range e.Warnings {
+		if strings.Contains(w, "chart-kubeVersion") || strings.Contains(w, "compatibility data") {
+			t.Errorf("misleading warning for an absent chart kubeVersion: %q", w)
+		}
+	}
+	if len(e.Compatibility) != 1 || !strings.Contains(e.Compatibility[0].Summary, "not stated for v1.1.0") {
+		t.Errorf("the summary still says it is not stated: %+v", e.Compatibility)
+	}
+	if findChanges(e, RuleCompatNarrowed) != nil || findChanges(e, RuleCompatChangedRaw) != nil {
+		t.Errorf("no change expected when the target has no chart kubeVersion: %+v", e.Changes)
+	}
+
+	// Present only on the target (new chart, or a newly declared guard):
+	// informational.
+	e = mustBuild(t, simpleInput(
+		bare("v1.0.0"),
+		bare("v1.1.0").compat("kubernetes", kv, ">=1.25.0-0", ">= 1.25.0-0", "https://chart")))
+	c = findTitle(e, "v1.1.0 chart requires Kubernetes ≥ 1.25 (chart kubeVersion)")
+	if c == nil || c.ActionRequired || c.Provenance.Rule != RuleCompatTargetOnly {
+		t.Errorf("target-only chart kubeVersion: %+v", c)
+	}
+	if hasWarning(e, "compatibility data") {
+		t.Errorf("unexpected warning: %v", e.Warnings)
+	}
+
+	// The same kind in the support matrix still warns when the target has no data.
+	e = mustBuild(t, simpleInput(
+		bare("v1.0.0").compat("kubernetes", "supported", ">=1.29.0-0 <=1.32.x", "1.29 → 1.32", "https://c"),
+		bare("v1.1.0")))
+	if !hasWarning(e, "No Kubernetes (supported) compatibility data for target v1.1.0") {
+		t.Errorf("supported must keep warning: %v", e.Warnings)
+	}
+}
+
 // ---------------------------------------------------------------- advisories
 
 func TestAdvisories(t *testing.T) {
