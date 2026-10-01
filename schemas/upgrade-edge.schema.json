@@ -138,6 +138,14 @@
           "items": {"$ref": "#/$defs/EvidenceID"},
           "minItems": 1,
           "description": "Ids of the Evidence records that support the change; at least one, each resolving within the edge's `evidence`."
+        },
+        "routine": {
+          "type": "boolean",
+          "description": "True for release-note maintenance churn (dependency bumps, UI-only work, CI/docs/test/build noise, metric renames) found by the deterministic routine detector. Routine changes are never breaking, security-relevant or directive; they stay in `changes` with their evidence, but are kept out of the default upgrade narrative and summarised in `routine`. Omitted when false."
+        },
+        "routineKind": {
+          "type": "string",
+          "description": "Why the change is routine: dependency (version bumps), ui, housekeeping (CI/docs/test/build churn) or metrics (renames/deprecations). Set only when routine is true."
         }
       },
       "additionalProperties": false
@@ -503,6 +511,24 @@
         "registry-manifest"
       ]
     },
+    "RoutineSummary": {
+      "type": "object",
+      "description": "Count and breakdown of the routine-maintenance changes of an edge.",
+      "required": ["count", "summary"],
+      "properties": {
+        "count": {"type": "integer"},
+        "byKind": {
+          "type": "object",
+          "additionalProperties": {"type": "integer"},
+          "description": "Routine changes per kind (dependency, ui, housekeeping, metrics)."
+        },
+        "summary": {
+          "type": "string",
+          "description": "Human-readable breakdown, e.g. \"27 dependency bumps, 14 UI/docs/CI churn\"."
+        }
+      },
+      "additionalProperties": false
+    },
     "SourceRole": {
       "type": "string",
       "enum": ["versions", "release-notes", "changelog", "upgrade-guide", "compatibility", "security"]
@@ -582,6 +608,10 @@
           "type": "array",
           "items": {"$ref": "#/$defs/Change"},
           "description": "Deterministic conclusions (declared, computed or heuristic), most important first. Never AI-derived."
+        },
+        "routine": {
+          "$ref": "#/$defs/RoutineSummary",
+          "description": "Summary of the routine-maintenance changes (Changes with routine set): the count and breakdown a brief shows instead of the items. Absent when nothing classifies routine."
         },
         "compatibility": {"type": "array", "items": {"$ref": "#/$defs/CompatibilityChange"}},
         "artifacts": {"type": "array", "items": {"$ref": "#/$defs/ArtifactChange"}},

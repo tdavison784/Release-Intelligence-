@@ -48,6 +48,29 @@ type Change struct {
 	Provenance     Provenance   `json:"provenance"`
 	Facts          []FactID     `json:"facts,omitempty"`
 	Evidence       []EvidenceID `json:"evidence"`
+	// Routine marks release-note maintenance churn (dependency bumps, UI-only
+	// work, CI/docs/test/build noise, metric renames) found by the deterministic
+	// detector in internal/upgrade. Routine changes are never breaking,
+	// security-relevant or directive; they stay in the edge (the facts remain
+	// available) but are kept out of the default upgrade narrative and
+	// summarised in UpgradeEdge.Routine.
+	Routine bool `json:"routine,omitempty"`
+	// RoutineKind names why the change is routine (dependency, ui,
+	// housekeeping, metrics); set only when Routine is true.
+	RoutineKind string `json:"routineKind,omitempty"`
+}
+
+// RoutineSummary aggregates the routine-maintenance changes of an edge. The
+// changes themselves remain in Changes with Routine set; this is the count +
+// breakdown the brief shows instead of the items.
+type RoutineSummary struct {
+	Count int `json:"count"`
+	// ByKind counts the routine changes per kind (dependency, ui,
+	// housekeeping, metrics).
+	ByKind map[string]int `json:"byKind,omitempty"`
+	// Summary is the human-readable breakdown ("27 dependency bumps, 14
+	// UI/docs/CI churn").
+	Summary string `json:"summary"`
 }
 
 // ChangeType for artifact deltas.
@@ -104,8 +127,12 @@ type UpgradeEdge struct {
 	// traversed (e.g. backport patches on intermediate lines).
 	SkippedReleases []Version `json:"skippedReleases,omitempty"`
 
-	Sources       []SourceStatus        `json:"sources"`
-	Changes       []Change              `json:"changes"`
+	Sources []SourceStatus `json:"sources"`
+	Changes []Change       `json:"changes"`
+	// Routine summarises the routine-maintenance changes (Changes with Routine
+	// set): the count and breakdown the brief shows instead of the items.
+	// Absent when nothing classifies routine.
+	Routine       *RoutineSummary       `json:"routine,omitempty"`
 	Compatibility []CompatibilityChange `json:"compatibility,omitempty"`
 	Artifacts     []ArtifactChange      `json:"artifacts,omitempty"`
 	Enrichments   []Enrichment          `json:"enrichments,omitempty"`

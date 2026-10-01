@@ -121,6 +121,9 @@ func (b *builder) noteChanges() {
 				c.References = append(c.References, ref)
 			}
 		}
+		if routine, kind := ClassifyRoutine(c); routine {
+			c.Routine, c.RoutineKind = true, kind
+		}
 		b.addChange(c, "note", g.key)
 	}
 	if invalid > 0 {

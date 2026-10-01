@@ -1,0 +1,1579 @@
+{
+ "caseId": "cert-manager-1.17-1.18",
+ "recordedFrom": "cert-manager/edges/1.17.0_1.18.0.json (stored eval run of 2026-10-01, commit 0cf815f)",
+ "changes": [
+  {
+   "id": "chg-a726b336f865",
+   "category": "migration",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. > 📖 Read Release 1.18 notes for more information.",
+   "detail": "",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c2b61b098891",
+   "category": "migration",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information.",
+   "detail": "",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e4f5f001ae5f",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.…",
+   "detail": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`. This security feature ensures that the challenge path (which is an exact path) is not misinterpreted as a regular expression or some other Ingress-specific (`ImplementationSpecific`) parsing. This allows HTTP01 challenges to be solved when using standards compliant Ingress controllers such as Cilium. This change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controller. Versions of `ingress-nginx >=1.8.0` support a `strict-validate-path-type` configuration option which, when enabled, disallows `.` (dot) in the path value. This is a bug which makes it impossible to use various legitimate URL paths, including the `http://<YOUR_DOMAIN>/.well-known/acme-challenge/<TOKEN>` URLs used for ACME HTTP01. To make matters worse, the buggy validation is enabled by default in `ingress-nginx >= 1.12.0`. You will see errors like this in the cert-manager controller logs: Error presenting challenge: admission webhook `validate.nginx.ingress.kubernetes.io` denied the request: ingress contains invalid…",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "kubernetes/ingress-nginx#11176"
+    },
+    {
+     "type": "pull-request",
+     "id": "kubernetes/ingress-nginx#11819"
+    },
+    {
+     "type": "commit",
+     "id": "618aae1"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0e1cdbe373a9",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPo…",
+   "detail": "The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. Why? Because the old default was unintuitive and insecure. For example, if a private key is exposed, users may (reasonably) assume that re-issuing a certificate (e.g. using `cmctl renew`) will generate a new private key, but it won't unless the user has explicitly set `rotationPolicy: Always` on the Certificate resource. This change is feature gated and is enabled by default, because it has been fast-tracked to beta status. Users who want to preserve the old default have two options: - Explicitly set `rotationPolicy: Never` on your Certificate resources. - Turn off the feature gate in this release and explicitly set `rotationPolicy: Never` on your Certificates before release 1.19. In release 1.19, the feature will be marked as GA and it will no longer be possible to turn off the feature. The following Helm chart values can be used to turn off the feature gate: ℹ️ The old default value `Never` was always intended to be changed before API `v1`, as can be seen in the description of the…",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#2814"
+    },
+    {
+     "type": "issue",
+     "id": "cert-manager/cert-manager#7601"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a3c2e0538ac2",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`: The default value for the `Certificate` resource's `revisionHistoryLimit` field is now…",
+   "detail": "The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`: The default value for the `Certificate` resource's `revisionHistoryLimit` field is now set to 1. This ensures that old `CertificateRequest` revisions are automatically garbage collected, improving resource management and reducing clutter in clusters. Previously, if not specified, no limit was applied, potentially leading to an accumulation of stale `CertificateRequest` resources. With this update, users no longer need to manually configure the revision history limit to benefit from automated cleanup. When you upgrade to cert-manager 1.18, all stale `CertificateRequest` resources will be garbage collected, unless you explicitly set the `revisionHistoryLimit` value on your `Certificate` resources.",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-90b6ce066ba9",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-8rvj-mm4h-c258 (CVE-2026-62290) affects target v1.18.0: Direct ACME Challenge resources can bypass Issuer DNS01 solver policy and use ClusterIssuer DNS…",
+   "detail": "Severity: high. Affected versions: >= 1.18.0, <= 1.20.2. Patched: 1.19.6, 1.20.3. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-8rvj-mm4h-c258"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-8rvj-mm4h-c258"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2026-62290"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-5fb4b939f1c4",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Remove deprecated feature gate `ValidateCAA`. Setting this feature gate is now a no-op which does nothing but print a warning log line",
+   "detail": "Remove deprecated feature gate `ValidateCAA`. Setting this feature gate is now a no-op which does nothing but print a warning log line (`#7553`, `@SgtCoDFish`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7553"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7553"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-644b13d0eb78",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Certificate v1 schema: 1 field added: `spec.signatureAlgorithm`",
+   "detail": "New paths in the cert-manager.io/v1 schema of certificates.cert-manager.io:\nspec.signatureAlgorithm",
+   "release": "",
+   "subjects": [
+    "spec.signatureAlgorithm"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-20e84ac6af3b",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ClusterIssuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`",
+   "detail": "New paths in the cert-manager.io/v1 schema of clusterissuers.cert-manager.io:\nspec.acme.profile\nspec.vault.serverName",
+   "release": "",
+   "subjects": [
+    "spec.acme.profile",
+    "spec.vault.serverName"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-8d5050bf3851",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Issuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`",
+   "detail": "New paths in the cert-manager.io/v1 schema of issuers.cert-manager.io:\nspec.acme.profile\nspec.vault.serverName",
+   "release": "",
+   "subjects": [
+    "spec.acme.profile",
+    "spec.vault.serverName"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-f20b516e3351",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Order v1 schema: 1 field added: `spec.profile`",
+   "detail": "New paths in the acme.cert-manager.io/v1 schema of orders.acme.cert-manager.io:\nspec.profile",
+   "release": "",
+   "subjects": [
+    "spec.profile"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-917796919822",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `prometheus.servicemonitor.targetPort` changed: 9402 → \"http-metrics\"",
+   "detail": "9402 → \"http-metrics\"",
+   "release": "",
+   "subjects": [
+    "prometheus.servicemonitor.targetPort"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-0d81e035fa84",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `global.rbac.disableHTTPChallengesRole`",
+   "detail": "Defaults in v1.18.0:\nglobal.rbac.disableHTTPChallengesRole = false  # To use HTTP-01 ACME challenges, cert-manager needs extra permissions to create pods. If you want to avoid this added permission and disable HTTP-01 set this value.",
+   "release": "",
+   "subjects": [
+    "global.rbac.disableHTTPChallengesRole"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-6db1e2247a3e",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp`",
+   "detail": "Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp`. (`#7638`, `@NicholasBlaskey`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-mh63-6h87-95cp"
+    },
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7638"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7638"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4da7f0d97cf0",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump `go-jose` dependency to address `CVE-2025-27144`",
+   "detail": "Bump `go-jose` dependency to address `CVE-2025-27144`. (`#7606`, `@SgtCoDFish`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2025-27144"
+    },
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7606"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7606"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b5b5a645584a",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77`",
+   "detail": "",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-hcg3-q754-cr77"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fb783ed69ea8",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump `golang.org/x/oauth2` to patch `CVE-2025-22868`",
+   "detail": "",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2025-22868"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1b9f0e5312e3",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`)",
+   "detail": "",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2025-22870"
+    },
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7619"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7619"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-97f684f77202",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add config to the Vault issuer to allow the server-name to be specified when validating the certificates the Vault server presents",
+   "detail": "Add config to the Vault issuer to allow the server-name to be specified when validating the certificates the Vault server presents. (`#7663`, `@ThatsMrTalbot`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7663"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7663"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-52e7feadeebb",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add support for `ACME profiles extension`",
+   "detail": "Add support for `ACME profiles extension`. (`#7777`, `@wallrj`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7777"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7777"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d9fe8c32d182",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added `app.kubernetes.io/managed-by: cert-manager` label to the created Let's Encrypt account keys",
+   "detail": "Added `app.kubernetes.io/managed-by: cert-manager` label to the created Let's Encrypt account keys (`#7577`, `@terinjokes`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7577"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7577"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-439b545a803d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_se…",
+   "detail": "Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_seconds`). (`#7612`, `@solidDoWant`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7612"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7612"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b88b2edac71d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added ingress-shim option `--extra-certificate-annotations`, which sets a list of annotation keys to be copied from Ingress-like to resulting Certificate object",
+   "detail": "Added ingress-shim option `--extra-certificate-annotations`, which sets a list of annotation keys to be copied from Ingress-like to resulting Certificate object (`#7083`, `@k0da`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7083"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7083"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-84cabfbb8fd6",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added the `ciss` short name for the cert-manager `ClusterIssuer` resource",
+   "detail": "Added the `ciss` short name for the cert-manager `ClusterIssuer` resource (`#7373`, `@SgtCoDFish`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7373"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7373"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-41a3f902edaa",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added the `iss` short name for the cert-manager `Issuer` resource",
+   "detail": "",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0dbf738dde76",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges",
+   "detail": "Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges. This allows cert-manager to drop its permission to create pods, improving security when HTTP-01 challenges are not required. (`#7666`, `@ali-hamza-noor`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7666"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7666"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d2f4ed0306f9",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow customizing signature algorithm",
+   "detail": "Allow customizing signature algorithm (`#7591`, `@tareksha`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7591"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7591"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-32628a6d20cf",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Cache the full DNS response and handle TTL expiration in `FindZoneByFqdn`",
+   "detail": "Cache the full DNS response and handle TTL expiration in `FindZoneByFqdn` (`#7596`, `@ThatsIvan`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7596"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7596"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e47680a7d710",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Cert-manager now uses a local fork of the `golang.org/x/crypto/acme` package",
+   "detail": "Cert-manager now uses a local fork of the `golang.org/x/crypto/acme` package (`#7752`, `@wallrj`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7752"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7752"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8965c94210f9",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Promote the `UseDomainQualifiedFinalizer` feature to GA",
+   "detail": "Promote the `UseDomainQualifiedFinalizer` feature to GA. (`#7735`, `@jsoref`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7735"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7735"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-10df74aec3a3",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Set the default `revisionHistoryLimit` to 1 for the CertificateRequest revisions",
+   "detail": "Set the default `revisionHistoryLimit` to 1 for the CertificateRequest revisions (`#7758`, `@ali-hamza-noor`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7758"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7758"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5aff8644f14a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Switched `service/servicemon` definitions to use port names instead of numbers",
+   "detail": "Switched `service/servicemon` definitions to use port names instead of numbers. (`#7727`, `@jcpunk`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7727"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7727"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fa4ce35f9a12",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always`",
+   "detail": "The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always`. (`#7723`, `@wallrj`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7723"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7723"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4e9435eae99e",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security",
+   "detail": "Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security. (`#7767`, `@sspreitzer`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7767"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7767"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ead91108ed55",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fix AWS Route53 error detection for not-found errors during deletion of DNS records",
+   "detail": "Fix AWS Route53 error detection for not-found errors during deletion of DNS records. (`#7690`, `@wallrj`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7690"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7690"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d4b4bd898c29",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fix behavior when running with `--namespace=<namespace>`: limit the scope of cert-manager to a single namespace and disable cluster-scoped controllers",
+   "detail": "Fix behavior when running with `--namespace=<namespace>`: limit the scope of cert-manager to a single namespace and disable cluster-scoped controllers. (`#7678`, `@tsaarni`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7678"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7678"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cfb8af1d193a",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are…",
+   "detail": "Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are instead added to the `ipAddresses` field as expected. (`#7081`, `@johnjcool`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7081"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7081"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4c931993832d",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fix issuing of certificates via DNS01 challenges on Cloudflare after a breaking change to the Cloudflare API",
+   "detail": "Fix issuing of certificates via DNS01 challenges on Cloudflare after a breaking change to the Cloudflare API (`#7549`, `@LukeCarrier`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7549"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7549"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b4e583f378a3",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed the `certmanager_certificate_renewal_timestamp_seconds` metric help text indicating that the metric is relative to expiration time, rather than Unix…",
+   "detail": "Fixed the `certmanager_certificate_renewal_timestamp_seconds` metric help text indicating that the metric is relative to expiration time, rather than Unix epoch time. (`#7609`, `@solidDoWant`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7609"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7609"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-087a5ce2a6b6",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixing the service account template to incorporate boolean values for the annotations",
+   "detail": "Fixing the service account template to incorporate boolean values for the annotations. (`#7698`, `@ali-hamza-noor`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7698"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7698"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-43064cdbc5dc",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Quote nodeSelector values in Helm Chart",
+   "detail": "Quote nodeSelector values in Helm Chart (`#7579`, `@tobiasbp`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7579"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7579"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fcb00045737f",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Skip Gateway TLS listeners in `Passthrough` mode",
+   "detail": "Skip Gateway TLS listeners in `Passthrough` mode. (`#6986`, `@vehagn`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#6986"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#6986"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2ded9f339c1b",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ACME Certificate Profiles: cert-manager now supports the selection of ACME certificate profiles, allowing users to request different categories of certificates…",
+   "detail": "ACME Certificate Profiles: cert-manager now supports the selection of ACME certificate profiles, allowing users to request different categories of certificates from their ACME Certificate Authority. This enhancement leverages the latest ACME protocol extension for certificate profiles (IETF draft) and is supported by Let's Encrypt and other providers. For example, Let's Encrypt offers the `tlsserver` profile for standard server certificates and the `shortlived` profile for short-lived six-day certificates. These new options provide users with greater flexibility and improved security for their certificate management needs. 📖 Learn more by visiting the ACME Issuer documentation.",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c16c394a6f4e",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ACME E2E Tests: Upgraded Pebble to `v2.7.0` and modified the ACME tests to match latest Pebble behavior",
+   "detail": "ACME E2E Tests: Upgraded Pebble to `v2.7.0` and modified the ACME tests to match latest Pebble behavior. (`#7771`, `@wallrj`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7771"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7771"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-28807f7d13a6",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Copy annotations from Ingress or Gateway to the Certificate: We've added a new configuration option to the cert-manager controller: `--extra-certificate-annota…",
+   "detail": "Copy annotations from Ingress or Gateway to the Certificate: We've added a new configuration option to the cert-manager controller: `--extra-certificate-annotations`, which allows you to specify annotation keys to be copied from an Ingress or Gateway resource to the resulting Certificate object. Read Annotated Ingress resource: Copy annotations to the Certificate, and Annotated Gateway resource: Copy annotations to the Certificate, to learn more.",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f59541363a4f",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fix some comments",
+   "detail": "Fix some comments (`#7620`, `@teslaedison`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7620"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7620"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cdbe001f21d8",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "OperatorHub Packages Discontinued: We no longer publish OperatorHub packages for cert-manager",
+   "detail": "OperatorHub Packages Discontinued: We no longer publish OperatorHub packages for cert-manager. Why? Because the cert-manager maintainers no longer have the time or resources to maintain and test those packages. cert-manager `v1.16.5` is the last release on OperatorHub. ℹ️ cert-manager `v1.16.5` for RedHat OpenShift OperatorHub. ℹ️ cert-manager `v1.16.5` for `operatorhub.io`. ℹ️ Archived `cert-manager-olm` repository.",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-45dd175c7717",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Patch the `third_party/forked/acme` package with support for the ACME profiles extension",
+   "detail": "Patch the `third_party/forked/acme` package with support for the ACME profiles extension. (`#7776`, `@wallrj`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7776"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7776"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f5081ab1602e",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Promote the `AdditionalCertificateOutputFormats` feature to GA, making additional formats always enabled",
+   "detail": "Promote the `AdditionalCertificateOutputFormats` feature to GA, making additional formats always enabled. (`#7744`, `@erikgb`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7744"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7744"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f3e38054e249",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Update kind images to include the Kubernetes 1.33 node image",
+   "detail": "Update kind images to include the Kubernetes 1.33 node image (`#7787`, `@wallrj`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7787"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7787"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f08a6600b1b4",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Upgrade Go to `v1.24.4`",
+   "detail": "Upgrade Go to `v1.24.4` (`#7785`, `@wallrj`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7785"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7785"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a7dfa60ad5b1",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Use `slices.Contains` to simplify code",
+   "detail": "Use `slices.Contains` to simplify code (`#7753`, `@cuinix`)",
+   "release": "1.18.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7753"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7753"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  }
+ ],
+ "evidence": [
+  {
+   "id": "ev-2b9b20190ec5",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/tag/v1.17.0"
+  },
+  {
+   "id": "ev-ea366f9f5823",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-53fb690413df",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-e3729e495e40",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-772ebf21cd9f",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-fe02a4220985",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-fe0fca386a7a",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-db955cc00d69",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-cd466139dded",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-c54ac338953d",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-d308231cd8ab",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-e7cf2f463686",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-619c0cea3aa4",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-7fdda4292ba5",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-a3e4f9945cf7",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-aa02449851f9",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-d176cffb7417",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-4fef58672646",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-cae85181502c",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-c3fa8260181b",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-36b8d942ea46",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-ab4bd1639399",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-10c8b1c28d66",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-12d2733c5dd3",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-df7847de6bcb",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-6db6001fefb2",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-969cbf095c23",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-7ed93148a767",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-39f895304452",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-a89ac42d3167",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-c76ce5c9366c",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-4c3d690d4f9d",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-0d3b308e9192",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-95c9a508db46",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md"
+  },
+  {
+   "id": "ev-68604c5f543d",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md"
+  },
+  {
+   "id": "ev-463f236bf567",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md"
+  },
+  {
+   "id": "ev-775b7a64f057",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md"
+  },
+  {
+   "id": "ev-09a9c9047035",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md"
+  },
+  {
+   "id": "ev-904e0ae133bd",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md"
+  },
+  {
+   "id": "ev-61f2d0cbe116",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml"
+  },
+  {
+   "id": "ev-c60d9c17abab",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml"
+  },
+  {
+   "id": "ev-4742bdc41054",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml"
+  },
+  {
+   "id": "ev-60054fcf0986",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml"
+  },
+  {
+   "id": "ev-e87866a14e84",
+   "uri": "https://charts.jetstack.io/index.yaml"
+  },
+  {
+   "id": "ev-717ddb6f40cd",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml"
+  },
+  {
+   "id": "ev-4936dd853f6f",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/Chart.template.yaml"
+  },
+  {
+   "id": "ev-4a1dd653bec2",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/Chart.template.yaml"
+  },
+  {
+   "id": "ev-7544a945040e",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-controller/manifests/sha256:424263d7a11b54b56b26953d22bf28bd87338056b518dd007e391ad0b702c5f0"
+  },
+  {
+   "id": "ev-99d163a43b3a",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-webhook/manifests/sha256:6e8f1c96b7acd9526b7dec7ce8af45e4a774877e24be183e3ce36a25c9d5ed3b"
+  },
+  {
+   "id": "ev-d6a5cd306e39",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-cainjector/manifests/sha256:63ea34d0e82ebfd91242498c54ad104d6bce7a56c7a2e24de5461aabd744a9b2"
+  },
+  {
+   "id": "ev-ca5d65b3cb64",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-acmesolver/manifests/sha256:43b6cd6af3de83720f523419eddd50299d15c616229f7842c2e36578d9c612af"
+  },
+  {
+   "id": "ev-2c20097827f8",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-startupapicheck/manifests/sha256:d0f48f7993ff9a09e78e93e1536b8afabd6243e1d8fe4f84ea92afe1d6b02ec2"
+  },
+  {
+   "id": "ev-3ef0f1481bc6",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/tag/v1.18.0"
+  },
+  {
+   "id": "ev-ceb7e9e9f223",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-30d2c387f95f",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-1d4a9d664d8c",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-e8facc7cba98",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-dde3ce032096",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-38243747b200",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-41698084a48b",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-861cb2d69752",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-87995aee2ded",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-d4918828336e",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-4fcf47388827",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-7be235e771a3",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-8f6e397ae33c",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-0bb0d885678d",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-cf14b14073be",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-330bb03a882f",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-19fb20ff3c32",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-8a902cdb88e1",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-c6232bc5c8d4",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-8e895983c9dd",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-695a6d7c7c6e",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-4faa7ca81b54",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-23e99dfde8d0",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-ef5237d47ade",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-a8c04d9f0485",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-b8d6f16e3c8c",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-2a805da381d1",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-7a3fdefaaff7",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-565f3761f656",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-1861adfd42be",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-bfe1f4f54646",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-ea4a77b80f71",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-8ec1fdd0d15f",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-bc29bf53aa1b",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-853844eb542e",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-cb5102bd647d",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-eb95ba454b0b",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-5744baed396c",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-885e61843b3a",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-626b1ef6bd0a",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-c3d5e62490c3",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-110340e9c914",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-50f787991f0d",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-c92478af13c4",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-04b3e69b5e24",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-da53ded48367",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+  },
+  {
+   "id": "ev-f105f4e29164",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md"
+  },
+  {
+   "id": "ev-9a2f8d3ec5e9",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md"
+  },
+  {
+   "id": "ev-bbe29a5fdc19",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md"
+  },
+  {
+   "id": "ev-94a8abc4e147",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md"
+  },
+  {
+   "id": "ev-fc7c633c8eb9",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml"
+  },
+  {
+   "id": "ev-5aae20e053a2",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml"
+  },
+  {
+   "id": "ev-58e3747f58d7",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.crds.yaml"
+  },
+  {
+   "id": "ev-9b6164ce0df7",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.crds.yaml"
+  },
+  {
+   "id": "ev-086263fcedd5",
+   "uri": "https://charts.jetstack.io/index.yaml"
+  },
+  {
+   "id": "ev-7a67f12867b2",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml"
+  },
+  {
+   "id": "ev-84671d240955",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/Chart.template.yaml"
+  },
+  {
+   "id": "ev-6bed763e6e6f",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/Chart.template.yaml"
+  },
+  {
+   "id": "ev-c7ef84c03daa",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-controller/manifests/sha256:54afe84015542e9451da8934fca82f8c1402a6f3a212983c26a25d4b3ea3d31d"
+  },
+  {
+   "id": "ev-b9e4adfae693",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-webhook/manifests/sha256:37295999d9f36bc092d7716248105c3151c49460f19cb8dab2d2f59d5395644c"
+  },
+  {
+   "id": "ev-05fe7b5e593f",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-cainjector/manifests/sha256:139f443f789ce06ea6cff21726a1f1e5e7fdf3501d4d7b6265323c420653b597"
+  },
+  {
+   "id": "ev-e19f715c3fd5",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-acmesolver/manifests/sha256:e0093812d45eb7a7ae893824a84a622631ce4be6b1e6e1dda4daa8e23c358e79"
+  },
+  {
+   "id": "ev-d90fe14a0137",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-startupapicheck/manifests/sha256:5bb9ae722e9ad70c5ee5bb9d1dc4f23d33be14d3ec8d09e25fd98e3c7c55bf8d"
+  },
+  {
+   "id": "ev-ee9f37240c9c",
+   "uri": "https://github.com/cert-manager/cert-manager/security/advisories/GHSA-8rvj-mm4h-c258"
+  }
+ ]
+}

@@ -1,0 +1,4222 @@
+{
+ "caseId": "ingress-nginx-1.11-1.12",
+ "recordedFrom": "ingress-nginx/edges/1.11.5_1.12.0.json (stored eval run of 2026-10-01, commit 0cf815f)",
+ "changes": [
+  {
+   "id": "chg-abba2905b164",
+   "category": "removal",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "⚠️ Chart: Remove Pod Security Policy",
+   "detail": "⚠️ Chart: Remove Pod Security Policy. (#11971) ⚠️ This removes Pod Security Policies and related resources from the chart.",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11971"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-36f017636095",
+   "category": "removal",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "⚠️ Images: Drop `s390x`. (#12137) ⚠️ Support for the `s390x` architecture has already been removed from the controller image",
+   "detail": "⚠️ Images: Drop `s390x`. (#12137) ⚠️ Support for the `s390x` architecture has already been removed from the controller image. This also removes it from the NGINX base image and CI relevant images.",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12137"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-644ee15fa181",
+   "category": "removal",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "⚠️ Images: Remove OpenTelemetry",
+   "detail": "⚠️ Images: Remove OpenTelemetry. (#12024) ⚠️ OpenTelemetry is still supported, but since the module is built into the controller image since v1.10, we hereby remove the init container and image which were used to install it upon controller startup.",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12024"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-296cd7f34730",
+   "category": "removal",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "⚠️ Metrics: Remove `ingress_upstream_latency_seconds`. (#11795) ⚠️ This metric has already been deprecated and is now getting removed",
+   "detail": "",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11795"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-358f430204cf",
+   "category": "removal",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "⚠️ Remove 3rd party lua plugin support (#11821) ⚠️ This removes the following configuration options: * `plugins` It also removes support for user provided Lua…",
+   "detail": "⚠️ Remove 3rd party lua plugin support (#11821) ⚠️ This removes the following configuration options: * `plugins` It also removes support for user provided Lua plugins in the `/etc/nginx/lua/plugins` directory.",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11821"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8bed9869d2cb",
+   "category": "removal",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "⚠️ Remove global-rate-limit feature (#11851) ⚠️ This removes the following configuration options: * `global-rate-limit-memcached-host` *…",
+   "detail": "⚠️ Remove global-rate-limit feature (#11851) ⚠️ This removes the following configuration options: * `global-rate-limit-memcached-host` * `global-rate-limit-memcached-port` * `global-rate-limit-memcached-connect-timeout` * `global-rate-limit-memcached-max-idle-timeout` * `global-rate-limit-memcached-pool-size` * `global-rate-limit-status-code` It also removes the following annotations: * `global-rate-limit` * `global-rate-limit-window` * `global-rate-limit-key` * `global-rate-limit-ignored-cidrs`",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11851"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4198d3ccb222",
+   "category": "helm-values",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "Helm values section `podSecurityPolicy.*` removed (1 key)",
+   "detail": "`podSecurityPolicy` of chart ingress-nginx no longer exists in controller-v1.12.0. Remove these keys from your values and migrate the configuration they controlled; values set here no longer take effect (or are rejected when the chart validates values against a schema).\nRemoved keys:\npodSecurityPolicy.enabled (default false)",
+   "release": "",
+   "subjects": [
+    "podSecurityPolicy.enabled"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-52de18cb37a8",
+   "category": "configuration",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "⚠️ Enable security features by default (#11819) ⚠️ This changes the default of the following CLI arguments: * `--enable-annotation-validation` gets enabled by…",
+   "detail": "⚠️ Enable security features by default (#11819) ⚠️ This changes the default of the following CLI arguments: * `--enable-annotation-validation` gets enabled by default. It also changes the default of the following configuration options: * `allow-cross-namespace-resources` gets disabled by default. * `annotations-risk-level` gets lowered to \"High\" by default. * `strict-validate-path-type` gets enabled by default.",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11819"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fd19e1fa12db",
+   "category": "configuration",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "⚠️ Metrics: Disable by default",
+   "detail": "⚠️ Metrics: Disable by default. (#12153) ⚠️ This changes the default of the following CLI arguments: * `--enable-metrics` gets disabled by default.",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12153"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4f5023c01335",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "ingress-nginx controller-v1.12.0 is end-of-life since 2026-03",
+   "detail": "ingress-nginx is retired: best-effort maintenance ended in March 2026 and there will be no further releases, bug fixes or security fixes. Existing deployments keep working and the published images and charts stay available, but vulnerabilities found from now on will not be patched upstream. No further releases, bug fixes or security fixes are to be expected for the affected releases: plan the migration instead of relying on upstream fixes.",
+   "release": "",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-9b5bc271b30f",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Helm value `controller.admissionWebhooks.existingPsp` removed",
+   "detail": "Values set at this key no longer take effect after the upgrade (or are rejected when the chart validates values against a schema). Default in controller-v1.11.5: \"\".\nDocumentation in controller-v1.11.5: Use an existing PSP instead of creating one",
+   "release": "",
+   "subjects": [
+    "controller.admissionWebhooks.existingPsp"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-14ae6bb981bf",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Helm value `controller.admissionWebhooks.patch.image.registry` removed",
+   "detail": "Values set at this key no longer take effect after the upgrade (or are rejected when the chart validates values against a schema). Default in controller-v1.11.5: \"registry.k8s.io\".",
+   "release": "",
+   "subjects": [
+    "controller.admissionWebhooks.patch.image.registry"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-839003cf29a2",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Helm value `controller.existingPsp` removed",
+   "detail": "Values set at this key no longer take effect after the upgrade (or are rejected when the chart validates values against a schema). Default in controller-v1.11.5: \"\".\nDocumentation in controller-v1.11.5: Use an existing PSP instead of creating one",
+   "release": "",
+   "subjects": [
+    "controller.existingPsp"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-a44d4d6704af",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Helm value `controller.image.registry` removed",
+   "detail": "Values set at this key no longer take effect after the upgrade (or are rejected when the chart validates values against a schema). Default in controller-v1.11.5: \"registry.k8s.io\".",
+   "release": "",
+   "subjects": [
+    "controller.image.registry"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-1ece0d096405",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Helm value `defaultBackend.existingPsp` removed",
+   "detail": "Values set at this key no longer take effect after the upgrade (or are rejected when the chart validates values against a schema). Default in controller-v1.11.5: \"\".\nDocumentation in controller-v1.11.5: Use an existing PSP instead of creating one",
+   "release": "",
+   "subjects": [
+    "defaultBackend.existingPsp"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-3f1754b52fcb",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Helm value `defaultBackend.image.registry` removed",
+   "detail": "Values set at this key no longer take effect after the upgrade (or are rejected when the chart validates values against a schema). Default in controller-v1.11.5: \"registry.k8s.io\".",
+   "release": "",
+   "subjects": [
+    "defaultBackend.image.registry"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-6be1b221744a",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Helm values `controller.opentelemetry.*` removed (14 keys)",
+   "detail": "`controller.opentelemetry` of chart ingress-nginx no longer exists in controller-v1.12.0. Remove these keys from your values and migrate the configuration they controlled; values set here no longer take effect (or are rejected when the chart validates values against a schema).\nRemoved keys:\ncontroller.opentelemetry.containerSecurityContext.allowPrivilegeEscalation (default false)\ncontroller.opentelemetry.containerSecurityContext.capabilities.drop (default [\"ALL\"])\ncontroller.opentelemetry.containerSecurityContext.readOnlyRootFilesystem (default true)\ncontroller.opentelemetry.containerSecurityContext.runAsNonRoot (default true)\ncontroller.opentelemetry.containerSecurityContext.runAsUser (default 65532)\ncontroller.opentelemetry.containerSecurityContext.seccompProfile.type (default \"RuntimeDefault\")\ncontroller.opentelemetry.enabled (default false)\ncontroller.opentelemetry.image.digest (default \"sha256:f7604ac0547ed64d79b98d92133234e66c2c8aade3c1f4809fed5eec1fb7f922\")\ncontroller.opentelemetry.image.distroless (default true)\ncontroller.opentelemetry.image.image (default \"ingress-nginx/opentelemetry-1.25.3\")\ncontroller.opentelemetry.image.registry (default \"registry.k8s.io\")\ncontroller.opentelemetry.image.tag (default \"v20240813-b933310d\")\ncontroller.opentelemetry.name (default \"opentelemetry\")\ncontroller.opentelemetry.resources (default {})",
+   "release": "",
+   "subjects": [
+    "controller.opentelemetry.containerSecurityContext.allowPrivilegeEscalation",
+    "controller.opentelemetry.containerSecurityContext.capabilities.drop",
+    "controller.opentelemetry.containerSecurityContext.readOnlyRootFilesystem",
+    "controller.opentelemetry.containerSecurityContext.runAsNonRoot",
+    "controller.opentelemetry.containerSecurityContext.runAsUser",
+    "controller.opentelemetry.containerSecurityContext.seccompProfile.type",
+    "controller.opentelemetry.enabled",
+    "controller.opentelemetry.image.digest",
+    "controller.opentelemetry.image.distroless",
+    "controller.opentelemetry.image.image",
+    "controller.opentelemetry.image.registry",
+    "controller.opentelemetry.image.tag",
+    "controller.opentelemetry.name",
+    "controller.opentelemetry.resources"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-004dae7481e0",
+   "category": "compatibility",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Kubernetes support narrowed: 1.26–1.30 → 1.28–1.32 (drops 1.26–1.27)",
+   "detail": "Verify the cluster runs a supported Kubernetes version (1.28–1.32) before upgrading.",
+   "release": "",
+   "subjects": [
+    "kubernetes/supported"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-945c62217847",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Dashboard: Remove `ingress_upstream_latency_seconds`",
+   "detail": "Dashboard: Remove `ingress_upstream_latency_seconds`. (#11878)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11878"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-081cdf9aaaad",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Images: Remove NGINX v1.21",
+   "detail": "Images: Remove NGINX v1.21. (#12031)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12031"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e1dac68f5685",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Lua: Remove plugins from `.luacheckrc` & E2E docs",
+   "detail": "Lua: Remove plugins from `.luacheckrc` & E2E docs. (#11872)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11872"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-dd24cb79e71b",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "NGINX: Remove inline Lua from template",
+   "detail": "NGINX: Remove inline Lua from template. (#11806)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11806"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-be1bbdcbdd24",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "remove modsecurity coreruleset test files from nginx image",
+   "detail": "remove modsecurity coreruleset test files from nginx image (#11617)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11617"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7623cb3bf2b1",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Replace deprecated queue method",
+   "detail": "Replace deprecated queue method (#11853)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11853"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bcbbc25c8578",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Add ServiceAccount tests",
+   "detail": "Chart: Add ServiceAccount tests. (#12263)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12263"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-563760ed5791",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Add `controller.metrics.prometheusRule.annotations`",
+   "detail": "Chart: Add `controller.metrics.prometheusRule.annotations`. (#11849)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11849"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a09966e01d4f",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Add `controller.metrics.service.enabled`",
+   "detail": "Chart: Add `controller.metrics.service.enabled`. (#12056)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12056"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9c065ccd8297",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Add `controller.progressDeadlineSeconds`",
+   "detail": "Chart: Add `controller.progressDeadlineSeconds`. (#12017)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12017"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0cd8313e3017",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Add `defaultBackend.maxUnavailable`",
+   "detail": "Chart: Add `defaultBackend.maxUnavailable`. (#11995)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11995"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-412724ceca21",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Add `global.image.registry`",
+   "detail": "Chart: Add `global.image.registry`. (#12028)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12028"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1f0e0ff0dce1",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Align default backend `PodDisruptionBudget`",
+   "detail": "Chart: Align default backend `PodDisruptionBudget`. (#11993)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11993"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-904f74572956",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Bump Kube Webhook CertGen",
+   "detail": "Chart: Bump Kube Webhook CertGen. (#12606)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12606"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12119"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d87c7c53f3d9",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Bump Kube Webhook CertGen & OpenTelemetry",
+   "detail": "Chart: Bump Kube Webhook CertGen & OpenTelemetry. (#11809)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11809"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a18d1770be42",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Explicitly set `runAsGroup`",
+   "detail": "Chart: Explicitly set `runAsGroup`. (#11679)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11679"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-556e794919b6",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Implement `controller.admissionWebhooks.service.servicePort`",
+   "detail": "Chart: Implement `controller.admissionWebhooks.service.servicePort`. (#11931)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11931"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-23f0aa5fdaa9",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Implement `unhealthyPodEvictionPolicy`",
+   "detail": "Chart: Implement `unhealthyPodEvictionPolicy`. (#11992)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11992"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6b76b1e07da3",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Improve CI",
+   "detail": "Chart: Improve CI. (#12003)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12003"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bfcd353da830",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Improve default backend service account",
+   "detail": "Chart: Improve default backend service account. (#11972)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11972"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e80f7037c2fa",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Remove `isControllerTagValid`",
+   "detail": "Chart: Remove `isControllerTagValid`. (#11710)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11710"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4e78ecad687d",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Rework ServiceMonitor",
+   "detail": "Chart: Rework ServiceMonitor. (#12269)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12269"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-479e07f295a1",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Suggest `matchLabelKeys` in Topology Spread Constraints",
+   "detail": "Chart: Suggest `matchLabelKeys` in Topology Spread Constraints. (#12202)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12202"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a11db56b0746",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Test `controller.minAvailable` & `controller.maxUnavailable`",
+   "detail": "Chart: Test `controller.minAvailable` & `controller.maxUnavailable`. (#12000)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12000"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9bace1ac5c29",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Chart: Use generic values for `ConfigMap` test",
+   "detail": "Chart: Use generic values for `ConfigMap` test. (#11877)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11877"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d6aac379fa30",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "2 new Helm values under `defaultBackend.*`",
+   "detail": "Defaults in controller-v1.12.0:\ndefaultBackend.image.runAsGroup = 65534\ndefaultBackend.unhealthyPodEvictionPolicy = \"\"  # Maximum unavailable pods set in PodDisruptionBudget. If set, 'minAvailable' is ignored. maxUnavailable: 1 Eviction policy for unhealthy pods guarded by PodDisruptionBudget. Ref: https://kubernetes.io/blog/2023/01/06/unhealthy-pod-eviction-policy-for-pdbs/",
+   "release": "",
+   "subjects": [
+    "defaultBackend.image.runAsGroup",
+    "defaultBackend.unhealthyPodEvictionPolicy"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-b3729eb7f3b2",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "7 new Helm values under `controller.*`",
+   "detail": "Defaults in controller-v1.12.0:\ncontroller.admissionWebhooks.createSecretJob.securityContext.runAsGroup = 65532\ncontroller.admissionWebhooks.patchWebhookJob.securityContext.runAsGroup = 65532\ncontroller.image.runAsGroup = 82  # This value must not be changed using the official image. uid=101(www-data) gid=82(www-data) groups=82(www-data)\ncontroller.metrics.prometheusRule.annotations = {}  # Annotations to be added to the PrometheusRule.\ncontroller.metrics.service.enabled = true  # Enable the metrics service or not.\ncontroller.progressDeadlineSeconds = 0  # Specifies the number of seconds you want to wait for the controller deployment to progress before the system reports back that it has failed. Ref.: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#progress-deadline-seconds\ncontroller.unhealthyPodEvictionPolicy = \"\"  # Maximum unavailable pods set in PodDisruptionBudget. If set, 'minAvailable' is ignored. maxUnavailable: 1 Eviction policy for unhealthy pods guarded by PodDisruptionBudget. Ref: https://kubernetes.io/blog/2023/01/06/unhealthy-pod-eviction-policy-for-pdbs/",
+   "release": "",
+   "subjects": [
+    "controller.admissionWebhooks.createSecretJob.securityContext.runAsGroup",
+    "controller.admissionWebhooks.patchWebhookJob.securityContext.runAsGroup",
+    "controller.image.runAsGroup",
+    "controller.metrics.prometheusRule.annotations",
+    "controller.metrics.service.enabled",
+    "controller.progressDeadlineSeconds",
+    "controller.unhealthyPodEvictionPolicy"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-47def6f35cc8",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `controller.admissionWebhooks.patch.image.digest` changed: \"sha256:e8825994b7a2c7497375a9b945f386506ca6a3eda… → \"sha256:aaafd456bda110628…",
+   "detail": "\"sha256:e8825994b7a2c7497375a9b945f386506ca6a3eda80b89b74ef2db743f66a5ea\" → \"sha256:aaafd456bda110628b2d4ca6296f38731a3aaf0bf7581efae824a41c770a8fc4\"",
+   "release": "",
+   "subjects": [
+    "controller.admissionWebhooks.patch.image.digest"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-fa7f9dd9ea6f",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `controller.admissionWebhooks.patch.image.tag` changed: \"v1.5.2\" → \"v1.5.0\"",
+   "detail": "\"v1.5.2\" → \"v1.5.0\"",
+   "release": "",
+   "subjects": [
+    "controller.admissionWebhooks.patch.image.tag"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-7fea8d494ffb",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `controller.enableAnnotationValidations` changed: false → true",
+   "detail": "false → true",
+   "release": "",
+   "subjects": [
+    "controller.enableAnnotationValidations"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-0d81e035fa84",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `global.image.registry`",
+   "detail": "Defaults in controller-v1.12.0:\nglobal.image.registry = \"registry.k8s.io\"  # Registry host to pull images from.",
+   "release": "",
+   "subjects": [
+    "global.image.registry"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-98f930758310",
+   "category": "configuration",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Annotations: Allow commas in URLs",
+   "detail": "Annotations: Allow commas in URLs. (#11882)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11882"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3b2b0d59090f",
+   "category": "configuration",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Auth TLS: Add `_` to redirect RegEx",
+   "detail": "Auth TLS: Add `_` to redirect RegEx. (#12326)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12326"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-eef0976258c8",
+   "category": "configuration",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Auth TLS: Improve redirect RegEx",
+   "detail": "Auth TLS: Improve redirect RegEx. (#12323)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12323"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-14e84a8456ff",
+   "category": "configuration",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Config: Fix panic on invalid `lua-shared-dict`",
+   "detail": "Config: Fix panic on invalid `lua-shared-dict`. (#12283)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12283"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-af8e75402ccc",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Security: Follow-up on recent changes",
+   "detail": "Security: Follow-up on recent changes. (#11874)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11874"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-dc1a74a29f09",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump actions/dependency-review-action from 4.3.5 to 4.4.0 in the actions group",
+   "detail": "Bump actions/dependency-review-action from 4.3.5 to 4.4.0 in the actions group (#12273)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12273"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9c22878fd554",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump aquasecurity/trivy-action from 0.27.0 to 0.28.0 in the actions group",
+   "detail": "Bump aquasecurity/trivy-action from 0.27.0 to 0.28.0 in the actions group (#12217)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12217"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2868c566d476",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump dario.cat/mergo from 1.0.0 to 1.0.1 in the all group",
+   "detail": "Bump dario.cat/mergo from 1.0.0 to 1.0.1 in the all group (#11822)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11822"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7a70dbb0d3e9",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/fsnotify/fsnotify from 1.7.0 to 1.8.0",
+   "detail": "Bump github.com/fsnotify/fsnotify from 1.7.0 to 1.8.0 (#12299)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12299"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1c60813e51b4",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/ncabatoff/process-exporter from 0.8.3 to 0.8.4 in the go group across 1 directory",
+   "detail": "Bump github.com/ncabatoff/process-exporter from 0.8.3 to 0.8.4 in the go group across 1 directory (#12218)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12218"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4c4728619529",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/onsi/ginkgo/v2 from 2.19.0 to 2.19.1 in the all group",
+   "detail": "Bump github.com/onsi/ginkgo/v2 from 2.19.0 to 2.19.1 in the all group (#11696)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11696"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e3fbc8c80a54",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/onsi/ginkgo/v2 from 2.19.1 to 2.20.0",
+   "detail": "Bump github.com/onsi/ginkgo/v2 from 2.19.1 to 2.20.0 (#11766)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11766"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d4eb2b849207",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/onsi/ginkgo/v2 from 2.20.1 to 2.20.2 in the all group",
+   "detail": "Bump github.com/onsi/ginkgo/v2 from 2.20.1 to 2.20.2 in the all group (#11901)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11901"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bdf74734a3b4",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/onsi/ginkgo/v2 from 2.20.2 to 2.21.0",
+   "detail": "Bump github.com/onsi/ginkgo/v2 from 2.20.2 to 2.21.0 (#12288)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12288"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1a91224c0a25",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/onsi/ginkgo/v2 from 2.21.0 to 2.22.0",
+   "detail": "Bump github.com/onsi/ginkgo/v2 from 2.21.0 to 2.22.0 (#12426)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12426"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-54746b785d0e",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/onsi/ginkgo/v2 from 2.22.0 to 2.22.1",
+   "detail": "Bump github.com/onsi/ginkgo/v2 from 2.22.0 to 2.22.1 (#12555)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12555"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9167f5c38570",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/opencontainers/runc from 1.1.13 to 1.1.14",
+   "detail": "Bump github.com/opencontainers/runc from 1.1.13 to 1.1.14 (#11928)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11928"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ae7eb7ce2c72",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/opencontainers/runc from 1.1.14 to 1.1.15 in the go group across 1 directory",
+   "detail": "Bump github.com/opencontainers/runc from 1.1.14 to 1.1.15 in the go group across 1 directory (#12178)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12178"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1f968dcb3ac0",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/opencontainers/runc from 1.1.15 to 1.2.0",
+   "detail": "Bump github.com/opencontainers/runc from 1.1.15 to 1.2.0 (#12242)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12242"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-59f1dbb25c18",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/opencontainers/runc from 1.2.0 to 1.2.1 in the go group across 1 directory",
+   "detail": "Bump github.com/opencontainers/runc from 1.2.0 to 1.2.1 in the go group across 1 directory (#12296)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12296"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0cccf203ff68",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/opencontainers/runc from 1.2.1 to 1.2.2 in the go group across 1 directory",
+   "detail": "Bump github.com/opencontainers/runc from 1.2.1 to 1.2.2 in the go group across 1 directory (#12380)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12380"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2ea30a2301cf",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/opencontainers/runc from 1.2.2 to 1.2.3 in the go group across 1 directory",
+   "detail": "Bump github.com/opencontainers/runc from 1.2.2 to 1.2.3 in the go group across 1 directory (#12509)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12509"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5fba83079238",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/prometheus/client_golang from 1.11.1 to 1.20.4 in /images/custom-error-pages/rootfs",
+   "detail": "Bump github.com/prometheus/client_golang from 1.11.1 to 1.20.4 in /images/custom-error-pages/rootfs (#12040)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12040"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-42679dc99e70",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/prometheus/client_golang from 1.19.1 to 1.20.1",
+   "detail": "Bump github.com/prometheus/client_golang from 1.19.1 to 1.20.1 (#11832)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11832"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5a7d3fdee7fb",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/prometheus/client_golang from 1.20.2 to 1.20.3 in the all group",
+   "detail": "Bump github.com/prometheus/client_golang from 1.20.2 to 1.20.3 in the all group (#11953)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11953"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ae9f63823823",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/prometheus/client_golang from 1.20.3 to 1.20.4 in the all group",
+   "detail": "Bump github.com/prometheus/client_golang from 1.20.3 to 1.20.4 in the all group (#12008)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12008"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-02eed01db63f",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/prometheus/common from 0.54.0 to 0.55.0",
+   "detail": "Bump github.com/prometheus/common from 0.54.0 to 0.55.0 (#11522)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11522"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1f2474b6ed51",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/prometheus/common from 0.55.0 to 0.57.0",
+   "detail": "Bump github.com/prometheus/common from 0.55.0 to 0.57.0 (#11903)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11903"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8d6e6c33a1fa",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/prometheus/common from 0.57.0 to 0.59.1",
+   "detail": "Bump github.com/prometheus/common from 0.57.0 to 0.59.1 (#11954)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11954"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2365a6925cc2",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/prometheus/common from 0.59.1 to 0.60.0",
+   "detail": "Bump github.com/prometheus/common from 0.59.1 to 0.60.0 (#12060)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12060"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4f766ce2b687",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/prometheus/common from 0.60.1 to 0.61.0",
+   "detail": "Bump github.com/prometheus/common from 0.60.1 to 0.61.0 (#12464)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12464"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-97b5a9af7890",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github.com/stretchr/testify from 1.9.0 to 1.10.0",
+   "detail": "Bump github.com/stretchr/testify from 1.9.0 to 1.10.0 (#12418)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12418"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-71895195346e",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github/codeql-action from 3.26.0 to 3.26.2 in the all group",
+   "detail": "Bump github/codeql-action from 3.26.0 to 3.26.2 in the all group (#11826)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11826"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4a10554c6cc7",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github/codeql-action from 3.26.12 to 3.26.13 in the actions group",
+   "detail": "Bump github/codeql-action from 3.26.12 to 3.26.13 in the actions group (#12188)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12188"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7d7d19f626ca",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github/codeql-action from 3.26.2 to 3.26.5 in the all group",
+   "detail": "Bump github/codeql-action from 3.26.2 to 3.26.5 in the all group (#11867)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11867"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ed5257cea110",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github/codeql-action from 3.26.5 to 3.26.6 in the all group",
+   "detail": "Bump github/codeql-action from 3.26.5 to 3.26.6 in the all group (#11904)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11904"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1cf1254f3f18",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github/codeql-action from 3.26.6 to 3.26.7 in the all group",
+   "detail": "Bump github/codeql-action from 3.26.6 to 3.26.7 in the all group (#11976)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11976"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f979516815e2",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github/codeql-action from 3.26.7 to 3.26.8 in the all group",
+   "detail": "Bump github/codeql-action from 3.26.7 to 3.26.8 in the all group (#12010)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12010"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-32cc34ef0fbf",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github/codeql-action from 3.26.9 to 3.26.10 in the actions group",
+   "detail": "Bump github/codeql-action from 3.26.9 to 3.26.10 in the actions group (#12051)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12051"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8fec58ad3066",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github/codeql-action from 3.27.1 to 3.27.4 in the actions group",
+   "detail": "Bump github/codeql-action from 3.27.1 to 3.27.4 in the actions group (#12373)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12373"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-60ae9cce8529",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump github/codeql-action from 3.27.5 to 3.27.6 in the actions group",
+   "detail": "Bump github/codeql-action from 3.27.5 to 3.27.6 in the actions group (#12461)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12461"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-362cf71968fb",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump golang.org/x/crypto from 0.21.0 to 0.31.0 in /magefiles",
+   "detail": "Bump golang.org/x/crypto from 0.21.0 to 0.31.0 in /magefiles (#12472)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12472"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2b84a7f725b0",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump golang.org/x/crypto from 0.25.0 to 0.26.0",
+   "detail": "Bump golang.org/x/crypto from 0.25.0 to 0.26.0 (#11765)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11765"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e22c0c0bb9fd",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump golang.org/x/crypto from 0.26.0 to 0.27.0",
+   "detail": "Bump golang.org/x/crypto from 0.26.0 to 0.27.0 (#11955)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11955"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1b2105951932",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump golang.org/x/crypto from 0.27.0 to 0.28.0",
+   "detail": "Bump golang.org/x/crypto from 0.27.0 to 0.28.0 (#12107)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12107"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e7373ada45f0",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump golang.org/x/crypto from 0.28.0 to 0.29.0",
+   "detail": "Bump golang.org/x/crypto from 0.28.0 to 0.29.0 (#12349)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12349"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-01be8a9789a7",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump golang.org/x/crypto from 0.30.0 to 0.31.0",
+   "detail": "Bump golang.org/x/crypto from 0.30.0 to 0.31.0 (#12476)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12476"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fae5224fb5fe",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump golangci-lint on actions and disable deprecated linters",
+   "detail": "Bump golangci-lint on actions and disable deprecated linters (#12361)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12361"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bb9150f4fb1c",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump google.golang.org/grpc from 1.65.0 to 1.66.0",
+   "detail": "Bump google.golang.org/grpc from 1.65.0 to 1.66.0 (#11902)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11902"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-09003b407080",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump google.golang.org/grpc from 1.66.2 to 1.67.0",
+   "detail": "Bump google.golang.org/grpc from 1.66.2 to 1.67.0 (#12009)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12009"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-48906e5b45c0",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump google.golang.org/grpc from 1.67.0 to 1.67.1 in the go group across 1 directory",
+   "detail": "Bump google.golang.org/grpc from 1.67.0 to 1.67.1 in the go group across 1 directory (#12059)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12059"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-411202479e99",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump google.golang.org/grpc from 1.67.1 to 1.68.0",
+   "detail": "Bump google.golang.org/grpc from 1.67.1 to 1.68.0 (#12357)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12357"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ccce19abe527",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump google.golang.org/grpc from 1.68.1 to 1.69.2",
+   "detail": "Bump google.golang.org/grpc from 1.68.1 to 1.69.2 (#12538)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12538"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f137e9b12c2f",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump k8s.io/apiextensions-apiserver from 0.31.3 to 0.32.0",
+   "detail": "Bump k8s.io/apiextensions-apiserver from 0.31.3 to 0.32.0 (#12566)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12566"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-30f92cb9e766",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump k8s.io/apimachinery from 0.23.1 to 0.31.1 in /images/ext-auth-example-authsvc/rootfs",
+   "detail": "Bump k8s.io/apimachinery from 0.23.1 to 0.31.1 in /images/ext-auth-example-authsvc/rootfs (#12041)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12041"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-96c2e963b2bb",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump k8s.io/apimachinery from 0.31.3 to 0.32.0 in /images/ext-auth-example-authsvc/rootfs",
+   "detail": "Bump k8s.io/apimachinery from 0.31.3 to 0.32.0 in /images/ext-auth-example-authsvc/rootfs (#12502)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12502"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-38f5b60b6d51",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump k8s.io/apiserver from 0.31.3 to 0.32.0",
+   "detail": "Bump k8s.io/apiserver from 0.31.3 to 0.32.0 (#12544)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12544"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cb13f11a054f",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump k8s.io/cli-runtime from 0.30.0 to 0.31.1",
+   "detail": "Bump k8s.io/cli-runtime from 0.30.0 to 0.31.1 (#12061)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12061"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-400acc21acd6",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump k8s.io/cli-runtime from 0.31.3 to 0.32.0",
+   "detail": "Bump k8s.io/cli-runtime from 0.31.3 to 0.32.0 (#12547)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12547"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-167390a4d304",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump k8s.io/client-go from 0.31.3 to 0.32.0",
+   "detail": "Bump k8s.io/client-go from 0.31.3 to 0.32.0 (#12512)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12512"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2e77ba1f6020",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump k8s.io/code-generator from 0.31.3 to 0.32.0",
+   "detail": "Bump k8s.io/code-generator from 0.31.3 to 0.32.0 (#12550)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12550"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-42cf8d027c84",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump k8s.io/component-base from 0.30.3 to 0.31.0",
+   "detail": "Bump k8s.io/component-base from 0.30.3 to 0.31.0 (#11825)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11825"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fa9aff76bd75",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump k8s.io/kube-aggregator from 0.29.3 to 0.31.1 in /images/kube-webhook-certgen/rootfs",
+   "detail": "Bump k8s.io/kube-aggregator from 0.29.3 to 0.31.1 in /images/kube-webhook-certgen/rootfs (#12043)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12043"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-166b838844b6",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump k8s.io/kube-aggregator from 0.31.3 to 0.32.0 in /images/kube-webhook-certgen/rootfs",
+   "detail": "Bump k8s.io/kube-aggregator from 0.31.3 to 0.32.0 in /images/kube-webhook-certgen/rootfs (#12505)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12505"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-169ee81d503c",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump sigs.k8s.io/controller-runtime from 0.18.4 to 0.19.0",
+   "detail": "Bump sigs.k8s.io/controller-runtime from 0.18.4 to 0.19.0 (#11823)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11823"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e478b0d100ab",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump sigs.k8s.io/mdtoc from 1.1.0 to 1.4.0",
+   "detail": "Bump sigs.k8s.io/mdtoc from 1.1.0 to 1.4.0 (#12062)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12062"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8009321ff0ae",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the actions group with 2 updates",
+   "detail": "Bump the actions group with 2 updates (#12541)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12541"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12180"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1c45052bd4b2",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the actions group with 3 updates",
+   "detail": "Bump the actions group with 3 updates (#12506)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12506"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12412"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12354"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12152"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12092"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-94fd2f88c8be",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the actions group with 5 updates",
+   "detail": "Bump the actions group with 5 updates (#12236)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12236"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-046466c7c889",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the all group with 2 updates",
+   "detail": "Bump the all group with 2 updates (#12032)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12032"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11977"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11922"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11865"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11767"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11695"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11672"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-db9be72eba6e",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the all group with 3 updates",
+   "detail": "Bump the all group with 3 updates (#11727)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11727"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-42bec35e05c1",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the all group with 4 updates",
+   "detail": "Bump the all group with 4 updates (#11673)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11673"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-48acd3283c60",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the all group with 5 updates",
+   "detail": "Bump the all group with 5 updates (#11611)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11611"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-281d78b37544",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the go group across 1 directory with 2 updates",
+   "detail": "Bump the go group across 1 directory with 2 updates (#12460)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12460"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8dea22a7c76a",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the go group across 1 directory with 3 updates",
+   "detail": "Bump the go group across 1 directory with 3 updates (#12050)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12050"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c4923656f871",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the go group across 2 directories with 1 update",
+   "detail": "Bump the go group across 2 directories with 1 update (#12186)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12186"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d07cabed05fc",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the go group across 3 directories with 10 updates",
+   "detail": "Bump the go group across 3 directories with 10 updates (#12413)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12413"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2d63438ff5cd",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Bump the go group across 3 directories with 11 updates",
+   "detail": "Bump the go group across 3 directories with 11 updates (#12244)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12244"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a71acfcbfbf8",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Third-party image `registry.k8s.io/ingress-nginx/kube-webhook-certgen`: v1.5.2 → v1.5.0",
+   "detail": "",
+   "release": "",
+   "subjects": [
+    "registry.k8s.io/ingress-nginx/kube-webhook-certgen"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-c99172cd9e6a",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add custom code handling for temporal redirect",
+   "detail": "Add custom code handling for temporal redirect (#10651)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#10651"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6cb541486028",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add native histogram support for histogram metrics",
+   "detail": "Add native histogram support for histogram metrics (#9971)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#9971"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-14579b569d4b",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow any protocol for cors origins",
+   "detail": "Allow any protocol for cors origins (#11153)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11153"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-15c3733b1613",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Auto-generate annotation docs",
+   "detail": "Auto-generate annotation docs (#11820)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11820"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-74a068755272",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Controller: Fix panic in alternative backend merging",
+   "detail": "Controller: Fix panic in alternative backend merging. (#11789)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11789"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-50afa548cb9c",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fix indent in YAML for example pod",
+   "detail": "Fix indent in YAML for example pod (#11598)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11598"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3b8ede49b5e2",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Images: Build `s390x` controller",
+   "detail": "Images: Build `s390x` controller. (#12126)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12126"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b7a552b28ec6",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Images: Bump Alpine to v3.21",
+   "detail": "Images: Bump Alpine to v3.21. (#12528)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12528"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bd28cbc0d2dd",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Images: Bump OpenTelemetry C++ Contrib",
+   "detail": "Images: Bump OpenTelemetry C++ Contrib. (#11629)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11629"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6bf0ed204124",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Images: Bump `NGINX_BASE` to v0.0.10",
+   "detail": "Images: Bump `NGINX_BASE` to v0.0.10. (#11635)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11635"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-12682512070f",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Images: Bump `NGINX_BASE` to v0.0.11",
+   "detail": "Images: Bump `NGINX_BASE` to v0.0.11. (#11741)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11741"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-06200ea65a78",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Images: Bump `NGINX_BASE` to v0.0.12",
+   "detail": "Images: Bump `NGINX_BASE` to v0.0.12. (#11782)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11782"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-158c19371b22",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Images: Bump `NGINX_BASE` to v0.0.9",
+   "detail": "Images: Bump `NGINX_BASE` to v0.0.9. (#11599)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11599"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ff2e01f8c709",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Images: Bump `NGINX_BASE` to v1.0.0",
+   "detail": "Images: Bump `NGINX_BASE` to v1.0.0. (#12066)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12066"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b0f82dc58a07",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Images: Bump `NGINX_BASE` to v1.1.0",
+   "detail": "Images: Bump `NGINX_BASE` to v1.1.0. (#12582)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12582"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4dedb0ba87ac",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Images: Use latest Alpine 3.20 everywhere",
+   "detail": "Images: Use latest Alpine 3.20 everywhere. (#11944)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11944"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ba0bc23f071b",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Metrics: Add `--metrics-per-undefined-host` argument",
+   "detail": "Metrics: Add `--metrics-per-undefined-host` argument. (#11818)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11818"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-07c0276edf11",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Metrics: Fix namespace in `nginx_ingress_controller_ssl_expire_time_seconds`",
+   "detail": "Metrics: Fix namespace in `nginx_ingress_controller_ssl_expire_time_seconds`. (#10274)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#10274"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cc8f89792914",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Missing anchors in regular expression",
+   "detail": "Missing anchors in regular expression. (#11717)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11717"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0524c3d7f32e",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Perform some cleaning operations on line breaks",
+   "detail": "Perform some cleaning operations on line breaks. (#11720)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11720"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7645fa6414b8",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Plugin: Bump `goreleaser` to v2",
+   "detail": "Plugin: Bump `goreleaser` to v2. (#12440)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12440"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4e8eabfaa245",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Release controller v1.11.1/v1.10.3 & chart v4.11.1/v4.10.3",
+   "detail": "Release controller v1.11.1/v1.10.3 & chart v4.11.1/v4.10.3. (#11654)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11654"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bcf992fd1d68",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Release controller v1.11.2/v1.10.4 & chart v4.11.2/v4.10.4",
+   "detail": "Release controller v1.11.2/v1.10.4 & chart v4.11.2/v4.10.4. (#11816)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11816"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b2efc9e2d90a",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Revert \"docs: Add deployment for AWS NLB Proxy.\"",
+   "detail": "Revert \"docs: Add deployment for AWS NLB Proxy.\" (#11857)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11857"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e74129b1dd2d",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Update custom headers annotation documentation",
+   "detail": "Update custom headers annotation documentation (#12318)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12318"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a64648826597",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Update maxmind post link about geolite2 license changes",
+   "detail": "Update maxmind post link about geolite2 license changes (#11861)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11861"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ba4df3f64c49",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[fix] fix nginx temp configs cleanup",
+   "detail": "[fix] fix nginx temp configs cleanup (#12225)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12225"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7a8c234f1921",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "added real-client-ip faq",
+   "detail": "added real-client-ip faq (#11663)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11663"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cf873134eb1f",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "docs: Add deployment for AWS NLB Proxy",
+   "detail": "docs: Add deployment for AWS NLB Proxy. (#9565)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#9565"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1287fdd197e8",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "docs: update OpenSSL Roadmap link",
+   "detail": "docs: update OpenSSL Roadmap link (#11730)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11730"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-58529a6f4e97",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "registry.k8s.io/ingress-nginx/controller-chroot:v1.12.0@sha256:87c88e1c38a6c8d4483c8f70b69e2cca49853bb3ec3124b9b1be648edf139af3",
+   "detail": "",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-76ee7a00bf31",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "registry.k8s.io/ingress-nginx/controller:v1.12.0@sha256:e6b8de175acda6ca913891f0f727bca4527e797d52688cbe9fec9040d6f6b6fa",
+   "detail": "",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b1759b75203f",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "revert module upgrade",
+   "detail": "revert module upgrade (#11594)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11594"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5d2a257f6ce9",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "rikatz is stepping down",
+   "detail": "rikatz is stepping down (#12516)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12516"
+    },
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#12494"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e580d615341f",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "unskip the ocsp tests and update images to fix cfssl bug",
+   "detail": "unskip the ocsp tests and update images to fix cfssl bug (#11606)",
+   "release": "1.12.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "kubernetes/ingress-nginx#11606"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  }
+ ],
+ "evidence": [
+  {
+   "id": "ev-8a9dcc4e8a79",
+   "uri": "https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.11.5"
+  },
+  {
+   "id": "ev-4d4bc744afff",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-67fdd3635378",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-f401c0d4efcc",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-876664203441",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-b481ef7b12c6",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-2ead5402532e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-59d8dd8af2a4",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-c1583c9bf6ba",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-c030515d5a59",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-83e87f9b007e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-c1953c0ea52f",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-a8db80ac333d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-afcb4b6758b3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-4a5f38b04ea6",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-3a1835067933",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-b4aec70fb613",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-ed76eec71598",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-aacdbe5509e3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-d013abba83ff",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-0a60a2f7de5d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-2f17cb20281f",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-08d8c5f2a9a3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-8a47c5acef74",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-abb305c6571a",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-f76988610cdf",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-9e8cb9f4b7a9",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-586a0007b3c3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-3d85803a4b49",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-2276a3fdb32e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-92ed4706e514",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-3c5a0d786ed5",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-507fc525ea77",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-5e31a9f319a6",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-96674baa0f0e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-17a66687a10a",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-daf1f3fda866",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-285b9c859f8e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-5cdf0d211575",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-dc77e675a905",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-734e0c5bca50",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-5184b44ce589",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-0460e7ffb2af",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-4714c92c4c6f",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-b0ce4133a51c",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-c361f867b724",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-dafc32251af3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-6dad4dced36d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-d5692ad410f3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-8e2bbe1bc4ef",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-d99fed64253d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-d33f94b4cf3e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-271eb3f28fd3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-d6fcd9134eac",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-d6e4b639f505",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-d0d435e88110",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-3c4162f8ff24",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-e540918c2137",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-d53625b60673",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-1ffbdcc222a3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-49fb49d1a17e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-c6cc9708dee2",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.11.5.md"
+  },
+  {
+   "id": "ev-41fb4757a64d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/README.md"
+  },
+  {
+   "id": "ev-3687a37d2c86",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/README.md"
+  },
+  {
+   "id": "ev-8afc30bf7bc5",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/README.md"
+  },
+  {
+   "id": "ev-fba755c72d92",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/README.md"
+  },
+  {
+   "id": "ev-04ff0747efd8",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/README.md"
+  },
+  {
+   "id": "ev-9e36967781a5",
+   "uri": "https://registry.k8s.io/v2/ingress-nginx/controller/manifests/sha256:a1cbad75b0a7098bf9325132794dddf9eef917e8a7fe246749a4cea7ff6f01eb"
+  },
+  {
+   "id": "ev-ca0efa56c5ee",
+   "uri": "https://registry.k8s.io/v2/ingress-nginx/controller-chroot/manifests/sha256:ec9df3eb6b06563a079ee46045da94cbf750f7dbb16fdbcb9e3265b551ed72ad"
+  },
+  {
+   "id": "ev-bc0ca75bffe7",
+   "uri": "https://kubernetes.github.io/ingress-nginx/index.yaml"
+  },
+  {
+   "id": "ev-3f3bfb72529d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.11.5/charts/ingress-nginx/values.yaml"
+  },
+  {
+   "id": "ev-b270aa920ea8",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.11.5/charts/ingress-nginx/Chart.yaml"
+  },
+  {
+   "id": "ev-19b429484621",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.11.5/charts/ingress-nginx/Chart.yaml"
+  },
+  {
+   "id": "ev-94db971c4668",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/cloud/deploy.yaml"
+  },
+  {
+   "id": "ev-d0df758fbc62",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/cloud/deploy.yaml"
+  },
+  {
+   "id": "ev-9e37cde6f561",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/baremetal/deploy.yaml"
+  },
+  {
+   "id": "ev-d391545de71e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/baremetal/deploy.yaml"
+  },
+  {
+   "id": "ev-3970b6cdd73e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/aws/deploy.yaml"
+  },
+  {
+   "id": "ev-3b68f7150336",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/aws/deploy.yaml"
+  },
+  {
+   "id": "ev-951fd23e87e4",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/aws/nlb-with-tls-termination/deploy.yaml"
+  },
+  {
+   "id": "ev-d7c992394950",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/aws/nlb-with-tls-termination/deploy.yaml"
+  },
+  {
+   "id": "ev-330c2f0840d3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/do/deploy.yaml"
+  },
+  {
+   "id": "ev-0462027e91c7",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/do/deploy.yaml"
+  },
+  {
+   "id": "ev-455eb068cbdb",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/exoscale/deploy.yaml"
+  },
+  {
+   "id": "ev-7c3eb338f018",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/exoscale/deploy.yaml"
+  },
+  {
+   "id": "ev-78cc586896ca",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/kind/deploy.yaml"
+  },
+  {
+   "id": "ev-fad728d11d7d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/kind/deploy.yaml"
+  },
+  {
+   "id": "ev-283a866ce69f",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/oracle/deploy.yaml"
+  },
+  {
+   "id": "ev-869bf0fd1933",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/oracle/deploy.yaml"
+  },
+  {
+   "id": "ev-f227873e58e3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/scw/deploy.yaml"
+  },
+  {
+   "id": "ev-4342d91da7c4",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.11.5/deploy/static/provider/scw/deploy.yaml"
+  },
+  {
+   "id": "ev-4cceb7324c16",
+   "uri": "https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0"
+  },
+  {
+   "id": "ev-d8b3f76a7fb7",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-5e9f6f867dec",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-df0610547c43",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-ea8dbf1e7bc2",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-06cac98f6565",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-a55a40a02ec3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-43eb26146720",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-fcf5a24a9ca9",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-2bff6fac08f6",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-4abd1a1b0c1b",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-c54082309884",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-dad6dadc20a3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-595f8e72de97",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-096f704fee70",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-bc030cfed767",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-b9b914ab2c26",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-67ae6e800494",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-66c015b6a2c7",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-beab93126ba8",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-f03ef746bea5",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-4cae6a00f359",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-3013721640f9",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-861eff399576",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-61a318228076",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-75cdb93d09ba",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-30e0289e7611",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-ee9b0451df29",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-c55b1eefff74",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-d9759699280b",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-4d8cb0e25eb4",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-ac305c8d490a",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-8ce3e6e7b740",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-94d636d1efde",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-2522062fed21",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-a4cf1c52e142",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-b26db4594603",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-381b97e9565f",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-0b03c6f6495d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-11526b3069bc",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-cdfd17e9ea69",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-ed039f426816",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-04db6eb9987b",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-2c729136c8b8",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-85e0c1246310",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-43ac75cf38e7",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-8e6b2dc8262e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-8b1bcab1caa3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-f958e61acb86",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-0923c76c3795",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-0e043f49b107",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-a1987c8a752e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-ae532e5bfc8d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-a200d2a0466e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-a9a95d7b0441",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-aaffa597a1ba",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-05b99c98065e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-c2fa7a850d70",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-17dbffb59988",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-ebcb03eeb58a",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-36bc03abab24",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-47cc05512bc7",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-29d43a4d0fb2",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-e7362507f611",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-9eaed4545e7f",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-beb2dab68b86",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-109ea85db0de",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-e2b0624fb46a",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-af4afff818cc",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-7bf00ff36e89",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-cbefc6c8e4f9",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-a06503cfc6ce",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-638a18c764ca",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-c2c6769f2423",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-d9e9275ff3a5",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-549b5bde405e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-43d41cedc89c",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-bc9d16f23947",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-03fa1f011205",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-54a4da0884e9",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-bb1ea75e009c",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-c13e48502380",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-3aa7cc691768",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-d2768a28759f",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-b83610c0330e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-5191edb6ae15",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-268cb5619870",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-6528372f751c",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-b4e2a8042125",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-e6c292e85381",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-b74a3bb2992d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-4898f5effa08",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-74d814d64cfc",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-299dc2f720fc",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-d654ed5582c6",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-f72935ca50d6",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-5a81fcc4f42d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-487513dc3d0e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-9b1132bbca7d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-a60151f6eafe",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-bae93160ae0d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-4f186a36aed2",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-8305d14695e7",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-6956e7538338",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-554f0ccbade0",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-f6c6a1a185b0",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-172f0e828e89",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-8cebe1d6e97b",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-e3f905e415f6",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-3f94b1663632",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-71f994c3e71d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-5addc1481e2f",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-1f047c7adf6d",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-d90f0348de07",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-be9f9fe565e3",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-752f88d25b22",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-4af75aca5a0c",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-2e6f69b7e713",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-422191697b98",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-26cb7245f34a",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-f1a3c0371ae8",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-22d7eee30a43",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-66bb6acc30e8",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-bed75e506166",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-5d65a55fd744",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-f7bb51ea2ab6",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-ee0459c56d18",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-867251360883",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-1b1d7ba3c0e1",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-e8284111e6b7",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-91defe49e4e4",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-65f3ed015022",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-00b80af148df",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-1221574ac6f6",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-14295e5c0670",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-206fb9ba823c",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-3fc2f24a0f50",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-9b046fab4adf",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-7c5ce51bdb82",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-3b5b1cc8f148",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-d4a9aadfda96",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-c4515485a7b8",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-9f4a547b1e6c",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-3461ed713178",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-1ce89fe8d6a2",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-58c4193a20e6",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-9213a4143747",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-367f7f6b3fdc",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-5f7c17574d9e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-3e174af56677",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-0798a6e00c6e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-31dcee6deb21",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-f95d07a0d3df",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-e2a2915f185c",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-eb4b0920afcc",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-eaf81c0f80f2",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-5076fc08899b",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-9f56bf195734",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-27016cc2f77e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-32d5538e4af2",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-206a4424cd7f",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/changelog/controller-1.12.0.md"
+  },
+  {
+   "id": "ev-5a364140428e",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/main/README.md"
+  },
+  {
+   "id": "ev-354c5f1a96ff",
+   "uri": "https://registry.k8s.io/v2/ingress-nginx/controller/manifests/sha256:e6b8de175acda6ca913891f0f727bca4527e797d52688cbe9fec9040d6f6b6fa"
+  },
+  {
+   "id": "ev-e6542a9bace9",
+   "uri": "https://registry.k8s.io/v2/ingress-nginx/controller-chroot/manifests/sha256:87c88e1c38a6c8d4483c8f70b69e2cca49853bb3ec3124b9b1be648edf139af3"
+  },
+  {
+   "id": "ev-e89833b93925",
+   "uri": "https://kubernetes.github.io/ingress-nginx/index.yaml"
+  },
+  {
+   "id": "ev-2035792d5413",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.12.0/charts/ingress-nginx/values.yaml"
+  },
+  {
+   "id": "ev-031286231cfa",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.12.0/charts/ingress-nginx/Chart.yaml"
+  },
+  {
+   "id": "ev-34db4a5c8249",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/helm-chart-4.12.0/charts/ingress-nginx/Chart.yaml"
+  },
+  {
+   "id": "ev-c6dea3ed6c99",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/cloud/deploy.yaml"
+  },
+  {
+   "id": "ev-7da292d282a9",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/cloud/deploy.yaml"
+  },
+  {
+   "id": "ev-98d983dda70c",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/baremetal/deploy.yaml"
+  },
+  {
+   "id": "ev-e07b19a8c561",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/baremetal/deploy.yaml"
+  },
+  {
+   "id": "ev-52e6901acef7",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/aws/deploy.yaml"
+  },
+  {
+   "id": "ev-81019ef60b08",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/aws/deploy.yaml"
+  },
+  {
+   "id": "ev-1a02aa6609d1",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/aws/nlb-with-tls-termination/deploy.yaml"
+  },
+  {
+   "id": "ev-cc0b6c64923b",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/aws/nlb-with-tls-termination/deploy.yaml"
+  },
+  {
+   "id": "ev-6904490ee9c9",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/do/deploy.yaml"
+  },
+  {
+   "id": "ev-b23cd93464ec",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/do/deploy.yaml"
+  },
+  {
+   "id": "ev-470d0c04e8f8",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/exoscale/deploy.yaml"
+  },
+  {
+   "id": "ev-c7fff63f1c97",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/exoscale/deploy.yaml"
+  },
+  {
+   "id": "ev-eadcc06e9f09",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/kind/deploy.yaml"
+  },
+  {
+   "id": "ev-963e6c4feb60",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/kind/deploy.yaml"
+  },
+  {
+   "id": "ev-9c03f4494308",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/oracle/deploy.yaml"
+  },
+  {
+   "id": "ev-8a2394876999",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/oracle/deploy.yaml"
+  },
+  {
+   "id": "ev-50e197a0025a",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/scw/deploy.yaml"
+  },
+  {
+   "id": "ev-c039f460ae5f",
+   "uri": "https://github.com/kubernetes/ingress-nginx/blob/controller-v1.12.0/deploy/static/provider/scw/deploy.yaml"
+  }
+ ]
+}

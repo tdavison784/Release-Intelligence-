@@ -206,6 +206,7 @@ var descriptions = map[string]string{
 	"UpgradeEdge.skippedReleases":  "Releases between the endpoints deliberately not traversed, e.g. backport patches of intermediate lines.",
 	"UpgradeEdge.sources":          "What happened when each source was consulted. Gaps are reported here (state unavailable, not-found, ...) instead of being hidden.",
 	"UpgradeEdge.changes":          "Deterministic conclusions (declared, computed or heuristic), most important first. Never AI-derived.",
+	"UpgradeEdge.routine":          "Summary of the routine-maintenance changes (Changes with routine set): the count and breakdown a brief shows instead of the items. Absent when nothing classifies routine.",
 	"UpgradeEdge.enrichments":      "AI-derived additions (clusters, migration summaries, diff explanations, related changes). Always labelled method \"ai\" and never mixed into `changes`.",
 	"UpgradeEdge.facts":            "Deterministic statements extracted from sources, without interpretation.",
 	"UpgradeEdge.evidence":         "Every piece of source evidence referenced by id anywhere in this document, de-duplicated.",
@@ -308,8 +309,17 @@ var descriptions = map[string]string{
 	"Change.subjects": "What the change affects: Helm value paths, CRD names, image repositories, API versions.",
 	"Change.facts":    "Ids of the Facts this conclusion is based on.",
 	"Change.evidence": "Ids of the Evidence records that support the change; at least one, each resolving within the edge's `evidence`.",
-	"Reference":       "An external identifier mentioned by a source.",
-	"Reference.type":  "Kind of identifier, e.g. \"cve\", \"ghsa\", \"pull-request\", \"issue\" or \"url\".",
+	"Change.routine": "True for release-note maintenance churn (dependency bumps, UI-only work, CI/docs/test/build " +
+		"noise, metric renames) found by the deterministic routine detector. Routine changes are never breaking, " +
+		"security-relevant or directive; they stay in `changes` with their evidence, but are kept out of the default " +
+		"upgrade narrative and summarised in `routine`. Omitted when false.",
+	"Change.routineKind": "Why the change is routine: dependency (version bumps), ui, housekeeping (CI/docs/test/build " +
+		"churn) or metrics (renames/deprecations). Set only when routine is true.",
+	"RoutineSummary":         "Count and breakdown of the routine-maintenance changes of an edge.",
+	"RoutineSummary.byKind":  "Routine changes per kind (dependency, ui, housekeeping, metrics).",
+	"RoutineSummary.summary": "Human-readable breakdown, e.g. \"27 dependency bumps, 14 UI/docs/CI churn\".",
+	"Reference":              "An external identifier mentioned by a source.",
+	"Reference.type":         "Kind of identifier, e.g. \"cve\", \"ghsa\", \"pull-request\", \"issue\" or \"url\".",
 
 	// --- AI ------------------------------------------------------------------
 	"Enrichment": "AI-derived information that groups, summarises, connects or explains deterministic Changes. " +

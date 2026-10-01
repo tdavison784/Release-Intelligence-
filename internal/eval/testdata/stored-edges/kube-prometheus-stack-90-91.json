@@ -1,0 +1,930 @@
+{
+ "caseId": "kube-prometheus-stack-90-91",
+ "recordedFrom": "kube-prometheus-stack/edges/90.2.0_91.0.0.json (stored eval run of 2026-10-01, commit 0cf815f)",
+ "changes": [
+  {
+   "id": "chg-d004c3f531d4",
+   "category": "api",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "[CHANGE] Add named enum types for Hetzner, Docker Swarm, and OpenStack service discovery fields in the `ScrapeConfig` CRD (`HetznerRole`, `DockerSwarmRole`…",
+   "detail": "[CHANGE] Add named enum types for Hetzner, Docker Swarm, and OpenStack service discovery fields in the `ScrapeConfig` CRD (`HetznerRole`, `DockerSwarmRole`, `OpenStackAvailability`). #8789",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8789"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b714b7eac865",
+   "category": "api",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "[CHANGE] Reject empty strings in `namespaceDiscovery.names`, `consulSDConfig.services`, and `consulSDConfig.tags` list fields in the `ScrapeConfig` CRD",
+   "detail": "[CHANGE] Reject empty strings in `namespaceDiscovery.names`, `consulSDConfig.services`, and `consulSDConfig.tags` list fields in the `ScrapeConfig` CRD. #8786",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8786"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-362699dfc118",
+   "category": "api",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "[CHANGE] Update the default Alertmanager version to v0.34.0 and discard zero-value duration fields (`retention`, `clusterGossipInterval`…",
+   "detail": "[CHANGE] Update the default Alertmanager version to v0.34.0 and discard zero-value duration fields (`retention`, `clusterGossipInterval`, `clusterPushpullInterval`, `clusterPeerTimeout`) in `Alertmanager` resources instead of passing them as CLI flags, which Alertmanager rejects and can cause startup failures. Ignored fields are reported via the `IgnoredFields` status condition. #8800",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8800"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4f6d73744e5a",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "From 90.x to 91.x: This version upgrades Prometheus-Operator to v0.94.0 The operator's ClusterRole no longer grants wildcard verbs, following the tightened…",
+   "detail": "From 90.x to 91.x: This version upgrades Prometheus-Operator to v0.94.0 The operator's ClusterRole no longer grants wildcard verbs, following the tightened RBAC shipped upstream in v0.94.0. Since 68.4.0 it is also possible to use `crds.upgradeJob.enabled` for upgrading the CRDs. For traditional upgrades, please run these commands to update the CRDs before applying the upgrade.",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "pull-request",
+     "id": "prometheus-community/helm-charts#5175"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0264a696ad79",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Alertmanager v1 schema: 36 fields added: `spec.clusterPeerName`, `spec.containers[].lifecycle.postStart.httpGet.protocol`, `spec.containers[].lifecycle.preStop…",
+   "detail": "New paths in the monitoring.coreos.com/v1 schema of alertmanagers.monitoring.coreos.com:\nspec.clusterPeerName\nspec.containers[].lifecycle.postStart.httpGet.protocol\nspec.containers[].lifecycle.preStop.httpGet.protocol\nspec.containers[].livenessProbe.grpc.mode\nspec.containers[].livenessProbe.httpGet.protocol\nspec.containers[].readinessProbe.grpc.mode\nspec.containers[].readinessProbe.httpGet.protocol\nspec.containers[].startupProbe.grpc.mode\nspec.containers[].startupProbe.httpGet.protocol\nspec.containers[].volumeMounts[].bindMountOptions[]\nspec.initContainers[].lifecycle.postStart.httpGet.protocol\nspec.initContainers[].lifecycle.preStop.httpGet.protocol\nspec.initContainers[].livenessProbe.grpc.mode\nspec.initContainers[].livenessProbe.httpGet.protocol\nspec.initContainers[].readinessProbe.grpc.mode\nspec.initContainers[].readinessProbe.httpGet.protocol\nspec.initContainers[].startupProbe.grpc.mode\nspec.initContainers[].startupProbe.httpGet.protocol\nspec.initContainers[].volumeMounts[].bindMountOptions[]\nspec.storage.emptyDir.mode\nspec.storage.volumeClaimTemplate.status.healthStatus\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[]\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].message\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].reason\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].status\nspec.storage.volumeClaimTemplate.status.healthStatus.lastTransitionTime\nspec.volumeMounts[].bindMountOptions[]\nspec.volumes[].configMap.defaultUser\nspec.volumes[].configMap.items[].user\nspec.volumes[].downwardAPI.defaultUser\nspec.volumes[].downwardAPI.items[].user\nspec.volumes[].emptyDir.mode\nspec.volumes[].projected.defaultUser\nspec.volumes[].projected.sources[].clusterTrustBundle.user\nspec.volumes[].projected.sources[].configMap.items[].user\nspec.volumes[].projected.sources[].downwardAPI.items[].user\nspec.volumes[].projected.sources[].podCertificate.user\nspec.volumes[].projected.sources[].secret.items[].user\nspec.volumes[].projected.sources[].serviceAccountToken.user\nspec.volumes[].secret.defaultUser\nspec.volumes[].secret.items[].user",
+   "release": "",
+   "subjects": [
+    "spec.clusterPeerName",
+    "spec.containers[].lifecycle.postStart.httpGet.protocol",
+    "spec.containers[].lifecycle.preStop.httpGet.protocol",
+    "spec.containers[].livenessProbe.grpc.mode",
+    "spec.containers[].livenessProbe.httpGet.protocol",
+    "spec.containers[].readinessProbe.grpc.mode",
+    "spec.containers[].readinessProbe.httpGet.protocol",
+    "spec.containers[].startupProbe.grpc.mode",
+    "spec.containers[].startupProbe.httpGet.protocol",
+    "spec.containers[].volumeMounts[].bindMountOptions[]",
+    "spec.initContainers[].lifecycle.postStart.httpGet.protocol",
+    "spec.initContainers[].lifecycle.preStop.httpGet.protocol",
+    "spec.initContainers[].livenessProbe.grpc.mode",
+    "spec.initContainers[].livenessProbe.httpGet.protocol",
+    "spec.initContainers[].readinessProbe.grpc.mode",
+    "spec.initContainers[].readinessProbe.httpGet.protocol",
+    "spec.initContainers[].startupProbe.grpc.mode",
+    "spec.initContainers[].startupProbe.httpGet.protocol",
+    "spec.initContainers[].volumeMounts[].bindMountOptions[]",
+    "spec.storage.emptyDir.mode",
+    "spec.storage.volumeClaimTemplate.status.healthStatus",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[]",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].message",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].reason",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].status",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.lastTransitionTime",
+    "spec.volumeMounts[].bindMountOptions[]",
+    "spec.volumes[].configMap.defaultUser",
+    "spec.volumes[].configMap.items[].user",
+    "spec.volumes[].downwardAPI.defaultUser",
+    "spec.volumes[].downwardAPI.items[].user",
+    "spec.volumes[].emptyDir.mode",
+    "spec.volumes[].projected.defaultUser",
+    "spec.volumes[].projected.sources[].clusterTrustBundle.user",
+    "spec.volumes[].projected.sources[].configMap.items[].user",
+    "spec.volumes[].projected.sources[].downwardAPI.items[].user",
+    "spec.volumes[].projected.sources[].podCertificate.user",
+    "spec.volumes[].projected.sources[].secret.items[].user",
+    "spec.volumes[].projected.sources[].serviceAccountToken.user",
+    "spec.volumes[].secret.defaultUser",
+    "spec.volumes[].secret.items[].user"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-83ade0ddced9",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Prometheus v1 schema: 37 fields added: `spec.containers[].lifecycle.postStart.httpGet.protocol`, `spec.containers[].lifecycle.preStop.httpGet.protocol`…",
+   "detail": "New paths in the monitoring.coreos.com/v1 schema of prometheuses.monitoring.coreos.com:\nspec.containers[].lifecycle.postStart.httpGet.protocol\nspec.containers[].lifecycle.preStop.httpGet.protocol\nspec.containers[].livenessProbe.grpc.mode\nspec.containers[].livenessProbe.httpGet.protocol\nspec.containers[].readinessProbe.grpc.mode\nspec.containers[].readinessProbe.httpGet.protocol\nspec.containers[].startupProbe.grpc.mode\nspec.containers[].startupProbe.httpGet.protocol\nspec.containers[].volumeMounts[].bindMountOptions[]\nspec.initContainers[].lifecycle.postStart.httpGet.protocol\nspec.initContainers[].lifecycle.preStop.httpGet.protocol\nspec.initContainers[].livenessProbe.grpc.mode\nspec.initContainers[].livenessProbe.httpGet.protocol\nspec.initContainers[].readinessProbe.grpc.mode\nspec.initContainers[].readinessProbe.httpGet.protocol\nspec.initContainers[].startupProbe.grpc.mode\nspec.initContainers[].startupProbe.httpGet.protocol\nspec.initContainers[].volumeMounts[].bindMountOptions[]\nspec.retentionPercentage\nspec.storage.emptyDir.mode\nspec.storage.volumeClaimTemplate.status.healthStatus\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[]\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].message\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].reason\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].status\nspec.storage.volumeClaimTemplate.status.healthStatus.lastTransitionTime\nspec.thanos.volumeMounts[].bindMountOptions[]\nspec.volumeMounts[].bindMountOptions[]\nspec.volumes[].configMap.defaultUser\nspec.volumes[].configMap.items[].user\nspec.volumes[].downwardAPI.defaultUser\nspec.volumes[].downwardAPI.items[].user\nspec.volumes[].emptyDir.mode\nspec.volumes[].projected.defaultUser\nspec.volumes[].projected.sources[].clusterTrustBundle.user\nspec.volumes[].projected.sources[].configMap.items[].user\nspec.volumes[].projected.sources[].downwardAPI.items[].user\nspec.volumes[].projected.sources[].podCertificate.user\nspec.volumes[].projected.sources[].secret.items[].user\nspec.volumes[].projected.sources[].serviceAccountToken.user\nspec.volumes[].secret.defaultUser\nspec.volumes[].secret.items[].user",
+   "release": "",
+   "subjects": [
+    "spec.containers[].lifecycle.postStart.httpGet.protocol",
+    "spec.containers[].lifecycle.preStop.httpGet.protocol",
+    "spec.containers[].livenessProbe.grpc.mode",
+    "spec.containers[].livenessProbe.httpGet.protocol",
+    "spec.containers[].readinessProbe.grpc.mode",
+    "spec.containers[].readinessProbe.httpGet.protocol",
+    "spec.containers[].startupProbe.grpc.mode",
+    "spec.containers[].startupProbe.httpGet.protocol",
+    "spec.containers[].volumeMounts[].bindMountOptions[]",
+    "spec.initContainers[].lifecycle.postStart.httpGet.protocol",
+    "spec.initContainers[].lifecycle.preStop.httpGet.protocol",
+    "spec.initContainers[].livenessProbe.grpc.mode",
+    "spec.initContainers[].livenessProbe.httpGet.protocol",
+    "spec.initContainers[].readinessProbe.grpc.mode",
+    "spec.initContainers[].readinessProbe.httpGet.protocol",
+    "spec.initContainers[].startupProbe.grpc.mode",
+    "spec.initContainers[].startupProbe.httpGet.protocol",
+    "spec.initContainers[].volumeMounts[].bindMountOptions[]",
+    "spec.retentionPercentage",
+    "spec.storage.emptyDir.mode",
+    "spec.storage.volumeClaimTemplate.status.healthStatus",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[]",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].message",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].reason",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].status",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.lastTransitionTime",
+    "spec.thanos.volumeMounts[].bindMountOptions[]",
+    "spec.volumeMounts[].bindMountOptions[]",
+    "spec.volumes[].configMap.defaultUser",
+    "spec.volumes[].configMap.items[].user",
+    "spec.volumes[].downwardAPI.defaultUser",
+    "spec.volumes[].downwardAPI.items[].user",
+    "spec.volumes[].emptyDir.mode",
+    "spec.volumes[].projected.defaultUser",
+    "spec.volumes[].projected.sources[].clusterTrustBundle.user",
+    "spec.volumes[].projected.sources[].configMap.items[].user",
+    "spec.volumes[].projected.sources[].downwardAPI.items[].user",
+    "spec.volumes[].projected.sources[].podCertificate.user",
+    "spec.volumes[].projected.sources[].secret.items[].user",
+    "spec.volumes[].projected.sources[].serviceAccountToken.user",
+    "spec.volumes[].secret.defaultUser",
+    "spec.volumes[].secret.items[].user"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-342048ea3347",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "PrometheusAgent v1alpha1 schema: 35 fields added: `spec.containers[].lifecycle.postStart.httpGet.protocol`, `spec.containers[].lifecycle.preStop.httpGet.protoc…",
+   "detail": "New paths in the monitoring.coreos.com/v1alpha1 schema of prometheusagents.monitoring.coreos.com:\nspec.containers[].lifecycle.postStart.httpGet.protocol\nspec.containers[].lifecycle.preStop.httpGet.protocol\nspec.containers[].livenessProbe.grpc.mode\nspec.containers[].livenessProbe.httpGet.protocol\nspec.containers[].readinessProbe.grpc.mode\nspec.containers[].readinessProbe.httpGet.protocol\nspec.containers[].startupProbe.grpc.mode\nspec.containers[].startupProbe.httpGet.protocol\nspec.containers[].volumeMounts[].bindMountOptions[]\nspec.initContainers[].lifecycle.postStart.httpGet.protocol\nspec.initContainers[].lifecycle.preStop.httpGet.protocol\nspec.initContainers[].livenessProbe.grpc.mode\nspec.initContainers[].livenessProbe.httpGet.protocol\nspec.initContainers[].readinessProbe.grpc.mode\nspec.initContainers[].readinessProbe.httpGet.protocol\nspec.initContainers[].startupProbe.grpc.mode\nspec.initContainers[].startupProbe.httpGet.protocol\nspec.initContainers[].volumeMounts[].bindMountOptions[]\nspec.storage.emptyDir.mode\nspec.storage.volumeClaimTemplate.status.healthStatus\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[]\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].message\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].reason\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].status\nspec.storage.volumeClaimTemplate.status.healthStatus.lastTransitionTime\nspec.volumeMounts[].bindMountOptions[]\nspec.volumes[].configMap.defaultUser\nspec.volumes[].configMap.items[].user\nspec.volumes[].downwardAPI.defaultUser\nspec.volumes[].downwardAPI.items[].user\nspec.volumes[].emptyDir.mode\nspec.volumes[].projected.defaultUser\nspec.volumes[].projected.sources[].clusterTrustBundle.user\nspec.volumes[].projected.sources[].configMap.items[].user\nspec.volumes[].projected.sources[].downwardAPI.items[].user\nspec.volumes[].projected.sources[].podCertificate.user\nspec.volumes[].projected.sources[].secret.items[].user\nspec.volumes[].projected.sources[].serviceAccountToken.user\nspec.volumes[].secret.defaultUser\nspec.volumes[].secret.items[].user",
+   "release": "",
+   "subjects": [
+    "spec.containers[].lifecycle.postStart.httpGet.protocol",
+    "spec.containers[].lifecycle.preStop.httpGet.protocol",
+    "spec.containers[].livenessProbe.grpc.mode",
+    "spec.containers[].livenessProbe.httpGet.protocol",
+    "spec.containers[].readinessProbe.grpc.mode",
+    "spec.containers[].readinessProbe.httpGet.protocol",
+    "spec.containers[].startupProbe.grpc.mode",
+    "spec.containers[].startupProbe.httpGet.protocol",
+    "spec.containers[].volumeMounts[].bindMountOptions[]",
+    "spec.initContainers[].lifecycle.postStart.httpGet.protocol",
+    "spec.initContainers[].lifecycle.preStop.httpGet.protocol",
+    "spec.initContainers[].livenessProbe.grpc.mode",
+    "spec.initContainers[].livenessProbe.httpGet.protocol",
+    "spec.initContainers[].readinessProbe.grpc.mode",
+    "spec.initContainers[].readinessProbe.httpGet.protocol",
+    "spec.initContainers[].startupProbe.grpc.mode",
+    "spec.initContainers[].startupProbe.httpGet.protocol",
+    "spec.initContainers[].volumeMounts[].bindMountOptions[]",
+    "spec.storage.emptyDir.mode",
+    "spec.storage.volumeClaimTemplate.status.healthStatus",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[]",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].message",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].reason",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].status",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.lastTransitionTime",
+    "spec.volumeMounts[].bindMountOptions[]",
+    "spec.volumes[].configMap.defaultUser",
+    "spec.volumes[].configMap.items[].user",
+    "spec.volumes[].downwardAPI.defaultUser",
+    "spec.volumes[].downwardAPI.items[].user",
+    "spec.volumes[].emptyDir.mode",
+    "spec.volumes[].projected.defaultUser",
+    "spec.volumes[].projected.sources[].clusterTrustBundle.user",
+    "spec.volumes[].projected.sources[].configMap.items[].user",
+    "spec.volumes[].projected.sources[].downwardAPI.items[].user",
+    "spec.volumes[].projected.sources[].podCertificate.user",
+    "spec.volumes[].projected.sources[].secret.items[].user",
+    "spec.volumes[].projected.sources[].serviceAccountToken.user",
+    "spec.volumes[].secret.defaultUser",
+    "spec.volumes[].secret.items[].user"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-b359009922af",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ThanosRuler v1 schema: 35 fields added: `spec.containers[].lifecycle.postStart.httpGet.protocol`, `spec.containers[].lifecycle.preStop.httpGet.protocol`…",
+   "detail": "New paths in the monitoring.coreos.com/v1 schema of thanosrulers.monitoring.coreos.com:\nspec.containers[].lifecycle.postStart.httpGet.protocol\nspec.containers[].lifecycle.preStop.httpGet.protocol\nspec.containers[].livenessProbe.grpc.mode\nspec.containers[].livenessProbe.httpGet.protocol\nspec.containers[].readinessProbe.grpc.mode\nspec.containers[].readinessProbe.httpGet.protocol\nspec.containers[].startupProbe.grpc.mode\nspec.containers[].startupProbe.httpGet.protocol\nspec.containers[].volumeMounts[].bindMountOptions[]\nspec.initContainers[].lifecycle.postStart.httpGet.protocol\nspec.initContainers[].lifecycle.preStop.httpGet.protocol\nspec.initContainers[].livenessProbe.grpc.mode\nspec.initContainers[].livenessProbe.httpGet.protocol\nspec.initContainers[].readinessProbe.grpc.mode\nspec.initContainers[].readinessProbe.httpGet.protocol\nspec.initContainers[].startupProbe.grpc.mode\nspec.initContainers[].startupProbe.httpGet.protocol\nspec.initContainers[].volumeMounts[].bindMountOptions[]\nspec.storage.emptyDir.mode\nspec.storage.volumeClaimTemplate.status.healthStatus\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[]\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].message\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].reason\nspec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].status\nspec.storage.volumeClaimTemplate.status.healthStatus.lastTransitionTime\nspec.volumeMounts[].bindMountOptions[]\nspec.volumes[].configMap.defaultUser\nspec.volumes[].configMap.items[].user\nspec.volumes[].downwardAPI.defaultUser\nspec.volumes[].downwardAPI.items[].user\nspec.volumes[].emptyDir.mode\nspec.volumes[].projected.defaultUser\nspec.volumes[].projected.sources[].clusterTrustBundle.user\nspec.volumes[].projected.sources[].configMap.items[].user\nspec.volumes[].projected.sources[].downwardAPI.items[].user\nspec.volumes[].projected.sources[].podCertificate.user\nspec.volumes[].projected.sources[].secret.items[].user\nspec.volumes[].projected.sources[].serviceAccountToken.user\nspec.volumes[].secret.defaultUser\nspec.volumes[].secret.items[].user",
+   "release": "",
+   "subjects": [
+    "spec.containers[].lifecycle.postStart.httpGet.protocol",
+    "spec.containers[].lifecycle.preStop.httpGet.protocol",
+    "spec.containers[].livenessProbe.grpc.mode",
+    "spec.containers[].livenessProbe.httpGet.protocol",
+    "spec.containers[].readinessProbe.grpc.mode",
+    "spec.containers[].readinessProbe.httpGet.protocol",
+    "spec.containers[].startupProbe.grpc.mode",
+    "spec.containers[].startupProbe.httpGet.protocol",
+    "spec.containers[].volumeMounts[].bindMountOptions[]",
+    "spec.initContainers[].lifecycle.postStart.httpGet.protocol",
+    "spec.initContainers[].lifecycle.preStop.httpGet.protocol",
+    "spec.initContainers[].livenessProbe.grpc.mode",
+    "spec.initContainers[].livenessProbe.httpGet.protocol",
+    "spec.initContainers[].readinessProbe.grpc.mode",
+    "spec.initContainers[].readinessProbe.httpGet.protocol",
+    "spec.initContainers[].startupProbe.grpc.mode",
+    "spec.initContainers[].startupProbe.httpGet.protocol",
+    "spec.initContainers[].volumeMounts[].bindMountOptions[]",
+    "spec.storage.emptyDir.mode",
+    "spec.storage.volumeClaimTemplate.status.healthStatus",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[]",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].message",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].reason",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.healthConditions[].status",
+    "spec.storage.volumeClaimTemplate.status.healthStatus.lastTransitionTime",
+    "spec.volumeMounts[].bindMountOptions[]",
+    "spec.volumes[].configMap.defaultUser",
+    "spec.volumes[].configMap.items[].user",
+    "spec.volumes[].downwardAPI.defaultUser",
+    "spec.volumes[].downwardAPI.items[].user",
+    "spec.volumes[].emptyDir.mode",
+    "spec.volumes[].projected.defaultUser",
+    "spec.volumes[].projected.sources[].clusterTrustBundle.user",
+    "spec.volumes[].projected.sources[].configMap.items[].user",
+    "spec.volumes[].projected.sources[].downwardAPI.items[].user",
+    "spec.volumes[].projected.sources[].podCertificate.user",
+    "spec.volumes[].projected.sources[].secret.items[].user",
+    "spec.volumes[].projected.sources[].serviceAccountToken.user",
+    "spec.volumes[].secret.defaultUser",
+    "spec.volumes[].secret.items[].user"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-5d582c3ac9a3",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[kube-prometheus-stack] Bump prometheus-operator to v0.94.0 by @DrFaust92 in https://github.com/prometheus-community/helm-charts/pull/7269",
+   "detail": "",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "pull-request",
+     "id": "prometheus-community/helm-charts#7269"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-35e18be0e45e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[ENHANCEMENT] Support `webhook_url_file` for Discord receiver in Alertmanager configuration Secret (requires Alertmanager >= v0.28.0)",
+   "detail": "[ENHANCEMENT] Support `webhook_url_file` for Discord receiver in Alertmanager configuration Secret (requires Alertmanager >= v0.28.0). #8035",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8035"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fd5051d8685a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[ENHANCEMENT] Tighten the operator's ClusterRole by replacing wildcard verbs with explicit permissions per resource",
+   "detail": "[ENHANCEMENT] Tighten the operator's ClusterRole by replacing wildcard verbs with explicit permissions per resource. #8752",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8752"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-98ef8c8769a7",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[FEATURE] Add `clusterPeerName` field to `Alertmanager` CRD to override the `--cluster.peer-name` flag (requires Alertmanager >= v0.30.0)",
+   "detail": "[FEATURE] Add `clusterPeerName` field to `Alertmanager` CRD to override the `--cluster.peer-name` flag (requires Alertmanager >= v0.30.0). #8767",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8767"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0e5228094d21",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[FEATURE] Add `retentionPercentage` field to `Prometheus` and `PrometheusAgent` CRDs for volume-based retention (requires Prometheus >= v3.11.0)",
+   "detail": "[FEATURE] Add `retentionPercentage` field to `Prometheus` and `PrometheusAgent` CRDs for volume-based retention (requires Prometheus >= v3.11.0). Setting only the percentage no longer falls back to the default 24h time-based retention. #8728",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8728"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6084618912eb",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[FEATURE] Expose status conditions as Prometheus metrics for `Prometheus`, `PrometheusAgent`, `Alertmanager`, and `ThanosRuler` resources…",
+   "detail": "[FEATURE] Expose status conditions as Prometheus metrics for `Prometheus`, `PrometheusAgent`, `Alertmanager`, and `ThanosRuler` resources (`prometheus_operator_<resource>_status_condition`). #8719",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8719"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8e3cbd6c4992",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[BUGFIX] Add URL validation for Mattermost receiver fields in Alertmanager configuration Secret",
+   "detail": "[BUGFIX] Add URL validation for Mattermost receiver fields in Alertmanager configuration Secret. #8225",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8225"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-12993f70048d",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[BUGFIX] Fix `TracingConfig` fields in `Prometheus` CRD not being serialized due to invalid JSON struct tags",
+   "detail": "[BUGFIX] Fix `TracingConfig` fields in `Prometheus` CRD not being serialized due to invalid JSON struct tags. #8730",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8730"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-89c4bf48f641",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[BUGFIX] Fix `externalId` version gating for Alertmanager SigV4 configuration to require version >= v0.34.0 (was incorrectly set to v0.33.0)",
+   "detail": "[BUGFIX] Fix `externalId` version gating for Alertmanager SigV4 configuration to require version >= v0.34.0 (was incorrectly set to v0.33.0). #8759",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8759"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5f6e953e39af",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[BUGFIX] Fix operator panic when `AlertmanagerConfig` Pushover receivers use `userKeyFile` or `tokenFile` instead of secret selectors",
+   "detail": "[BUGFIX] Fix operator panic when `AlertmanagerConfig` Pushover receivers use `userKeyFile` or `tokenFile` instead of secret selectors. #8775",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8775"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e938c3d52016",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[BUGFIX] Fix operator panic when kubelet Service synchronization fails and the service is unavailable",
+   "detail": "[BUGFIX] Fix operator panic when kubelet Service synchronization fails and the service is unavailable. #8743",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8743"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9524a1dcb653",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[BUGFIX] Fix resources stuck during deletion when the informer misses the deletion timestamp update",
+   "detail": "[BUGFIX] Fix resources stuck during deletion when the informer misses the deletion timestamp update. #8727",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8727"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cef2db81a377",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "[BUGFIX] Require Thanos >= v0.42.0 for delayed compaction with object storage uploads, raised from v0.41.0",
+   "detail": "[BUGFIX] Require Thanos >= v0.42.0 for delayed compaction with object storage uploads, raised from v0.41.0. Thanos v0.41.0 mis-validates the delayed-compaction paths and the sidecar crash-loops; deployments pinned to v0.41.0 fall back to disabling local compaction. #8764",
+   "release": "91.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "prometheus-operator/prometheus-operator#8764"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  }
+ ],
+ "evidence": [
+  {
+   "id": "ev-d89381906e2f",
+   "uri": "https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-90.2.0"
+  },
+  {
+   "id": "ev-d84cd5ab796b",
+   "uri": "https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-90.2.0"
+  },
+  {
+   "id": "ev-9d56eb4ee097",
+   "uri": "https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-90.2.0"
+  },
+  {
+   "id": "ev-1866617d51f5",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.93.1"
+  },
+  {
+   "id": "ev-94a4d99ec637",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.93.1"
+  },
+  {
+   "id": "ev-8d78cf9a3c51",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.93.1"
+  },
+  {
+   "id": "ev-9c732dffb7f4",
+   "uri": "https://prometheus-community.github.io/helm-charts/index.yaml"
+  },
+  {
+   "id": "ev-38c25d818334",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/values.yaml"
+  },
+  {
+   "id": "ev-0cf9d07072e4",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-23f9f8563ddf",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-214ee1be3e7c",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-alertmanagerconfigs.yaml"
+  },
+  {
+   "id": "ev-10289d7c443f",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-alertmanagers.yaml"
+  },
+  {
+   "id": "ev-2e40d304949d",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-podmonitors.yaml"
+  },
+  {
+   "id": "ev-e3542672488d",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-probes.yaml"
+  },
+  {
+   "id": "ev-fda04fa5897b",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheusagents.yaml"
+  },
+  {
+   "id": "ev-eb99cee5f2a8",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheuses.yaml"
+  },
+  {
+   "id": "ev-4e431de64292",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheusrules.yaml"
+  },
+  {
+   "id": "ev-a9d099acafe1",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-scrapeconfigs.yaml"
+  },
+  {
+   "id": "ev-05d8473348c5",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-servicemonitors.yaml"
+  },
+  {
+   "id": "ev-51114f11f07a",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-thanosrulers.yaml"
+  },
+  {
+   "id": "ev-85f8c9d41d4d",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-alertmanagerconfigs.yaml"
+  },
+  {
+   "id": "ev-e57036a5c0d3",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-alertmanagers.yaml"
+  },
+  {
+   "id": "ev-b0407085fe03",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-podmonitors.yaml"
+  },
+  {
+   "id": "ev-dbab1322feb0",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-probes.yaml"
+  },
+  {
+   "id": "ev-395f6fd49a2f",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheusagents.yaml"
+  },
+  {
+   "id": "ev-a29b6f3b5993",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheuses.yaml"
+  },
+  {
+   "id": "ev-526f58cb578a",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheusrules.yaml"
+  },
+  {
+   "id": "ev-fda7f21da418",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-scrapeconfigs.yaml"
+  },
+  {
+   "id": "ev-32abada1c126",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-servicemonitors.yaml"
+  },
+  {
+   "id": "ev-4764780d8c1f",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/charts/crds/crds/crd-thanosrulers.yaml"
+  },
+  {
+   "id": "ev-fd499fe8f2fd",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-663e4dfc5ab6",
+   "uri": "https://quay.io/v2/prometheus-operator/prometheus-operator/manifests/sha256:e52bb28fd41c98dd407c7a8cba8bdcfe7eabd7447e250afaf1fe7bb816dedbff"
+  },
+  {
+   "id": "ev-516ea1a198ff",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-e22fd2c44061",
+   "uri": "https://ghcr.io/v2/prometheus-community/charts/kube-state-metrics/manifests/sha256:d2d45e81f8335c4081d7242cf44078a72f748460fd8a3a07ab93e44ff6368dfb"
+  },
+  {
+   "id": "ev-e2998aa1dc43",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-aa4da4ab8ee3",
+   "uri": "https://ghcr.io/v2/prometheus-community/charts/prometheus-node-exporter/manifests/sha256:542aa0066eca42668c4592c53513aea7229b5dabac059e97c2d4ac55c96ab601"
+  },
+  {
+   "id": "ev-514e48a1fe42",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-5c339bc1869b",
+   "uri": "https://ghcr.io/v2/grafana-community/helm-charts/grafana/manifests/sha256:2cb1daed27df2162eef63f5a98d5298d112875121350d854ce76e014a0eb18d1"
+  },
+  {
+   "id": "ev-457f676d9488",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/values.yaml"
+  },
+  {
+   "id": "ev-f8e1d83a1263",
+   "uri": "https://quay.io/v2/prometheus/prometheus/manifests/sha256:50c707e96da5ade383cb1707790576480485e93de06aa60ad8802cb5f744bd0a"
+  },
+  {
+   "id": "ev-5832928dd4cb",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-90.2.0/charts/kube-prometheus-stack/values.yaml"
+  },
+  {
+   "id": "ev-66f8a993bad1",
+   "uri": "https://quay.io/v2/prometheus/alertmanager/manifests/sha256:690c7b525f4367aa91f73e2f91c632206d32e97c6384bdbf2fb7a861b420340d"
+  },
+  {
+   "id": "ev-1f7ecfc49d2e",
+   "uri": "https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.0.0"
+  },
+  {
+   "id": "ev-3abcca6b4947",
+   "uri": "https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.0.0"
+  },
+  {
+   "id": "ev-09a0efa2b7f4",
+   "uri": "https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.0.0"
+  },
+  {
+   "id": "ev-d8626f4d47bd",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-7c8548d87004",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-32158ebaa200",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-5c592845a5cc",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-39797e0f561e",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-6f9cd5f03b3a",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-0311c3869c9a",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-af0e957e32e9",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-aff89d0e6e10",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-69d8e4daaec3",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-93fe8c9ce2bd",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-5c28ab2c5480",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-e8fe35bf8dd6",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-82aaf952a6f8",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-b17747834017",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-6a0f00ddf438",
+   "uri": "https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0"
+  },
+  {
+   "id": "ev-449b6107dbf5",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/UPGRADE.md"
+  },
+  {
+   "id": "ev-50f1fa4dbea2",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/UPGRADE.md"
+  },
+  {
+   "id": "ev-b2fbdb8dfc6e",
+   "uri": "https://prometheus-community.github.io/helm-charts/index.yaml"
+  },
+  {
+   "id": "ev-52a8325c6e6b",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/values.yaml"
+  },
+  {
+   "id": "ev-f4bd14a0a91a",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-e0d03c5e8cfd",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-de18c4a448c8",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-alertmanagerconfigs.yaml"
+  },
+  {
+   "id": "ev-b654691897ca",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-alertmanagers.yaml"
+  },
+  {
+   "id": "ev-65fab1194c77",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-podmonitors.yaml"
+  },
+  {
+   "id": "ev-5b7a9487e3dd",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-probes.yaml"
+  },
+  {
+   "id": "ev-9668bc617ac5",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheusagents.yaml"
+  },
+  {
+   "id": "ev-fd38b3af3b6b",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheuses.yaml"
+  },
+  {
+   "id": "ev-89a1fe7382be",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheusrules.yaml"
+  },
+  {
+   "id": "ev-1753eca1c8e0",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-scrapeconfigs.yaml"
+  },
+  {
+   "id": "ev-d4625ab20a40",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-servicemonitors.yaml"
+  },
+  {
+   "id": "ev-39bba10ac2d4",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-thanosrulers.yaml"
+  },
+  {
+   "id": "ev-fe108291e41f",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-alertmanagerconfigs.yaml"
+  },
+  {
+   "id": "ev-eb831d6405e8",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-alertmanagers.yaml"
+  },
+  {
+   "id": "ev-61e5c0db925e",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-podmonitors.yaml"
+  },
+  {
+   "id": "ev-160c31952d0a",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-probes.yaml"
+  },
+  {
+   "id": "ev-26108b11cae4",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheusagents.yaml"
+  },
+  {
+   "id": "ev-05bb4952fad6",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheuses.yaml"
+  },
+  {
+   "id": "ev-5cc067bd3dea",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-prometheusrules.yaml"
+  },
+  {
+   "id": "ev-68f088046e3c",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-scrapeconfigs.yaml"
+  },
+  {
+   "id": "ev-efe2dcc8a4ad",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-servicemonitors.yaml"
+  },
+  {
+   "id": "ev-f6b8741f2192",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/charts/crds/crds/crd-thanosrulers.yaml"
+  },
+  {
+   "id": "ev-903a732c2cdc",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-50db7bed58bd",
+   "uri": "https://quay.io/v2/prometheus-operator/prometheus-operator/manifests/sha256:cf153f64d6c38113fceb2cda7642365ea887f71edd7888f054e43e54cf177e55"
+  },
+  {
+   "id": "ev-8ff7a213eaa1",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-28f78768acae",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-ff3e9c317df5",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/Chart.yaml"
+  },
+  {
+   "id": "ev-7be6573d0f08",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/values.yaml"
+  },
+  {
+   "id": "ev-bb2fd21e64f8",
+   "uri": "https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/values.yaml"
+  }
+ ]
+}
