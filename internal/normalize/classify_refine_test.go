@@ -13,7 +13,7 @@ func TestWeakSectionCategoryRefinedByKeyword(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := map[string]domain.Category{
-		"Remove deprecated feature gate `ValidateCAA`.": domain.CategoryDeprecation,
+		"Remove deprecated feature gate `ValidateCAA`.": domain.CategoryRemoval, // the verb is Remove
 		"Use `slices.Contains` to simplify code":        domain.CategoryOther,
 		"Bump golang.org/x/net to fix CVE-2025-22872":   domain.CategorySecurity,
 	}

@@ -63,6 +63,49 @@ func TestExtractReferences(t *testing.T) {
 			{Type: "cve", ID: "CVE-2025-1111", URL: "https://www.cve.org/CVERecord?id=CVE-2025-1111"},
 			{Type: "github-ref", ID: "o/r#3", URL: "https://github.com/o/r/issues/3"},
 		}},
+
+		// commit URLs (git-log fallback bullets)
+		{name: "git-log bullet: PR number and commit", repo: "o/r",
+			text: "feat(appset): add foo (#1234) ([abc1234](https://github.com/o/r/commit/abc1234def5678abc1234def5678abc1234def56))",
+			want: []domain.Reference{
+				{Type: "github-ref", ID: "o/r#1234", URL: "https://github.com/o/r/issues/1234"},
+				{Type: "commit", ID: "abc1234", URL: "https://github.com/o/r/commit/abc1234def5678abc1234def5678abc1234def56"},
+			}},
+		{name: "commit url without a repository", text: "[abc1234](https://github.com/argoproj/argo-cd/commit/abc1234def5678)", want: []domain.Reference{
+			{Type: "commit", ID: "abc1234", URL: "https://github.com/argoproj/argo-cd/commit/abc1234def5678"},
+		}},
+		{name: "commit url with a 7-character sha", text: "https://github.com/o/r/commit/abc1234.", want: []domain.Reference{
+			{Type: "commit", ID: "abc1234", URL: "https://github.com/o/r/commit/abc1234"},
+		}},
+		{name: "commit id is lower-case and 7 characters", text: "https://github.com/o/r/commit/ABCDEF1234567890", want: []domain.Reference{
+			{Type: "commit", ID: "abcdef1", URL: "https://github.com/o/r/commit/ABCDEF1234567890"},
+		}},
+		{name: "gitlab commit url", text: "([abc1234](https://gitlab.com/group/proj/-/commit/abc1234def5678abc1234def5678abc1234def56))", want: []domain.Reference{
+			{Type: "commit", ID: "abc1234", URL: "https://gitlab.com/group/proj/-/commit/abc1234def5678abc1234def5678abc1234def56"},
+		}},
+		{name: "gitlab commit url with subgroups on a self-hosted instance", text: "https://gitlab.example.com/a/b/c/proj/-/commit/0123456789abcdef", want: []domain.Reference{
+			{Type: "commit", ID: "0123456", URL: "https://gitlab.example.com/a/b/c/proj/-/commit/0123456789abcdef"},
+		}},
+		{name: "gitlab commit url without /-/", text: "https://gitlab.com/group/proj/commit/0123456789abcdef", want: []domain.Reference{
+			{Type: "commit", ID: "0123456", URL: "https://gitlab.com/group/proj/commit/0123456789abcdef"},
+		}},
+		{name: "commit urls are de-duplicated and keep the order of appearance", repo: "o/r",
+			text: "CVE-2025-1111 [a](https://github.com/o/r/commit/1111111aaaa) #5 [b](https://github.com/o/r/commit/2222222bbbb) [a again](https://github.com/o/r/commit/1111111aaaa)",
+			want: []domain.Reference{
+				{Type: "cve", ID: "CVE-2025-1111", URL: "https://www.cve.org/CVERecord?id=CVE-2025-1111"},
+				{Type: "commit", ID: "1111111", URL: "https://github.com/o/r/commit/1111111aaaa"},
+				{Type: "github-ref", ID: "o/r#5", URL: "https://github.com/o/r/issues/5"},
+				{Type: "commit", ID: "2222222", URL: "https://github.com/o/r/commit/2222222bbbb"},
+			}},
+		{name: "commit and pull request urls", text: "https://github.com/o/r/pull/7 https://github.com/o/r/commit/abcdef0", want: []domain.Reference{
+			{Type: "pull-request", ID: "o/r#7", URL: "https://github.com/o/r/pull/7"},
+			{Type: "commit", ID: "abcdef0", URL: "https://github.com/o/r/commit/abcdef0"},
+		}},
+		{name: "a commit inside a pull request is a pull request reference", text: "https://github.com/o/r/pull/7/commits/abcdef0123", want: []domain.Reference{
+			{Type: "pull-request", ID: "o/r#7", URL: "https://github.com/o/r/pull/7"},
+		}},
+		{name: "not commit urls", text: "https://github.com/o/r/commit/abc12 https://github.com/o/r/commit/ghijklm https://github.com/o/r/commits/abcdef0 " +
+			"https://github.com/o/r/compare/v1...v2 https://bitbucket.org/o/r/commit/abcdef0 https://example.com/o/r/commit/abcdef0 https://github.com/o/commit/abcdef0", want: nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
