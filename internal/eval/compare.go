@@ -1,0 +1,549 @@
+package eval
+
+// Scoring: compare a real UpgradeEdge (and, when the case has an
+// environment, a real ImpactReport) against the case's ground truth.
+//
+// The metrics are the regression signal of the dataset:
+//
+//   - recall     – of the hand-written must-find items, how many did the
+//                  pipeline actually surface (matched by a change)?
+//   - false positives – changes matching a notExpected entry: output that is
+//                  actively wrong for an operator.
+//   - duplicates – several changes restating one ground-truth fact (the
+//                  pipeline aggregates many sources; a human must still read
+//                  every copy).
+//   - unsupported – conclusions whose evidence does not resolve inside the
+//                  document that carries them.
+//   - environment – for cases with a fixture: which expected items actually
+//                  reach THIS environment as findings, and whether the join
+//                  invents findings it should not.
+
+import (
+	"fmt"
+	"sort"
+
+	"github.com/tdavison784/release-intelligence/internal/domain"
+)
+
+// Metrics is the per-entry regression snapshot (all fields deterministic).
+type Metrics struct {
+	// Expected items (ground truth) and how many were found.
+	Expected int `json:"expected"`
+	Found    int `json:"found"`
+	// Missed items by importance (Expected - Found distributed).
+	MissedCritical  int `json:"missedCritical"`
+	MissedImportant int `json:"missedImportant"`
+	MissedMinor     int `json:"missedMinor"`
+	// Pipeline output size and quality.
+	Changes        int `json:"changes"`
+	MatchedChanges int `json:"matchedChanges"` // changes that cover >= 1 expected item
+	// FalsePositives are changes matching a notExpected entry.
+	FalsePositives int `json:"falsePositives"`
+	// DuplicateGroups restates the same fact via several changes.
+	DuplicateGroups int `json:"duplicateGroups"`
+	// Unsupported conclusions: evidence does not resolve.
+	Unsupported int `json:"unsupported"`
+}
+
+// Recall is found / expected (0 when nothing expected, which cannot happen
+// after validation).
+func (m Metrics) Recall() float64 {
+	if m.Expected == 0 {
+		return 0
+	}
+	return float64(m.Found) / float64(m.Expected)
+}
+
+// Precision is matched / (matched + false positives): of the output that is
+// explainable against this dataset, how much is right.
+func (m Metrics) Precision() float64 {
+	den := m.MatchedChanges + m.FalsePositives
+	if den == 0 {
+		return 0
+	}
+	return float64(m.MatchedChanges) / float64(den)
+}
+
+// Coverage is matched / changes: how much of the pipeline's output this case
+// accounts for (informational; a low value is not a failure — the pipeline
+// legitimately reports more than any must-find list).
+func (m Metrics) Coverage() float64 {
+	if m.Changes == 0 {
+		return 0
+	}
+	return float64(m.MatchedChanges) / float64(m.Changes)
+}
+
+// Missed is the total missed count.
+func (m Metrics) Missed() int { return m.Expected - m.Found }
+
+// EnvMetrics scores the environment join (zero value when the case has no
+// environment).
+type EnvMetrics struct {
+	// Impact links: expected items this environment should surface.
+	ImpactLinks      int `json:"impactLinks"`      // relevance != not-affected
+	ImpactLinksHit   int `json:"impactLinksHit"`   // some finding joins a matching change
+	NotAffectedLinks int `json:"notAffectedLinks"` // relevance == not-affected
+	// A not-affected link that still produced a finding is an over-report.
+	NotAffectedViolations int `json:"notAffectedViolations"`
+	// Findings vocabulary.
+	Findings         int `json:"findings"`
+	FindingsExpected int `json:"findingsExpected"`
+	FindingsFound    int `json:"findingsFound"`
+	FindingsFP       int `json:"findingsFalsePositives"` // findings matching notExpectedFindings
+	// Unsupported findings (chains do not resolve / change does not exist).
+	Unsupported int `json:"unsupported"`
+}
+
+// ImpactAccuracy is links hit / links (0 when no links).
+func (m EnvMetrics) ImpactAccuracy() float64 {
+	if m.ImpactLinks == 0 {
+		return 0
+	}
+	return float64(m.ImpactLinksHit) / float64(m.ImpactLinks)
+}
+
+// FindingRecall is findings found / expected.
+func (m EnvMetrics) FindingRecall() float64 {
+	if m.FindingsExpected == 0 {
+		return 0
+	}
+	return float64(m.FindingsFound) / float64(m.FindingsExpected)
+}
+
+// MatchAudit records how one expectation fared, so every hit and miss can be
+// audited without re-running the pipeline.
+type MatchAudit struct {
+	ExpectedID string `json:"expectedId"`
+	Title      string `json:"title"`
+	Kind       string `json:"kind,omitempty"`
+	Importance string `json:"importance,omitempty"`
+	Found      bool   `json:"found"`
+	// Hits is one entry per matching change: which change, matched by which
+	// matcher, backed by which evidence URI.
+	Hits []Hit `json:"hits,omitempty"`
+}
+
+// Hit is one change that covered an expectation.
+type Hit struct {
+	ChangeID    string `json:"changeId"`
+	ChangeTitle string `json:"changeTitle"`
+	// MatchedBy is the matcher (all fields that had to match).
+	MatchedBy string `json:"matchedBy"`
+	// Evidence is a human-openable URI backing the matched change.
+	Evidence string `json:"evidence,omitempty"`
+}
+
+// FPAudit records a false positive: the notExpected entry and the offending
+// changes.
+type FPAudit struct {
+	Title     string   `json:"title"`
+	ChangeIDs []string `json:"changeIds"`
+}
+
+// DupAudit records a group of changes that restate one fact.
+type DupAudit struct {
+	Key       string   `json:"key"` // "title:…" | "subjects:…" | "near:title…"
+	ChangeIDs []string `json:"changeIds"`
+	Titles    []string `json:"titles"`
+}
+
+// UnsupportedAudit records an unsupported conclusion.
+type UnsupportedAudit struct {
+	ID     string `json:"id"`   // change or finding id
+	Kind   string `json:"kind"` // "change" | "finding"
+	Reason string `json:"reason"`
+}
+
+// FindingAudit records how one expectedFinding fared.
+type FindingAudit struct {
+	ID         string   `json:"id,omitempty"`
+	Matcher    string   `json:"matcher"`
+	Found      bool     `json:"found"`
+	FindingIDs []string `json:"findingIds,omitempty"`
+}
+
+// EnvImpactAudit records how one expectedImpact link fared.
+type EnvImpactAudit struct {
+	ExpectedID string `json:"expectedId"`
+	Relevance  string `json:"relevance"`
+	// Hit: a finding exists whose change matches the expected item (only
+	// meaningful for relevance != not-affected; for not-affected links Hit
+	// true means over-report).
+	Hit        bool     `json:"hit"`
+	FindingIDs []string `json:"findingIds,omitempty"`
+	Why        string   `json:"why,omitempty"`
+}
+
+// EntryResult is the scored outcome of one dataset entry.
+type EntryResult struct {
+	CaseID  string `json:"caseId"`
+	Product string `json:"product"`
+	From    string `json:"from"`
+	To      string `json:"to"`
+	// Error is set when the pipeline could not run at all (the entry then
+	// scores zero found / all missed).
+	Error string `json:"error,omitempty"`
+
+	Metrics                Metrics            `json:"metrics"`
+	Env                    *EnvMetrics        `json:"env,omitempty"`
+	Matches                []MatchAudit       `json:"matches"`
+	FalsePos               []FPAudit          `json:"falsePositives,omitempty"`
+	Duplicates             []DupAudit         `json:"duplicates,omitempty"`
+	UnsupportedConclusions []UnsupportedAudit `json:"unsupportedConclusions,omitempty"`
+	EnvImpact              []EnvImpactAudit   `json:"envImpact,omitempty"`
+	EnvFindings            []FindingAudit     `json:"envFindings,omitempty"`
+	EnvFalsePos            []FPAudit          `json:"envFalsePositives,omitempty"`
+}
+
+// ScoreEntry scores one case against its edge (and report, when present).
+// Either may be nil (Error must explain why): a pipeline that cannot run
+// finds nothing, which is the honest result.
+func ScoreEntry(c *Case, edge *domain.UpgradeEdge, report *domain.ImpactReport, runErr error) EntryResult {
+	res := EntryResult{
+		CaseID: c.ID, Product: c.Product, From: c.From, To: c.To,
+	}
+	if runErr != nil {
+		res.Error = runErr.Error()
+	}
+	res.Metrics.Expected = len(c.Expected)
+	for _, e := range c.Expected {
+		res.Matches = append(res.Matches, MatchAudit{
+			ExpectedID: e.ID, Title: e.Title, Kind: e.Kind, Importance: e.Importance,
+		})
+	}
+	if edge != nil {
+		scoreEdge(&res, c, edge)
+	}
+	if report != nil {
+		if res.Env == nil {
+			res.Env = &EnvMetrics{}
+		}
+		scoreReport(&res, c, edge, report)
+	} else if c.Environment != nil && runErr == nil {
+		// the case declares an environment but no report was produced
+		res.Env = &EnvMetrics{}
+	}
+	// distribute misses by importance; found is what the match audits say
+	found := 0
+	for i := range res.Matches {
+		if res.Matches[i].Found {
+			found++
+			continue
+		}
+		switch res.Matches[i].Importance {
+		case ImportanceCritical:
+			res.Metrics.MissedCritical++
+		case ImportanceImportant:
+			res.Metrics.MissedImportant++
+		default:
+			res.Metrics.MissedMinor++
+		}
+	}
+	res.Metrics.Found = found
+	return res
+}
+
+func scoreEdge(res *EntryResult, c *Case, edge *domain.UpgradeEdge) {
+	ev := NewEvidenceIndex(edge)
+	res.Metrics.Changes = len(edge.Changes)
+
+	// expected items
+	for i := range res.Matches {
+		audit := &res.Matches[i]
+		exp := expectedByID(c, audit.ExpectedID)
+		if exp == nil {
+			continue
+		}
+		for _, ch := range edge.Changes {
+			for mi := range exp.Match {
+				if !exp.Match[mi].Matches(ch, ev) {
+					continue
+				}
+				audit.Found = true
+				audit.Hits = append(audit.Hits, Hit{
+					ChangeID:    ch.ID,
+					ChangeTitle: ch.Title,
+					MatchedBy:   exp.Match[mi].String(),
+					Evidence:    firstEvidenceURI(ch.Evidence, ev),
+				})
+			}
+		}
+	}
+
+	// false positives: notExpected entries matched by real changes
+	for _, ne := range c.NotExpected {
+		var ids []string
+		for _, ch := range edge.Changes {
+			for _, m := range ne.Match {
+				if m.Matches(ch, ev) {
+					ids = append(ids, ch.ID)
+					break
+				}
+			}
+		}
+		if len(ids) > 0 {
+			res.Metrics.FalsePositives += len(ids)
+			res.FalsePos = append(res.FalsePos, FPAudit{Title: ne.Title, ChangeIDs: ids})
+		}
+	}
+
+	// matched changes (for precision/coverage)
+	matched := map[string]bool{}
+	for i := range res.Matches {
+		for _, h := range res.Matches[i].Hits {
+			matched[h.ChangeID] = true
+		}
+	}
+	res.Metrics.MatchedChanges = len(matched)
+
+	// duplicates
+	res.Duplicates, res.Metrics.DuplicateGroups = findDuplicates(edge.Changes)
+
+	// unsupported conclusions (independent of edge.Validate; we want the
+	// count, not a pass/fail)
+	res.UnsupportedConclusions = findUnsupportedChanges(edge)
+	res.Metrics.Unsupported = len(res.UnsupportedConclusions)
+}
+
+func expectedByID(c *Case, id string) *Expected {
+	for i := range c.Expected {
+		if c.Expected[i].ID == id {
+			return &c.Expected[i]
+		}
+	}
+	return nil
+}
+
+// findDuplicates groups changes that restate the same fact: identical
+// normalized title, identical category+subject set, or >= 0.75 title-token
+// Jaccard overlap with identical non-empty subject sets.
+func findDuplicates(changes []domain.Change) ([]DupAudit, int) {
+	byTitle := map[string][]int{}
+	bySubject := map[string][]int{}
+	for i, c := range changes {
+		byTitle[normalizeTitle(c.Title)] = append(byTitle[normalizeTitle(c.Title)], i)
+		if k := subjectKey(c); k != "" {
+			bySubject[k] = append(bySubject[k], i)
+		}
+	}
+	groups := map[string][]int{}
+	for k, idx := range byTitle {
+		if len(idx) > 1 {
+			groups["title:"+k] = idx
+		}
+	}
+	for k, idx := range bySubject {
+		if len(idx) > 1 {
+			groups["subjects:"+k] = dedupIdx(append(groups["subjects:"+k], idx...))
+		}
+	}
+	// near duplicates: same subject set, very similar titles
+	for k, idx := range bySubject {
+		if len(idx) < 2 {
+			continue
+		}
+		for a := 0; a < len(idx); a++ {
+			for b := a + 1; b < len(idx); b++ {
+				if jaccard(tokenSet(changes[idx[a]].Title), tokenSet(changes[idx[b]].Title)) >= nearDuplicateThreshold {
+					key := "near:" + k
+					groups[key] = dedupIdx(append(groups[key], idx[a], idx[b]))
+				}
+			}
+		}
+	}
+	var out []DupAudit
+	for key, idx := range groups {
+		if len(idx) < 2 {
+			continue
+		}
+		sort.Ints(idx)
+		var ids, titles []string
+		for _, i := range idx {
+			ids = append(ids, changes[i].ID)
+			titles = append(titles, changes[i].Title)
+		}
+		out = append(out, DupAudit{Key: key, ChangeIDs: ids, Titles: titles})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Key < out[j].Key })
+	return out, len(out)
+}
+
+func dedupIdx(in []int) []int {
+	seen := map[int]bool{}
+	var out []int
+	for _, i := range in {
+		if !seen[i] {
+			seen[i] = true
+			out = append(out, i)
+		}
+	}
+	return out
+}
+
+// findUnsupportedChanges returns changes whose evidence does not resolve
+// within the edge (or resolves to a record without a URI).
+func findUnsupportedChanges(edge *domain.UpgradeEdge) []UnsupportedAudit {
+	var out []UnsupportedAudit
+	pool := map[domain.EvidenceID]domain.Evidence{}
+	for _, ev := range edge.Evidence {
+		pool[ev.ID] = ev
+	}
+	for _, ch := range edge.Changes {
+		if len(ch.Evidence) == 0 {
+			out = append(out, UnsupportedAudit{ID: ch.ID, Kind: "change", Reason: "cites no evidence"})
+			continue
+		}
+		for _, id := range ch.Evidence {
+			e, ok := pool[id]
+			switch {
+			case !ok:
+				out = append(out, UnsupportedAudit{ID: ch.ID, Kind: "change", Reason: fmt.Sprintf("evidence %s does not resolve in the edge", id)})
+			case e.URI == "":
+				out = append(out, UnsupportedAudit{ID: ch.ID, Kind: "change", Reason: fmt.Sprintf("evidence %s has no URI", id)})
+			default:
+				continue
+			}
+			break
+		}
+	}
+	return out
+}
+
+// findUnsupportedFindings returns findings whose two provenance chains do
+// not resolve within the report, or that join a change absent from the edge
+// the report was built from (edge may be nil only when there is no edge at
+// all; findings of a real report always come from one).
+func findUnsupportedFindings(report *domain.ImpactReport, edge *domain.UpgradeEdge) []UnsupportedAudit {
+	var out []UnsupportedAudit
+	up := map[domain.EvidenceID]bool{}
+	for _, ev := range report.Evidence {
+		up[ev.ID] = true
+	}
+	local := map[domain.EvidenceID]bool{}
+	for _, ev := range report.EnvironmentEvidence {
+		local[ev.ID] = true
+	}
+	changes := map[string]bool{}
+	for _, ch := range edge.Changes {
+		changes[ch.ID] = true
+	}
+	for _, f := range report.Findings {
+		var reason string
+		switch {
+		case len(f.UpstreamEvidence) == 0 || len(f.EnvironmentEvidence) == 0:
+			reason = "cites an empty provenance chain"
+		default:
+			for _, id := range f.UpstreamEvidence {
+				if !up[id] {
+					reason = fmt.Sprintf("upstream evidence %s does not resolve in the report", id)
+					break
+				}
+			}
+			for _, id := range f.EnvironmentEvidence {
+				if reason != "" {
+					break
+				}
+				if !local[id] {
+					reason = fmt.Sprintf("environment evidence %s does not resolve in the report", id)
+					break
+				}
+			}
+			if reason == "" && f.ChangeID != "" && !changes[f.ChangeID] {
+				reason = fmt.Sprintf("joins change %s which is not in the edge", f.ChangeID)
+			}
+		}
+		if reason != "" {
+			out = append(out, UnsupportedAudit{ID: f.ID, Kind: "finding", Reason: reason})
+		}
+	}
+	return out
+}
+
+func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *domain.ImpactReport) {
+	em := res.Env
+	em.Findings = len(report.Findings)
+
+	// map findings to the expected items their joined change covers
+	expIDForChange := map[string]string{}
+	if edge != nil {
+		ev := NewEvidenceIndex(edge)
+		for _, e := range c.Expected {
+			for _, ch := range edge.Changes {
+				for _, m := range e.Match {
+					if m.Matches(ch, ev) {
+						expIDForChange[ch.ID] = e.ID
+						break
+					}
+				}
+			}
+		}
+	}
+	findingsFor := func(expID string) []string {
+		var ids []string
+		for _, f := range report.Findings {
+			if f.ChangeID != "" && expIDForChange[f.ChangeID] == expID {
+				ids = append(ids, f.ID)
+			}
+		}
+		return ids
+	}
+
+	for _, l := range c.Environment.ExpectedImpact {
+		audit := EnvImpactAudit{ExpectedID: l.Expected, Relevance: l.Relevance, Why: l.Why}
+		ids := findingsFor(l.Expected)
+		audit.Hit = len(ids) > 0
+		audit.FindingIDs = ids
+		res.EnvImpact = append(res.EnvImpact, audit)
+		if l.Relevance == RelevanceNotAffected {
+			em.NotAffectedLinks++
+			if audit.Hit {
+				em.NotAffectedViolations++
+			}
+			continue
+		}
+		em.ImpactLinks++
+		if audit.Hit {
+			em.ImpactLinksHit++
+		}
+	}
+
+	// expected findings
+	for _, ef := range c.Environment.ExpectedFindings {
+		audit := FindingAudit{ID: ef.ID, Matcher: ef.Match.String()}
+		for _, f := range report.Findings {
+			if ef.Match.Matches(f) {
+				audit.Found = true
+				audit.FindingIDs = append(audit.FindingIDs, f.ID)
+			}
+		}
+		res.EnvFindings = append(res.EnvFindings, audit)
+	}
+	em.FindingsExpected = len(c.Environment.ExpectedFindings)
+	for _, a := range res.EnvFindings {
+		if a.Found {
+			em.FindingsFound++
+		}
+	}
+
+	// finding false positives
+	for _, nef := range c.Environment.NotExpectedFindings {
+		var ids []string
+		for _, f := range report.Findings {
+			if nef.Match.Matches(f) {
+				ids = append(ids, f.ID)
+			}
+		}
+		if len(ids) > 0 {
+			em.FindingsFP += len(ids)
+			res.EnvFalsePos = append(res.EnvFalsePos, FPAudit{Title: nef.Title, ChangeIDs: ids})
+		}
+	}
+
+	// unsupported findings (both chains must resolve and join a real change)
+	if audits := findUnsupportedFindings(report, edge); len(audits) > 0 {
+		res.UnsupportedConclusions = append(res.UnsupportedConclusions, audits...)
+		res.Metrics.Unsupported += len(audits)
+		em.Unsupported = len(audits)
+	}
+}
