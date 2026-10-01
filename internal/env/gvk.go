@@ -88,7 +88,7 @@ func (l *loader) gvkAddDoc(st *gvkStage, d doc) {
 		st.docs = append(st.docs, ref)
 		return
 	}
-	l.warnf("more than %d documents per group/version/kind; the rest were not inventoried", maxGVKDocs)
+	l.warnf(DimManifests, "more than %d documents per group/version/kind; the rest were not inventoried", maxGVKDocs)
 }
 
 func (l *loader) gvkAddName(st *gvkStage, name, namespace string) {
@@ -103,7 +103,7 @@ func (l *loader) gvkAddName(st *gvkStage, name, namespace string) {
 		st.names[n] = true
 		return
 	}
-	l.warnf("more than %d resource names per group/version/kind; the rest were not inventoried", maxGVKNames)
+	l.warnf(DimManifests, "more than %d resource names per group/version/kind; the rest were not inventoried", maxGVKNames)
 }
 
 func (l *loader) gvkAddPath(st *gvkStage, path string) {
@@ -111,7 +111,7 @@ func (l *loader) gvkAddPath(st *gvkStage, path string) {
 		return
 	}
 	if len(st.paths) >= maxGVKFieldPaths {
-		l.warnf("more than %d field paths per group/version/kind; the rest were not inventoried", maxGVKFieldPaths)
+		l.warnf(DimManifests, "more than %d field paths per group/version/kind; the rest were not inventoried", maxGVKFieldPaths)
 		return
 	}
 	st.paths[path] = true

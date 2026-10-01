@@ -74,13 +74,33 @@ Parsed from local files only, deterministically, with per-fact evidence:
 | `--images` (list, or a file with one reference per line, `#` comments) | explicit image references (mirror lists) |
 | `--repo` (directory) | all of the below, discovered by convention (see the repo-mode section) |
 
-Multi-document YAML streams are split on `---` separators with line tracking,
-so locators point into the original file. CRD documents inside `--manifests`
-are picked up too; a non-CRD document inside `--crds` is a warning, not an
-error. Unparsable documents are warnings. Digests of all parsed files are
-recorded. Caps (10 000 values keys, 2 000 documents, 8 000 field paths, 5
-cited occurrences per apiVersion) bound hostile inputs; hitting one is a
-warning in the report.
+Multi-document YAML streams are decoded with a real stream decoder
+(`yaml.Decoder`), so a `---` separator inside a block scalar (literal `|` /
+folded `>`) no longer splits a document, and every fact keeps the absolute
+line number it was found at — locators point into the original file even
+inside block scalars. A stream that stops parsing midway keeps the documents
+decoded so far and warns about the rest; nothing is silently dropped. Other
+robustness rules: a `---` inside a `--values` file is a warning (Helm values
+are one document; only the first is read), duplicate mapping keys are
+last-wins with a warning naming the repeat, non-mapping values roots and
+unparsable documents are warnings, empty documents are skipped, BOM and CRLF
+inputs parse. CRD documents inside `--manifests` are picked up too; a
+non-CRD document inside `--crds` is a warning, not an error. A supplied
+input directory that contains no `.yaml`/`.yml`/`.json` files warns as well.
+Digests of all parsed files are recorded. Caps (10 000 values keys, 2 000
+documents, 8 000 field paths, 5 cited occurrences per apiVersion) bound
+hostile inputs; hitting one is a warning in the report.
+
+### Input health (`env.Environment.Health` / `Statuses`)
+
+Every input dimension — `kubernetes`, `values`, `manifests`, `crds`,
+`images` — carries a status: `absent` (not supplied), `ok` (supplied and
+completely parsed) or `partial` (supplied with warnings: parse failures,
+truncation, caps). Absence is **not knowledge**: an environment with no
+`--crds` input has no facts about CRDs, and "nothing matched" must never be
+read as "not affected". The join consults the statuses before drawing any
+conclusion from missing facts; `ri impact` renders each dimension's warnings
+in the Warnings section.
 
 Beyond the per-rule facts above, every manifest document feeds two
 cross-cutting inventories:
@@ -184,14 +204,20 @@ kind) are reported with medium confidence.
 ### 3. Kubernetes compatibility (`--kubernetes`)
 
 The cluster version is evaluated against every `kubernetes` constraint of the
-target release with the same range semantics the edge diff uses
-(`upgrade.EvaluatePlatformConstraint`): a bare line ("1.31") is admitted when
-any patch of the line is. In range → `impact:kubernetes-in-range`
-(informational, `supported` kind only); below/above a `supported` range or a
-`minimum` → action-required (worded as "narrowed under you" when the source
+target release with the same range semantics the edge diff uses — both go
+through one shared representation (`upgrade.versionRangeOf`), so the diff and
+the join can never disagree. A bare line ("1.31") is admitted when any patch
+of the line is. Bound kinds have directional meaning: `minimum: 1.30` means
+`>= 1.30` (the bound line and everything above), `maximum: 1.33` means
+`<= 1.33`; a cluster exactly at a bound is admitted. `tested` lists are
+enumerations: outside one is "untested" (informational), never "unsupported".
+In a `supported` range → `impact:kubernetes-in-range` (informational); below
+a `supported` range or a `minimum`, or above a `supported` range or a
+`maximum` → action-required (worded as "narrowed under you" when the source
 release still admitted the cluster); outside a `chart-kubeVersion` →
-`impact:kubeversion-blocked` (Helm refuses the install); outside `tested` →
-informational. Uncomputable constraints are skipped.
+`impact:kubeversion-blocked` (Helm refuses the install; prerelease-suffixed
+constraints such as `>=1.25.0-0` compare exactly like Helm's semver check, so
+line 1.25 is admitted). Uncomputable constraints are skipped.
 
 ### 4. Images (`--manifests`, `--values`, `--images`)
 

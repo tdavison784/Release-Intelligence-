@@ -240,7 +240,7 @@ func (l *loader) detectFluxHelmRelease(d doc) {
 		l.inlineValues(d.file, "$.spec.values", values)
 	}
 	if vf := fieldOf(d.node, "spec", "valuesFrom"); mappingOrSequence(vf) != nil {
-		l.warnf("HelmRelease %s uses spec.valuesFrom, which references cluster objects; those values are not readable from files", name)
+		l.warnf(DimValues, "HelmRelease %s uses spec.valuesFrom, which references cluster objects; those values are not readable from files", name)
 	}
 }
 
@@ -269,12 +269,12 @@ func (l *loader) inlineValues(file, locatorPrefix string, node *yaml.Node) {
 	case node.Kind == yaml.MappingNode:
 		b, err := yaml.Marshal(node)
 		if err != nil {
-			l.warnf("%s: inline values at L%d were not serializable: %v", file, node.Line, err)
+			l.warnf(DimValues, "%s: inline values at L%d were not serializable: %v", file, node.Line, err)
 			return
 		}
 		flat, err := normalize.FlattenValues(b)
 		if err != nil {
-			l.warnf("%s: inline values at L%d were not parsed as a values mapping: %v", file, node.Line, err)
+			l.warnf(DimValues, "%s: inline values at L%d were not parsed as a values mapping: %v", file, node.Line, err)
 			return
 		}
 		lines := map[string]int{}
@@ -287,7 +287,7 @@ func (l *loader) inlineValues(file, locatorPrefix string, node *yaml.Node) {
 	case node.Kind == yaml.ScalarNode && node.Tag != "!!null":
 		flat, err := normalize.FlattenValues([]byte(node.Value))
 		if err != nil {
-			l.warnf("%s: inline values at L%d were not parsed as a values mapping: %v", file, node.Line, err)
+			l.warnf(DimValues, "%s: inline values at L%d were not parsed as a values mapping: %v", file, node.Line, err)
 			return
 		}
 		add(flat, nil)

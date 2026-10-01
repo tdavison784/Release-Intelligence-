@@ -3,58 +3,120 @@ package env
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
-// splitDocs splits a (possibly multi-document) YAML stream into documents,
-// tracking the 1-based line where each document starts so evidence locators
-// point into the original file. Documents that are empty (only comments and
-// blank lines) yield a nil node.
-func splitDocs(content []byte) ([]doc, error) {
-	lines := strings.Split(string(content), "\n")
-	type chunk struct {
-		lines     []string
-		startLine int // 1-based
-	}
-	var chunks []chunk
-	cur := chunk{startLine: 1}
-	flush := func() {
-		chunks = append(chunks, cur)
-	}
-	for i, ln := range lines {
-		t := strings.TrimSpace(ln)
-		if t == "---" || strings.HasPrefix(t, "--- ") || t == "..." {
-			flush()
-			cur = chunk{startLine: i + 2}
-			continue
-		}
-		cur.lines = append(cur.lines, ln)
-	}
-	flush()
-
+// parseDocs decodes a (possibly multi-document) YAML stream with a real
+// stream decoder (yaml.Decoder), so a "---" separator inside a block scalar
+// (literal | or folded >) — or inside any other scalar — no longer splits
+// documents. Decoded nodes carry their absolute line numbers, so evidence
+// locators keep pointing into the original file without offset arithmetic.
+//
+// Documents that are empty (only comments and blank lines) yield a nil node.
+// A stream that stops parsing midway returns the documents decoded so far
+// plus a non-nil error: the caller keeps the prefix and warns about the
+// remainder instead of dropping everything. onDup, when non-nil, is called
+// for every duplicated mapping key with the 1-based line of the repeated
+// key; extraction is last-wins (see pairsOf).
+func parseDocs(content []byte, onDup func(key string, line int)) ([]doc, error) {
+	// Tolerate a UTF-8 BOM and CRLF line endings; the decoder handles both,
+	// but the BOM would otherwise surface in the first key of the first
+	// document of some inputs.
+	content = bytes.TrimPrefix(content, []byte("\xef\xbb\xbf"))
 	var out []doc
-	for _, c := range chunks {
-		if len(bytes.TrimSpace([]byte(strings.Join(c.lines, "\n")))) == 0 {
-			out = append(out, doc{file: "", node: nil, startLine: c.startLine})
+	dec := yaml.NewDecoder(bytes.NewReader(content))
+	for {
+		var root yaml.Node
+		err := dec.Decode(&root)
+		if err == io.EOF {
+			return out, nil
+		}
+		if err != nil {
+			return out, fmt.Errorf("document %d: %w", len(out)+1, err)
+		}
+		if len(root.Content) == 0 {
+			out = append(out, doc{startLine: root.Line})
 			continue
 		}
-		var node yaml.Node
-		if err := yaml.Unmarshal([]byte(strings.Join(c.lines, "\n")), &node); err != nil {
-			return nil, fmt.Errorf("parse YAML document at line %d: %w", c.startLine, err)
+		node := resolveAlias(root.Content[0])
+		if node == nil || (node.Kind == yaml.ScalarNode && node.Tag == "!!null") {
+			out = append(out, doc{startLine: root.Line})
+			continue
 		}
-		root := resolveAlias(node.Content[0])
-		if root == nil || (root.Kind == yaml.ScalarNode && root.Tag == "!!null") {
-			root = nil
+		if onDup != nil {
+			checkDuplicateKeys(node, onDup)
 		}
-		// Chunk-internal line numbers are 1-based within the chunk; shift
-		// them so every node line refers to the original file.
-		offsetLines(root, c.startLine-1)
-		out = append(out, doc{node: root, startLine: c.startLine})
+		// node.Line is the 1-based line of the document's first content in
+		// the file — the provenance every fact of the document builds on.
+		out = append(out, doc{node: node, startLine: node.Line})
 	}
-	return out, nil
+}
+
+// countDocs counts the documents of a stream without keeping them.
+func countDocs(content []byte) int {
+	dec := yaml.NewDecoder(bytes.NewReader(bytes.TrimPrefix(content, []byte("\xef\xbb\xbf"))))
+	n := 0
+	var node yaml.Node
+	for {
+		if err := dec.Decode(&node); err != nil {
+			return n
+		}
+		n++
+	}
+}
+
+// checkDuplicateKeys warns about mapping keys repeated at the same level
+// ("a: 1\na: 2"). yaml.v3 decodes such mappings silently, keeping the later
+// pairs; extraction below matches that by being last-wins (pairsOf), and
+// the warning keeps the ambiguity visible.
+func checkDuplicateKeys(n *yaml.Node, onDup func(key string, line int)) {
+	n = resolveAlias(n)
+	if n == nil {
+		return
+	}
+	switch n.Kind {
+	case yaml.MappingNode:
+		seen := map[string]int{} // key → line of first occurrence
+		for i := 0; i+1 < len(n.Content); i += 2 {
+			k, v := n.Content[i], resolveAlias(n.Content[i+1])
+			if first, dup := seen[k.Value]; dup {
+				onDup(fmt.Sprintf("%q (first at L%d)", k.Value, first), k.Line)
+			} else {
+				seen[k.Value] = k.Line
+			}
+			checkDuplicateKeys(v, onDup)
+		}
+	case yaml.SequenceNode:
+		for _, c := range n.Content {
+			checkDuplicateKeys(c, onDup)
+		}
+	}
+}
+
+// pairsOf returns the key/value pairs of a mapping in source order, with
+// duplicated keys collapsed to their LAST occurrence (the value a YAML
+// processor would keep).
+func pairsOf(n *yaml.Node) [][2]*yaml.Node {
+	n = resolveAlias(n)
+	if n == nil || n.Kind != yaml.MappingNode {
+		return nil
+	}
+	last := map[string]int{}
+	var pairs [][2]*yaml.Node
+	for i := 0; i+1 < len(n.Content); i += 2 {
+		k, v := n.Content[i], n.Content[i+1]
+		if j, dup := last[k.Value]; dup {
+			pairs[j][1] = v
+			continue
+		}
+		last[k.Value] = len(pairs)
+		pairs = append(pairs, [2]*yaml.Node{k, v})
+	}
+	return pairs
 }
 
 func resolveAlias(n *yaml.Node) *yaml.Node {
@@ -67,21 +129,8 @@ func resolveAlias(n *yaml.Node) *yaml.Node {
 	return n
 }
 
-// offsetLines shifts the line of every node by off (see splitDocs).
-func offsetLines(n *yaml.Node, off int) {
-	if n == nil || off == 0 {
-		return
-	}
-	n.Line += off
-	for _, c := range n.Content {
-		offsetLines(c, off)
-	}
-	if n.Alias != nil {
-		offsetLines(n.Alias, off)
-	}
-}
-
-// fieldOf returns the value node of a (possibly nested) mapping path.
+// fieldOf returns the value node of a (possibly nested) mapping path. A
+// duplicated key resolves to its last occurrence.
 func fieldOf(n *yaml.Node, path ...string) *yaml.Node {
 	cur := resolveAlias(n)
 	for _, key := range path {
@@ -89,10 +138,9 @@ func fieldOf(n *yaml.Node, path ...string) *yaml.Node {
 			return nil
 		}
 		next := (*yaml.Node)(nil)
-		for i := 0; i+1 < len(cur.Content); i += 2 {
-			if cur.Content[i].Value == key {
-				next = resolveAlias(cur.Content[i+1])
-				break
+		for _, kv := range pairsOf(cur) {
+			if kv[0].Value == key {
+				next = resolveAlias(kv[1])
 			}
 		}
 		cur = next
@@ -125,7 +173,8 @@ func itemsOf(n *yaml.Node) []*yaml.Node {
 }
 
 // walkMappings visits every mapping pair of a document (recursing into
-// sequences and mappings) in deterministic document order.
+// sequences and mappings) in deterministic document order. Duplicated keys
+// are visited once, at their last occurrence.
 func walkMappings(n *yaml.Node, visit func(key string, val *yaml.Node, path string)) {
 	var walk func(n *yaml.Node, prefix string)
 	walk = func(n *yaml.Node, prefix string) {
@@ -135,8 +184,8 @@ func walkMappings(n *yaml.Node, visit func(key string, val *yaml.Node, path stri
 		}
 		switch n.Kind {
 		case yaml.MappingNode:
-			for i := 0; i+1 < len(n.Content); i += 2 {
-				k, v := n.Content[i], resolveAlias(n.Content[i+1])
+			for _, kv := range pairsOf(n) {
+				k, v := kv[0], resolveAlias(kv[1])
 				path := joinPath(prefix, k.Value)
 				visit(k.Value, v, path)
 				walk(v, path)
@@ -151,14 +200,15 @@ func walkMappings(n *yaml.Node, visit func(key string, val *yaml.Node, path stri
 }
 
 // walkFieldPaths visits every leaf (scalar or sequence) of a mapping tree
-// with its values-style dotted path.
+// with its values-style dotted path. Duplicated keys collapse to their last
+// occurrence.
 func walkFieldPaths(n *yaml.Node, prefix string, visit func(path string, val *yaml.Node)) {
 	n = resolveAlias(n)
 	if n == nil || n.Kind != yaml.MappingNode {
 		return
 	}
-	for i := 0; i+1 < len(n.Content); i += 2 {
-		k, v := n.Content[i], resolveAlias(n.Content[i+1])
+	for _, kv := range pairsOf(n) {
+		k, v := kv[0], resolveAlias(kv[1])
 		path := joinPath(prefix, k.Value)
 		if v != nil && v.Kind == yaml.MappingNode && len(v.Content) > 0 {
 			walkFieldPaths(v, path, visit)

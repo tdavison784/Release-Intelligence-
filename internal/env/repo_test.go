@@ -140,15 +140,16 @@ func TestRepoGVKInventory(t *testing.T) {
 			t.Errorf("Certificate field path %q missing (have %v)", want, cert.FieldPaths)
 		}
 	}
-	// raw document refs, so a matcher can re-inspect (a leading comment line
-	// belongs to the document, so both start at L1)
+	// raw document refs, so a matcher can re-inspect. startLine is the
+	// document's first CONTENT line (leading comments are stream furniture;
+	// the evidence locator points where the resource actually begins).
 	files := map[string]int{}
 	for _, doc := range cert.Documents {
 		files[doc.File] = doc.StartLine
 	}
 	certFile := filepath.Join(repoFixture, "base", "certificate.yaml")
 	crdFile := filepath.Join(repoFixture, "crds", "certificates.cert-manager.io.yaml")
-	if files[certFile] != 1 || files[crdFile] != 1 {
+	if files[certFile] != 3 || files[crdFile] != 4 {
 		t.Errorf("Certificate documents = %+v", cert.Documents)
 	}
 	// every usage carries evidence that resolves in the pool
@@ -167,7 +168,7 @@ func TestRepoGVKInventory(t *testing.T) {
 		}
 	}
 	ev := evURI(*e, cert.Evidence[0])
-	if ev.Locator != "L1" || (ev.URI != crdFile && ev.URI != certFile) {
+	if ev.Locator != "L3" && ev.Locator != "L4" || (ev.URI != crdFile && ev.URI != certFile) {
 		t.Errorf("first Certificate evidence = %+v", ev)
 	}
 }

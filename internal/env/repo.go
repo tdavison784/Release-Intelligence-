@@ -110,7 +110,7 @@ func (l *loader) discoverRepo(root string) (values, manifests []string, err erro
 
 func (l *loader) walkRepoDir(root, dir string, depth int, vals, mans *[]string) error {
 	if depth > maxRepoDepth {
-		l.warnf("repo %s is deeper than %d levels; deeper files were ignored", root, maxRepoDepth)
+		l.warnf("", "repo %s is deeper than %d levels; deeper files were ignored", root, maxRepoDepth)
 		return nil
 	}
 	entries, err := os.ReadDir(dir)
@@ -125,7 +125,7 @@ func (l *loader) walkRepoDir(root, dir string, depth int, vals, mans *[]string) 
 				continue
 			}
 			if _, err := os.Stat(filepath.Join(p, "Chart.yaml")); err == nil {
-				l.warnf("skipped %s: a Helm chart source tree (its values and templates are chart inputs, not customer environment)", p)
+				l.warnf("", "skipped %s: a Helm chart source tree (its values and templates are chart inputs, not customer environment)", p)
 				continue
 			}
 			if err := l.walkRepoDir(root, p, depth+1, vals, mans); err != nil {
@@ -135,7 +135,7 @@ func (l *loader) walkRepoDir(root, dir string, depth int, vals, mans *[]string) 
 		}
 		l.repoFiles++
 		if l.repoFiles > maxRepoFiles {
-			l.warnf("more than %d files in %s; the rest were ignored", maxRepoFiles, root)
+			l.warnf("", "more than %d files in %s; the rest were ignored", maxRepoFiles, root)
 			return nil
 		}
 		rel, err := filepath.Rel(root, p)
@@ -218,13 +218,10 @@ func isValuesName(base string) bool {
 func (l *loader) discByContent(path, rel string, mans *[]string) {
 	b, err := os.ReadFile(path)
 	if err != nil {
-		l.warnf("%s could not be read: %v", path, err)
+		l.warnf("", "%s could not be read: %v", path, err)
 		return
 	}
-	docs, err := splitDocs(b)
-	if err != nil {
-		return // not parseable YAML: not an environment input
-	}
+	docs, _ := parseDocs(b, nil)
 	for _, d := range docs {
 		if d.node == nil {
 			continue
@@ -258,13 +255,10 @@ func (l *loader) discByContent(path, rel string, mans *[]string) {
 func (l *loader) discWorkflow(path, rel string) {
 	b, err := l.readFile(path)
 	if err != nil {
-		l.warnf("%s could not be read: %v", path, err)
+		l.warnf("", "%s could not be read: %v", path, err)
 		return
 	}
-	docs, err := splitDocs(b)
-	if err != nil {
-		return
-	}
+	docs, _ := parseDocs(b, nil)
 	n, first := 0, domain.EvidenceID("")
 	for _, d := range docs {
 		if d.node == nil {
@@ -307,7 +301,7 @@ var tfImageRe = regexp.MustCompile(`(?m)^[ \t]*image[ \t]*=[ \t]*"([^"]*)"`)
 func (l *loader) discTerraform(path, rel string) {
 	b, err := l.readFile(path)
 	if err != nil {
-		l.warnf("%s could not be read: %v", path, err)
+		l.warnf("", "%s could not be read: %v", path, err)
 		return
 	}
 	s := string(b)
@@ -346,14 +340,10 @@ func (l *loader) discTerraform(path, rel string) {
 func (l *loader) discKustomization(path, rel string, mans *[]string) {
 	b, err := l.readFile(path)
 	if err != nil {
-		l.warnf("%s could not be read: %v", path, err)
+		l.warnf("", "%s could not be read: %v", path, err)
 		return
 	}
-	docs, err := splitDocs(b)
-	if err != nil {
-		l.warnf("%s was not parsed: %v", path, err)
-		return
-	}
+	docs, _ := parseDocs(b, nil)
 	var node *yaml.Node
 	for _, d := range docs {
 		if d.node != nil {
@@ -372,7 +362,7 @@ func (l *loader) discKustomization(path, rel string, mans *[]string) {
 		target := filepath.Join(dir, ref)
 		files, err := expand(target)
 		if err != nil {
-			l.warnf("kustomization %s references %s, which is not present", rel, ref)
+			l.warnf("", "kustomization %s references %s, which is not present", rel, ref)
 			return
 		}
 		for _, f := range files {
@@ -422,7 +412,7 @@ func (l *loader) discKustomization(path, rel string, mans *[]string) {
 		}
 		l.addImageAt(ref, "kustomization", path, item.Line)
 	}
-	l.warnf("kustomization %s is not built with kustomize: its resources are inventoried as plain manifests, patches and transformers are not applied", rel)
+	l.warnf("", "kustomization %s is not built with kustomize: its resources are inventoried as plain manifests, patches and transformers are not applied", rel)
 	l.env.Discovered = append(l.env.Discovered, RepoDiscovery{
 		Path: path, Kind: DiscKustomization, Detail: "resources inventoried (no kustomize build)",
 		Evidence: []domain.EvidenceID{l.fileEvidence(path)},
@@ -435,14 +425,10 @@ func (l *loader) discKustomization(path, rel string, mans *[]string) {
 func (l *loader) discHelmfile(path, rel string, vals *[]string) {
 	b, err := l.readFile(path)
 	if err != nil {
-		l.warnf("%s could not be read: %v", path, err)
+		l.warnf("", "%s could not be read: %v", path, err)
 		return
 	}
-	docs, err := splitDocs(b)
-	if err != nil {
-		l.warnf("%s was not parsed: %v", path, err)
-		return
-	}
+	docs, _ := parseDocs(b, nil)
 	var node *yaml.Node
 	for _, d := range docs {
 		if d.node != nil {
@@ -491,7 +477,7 @@ func (l *loader) discHelmfile(path, rel string, vals *[]string) {
 			})
 		}
 	}
-	l.warnf("helmfile %s: templating (go templates, environments) is not evaluated; releases are inventoried from the literal file", rel)
+	l.warnf("", "helmfile %s: templating (go templates, environments) is not evaluated; releases are inventoried from the literal file", rel)
 	l.env.Discovered = append(l.env.Discovered, RepoDiscovery{
 		Path: path, Kind: DiscHelmfile,
 		Detail:   fmt.Sprintf("%d release(s); templating not evaluated", releases),
