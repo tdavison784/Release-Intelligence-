@@ -137,18 +137,25 @@ func applyAdjudications(res *EntryResult, f *AdjudicationFile) {
 // scoreSuggestions scores the AI layer's applicability suggestions against
 // the fixture's labels (G10). It runs inside scoreReport, where the
 // change→expected-item and item→relevance maps are already built; on a
-// deterministic report it is a no-op.
-func scoreSuggestions(res *EntryResult, c *Case, report *domain.ImpactReport, expIDForChange map[string]string, relevanceFor map[string]string) {
+// deterministic report it is a no-op. Labels come from expectedFinding
+// classification clauses first (per-finding), then from the expectedImpact
+// relevance of the covered item.
+func scoreSuggestions(res *EntryResult, c *Case, report *domain.ImpactReport, expIDForChange map[string]string, relevanceFor map[string]string, efLabel func(domain.ImpactFinding) string) {
 	var m SuggestionMetrics
-	labelFor := func(changeID string) string {
-		if expID, ok := expIDForChange[changeID]; ok {
+	labelFor := func(f domain.ImpactFinding) string {
+		if efLabel != nil {
+			if cls := efLabel(f); cls != "" {
+				return cls
+			}
+		}
+		if expID, ok := expIDForChange[f.ChangeID]; ok {
 			return classForRelevance(relevanceFor[expID])
 		}
 		return ""
 	}
 	for _, f := range report.Findings {
 		if f.SuggestedClassification == "" {
-			if cls := labelFor(f.ChangeID); cls != "" && cls == ClassUnknown {
+			if label := labelFor(f); label == ClassUnknown {
 				// a genuine opportunity the enricher did not take still
 				// counts against recall
 				m.UnknownLabeled++
@@ -156,8 +163,7 @@ func scoreSuggestions(res *EntryResult, c *Case, report *domain.ImpactReport, ex
 			continue
 		}
 		m.Suggestions++
-		label := labelFor(f.ChangeID)
-		switch label {
+		switch label := labelFor(f); label {
 		case "":
 			m.Unlabeled++
 		case ClassReviewRequired, ClassUnknown:
@@ -175,4 +181,28 @@ func scoreSuggestions(res *EntryResult, c *Case, report *domain.ImpactReport, ex
 	if m.Suggestions > 0 || m.UnknownLabeled > 0 {
 		res.Suggestions = &m
 	}
+}
+
+// findingMatchesShape reports whether the finding matches the matcher's
+// subject/rule clauses, deliberately IGNORING its classification clause: the
+// class clause decides whether an expectation counts as found, but a label
+// must attach to the finding whatever class it came out as (that is the
+// point of scoring classifications).
+func findingMatchesShape(m FindingMatcher, f domain.ImpactFinding) bool {
+	if m.Subject != "" {
+		found := false
+		for _, match := range f.Matches {
+			if match.Subject == m.Subject {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	if m.Rule != "" && f.Rule != m.Rule {
+		return false
+	}
+	return m.Subject != "" || m.Rule != ""
 }

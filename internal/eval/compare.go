@@ -710,7 +710,7 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 	}
 
 	// per-finding class accounting + false-action detection + matrix cells
-	// over expectedImpact-labelled findings.
+	// over labelled findings.
 	unsupported := findUnsupportedFindings(report, edge)
 	unsupportedIDs := map[string]bool{}
 	for _, u := range unsupported {
@@ -720,15 +720,29 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 	for _, id := range res.FPChangeIDs {
 		fpChange[id] = true
 	}
+	// expectedFinding labels: a matcher pinning a classification is the
+	// dataset's per-finding label ("this subject's correct class IS x"); it
+	// wins over the coarser expectedImpact relevance.
+	efLabel := func(f domain.ImpactFinding) string {
+		for _, ef := range c.Environment.ExpectedFindings {
+			if ef.Match.Classification == "" {
+				continue
+			}
+			if findingMatchesShape(ef.Match, f) {
+				return ef.Match.Classification
+			}
+		}
+		return ""
+	}
 	for _, f := range report.Findings {
 		switch string(f.Classification) {
 		case ClassActionRequired:
 			res.Metrics.ActionFindings++
-			unsupported := unsupportedIDs[f.ID]
-			if unsupported {
+			unsupportedFinding := unsupportedIDs[f.ID]
+			if unsupportedFinding {
 				res.Metrics.ActionFindingsUnsupported++
 			}
-			wrong := unsupported || envFPChange[f.ChangeID] || fpChange[f.ChangeID]
+			wrong := unsupportedFinding || envFPChange[f.ChangeID] || fpChange[f.ChangeID]
 			if !wrong {
 				if expID, ok := expIDForChange[f.ChangeID]; ok {
 					// over-classification: ground truth names a softer class
@@ -747,15 +761,18 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 		case ClassUnknown:
 			res.Metrics.UnknownFindings++
 		}
-		// matrix: label by expectedImpact relevance of the covered item
-		if expID, ok := expIDForChange[f.ChangeID]; ok {
+		// matrix: one label per finding — expectedFinding class when one
+		// matches, else the expectedImpact relevance of the covered item
+		if expected := efLabel(f); expected != "" {
+			labelled(expected, string(f.Classification))
+		} else if expID, ok := expIDForChange[f.ChangeID]; ok {
 			labelled(classForRelevance(relevanceFor[expID]), string(f.Classification))
 		}
 	}
 	if matrix.Labelled > 0 {
 		res.Confusion = matrix
 	}
-	scoreSuggestions(res, c, report, expIDForChange, relevanceFor)
+	scoreSuggestions(res, c, report, expIDForChange, relevanceFor, efLabel)
 
 	// unsupported findings (both chains must resolve and join a real change)
 	if len(unsupported) > 0 {
