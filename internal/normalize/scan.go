@@ -31,6 +31,7 @@ type docLine struct {
 	level int    // heading level 1..6 (lkHeading)
 	head  string // normalised heading text (lkHeading)
 	hraw  string // heading text without leading/trailing '#' but otherwise verbatim (lkHeading)
+	label bool   // heading synthesised from a label paragraph (see labels.go)
 }
 
 type document struct {
@@ -138,7 +139,7 @@ func scanDocument(md []byte) *document {
 		switch {
 		case strings.TrimSpace(vis) == "":
 			l.kind = lkBlank
-		case linkRefDefRe.MatchString(vis), tagOnlyLineRe.MatchString(vis), isThematicBreak(vis):
+		case linkRefDefRe.MatchString(vis), tagOnlyLineRe.MatchString(vis), isThematicBreak(vis), mdxIncludeRe.MatchString(vis):
 			l.kind = lkBlank
 		default:
 			if m := atxHeadingRe.FindStringSubmatch(vis); m != nil {
@@ -287,7 +288,7 @@ func stripComments(line, state string) (string, string) {
 // and for Section.Heading: trailing {#anchor} removed, links replaced by their
 // text, surrounding emphasis/backticks trimmed, whitespace collapsed.
 func normalizeHeading(h string) string {
-	h = strings.TrimSpace(h)
+	h = stripMDXHeadingNoise(strings.TrimSpace(h))
 	for {
 		n := anchorSuffixRe.ReplaceAllString(h, "")
 		if n == h {

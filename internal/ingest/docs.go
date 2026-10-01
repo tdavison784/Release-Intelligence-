@@ -167,6 +167,8 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			RetrievedAt: d.RetrievedAt,
 			Content:     d.Content,
 			Repository:  repo,
+
+			LabelPattern: ex.LabelParagraphs,
 		}
 	}
 	p := i.parser()

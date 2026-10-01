@@ -147,3 +147,4 @@ upstream channel needed it.
 | `references` | Cross-check an artifact inside another artifact | image tags in the install manifest when quay.io is unreachable |
 | `contents.stripPrefix` / `ignoreKeys` | Normalise Helm values to user-facing keys | Istio's `_internal_defaults_do_not_set`; source-tree hub/tag placeholders |
 | `classify` rules | Product-specific classification, evaluated first | cert-manager "⚠️ Breaking change" callouts; Argo CD noise filters |
+| `extract.labelParagraphs` | Treat standalone label paragraphs (`SECURITY:`, `BUG FIXES:`) as headings one level below the last real heading | Vault CHANGELOG.md (HashiCorp-style changelogs: Terraform and its providers, Consul, Nomad) |

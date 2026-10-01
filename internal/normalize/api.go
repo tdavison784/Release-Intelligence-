@@ -50,6 +50,10 @@ type DocInput struct {
 	// Repository ("owner/name" on github.com, or host/owner/name) used to
 	// build URLs for bare "#1234" references; optional.
 	Repository string
+	// LabelPattern, when set, is a regex source: a standalone paragraph
+	// matching it (e.g. "SECURITY:") is treated as a heading one level below
+	// the last real heading when the document is split into items.
+	LabelPattern string
 }
 
 // Section is a markdown section.

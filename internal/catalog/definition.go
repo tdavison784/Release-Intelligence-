@@ -197,6 +197,12 @@ type Extract struct {
 	// TableHeading optionally restricts the search to tables that appear
 	// under a heading matching this regex.
 	TableHeading string `yaml:"tableHeading,omitempty" json:"tableHeading,omitempty"`
+	// LabelParagraphs (whole, markdown-section) is a regex matched against
+	// standalone paragraph lines: a match is treated as a heading one level
+	// below the last real heading. For changelogs that group bullets under
+	// uppercase label paragraphs ("SECURITY:", "BUG FIXES:") rather than
+	// markdown headings, e.g. '^[A-Z][A-Z0-9 /&-]*:$'.
+	LabelParagraphs string `yaml:"labelParagraphs,omitempty" json:"labelParagraphs,omitempty"`
 }
 
 // ColumnSpec maps a table column to a platform constraint.
