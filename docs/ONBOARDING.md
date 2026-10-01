@@ -60,8 +60,8 @@ What convergence looks like:
 ## Summary
 
 - 8 product definitions, 8 onboarding records, 8 saved relationship reports.
-- 133 distinct constructs are used across all definitions; the records introduce 117.
-- 2 of 8 recorded products introduced no new construct. The latest product that introduced one has order 10.
+- 133 distinct constructs are used across all definitions; the records introduce 133.
+- 1 of 8 recorded products introduced no new construct. The latest product that introduced one has order 10.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -86,11 +86,11 @@ What convergence looks like:
 | 1 | cert-manager | 88 | 87 | 0 | 0% | 87 | 4 / 0 | n/a | full |
 | 2 | istio | 81 | 12 | 69 | 85% | 99 | 7 / 0 | n/a | full |
 | 3 | argo-cd | 98 | 14 | 84 | 86% | 113 | 4 / 0 | n/a | full |
-| 5 | postgresql | 56 | 2 | 49 | 88% | 115 | 14 / 0 | 25 | partial |
-| 7 | vault | 82 | 1 | 74 | 90% | 116 | 10 / 0 | 23 | partial |
-| 8 | crossplane | 72 | 0 | 71 | 99% | 116 | 2 / 0 | 18 | partial |
-| 9 | external-secrets | 85 | 0 | 85 | 100% | 116 | 0 / 0 | 18 | full |
-| 10 | ingress-nginx | 93 | 1 | 82 | 88% | 117 | 9 / 0 | 25 | full |
+| 5 | postgresql | 56 | 7 | 49 | 88% | 120 | 14 / 0 | 25 | partial |
+| 7 | vault | 82 | 7 | 75 | 91% | 127 | 10 / 0 | 23 | partial |
+| 8 | crossplane | 72 | 1 | 71 | 99% | 128 | 2 / 0 | 18 | partial |
+| 9 | external-secrets | 85 | 0 | 85 | 100% | 128 | 0 / 0 | 18 | full |
+| 10 | ingress-nginx | 93 | 5 | 88 | 95% | 133 | 9 / 0 | 25 | full |
 
 ### Discovery and relationship validation
 
@@ -112,11 +112,11 @@ What convergence looks like:
 | 1 | cert-manager | 87 | 87 | 88 | 0 | 0% | 88 | 88 |
 | 2 | istio | 12 | 99 | 81 | 69 | 85% | 11 | 99 |
 | 3 | argo-cd | 14 | 113 | 98 | 84 | 86% | 14 | 113 |
-| 5 | postgresql | 2 | 115 | 56 | 49 | 88% | 7 | 120 |
-| 7 | vault | 1 | 116 | 82 | 74 | 90% | 7 | 127 |
-| 8 | crossplane | 0 | 116 | 72 | 71 | 99% | 1 | 128 |
-| 9 | external-secrets | 0 | 116 | 85 | 85 | 100% | 0 | 128 |
-| 10 | ingress-nginx | 1 | 117 | 93 | 82 | 88% | 5 | 133 |
+| 5 | postgresql | 7 | 120 | 56 | 49 | 88% | 7 | 120 |
+| 7 | vault | 7 | 127 | 82 | 75 | 91% | 7 | 127 |
+| 8 | crossplane | 1 | 128 | 72 | 71 | 99% | 1 | 128 |
+| 9 | external-secrets | 0 | 128 | 85 | 85 | 100% | 0 | 128 |
+| 10 | ingress-nginx | 5 | 133 | 93 | 88 | 95% | 5 | 133 |
 
 New constructs per product, in onboarding order (records):
 
@@ -124,24 +124,24 @@ New constructs per product, in onboarding order (records):
   1  cert-manager        87  ████████████████████████████████████████
   2  istio               12  ██████
   3  argo-cd             14  ███████
-  5  postgresql           2  █
-  7  vault                1  █
-  8  crossplane           0  
+  5  postgresql           7  ████
+  7  vault                7  ████
+  8  crossplane           1  █
   9  external-secrets     0  
- 10  ingress-nginx        1  █
+ 10  ingress-nginx        5  ███
 ```
 
 Cumulative constructs introduced:
 
 ```text
-  1  cert-manager        87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  2  istio               99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  3  argo-cd            113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  5  postgresql         115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  7  vault              116  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  8  crossplane         116  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  9  external-secrets   116  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 10  ingress-nginx      117  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  1  cert-manager        87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  2  istio               99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  3  argo-cd            113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  5  postgresql         120  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault              127  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane         128  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets   128  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 10  ingress-nginx      133  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -187,33 +187,48 @@ Cumulative constructs introduced:
 - select (1): `latest`
 - template-var (1): `ArtifactVersion`
 
-### postgresql (order 5, wave 1): 2 new
+### postgresql (order 5, wave 1): 7 new
 
-- `extract.format: docbook (+ list-item reading of the converted notes)`: PostgreSQL's release notes (and upgrade guidance and CVEs) exist only as DocBook SGML. normalize.DocBookToMarkdown renders it as line-preserving markdown (sectN+title -> headings, listitem -> bullets, code elements -> `code`, comments and commit links dropped, entities decoded, SGML shorthand '</>' and end-tag-less xref handled), so the existing markdown-section selector, parser, classify rules and evidence line ranges work on the ORIGINAL line numbers. A DocBook document is parsed with DocInput.ListItems: every <listitem> is one note item whatever prose precedes it, and sub-sections are never folded into one item (without it a major release's 200 changes collapsed into 3 items). Only for extract types whole and markdown-section. (also needed by Pgpool-II (same SGML release-notes convention as PostgreSQL; UNVERIFIED here, from memory), other PostgreSQL-community projects with DocBook docs, the 'format' field is the slot for the other non-markdown note formats of wave 1-3 products: reStructuredText (Cilium Documentation/operations/upgrade.rst) and AsciiDoc (Elasticsearch release notes); converters for those are not implemented here)
-- `versioning.tagPattern component groups (?P<major>)(?P<minor>)(?P<patch>)(?P<prerelease>)`: REL_17_2 / REL9_6_24 cannot be read by a (?P<version>) group: the numbers are underscore-separated, 17.2 has two parts and a major (17) must be a release line. Components are assembled into major.minor.patch[-prerelease] (missing minor/patch = 0), so 17.2 is 17.0.2, line 17.0, kind major/patch, and PrevTag/lineage/releaseKinds/availability work unchanged. Accepted for versioning.tagPattern and git-tags locators; validated by the Go validator and the JSON Schema. (also needed by Go (go1.22 is 1.22.0), Linux kernel (v6.7), Python (v3.13.0rc1, glued prerelease), Ruby (v3_3_0), OpenSSL 1.x (OpenSSL_1_1_1), PHP (php-8.3.0RC1), MariaDB, none of the other planned Phase-2 products tags this way (Redis, Elasticsearch, ... are three-part semver): justified by well-known projects, not by the plan)
+- `artifact:package`: First definition use of the package artifact type: the ftp.postgresql.org source tarball (there is no source-archive type and source-release only allows git-tags/github-releases channels, see ambiguousRelationships).
+- `field:sources.extract.format`: Extract field selecting the document format of a source (markdown by default); the slot that carries format:docbook for the SGML notes and, later, the other non-markdown note formats (see format:docbook).
+- `field:sources.locator.url`: First use of the url field on a source locator: the security page (postgresql.org/support/security) is declared as an http source by URL; the host is blocked, so CVEs are read from the release notes instead (artifact channels already had url since cert-manager).
+- `format:docbook`: PostgreSQL's release notes (and upgrade guidance and CVEs) exist only as DocBook SGML. normalize.DocBookToMarkdown renders it as line-preserving markdown (sectN+title -> headings, listitem -> bullets, code elements -> `code`, comments and commit links dropped, entities decoded, SGML shorthand '</>' and end-tag-less xref handled), so the existing markdown-section selector, parser, classify rules and evidence line ranges work on the ORIGINAL line numbers. A DocBook document is parsed with DocInput.ListItems: every <listitem> is one note item whatever prose precedes it, and sub-sections are never folded into one item (without it a major release's 200 changes collapsed into 3 items). Only for extract types whole and markdown-section. (also needed by Pgpool-II (same SGML release-notes convention as PostgreSQL; UNVERIFIED here, from memory), other PostgreSQL-community projects with DocBook docs, the 'format' field is the slot for the other non-markdown note formats of wave 1-3 products: reStructuredText (Cilium Documentation/operations/upgrade.rst) and AsciiDoc (Elasticsearch release notes); converters for those are not implemented here)
+- `template-func:eq`: First definition use: '{{if eq .Patch 0}}' picks the 'Release 17' heading of a 17.0 major over 'Release 17.2' in the converted release notes (see considered: the rejected published-version variable).
+- `template-func:ge`: First definition use: '{{if ge .Major 10}}' renders the published two-part form of versions >= 10 in the tarball URL and the Docker image tags (3 artifacts + 2 headings, see considered: the rejected published-version variable).
+- `template-var:Patch`: REL_17_2 / REL9_6_24 cannot be read by a (?P<version>) group: the numbers are underscore-separated, 17.2 has two parts and a major (17) must be a release line. Components are assembled into major.minor.patch[-prerelease] (missing minor/patch = 0), so 17.2 is 17.0.2, line 17.0, kind major/patch, and PrevTag/lineage/releaseKinds/availability work unchanged. Accepted for versioning.tagPattern and git-tags locators; validated by the Go validator and the JSON Schema. The assembled components are rendered back to the published two-part form in templates ({{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}}, and {{if eq .Patch 0}} for the 'Release 17' heading): the first definition use of the .Patch template variable and of the eq/ge template functions (see considered: the rejected published-version variable). (also needed by Go (go1.22 is 1.22.0), Linux kernel (v6.7), Python (v3.13.0rc1, glued prerelease), Ruby (v3_3_0), OpenSSL 1.x (OpenSSL_1_1_1), PHP (php-8.3.0RC1), MariaDB, none of the other planned Phase-2 products tags this way (Redis, Elasticsearch, ... are three-part semver): justified by well-known projects, not by the plan)
 
-### vault (order 7, wave 1): 1 new
+### vault (order 7, wave 1): 7 new
 
-- `extract.labelParagraphs`: HashiCorp-family changelogs group bullets under uppercase label paragraphs (SECURITY:, BUG FIXES:, BREAKING CHANGES:, ...) that are not markdown headings. Without the option every bullet loses its category (ri upgrade 2.0.3 -> 2.0.4 before: 0 bug fixes, 0 features, 2 security items, 54 other, nothing breaking; after: 29 bug fixes, 20 features, 5 security, 1 breaking). A matching standalone paragraph is promoted to a heading one level below the last real heading, so the existing section classification (declared, high confidence) applies unchanged and product rules can match the label via `section:`. (also needed by terraform-aws-provider (wave 3, ENHANCEMENTS:/BUG FIXES:/NOTES:), terraform core, consul, nomad, packer, boundary)
+- `field:artifacts.channels.path`: The helm-git channel says where in the chart repository the chart lives (path '.', Chart.yaml at the vault-helm root); artifact channels had no path field before.
+- `field:artifacts.channels.tagPattern`: The helm-git channel carries its own tagPattern (vault-helm tags ^v(?P<version>\d+\.\d+\.\d+)$) because the chart repository's independent 0.x tag family, not the product's tags, selects which repository tags are chart versions.
+- `field:sources.exceptions`: Curated exceptions on sources, as argo-cd introduced them for artifacts: two changelog sections are structurally unreachable (1.17.5 and 1.18.0 have the release date as a second H2, so the version section is empty) and 1.3.0 has no section — recorded instead of bending the heading selectors (see manualInterventions).
+- `field:sources.exceptions.reason`: Mandatory reason of a source exception, as with artifacts.exceptions ('upstream formatting defect: ... the release date is a second H2 ... which a heading selector cannot reach').
+- `field:sources.exceptions.versions`: The releases a source exception covers: 1.17.5 and 1.18.0 of the changelog, 1.3.0 of the pre-1.10 changelog.
+- `field:sources.extract.labelParagraphs`: HashiCorp-family changelogs group bullets under uppercase label paragraphs (SECURITY:, BUG FIXES:, BREAKING CHANGES:, ...) that are not markdown headings. Without the option every bullet loses its category (ri upgrade 2.0.3 -> 2.0.4 before: 0 bug fixes, 0 features, 2 security items, 54 other, nothing breaking; after: 29 bug fixes, 20 features, 5 security, 1 breaking). A matching standalone paragraph is promoted to a heading one level below the last real heading, so the existing section classification (declared, high confidence) applies unchanged and product rules can match the label via `section:`. (also needed by terraform-aws-provider (wave 3, ENHANCEMENTS:/BUG FIXES:/NOTES:), terraform core, consul, nomad, packer, boundary)
+- `locator:helm-git`: helm.releases.hashicorp.com is blocked from the sandbox, so the chart is read from the vault-helm repository's git tags: the reachable channel that verified the same chart versions (see the helm-chart artifact and unverifiable).
 
-### crossplane (order 8, wave 1): 0 new
+### crossplane (order 8, wave 1): 1 new
 
-No new constructs: the definition is configuration only.
+- `field:sources.locator.tagPattern`: The git-tags fallback versions source repeats the strict tag pattern on its own locator so the apis/vX.Y.Z submodule tags and the legacy rc tags are not releases when the GitHub API is unreachable ('same strict tagPattern that excludes the apis/ submodule tags'); configuration only, no code change.
 
 ### external-secrets (order 9, wave 1): 0 new
 
 No new constructs: the definition is configuration only.
 
-### ingress-nginx (order 10, wave 1): 1 new
+### ingress-nginx (order 10, wave 1): 5 new
 
-- `lifecycle`: The product's retirement is a fact about the future (no more releases or fixes) that no release artifact, note or table carries, so it cannot be ingested, only stated, with evidence. With existing constructs the README banner can only be a release-notes source: it then surfaces as three unrelated bullets attributed to the first path release ('[controller-v1.14.0] Best-effort maintenance will continue until March 2026', classified as a deprecation), including a reassurance as an action-required item, and says nothing about the target. The construct states the status once, cites the banner as evidence (its note items are removed from the per-release notes), applies it to a version range, and the edge reports an action-required deprecation when the target is end-of-life, an informational one when the upgrade leaves an end-of-life line, plus a warning. Deterministic (declared, no clock), no new domain types or schema changes of the edge. (also needed by argo-cd, cert-manager, istio, postgresql, elasticsearch, redis, linkerd)
+- `field:lifecycle`: The product's retirement is a fact about the future (no more releases or fixes) that no release artifact, note or table carries, so it cannot be ingested, only stated, with evidence. With existing constructs the README banner can only be a release-notes source: it then surfaces as three unrelated bullets attributed to the first path release ('[controller-v1.14.0] Best-effort maintenance will continue until March 2026', classified as a deprecation), including a reassurance as an action-required item, and says nothing about the target. The construct states the status once, cites the banner as evidence (its note items are removed from the per-release notes), applies it to a version range, and the edge reports an action-required deprecation when the target is end-of-life, an informational one when the upgrade leaves an end-of-life line, plus a warning. Deterministic (declared, no clock), no new domain types or schema changes of the edge. (also needed by argo-cd, cert-manager, istio, postgresql, elasticsearch, redis, linkerd)
+- `field:lifecycle.since`: When the state applies: 2026-03, the README wording ('until March 2026'; last tag 2026-03-19, see ambiguousRelationships).
+- `field:lifecycle.sources`: Evidence sources cited by the statement (the README 'Retiring' banner); their note items are removed from the per-release notes.
+- `field:lifecycle.state`: The declared state of the statement's version range (end-of-life here; deprecated is the other one): what the edge keys the action-required versus informational deprecation on.
+- `field:lifecycle.summary`: The one-line statement carried into the edge: 'ingress-nginx is retired: best-effort maintenance ended in March 2026 and there will be no further releases, bug fixes or security fixes.'
 
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
-| 1 | postgresql, vault, crossplane, external-secrets, ingress-nginx | 2 of 5 (crossplane, external-secrets) | 4 (0.8) | 93% | 35 / 0 | 23 (n=5) | 14/13/40 (40%) | 63/0/10/4 (5 of 5 reports) | 37 | full 2, partial 3 |
+| 1 | postgresql, vault, crossplane, external-secrets, ingress-nginx | 1 of 5 (external-secrets) | 20 (4.0) | 95% | 35 / 0 | 23 (n=5) | 14/13/40 (40%) | 63/0/10/4 (5 of 5 reports) | 37 | full 2, partial 3 |
 
 ## Notes from the records
 
@@ -238,11 +253,3 @@ No new constructs: the definition is configuration only.
 Observations about the inputs (missing, inconsistent or later-adopted data). The report is computed regardless.
 
 - cert-manager uses constructs introduced by a later product (the definition was migrated after they appeared): field:sources.fallbackGroup (introduced by istio)
-- postgresql: listed as a new construct but the definition does not use "versioning.tagPattern component groups (?P<major>)(?P<minor>)(?P<patch>)(?P<prerelease>)" (typo, renamed, or retired?)
-- postgresql: listed as a new construct but the definition does not use "extract.format: docbook (+ list-item reading of the converted notes)" (typo, renamed, or retired?)
-- postgresql uses 7 construct(s) that no record introduces: artifact:package, field:sources.extract.format, field:sources.locator.url, format:docbook, template-func:eq, template-func:ge, template-var:Patch
-- vault: listed as a new construct but the definition does not use "extract.labelParagraphs" (typo, renamed, or retired?)
-- vault uses 8 construct(s) that no record introduces: artifact:package, field:artifacts.channels.path, field:artifacts.channels.tagPattern, field:sources.exceptions, field:sources.exceptions.reason, field:sources.exceptions.versions, field:sources.extract.labelParagraphs, locator:helm-git
-- crossplane uses 1 construct(s) that no record introduces: field:sources.locator.tagPattern
-- ingress-nginx: listed as a new construct but the definition does not use "lifecycle" (typo, renamed, or retired?)
-- ingress-nginx uses 11 construct(s) that no record introduces: field:artifacts.channels.path, field:artifacts.channels.tagPattern, field:lifecycle, field:lifecycle.since, field:lifecycle.sources, field:lifecycle.state, field:lifecycle.summary, field:sources.exceptions, ... (3 more)
