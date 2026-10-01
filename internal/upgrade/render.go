@@ -193,6 +193,9 @@ func (r *renderer) header() {
 	}
 	summary := fmt.Sprintf("Summary: %d breaking · %d action required · %s · %s", breaking, action,
 		plural(len(e.Changes), "change", "changes"), plural(len(e.Warnings), "warning", "warnings"))
+	if e.Routine != nil && e.Routine.Count > 0 {
+		summary += fmt.Sprintf(" · %d routine", e.Routine.Count)
+	}
 	if len(e.Enrichments) > 0 {
 		summary += " · " + plural(len(e.Enrichments), "AI enrichment", "AI enrichments")
 	}
@@ -379,6 +382,7 @@ const (
 	secCompat
 	secCompatNotes
 	secSecurity
+	secRoutine
 	secOther
 	secHidden
 	numSections
@@ -389,6 +393,11 @@ func isCompatComparison(c domain.Change) bool {
 }
 
 func sectionOf(c domain.Change, verbose bool) int {
+	if c.Routine {
+		// Routine maintenance leaves the breaking/action/migration narrative
+		// entirely; it is summarised in its own (dim) section.
+		return secRoutine
+	}
 	switch {
 	case c.Breaking:
 		return secBreaking
@@ -448,6 +457,29 @@ func (r *renderer) changeSections() {
 	r.changeList(ansiBold, "Compatibility notes", secs[secCompatNotes], false, false)
 	r.changeList(ansiBold, "Security changes", secs[secSecurity], false, false)
 	r.other(secs[secOther], secs[secHidden])
+	r.routine(secs[secRoutine])
+}
+
+// routine renders the routine-maintenance summary: always a count + breakdown
+// line, the items themselves only with Verbose (or in the JSON output, where
+// every change carries routine/routineKind).
+func (r *renderer) routine(cs []domain.Change) {
+	if len(cs) == 0 {
+		return
+	}
+	title := fmt.Sprintf("Routine maintenance (%d):", len(cs))
+	if s := r.e.Routine; s != nil && s.Summary != "" {
+		title += " " + s.Summary
+	}
+	r.heading(ansiDim, title)
+	if !r.opts.Verbose {
+		return
+	}
+	n := r.limit(len(cs))
+	for _, c := range cs[:n] {
+		r.changeLine(c, false)
+	}
+	r.more(n, len(cs))
 }
 
 func (r *renderer) changeList(code, title string, cs []domain.Change, always, hints bool) {

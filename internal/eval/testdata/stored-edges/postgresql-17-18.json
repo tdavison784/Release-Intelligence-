@@ -1,0 +1,4006 @@
+{
+ "caseId": "postgresql-17-18",
+ "recordedFrom": "postgresql/edges/17.0.4_18.0.0.json (stored eval run of 2026-10-01, commit 0cf815f)",
+ "changes": [
+  {
+   "id": "chg-2dd2110f1e5f",
+   "category": "deprecation",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "Deprecate MD5 password authentication (Nathan Bossart) Support for MD5 passwords will be removed in a future major version release",
+   "detail": "Deprecate MD5 password authentication (Nathan Bossart) Support for MD5 passwords will be removed in a future major version release. `sql-createrole` and `sql-alterrole` now emit deprecation warnings when setting MD5 passwords. These warnings can be disabled by setting the `guc-md5-password-warnings` parameter to `off`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7f5c5fd5da6b",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "Change `app-initdb` default to enable data checksums (Greg Sabino Mullane) Checksums can be disabled with the new `initdb` option `--no-data-checksums`.…",
+   "detail": "Change `app-initdb` default to enable data checksums (Greg Sabino Mullane) Checksums can be disabled with the new `initdb` option `--no-data-checksums`. `pgupgrade` requires matching cluster checksum settings, so this new option can be useful to upgrade non-checksum old clusters.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ee9575197cd7",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "Change `pg_backend_memory_contexts`.`level` and `pg_log_backend_memory_contexts()` to be one-based (Melih Mutlu, Atsushi Torikoshi, David Rowley, Fujii Masao)…",
+   "detail": "Change `pg_backend_memory_contexts`.`level` and `pg_log_backend_memory_contexts()` to be one-based (Melih Mutlu, Atsushi Torikoshi, David Rowley, Fujii Masao) These were previously zero-based.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-88ebcbd4534e",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "Change `sql-vacuum` and `sql-analyze` to process the inheritance children of a parent (Michael Harris) The previous behavior can be performed by using the new…",
+   "detail": "Change `sql-vacuum` and `sql-analyze` to process the inheritance children of a parent (Michael Harris) The previous behavior can be performed by using the new `ONLY` option.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-858e262aff60",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "Change full text search to use the default collation provider of the cluster to read configuration files and dictionaries, rather than always using libc (Peter…",
+   "detail": "Change full text search to use the default collation provider of the cluster to read configuration files and dictionaries, rather than always using libc (Peter Eisentraut) Clusters that default to non-libc collation providers (e.g., ICU, builtin) that behave differently than libc for characters processed by LC_CTYPE could observe changes in behavior of some full-text search functions, as well as the `pgtrgm` extension. When upgrading such clusters using `pgupgrade`, it is recommended to reindex all indexes related to full-text search and `pg_trgm` after the upgrade.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1d5b7c4c03ce",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "Change time zone abbreviation handling (Tom Lane) The system will now favor the current session's time zone abbreviations before checking the server variable…",
+   "detail": "Change time zone abbreviation handling (Tom Lane) The system will now favor the current session's time zone abbreviations before checking the server variable `guc-timezone-abbreviations`. Previously `timezone_abbreviations` was checked first.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1933cd55a8f6",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "Disallow unlogged partitioned tables (Michael Paquier) Previously `ALTER TABLE SET [UN]LOGGED` did nothing, and the creation of an unlogged partitioned table…",
+   "detail": "Disallow unlogged partitioned tables (Michael Paquier) Previously `ALTER TABLE SET [UN]LOGGED` did nothing, and the creation of an unlogged partitioned table did not cause its children to be unlogged.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-655dfdd96f0c",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "Execute `AFTER` triggers as the role that was active when trigger events were queued (Laurenz Albe) Previously such triggers were run as the role that was…",
+   "detail": "Execute `AFTER` triggers as the role that was active when trigger events were queued (Laurenz Albe) Previously such triggers were run as the role that was active at trigger execution time (e.g., at `sql-commit`). This is significant for cases where the role is changed between queue time and transaction commit.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1bb66e30a189",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "Prevent `COPY FROM` from treating `\\.` as an end-of-file marker when reading CSV files (Daniel Vérité, Tom Lane) `app-psql` will still treat `\\.` as an…",
+   "detail": "Prevent `COPY FROM` from treating `\\.` as an end-of-file marker when reading CSV files (Daniel Vérité, Tom Lane) `app-psql` will still treat `\\.` as an end-of-file marker when reading CSV files from `STDIN`. Older `psql` clients connecting to PostgreSQL 18 servers might experience `\\copy` problems. This release also enforces that `\\.` must appear alone on a line.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3868eb86470b",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "Remove column `pg_backend_memory_contexts`.`parent` (Melih Mutlu) This is no longer needed since `pg_backend_memory_contexts`.`path` was added",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-edcaf1e0690c",
+   "category": "other",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "Remove non-functional support for rule privileges in `sql-grant` /`sql-revoke` (Fujii Masao) These have been non-functional since PostgreSQL 8.2",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7c370cc74183",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Migration to Version 18: A dump/restore using `app-pg-dumpall` or use of `pgupgrade` or logical replication is required for those wishing to migrate data from…",
+   "detail": "Migration to Version 18: A dump/restore using `app-pg-dumpall` or use of `pgupgrade` or logical replication is required for those wishing to migrate data from any previous release. See `upgrading` for general information on migrating to new major releases. Version 18 contains a number of changes that may affect compatibility with previous releases. Observe the following incompatibilities:",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-728277fd4e58",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Remove configure options `--disable-spinlocks` and `--disable-atomics` (Thomas Munro) Thirty-two-bit atomic operations are now required",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ab52326a7049",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Require primary/foreign key relationships to use either deterministic collations or the the same nondeterministic collations (Peter Eisentraut) The restore of…",
+   "detail": "Require primary/foreign key relationships to use either deterministic collations or the the same nondeterministic collations (Peter Eisentraut) The restore of a `app-pgdump`, also used by `pgupgrade` , will fail if these requirements are not met; schema changes must be made for these upgrade methods to succeed.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9e2dbdc70fce",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Remove column `pg_attribute`.`attcacheoff` (David Rowley)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-419282d6cffe",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Remove read/sync columns from `pg_stat_wal` (Bertrand Drouvot) This removes columns `wal_write`, `wal_sync`, `wal_write_time`, and `wal_sync_time`",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-41ff59498533",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Remove support for `OpenSSL` versions older than 1.1.1 (Daniel Gustafsson)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b786bab7a835",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Remove support for the HPPA/PA-RISC architecture (Tom Lane)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-82ff533f6456",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Remove the experimental designation of `Meson` builds on ` Windows` (Aleksander Alekseev)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4838b6be7f6d",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Modify some libpq function signatures to use `int64_t` (Thomas Munro) These previously used `pg_int64`, which is now deprecated",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b2d1e18e2b90",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add ARM Neon and SVE CPU intrinsics for popcount (integer bit counting) (Chiranmoy Bhattacharya, Devanga Susmitha, Rama Malladi)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bbdc7e8a64f3",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add CFB mode to `pgcrypto` encryption and decryption (Umar Hayat)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bb106682d70c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add GiST support function `stratnum()` (Paul A. Jungwirth)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3d05835331b9",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add TOAST table to `pg_index` to allow for very large expression indexes (Nathan Bossart)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0bfac7a3dec8",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add WAL I/O activity rows to `pg_stat_io` (Nazir Bilal Yavuz, Bertrand Drouvot, Michael Paquier) This includes WAL receiver activity and a wait event for such…",
+   "detail": "Add WAL I/O activity rows to `pg_stat_io` (Nazir Bilal Yavuz, Bertrand Drouvot, Michael Paquier) This includes WAL receiver activity and a wait event for such writes.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-95377948086f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add WAL, CPU, and average read statistics output to `ANALYZE VERBOSE` (Anthonin Bonnefoy)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4f800da37604",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `COPY` `LOG_VERBOSITY` level `silent` to suppress log output of ignored rows (Atsushi Torikoshi) This new level suppresses output for discarded input rows…",
+   "detail": "Add `COPY` `LOG_VERBOSITY` level `silent` to suppress log output of ignored rows (Atsushi Torikoshi) This new level suppresses output for discarded input rows when `on_error = 'ignore'`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8e0eea83e231",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `OLD`/`NEW` support to `RETURNING` in DML queries (Dean Rasheed) Previously `RETURNING` only returned new values for `sql-insert` and `sql-update`, and old…",
+   "detail": "Add `OLD`/`NEW` support to `RETURNING` in DML queries (Dean Rasheed) Previously `RETURNING` only returned new values for `sql-insert` and `sql-update`, and old values for `sql-delete`; `sql-merge` would return the appropriate value for the internal query executed. This new syntax allows the `RETURNING` list of `INSERT`/`UPDATE`/`DELETE`/`MERGE` to explicitly return old and new values by using the special aliases `old` and `new`. These aliases can be renamed to avoid identifier conflicts.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2c3e338b9398",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `PQtrace()` output for all message types, including authentication (Jelte Fennema-Nio)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e0f48cff0aca",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `Parallel Bitmap Heap Scan` worker cache statistics to `EXPLAIN ANALYZE` (David Geier, Heikki Linnakangas, Donghang Lin, Alena Rybakina, David Rowley)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-02e9880669b6",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `REJECT_LIMIT` to control the number of invalid rows `COPY FROM` can ignore (Atsushi Torikoshi) This is available when `ON_ERROR = 'ignore'`",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-07afa427eff7",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `UUID` version 7 generation function `uuidv7()` (Andrey Borodin) This `UUID` value is temporally sortable",
+   "detail": "Add `UUID` version 7 generation function `uuidv7()` (Andrey Borodin) This `UUID` value is temporally sortable. Function alias `uuidv4()` has been added to explicitly generate version 4 UUIDs.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bed22ceec63e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `amcheck` check function `gin_index_check()` to verify `GIN` indexes (Grigory Kryachko, Heikki Linnakangas, Andrey Borodin)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1212502ddb06",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `amgettreeheight`, `amconsistentequality`, and `amconsistentordering` to the index access method API (Mark Dilger)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5a0ae2fc658d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `app-pgcombinebackup` option `-k`/`--link` to enable hard linking (Israel Barth Rubio, Robert Haas) Only some files can be hard linked",
+   "detail": "Add `app-pgcombinebackup` option `-k`/`--link` to enable hard linking (Israel Barth Rubio, Robert Haas) Only some files can be hard linked. This should not be used if the backups will be used independently.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-23809e39ec35",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `app-pgcreatesubscriber` option `--all` to create logical replicas for all databases (Shubham Khanna)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bb652d2ee8d8",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `app-pgdump` option `--statistics` (Jeff Davis)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1f073b791b2d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `app-pgdump`, `app-pg-dumpall`, and `app-pgrestore` options `--statistics-only`, `--no-statistics`, `--no-data`, and `--no-schema` (Corey Huinker, Jeff…",
+   "detail": "Add `app-pgdump`, `app-pg-dumpall`, and `app-pgrestore` options `--statistics-only`, `--no-statistics`, `--no-data`, and `--no-schema` (Corey Huinker, Jeff Davis)",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5d89302a77ad",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `app-pgrecvlogical` option `--enable-failover` to specify failover slots (Hayato Kuroda) Also add option `--enable-two-phase` as a synonym for…",
+   "detail": "Add `app-pgrecvlogical` option `--enable-failover` to specify failover slots (Hayato Kuroda) Also add option `--enable-two-phase` as a synonym for `--two-phase`, and deprecate the latter.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-aff177bf5c7e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `app-pgresetwal` option `--char-signedness` to change the default `char` signedness (Masahiko Sawada)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8c6c89ce1026",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `app-vacuumdb` option `--missing-stats-only` to compute only missing optimizer statistics (Corey Huinker, Nathan Bossart) This option can only be run by…",
+   "detail": "Add `app-vacuumdb` option `--missing-stats-only` to compute only missing optimizer statistics (Corey Huinker, Nathan Bossart) This option can only be run by superusers and can only be used with options `--analyze-only` and `--analyze-in-stages`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9b042a7a4f53",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `default_version` to the `psql` `\\dx` extension output (Magnus Hagander)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a0d8f6aebcd8",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `guc-log-line-prefix` escape `%L` to output the client IP address (Greg Sabino Mullane)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fb8039b41bed",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `initdb` option `--no-sync-data-files` to avoid syncing heap/index files (Nathan Bossart) `initdb` option `--no-sync` is still available to avoid syncing…",
+   "detail": "Add `initdb` option `--no-sync-data-files` to avoid syncing heap/index files (Nathan Bossart) `initdb` option `--no-sync` is still available to avoid syncing any files.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-141e771cda1c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `isn` server variable `weak` to control invalid check digit acceptance (Viktor Holmberg) This was previously only controlled by function `isn_weak()`",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bb384a55170a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `log_connections` option to report the duration of connection stages (Melanie Plageman)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-435c96123200",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `on_error` and `log_verbosity` options to `file-fdw` (Atsushi Torikoshi) These control how `file_fdw` handles and reports invalid file rows",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c74fef19f55d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `pg_createsubscriber` option `--clean` to remove publications (Shubham Khanna)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5f94873cf7c9",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `pg_createsubscriber` option `--enable-two-phase` to enable prepared transactions (Shubham Khanna)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-918fca1e9170",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `pg_dump` and `app-pg-dumpall` option `--sequence-data` to dump sequence data that would normally be excluded (Nathan Bossart)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9d5e273f3f45",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `pg_stat_io` columns to report I/O activity in bytes (Nazir Bilal Yavuz) The new columns are `read_bytes`, `write_bytes`, and `extend_bytes`. The…",
+   "detail": "Add `pg_stat_io` columns to report I/O activity in bytes (Nazir Bilal Yavuz) The new columns are `read_bytes`, `write_bytes`, and `extend_bytes`. The `op_bytes` column, which always equaled `BLCKSZ`, has been removed.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-75cea083388f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `pg_stat_statements` columns to report parallel activity (Guillaume Lelarge) The new columns are `parallel_workers_to_launch` and `parallel_workers_launche…",
+   "detail": "Add `pg_stat_statements` columns to report parallel activity (Guillaume Lelarge) The new columns are `parallel_workers_to_launch` and `parallel_workers_launched`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f6f33c7a22a5",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `pg_stat_statements`.`wal_buffers_full` to report full WAL buffers (Bertrand Drouvot)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2fc79bbe15cd",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `pg_upgrade` option `--set-char-signedness` to set the default `char` signedness of new cluster (Masahiko Sawada) This is to handle cases where a…",
+   "detail": "Add `pg_upgrade` option `--set-char-signedness` to set the default `char` signedness of new cluster (Masahiko Sawada) This is to handle cases where a pre-PostgreSQL 18 cluster's default CPU signedness does not match the new cluster.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-95c88e118d90",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `pg_upgrade` option `--swap` to swap directories rather than copy, clone, or link files (Nathan Bossart) This mode is potentially the fastest",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cb309b884905",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `pgcrypto` algorithms `sha256crypt` and `sha512crypt` (Bernd Helmle)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-df5b43d374db",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `pgcrypto` server variable `builtin_crypto_enabled` to allow disabling builtin non-FIPS mode cryptographic functions (Daniel Gustafsson, Joe Conway) This…",
+   "detail": "Add `pgcrypto` server variable `builtin_crypto_enabled` to allow disabling builtin non-FIPS mode cryptographic functions (Daniel Gustafsson, Joe Conway) This is useful for guaranteeing FIPS mode behavior.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6aaf8820c49a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `psql` backslash commands to allowing issuance of pipeline queries (Anthonin Bonnefoy) The new commands are `\\startpipeline`, `\\syncpipeline`…",
+   "detail": "Add `psql` backslash commands to allowing issuance of pipeline queries (Anthonin Bonnefoy) The new commands are `\\startpipeline`, `\\syncpipeline`, `\\sendpipeline`, `\\endpipeline`, `\\flushrequest`, `\\flush`, and `\\getresults`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cdd06050f3b8",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `psql` option to use expanded mode on all list commands (Dean Rasheed) Adding backslash suffix `x` enables this",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-46ecb3bb70f3",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `psql` variable `app-psql-variables-watch-interval` to set the default `\\watch` wait time (Daniel Gustafsson)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e016e10c86a6",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add `reject_limit` to control the number of invalid rows `file_fdw` can ignore (Atsushi Torikoshi) This is active when `ON_ERROR = 'ignore'`",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4c4ab5cfead0",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add a `WEEK` option to `EXTRACT()` (Tom Lane)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-521e64f69f54",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add access method details for partitioned relations in `\\dP+` (Justin Pryzby)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c545ec185e5d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add an asynchronous I/O subsystem (Andres Freund, Thomas Munro, Nazir Bilal Yavuz, Melanie Plageman) This feature allows backends to queue multiple read…",
+   "detail": "Add an asynchronous I/O subsystem (Andres Freund, Thomas Munro, Nazir Bilal Yavuz, Melanie Plageman) This feature allows backends to queue multiple read requests, which allows for more efficient sequential scans, bitmap heap scans, vacuums, etc. This is enabled by server variable `guc-io-method`, with server variables `guc-io-combine-limit` and `guc-io-max-combine-limit` added to control it. This also enables `guc-effective-io-concurrency` and `guc-maintenance-io-concurrency` values greater than zero for systems without `fadvise()` support. The new system view `pg_aios` shows the file handles being used for asynchronous I/O.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-68433f5c2102",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add builtin collation provider `PG_UNICODE_FAST` (Jeff Davis) This locale supports case mapping, but sorts in code point order, not natural language order",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-03a5fc81a6ff",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add column `pg_backend_memory_contexts`.`path` to show memory context parents (Melih Mutlu)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-80baf3dfcb4c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add column `pg_backend_memory_contexts`.`type` to report the type of memory context (David Rowley)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-333fed7fb64b",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add column `pg_class`.`relallfrozen` (Melanie Plageman)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c9095ea30145",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add column `pg_stat_checkpointer`.`num_done` to report the number of completed checkpoints (Anton A. Melnikov) Columns `num_timed` and `num_requested` count…",
+   "detail": "Add column `pg_stat_checkpointer`.`num_done` to report the number of completed checkpoints (Anton A. Melnikov) Columns `num_timed` and `num_requested` count both completed and skipped checkpoints.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-690acd75933d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add column `pg_stat_checkpointer`.`slru_written` to report SLRU buffers written (Nitin Jadhav) Also, modify the checkpoint server log message to report…",
+   "detail": "Add column `pg_stat_checkpointer`.`slru_written` to report SLRU buffers written (Nitin Jadhav) Also, modify the checkpoint server log message to report separate shared buffer and SLRU buffer values.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c30352976a8a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add columns to `pg_stat_database` to report parallel worker activity (Benoit Lobréau) The new columns are `parallel_workers_to_launch` and…",
+   "detail": "Add columns to `pg_stat_database` to report parallel worker activity (Benoit Lobréau) The new columns are `parallel_workers_to_launch` and `parallel_workers_launched`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-252e337f6e72",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add configurable variable `min_password_length` to `passwordcheck` (Emanuele Musella, Maurizio Boriani) This controls the minimum password length",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fda1762accf5",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add configure option `--with-libnuma` to enable NUMA awareness (Jakub Wartak, Bertrand Drouvot) The function `pg_numa_available()` reports on NUMA awareness…",
+   "detail": "Add configure option `--with-libnuma` to enable NUMA awareness (Jakub Wartak, Bertrand Drouvot) The function `pg_numa_available()` reports on NUMA awareness, and system views `pg_shmem_allocations_numa` and `pg_buffercache_numa` which report on shared memory distribution across NUMA nodes.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ced53c9bda5d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add delay time reporting to `sql-vacuum` and `sql-analyze` (Bertrand Drouvot, Nathan Bossart) This information appears in the server log, the system views…",
+   "detail": "Add delay time reporting to `sql-vacuum` and `sql-analyze` (Bertrand Drouvot, Nathan Bossart) This information appears in the server log, the system views `pg_stat_progress_vacuum` and `pg_stat_progress_analyze`, and the output of `sql-vacuum` and `sql-analyze` when in `VERBOSE` mode; tracking must be enabled with the server variable `guc-track-cost-delay-timing` .",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-03eaf8d89c87",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add details about window function arguments to `EXPLAIN` output (Tom Lane)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b391d54110f0",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add documentation section about API and ABI compatibility (David Wheeler, Peter Eisentraut)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4aecb63f1d6c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add extension `pglogicalinspect` to inspect logical snapshots (Bertrand Drouvot)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9d59b3aee20a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add extension `pgoverexplain` which adds debug details to `EXPLAIN` output (Robert Haas)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-89b4c1d7a40f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add full WAL buffer count to `EXPLAIN (WAL)` output (Bertrand Drouvot)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-eba97f6eded4",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add full WAL buffer count to `VACUUM`/`ANALYZE (VERBOSE)` and autovacuum log output (Bertrand Drouvot)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2dfb1895e760",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add full text search stemming for Estonian (Tom Lane)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b5a16f38e8fd",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add function `PQfullProtocolVersion()` to report the full, including minor, protocol version number (Jacob Champion, Jelte Fennema-Nio)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7b96a5e885d9",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add function `array_reverse()` which reverses an array's first dimension (Aleksander Alekseev)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-16edfc995526",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add function `array_sort()` which sorts an array's first dimension (Junwang Zhao, Jian He)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bdd7dc0a0512",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add function `casefold()` to allow for more sophisticated case-insensitive matching (Jeff Davis) This allows more accurate comparisons, i.e., a character can…",
+   "detail": "Add function `casefold()` to allow for more sophisticated case-insensitive matching (Jeff Davis) This allows more accurate comparisons, i.e., a character can have multiple upper or lower case equivalents, or upper or lower case conversion changes the number of characters.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5671ba7ce521",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add function `fips_mode()` to report the server's FIPS mode (Daniel Gustafsson)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b2dab1f7d8ed",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add function `has_largeobject_privilege()` to check large object privileges (Yugo Nagata)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-529d8dfeb324",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add function `pg_get_acl()` to retrieve database access control details (Joel Jacobson)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d9ba2ef25192",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add function `pg_ls_summariesdir()` to specifically list the contents of `PGDATA`/ `pg_wal/summaries` (Yushi Ogiwara)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a1f7f512f1e1",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add function `pg_stat_get_backend_wal()` to return per-backend WAL statistics (Bertrand Drouvot) Per-backend WAL statistics can be cleared via…",
+   "detail": "Add function `pg_stat_get_backend_wal()` to return per-backend WAL statistics (Bertrand Drouvot) Per-backend WAL statistics can be cleared via `pg_stat_reset_backend_stats()`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3e78e21a4ca0",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add function `reverse()` to reverse bytea bytes (Aleksander Alekseev)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9fb8f3aa0c95",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add function's leakproof indicator to `psql`'s `\\df+`, `\\do+`, `\\dAo+`, and `\\dC+` outputs (Yugo Nagata)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9192ca3797e7",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add functions `crc32()` and `crc32c()` to compute CRC values (Aleksander Alekseev)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-595a007fbbd7",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add functions `pg_buffercache_evict_relation()` and `pg_buffercache_evict_all()` to evict unpinned shared buffers (Nazir Bilal Yavuz) The existing function…",
+   "detail": "Add functions `pg_buffercache_evict_relation()` and `pg_buffercache_evict_all()` to evict unpinned shared buffers (Nazir Bilal Yavuz) The existing function `pg_buffercache_evict()` now returns the buffer flush status.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-067dce76d137",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add functions to modify per-relation and per-column optimizer statistics (Corey Huinker) The functions are `pg_restore_relation_stats()`…",
+   "detail": "Add functions to modify per-relation and per-column optimizer statistics (Corey Huinker) The functions are `pg_restore_relation_stats()`, `pg_restore_attribute_stats()`, `pg_clear_relation_stats()`, and `pg_clear_attribute_stats()`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e14bc6558421",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add libpq connection parameter `sslkeylogfile` which dumps out SSL key material (Abhishek Chanda, Daniel Gustafsson) This is useful for debugging",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e55d714a52fa",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add libpq connection parameters and environment variables to specify the minimum and maximum acceptable protocol version for connections (Jelte Fennema-Nio)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bfd57b666a67",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add macro `PG_MODULE_MAGIC_EXT` to allow extensions to report their name and version (Andrei Lepikhov) This information can be access via the new function…",
+   "detail": "Add macro `PG_MODULE_MAGIC_EXT` to allow extensions to report their name and version (Andrei Lepikhov) This information can be access via the new function `pg_get_loaded_modules()`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b6d5a438c85a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add math functions `gamma()` and `lgamma()` (Dean Rasheed)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-71f5b253cf04",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add memory and disk usage details to `Material`, `Window Aggregate`, and common table expression nodes to `EXPLAIN` output (David Rowley, Tatsuo Ishii)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-52c96ca6b63a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add option `--no-policies` to disable row level security policy processing in `app-pgdump`, `app-pg-dumpall`, `app-pgrestore` (Nikolay Samokhvalov) This is…",
+   "detail": "Add option `--no-policies` to disable row level security policy processing in `app-pgdump`, `app-pg-dumpall`, `app-pgrestore` (Nikolay Samokhvalov) This is useful for migrating to systems with different policies.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c25cddd421a3",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add optional parameter to `json{b}_strip_nulls` to allow removal of null array elements (Florents Tselai)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-67f081250d30",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add output columns to `postgres_fdw_get_connections()` (Hayato Kuroda, Sagar Dilip Shedge) New output column `used_in_xact` indicates if the foreign data…",
+   "detail": "Add output columns to `postgres_fdw_get_connections()` (Hayato Kuroda, Sagar Dilip Shedge) New output column `used_in_xact` indicates if the foreign data wrapper is being used by a current transaction, `closed` indicates if it is closed, `user_name` indicates the user name, and `remote_backend_pid` indicates the remote backend process identifier.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5fa6d022a8ac",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add per-backend I/O statistics reporting (Bertrand Drouvot) The statistics are accessed via `pg_stat_get_backend_io()`. Per-backend I/O statistics can be…",
+   "detail": "Add per-backend I/O statistics reporting (Bertrand Drouvot) The statistics are accessed via `pg_stat_get_backend_io()`. Per-backend I/O statistics can be cleared via `pg_stat_reset_backend_stats()`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5a0268bac130",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add predefined role `pg_signal_autovacuum_worker` (Kirill Reshke) This allows sending signals to autovacuum workers",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9108cfed425e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add roman numeral support to `to_number()` (Hunaid Sohail) This is accessed via the `RN` pattern",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5c6f24d8f8a5",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add server variable `guc-autovacuum-worker-slots` to specify the maximum number of background workers (Nathan Bossart) With this variable set…",
+   "detail": "Add server variable `guc-autovacuum-worker-slots` to specify the maximum number of background workers (Nathan Bossart) With this variable set, `guc-autovacuum-max-workers` can be adjusted at runtime up to this maximum without a server restart.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-457a582b339d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add server variable `guc-extension-control-path` to specify the location of extension control files (Peter Eisentraut, Matheus Alcantara)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-49966388bc58",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add server variable `guc-file-copy-method` to control the file copying method (Nazir Bilal Yavuz) This controls whether `CREATE DATABASE ..",
+   "detail": "Add server variable `guc-file-copy-method` to control the file copying method (Nazir Bilal Yavuz) This controls whether `CREATE DATABASE ... STRATEGY=FILE_COPY` and `ALTER DATABASE ... SET TABLESPACE` uses file copy or clone.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-42543080587b",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add server variable `guc-log-lock-failures` to log lock acquisition failures (Yuki Seino, Fujii Masao) Specifically it reports `SELECT ..",
+   "detail": "Add server variable `guc-log-lock-failures` to log lock acquisition failures (Yuki Seino, Fujii Masao) Specifically it reports `SELECT ... NOWAIT` lock failures.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8adcfa124f7e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add server variable `guc-max-active-replication-origins` to control the maximum active replication origins (Euler Taveira) This was previously controlled by…",
+   "detail": "Add server variable `guc-max-active-replication-origins` to control the maximum active replication origins (Euler Taveira) This was previously controlled by `guc-max-replication-slots` , but this new setting allows a higher origin count in cases where fewer slots are required.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4c6529082e03",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add server variable `guc-num-os-semaphores` to report the required number of semaphores (Nathan Bossart) This is useful for operating system configuration",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-341d40eb619d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add server variable `guc-ssl-tls13-ciphers` to allow specification of multiple colon-separated TLSv1.3 cipher suites (Erica Zhang, Daniel Gustafsson)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-edac3e637e69",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add server variable `guc-vacuum-truncate` to control file truncation during `sql-vacuum` (Nathan Bossart, Gurjeet Singh) A storage-level parameter with the…",
+   "detail": "Add server variable `guc-vacuum-truncate` to control file truncation during `sql-vacuum` (Nathan Bossart, Gurjeet Singh) A storage-level parameter with the same name and behavior already existed.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-20f4c5bc88a8",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add support for Python \"Limited API\" in `plpython` (Peter Eisentraut) This helps prevent problems caused by `Python` 3.x version mismatches",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-710899a8dba5",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Add support for the OAuth authentication method (Jacob Champion, Daniel Gustafsson, Thomas Munro) This adds an `oauth` authentication method to `pg_hba.conf`…",
+   "detail": "Add support for the OAuth authentication method (Jacob Champion, Daniel Gustafsson, Thomas Munro) This adds an `oauth` authentication method to `pg_hba.conf`, libpq OAuth options, a server variable `guc-oauth-validator-libraries` to load token validation libraries, and a configure flag `--with-libcurl` to add the required compile-time libraries.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a4b337473bdb",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow SCRAM authentication from the client to be passed to `dblink` servers (Matheus Alcantara)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-181aa751bf63",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow SCRAM authentication from the client to be passed to `postgres-fdw` servers (Matheus Alcantara, Peter Eisentraut) This avoids storing `postgres_fdw`…",
+   "detail": "Allow SCRAM authentication from the client to be passed to `postgres-fdw` servers (Matheus Alcantara, Peter Eisentraut) This avoids storing `postgres_fdw` authentication information in the database, and is enabled with the `postgres_fdw` `use_scram_passthrough` connection option. libpq uses new connection parameters `libpq-connect-scram-client-key` and `libpq-connect-scram-server-key` .",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c5214dfe35ef",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `=>` syntax for named cursor arguments in PL/pgSQL (Pavel Stehule) We previously only accepted `:=`",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e63ccc490473",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `CHECK` and foreign key constraints to be specified as `NOT ENFORCED` (Amul Sul) This also adds column `pg_constraint`.`conenforced`",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c9408b232ca4",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `COPY TO` to copy rows from populated materialized views (Jian He)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b3db092de12e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `GIN` indexes to be created in parallel (Tomas Vondra, Matthias van de Meent)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ce21aadc3bdd",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `LIKE` with nondeterministic collations (Peter Eisentraut)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9e789ebcc30f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `MIN()`/ `MAX()` aggregates on arrays and composite types (Aleksander Alekseev, Marat Buharov)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3fb8cbdb56d2",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `NOT VALID` foreign key constraints on partitioned tables (Amul Sul)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9c704b4b740f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `app-pgverifybackup` to verify tar-format backups (Amul Sul)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3f527fd62476",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `jsonb` `null` values to be cast to scalar types as `NULL` (Tom Lane) Previously such casts generated an error",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b55d60d7cbc0",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `pg_recvlogical` `--drop-slot` to work without `--dbname` (Hayato Kuroda)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-11b752b6b77b",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `pg_upgrade` to preserve optimizer statistics (Corey Huinker, Jeff Davis, Nathan Bossart) Extended statistics are not preserved",
+   "detail": "Allow `pg_upgrade` to preserve optimizer statistics (Corey Huinker, Jeff Davis, Nathan Bossart) Extended statistics are not preserved. Also add `pg_upgrade` option `--no-statistics` to disable statistics preservation.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-12fdc1ba2688",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `pg_upgrade` to process database checks in parallel (Nathan Bossart) This is controlled by the existing `--jobs` option",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a668fc3b14be",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `psql` to parse, bind, and close named prepared statements (Anthonin Bonnefoy, Michael Paquier) This is accomplished with new commands `\\parse`…",
+   "detail": "Allow `psql` to parse, bind, and close named prepared statements (Anthonin Bonnefoy, Michael Paquier) This is accomplished with new commands `\\parse`, `\\bind_named`, and `\\close_prepared`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-45636bcf606f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `regexp_matches`/ `regexp_like()`/ `regexp_replace()`/ `regexp_count()`/ `regexp_instr()`/ `regexp_substr()`/ `regexp_split_to_table()`/…",
+   "detail": "Allow `regexp_match[es]()`/ `regexp_like()`/ `regexp_replace()`/ `regexp_count()`/ `regexp_instr()`/ `regexp_substr()`/ `regexp_split_to_table()`/ `regexp_split_to_array()` to use named arguments (Jian He)",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-661c00d71e95",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `sql-alterdefaultprivileges` to define large object default privileges (Takatsuka Haruka, Yugo Nagata, Laurenz Albe)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-884f707af92b",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `sql-altersubscription` to change the replication slot's two-phase commit behavior (Hayato Kuroda, Ajin Cherian, Amit Kapila, Zhijie Hou)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-28d33019dc49",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `sql-altertable` to set the `NOT VALID` attribute of `NOT NULL` constraints (Rushabh Lathia, Jian He)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4b1e9bd5179f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow `sql-vacuum` and `sql-analyze` to process partitioned tables without processing their children (Michael Harris) This is enabled with the new `ONLY` option",
+   "detail": "Allow `sql-vacuum` and `sql-analyze` to process partitioned tables without processing their children (Michael Harris) This is enabled with the new `ONLY` option. This is useful since autovacuum does not process partitioned tables, just its children.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f0931e608baf",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow adding pipeline status to the `psql` prompt and add related state variables (Anthonin Bonnefoy) The new prompt character is `%P` and the new `psql`…",
+   "detail": "Allow adding pipeline status to the `psql` prompt and add related state variables (Anthonin Bonnefoy) The new prompt character is `%P` and the new `psql` variables are `PIPELINE_SYNC_COUNT`, `PIPELINE_COMMAND_COUNT`, and `PIPELINE_RESULT_COUNT`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bdcd71dd1a21",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow adding the connection service name to the `psql` prompt or access it via `psql` variable (Michael Banck)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-71337220b52b",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow casting between integer types and `bytea` (Aleksander Alekseev) The integer values are stored as `bytea` two's complement values",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1aa7141a8501",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow dropping of constraints `ONLY` on partitioned tables (Álvaro Herrera) This was previously erroneously prohibited",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-eb52807252ee",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow extensions to install custom `sql-explain` options (Robert Haas, Sami Imseih)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9c7a472af1d1",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow extensions to use the server's cumulative statistics API (Michael Paquier)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fb7d7474c98d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow foreign tables to be created like existing local tables (Zhang Mingli) The syntax is `CREATE FOREIGN TABLE ..",
+   "detail": "Allow foreign tables to be created like existing local tables (Zhang Mingli) The syntax is `CREATE FOREIGN TABLE ... LIKE`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5482cc2327ad",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow generated columns to be virtual, and make them the default (Peter Eisentraut, Jian He, Richard Guo, Dean Rasheed) Virtual generated columns generate…",
+   "detail": "Allow generated columns to be virtual, and make them the default (Peter Eisentraut, Jian He, Richard Guo, Dean Rasheed) Virtual generated columns generate their values when the columns are read, not written. The write behavior can still be specified via the `STORED` option.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cafe06c96f5c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow inactive replication slots to be automatically invalidated using server variable `guc-idle-replication-slot-timeout` (Nisha Moond, Bharath Rupireddy)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-71993540a48e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow inline injection point test code with `IS_INJECTION_POINT_ATTACHED()` (Heikki Linnakangas)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1a9fb12d48bd",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow merge joins to use incremental sorts (Richard Guo)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e5d8940c850f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow modification of the inheritability of `NOT NULL` constraints (Suraj Kharage, Álvaro Herrera) The syntax is `ALTER TABLE ..",
+   "detail": "Allow modification of the inheritability of `NOT NULL` constraints (Suraj Kharage, Álvaro Herrera) The syntax is `ALTER TABLE ... ALTER CONSTRAINT ... [NO] INHERIT`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3251ed077712",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow non-btree unique indexes to be used as partition keys and in materialized views (Mark Dilger) The index type must still support equality",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-03e7e40c37bf",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow normal vacuums to freeze some pages, even though they are all-visible (Melanie Plageman) This reduces the overhead of later full-relation freezing",
+   "detail": "Allow normal vacuums to freeze some pages, even though they are all-visible (Melanie Plageman) This reduces the overhead of later full-relation freezing. The aggressiveness of this can be controlled by server variable and per-table setting `guc-vacuum-max-eager-freeze-failure-rate` . Previously vacuum never processed all-visible pages until freezing was required.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-931297fe8b33",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow partitionwise joins in more cases, and reduce its memory usage (Richard Guo, Tom Lane, Ashutosh Bapat)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-aa152d763065",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow skip scans of btree indexes (Peter Geoghegan) This allows multi-column btree indexes to be used in more cases such as when there are no restrictions on…",
+   "detail": "Allow skip scans of btree indexes (Peter Geoghegan) This allows multi-column btree indexes to be used in more cases such as when there are no restrictions on the first or early indexed columns (or there are non-equality ones), and there are useful restrictions on later indexed columns.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-305d056d910e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow some `HAVING` clauses on `GROUPING SETS` to be pushed to `WHERE` clauses (Richard Guo) This allows earlier row filtering",
+   "detail": "Allow some `HAVING` clauses on `GROUPING SETS` to be pushed to `WHERE` clauses (Richard Guo) This allows earlier row filtering. This release also fixes some `GROUPING SETS` queries that used to return incorrect results.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-122d8e904a8a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow specification of the fixed number of dead tuples that will trigger an autovacuum (Nathan Bossart, Frédéric Yhuel) The server variable is…",
+   "detail": "Allow specification of the fixed number of dead tuples that will trigger an autovacuum (Nathan Bossart, Frédéric Yhuel) The server variable is `guc-autovacuum-vacuum-max-threshold` . Percentages are still used for triggering.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d2d7a216c526",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow text position search functions with nondeterministic collations (Peter Eisentraut) These used to generate an error",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1c7188afcb8e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow the keys of `SELECT DISTINCT` to be internally reordered to avoid sorting (Richard Guo) This optimization can be disabled using `guc-enable-distinct-reor…",
+   "detail": "Allow the keys of `SELECT DISTINCT` to be internally reordered to avoid sorting (Richard Guo) This optimization can be disabled using `guc-enable-distinct-reordering` .",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c46a09f23fe0",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow the optimizer to use `Right Semi Join` plans (Richard Guo) Semi-joins are used when needing to find if there is at least one match",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-399e1f429059",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow the parameterization of `sql-set` values in `pg_stat_statements` (Greg Sabino Mullane, Michael Paquier) This reduces the bloat caused by `SET` statements…",
+   "detail": "Allow the parameterization of `sql-set` values in `pg_stat_statements` (Greg Sabino Mullane, Michael Paquier) This reduces the bloat caused by `SET` statements with differing constants.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4f657efbc25e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow the queries of `sql-createtableas` and `sql-declare` to be tracked by `pg_stat_statements` (Anthonin Bonnefoy) They are also now assigned query ids",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1e3f4d8190be",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow the specification of non-overlapping `PRIMARY KEY`, `UNIQUE`, and foreign key constraints (Paul A. Jungwirth) This is specified by `WITHOUT OVERLAPS` for…",
+   "detail": "Allow the specification of non-overlapping `PRIMARY KEY`, `UNIQUE`, and foreign key constraints (Paul A. Jungwirth) This is specified by `WITHOUT OVERLAPS` for `PRIMARY KEY` and `UNIQUE`, and by `PERIOD` for foreign keys, all applied to the last specified column.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-61b9ad0989a1",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow the values of generated columns to be logically replicated (Shubham Khanna, Vignesh C, Zhijie Hou, Shlok Kyal, Peter Smith) If the publication specifies…",
+   "detail": "Allow the values of generated columns to be logically replicated (Shubham Khanna, Vignesh C, Zhijie Hou, Shlok Kyal, Peter Smith) If the publication specifies a column list, all specified columns, generated and non-generated, are published. Without a specified column list, publication option `publish_generated_columns` controls whether generated columns are published. Previously generated columns were not replicated and the subscriber had to compute the values if possible; this is particularly useful for non-PostgreSQL subscribers which lack such a capability.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a224241d82d1",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow transforming `OR`-clauses to arrays for faster index processing (Alexander Korotkov, Andrey Lepikhov)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f20b7604e05e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow values to be sorted to speed `btree-gist` index builds (Bernd Helmle, Andrey Borodin)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6b894c61022a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Allow values to be sorted to speed range-type GiST and btree index builds (Bernd Helmle)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-261eabe9c395",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "An asynchronous I/O (AIO) subsystem that can improve performance of sequential scans, bitmap heap scans, vacuums, and other operations",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-58640a413beb",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve SQL-language function plan caching (Alexander Pyhalov, Tom Lane)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a86b9a0cad3d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve Unicode full case mapping and conversion (Jeff Davis) This adds the ability to do conditional and title case mapping, and case map single characters to…",
+   "detail": "Improve Unicode full case mapping and conversion (Jeff Davis) This adds the ability to do conditional and title case mapping, and case map single characters to multiple characters.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-54965dc8d440",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve cost estimates of partition queries (Nikita Malakhov, Andrei Lepikhov)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-47b6eb252b9e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve handling of disabled optimizer features (Robert Haas)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-22b16df6f64a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve row estimates for `generate_series()` using `numeric` and `timestamp` values (David Rowley, Song Jinzhou)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f191038e2914",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve the `XML` error codes to more closely match the SQL standard (Tom Lane) These errors are reported via `SQLSTATE`",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-13d1c2bc5762",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve the efficiency of planning queries accessing many partitions (Ashutosh Bapat, Yuya Watari, David Rowley)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2ec3093481e1",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve the locking performance of queries that access many relations (Tomas Vondra)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5188981a22a9",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve the output `EXTRACT(QUARTER ...)` for negative values (Tom Lane)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-559834a24b9a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve the performance and reduce memory usage of hash joins and `GROUP BY` (David Rowley, Jeff Davis) This also improves hash set operations used by…",
+   "detail": "Improve the performance and reduce memory usage of hash joins and `GROUP BY` (David Rowley, Jeff Davis) This also improves hash set operations used by `EXCEPT`, and hash lookups of subplan values.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3453d67a458d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve the performance of processing long `JSON` strings using SIMD (Single Instruction Multiple Data) (David Rowley)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-64c2ba07c237",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improve the speed of numeric multiplication and division (Joel Jacobson, Dean Rasheed)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ed5b26f91605",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "OAuth authentication support",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f081b64903bc",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Support for \"skip scan\" lookups that allow using multicolumn B-tree indexes in more cases",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9aa7d84227ba",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Support runtime arguments in injection points (Michael Paquier)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1078ec9c7e9f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Temporal constraints, or constraints over ranges, for PRIMARY KEY, UNIQUE, and FOREIGN KEY constraints",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9626a08679b2",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Virtual generated columns that compute their values during read operations",
+   "detail": "Virtual generated columns that compute their values during read operations. This is now the default for generated columns.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2165adc509da",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "`OLD` and `NEW` support for `RETURNING` clauses in `sql-insert`, `sql-update`, `sql-delete`, and `sql-merge` commands",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-26bf26e8a7c5",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "`pg_upgrade` now retains optimizer statistics",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1b0540da1557",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "`uuidv7()` function for generating timestamp-ordered UUIDs",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9c8e5df5846e",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Adjust query id computations to group together queries using the same relation name (Michael Paquier, Sami Imseih) This is true even if the tables in different…",
+   "detail": "Adjust query id computations to group together queries using the same relation name (Michael Paquier, Sami Imseih) This is true even if the tables in different schemas have different column names.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5f76252491e8",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Automatically include `BUFFERS` output in `EXPLAIN ANALYZE` (Guillaume Lelarge, David Rowley)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-84dfb2bef194",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Automatically remove some unnecessary table self-joins (Andrey Lepikhov, Alexander Kuzmenkov, Alexander Korotkov, Alena Rybakina) This optimization can be…",
+   "detail": "Automatically remove some unnecessary table self-joins (Andrey Lepikhov, Alexander Kuzmenkov, Alexander Korotkov, Alena Rybakina) This optimization can be disabled using server variable `guc-enable-self-join-elimination` .",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-93c6929d97bc",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Change `app-initdb` to default to enabling checksums (Greg Sabino Mullane) The new `initdb` option `--no-data-checksums` disables checksums",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5ac3f7ec8c64",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Change `psql`'s `app-psql-meta-command-conninfo` to use tabular format and include more information (Álvaro Herrera, Maiquel Grassi, Hunaid Sohail)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9474f9a1fd96",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Change server variable `guc-max-files-per-process` to limit only files opened by a backend (Andres Freund) Previously files opened by the postmaster were also…",
+   "detail": "Change server variable `guc-max-files-per-process` to limit only files opened by a backend (Andres Freund) Previously files opened by the postmaster were also counted toward this limit.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c04dda786bec",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Change server variable `guc-ssl-groups`'s default to include elliptic curve X25519 (Daniel Gustafsson, Jacob Champion)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bcba683141ab",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Change server variable `guc-track-wal-io-timing` to control tracking WAL timing in `pg_stat_io` instead of `pg_stat_wal` (Bertrand Drouvot)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-534bbba76754",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Change the default `sql-createsubscription` streaming option from `off` to `parallel` (Vignesh C)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-df00c6b77158",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Change the minimum supported `Python` version to 3.6.8 (Jacob Champion)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b32cfcf2cf97",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Convert some `IN (VALUES ...)` to `x = ANY ...` for better optimizer statistics (Alena Rybakina, Andrei Lepikhov)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d9805d413e1e",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Disallow `COPY FREEZE` on foreign tables (Nathan Bossart) Previously, the `COPY` worked but the `FREEZE` was ignored, so disallow this command",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3deb6673902f",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Document that `SPI_connect()`/ `SPI_connect_ext()` always returns success (`SPI_OK_CONNECT`) (Stepan Neretin) Errors are always reported via `ereport()`",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e61493297131",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Have `pgbench` report the number of failed, retried, or skipped transactions in per-script reports (Yugo Nagata)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-81b2a65b9a7b",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Have query id computation of constant lists consider only the first and last constants (Dmitry Dolgov, Sami Imseih) Jumbling is used by `pgstatstatements`",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6d6e6f1d9df9",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "If `LLVM` is enabled, require version 14 or later (Thomas Munro)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4827c5faf7f9",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "If `app-pgrewind`'s `--source-server` specifies a database name, use it in `--write-recovery-conf` output (Masahiko Sawada)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a84680f8d36d",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Ignore `GROUP BY` columns that are functionally dependent on other columns (Zhang Mingli, Jian He, David Rowley) If a `GROUP BY` clause includes all columns of…",
+   "detail": "Ignore `GROUP BY` columns that are functionally dependent on other columns (Zhang Mingli, Jian He, David Rowley) If a `GROUP BY` clause includes all columns of a unique index, as well as other columns of the same table, those other columns are redundant and can be dropped from the grouping. This was already true for non-deferred primary keys.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b93fbcf646a7",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "In `EXPLAIN ANALYZE`, report the number of index lookups used per index scan node (Peter Geoghegan)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3088e18135a6",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Increase server variables `guc-effective-io-concurrency` 's and `guc-maintenance-io-concurrency` 's default values to 16 (Melanie Plageman) This more…",
+   "detail": "Increase server variables `guc-effective-io-concurrency` 's and `guc-maintenance-io-concurrency` 's default values to 16 (Melanie Plageman) This more accurately reflects modern hardware.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8df5583f4f89",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Increase the logging granularity of server variable `guc-log-connections` (Melanie Plageman) This server variable was previously only boolean, which is still…",
+   "detail": "Increase the logging granularity of server variable `guc-log-connections` (Melanie Plageman) This server variable was previously only boolean, which is still supported.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3dcdda9ed29e",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Indicate disabled nodes in `EXPLAIN ANALYZE` output (Robert Haas, David Rowley, Laurenz Albe)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-887f0ab51a10",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Log conflicts while applying logical replication changes (Zhijie Hou, Nisha Moond) Also report in new columns of `pg_stat_subscription_stats`",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9b2cfbda14bb",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Make cancel request keys 256 bits (Heikki Linnakangas, Jelte Fennema-Nio) This is only possible when the server and client support wire protocol version 3.2…",
+   "detail": "Make cancel request keys 256 bits (Heikki Linnakangas, Jelte Fennema-Nio) This is only possible when the server and client support wire protocol version 3.2, introduced in this release.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3bfb8c5b3efa",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Modify `EXPLAIN` to output fractional row counts (Ibrar Ahmed, Ilia Evdokimov, Robert Haas)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6be2bb544999",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Modify `pg_stat_all_tables` and its variants to report the time spent in `sql-vacuum` , `sql-analyze`, and their automatic variants (Sami Imseih) The new…",
+   "detail": "Modify `pg_stat_all_tables` and its variants to report the time spent in `sql-vacuum` , `sql-analyze`, and their automatic variants (Sami Imseih) The new columns are `total_vacuum_time`, `total_autovacuum_time`, `total_analyze_time`, and `total_autoanalyze_time`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7146cf43c51e",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Record the default CPU signedness of `char` in `app-pgcontroldata` (Masahiko Sawada)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-52845c06c4ac",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Rename server variable `ssl_ecdh_curve` to `guc-ssl-groups` and allow multiple colon-separated ECDH curves to be specified (Erica Zhang, Daniel Gustafsson) The…",
+   "detail": "Rename server variable `ssl_ecdh_curve` to `guc-ssl-groups` and allow multiple colon-separated ECDH curves to be specified (Erica Zhang, Daniel Gustafsson) The previous name still works.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-805ab1374cf8",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Report `guc-search-path` changes to the client (Alexander Kukushkin, Jelte Fennema-Nio, Tomas Vondra)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-858470c77bfd",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Separate the loading and running of injection points (Michael Paquier, Heikki Linnakangas) Injection points can now be created, but not run, via…",
+   "detail": "Separate the loading and running of injection points (Michael Paquier, Heikki Linnakangas) Injection points can now be created, but not run, via `INJECTION_POINT_LOAD()`, and such injection points can be run via `INJECTION_POINT_CACHED()`.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9699adba66d3",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Speed up CRC32C calculations using x86 AVX-512 instructions (Raghuveer Devulapalli, Paul Amonson)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3234222153a5",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Speed up the processing of `INTERSECT`, `EXCEPT`, window aggregates, and view column aliases (Tom Lane, David Rowley)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-af6483f0b549",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Store column `NOT NULL` specifications in `pg_constraint` (Álvaro Herrera, Bernd Helmle) This allows names to be specified for `NOT NULL` constraint",
+   "detail": "Store column `NOT NULL` specifications in `pg_constraint` (Álvaro Herrera, Bernd Helmle) This allows names to be specified for `NOT NULL` constraint. This also adds `NOT NULL` constraints to foreign tables and `NOT NULL` inheritance control to local tables.",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9746a4fd934f",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Update Unicode data to Unicode 16.0.0 (Peter Eisentraut)",
+   "detail": "",
+   "release": "18.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  }
+ ],
+ "evidence": [
+  {
+   "id": "ev-941809f1da80",
+   "uri": "https://github.com/postgres/postgres/releases/tag/REL_17_4"
+  },
+  {
+   "id": "ev-ffdc69f1c1cb",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_4/doc/src/sgml/release-17.sgml"
+  },
+  {
+   "id": "ev-176a54d44350",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_4/doc/src/sgml/release-17.sgml"
+  },
+  {
+   "id": "ev-67845e1c7b56",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_4/doc/src/sgml/release-17.sgml"
+  },
+  {
+   "id": "ev-9e3a1aa8a7b7",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_4/doc/src/sgml/release-17.sgml"
+  },
+  {
+   "id": "ev-8aaa4aeb1503",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_4/doc/src/sgml/release-17.sgml"
+  },
+  {
+   "id": "ev-cd7451630817",
+   "uri": "https://ftp.postgresql.org/pub/source/v17.4/postgresql-17.4.tar.bz2"
+  },
+  {
+   "id": "ev-a9d85fe0bb3c",
+   "uri": "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:304ab813518754228f9f792f79d6da36359b82d8ecf418096c636725f8c930ad"
+  },
+  {
+   "id": "ev-d1d091e18a36",
+   "uri": "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:7062a2109c4b51f3c792c7ea01e83ed12ef9a980886e3b3d380a7d2e5f6ce3f5"
+  },
+  {
+   "id": "ev-b9404f4f9ae3",
+   "uri": "https://github.com/postgres/postgres/releases/tag/REL_18_0"
+  },
+  {
+   "id": "ev-407c37c40eb2",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e93583451b57",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-ac645ee4ee22",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-119f3bb42d65",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e7822f2af40a",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-7f492d2dd03e",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-28dd5cf8207c",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-4935865819c0",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-d7ae8731c2ed",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-555f4833f300",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-ddd763005cc1",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1d5035103284",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-6c4e374264c5",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-03781fb103a1",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-669062db3310",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-826ac1821f8c",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-c46929a8b556",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e0bfdd802797",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-ea774196be9d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-186e90498994",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-66df7ac3eb1c",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1e01285ce8f0",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-a0ccbcf0ba2e",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-083441daf40f",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-46cd2aea9f07",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-37958d868c41",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-eeafed53c116",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-fe4f95f5b26a",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-c735fff1b201",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-752ff6fddea6",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-d5a945d0cd8b",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-5f8c86f10fb4",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f79f0c7ea082",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-393d23f837bf",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-eae1e7656849",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-2d3a152e3798",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-d37e2a8462cc",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-882250b0a572",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-6d8268dc21ea",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-4b3b1194ffe3",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-d4a993ae6b68",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-2b0869505c02",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-c9cb2314cfde",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-7f6618bc3427",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-dbdf5520af87",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-c31d8b47ccea",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-5e2ea648c627",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-3cbcfdea76da",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-8ef533be39af",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-ae706ba33f4f",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e32344346d09",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-4c9f71bca756",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-72366658fe9a",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e6937704cf1b",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-5d520f03a369",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-bb9fb9d059ee",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e4dab2f55a00",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-4c6a1e800330",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-dbffca1c9e3e",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e50298bd1146",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-7db807cbdedf",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-668592ac7fca",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-316f7731c652",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1e97b47c6d2b",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-420e8ddf752e",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-38d5e952218b",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-0452e5083cb8",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-0e61837d7c18",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-84283faaf0a0",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-3e92519e18b1",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-dce622449cea",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e2ad05aabe76",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-2e4937d5f136",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-9a94b7e44e0d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-6089134eb736",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-831f4d72098a",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-38b2b2af68e1",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1de6c580767f",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-7c66b4b64520",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-3e5f7bc28cd3",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-37181557bea5",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-8871b456d62e",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-907965d44f9a",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-91a94605e454",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e3b36e50946b",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-26a88c8dafaf",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-980d32c277ed",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-546a660d9ce4",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-9066c41beaf9",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-846081b0d4fe",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-70a49a08c03d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-cb946297d971",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-333568b39830",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-17ee11f07167",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-96d9e2042033",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-47713f181c06",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f0c3266703b6",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-9682972aa2d8",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-6e460b6c02cb",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-65c7b9d6153c",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-98f886a6920a",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f3c6be961019",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f8174afbf7f7",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f8f9ef6a93ba",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-4a4747c7892b",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-a2048c16b97e",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-46f17001e4ad",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-90fa681a80f4",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-b1255f82a9f2",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-6aaf83afa921",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-be1ebeb81aab",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-fbb126916de2",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-644648320a97",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-97116ddfea23",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-aac0d51f9110",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-14cb7aa05908",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f68d37d3f792",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-a5b8491db538",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-90853505edfe",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-4d623d88115a",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-bb2814e52d20",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-2b61c3a652d9",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1dd765a48900",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-3536f24f4987",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-5b3f57f48cf8",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-87578a61a09f",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f080450f7bd8",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-a787989b78de",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1484d00f8101",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-7372e371b998",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-5aaddc9afe9d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-d449d38aefd1",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-a3279db8774b",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-b49238fd2089",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-a94a61c7f625",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-d9385e2f50ba",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-cc21194475e5",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-587394f7cce1",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-b61e0bb39bda",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-6c95b434210d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-0308f5d9a2b9",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f3d92de34a00",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f16f97a65dfe",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-0988909c906d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-738449003aa9",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1d2288b87c40",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-cc20a6212f26",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-067c03b4cc6b",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-5a7416f16257",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f0e68151c288",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-11d7b073ff8c",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1e1a6924efbd",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e36cd3f530bd",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e6c985d2b279",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-360ac4f5da83",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1b973c9488eb",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-2d3e6821756a",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-265f6b14d393",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-6cd117b48bd5",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-ddcae756f675",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-232ef78f114b",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-9cc00319f9c7",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-c33310a9df85",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1ed2e72c94da",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-d95bfb0b59d7",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-bf12f6f8ee75",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-d8ba250839f3",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-fdb716d6a112",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-32f80f0ecbef",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-2d866dab089d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-5e5816bcc4bd",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-12e9a2e9eebf",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-cfb5af2d961d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-86ceb07a5ff7",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-56b2af05f1e3",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-7912a46a6c21",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-82fa5d0c1d45",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f8e1e155c6a3",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-33d6d847015b",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-099ad41c1034",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-383f4f589164",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-f685734b367f",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-7cdaf9037cc7",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-acf09c13045d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-584f197c70ae",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-7e83ae53baac",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-58d555cb03cd",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-318f79c9cdcf",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-64819ae95b29",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-9902f82062cf",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-a4bb793d0d3e",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-7b11ac73e07a",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-eec40a9a182e",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e9e81df1ba32",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-a8071a88abe2",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1682a3146b0d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-8172a48cccfc",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-a0938272f2d5",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-0cf56101814d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-64ca2dcdd308",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-8449272b1da1",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-bffe1ff6078e",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-3ec241ad593d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-a6d88cf8b6b9",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-5217009efbfc",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-79d7158d8b13",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-ae21f1b2c43d",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-1524f72800f0",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-18381bd7ad71",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-fa2fb614c17f",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-d1adfe2c79bb",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-dbc0ba7c3b17",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-870df88a6a98",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e97e7091f2df",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-e16ee0c7c773",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-24837ca45025",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-6d821fbb15f3",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-591b135caf94",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-cd262f7fbd17",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-494c4c01ac67",
+   "uri": "https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml"
+  },
+  {
+   "id": "ev-d7a3d00a0ee9",
+   "uri": "https://ftp.postgresql.org/pub/source/v18.0/postgresql-18.0.tar.bz2"
+  },
+  {
+   "id": "ev-3f53c44ede46",
+   "uri": "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:41fc5342eefba6cc2ccda736aaf034bbbb7c3df0fdb81516eba1ba33f360162c"
+  },
+  {
+   "id": "ev-43569097525b",
+   "uri": "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:48c8ad3a7284b82be4482a52076d47d879fd6fb084a1cbfccbd551f9331b0e40"
+  }
+ ]
+}

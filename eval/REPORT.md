@@ -261,3 +261,48 @@ generic heuristics), and/or (b) candidate groups over same-category masses
 with an enrichment kind that demotes them to a one-line "routine maintenance"
 conclusion. The 43% on ingress-nginx shows consolidation works where FPs are
 duplicates of each other.
+
+## Deterministic routine classification closes the structural gap (2026-10-01)
+
+The missing capability (a) above is now in the pipeline:
+`internal/upgrade/routine.go` marks note-derived Changes `routine` when they
+are *bare* maintenance statements — dependency bumps ("Bump x from 1.2.3 to
+1.4.5", "auth/x: Update plugin to v0.23.1", SHA-prefixed `chore(deps):` firehose
+entries), UI-only work (`ui:`), CI/docs/test/build churn (`docs:`, "Images:
+Bump/Drop/Build …"), and observability-metric renames/deprecations. Routine
+changes stay in the edge with their evidence (`routine`, `routineKind` per
+change; a `routine` count+breakdown on the edge; a dim "Routine maintenance"
+section in the brief) — they only leave the default
+breaking/action/migration narrative. Safety first: breaking, security
+(category, cited CVE/GHSA, vulnerability wording), operator directives,
+feature-flag removals and non-bare bump statements ("This version upgrades
+Prometheus-Operator to v0.94.0; the ClusterRole no longer grants wildcard
+verbs" — caught by the recall gate before it shipped) are never routine;
+computed diffs are never eligible. No product-specific patterns, no LLM.
+
+Measured against the stored false positives (replayed offline; scoring
+semantics untouched — `ri eval -offline` reproduces recall 1.00, precision
+0.49, FP 103, "no regressions"):
+
+| case | stored FPs | routine | missed, why |
+|---|---|---|---|
+| vault-1.21-2.0 | 55 | 53 (96%) | `ui: disable scarf analytics` — upstream files it under a "Security" heading, so the security carve-out keeps it; `secrets/azure: Update plugin to v0.25.1+ent` carries a behaviour note beyond the bump ("Improves retry handling …"), so the bare-bump rule keeps it |
+| cilium-1.16-1.17 | 16 | 16 (100%) | — (all 16 are metric renames/deprecations) |
+| ingress-nginx-1.11-1.12 | 14 | 14 (100%) | — |
+
+The verdict on Cilium's metrics renames, taken deliberately: they classify
+routine. A rename does not change how the upgrade runs — dashboards pointing
+at old names are monitoring maintenance, which is what the dataset's
+`notExpected` entry already says. The items keep their detail and their
+`metrics` kind in JSON, so the loss is presentational, not informational; and
+the carve-outs still hold the line where a metric change is *breaking*.
+
+The recall-preservation gate (`go test ./internal/eval`, offline, fixtures =
+the trimmed changes/evidence of the stored edges): for every one of the 9
+dataset entries, no expected item has all of its matching changes classified
+routine — with the argo/kps/env cases included. Zero expected loss. The
+routine flag on changes is the hook for a routine-adjusted precision metric
+in a later round: 83 of the 103 stored false positives are routine-marked
+(vault 53, cilium 16, ingress 14), so excluding them would move brief
+precision from 0.49 (100/(100+103)) to ≈ 0.87 (100/120) — but that is a
+metrics decision, not this round's.

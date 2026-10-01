@@ -1,0 +1,2323 @@
+{
+ "caseId": "istio-1.28-1.29",
+ "recordedFrom": "istio/edges/1.28.3_1.29.0.json (stored eval run of 2026-10-01, commit 0cf815f)",
+ "changes": [
+  {
+   "id": "chg-3a8c3b845c5e",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Ambient DNS capture enabled by default: DNS proxying is enabled by default for ambient workloads in this release",
+   "detail": "Ambient DNS capture enabled by default: DNS proxying is enabled by default for ambient workloads in this release. Note that only new pods will have DNS enabled; existing pods will not have their DNS traffic captured. To enable this feature for existing pods, existing pods must either be manually restarted, or alternatively the iptables reconciliation feature can be enabled when upgrading `istio-cni` via `--set cni.ambient.reconcileIptablesOnStartup=true`, which will reconcile existing pods automatically on upgrade.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5aeb39cc7922",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Ambient iptables reconciliation enabled by default: Iptables reconciliation is now enabled by default for ambient workloads in release 1.29.0",
+   "detail": "Ambient iptables reconciliation enabled by default: Iptables reconciliation is now enabled by default for ambient workloads in release 1.29.0. When a new `istio-cni` DaemonSet pod starts up, it will automatically inspect pods that were previously enrolled in the ambient mesh and upgrade their in-pod iptables/nftables rules to the current state if there are any differences. This feature can be disabled explicitly with `--set cni.ambient.reconcileIptablesOnStartup=false`.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1cfdb4905c29",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Circuit breaker metrics tracking behavior change: The default behavior for circuit breaker remaining metrics tracking has changed",
+   "detail": "Circuit breaker metrics tracking behavior change: The default behavior for circuit breaker remaining metrics tracking has changed. Previously, these metrics were tracked by default. Now, tracking is disabled by default for better proxy memory usage. To maintain the previous behavior where remaining metrics were tracked, you can: - Set the environment variable `DISABLE_TRACK_REMAINING_CB_METRICS=false` in your Istiod deployment - Use the compatibility version feature to get the legacy behavior This change affects the `TrackRemaining` field in Envoy's circuit breaker configuration.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-34b1e1afc99d",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Debug endpoint authorization enabled by default: Tools accessing debug endpoints from non-system namespaces (such as Kiali or custom monitoring tools) may be…",
+   "detail": "Debug endpoint authorization enabled by default: Tools accessing debug endpoints from non-system namespaces (such as Kiali or custom monitoring tools) may be affected. Non-system namespaces are now restricted to `config_dump`, `ndsz`, and `edsz` endpoints for same-namespace proxies only. To restore the previous behavior, set `ENABLE_DEBUG_ENDPOINT_AUTH=false`.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2673abb4858c",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Debug endpoint authorization is now enabled by default",
+   "detail": "Debug endpoint authorization is now enabled by default. Tools accessing debug endpoints from non-system namespaces (such as Kiali or custom monitoring tools) may be affected. Non-system namespaces are now restricted to config_dump, ndsz, and edsz endpoints for same-namespace proxies only. To restore previous behavior, set ENABLE_DEBUG_ENDPOINT_AUTH=false.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-712b2f812c16",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "HTTP compression of Envoy metrics (`prometheus_stats`) enabled by default",
+   "detail": "HTTP compression of Envoy metrics (`prometheus_stats`) enabled by default. The annotation `sidecar.istio.io/statsCompression` was deprecated and removed. There now is the `statsCompression` option in proxyConfig to globally control compression support of the metrics endpoint (`prometheus_stats`) of Envoy. The default of this value is `true`, offering `brotli`, `gzip` and `zstd` depending on the `Accept-Header` sent by the client. Most metric scrapers allow individual configuration of compression. If you still need to override this per Pod, you can set `statsCompression: false` via the `proxy.istio.io/config` annotation.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#48051"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-01e1fe8bb130",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Upgrading in Ambient mode with dry-run AuthorizationPolicy: If you make use of dry-run AuthorizationPolicy and wish to enable this new feature the upgrade to…",
+   "detail": "Upgrading in Ambient mode with dry-run AuthorizationPolicy: If you make use of dry-run AuthorizationPolicy and wish to enable this new feature the upgrade to 1.29 includes some important considerations. Prior to Istio 1.29, ztunnel did not have any capability to handle dry-run AuthorizationPolicy. As a result, istiod would not send any dry-run policy to ztunnel. Istio 1.29 introduces experimental support for dry-run AuthorizationPolicy in ztunnel. Setting `AMBIENT_ENABLE_DRY_RUN_AUTHORIZATION_POLICY=true` will cause istiod to begin sending dry-run policies to ztunnel, using a new field in xDS. A ztunnel below version 1.29 will not support this field. As a result, older ztunnels will fully enforce these policies which is likely to produce an unexpected result. To ensure a smooth upgrade, it is important to ensure that all ztunnel proxies connecting to an istiod with this feature enabled are new enough to correctly handle these policies.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "pull-request",
+     "id": "istio/api#1933"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1b24b4a477bb",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Base Helm chart removals: A number of configurations previously present in the `base` Helm chart were *copied* to the `istiod` chart in previous releases",
+   "detail": "Base Helm chart removals: A number of configurations previously present in the `base` Helm chart were *copied* to the `istiod` chart in previous releases. In this release, the duplicated configurations are fully removed from the `base` chart. The table below shows a mapping of old configuration to new configuration: Note: most resources have a suffix automatically added in addition. In the old chart, this was `-{{ .Values.global.istioNamespace }}`. In the new chart it is `{{- if not (eq .Values.revision \"\") }}-{{ .Values.revision }}{{- end }}` for namespace scoped resources, and `{{- if not (eq .Values.revision \"\")}}-{{ .Values.revision }}{{- end }}-{{ .Release.Namespace }}` for cluster scoped resources.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-599e3da76dbd",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "HTTP compression of Envoy metrics (`prometheus_stats`) enabled by default: The annotation `sidecar.istio.io/statsCompression` was deprecated and removed",
+   "detail": "HTTP compression of Envoy metrics (`prometheus_stats`) enabled by default: The annotation `sidecar.istio.io/statsCompression` was deprecated and removed. There is now a `statsCompression` option in `proxyConfig` to globally control compression support of the metrics endpoint (`prometheus_stats`) of Envoy. The default value is `true`, offering `brotli`, `gzip` and `zstd` depending on the `Accept-Header` sent by the client. Most metric scrapers allow individual configuration of compression. If you still need to override this per pod, you can set `statsCompression: false` via the `proxy.istio.io/config` annotation.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-004dae7481e0",
+   "category": "compatibility",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Kubernetes support narrowed: 1.30–1.34 → 1.31–1.35 (drops 1.30)",
+   "detail": "Verify the cluster runs a supported Kubernetes version (1.31–1.35) before upgrading.",
+   "release": "",
+   "subjects": [
+    "kubernetes/supported"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-f86f87f692c2",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-9gcg-w975-3rjh (CVE-2026-39350) still affects target 1.29.0: AuthorizationPolicy serviceAccounts regex injection via unescaped dots",
+   "detail": "Severity: medium. Affected versions: >= 1.25. Patched: 1.29.2, 1.28.6. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-9gcg-w975-3rjh"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-9gcg-w975-3rjh"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2026-39350"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-41ae7cf81779",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-qm8v-g4f9-qhjx affects target 1.29.0: BackendTLSPolicy fails open to plaintext on sidecars when its CA reference is unresolved",
+   "detail": "Severity: medium. Affected versions: >= 1.30.0, < 1.30.4 || >= 1.29.0, < 1.29.7. Patched: 1.30.4, 1.29.7. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-qm8v-g4f9-qhjx"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-qm8v-g4f9-qhjx"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-2845a723778e",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "EnvoyFilter v1alpha3 schema: 1 field added: `spec.configPatches[].match.waypoint`",
+   "detail": "New paths in the networking.istio.io/v1alpha3 schema of envoyfilters.networking.istio.io:\nspec.configPatches[].match.waypoint\nspec.configPatches[].match.waypoint.filter\nspec.configPatches[].match.waypoint.filter.name\nspec.configPatches[].match.waypoint.filter.subFilter\nspec.configPatches[].match.waypoint.filter.subFilter.name\nspec.configPatches[].match.waypoint.portNumber\nspec.configPatches[].match.waypoint.route\nspec.configPatches[].match.waypoint.route.name",
+   "release": "",
+   "subjects": [
+    "spec.configPatches[].match.waypoint",
+    "spec.configPatches[].match.waypoint.filter",
+    "spec.configPatches[].match.waypoint.filter.name",
+    "spec.configPatches[].match.waypoint.filter.subFilter",
+    "spec.configPatches[].match.waypoint.filter.subFilter.name",
+    "spec.configPatches[].match.waypoint.portNumber",
+    "spec.configPatches[].match.waypoint.route",
+    "spec.configPatches[].match.waypoint.route.name"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-8de071e8a3eb",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `ambient.reconcileIptablesOnStartup` changed: false → true (chart cni)",
+   "detail": "false → true",
+   "release": "",
+   "subjects": [
+    "ambient.reconcileIptablesOnStartup"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-77fd7abbdb2a",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `ambient.enableAmbientDetectionRetry` (chart cni)",
+   "detail": "Defaults in 1.29.0:\nambient.enableAmbientDetectionRetry = false  # If enabled, the CNI agent will retry checking if a pod is ambient enabled when there are errors",
+   "release": "",
+   "subjects": [
+    "ambient.enableAmbientDetectionRetry"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-bb3dfc71dc30",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `global.networkPolicy.enabled` (chart cni)",
+   "detail": "Defaults in 1.29.0:\nglobal.networkPolicy.enabled = false",
+   "release": "",
+   "subjects": [
+    "global.networkPolicy.enabled"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-daa74aeadd6a",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `global.networkPolicy.enabled` (chart ztunnel)",
+   "detail": "Defaults in 1.29.0:\nglobal.networkPolicy.enabled = false",
+   "release": "",
+   "subjects": [
+    "global.networkPolicy.enabled"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-efeacd7e8933",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `peerCaCrl.enabled` (chart ztunnel)",
+   "detail": "Defaults in 1.29.0:\npeerCaCrl.enabled = false",
+   "release": "",
+   "subjects": [
+    "peerCaCrl.enabled"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-d7b5ec20b304",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `terminationGracePeriodSeconds` (chart cni)",
+   "detail": "Defaults in 1.29.0:\nterminationGracePeriodSeconds = 30  # Sets the per-pod terminationGracePeriodSeconds setting. A higher value gives more time for CNI cleanup during rolling updates, preventing \"failed to find plugin istio-cni\" errors. Default K8s value is 30 seconds.",
+   "release": "",
+   "subjects": [
+    "terminationGracePeriodSeconds"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-f42594c65f8a",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added namespace-based authorization for debug endpoints on port 15014",
+   "detail": "Added namespace-based authorization for debug endpoints on port 15014. Non-system namespaces restricted to config_dump/ndsz/edsz endpoints and same-namespace proxies only. Disable with ENABLE_DEBUG_ENDPOINT_AUTH=false if needed for compatibility.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0292246f4a90",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added safeguards to the gateway deployment controller to validate object types, names, and namespaces, preventing creation of arbitrary Kubernetes resources…",
+   "detail": "Added safeguards to the gateway deployment controller to validate object types, names, and namespaces, preventing creation of arbitrary Kubernetes resources through template injection.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58891"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-afadc204d65c",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed resource annotation validation to reject newlines and control characters that could inject containers into pod specs via template rendering",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58889"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c40e73cb2d28",
+   "category": "artifact",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New container image `agentgateway` published: docker.io/istio/agentgateway:1.29.0",
+   "detail": "Not part of 1.28.3; 1.29.0 ships it (status: verified — verified at its channel). If you mirror artifacts into a private registry, add it to your mirror list.",
+   "release": "",
+   "subjects": [
+    "docker.io/istio/agentgateway:1.29.0"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-84b9a4c6179a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added CRL support in zTunnel",
+   "detail": "Added CRL support in zTunnel. When ca-crl.pen file is provided via plugged-in CA, Istiod automatically distributes Certificate Revocation Lists to all participating namespaces in the cluster. This enhancement allows zTunnel to validate and reject revoked certificates, strengthening the security posture of service mesh deployments using plugged-in CAs.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58733"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6b903460cdb4",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added `--all-namespaces` flag for `istioctl waypoint status` to display the status of waypoints in all namespaces",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-164c0c4bba4b",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added `--wait` flag to `istioctl waypoint status` to specify whether to wait for the waypoint to become ready (default is true)",
+   "detail": "Added `--wait` flag to `istioctl waypoint status` to specify whether to wait for the waypoint to become ready (default is true). Specifying this flag with `--wait=false` will not wait for the waypoint to be ready, and will directly display the status of waypoint.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#57075"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fc6da7c06a3f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added `istiod_remote_cluster_sync_status` gauge metric to Pilot to track the synchronization status of remote clusters",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d427812a266f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added `service.selectorLabels` field to gateway Helm chart for custom service selector labels during revision-based migrations",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6f46de9c477d",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added `timeout` and `headers` fields to `ZipkinTracingProvider` in MeshConfig extensionProviders",
+   "detail": "Added `timeout` and `headers` fields to `ZipkinTracingProvider` in MeshConfig extensionProviders. The `timeout` field configures the HTTP request timeout when sending spans to the Zipkin collector, providing better control over trace export reliability. The `headers` field allows including custom HTTP headers for authentication, authorization, and custom metadata use cases. Headers support both direct values and environment variable references for secure credential management.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b3c3d8dff3b0",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added a new feature flag `DISABLE_TRACK_REMAINING_CB_METRICS` to control circuit breaker remaining metrics tracking",
+   "detail": "Added a new feature flag `DISABLE_TRACK_REMAINING_CB_METRICS` to control circuit breaker remaining metrics tracking. When set to `false` (default), circuit breaker remaining metrics will not be tracked, which can improve performance. When set to `true`, circuit breaker remaining metrics will be tracked (legacy behavior). This feature flag will be removed in a future release.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cebbcbb60350",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added a retry mechanism when checking if a pod is ambient enabled in istio-cni",
+   "detail": "Added a retry mechanism when checking if a pod is ambient enabled in istio-cni. This is to address potential transient failures resulting in potential mesh bypassing. This feature is disabled by default and can be enabled by setting `ambient.enableAmbientDetectionRetry` in the `istio-cni` chart.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f9d59e670328",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added a setting values.pilot.crlConfigMapName that allows configuring the name of the ConfigMap that istiod uses to propagate its Certificate Revocation List…",
+   "detail": "Added a setting values.pilot.crlConfigMapName that allows configuring the name of the ConfigMap that istiod uses to propagate its Certificate Revocation List (CRL) in the cluster. This allows running multiple control planes with overlapping namespaces in the same cluster.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c595156d0a01",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added alpha support for a baggage-based telemetry system for ambient mesh",
+   "detail": "Added alpha support for a baggage-based telemetry system for ambient mesh. Users of multinetwork ambient will want to enable this feature via the `AMBIENT_ENABLE_BAGGAGE` pilot env var so that the metrics for cross-network traffic are properly attributed with source and destination labels. Note that ztunnel already sends baggage in requests; this feature just augments that functionality with waypoint generated baggage as well. As such, this feature is off by default for waypoints and on by default in ztunnels (configurable via the `ENABLE_RESPONSE_BAGGAGE` environment variable in ztunnel).",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-66027c4d8317",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added an experimental feature to allow dry-run AuthorizationPolicy in ztunnel",
+   "detail": "Added an experimental feature to allow dry-run AuthorizationPolicy in ztunnel. This feature will be disabled by default. See the Upgrade Note for details.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "pull-request",
+     "id": "istio/api#1933"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8a9a393df83b",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added an option, `gateway.istio.io/tls-cipher-suites`, to specify the custom cipher suites on a Gateway",
+   "detail": "Added an option, `gateway.istio.io/tls-cipher-suites`, to specify the custom cipher suites on a Gateway. The value is a comma separated list of cipher suites.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58366"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-766be2dec9df",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added introduce `statsCompression` option in proxyConfig to allow global configuration of HTTP compression for the Envoy stats endpoint exposing its metrics",
+   "detail": "Added introduce `statsCompression` option in proxyConfig to allow global configuration of HTTP compression for the Envoy stats endpoint exposing its metrics. This is enabled by default, offering `brotli`, `gzip` and `zstd` depending on the `Accept-Header` sent by the client. Deprecated remove the `sidecar.istio.io/statsCompression` annotation, which is replaced by the `statsCompression` proxyConfig option. Per Pod overrides are still possible via `proxy.istio.io/config` annotation.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#48051"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-03626f454f61",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added logic to designate a Workload Discovery (WDS) Service as canonical",
+   "detail": "Added logic to designate a Workload Discovery (WDS) Service as canonical. A canonical WDS Service is used by ztunnel during name resolution unless another WDS Service in the same namespace as the client exists to override. A canonical service will be configured from either (1) a Kubernetes Service resource or (2) the oldest Istio ServiceEntry resource which specifies that hostname.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "pull-request",
+     "id": "istio/istio#58576"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6034a32f7015",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added optional NetworkPolicy deployment for ztunnel",
+   "detail": "Added optional NetworkPolicy deployment for ztunnel. You can set `global.networkPolicy.enabled=true` to deploy a default NetworkPolicy for ztunnel.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/api#56877"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d55b581a16d0",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added source and destination workload identification to waypoint proxy traces",
+   "detail": "Added source and destination workload identification to waypoint proxy traces. Waypoint proxies now include `istio.source_workload`, `istio.source_namespace`, `istio.destination_workload`, `istio.destination_namespace` and other source peer tags in trace spans, matching the observability capabilities of sidecar proxies.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58348"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fa00b9ee38b6",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for `Formatter` type custom tag in Telemetry API",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-dba3f5d023cd",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for `LEAST_REQUEST` load balancing policy in gRPC proxyless clients",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-32a7c84c0771",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for `istioctl ztunnel-config all` and `istioctl pc all` to print headers",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-39d227e78842",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for circuit breaking (`http2MaxRequests`) in gRPC proxyless clients",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5e651f0e085c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for configuring terminationGracePeriodSeconds on the istio-cni pod, and updated the default value from 5 secs to 30 secs",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58572"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8881e2443bca",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for customize envoy file flush interval and buffer in `ProxyConfig`",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58545"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-af0df6095c31",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for filtering resources that Pilot will watch, based on the environment variable `PILOT_IGNORE_RESOURCES`. This variable is a comma-separated…",
+   "detail": "Added support for filtering resources that Pilot will watch, based on the environment variable `PILOT_IGNORE_RESOURCES`. This variable is a comma-separated list of resources and prefixes that should be ignored by Istio CRD Watcher. In case there is a need to explicitly include a resource, even it being on the ignore list it can be done using the variable `PILOT_INCLUDE_RESOURCES`. This feature enables administrators that want to deploy Istio as a Gateway API only controller, ignoring mesh resources, or allowing the deployment of Istio with support only for Gateway API HTTPRoutes (eg.: GAMMA support).",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58425"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e3b1b2015952",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for istio locality label `topology.istio.io/locality`, which take precedence over `istio-locality`",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-98aec1832a6e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for multiple targetPorts in an InferencePool",
+   "detail": "Added support for multiple targetPorts in an InferencePool. The possibility to have >1 targetPort was added as part of GIE v1.1.0.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#57638"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f84254acb54c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for specifying the proxy admin port in `istioctl ztunnel-config`",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-22161cb4c2d0",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for watching symlinked secrets in the Istio node agent",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5b9e02dadd6c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support for wildcard hosts in ServiceEntries with DYNAMIC_DNS resolution for TLS hosts",
+   "detail": "Added support for wildcard hosts in ServiceEntries with DYNAMIC_DNS resolution for TLS hosts. TLS `protocol` implies the connection will be routed based on the request's SNI (from the TLS handshake) without terminating the TLS connection to inspect the Host header for routing. The implementation relies on an alpha API and has significant security implications (i.e. SNI spoofing). Therefore, this feature is disabled by default and can be enabled by setting the feature flag `ENABLE_WILDCARD_HOST_SERVICE_ENTRIES_FOR_TLS` to true. Please consider the use of this feature carefully and only with trusted clients.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#54540"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7abe7a118344",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added support to block CIDRs in JWKS URIs when fetching public keys for JWT validation",
+   "detail": "Added support to block CIDRs in JWKS URIs when fetching public keys for JWT validation. If any resolved IP from a JWKS URI matches a blocked CIDR, Istio will skip fetching the public key and use a fake JWKS instead to reject requests with JWT tokens.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f91bfdee729e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Added waypoint span tags `istio.downstream.workload`, `istio.downstream.namespace`, `istio.upstream.workload`, `istio.upstream.namespace`, with the upstream…",
+   "detail": "Added waypoint span tags `istio.downstream.workload`, `istio.downstream.namespace`, `istio.upstream.workload`, `istio.upstream.namespace`, with the upstream and downstream workload and namespace.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b297e85c64a6",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Improved remote cluster trust domain handling by implementing watching of remote `meshConfig`. Istiod now automatically watches and updates trust domain…",
+   "detail": "Improved remote cluster trust domain handling by implementing watching of remote `meshConfig`. Istiod now automatically watches and updates trust domain information from remote clusters, ensuring accurate SAN matching for services, which belong to more than one trust domain.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b736e55ec76c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Promoted `cni.ambient.reconcileIptablesOnStartup` to default to `true`. This enables automatic reconciliation of iptables/nftables rules for existing ambient…",
+   "detail": "Promoted `cni.ambient.reconcileIptablesOnStartup` to default to `true`. This enables automatic reconciliation of iptables/nftables rules for existing ambient pods when the `istio-cni` DaemonSet is upgraded, eliminating the need to manually restart pods to get updated networking configuration. This can be disabled explicitly or by using `compatibilityVersion=1.28`.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-24803fb3858c",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed DNS name table creation for headless services where pods entries did not account for pods to have multiple IPs",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58397"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1002b910af11",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed IPv6 nftables rules are no longer programmed when IPv6 is explicitly disabled in ambient mode",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58249"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-00fc0c485ef6",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed Istio CNI node agent startup failure in MicroK8s environments when using ambient mode with nftables backend",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58185"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-946d6aa087b4",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed ServiceEntry with overlapping hostnames within the same namespace causing unpredictable behavior in ambient mode",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#57291"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5f6f92d9a404",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed `istio-gateway` helm chart values schema to allow top-level `enabled` field",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58277"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ad74bbd1f160",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed `istio-init` failure when using native nftables with TPROXY mode and empty `traffic.sidecar.istio.io/includeInboundPorts` annotation",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58135"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6cb6f16a0be9",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed `sidecar.istio.io/statsEvictionInterval` annotation with values >= 60s causing `istio-proxy` sidecars to fail to start",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58500"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9a2cbdae0492",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed a bug causing the experimental `XListenerSet` resources to not be able to access TLS Secrets",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fdef32217f69",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue causing ambient multi-network connections to fail when using a custom trust domain",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58427"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fc3738dda0cc",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue causing metrics to be reported with unknown labels in ambient multi-network deployments even when baggage-based peer metadata discovery is…",
+   "detail": "Fixed an issue causing metrics to be reported with unknown labels in ambient multi-network deployments even when baggage-based peer metadata discovery is enabled by setting `AMBIENT_ENABLE_BAGGAGE` environment variable to true for pilot.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58794"
+    },
+    {
+     "type": "issue",
+     "id": "istio/istio#58476"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d7b61f93f5ef",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue causing the ambient multicluster cluster registry to become unstable periodically, leading to incorrect configuration being pushed to proxies",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f684ea045e34",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue in ambient multicluster where informer failures for remote clusters wouldn't be fixed until an istiod restart",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58047"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e9b0d7d7a9e1",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where CNI initialization could fail when creating host iptables/nftables rules for health check probes",
+   "detail": "Fixed an issue where CNI initialization could fail when creating host iptables/nftables rules for health check probes. The initialization now retries up to 10 times with a 2-second delay between attempts to handle transient failures.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-10bb90c682a1",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where EDS generation code does not consider service scope and, as a result, includes in waypoint configuration remote cluster endpoints that…",
+   "detail": "Fixed an issue where EDS generation code does not consider service scope and, as a result, includes in waypoint configuration remote cluster endpoints that should not be accesible.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58139"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b8e616112054",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where Envoy Secret resources could get stuck in `WARMING` state when the same Kubernetes Secret is referenced from Istio Gateway objects using…",
+   "detail": "Fixed an issue where Envoy Secret resources could get stuck in `WARMING` state when the same Kubernetes Secret is referenced from Istio Gateway objects using both `secret-name` and `namespace/secret-name` formats.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58146"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-02e5126835e0",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where Envoy proxies that to Waypoint proxies would in rare cases either get extraraneous XDS updates or miss some updates entirely",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d332b2edd7af",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where HTTPS servers processed first prevented HTTP servers from creating routes on the same port with different bind addresses",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#57706"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-af536af23a76",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where InferencePool configurations were lost during VirtualService merging when multiple HTTPRoutes referencing different InferencePools were…",
+   "detail": "Fixed an issue where InferencePool configurations were lost during VirtualService merging when multiple HTTPRoutes referencing different InferencePools were attached to the same Gateway.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58392"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-447a344127a6",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where `iptables` command was not waiting to acquire a lock on `/run/xtables.lock`, causing some misleading errors in the logs",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58507"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-45eeefe2348a",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where due to incorrect EDS caching in pilot, ambient E/W gateway or waypoints would be configured with unusable EDS endpoints",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58141"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-43e620faa225",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where ingress gateways in ambient multi-cluster did not route requests to exposed remote backends",
+   "detail": "Fixed an issue where ingress gateways in ambient multi-cluster did not route requests to exposed remote backends. Also, a new feature flag `AMBIENT_ENABLE_MULTI_NETWORK_INGRESS` has been added and it's `true` by default. If the user wants to keep the old behaviour, it can be set to `false`.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-feac4d601e02",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where setting `ambient.istio.io/bypass-inbound-capture: \"true\"` causes inbound HBONE traffic to timeout because the iptables rule for tracking…",
+   "detail": "Fixed an issue where setting `ambient.istio.io/bypass-inbound-capture: \"true\"` causes inbound HBONE traffic to timeout because the iptables rule for tracking the ztunnel mark on connections was not applied. This PR allows inbound HBONE connections to function normally while preserving the expected bypass behavior for inbound \"passthrough\" connections.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58546"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0a0f73e31031",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where the `istio-cni` daemonSet treated NodeAffinity changes as upgrades, causing CNI config to be incorrectly left in place when a node no…",
+   "detail": "Fixed an issue where the `istio-cni` daemonSet treated NodeAffinity changes as upgrades, causing CNI config to be incorrectly left in place when a node no longer matched the DaemonSet's NodeAffinity rules.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58768"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7b86396b8b98",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where the overload manager resource monitor for global downstream max connections was hardcoded to the maximum integer value and could not be…",
+   "detail": "Fixed an issue where the overload manager resource monitor for global downstream max connections was hardcoded to the maximum integer value and could not be configured via Runtime Flags. Users can now configure the global downstream max connections limit via proxy metadata `ISTIO_META_GLOBAL_DOWNSTREAM_MAX_CONNECTIONS`. The runtime flag `overload.global_downstream_max_connections` is still honoured if specified for backwards compatibility but is deprecated in favor of this new approach of using proxy metadata. If `overload.global_downstream_max_connections` is specified, Envoy deprecated warnings will appear. If both `ISTIO_META_GLOBAL_DOWNSTREAM_MAX_CONNECTIONS` and `overload.global_downstream_max_connections` are specified, proxy metadata will take precedence over the runtime flag.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58594"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9ff73d0f100a",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an issue where warmup aggression is not aligned with envoy configuration",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/api#3395"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-939225469605",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed an unreported bug where BackendTLSPolicy status could lose track of the Gateway ancestorRef due to internal index corruption",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "pull-request",
+     "id": "istio/istio#58731"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f1be92dd80c6",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed gRPC xDS Listener to send both current and deprecated TLS certificate provider fields, enabling compatibility across old and new gRPC clients (pre-1.66…",
+   "detail": "Fixed gRPC xDS Listener to send both current and deprecated TLS certificate provider fields, enabling compatibility across old and new gRPC clients (pre-1.66 and >=1.66).",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b8d4d364bc3e",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed status conflicts on Route resources when multiple istio revisions are installed",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#57734"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d85e1f883536",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed the issue when sidecars try to route requests to ambient E/W gateways incorrectly",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#57878"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2519799d857f",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed translation function lookup errors for MeshConfig and MeshNetworks in istioctl",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#57967"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-51b4445dfb50",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed use cases where upgrading from the iptables backend to the nftables backend in ambient created stale iptables rules on the network",
+   "detail": "Fixed use cases where upgrading from the iptables backend to the nftables backend in ambient created stale iptables rules on the network. The code now continues to use iptables on the node until it is rebooted.",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "issue",
+     "id": "istio/istio#58353"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9ce7f7b4c7ea",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixed warning about `CONSISTENT_HASH` load balancing policy in gRPC proxyless clients",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c230088d8217",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Updated Kiali addon to version v2.21.0",
+   "detail": "",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9d8d3ff8a153",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Updated `istiod` to set `GOMEMLIMIT` to 90% of the memory limit (previously 100%) to reduce the risk of OOM kills",
+   "detail": "Updated `istiod` to set `GOMEMLIMIT` to 90% of the memory limit (previously 100%) to reduce the risk of OOM kills. This is now handled automatically via the `automemlimit` library. Users can override by setting the `GOMEMLIMIT` environment variable directly, or adjust the ratio using the `AUTOMEMLIMIT` environment variable (e.g., `AUTOMEMLIMIT=0.85` for 85%).",
+   "release": "1.29.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  }
+ ],
+ "evidence": [
+  {
+   "id": "ev-4831d69343bb",
+   "uri": "https://github.com/istio/istio/releases/tag/1.28.3"
+  },
+  {
+   "id": "ev-84a604e27311",
+   "uri": "https://github.com/istio/istio/blob/1.28.3/releasenotes/notes/58047.yaml"
+  },
+  {
+   "id": "ev-bf180e9bd9d5",
+   "uri": "https://github.com/istio/istio/blob/1.28.3/releasenotes/notes/gateway-service-selector-labels.yaml"
+  },
+  {
+   "id": "ev-4ecc145d8ba0",
+   "uri": "https://github.com/istio/istio/blob/1.28.3/releasenotes/notes/58047.yaml"
+  },
+  {
+   "id": "ev-eb9b2647fc4b",
+   "uri": "https://github.com/istio/istio/blob/1.28.3/releasenotes/notes/gateway-service-selector-labels.yaml"
+  },
+  {
+   "id": "ev-043986d8e760",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.28.x/announcing-1.28.3/index.md"
+  },
+  {
+   "id": "ev-5e3e6cc0b5f5",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.28.x/announcing-1.28.3/index.md"
+  },
+  {
+   "id": "ev-9c9d3325d3bc",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.28.x/announcing-1.28.3/index.md"
+  },
+  {
+   "id": "ev-454f334782d7",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.28.x/announcing-1.28.3/index.md"
+  },
+  {
+   "id": "ev-be95a073309d",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.28.x/announcing-1.28.3/index.md"
+  },
+  {
+   "id": "ev-b04bef0d042b",
+   "uri": "https://github.com/istio/istio.io/blob/master/data/compatibility/supportStatus.yml"
+  },
+  {
+   "id": "ev-22c8abbf6c1e",
+   "uri": "https://ghcr.io/v2/istio/release/charts/base/manifests/sha256:3206bdca3ed1f83f0eb816c3b4eb4e5800da0263c2f2727ef36d46d77a8acf5d"
+  },
+  {
+   "id": "ev-ace9d0ed18e0",
+   "uri": "https://github.com/istio/istio/blob/1.28.3/manifests/charts/base/values.yaml"
+  },
+  {
+   "id": "ev-38695ca15af0",
+   "uri": "https://ghcr.io/v2/istio/release/charts/istiod/manifests/sha256:a6ce2c533feef15c20d8b711230e72718c55301534877845ff4cb8270119e49b"
+  },
+  {
+   "id": "ev-246e4fd0117a",
+   "uri": "https://github.com/istio/istio/blob/1.28.3/manifests/charts/istio-control/istio-discovery/values.yaml"
+  },
+  {
+   "id": "ev-89f4d40579e9",
+   "uri": "https://ghcr.io/v2/istio/release/charts/gateway/manifests/sha256:7b3458cf7d3b2e3f129527aaa8fb5fdefc92278a308daa1a0e02c1f1214f31c0"
+  },
+  {
+   "id": "ev-7e48617d85d1",
+   "uri": "https://github.com/istio/istio/blob/1.28.3/manifests/charts/gateway/values.yaml"
+  },
+  {
+   "id": "ev-6358660703a4",
+   "uri": "https://ghcr.io/v2/istio/release/charts/cni/manifests/sha256:503c5b7a51b4d8614bf292a4113f57d5a54a14027a8e9f965708779c0dff8001"
+  },
+  {
+   "id": "ev-223b6ee97b02",
+   "uri": "https://github.com/istio/istio/blob/1.28.3/manifests/charts/istio-cni/values.yaml"
+  },
+  {
+   "id": "ev-6becd8d3498e",
+   "uri": "https://ghcr.io/v2/istio/release/charts/ztunnel/manifests/sha256:b4a5f23ebf829d089c1079afeb5bc5603f37c4f0469c42ed2e6c5bcd9d3feb19"
+  },
+  {
+   "id": "ev-d23e16b5d882",
+   "uri": "https://github.com/istio/istio/blob/1.28.3/manifests/charts/ztunnel/values.yaml"
+  },
+  {
+   "id": "ev-c2eefa47c283",
+   "uri": "https://raw.githubusercontent.com/istio/istio/1.28.3/manifests/charts/base/files/crd-all.gen.yaml"
+  },
+  {
+   "id": "ev-3ae1364f8d2a",
+   "uri": "https://raw.githubusercontent.com/istio/istio/1.28.3/manifests/charts/base/files/crd-all.gen.yaml"
+  },
+  {
+   "id": "ev-0a89699d6888",
+   "uri": "https://registry-1.docker.io/v2/istio/pilot/manifests/sha256:94f4364083c96a9f7d77dafbf984dae15847fc0d82ed73bd6f6a2da91a4ffcb1"
+  },
+  {
+   "id": "ev-912d2e4521bf",
+   "uri": "https://registry-1.docker.io/v2/istio/proxyv2/manifests/sha256:35f8926b055bb62b9433daefab0cc48a35caac35082d7ad9fb3e0d0d8b6e4a64"
+  },
+  {
+   "id": "ev-c0318c5457a3",
+   "uri": "https://registry-1.docker.io/v2/istio/install-cni/manifests/sha256:1b6e7d5e0a795e713ec4357fb618214160acb8c08ebc67e1d5ff573ded2ffc0a"
+  },
+  {
+   "id": "ev-411471a7856e",
+   "uri": "https://registry-1.docker.io/v2/istio/ztunnel/manifests/sha256:8cfd5834408b8bfd304d9e085c8208e8a7d0b7eb6b0ef2e4baea1aee430a1f5b"
+  },
+  {
+   "id": "ev-60a2bae1556a",
+   "uri": "https://registry-1.docker.io/v2/istio/istioctl/manifests/sha256:a0919f755db8031988eac15135f86e89a5c28fb55c3d6c403c1c2431d348bce8"
+  },
+  {
+   "id": "ev-01e002eb69bf",
+   "uri": "https://github.com/istio/istio/releases/download/1.28.3/istio-1.28.3-linux-amd64.tar.gz"
+  },
+  {
+   "id": "ev-efb4837f1a2a",
+   "uri": "https://github.com/istio/istio/releases/download/1.28.3/istioctl-1.28.3-linux-amd64.tar.gz"
+  },
+  {
+   "id": "ev-c8d2c2b7b85b",
+   "uri": "https://github.com/istio/istio/releases/tag/1.29.0"
+  },
+  {
+   "id": "ev-d84a638c4730",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/48051.yaml"
+  },
+  {
+   "id": "ev-9dd97206e235",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57076.yaml"
+  },
+  {
+   "id": "ev-764fc6cef9e1",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57437.yaml"
+  },
+  {
+   "id": "ev-2ef76996d834",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57490.yaml"
+  },
+  {
+   "id": "ev-b9c9b7796f09",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57638.yaml"
+  },
+  {
+   "id": "ev-c1f2bae29d39",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57734.yaml"
+  },
+  {
+   "id": "ev-54733db504eb",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57782.yaml"
+  },
+  {
+   "id": "ev-4f6c4a462b72",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57878.yaml"
+  },
+  {
+   "id": "ev-e9b50a248f9a",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57967.yaml"
+  },
+  {
+   "id": "ev-31e4e9599eeb",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58047.yaml"
+  },
+  {
+   "id": "ev-128d085e6a13",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58135.yaml"
+  },
+  {
+   "id": "ev-3d5ad5dcdd76",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58139.yaml"
+  },
+  {
+   "id": "ev-d2583f35d6a4",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58141.yaml"
+  },
+  {
+   "id": "ev-bf6e99b51520",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58146.yaml"
+  },
+  {
+   "id": "ev-06282ac6380d",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58185.yaml"
+  },
+  {
+   "id": "ev-a44dacd78be6",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58186.yaml"
+  },
+  {
+   "id": "ev-561326e38ed8",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58249.yaml"
+  },
+  {
+   "id": "ev-3a3779292be4",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58348.yaml"
+  },
+  {
+   "id": "ev-51a305583d03",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58353.yaml"
+  },
+  {
+   "id": "ev-c9e0027d320c",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58366.yaml"
+  },
+  {
+   "id": "ev-c8e98e445dd1",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58393.yaml"
+  },
+  {
+   "id": "ev-d61a411ecaa3",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58394.yaml"
+  },
+  {
+   "id": "ev-776c8c39f711",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58397.yaml"
+  },
+  {
+   "id": "ev-55d09679691e",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58425.yaml"
+  },
+  {
+   "id": "ev-ae0d2c310844",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58427.yaml"
+  },
+  {
+   "id": "ev-df08fe634ce9",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58476.yaml"
+  },
+  {
+   "id": "ev-98bcf18b51ca",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58507.yaml"
+  },
+  {
+   "id": "ev-3d67243eb396",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58518.yaml"
+  },
+  {
+   "id": "ev-bfb526620283",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58525.yaml"
+  },
+  {
+   "id": "ev-660f887b66d8",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58536.yaml"
+  },
+  {
+   "id": "ev-48dcdcb434e6",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58577.yaml"
+  },
+  {
+   "id": "ev-7bc2d5017d6a",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58651.yaml"
+  },
+  {
+   "id": "ev-4ff47278e0ce",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58731.yaml"
+  },
+  {
+   "id": "ev-511a1005c791",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58733.yaml"
+  },
+  {
+   "id": "ev-0a7b97e832d1",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58768.yaml"
+  },
+  {
+   "id": "ev-4865a703ca58",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58794.yaml"
+  },
+  {
+   "id": "ev-366011890e49",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58889-annotation-validation.yaml"
+  },
+  {
+   "id": "ev-cb1643858bf7",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58891.yaml"
+  },
+  {
+   "id": "ev-f0a9fbdd13b1",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/align-warmup-aggression.yaml"
+  },
+  {
+   "id": "ev-a7465cbc91e4",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/ambient-ingress-remotes.yaml"
+  },
+  {
+   "id": "ev-3b2c3ff5a72f",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/ambient-multinetwork-cluster-stability.yaml"
+  },
+  {
+   "id": "ev-4df77a67fd9a",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/authz-dry-run-ambient.yaml"
+  },
+  {
+   "id": "ev-c6f0c320c61b",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/block_cidr_in_jwk_uris.yaml"
+  },
+  {
+   "id": "ev-6c001dae3010",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/canonical-wds-service.yaml"
+  },
+  {
+   "id": "ev-9ac76b0590ad",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/cni-retry-is-ambient-check.yaml"
+  },
+  {
+   "id": "ev-bc460ee704af",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/crlconfigmapname.yaml"
+  },
+  {
+   "id": "ev-4f7fc59693b2",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/debug-endpoint-authorization.yaml"
+  },
+  {
+   "id": "ev-6aa0dcdf7528",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/disable-track-remaining-cb-metrics.yaml"
+  },
+  {
+   "id": "ev-da3fc6a58baa",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/formatter-custom-tag.yaml"
+  },
+  {
+   "id": "ev-af2239c08f68",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/gateway-merging-https-first-bug-fix.yaml"
+  },
+  {
+   "id": "ev-0987f90c6879",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/gateway-service-selector-labels.yaml"
+  },
+  {
+   "id": "ev-ae7da04f5e3c",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/global-downstream-max-connections.yaml"
+  },
+  {
+   "id": "ev-6f9453e7b7de",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/gomemlimit-90-percent.yaml"
+  },
+  {
+   "id": "ev-f9bed83e7c3e",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/grpc-proxyless-traffic-management.yaml"
+  },
+  {
+   "id": "ev-4f33cbc7ac20",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/grpc-xds-tls-fields.yaml"
+  },
+  {
+   "id": "ev-bacbb26ce460",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/helm-values-shema-enabled-field.yaml"
+  },
+  {
+   "id": "ev-dc9672a3716d",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/istio-cni-chart-termgrace.yaml"
+  },
+  {
+   "id": "ev-f8c14d9e298c",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/istiod-remote-cluster-sync-status.yaml"
+  },
+  {
+   "id": "ev-6241f5135b41",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/kiali-update-v2.21.yaml"
+  },
+  {
+   "id": "ev-d516ceb5f447",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/reconcile-iptables-default-true.yaml"
+  },
+  {
+   "id": "ev-091a8351cca9",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/retry-host-iptables.yaml"
+  },
+  {
+   "id": "ev-daa39f65cfa2",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/se-wildcard-tls-host.yaml"
+  },
+  {
+   "id": "ev-304def650ba7",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/watch-remote-mesh-config.yaml"
+  },
+  {
+   "id": "ev-3eb95fe963bb",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/waypoint-tracing-peer-tags.yaml"
+  },
+  {
+   "id": "ev-00482f208559",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/xls-tls.yaml"
+  },
+  {
+   "id": "ev-f4278d4a7e93",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/zipkin-timeout-headers.yaml"
+  },
+  {
+   "id": "ev-9421e76aa2f7",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/ztunnel-networkpolicy.yaml"
+  },
+  {
+   "id": "ev-f8e1e6b37bfe",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/48051.yaml"
+  },
+  {
+   "id": "ev-2a2b9a99ce15",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/48051.yaml"
+  },
+  {
+   "id": "ev-80a522ea0ffb",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57076.yaml"
+  },
+  {
+   "id": "ev-2b780a8a1e29",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57437.yaml"
+  },
+  {
+   "id": "ev-648d50a1ee46",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57490.yaml"
+  },
+  {
+   "id": "ev-e954dc232755",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57638.yaml"
+  },
+  {
+   "id": "ev-491f5c3a62ca",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57734.yaml"
+  },
+  {
+   "id": "ev-522f85b4d5d6",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57782.yaml"
+  },
+  {
+   "id": "ev-101de43f0d01",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57878.yaml"
+  },
+  {
+   "id": "ev-a1a0b727bc53",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/57967.yaml"
+  },
+  {
+   "id": "ev-a601211fb498",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58047.yaml"
+  },
+  {
+   "id": "ev-4ed38c081aa4",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58135.yaml"
+  },
+  {
+   "id": "ev-fe38c6e7da10",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58139.yaml"
+  },
+  {
+   "id": "ev-b7defa6cef9b",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58141.yaml"
+  },
+  {
+   "id": "ev-22fd831e99aa",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58146.yaml"
+  },
+  {
+   "id": "ev-606790ba3c81",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58185.yaml"
+  },
+  {
+   "id": "ev-20b039e69d3b",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58186.yaml"
+  },
+  {
+   "id": "ev-5f9fc98a4e63",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58249.yaml"
+  },
+  {
+   "id": "ev-4d6dc3a5cc41",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58348.yaml"
+  },
+  {
+   "id": "ev-bf9cae5b16ed",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58353.yaml"
+  },
+  {
+   "id": "ev-2bb6196456d2",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58366.yaml"
+  },
+  {
+   "id": "ev-39b957b48376",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58393.yaml"
+  },
+  {
+   "id": "ev-7655fd5afdbf",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58394.yaml"
+  },
+  {
+   "id": "ev-7a382c50a1df",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58397.yaml"
+  },
+  {
+   "id": "ev-c2eb5ef9bb54",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58425.yaml"
+  },
+  {
+   "id": "ev-0e454921d1ff",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58427.yaml"
+  },
+  {
+   "id": "ev-a58c19a95493",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58476.yaml"
+  },
+  {
+   "id": "ev-9211102facf0",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58507.yaml"
+  },
+  {
+   "id": "ev-96c7c8a39bf9",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58518.yaml"
+  },
+  {
+   "id": "ev-3381237adb78",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58525.yaml"
+  },
+  {
+   "id": "ev-2141f164b8d1",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58536.yaml"
+  },
+  {
+   "id": "ev-6d7a6df2d597",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58577.yaml"
+  },
+  {
+   "id": "ev-33f80ac47c83",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58651.yaml"
+  },
+  {
+   "id": "ev-8f1bace3e67a",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58731.yaml"
+  },
+  {
+   "id": "ev-9d7e8ee543fd",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58733.yaml"
+  },
+  {
+   "id": "ev-64553b55bb00",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58768.yaml"
+  },
+  {
+   "id": "ev-102cb25b2c19",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58794.yaml"
+  },
+  {
+   "id": "ev-fa5b7b3b8cab",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58889-annotation-validation.yaml"
+  },
+  {
+   "id": "ev-57d29c5e726f",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/58891.yaml"
+  },
+  {
+   "id": "ev-02c817c1f08b",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/align-warmup-aggression.yaml"
+  },
+  {
+   "id": "ev-103b54e6a1cf",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/ambient-ingress-remotes.yaml"
+  },
+  {
+   "id": "ev-0f8892ea72ab",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/ambient-multinetwork-cluster-stability.yaml"
+  },
+  {
+   "id": "ev-f20499bf5e4a",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/authz-dry-run-ambient.yaml"
+  },
+  {
+   "id": "ev-7c4096de19e4",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/authz-dry-run-ambient.yaml"
+  },
+  {
+   "id": "ev-5d578e4d257c",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/block_cidr_in_jwk_uris.yaml"
+  },
+  {
+   "id": "ev-fb0398c4fc90",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/canonical-wds-service.yaml"
+  },
+  {
+   "id": "ev-186cc9d9e86a",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/cni-retry-is-ambient-check.yaml"
+  },
+  {
+   "id": "ev-dcc136125dc4",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/crlconfigmapname.yaml"
+  },
+  {
+   "id": "ev-b91eed5cf498",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/debug-endpoint-authorization.yaml"
+  },
+  {
+   "id": "ev-02a0da306ae0",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/debug-endpoint-authorization.yaml"
+  },
+  {
+   "id": "ev-b657b2e1cf65",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/disable-track-remaining-cb-metrics.yaml"
+  },
+  {
+   "id": "ev-6b2da89c5759",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/disable-track-remaining-cb-metrics.yaml"
+  },
+  {
+   "id": "ev-b09381cb0d88",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/formatter-custom-tag.yaml"
+  },
+  {
+   "id": "ev-ed68cd349283",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/gateway-merging-https-first-bug-fix.yaml"
+  },
+  {
+   "id": "ev-bbb2997b9529",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/gateway-service-selector-labels.yaml"
+  },
+  {
+   "id": "ev-7751c8797059",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/global-downstream-max-connections.yaml"
+  },
+  {
+   "id": "ev-272694e2dd64",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/gomemlimit-90-percent.yaml"
+  },
+  {
+   "id": "ev-40b101aa0711",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/grpc-proxyless-traffic-management.yaml"
+  },
+  {
+   "id": "ev-2493d073455a",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/grpc-proxyless-traffic-management.yaml"
+  },
+  {
+   "id": "ev-16c5aa799f63",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/grpc-proxyless-traffic-management.yaml"
+  },
+  {
+   "id": "ev-76368742e97b",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/grpc-xds-tls-fields.yaml"
+  },
+  {
+   "id": "ev-235afe9143ca",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/helm-values-shema-enabled-field.yaml"
+  },
+  {
+   "id": "ev-bff3bf1a31dc",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/istio-cni-chart-termgrace.yaml"
+  },
+  {
+   "id": "ev-7a54feac461b",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/istiod-remote-cluster-sync-status.yaml"
+  },
+  {
+   "id": "ev-e07b5a3eccb7",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/kiali-update-v2.21.yaml"
+  },
+  {
+   "id": "ev-7d3b7d5f9aab",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/reconcile-iptables-default-true.yaml"
+  },
+  {
+   "id": "ev-904f7f0bb1d2",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/reconcile-iptables-default-true.yaml"
+  },
+  {
+   "id": "ev-56e2eb3b9c06",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/retry-host-iptables.yaml"
+  },
+  {
+   "id": "ev-d6afc9563f87",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/se-wildcard-tls-host.yaml"
+  },
+  {
+   "id": "ev-5b9049d63053",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/watch-remote-mesh-config.yaml"
+  },
+  {
+   "id": "ev-06ef039d129c",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/waypoint-tracing-peer-tags.yaml"
+  },
+  {
+   "id": "ev-f53f1174a26d",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/xls-tls.yaml"
+  },
+  {
+   "id": "ev-31f628dede34",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/zipkin-timeout-headers.yaml"
+  },
+  {
+   "id": "ev-dd4198f3e30c",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/releasenotes/notes/ztunnel-networkpolicy.yaml"
+  },
+  {
+   "id": "ev-b7256bac8aad",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.29.x/announcing-1.29/upgrade-notes/index.md"
+  },
+  {
+   "id": "ev-ca8e8ed3c742",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.29.x/announcing-1.29/upgrade-notes/index.md"
+  },
+  {
+   "id": "ev-510012675af1",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.29.x/announcing-1.29/upgrade-notes/index.md"
+  },
+  {
+   "id": "ev-feb5f108a4d7",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.29.x/announcing-1.29/upgrade-notes/index.md"
+  },
+  {
+   "id": "ev-c703341e548f",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.29.x/announcing-1.29/upgrade-notes/index.md"
+  },
+  {
+   "id": "ev-d0a1dd303118",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.29.x/announcing-1.29/upgrade-notes/index.md"
+  },
+  {
+   "id": "ev-caf95f8553f8",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.29.x/announcing-1.29/upgrade-notes/index.md"
+  },
+  {
+   "id": "ev-9cce4dfb7a90",
+   "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.29.x/announcing-1.29/upgrade-notes/index.md"
+  },
+  {
+   "id": "ev-70e0aeb1a3cc",
+   "uri": "https://github.com/istio/istio.io/blob/master/data/compatibility/supportStatus.yml"
+  },
+  {
+   "id": "ev-246206273f68",
+   "uri": "https://ghcr.io/v2/istio/release/charts/base/manifests/sha256:ed6ced0cdbef3756c1fe77b52f61b5160c3218abbaa2ee67d4abf35b4d70678b"
+  },
+  {
+   "id": "ev-971ae126cac1",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/manifests/charts/base/values.yaml"
+  },
+  {
+   "id": "ev-be17c85b36cf",
+   "uri": "https://ghcr.io/v2/istio/release/charts/istiod/manifests/sha256:8a22d0ae980c9bfdf6588c3f3faae803fa16cb02703a8c7b161ef05066d19462"
+  },
+  {
+   "id": "ev-2c050dd3a723",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/manifests/charts/istio-control/istio-discovery/values.yaml"
+  },
+  {
+   "id": "ev-17c1366a1783",
+   "uri": "https://ghcr.io/v2/istio/release/charts/gateway/manifests/sha256:8216bb22d9b0089b99744f59edbe132d17a32e5e7a99c44bf33a6ec95b34d649"
+  },
+  {
+   "id": "ev-db5f01597220",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/manifests/charts/gateway/values.yaml"
+  },
+  {
+   "id": "ev-4b64a2cd3d84",
+   "uri": "https://ghcr.io/v2/istio/release/charts/cni/manifests/sha256:b3087a7926ee13bcde36870496abbfb14d32bc97b96e71da35be9584c65dff44"
+  },
+  {
+   "id": "ev-ac1272997085",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/manifests/charts/istio-cni/values.yaml"
+  },
+  {
+   "id": "ev-2058c4f27444",
+   "uri": "https://ghcr.io/v2/istio/release/charts/ztunnel/manifests/sha256:d7ad2dd35b12289f606e9ea2486cbea4a316a8ef3aeabc1fb682bc813065a86f"
+  },
+  {
+   "id": "ev-e50110b6adba",
+   "uri": "https://github.com/istio/istio/blob/1.29.0/manifests/charts/ztunnel/values.yaml"
+  },
+  {
+   "id": "ev-b8bf09a7644e",
+   "uri": "https://raw.githubusercontent.com/istio/istio/1.29.0/manifests/charts/base/files/crd-all.gen.yaml"
+  },
+  {
+   "id": "ev-d83aa383b7dc",
+   "uri": "https://raw.githubusercontent.com/istio/istio/1.29.0/manifests/charts/base/files/crd-all.gen.yaml"
+  },
+  {
+   "id": "ev-a734667bcbbb",
+   "uri": "https://registry-1.docker.io/v2/istio/pilot/manifests/sha256:32515653577393f5e6375ccc1350a0cf0aabdd733f8fe9265bb51003a10be26f"
+  },
+  {
+   "id": "ev-6aa773c8d3eb",
+   "uri": "https://registry-1.docker.io/v2/istio/proxyv2/manifests/sha256:2d0090762c124e23294c4a3de023d98c7350d924ef0e37b14e80f6c8a755224f"
+  },
+  {
+   "id": "ev-f617b809fae7",
+   "uri": "https://registry-1.docker.io/v2/istio/install-cni/manifests/sha256:ce27c9ce43c80858b8ffeda8c4da1a619e3f6c5788d49d785c421499d166888c"
+  },
+  {
+   "id": "ev-bb0086f819b6",
+   "uri": "https://registry-1.docker.io/v2/istio/ztunnel/manifests/sha256:783bada59bd0c9835858073c98c9334107ee91028148786be33cada13c0919c1"
+  },
+  {
+   "id": "ev-4c7a4ad6c542",
+   "uri": "https://registry-1.docker.io/v2/istio/istioctl/manifests/sha256:dd2632ec0db6cc72f0f5cf9ea46b40a9b38cc15506ebd2ce816b67ebc40f473e"
+  },
+  {
+   "id": "ev-c1a9d25efc00",
+   "uri": "https://registry-1.docker.io/v2/istio/agentgateway/manifests/sha256:d8f1e0ceb41ffe0f06b588ea3db8bcb69a71d8cf38db8bed79c768b340c5d4e8"
+  },
+  {
+   "id": "ev-d0953f589030",
+   "uri": "https://github.com/istio/istio/releases/download/1.29.0/istio-1.29.0-linux-amd64.tar.gz"
+  },
+  {
+   "id": "ev-e089f6a8d924",
+   "uri": "https://github.com/istio/istio/releases/download/1.29.0/istioctl-1.29.0-linux-amd64.tar.gz"
+  },
+  {
+   "id": "ev-76c5b3503a83",
+   "uri": "https://github.com/istio/istio/security/advisories/GHSA-9gcg-w975-3rjh"
+  },
+  {
+   "id": "ev-a656810af1aa",
+   "uri": "https://github.com/istio/istio/security/advisories/GHSA-qm8v-g4f9-qhjx"
+  }
+ ]
+}

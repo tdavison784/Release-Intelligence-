@@ -107,8 +107,9 @@ depends on `domain`, `env` and `upgrade` (constraint semantics).
 depends only on `domain` and `llm`. `eval` depends on `domain` and `env`
 only; the pipeline under test is injected as a `eval.Pipeline` port, which
 `cmd/ri` implements over `app` (so eval scores live runs and offline test
-replays with the same code, and `app` never imports `eval`). Adapters never
-import `ingest` or `upgrade`.
+replays with the same code, and `app` never imports `eval`); its tests
+additionally use `upgrade.ClassifyRoutine` directly to replay the recorded
+edges of the stored run. Adapters never import `ingest` or `upgrade`.
 
 ## Data flow of `ri upgrade <product> <from> <to>`
 
@@ -139,6 +140,25 @@ import `ingest` or `upgrade`.
    versions or schema fields removed, images added or removed. It also
    compares compatibility constraints, matches advisories (fixed by the
    upgrade, or still affecting To) and validates the edge.
+   - Every note-derived Change also gets the deterministic routine-maintenance
+     test (`internal/upgrade/routine.go`): bare dependency bumps ("Bump x
+     from 1.2.3 to 1.4.5", "auth/x: Update plugin to v0.23.1"), UI-only work
+     ("ui:"), CI/docs/test/build churn (conventional commits, "Images: Bump
+     …") and observability-metric renames are marked `routine` with a kind
+     (`dependency`, `ui`, `housekeeping`, `metrics`) and summarised on the
+     edge as `routine: {count, byKind, summary}`. Routine changes are NOT
+     removed — they stay in `changes` with their evidence and remain visible
+     in verbose/JSON output — but they leave the default
+     breaking/action/migration narrative of the rendered brief. Safety
+     carve-outs run before every pattern: breaking, security (category,
+     cited CVE/GHSA or vulnerability wording), operator directives ("you
+     must", "before upgrading"), feature-flag removals, and bump statements
+     that carry more than the bump ("This version upgrades X to v0.94.0; the
+     ClusterRole no longer grants wildcard verbs") are never routine;
+     computed diffs (values, CRDs, images, advisories, lifecycle) are never
+     eligible. The eval dataset gates this: `go test ./internal/eval` asserts
+     against the recorded edges that no expected item loses its non-routine
+     coverage, and measures the routine share of the stored false positives.
 7. `upgrade.RenderText` prints the report. `-o json` prints the edge.
 
 ## Data flow of `ri drift <product>` (docs/DRIFT.md)

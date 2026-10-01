@@ -1,0 +1,4530 @@
+{
+ "caseId": "vault-1.21-2.0",
+ "recordedFrom": "vault/edges/1.21.4_2.0.0.json (stored eval run of 2026-10-01, commit 0cf815f)",
+ "changes": [
+  {
+   "id": "chg-35affa234223",
+   "category": "migration",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "LDAP static roles do not reset rotation TTL after manual rotation: LDAP secrets engine static roles that have automated credential rotation configured now no…",
+   "detail": "LDAP static roles do not reset rotation TTL after manual rotation: LDAP secrets engine static roles that have automated credential rotation configured now no longer reset their rotation TTL when you perform a manual rotation. Vault preserves the original rotation cadence and continues to rotate the static role automatically at the originally scheduled time. Recommendation: Vault 2.2.0 restores the previous rotation behavior for LDAP static roles. We recommend upgrading to version 2.2.0 or newer to avoid the breaking change. If you cannot upgrade, you can reset the automated rotation cadence by toggling automated rotation off and back on: - Deregister the rotation entry by setting `disable_automated_rotation` to `true` on the static role. - Reregister the rotation entry by setting `disable_automated_rotation` back to `false`. When you reactivate rotation, Vault resets the initial rotation time and recalculates the `next_vault_rotation` timestamp.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ef36899434b7",
+   "category": "migration",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "Precedence change for Azure authentication: Azure auth now gives values set in `auth/azure/config` precedence over `AZURE_*` environment variables",
+   "detail": "Precedence change for Azure authentication: Azure auth now gives values set in `auth/azure/config` precedence over `AZURE_*` environment variables. Recommendation: Review any deployments where you rely on environment variables to confirm whether they currently override stored configuration and update the plugin configuration to your preferred behavior.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9acb52b4aed5",
+   "category": "migration",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "Previously unauthenticated endpoints require authentication: Vault now authenticates the following endpoint families to prevent attackers from sending…",
+   "detail": "Previously unauthenticated endpoints require authentication: Vault now authenticates the following endpoint families to prevent attackers from sending key-update requests with bogus key fragments with the aim of preventing legitimate use of the endpoints: - `sys/rekey` - `sys/generate-root` - `sys/replication/dr/secondary/generate-operation-token` Previous versions only required authentication with a seal or recovery keys to be provided. Authenticating to the affected endpoints now requires seal/recovery key fragments and a valid Vault token. Recommendation: Modify callers of these endpoints to provide a vault token if they weren't already, or populate `enable_unauthenticated_access`. Note that the reason for this change is to prevent an attacker from taking advantage of these endpoints being unauthenticated, by sending key-update requests with bogus key fragments which prevent legitimate use. Modify callers of these endpoints to always provide a valid Vault token. If you must continue to use the endpoints unauthenticated, set the `enable_unauthenticated_access`, configuration parameter to provide backward compatability with existing clients.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-15d25faf1860",
+   "category": "security",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "sdk/helpers/docker: Migrate docker helpers from github.com/docker/docker to github.com/moby/moby",
+   "detail": "sdk/helpers/docker: Migrate docker helpers from github.com/docker/docker to github.com/moby/moby. This was necessary as github.com/docker/docker is no longer maintained. Resolves GHSA-x744-4wpc-v9h2 and GHSA-pxq6-2prw-chj9.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-x744-4wpc-v9h2"
+    },
+    {
+     "type": "ghsa",
+     "id": "GHSA-pxq6-2prw-chj9"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f7c9089ee918",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Configuration for IBM Passport Advantage Online license keys: Vault Enterprise customers who use a license key issued by IBM Passport Advantage Online must add…",
+   "detail": "Configuration for IBM Passport Advantage Online license keys: Vault Enterprise customers who use a license key issued by IBM Passport Advantage Online must add a `license_entitlement` configuration to their Vault nodes. Refer to IBM Passport Advantage Online license keys for more information.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2c57a9832933",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "DR secondaries now accept root tokens from the primary: Vault now allows authentication against secondary DR nodes with a root token generated on the primary",
+   "detail": "DR secondaries now accept root tokens from the primary: Vault now allows authentication against secondary DR nodes with a root token generated on the primary. Previous versions of Vault only allowed requests against secondary nodes to authenticate using a batch token or DR operation token created by `sys/replication/dr/secondary/generate-operation-token`.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fa7c52de43f7",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "LDAP static role rotation migrates to a centralized automated rotation system: For existing LDAP static roles, Vault Enterprise migrates the assocaited…",
+   "detail": "LDAP static role rotation migrates to a centralized automated rotation system: For existing LDAP static roles, Vault Enterprise migrates the assocaited credential rotation period from the LDAP plugin to the central rotation manager during plugin initialization. During migration, rotation timing may shift slightly. You can track migration status in the LDAP static role migration API. After migration completes, Vault no longer retries static role credential rotation every 10 seconds indefinitely. Vault uses exponential backoff and stops retrying after it reaches the retry limit configured on the role.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-32e8735d9e0e",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Token header size limit for authentication headers: Vault now enforces a configurable maximum size limit on the `X-Vault-Token` and `Authorization: Bearer`…",
+   "detail": "Token header size limit for authentication headers: Vault now enforces a configurable maximum size limit on the `X-Vault-Token` and `Authorization: Bearer` headers. The default limit is 8 KB (8192 bytes), which is well above the size of any current opaque Vault token. Requests whose authentication token header exceeds the limit receive an HTTP `431 (Request Header Fields Too Large)` response before token validation occurs. The new limit does not affect existing deployments that only use opaque Vault tokens. The limit becomes customer-visible in deployments that use External JWT Tokens, especially tokens with rich `authorization_details` claims, can be significantly larger than opaque tokens. Recommendation: No action is required for standard deployments. If you use enterprise JWT tokens or OIDC tokens with large `authorization_details` payloads, evaluate your largest token sizes and raise `max_token_header_size` in your listener configuration: Refer to the TCP listener configuration for the full set of options, including cluster listener behaviours.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e04a310dcb38",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GUI default auth returns null after upgrade from 1.20.x or 1.21.x: If you are upgrading from an affected 1.20.x or 1.21.x release, default auth rules targeting…",
+   "detail": "GUI default auth returns null after upgrade from 1.20.x or 1.21.x: If you are upgrading from an affected 1.20.x or 1.21.x release, default auth rules targeting the root namespace may cause `GET /v1/sys/internal/ui/default-auth-methods` to return `data: null`. Refer to Vault 1.21.x important changes for the root cause and remediation steps.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bd77e5f11ee8",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Okta SCIM group membership removal does not revoke Vault group access: Vault Enterprise exposes SCIM as a beta feature in Vault 2.0.0",
+   "detail": "Okta SCIM group membership removal does not revoke Vault group access: Vault Enterprise exposes SCIM as a beta feature in Vault 2.0.0. When you use Okta Group Push with Vault SCIM, removing a user from an Okta group does not remove that user from the corresponding Vault group. Okta sends a SCIM `PATCH` request for member removal that Vault 2.0.0 does not support. As a result, the user remains in the Vault group and retains any policies that the group grants. Recommendation: As a workaround, unlink and relink the Okta push group to recreate the corresponding Vault group with the intended membership.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0f5e09b9b785",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: Remove ability to bulk delete secrets engines from the list view",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-72c882fc2947",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Update github.com/dvsekhvalnov/jose2go to fix security vulnerability CVE-2025-63811",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2025-63811"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-62bceafda448",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Upgrade `cloudflare/circl` to v1.6.3 to resolve CVE-2026-1229",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2026-1229"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-34be76692c61",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Upgrade `filippo.io/edwards25519` to v1.1.1 to resolve GO-2026-4503",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-91adff80e213",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "api/auth/gcp: Update go.opentelemetry.io/otel/sdk to fix CVE-2026-39883",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2026-39883"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ee90f3fd6a3a",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "api/auth: Update github.com/go-jose/go-jose to fix security vulnerability CVE-2026-34986 and GHSA-78h2-9frx-2jm8",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2026-34986"
+    },
+    {
+     "type": "ghsa",
+     "id": "GHSA-78h2-9frx-2jm8"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-df695456a64d",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/aws: fix an issue where a user may be able to bypass authentication to Vault due to incorrect caching of the AWS client",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-be33b549a47a",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/cert: ensure that the certificate being renewed matches the certificate attached to the session",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b5ea119115e6",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: Correctly remove any Vault tokens from the Authorization header when this header is forwarded to plugin backends",
+   "detail": "core: Correctly remove any Vault tokens from the Authorization header when this header is forwarded to plugin backends. The header will only be forwarded if \"Authorization\" is explicitly included in the list of passthrough request headers.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-040d49bc8914",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: Resolve GO-2026-4518 and GHSA-jqcq-xjh3-6g23 by upgrading to github.com/jackc/pgx/v5",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-jqcq-xjh3-6g23"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8073b3b1548b",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: Update github.com/aws/aws-sdk-go-v2/ to fix security vulnerability GHSA-xmrv-pmrh-hhx2",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-xmrv-pmrh-hhx2"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a137bef2534c",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: Update github.com/go-jose/go-jose to fix security vulnerability CVE-2026-34986 and GHSA-78h2-9frx-2jm8",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2026-34986"
+    },
+    {
+     "type": "ghsa",
+     "id": "GHSA-78h2-9frx-2jm8"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-eaff72ff2cba",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: Update github.com/hashicorp/go-getter to fix security vulnerability GHSA-92mm-2pjq-r785",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-92mm-2pjq-r785"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b1d6a1776f5e",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: Update go.opentelemetry.io/otel/sdk to fix CVE-2026-39883",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2026-39883"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b1b531a7b1ad",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: reject URL-encoded paths that do not specify a canonical path",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-85fada268829",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "go: update to golang/x/crypto to v0.45.0 to resolve GHSA-f6x5-jh6r-wrfv, GHSA-j5w8-q4qc-rx2x, GO-2025-4134 and GO-2025-4135",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-f6x5-jh6r-wrfv"
+    },
+    {
+     "type": "ghsa",
+     "id": "GHSA-j5w8-q4qc-rx2x"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d5a2b6a70a60",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "http: Added configurable `max_token_header_size` listener option (default 8 KB) to bound the size of authentication token headers (`X-Vault-Token` and…",
+   "detail": "http: Added configurable `max_token_header_size` listener option (default 8 KB) to bound the size of authentication token headers (`X-Vault-Token` and `Authorization: Bearer`), preventing a potential denial-of-service attack via oversized header contents. The stdlib-level `MaxHeaderBytes` backstop is also now set on the HTTP server. Set `max_token_header_size = -1` to disable the limit.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7696eeb01f90",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "sdk: Resolve GO-2026-4518 and GHSA-jqcq-xjh3-6g23 by upgrading to github.com/jackc/pgx/v5",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-jqcq-xjh3-6g23"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-927464ded303",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "sdk: Update github.com/go-jose/go-jose to fix security vulnerability CVE-2026-34986 and GHSA-78h2-9frx-2jm8",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2026-34986"
+    },
+    {
+     "type": "ghsa",
+     "id": "GHSA-78h2-9frx-2jm8"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3de4b88c5f5d",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: disable scarf analytics for ui builds",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-09270fb263bb",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "vault/sdk: Upgrade `cloudflare/circl` to v1.6.3 to resolve CVE-2026-1229",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2026-1229"
+    }
+   ],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-eff22e3e73b3",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "vault/sdk: Upgrade `go.opentelemetry.io/otel/sdk` to v1.40.0 to resolve GO-2026-4394",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-42b6862a5e98",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/alicloud: Update plugin to v0.23.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a74a2475d44a",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/azure: Update plugin to v0.24.0",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-092e174aaec6",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/cf: Update plugin to v0.23.0",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cd0518c3c975",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/gcp: Update plugin to v0.23.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ce0e3df49133",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/jwt: Update plugin to v0.26.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-43b6ce9019ad",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/kerberos: Update plugin to v0.17.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1bcc09fa5e1a",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/kubernetes: Update plugin to v0.24.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ca717d7a1d7f",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/oci: Update plugin to v0.21.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5036cb552283",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/saml: Update plugin to v0.8.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-af7194a4819c",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: Bump Go version to 1.26.2",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f44ecbcc1a24",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: bump github.com/hashicorp/cap to v0.12.0",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-77dfef3e35eb",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "database/couchbase: Update plugin to v0.16.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2b20d7ca38fa",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "database/elasticsearch: Update plugin to v0.20.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-df1bb2661fe3",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "database/mongodbatlas: Update plugin to v0.17.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e88fb0b6a0f9",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "database/redis-elasticache: Update plugin to v0.9.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0df1e2ef0ab0",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "database/redis: Update plugin to v0.8.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8329d70198c0",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "database/snowflake: Update plugin to v0.16.0",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fa940dc4d2ab",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/ad: Update plugin to v0.22.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9a0bdec1fe61",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/alicloud: Update plugin to v0.22.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f15cc01c3f34",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/azure: Update plugin to v0.25.1+ent",
+   "detail": "secrets/azure: Update plugin to v0.25.1+ent. Improves retry handling during Azure application and service principal creation to reduce transient failures.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f9d97daa1758",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/azure: Update plugin to v0.26.1+ent",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f64ebe306192",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/gcp: Update plugin to v0.24.0",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fb7f49e80f78",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/gcpkms: Update plugin to v0.23.0",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4d518be4a7c6",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/keymgmt: Update plugin to v0.19.0+ent",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b57046623dc4",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/kmip: Update plugin to v0.20.0",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-681d6a64c015",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/kubernetes: Update plugin to v0.13.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d43acf4e1f5d",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/kv: Update plugin to v0.26.2",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5dc571463184",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/mongodbatlas: Update plugin to v0.17.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1bbff031d760",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/openldap: Update plugin to v0.18.0",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4afb11176a7e",
+   "category": "dependency",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/terraform: Update plugin to v0.14.1",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-39cad0afecb9",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "IBM PAO License Integration: Added IBM PAO license support, allowing usage of Vault Enterprise with an IBM PAO license key",
+   "detail": "IBM PAO License Integration: Added IBM PAO license support, allowing usage of Vault Enterprise with an IBM PAO license key. A new configuration stanza `license_entitlement` is required in the Vault config to use an IBM license. For more details, see the License documentation.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fd90f72c62e3",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "KMIP Bring Your Own CA: Add new API to manage multiple CAs for client verification and make it possible to import external CAs",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b04d73e50847",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "LDAP Secrets Engine Enterprise Plugin: Add the new LDAP Secrets Engine Enterprise plugin",
+   "detail": "LDAP Secrets Engine Enterprise Plugin: Add the new LDAP Secrets Engine Enterprise plugin. This enterprise version adds support for self-managed static roles and Rotation Manager support for automatic static role rotation. New plugin configurations can be set as \"self managed\", skipping the requirement for a bindpass field and allowing static roles to use their own password to rotate their credential. Automated static role credential rotation supports fine-grained scheduled rotations and retry policies through Vault Enterprise.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-abb77525aa94",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Login MFA TOTP Self-Enrollment (Enterprise): Simplify creation of login MFA TOTP credentials for users, allowing them to self-enroll MFA TOTP using a QR code…",
+   "detail": "Login MFA TOTP Self-Enrollment (Enterprise): Simplify creation of login MFA TOTP credentials for users, allowing them to self-enroll MFA TOTP using a QR code (TOTP secret) generated during login. The new functionality is configurable on the TOTP login MFA method configuration screen and via the `enable_self_enrollment` parameter in the API.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-13188b0c5058",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "PKI External CA (Enterprise): A new plugin that provides the ability to acquire PKI certificates from Public CA providers through the ACME protocol",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1507396ba244",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Plugins (Enterprise): Allow overriding pinned version when creating and updating database engines",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c1c6c2192394",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Plugins (Enterprise): Allow overriding pinned version when enabling and tuning auth and secrets backends",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fcf76b9de923",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "SCIM 2.0 Identity Provisioning Beta (Beta/Enterprise): Adds beta support for Vault to act as a SCIM 2.0 server, allowing external management of Vault entities…",
+   "detail": "SCIM 2.0 Identity Provisioning Beta (Beta/Enterprise): Adds beta support for Vault to act as a SCIM 2.0 server, allowing external management of Vault entities, aliases and groups.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7c2648d7c5f7",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Secrets Engines UI improvement: Updated configuration views and added tune support for configurations across all compatible secrets engines",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-acf5646044d8",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Sidebar UI improvement: Add top navbar, update sidebar navigation structure, and update page headers",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-890903865944",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Template Integration for PublicPKICA: Vault Agent templates are now automatically re-rendered when a PKI external CA certificate is issued or renewed",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1f296f28ee45",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "UI ACL Policies intro: Onboarding intro which provides feature context to users",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ef202d6b56cf",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "UI Authentication methods intro: Onboarding intro which provides feature context to users",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cc52e42d1a53",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "UI Namespace Wizard (Enterprise): Onboarding wizard which provides advice to users based on their intended usage and guides them through namespace creation",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8ef93a527ec9",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "UI Policy Generator (Enterprise): Adds policy generator flyout to KV V2 and PKI secrets engines prepopulated with relevant API requests for each page",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-683e40271143",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "UI Secret engines intro: Onboarding intro which provides feature context to users",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5ab248dfd180",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "UI TLS Certificate login: Add UI login support for the TLS certificate (cert) authentication",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1464069a1f2c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "UI: Hashi-Built External Plugin Support: Recognize and support Hashi-built plugins when run as external binaries",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e6cf52b4d880",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "UI: Hashi-Built External Plugin Support: Support external plugin version updates via the GUI",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b3d31ae3d142",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "UI: Mount versioned external plugins: Adds ability to mount previously registered, external plugins and specify a version when enabling secrets engines",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6640c8717906",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Vault Agent: ACME protocol support: Add support to natively support Public CA ACME workflows",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ca1bc9977ed5",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "api: Add a SHA256 sum field to the json list response for external plugins",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-09519cf6b42b",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "api: Added sudo-permissioned `sys/reporting/scan` endpoint which will output a set of files containing information about Vault state to the location specified…",
+   "detail": "api: Added sudo-permissioned `sys/reporting/scan` endpoint which will output a set of files containing information about Vault state to the location specified by the `reporting_scan_directory` config item.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2b2a03bdd494",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/ldap: Require non-empty passwords on login command to prevent unauthenticated access to Vault",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cf04de68c91b",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "config/listener: logs warnings on invalid x-forwarded-for configurations",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-94646f96b85c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "consumption-billing: Adds a new `sys/billing/overview` endpoint that returns current and previous month consumption billing metrics",
+   "detail": "consumption-billing: Adds a new `sys/billing/overview` endpoint that returns current and previous month consumption billing metrics. Accessible via API client method `client.Sys().BillingOverview()`.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b9e32aeec137",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core (enterprise): Add common_criteria_mode feature_flags setting which limits listener TLS cipher suites",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8b9ecaff841e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core (enterprise): Added a new telemetry metric `vault.core.license.termination_time_epoch`",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fe4fc37b1cbf",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core (enterprise): enable rotation manager to send rotation information required by plugin backends during registration and rotation operations",
+   "detail": "core (enterprise): enable rotation manager to send rotation information required by plugin backends during registration and rotation operations. This allows plugin backends to have the necessary context for managing their rotation state effectively.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-48571fe5e1b4",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core (enterprise): enable rotation manager to use configurable retry policies to limit the retry behavior for rotation entries and include an orphaning…",
+   "detail": "core (enterprise): enable rotation manager to use configurable retry policies to limit the retry behavior for rotation entries and include an orphaning mechanism to handle entries that exceed the maximum retry attempts.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b3678dbc24ad",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core (enterprise): improve rotation manager error handling by implementing a backoff when re-queueing failed rotations",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7de4c4aba2b4",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core/identity: Add two new fields to the alias API, external_id and issuer",
+   "detail": "core/identity: Add two new fields to the alias API, external_id and issuer. These fields do not inherently do anything meaningful, and are part of a future feature.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ebc1abbd58aa",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core/managed-keys (enterprise): Allow GCP managed keys to leverage workload identity federation credentials",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cd58ded65826",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core/metrics: Reading and listing from a snapshot are now tracked via the `vault.route.read-snapshot.{mount_point}` and `vault.route.list-snapshot.{mount_point…",
+   "detail": "core/metrics: Reading and listing from a snapshot are now tracked via the `vault.route.read-snapshot.{mount_point}` and `vault.route.list-snapshot.{mount_point}` metrics.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-706e3e21997e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core/seal: Enhance sys/seal-backend-status to provide more information about seal backends",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b7d1a5af0280",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: check rotation manager queue every 5 seconds instead of 10 seconds to improve responsiveness",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c2ef392411bf",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "dockerfile: container will now run as vault user by default",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-df5333fe2bb5",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "events (enterprise): Add event notifications support for lease events",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c0fcac793531",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "events (enterprise): Forward event notifications from primary to secondary clusters",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c4d920075e03",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "kmip (enterprise): Add experimental API to execute KMIP requests",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6be8ee331699",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "license utilization reporting (enterprise): Add metrics for the number of issued PKI certificates",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-440065cffc93",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "license utilization reporting (enterprise): Utilization reports now include new license metadata fields `issuer`, `edition`, `add_ons`, `license_start_time`…",
+   "detail": "license utilization reporting (enterprise): Utilization reports now include new license metadata fields `issuer`, `edition`, `add_ons`, `license_start_time`, `license_expiration_time`, and `license_termination_time`.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e304942d9b6a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "license utilization reporting: Added consumption billing metrics",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c28e7351d477",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "pki: Reject obviously unsafe validation targets during ACME HTTP-01 and TLS-ALPN-01 challenge verification",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d7ebf8aba38e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "policies: add warning about list comparison when using allowed_parameters or denied_parameters",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-13d26cc055d1",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "rotation: Ensure rotations for shared paths only execute on the Primary cluster's active node",
+   "detail": "rotation: Ensure rotations for shared paths only execute on the Primary cluster's active node. Ensure rotations for local paths execute on the cluster-local active node.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c3e35964f7d8",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "sdk/rotation: Prevent rotation attempts on read-only storage",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1e03114d2842",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "sdk: Add NewTestDockerCluster support for running external plugins within the same container as the server.  Also add support for those plugins to expose their…",
+   "detail": "sdk: Add NewTestDockerCluster support for running external plugins within the same container as the server.  Also add support for those plugins to expose their own listeners, as KMIP does.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ec94735379cb",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "sdk: Add alias_metadata to tokenutil fields that auth method roles use",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4059169663ae",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secret-sync (enterprise): Added telemetry counters for reconciliation loop operations, including the number of corrections detected,  retry attempts, and…",
+   "detail": "secret-sync (enterprise): Added telemetry counters for reconciliation loop operations, including the number of corrections detected,  retry attempts, and operation outcomes (success or failure with internal/external cause labels).",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-dffaac842215",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secret-sync (enterprise): Added telemetry counters for sync/unsync operations with status breakdown by destination type, and exposed operation counters in the…",
+   "detail": "secret-sync (enterprise): Added telemetry counters for sync/unsync operations with status breakdown by destination type, and exposed operation counters in the destinations list API response.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2af6ae5e427f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secret-sync: add parallelization support to sync and unsync operations for secret-key granularity associations",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-435a6084bd6f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets-pki (enterprise): Add response data in a parsed format to the audit log for enrollment protocols",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e0e3f759d24b",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets-sync (enterprise): Added support for a boolean force_delete flag (default: false). When set to true, this flag allows deletion of a destination even if…",
+   "detail": "secrets-sync (enterprise): Added support for a boolean force_delete flag (default: false). When set to true, this flag allows deletion of a destination even if its associations cannot be unsynced. This option should be used only as a last-resort deletion mechanism, as any secrets already synced to the external provider will remain orphaned and require manual cleanup.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6e84acb4d4d6",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets-sync (enterprise): Improved the user experience during mount lifecycle changes by triggering immediate unsyncing of external secrets when a secrets…",
+   "detail": "secrets-sync (enterprise): Improved the user experience during mount lifecycle changes by triggering immediate unsyncing of external secrets when a secrets engine mount is deleted or disabled. By moving this logic from the background reconciliation loop to a direct callback, the system prevents perceived \"leaks\" and ensures external secret resources are cleaned up synchronously with the Vault unmount.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ca0c4cf31a63",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets-sync: implemented workload identity federation support for secrets sync flows",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-168ee6d11762",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/database: Add root rotation support for Snowflake database secrets engines using key-pair credentials",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4f5ba40f6b4f",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/keymgmt (enterprise): Add support for multi-region AWS KMS keys",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f6db290e1afc",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/kmip (Enterprise): Obey configured best_effort_wal_wait_duration when forwarding kmip requests",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-336df17c1561",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/ldap: Users can now fully manage and tune the LDAP secrets engine",
+   "detail": "secrets/ldap: Users can now fully manage and tune the LDAP secrets engine. This includes the ability to view, edit, and configure the LDAP engine.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c471f4beae66",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki (enterprise): Return the POSTPKIOperation capability within SCEP GetCACaps endpoint for better legacy client support",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7d85a0260367",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki (enterprise): Validate entire chain in common criteria mode; add field to enable time checks on validation",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5ae6dca246d0",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki (enterprise): When the common_criteria_mode feature flag is enabled, NotBefore will always be treated as zero",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ea4631217b44",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki (enterprise): When the common_criteria_mode feature flag is enabled, enforce a minimum set of key usages for each ext key usage set based on RFC…",
+   "detail": "secrets/pki (enterprise): When the common_criteria_mode feature flag is enabled, enforce a minimum set of key usages for each ext key usage set based on RFC 5280 Section 4.2.1.12 during PKI role updates.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-40178304d7bb",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: Add ACME configuration fields challenge_permitted_ip_ranges and challenge_excluded_ip_ranges configuration to control which IP addresses are…",
+   "detail": "secrets/pki: Add ACME configuration fields challenge_permitted_ip_ranges and challenge_excluded_ip_ranges configuration to control which IP addresses are allowed or disallowed for challenge validation.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-41b7e20f05e9",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: Add Freshest CRL extension (Delta CRL Distribution Points) to base CRLs",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-84681f1175af",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: Avoid loading issuer information multiple times per leaf certificate signing",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8f7c54ec3663",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: Include the certificate's AuthorityKeyID in response fields for API endpoints that issue, sign, or fetch certs",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-541cfc342c4c",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: OCSP populate details of the response within the new `supplemental_audit_data` section of audit log response entries",
+   "detail": "secrets/pki: OCSP populate details of the response within the new `supplemental_audit_data` section of audit log response entries. Details such as issuer_id, next_update, ocsp_status, serial_number, revoked_at will appear as hmac values by default unless added to the mount's `audit-non-hmac-response-keys` set of keys.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-816396286b93",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: when in common criteria mode, don't allow upload of certificates without a chain of trust",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8eced1ad9dbc",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/transit, core: Boost the limit of random bytes retrievable via random byte APIs.  And add the option to get PRNG random bytes seeded by random…",
+   "detail": "secrets/transit, core: Boost the limit of random bytes retrievable via random byte APIs.  And add the option to get PRNG random bytes seeded by random sources. Note that requests for large numbers of bytes will increase Vault memory usage accordingly.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-152cd58ee390",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/transit: Improve import errors for non-PKCS#8 keys to clearly require PKCS#8",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-335c654e747a",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "sys (enterprise): Add sys/billing/certificates API endpoint to retrieve the number of issued PKI certificates",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4f7aec3f9994",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "transit (enterprise): Add context parameter to datakeys and derived-keys endpoint, to allow derived key encryption of the DEKs",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-334e4bb241d2",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui/activity (enterprise): Add clarifying text to explain the \"Initial Usage\" column will only have timestamps for clients initially used after upgrading to…",
+   "detail": "ui/activity (enterprise): Add clarifying text to explain the \"Initial Usage\" column will only have timestamps for clients initially used after upgrading to version 1.21",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-359eedf90004",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui/activity (enterprise): Allow manual querying of client usage if there is a problem retrieving the license start time",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0b44651684bc",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui/activity (enterprise): Reduce requests to the activity export API by only fetching new data when the dashboard initially loads or is manually refreshed",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1bbb096cfa90",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui/activity (enterprise): Support filtering months dropdown by ISO timestamp or display value",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-221e35857b08",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui/activity: Display total instead of new monthly clients for HCP managed clusters",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8076cc9a0179",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui/pki: Adds support to configure `server_flag`, `client_flag`, `code_signing_flag`, and `email_protection_flag` parameters for creating/updating a role",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-231ba3ae718e",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: Add \"Configuration path\" and \"Configuration metadata path\" fields to KV v2 secret paths page showing paths without /v1/ prefix for use in policies, Vault…",
+   "detail": "ui: Add \"Configuration path\" and \"Configuration metadata path\" fields to KV v2 secret paths page showing paths without /v1/ prefix for use in policies, Vault Agent configurations, and other tools that reference the logical path.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8918c00108d2",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: After clicking Save or Discard in the unsaved changes modal, the user will now navigate to the intended destination link",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0dd3bd2e8578",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: Display errors consistently across the application and show API messages where available",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7c68103ee4fe",
+   "category": "feature",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: Update the sidenav design and add top navbar",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-644cf210b32f",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "activity (enterprise): sys/internal/counters/activity outputs the correct mount type when called from a non root namespace",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-02b532ec21b7",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "agent/pkiexternalca: Fix token distribution to PKI system and HTTP-01 challenge server shutdown preventing certificate acquisition and retries",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b8b5b6d7f922",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "agent: Fix Vault Agent discarding cached tokens on transient server errors instead of retrying",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7bbb477bda46",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "audit/file: The logic preventing setting of executable bits on audit devices was enforced at unseal instead of just at new audit device creation, causing an…",
+   "detail": "audit/file: The logic preventing setting of executable bits on audit devices was enforced at unseal instead of just at new audit device creation, causing an error at unseal if an existing audit device had exec permissions.  The logic now warns and clears exec bits to prevent unseal errors.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e6852164ab6a",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/approle (enterprise): Fixed bug that prevented periodic tidy running on performance secondary",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3536d1f3373f",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/approle (enterprise): Role parameter `alias_metadata` now populates alias custom metadata field instead of alias metadata",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9bd4695af845",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/aws (enterprise): Role parameter `alias_metadata` now populates alias custom metadata field instead of alias metadata",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cd8ce146ed04",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/cert (enterprise): Role parameter `alias_metadata` now populates alias custom metadata field instead of alias metadata",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-bda25ea58ce8",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/gcp: Fix intermittent context canceled failures for Workload Identity Federation (WIF) authentication",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c417a098e961",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/github (enterprise): Role parameter `alias_metadata` now populates alias custom metadata field instead of alias metadata",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7a90344d14e6",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/ldap (enterprise): Role parameter `alias_metadata` now populates alias custom metadata field instead of alias metadata",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a4e6ce9324fb",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/okta (enterprise): Role parameter `alias_metadata` now populates alias custom metadata field instead of alias metadata",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8631e4d41349",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/radius (enterprise): Role parameter `alias_metadata` now populates alias custom metadata field instead of alias metadata",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-30eab5ff102c",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/scep (enterprise): Role parameter `alias_metadata` now populates alias custom metadata field instead of alias metadata",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cea11d1b3993",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/spiffe: Address an issue updating a role with overlapping workload_id_pattern values it previously contained",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9720b1443f4f",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth/userpass (enterprise): Role parameter `alias_metadata` now populates alias custom metadata field instead of alias metadata",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7bf670bc81af",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "auth: fixed panic when suppling integer as a lease_id in renewal",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c5b5900d151f",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core (Enterprise): fix unaligned atomic panic in replication code on 32-bit platforms",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b201488144fd",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core (enterprise): Avoid duplicate seal rewrapping, and ensure that cluster secondaries rewrap after a seal migration",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d7b022fc9f9a",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core (enterprise): Buffer the POST body on binary paths to allow re-reading on non-logical forwarding attempts",
+   "detail": "core (enterprise): Buffer the POST body on binary paths to allow re-reading on non-logical forwarding attempts. Addresses an issue for SCEP, EST and CMPv2 certificate issuances with slow replication of entities",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7e35adadd0bc",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core (enterprise): Fix crash when seal HSM is disconnected",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-138e894f6018",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core/activitylog (enterprise): Resolve a stability issue where Vault Enterprise could encounter a panic during month-end billing activity rollover",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-44fd7a1da687",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core/identity (enterprise): Fix excessive logging when updating existing aliases",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2cf97fdee91d",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core/managed-keys (enterprise): Fix a bug that prevented the max_parallel field of PKCS#11 managed keys from being updated",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-57554c36f47d",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core/managed-keys (enterprise): Fix a problem that prevented 'mac' and 'generate_random' key usages from being set",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b161f9de65fb",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core/managed-keys (enterprise): client credentials should not be required when using Azure Managed Identities in managed keys",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7dd1704b943c",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core/rotation: avoid shifting timezones by ignoring cron.SpecSchedule",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-68207d9834cb",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: Fix bug where background thread to clean the MFA response auth queue runs on PR and DR secondaries",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-76c5beedbbfe",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: interpret all new rotation manager rotation_schedules as UTC to avoid inadvertent use of tz-local",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fa7393f3a00b",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "default-auth: Fix issue when specifying \"root\" explicitly in Default Auth UI",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a62bc5a2e61e",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "events (enterprise): Fix missed events when multiple event clients specify the same namespace and event type filters and one client disconnects",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-851a9a2cb7ad",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "http: skip JSON limit parsing on cluster listener",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-feb634264db7",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "identity: Fix issue where Vault may consume more memory than intended under heavy authentication load",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b4e1b983f6a1",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "identity: Repair the integrity of duplicate and/or dangling entity aliases",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-51bc5b5727ae",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "kmip (enterprise): Fix a bug that would cause a panic on Create Key Pair operations that specify no attributes for the private or the public key",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-592600c4025a",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ldap auth (enterprise): Fix root password rotation for Active Directory by implementing UTF-16LE encoding and schema-specific handling",
+   "detail": "ldap auth (enterprise): Fix root password rotation for Active Directory by implementing UTF-16LE encoding and schema-specific handling. Adds new 'schema' config field (defaults to 'openldap' for backward compatibility).",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d445a5bb2d88",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "logging: Fixed an issue where the `log_requests_level` configuration was not respected on a SIGHUP reload when set to \"off\" or removed from the config file",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-1b8b7e099ee9",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "plugins (enterprise): Fix bug where requests to external plugins that modify storage weren't populating the X-Vault-Index response header",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-dac146faaa38",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "plugins: Fix regression in plugin sdk where external plugins may panic when doing storage writes/deletes",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a95d8c8a2dab",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "quotas: Vault now protects plugins with ResolveRole operations from panicking on quota creation",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b562855f8e77",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "replication (enterprise): fix rare panic due to race when enabling a secondary with Consul storage",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9a38c27be3a4",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "rotation: Fix a bug where a performance secondary would panic if a write was made to a local mount",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-051fb29dfb6a",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secret sync (enterprise): fix panic in set-association API when using Vault Proxy with token-bound CIDRs",
+   "detail": "secret sync (enterprise): fix panic in set-association API when using Vault Proxy with token-bound CIDRs. The panic occurred due to missing connection information during CIDR validation.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-99116fac147b",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secret sync (enterprise): fixed panic due to nil pointer dereference when reconciling associations",
+   "detail": "secret sync (enterprise): fixed panic due to nil pointer dereference when reconciling associations. Added guard checks to prevent access to nil references, making association handling more robust.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2bba169d9dcc",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secret-sync (enterprise): Fix race condition in secretsSetRemoveHandler by serializing MemDB transaction access",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b388b0a5ea2a",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secret-sync (enterprise): Improved unsync error handling by treating cases where the destination no longer exists as successful",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a3c8e2942902",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets (pki): Allow issuance of certificates without the server_flag key usage from SCEP, EST and CMPV2 protocols",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f51a9cb707a2",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets-sync (enterprise): Corrected a bug where the deletion of the latest KV-V2 secret version caused the associated external secret to be deleted entirely",
+   "detail": "secrets-sync (enterprise): Corrected a bug where the deletion of the latest KV-V2 secret version caused the associated external secret to be deleted entirely. The sync job now implements a version fallback mechanism to find and sync the highest available active version, ensuring continuity and preventing the unintended deletion of the external secret resource.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-35398160647f",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets-sync (enterprise): Fix issue where secrets were not properly un-synced after destination config changes",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-77f2817f3ff2",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets-sync (enterprise): Fix issue where sync store deletion could be attempted when sync is disabled",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-dc7c14100497",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets-sync: secrets-sync APIs return appropriate client side error codes when the request is invalid",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fc09a2ce7c93",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/azure: Ensure proper installation of the Azure enterprise secrets plugin",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b9cf97d1c5d5",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki (enterprise): Address cache invalidation issues with CMPv2 on performance standby nodes",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-27dda4fceda5",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki (enterprise): Address issues using SCEP on performance standby nodes failing due to configuration invalidation issues along with errors writing to…",
+   "detail": "secrets/pki (enterprise): Address issues using SCEP on performance standby nodes failing due to configuration invalidation issues along with errors writing to storage",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d6dc58302c1d",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki (enterprise): Fix SCEP related digest errors when requests contained compound octet strings",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-09a13b0ff6b2",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki (enterprise): Modify the SCEP GetCACaps endpoint to dynamically reflect the configured encryption and digest algorithms",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ba7a87e6a683",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: Return error when issuing/signing certs whose NotAfter is before NotBefore or whose validity period isn't contained by the CA's",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5b8fd7b1d620",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: The root/sign-intermediate endpoint max_path_length parameter is now restricted by the signing CA's max_path_length if set",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-03c8db0ef07f",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: The root/sign-intermediate endpoint should not fail when provided a CSR with a basic constraint extension containing isCa set to true",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-256a9b91e2e5",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: Warn if the Country field on roles and when generating CAs is not ISO 3166 compliant",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-632afb4fbd41",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: allow glob-style DNS names in alt_names",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-83dcce58ed45",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/transit (enterprise): Fix bugs that prevent using ML-DSA and SLH-DSA keys after reading the policy from storage",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3f9c591cf1a4",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/transit: Fix nil pointer panic when restoring malformed backup data",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-b0755bc7a5fa",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui (enterprise): Fix KV v2 not displaying secrets in namespaces",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-90b81af570ef",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui (enterprise): Fixes login form so input renders correctly when token is a preferred login method for a namespace",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5d65e866f1c0",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui/pki: Fixes certificate parsing of the `key_usage` extension so details accurately reflect certificate values",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0dc688e0f398",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui/pki: Fixes creating and updating a role so `basic_constraints_valid_for_non_ca` is correctly set",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7b6c25dc9517",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: Fix KV v2 metadata list request failing for policies without a trailing slash in the path",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8bcc54fba4a8",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: Fix secrets table pagination when switching page sizes",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-77234fe1533a",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: Fixes login form so `?with=<path>` query param correctly displays only the specified mount when multiple mounts of the same auth type are configured with…",
+   "detail": "ui: Fixes login form so `?with=<path>` query param correctly displays only the specified mount when multiple mounts of the same auth type are configured with `listing_visibility=\"unauth\"`",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-81db3b6bbe9b",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: Resolved a regression that prevented users with create and update permissions on KV v1 secrets from opening the edit view",
+   "detail": "ui: Resolved a regression that prevented users with create and update permissions on KV v1 secrets from opening the edit view. The UI now correctly recognizes these capabilities and allows editing without requiring full read access.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a5b3c9d6d969",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: Reverts Kubernetes CA Certificate auth method configuration form field type to file selector",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e2334d274eae",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: Update LDAP accounts checked-in table to display hierarchical LDAP libraries",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e9bb03bbece6",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: Update LDAP library count to reflect the total number of nodes instead of number of directories",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-421831784de6",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: fix renew token button rendering for denied renew-self",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-81aec64a4ac0",
+   "category": "bugfix",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui: remove unnecessary 'credential type' form input when generating AWS secrets",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-887b8f946991",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "audit: A new top-level key called `supplemental_audit_data` can now appear within audit entries of type \"response\" within the request and response data…",
+   "detail": "audit: A new top-level key called `supplemental_audit_data` can now appear within audit entries of type \"response\" within the request and response data structures. These new fields can contain data that further describe the request/response data and are mainly used for non-JSON based requests and responses to help auditing. The `audit-non-hmac-request-keys` and `audit-non-hmac-response-keys` apply to keys within `supplemental_audit_data` to remove the HMAC of the field values if so desired.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9b33c623b4cc",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core/managed-keys (enterprise): The response to API endpoint GET sys/managed-keys/:type/:name now returns an array of string values for key usages, rather than…",
+   "detail": "core/managed-keys (enterprise): The response to API endpoint GET sys/managed-keys/:type/:name now returns an array of string values for key usages, rather than an array of integer values. The strings used are 'encrypt' (1), 'decrypt' (2), 'sign' (3), 'verify' (4), 'wrap' (5), 'unwrap' (6), 'generate_random' (7), and 'mac' (8).",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-58c2661d1fd7",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: Vault now rejects paths that are not canonical, such as paths containing double slashes (`path//to/resource`)",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d1f7ac5365ac",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: secondary DR requests can now be authenticated using a root token generated on the primary",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-08694d035b8a",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: sys/generate-root and sys/replication/dr/secondary/generate-operation-token endpoints are now authenticated by default, with the old unauthenticated…",
+   "detail": "core: sys/generate-root and sys/replication/dr/secondary/generate-operation-token endpoints are now authenticated by default, with the old unauthenticated behaviour enabled by setting the new HCL config key enable_unauthenticated_access to include the value \"generate-root\" or \"generate-operation-token\" respectively.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5b2f28e9efe4",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "core: sys/rekey endpoints are now authenticated by default, with the old unauthenticated behaviour enabled by setting the new HCL config key…",
+   "detail": "core: sys/rekey endpoints are now authenticated by default, with the old unauthenticated behaviour enabled by setting the new HCL config key enable_unauthenticated_access to include the value \"rekey\".",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fb78cc532eda",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "license utilization reporting (enterprise): Manual reporting bundles generated by `vault operator utilization` have a changed format",
+   "detail": "license utilization reporting (enterprise): Manual reporting bundles generated by `vault operator utilization` have a changed format. Notably they contain an array of `snapshot_records` instead of `snapshots`. The `decoded_snapshot` field in each record contains the human-readable data that was previously in the `snapshots` array.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-91a7eaf7f8b2",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "mfa/duo: Upgrade duo_api_golang client to 0.2.0 to include the new Duo certificate authorities",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c4a5e4403488",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "packaging: Container images are now exported using a compressed OCI image layout",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-95e7dc0fc8de",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "packaging: UBI container images are now built on the UBI 10 minimal image",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3266f472f41a",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/azure: Update azure enterprise secrets plugin to include static roles",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-406e1c4c6a40",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/ldap (enterprise): Static roles will be migrated from a plugin-managed queue to the Vault Enterprise Rotation Manager system",
+   "detail": "secrets/ldap (enterprise): Static roles will be migrated from a plugin-managed queue to the Vault Enterprise Rotation Manager system. Static role migration progress can be checked and managed through a new static-migration endpoint. See the LDAP documentation for more details on this process.",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ae028a9a5124",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secrets/pki: sign-verbatim endpoints no longer ignore basic constraints extension in CSRs, using them in generated certificates if isCA=false or returning an…",
+   "detail": "secrets/pki: sign-verbatim endpoints no longer ignore basic constraints extension in CSRs, using them in generated certificates if isCA=false or returning an error if isCA=true",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0e23a230df24",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "secure-plugin-api: Update to v0.2.0",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a39980643ebe",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "storage: Upgrade aerospike client library to v8",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-c2bbda2b6b89",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "ui/secrets: Secrets engines url paths renamed from '/secrets' to '/secrets-engines'",
+   "detail": "",
+   "release": "2.0.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  }
+ ],
+ "evidence": [
+  {
+   "id": "ev-6fdc89f7e2cd",
+   "uri": "https://github.com/hashicorp/vault/releases/tag/v1.21.4"
+  },
+  {
+   "id": "ev-d1d9512ed69c",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-8056ff957369",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-14bdfa49779c",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-dfa9cc4789d0",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-86bc189e818e",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-234c2efa0f17",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-0fd54e42747a",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-4558b0094bf7",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ceec00396dab",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-63b0d877bc57",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-7e94ccacb33b",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-184e4a0c24c9",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-b6a496c05dec",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-d0089f69a073",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-6cf0024fd4bf",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-0cc2a672f019",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-d624c519f656",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-6277541cf254",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-15f2b868967f",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-180564e3fc7b",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-5375524e785b",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-f2a088f7bdd4",
+   "uri": "https://releases.hashicorp.com/vault/1.21.4/vault_1.21.4_linux_amd64.zip"
+  },
+  {
+   "id": "ev-2af6f7a00da6",
+   "uri": "https://releases.hashicorp.com/vault/1.21.4+ent/vault_1.21.4+ent_linux_amd64.zip"
+  },
+  {
+   "id": "ev-0481751c4503",
+   "uri": "https://registry-1.docker.io/v2/hashicorp/vault-enterprise/manifests/sha256:e027376645dbf216a89c13182e7e2c6de81d0274d2c565eafa54ef1167d1bdc2"
+  },
+  {
+   "id": "ev-83de9d7387c8",
+   "uri": "https://releases.hashicorp.com/vault/1.21.4/vault_1.21.4_SHA256SUMS"
+  },
+  {
+   "id": "ev-f3657a3e5ed2",
+   "uri": "https://registry-1.docker.io/v2/hashicorp/vault/manifests/sha256:4e33b126a59c0c333b76fb4e894722462659a6bec7c48c9ee8cea56fccfd2569"
+  },
+  {
+   "id": "ev-fc04e0bbc59e",
+   "uri": "https://rpm.releases.hashicorp.com/RHEL/9/x86_64/stable/vault-1.21.4-1.x86_64.rpm"
+  },
+  {
+   "id": "ev-28c73e55bf6e",
+   "uri": "https://github.com/hashicorp/vault/releases/tag/v2.0.0"
+  },
+  {
+   "id": "ev-264ed29c049f",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-a5c6f5366c79",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-36cdf0d64792",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-c4a58dce7d74",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-265dfc2e1539",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e912d7748b05",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-344bf0444dcb",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-6f92e7d75342",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-b6096a25d9a4",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ec2a43b7fbe0",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-7fac297974db",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-7be10aa95398",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-6e2b9479d985",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-198096ccf1d4",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-842c5e17d805",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-76445e909c34",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-a223ab996985",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-12656742353d",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-999562adca38",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-c445f634bb08",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-9a1bc094fb9d",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-2a791714e318",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-521fc3ffe579",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-7206b58b29f3",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-52bb0809b56f",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-b29b971fc8a6",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-5b5a58011dcd",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-71997fbb473e",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-b332477ee84d",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-b95e6c0b36d0",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-77aa1e164208",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-baa1b37506e5",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-35feca4f482c",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-5eb008d0d8f2",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-889c51f4c08f",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-0f9830e6e8c4",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-a16996248634",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-570303e01068",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-0784fd21b09c",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-2b802e33c394",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e863a6863455",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-c4b7f4b5ca91",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-62939d84e259",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-33565f5cabd5",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ee81e60bbd09",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-5794c25f813e",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-8642eeafa288",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-579aaa8b8e27",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-8d4cbe116526",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-4f1b05bcb8ee",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-0df16d9dbda3",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ba69f253e54c",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-6f27f1361e26",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-1e543b3f4917",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-7b2dfbd5f654",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-1e556e8ed4c8",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-535884977fe4",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-24f8e501be99",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-cc266a402293",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-0277f84ff42b",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-b741c8e22deb",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-0d6375f9d742",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-6a27361c9381",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e83260b3d842",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-92c20208fa12",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-d5d3b9dcb1a0",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-d513382e3945",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e1ea98479602",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-7b0a9ec32e03",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-f9eda1c5b53c",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-5bb5fedc3709",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-83fe5b3db82d",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-727561746aea",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e4adda9094d9",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-1bc02c501690",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-a8c67ca494ac",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-de001a893322",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-970e4d0cdfcb",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-f1028e1603e2",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-4bb716516838",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-4183e48fd0cc",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-07ba3630ec7b",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-b13c9642b0cd",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-c1a258eaa1a1",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-597bf32c1821",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-2c8bb21eb1f9",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-9f43cce1409c",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-536cfdfcbfc8",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-5177d4976c44",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-c2a5c10dd880",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-82d2039a97c0",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-c39a7930b8f1",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-2937c8729c8c",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-3f99ed4cdf4f",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-a21458fc4e78",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e7a06c877662",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ca7362a558c9",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-63fd58e84762",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-fd67dff9747a",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-1429e83f8ce0",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-2aa8b0b1d4f1",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-9690e648521f",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-b3566d1869c6",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-a2815c4967ad",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-5f2bf670118a",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-5579b39a42a4",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-3fc8f104a46a",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-347eabb61714",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-66d51790c0bc",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-bac0ee10ef32",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-a03f78c72e7b",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-fd722b9c6bdb",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-c20c12cdf0f6",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e4fa69f099e9",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-0608a8bfa2b6",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-903d6d7ce287",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-7604963fc856",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-b3a25fb9ec88",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-2ff89ce0abf2",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-8ca8d35259f7",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-8216989ba5bc",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-8db30afc78cb",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ace50f1a0f0d",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-999d12f42373",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-75bfd18820d6",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-9f57f19a2122",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-f875e6b1a4a4",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-9e18b7636fae",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-95ed55884cb0",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e34f9361f55b",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ec96c232447c",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-7830836fc1c7",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-5198f65c306c",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-7f0fb98ba0ec",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-f2cbae981d7e",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-f9722d16ccc7",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-4490c43a9c10",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-68ddfd1e1db5",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-fb8ac0a9498e",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-fc24b3dbdbaa",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-dba6d2ea200f",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e90f4cb23eae",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-48be5881350a",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e0580c5e57d7",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-2ac939545654",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-55059b629750",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-c0c2bdafed77",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-d194d99ff4a2",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-0eee880c28db",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-cd905a621222",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-0e1ac53d82ae",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-fd3a1cea5dd1",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-1100ec034f12",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-a38a20281152",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ff60e8789aca",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-bc3b9e99f790",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e8733745fc12",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-73d937381b30",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-9a8515add368",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-6c1990b59593",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-2f21a47bd2b6",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-b6aba814b1d6",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-d959f26e8a6d",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-d5cd49f7b345",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-3e836cddc8d4",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-40bf95fd1464",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-fc219cc58818",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-64b673740f76",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-e86f6ae54f0b",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ec7365ed120a",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-306bcec3074d",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-2281f185460e",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-5519306c9c14",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-700249f321a5",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-02d06d7a20df",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-9f54ec38efdf",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ce4c5e19e6d4",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-c46ab23f56b4",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ef7335a71644",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-f5585ee8be04",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-a1af8fcd7c49",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-702ec8b391af",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-34d6a79df636",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-867f0ae2104a",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-aa2f0c1e0eed",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-8f1441ff754b",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-bf2d5736d29a",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-c9931fd1cd49",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-baabcd541e7a",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-de3d0e2f37c0",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-a99a7457262a",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-2b0a027e76bf",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-8378f5c4e515",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-1404a399ce63",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-4f98b5f10a47",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-576ec9caa271",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ef305be9a9de",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-7af9d6007ea2",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-552a3851ab0e",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-0060c09d95ef",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-f849babe2455",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ac4fd0f30177",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-6eb0617c43b6",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-900c6820f766",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-61cb47587a18",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ed721a00d46f",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-04359475c4ec",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-16dd96d242d3",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-05f88c475948",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-1474de1722c7",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-dc96749777ed",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-97859c80c080",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-f91fe2cad746",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-5bc15ff1864a",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-41856acfb381",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-a518be2bfd63",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-abaa6cb41ae6",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-1b17527ddb20",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-aaef6ff85287",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-ae1f5331f844",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-cf30cc003208",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-85b3dd0b3896",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-fc7a870374e5",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-61931e1694c0",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-58df6556a2a5",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-813d37306cd8",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-f76b36b54330",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-c762edecc3a8",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-11de3bfdaa1b",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-d6c4f949a7a9",
+   "uri": "https://github.com/hashicorp/vault/blob/main/CHANGELOG.md"
+  },
+  {
+   "id": "ev-273a920bfc82",
+   "uri": "https://github.com/hashicorp/web-unified-docs/blob/main/content/vault/v2.x/content/docs/updates/important-changes.mdx"
+  },
+  {
+   "id": "ev-487fcffd5f5d",
+   "uri": "https://github.com/hashicorp/web-unified-docs/blob/main/content/vault/v2.x/content/docs/updates/important-changes.mdx"
+  },
+  {
+   "id": "ev-1dd4745949f6",
+   "uri": "https://github.com/hashicorp/web-unified-docs/blob/main/content/vault/v2.x/content/docs/updates/important-changes.mdx"
+  },
+  {
+   "id": "ev-c134abbc44e7",
+   "uri": "https://github.com/hashicorp/web-unified-docs/blob/main/content/vault/v2.x/content/docs/updates/important-changes.mdx"
+  },
+  {
+   "id": "ev-0b1451f322cd",
+   "uri": "https://github.com/hashicorp/web-unified-docs/blob/main/content/vault/v2.x/content/docs/updates/important-changes.mdx"
+  },
+  {
+   "id": "ev-2c2fd6591e64",
+   "uri": "https://github.com/hashicorp/web-unified-docs/blob/main/content/vault/v2.x/content/docs/updates/important-changes.mdx"
+  },
+  {
+   "id": "ev-038e341b2d28",
+   "uri": "https://github.com/hashicorp/web-unified-docs/blob/main/content/vault/v2.x/content/docs/updates/important-changes.mdx"
+  },
+  {
+   "id": "ev-2041eec80bea",
+   "uri": "https://github.com/hashicorp/web-unified-docs/blob/main/content/vault/v2.x/content/docs/updates/important-changes.mdx"
+  },
+  {
+   "id": "ev-84a731153aca",
+   "uri": "https://github.com/hashicorp/web-unified-docs/blob/main/content/vault/v2.x/content/docs/updates/important-changes.mdx"
+  },
+  {
+   "id": "ev-0456b34735b6",
+   "uri": "https://github.com/hashicorp/web-unified-docs/blob/main/content/vault/v2.x/content/docs/updates/important-changes.mdx"
+  },
+  {
+   "id": "ev-95a86c009ad7",
+   "uri": "https://releases.hashicorp.com/vault/2.0.0/vault_2.0.0_linux_amd64.zip"
+  },
+  {
+   "id": "ev-ba35d1c43866",
+   "uri": "https://releases.hashicorp.com/vault/2.0.0+ent/vault_2.0.0+ent_linux_amd64.zip"
+  },
+  {
+   "id": "ev-f4029c9bd6a7",
+   "uri": "https://registry-1.docker.io/v2/hashicorp/vault-enterprise/manifests/sha256:d28c0f5f739303c2424b878d3160edab242cfb35c131712ccb2d5930b0ef65c8"
+  },
+  {
+   "id": "ev-224865aec866",
+   "uri": "https://releases.hashicorp.com/vault/2.0.0/vault_2.0.0_SHA256SUMS"
+  },
+  {
+   "id": "ev-dbfed7127d69",
+   "uri": "https://registry-1.docker.io/v2/hashicorp/vault/manifests/sha256:e40c741ed95bb271425e3e6ca6c222d620cf8682f6f7a1b1e7c9d49d0aba484b"
+  },
+  {
+   "id": "ev-eeebf77ceefd",
+   "uri": "https://rpm.releases.hashicorp.com/RHEL/9/x86_64/stable/vault-2.0.0-1.x86_64.rpm"
+  }
+ ]
+}
