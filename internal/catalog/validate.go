@@ -279,6 +279,7 @@ func Validate(d *ProductDefinition) ValidationReport {
 		v.constraint(p+".availability", a.Availability)
 		v.exceptions(p+".exceptions", a.Exceptions)
 	}
+	v.lifecycle(d)
 	return v.r
 }
 

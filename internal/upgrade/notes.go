@@ -40,7 +40,8 @@ func (b *builder) noteChanges() {
 	for _, r := range b.releases {
 		for _, it := range r.Notes {
 			text := strings.TrimSpace(it.Text)
-			if text == "" {
+			if text == "" || (b.in.Definition != nil && b.in.Definition.IsLifecycleSource(it.SourceID)) {
+				// lifecycle sources are reported by lifecycleChanges
 				continue
 			}
 			rel := it.Release

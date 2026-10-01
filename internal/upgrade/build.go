@@ -77,6 +77,7 @@ func build(in Input) (*domain.UpgradeEdge, error) {
 	b.imageChanges()
 	b.compatChanges()
 	b.advisoryChanges()
+	b.lifecycleChanges()
 
 	b.linkFacts()
 	sortChanges(b.changes)
