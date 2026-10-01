@@ -1,0 +1,325 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: falco
+name: Falco
+description: >-
+  The Falco runtime-security engine (github.com/falcosecurity/falco): the
+  userspace daemon (rule evaluation, outputs, webserver/metrics) plus its
+  kernel data-source drivers (kmod / modern_ebpf CO-RE; legacy eBPF probe and
+  gVisor engine dropped in 0.44.0). Unprefixed semver tags with minor lines
+  (0.3.0 → 0.45.0; no 1.x era); the agent/* tag family in the same repository
+  is a different component and excluded. Release notes are CHANGELOG.md
+  sections (conventional commits under H3 labels, read on master: the section
+  for X is committed after tag X about half the time). The engine pins its
+  kernel driver and falcosecurity-libs per release in cmake/modules/*.cmake;
+  packages (tgz/deb/rpm) ship from download.falco.org and images from Docker
+  Hub. The Helm chart is published by the falcosecurity/charts monorepo
+  (lookup by appVersion == release tag); its dev source moved into chart/ of
+  this repository at 0.44.0, where Chart.yaml at the tag is mid-cycle (rc) —
+  contents are read from the packaged chart.
+homepage: https://falco.org
+
+versioning:
+  scheme: semver
+  # 0.X.Y stable; pre-releases 0.X.0-alphaN/rcN are excluded, as are the
+  # ancient v0.1.0/v0.2.0, the 0.6.0-test tag and the 73 agent/0.X.Y tags of
+  # a different component tagged in the same repository.
+  tagPattern: '^(?P<version>\d+\.\d+\.\d+)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/falcosecurity/falco
+      tagPattern: '^(?P<version>\d+\.\d+\.\d+)$'
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: falcosecurity/falco
+
+  # --- release notes: CHANGELOG.md on master ----------------------------------
+  # One "## v0.X.Y" section per release (76 sections, v0.1.0 → v0.45.0),
+  # grouped under H3 labels (Breaking Changes :warning:, Major/Minor Changes,
+  # Bug Fixes, Rule Changes, Statistics, Non user-facing changes, Security
+  # Fixes); items are conventional-commit bullets with PR links and authors.
+  # Read at master, not at the tag: the section for X is committed AFTER tag X
+  # about half the time (at tag 0.43.0 the newest section is v0.42.0; same lag
+  # at 0.40.0, 0.42.0, 0.43.1, 0.44.0, 0.44.1) — the document is append-only,
+  # so the master copy of a section is the same text with stable line numbers.
+  - id: changelog
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/falcosecurity/falco
+      ref: master
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: '^v{{regexQuote .Version}}$'
+    exceptions:
+      - versions: [0.44.1]
+        reason: "upstream never wrote the v0.44.1 changelog section (the section list on master jumps v0.44.0 -> v0.43.1; the 0.44.1 release exists — tag, chart 9.1.0, packages). The release-notes-github fallback covers it with the release body."
+    classify: &changelog-classify
+      # the "Released on DATE" line under the section heading
+      - text: 'Released on \d{4}-\d{2}-\d{2}$'
+        skip: true
+      # internal churn and metrics counters, not upgrade intelligence
+      - section: '^Non user-facing'
+        skip: true
+      - section: '^Statistics'
+        skip: true
+      # docs/ci/test PRs
+      - text: '^(docs?|ci|test)\(?[a-z/]*\)?:'
+        skip: true
+      # breaking items that drop an engine/driver/output (the high-value ones:
+      # 0.44.0 dropped gRPC output+server, the gVisor engine and the legacy
+      # BPF probe, all deprecated in 0.43.0)
+      - text: '(?i)\b(drop|dropped|remove|removed|removal|deprecat)\b'
+        section: '^Breaking Changes'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - section: '^Breaking Changes'
+        category: other
+        breaking: true
+        actionRequired: true
+      - section: '^Security Fixes'
+        category: security
+      - text: 'CVE-\d{4}-\d{4,}|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+        category: security
+      - section: '^Bug Fixes'
+        category: bugfix
+      - section: '^Major Changes'
+        category: feature
+      - section: '^Minor Changes'
+        category: other
+      # rule-file changes belong to the falcosecurity/rules product
+      - section: '^Rule Changes'
+        category: other
+  # The GitHub release body is the release template: LIBS/DRIVER version
+  # badges (links into falcosecurity/libs releases) and a download matrix for
+  # the download.falco.org packages. Kept as the quota-taxed fallback for the
+  # rare case the changelog moves; the badges also cross-state the pins that
+  # the driver/libs artifacts below read from the cmake files.
+  - id: release-notes-github
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: release-notes
+    locator:
+      kind: github-releases
+      repository: falcosecurity/falco
+      ref: "{{.Tag}}"
+    extract:
+      type: whole
+    classify:
+      # shields.io badges and the package matrix table rows
+      - text: '^\[\!?\[|^\|'
+        skip: true
+
+  # --- security ----------------------------------------------------------------
+  - id: advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: falcosecurity/falco
+    notes: >-
+      8 published GHSAs (CVE-2022-26316 TOCTOU rule bypass; the 2025 io_uring
+      detection gap; six 2021-era ones). SECURITY.md points to GitHub private
+      vulnerability reporting; the GHSA feed is the machine-readable channel.
+
+artifacts:
+  # --- container images (docker.io canonical, mirror.gcr.io fallback) ----------
+  - id: falco-image
+    type: container-image
+    name: falco
+    description: The Falco engine userspace daemon image (modern_ebpf driver object code linked in since 0.34.x).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/falcosecurity/falco
+      - kind: oci
+        repository: mirror.gcr.io/falcosecurity/falco
+    notes: >-
+      Arch variants (x86_64-/aarch64-) and -debian suffixed tags exist per the
+      publish workflow; only the multi-arch index tag is modeled. The
+      historical falco-no-driver image is no longer published.
+  - id: driver-loader-image
+    type: container-image
+    name: falco-driver-loader
+    description: Init-container image that loads/installs the kernel driver (kmod or prebuilt eBPF probe) on the node.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/falcosecurity/falco-driver-loader
+      - kind: oci
+        repository: mirror.gcr.io/falcosecurity/falco-driver-loader
+
+  # --- Helm chart (published by the falcosecurity/charts monorepo) --------------
+  # Chart 1.x → 9.2.0, 237 index entries; every falco release has a chart whose
+  # appVersion is the release tag (unprefixed string; chart patches re-publish
+  # the same appVersion — 8.0.2..8.0.5 all carry 0.43.1 — select latest
+  # resolves). Chart majors track engine minors loosely (9.x ↔ 0.44/0.45,
+  # 8.x ↔ 0.43, 7.x ↔ 0.42, 4.x ↔ 0.37-0.40, 3.x ↔ 0.36). Since 0.44.0 the
+  # chart dev source lives in chart/ of this repository (synced to the monorepo
+  # by sync(charts/falco) commits); Chart.yaml AT THE TAG is mid-cycle
+  # (9.2.0-rc1/appVersion 0.45.0-rc2 at tag 0.45.0), so contents are read from
+  # the packaged chart of the first channel (the index tarball).
+  - id: chart
+    type: helm-chart
+    name: falco
+    description: The Falco Helm chart — DaemonSet + driver-loader init container + falcoctl init/sidecar (the primary Kubernetes install path).
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Tag}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://falcosecurity.github.io/charts
+        chart: falco
+      - kind: oci
+        repository: ghcr.io/falcosecurity/charts/falco
+    contents:
+      - kind: helm-values
+      - kind: chart-metadata
+
+  # --- kernel driver + libs (per-release pins in the cmake files) ---------------
+  # The driver dimension, representable half: the engine pins the kernel-driver
+  # source (a "+driver" tag of falcosecurity/libs, the repo whose /driver
+  # directory holds the driver sources) and the falcosecurity-libs tag per
+  # release. Both move with almost every release (0.38.0 -> 7.2.0+driver/
+  # 0.17.1 ... 0.45.0 -> 11.0.0+driver/0.26.0). The regexes anchor on the
+  # real pins (the "0.0.0-local" default branches do not match).
+  - id: driver-source
+    type: package
+    name: falco-driver
+    description: >-
+      The kernel driver source (kmod / eBPF probe) the release builds against,
+      pinned in cmake/modules/driver.cmake as a +driver tag of
+      falcosecurity/libs. The prebuilt-probe matrix (which kernel x distro has
+      a compiled module) is keyed by this version on download.falco.org.
+    availability: ">= 0.33.0"
+    version:
+      strategy: pattern
+      pattern: 'set\(DRIVER_VERSION "(?P<version>\d+\.\d+\.\d+\+driver)"\)'
+      from:
+        kind: repo-file
+        repository: github.com/falcosecurity/falco
+        ref: "{{.Tag}}"
+        path: cmake/modules/driver.cmake
+    channels:
+      - kind: http
+        url: "https://github.com/falcosecurity/libs/archive/refs/tags/{{.ArtifactVersion}}.tar.gz"
+    notes: >-
+      Driver kinds: kmod and legacy eBPF probe built from this source;
+      modern_ebpf is CO-RE object code linked into the falco binary (kernel
+      >= 5.8 or backported BTF); the gVisor engine and legacy BPF probe were
+      deprecated in 0.43.0 and dropped in 0.44.0. Before 0.33.0 the driver was
+      bundled with libs (no pin in this file).
+  - id: libs-source
+    type: package
+    name: falcosecurity-libs
+    description: The falcosecurity-libs tag (sinsp/engine libraries) the release is built against, pinned in cmake/modules/falcosecurity-libs.cmake.
+    availability: ">= 0.33.0"
+    version:
+      strategy: pattern
+      pattern: 'set\(FALCOSECURITY_LIBS_VERSION "(?P<version>\d+\.\d+\.\d+)"\)'
+      from:
+        kind: repo-file
+        repository: github.com/falcosecurity/falco
+        ref: "{{.Tag}}"
+        path: cmake/modules/falcosecurity-libs.cmake
+    channels:
+      - kind: http
+        url: "https://github.com/falcosecurity/libs/archive/refs/tags/{{.ArtifactVersion}}.tar.gz"
+    notes: >-
+      Pre-0.33.0 releases pin a commit hash, not a tag (the /archive/<ref>
+      URL shape would probe those too; modeled from the tag-pinned era on).
+
+  # --- falcoctl (separate product, pinned by the chart) -------------------------
+  # The chart runs falcoctl as init/sidecar containers; its image tag is pinned
+  # per release in chart/falco/values.yaml (falcoctl.image.tag) and moves with
+  # the release (0.12.2-era commits, 0.14.1, 0.14.2 at 0.45.0). falcoctl the
+  # product (github.com/falcosecurity/falcoctl) is NOT onboarded; only the pin
+  # that ships inside this product's chart is modeled.
+  - id: falcoctl-image
+    type: container-image
+    name: falcoctl
+    description: The falcoctl image pinned by the chart (artifact install/follow containers).
+    availability: ">= 0.44.0"
+    version:
+      strategy: field
+      field: falcoctl.image.tag
+      from:
+        kind: repo-file
+        repository: github.com/falcosecurity/falco
+        ref: "{{.Tag}}"
+        path: chart/falco/values.yaml
+    channels:
+      - kind: oci
+        repository: docker.io/falcosecurity/falcoctl
+      - kind: oci
+        repository: mirror.gcr.io/falcosecurity/falcoctl
+    notes: >-
+      Before 0.44.0 the chart source (and this pin) lived only in the
+      falcosecurity/charts monorepo at the chart's own tag — unreachable from
+      release context (the pin IS the resolution input), hence the window.
+
+  # --- packages (download.falco.org → CloudFront, reachable) ---------------------
+  - id: binary-tarball
+    type: binary
+    name: falco-binary-tarball
+    description: The Falco binary package (userspace daemon + config + rules) from download.falco.org.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://download.falco.org/packages/bin/x86_64/falco-{{.Tag}}-x86_64.tar.gz"
+    notes: >-
+      The deb path carries a /stable/ suite component and the rpm path does
+      not (release template); aarch64 twins and the -static tarball exist per
+      arch family (not modeled).
+  - id: deb-package
+    type: package
+    name: falco-deb
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://download.falco.org/packages/deb/stable/falco-{{.Tag}}-x86_64.deb"
+  - id: rpm-package
+    type: package
+    name: falco-rpm
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://download.falco.org/packages/rpm/falco-{{.Tag}}-x86_64.rpm"
+  - id: source-archive
+    type: package
+    name: falco-source
+    description: Source tarball of the release tag.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/falcosecurity/falco/archive/refs/tags/{{.Tag}}.tar.gz"
+
+provenance:
+  method: discovery+review
+  author: onboarding wave 3
+  updated: "2026-10-01"
+  validatedReleases: [0.33.0, 0.36.0, 0.38.0, 0.40.0, 0.41.0, 0.42.0, 0.43.0, 0.43.1, 0.44.0, 0.44.1, 0.45.0]
+  notes: >-
+    Started from the discovery proposal (git-tags + tag family, GitHub release
+    body fallback, docker.io images, the charts-monorepo lookup — all kept)
+    and corrected from docs/research/falco.md: the changelog is read on master
+    (the at-tag lag), the independent chart proposal was dropped in favour of
+    the lookup, chart contents come from the packaged index tarball (the
+    in-tree Chart.yaml is mid-cycle at tags), and the driver/libs/falcoctl
+    pins, the download.falco.org packages and the source archive were added
+    from research.
