@@ -1,0 +1,33 @@
+name: Publish Release
+on:
+  push:
+    tags:
+      - 'v*'
+      - '!v1.*'
+jobs:
+  setup-variables:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Set variables
+        id: var
+        run: |
+          IMAGE_NAMESPACE="${{ vars.IMAGE_NAMESPACE || 'example' }}"
+          IMAGE_REPOSITORY="${{ vars.IMAGE_REPOSITORY || 'deployer' }}"
+          echo "quay_image_name=quay.io/$IMAGE_NAMESPACE/$IMAGE_REPOSITORY:${{ github.ref_name }}" >> $GITHUB_OUTPUT
+  image:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Login to Quay
+        uses: docker/login-action@v4
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+  goreleaser:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          args: release --clean

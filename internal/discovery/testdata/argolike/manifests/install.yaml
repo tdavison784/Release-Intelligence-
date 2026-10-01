@@ -1,0 +1,27 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: apps.deployer.example.io
+spec:
+  group: deployer.example.io
+  names:
+    kind: App
+    plural: apps
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployer-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: server
+          image: quay.io/example/deployer:v3.1.2
+        - name: redis
+          image: public.ecr.aws/docker/library/redis:8.2.3-alpine

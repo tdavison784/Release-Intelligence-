@@ -1,0 +1,1 @@
+STATIC_BASE_IMAGE_amd64 := gcr.io/distroless/static-debian13@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa

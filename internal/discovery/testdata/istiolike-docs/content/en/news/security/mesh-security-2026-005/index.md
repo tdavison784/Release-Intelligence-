@@ -1,0 +1,4 @@
+---
+title: MESH-SECURITY-2026-005
+cves: [CVE-2026-10005]
+---
