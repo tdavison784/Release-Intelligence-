@@ -129,7 +129,7 @@ func selectReleases(def *catalog.ProductDefinition, parser domain.VersionParser,
 			continue
 		}
 		v, err := parser.Parse(tag)
-		if err != nil && locRe != nil && locRe.SubexpIndex("version") > 0 {
+		if err != nil && domain.HasVersionGroups(locRe) {
 			v, err = domain.VersionParser{Scheme: def.Versioning.Scheme, Pattern: locRe}.Parse(tag)
 		}
 		if err != nil {

@@ -153,6 +153,16 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			ex.Type = catalog.ExtractWhole
 		}
 	}
+	if ex.Format == catalog.FormatDocBook {
+		// render DocBook as markdown (line for line) on a copy: documents
+		// are shared with other sources through the memo
+		conv := make([]sources.Document, len(f.docs))
+		for k, d := range f.docs {
+			d.Content = normalize.DocBookToMarkdown(d.Content)
+			conv[k] = d
+		}
+		f.docs = conv
+	}
 	repo := repositoryOf(loc)
 	if repo == "" {
 		repo = r.repo
@@ -169,6 +179,7 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			Repository:  repo,
 
 			LabelPattern: ex.LabelParagraphs,
+			ListItems:    ex.Format == catalog.FormatDocBook,
 		}
 	}
 	p := i.parser()

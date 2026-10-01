@@ -1,0 +1,118 @@
+product: postgresql
+order: 5
+wave: 1
+repository: github.com/postgres/postgres
+onboarding:
+  startedAt: "2026-10-01T11:50:12Z"
+  finishedAt: "2026-10-01T12:15:31Z"
+  minutes: 25
+discovery:
+  proposal: docs/onboarding/discovery/postgresql.proposed.yaml
+  report: docs/onboarding/discovery/postgresql.report.md
+# Discovery found only: git-tags (with a scheme that matches no tag: "0 stable,
+# 693 junk"), github-advisories (default for GitHub-hosted repositories) and
+# three CI images. Everything else was research.
+sources:
+  - {id: git-tags, origin: discovered-modified, note: "locator kept (proposal id 'tags'); the proposed semver scheme matched 0 of 693 tags and lineage 'linear' was wrong: now a component tagPattern (new construct) + lineage minor"}
+  - {id: release-notes, origin: manual, note: "DocBook SGML doc/src/sgml/release-NN.sgml at the release tag, one <sect1> per release (>= 10); extract.format docbook (new construct)"}
+  - {id: release-notes-legacy, origin: manual, note: "same for < 10: release-9.6.sgml, 3-part versions, 'Release 9.6' for 9.6.0"}
+  - {id: security-page, origin: manual, note: "postgresql.org/support/security declared (http, blocked, no adapter); CVEs are read from the release notes instead"}
+artifacts:
+  - {id: source-tarball, origin: manual, note: "ftp.postgresql.org tarball, type 'package' (no source-archive type); unreachable, stays expected"}
+  - {id: postgres-image, origin: manual, note: "docker.io/library/postgres:17.2; mirror.gcr.io added as reachable fallback (Docker Hub answers 429 to the shared address); exceptions for 10.22/10.23/11.19-11.22"}
+  - {id: postgres-image-alpine, origin: manual, note: "17.2-alpine; availability >= 9.6.1"}
+discoveryRejected:
+  - {id: advisories, reason: "github-advisories postgres/postgres: GitHub mirror whose SECURITY.md points to postgresql.org (the project is its own CNA); api.github.com is blocked, so it could never be verified"}
+  - {id: "image ghcr.io/anarazel/pg-vm-images/main (+ linux_debian_trixie_ci, _docs)", reason: "CI build images of the repository, not product artifacts (discovery already excluded them as third-party)"}
+relationships:
+  # semver form of the tags (17.0.0 = REL_17_0, 17.0.11 = REL_17_11, 9.6.24 = REL9_6_24)
+  historicalReleasesChecked: [8.4.22, 9.4.26, 9.5.25, 9.6.0, 9.6.24, 10.0.0, 10.0.23, 12.0.0, 13.0.0, 16.0.0, 16.0.15, 17.0.0, 17.0.11, 18.0.0, 18.0.6]
+  # First complete draft (versioning component pattern, SGML notes read with markdown-section,
+  # docker + tarball artifacts), default 6 releases (16.0, 17.0, 18.0 + latest patches):
+  # release-notes failed 6/6 ("no section matching ^Release 17$": markdown selectors do not
+  # read DocBook). The draft before it could not even list versions: `ri versions` answered
+  # "none is a release" because REL_17_2 is not a (?P<version>) semver, a representability
+  # blocker counted under constructs, not here.
+  initialFailures: 1
+  finalFailures: 0
+  manualInterventions:
+    - {subject: release-notes, change: "extract.format docbook (new construct); heading '^Release 17.2$' / '^Release 17$' chosen by patch == 0", reason: "SGML sections are not markdown headings"}
+    - {subject: postgres-image, change: "exceptions 10.0.22, 10.0.23, 11.0.19-11.0.22 (semver of 10.22, 10.23, 11.19-11.22)", reason: "default Debian tags of the last releases of EOL lines 10 and 11 were removed from Docker Hub (404); -alpine remain"}
+    - {subject: postgres-image-alpine, change: "availability >= 9.6.1", reason: "9.6.0-alpine does not exist; alpine variants start with 9.6.1 (9.4/9.5 partially)"}
+    - {subject: git-tags, change: "tagPattern: component groups, majors 8, 9 and >= 10 only", reason: "REL7_4 style two-part tags of 7.x and older are indistinguishable from REL_17_2 style, so releases before 8.0 are out of scope; it also produced bogus 7.0.4 style duplicates"}
+  unverifiable:
+    - {subject: source-tarball, reason: "ftp.postgresql.org blocked (proxy 403 on CONNECT); GitHub tag archive/codeload also 403"}
+    - {subject: security-page, reason: "www.postgresql.org blocked, and no advisory adapter reads http pages"}
+constructs:
+  new:
+    - name: "versioning.tagPattern component groups (?P<major>)(?P<minor>)(?P<patch>)(?P<prerelease>)"
+      kind: version-scheme
+      justification: "REL_17_2 / REL9_6_24 cannot be read by a (?P<version>) group: the numbers are underscore-separated, 17.2 has two parts and a major (17) must be a release line. Components are assembled into major.minor.patch[-prerelease] (missing minor/patch = 0), so 17.2 is 17.0.2, line 17.0, kind major/patch, and PrevTag/lineage/releaseKinds/availability work unchanged. Accepted for versioning.tagPattern and git-tags locators; validated by the Go validator and the JSON Schema."
+      otherProducts:
+        - "Go (go1.22 is 1.22.0)"
+        - "Linux kernel (v6.7)"
+        - "Python (v3.13.0rc1, glued prerelease)"
+        - "Ruby (v3_3_0)"
+        - "OpenSSL 1.x (OpenSSL_1_1_1)"
+        - "PHP (php-8.3.0RC1)"
+        - "MariaDB"
+        - "none of the other planned Phase-2 products tags this way (Redis, Elasticsearch, ... are three-part semver): justified by well-known projects, not by the plan"
+    - name: "extract.format: docbook (+ list-item reading of the converted notes)"
+      kind: extraction
+      justification: "PostgreSQL's release notes (and upgrade guidance and CVEs) exist only as DocBook SGML. normalize.DocBookToMarkdown renders it as line-preserving markdown (sectN+title -> headings, listitem -> bullets, code elements -> `code`, comments and commit links dropped, entities decoded, SGML shorthand '</>' and end-tag-less xref handled), so the existing markdown-section selector, parser, classify rules and evidence line ranges work on the ORIGINAL line numbers. A DocBook document is parsed with DocInput.ListItems: every <listitem> is one note item whatever prose precedes it, and sub-sections are never folded into one item (without it a major release's 200 changes collapsed into 3 items). Only for extract types whole and markdown-section."
+      otherProducts:
+        - "Pgpool-II (same SGML release-notes convention as PostgreSQL; UNVERIFIED here, from memory)"
+        - "other PostgreSQL-community projects with DocBook docs"
+        - "the 'format' field is the slot for the other non-markdown note formats of wave 1-3 products: reStructuredText (Cilium Documentation/operations/upgrade.rst) and AsciiDoc (Elasticsearch release notes); converters for those are not implemented here"
+  considered:
+    - "published-version variable (e.g. versioning.display -> {{.Display}}): '17.2' vs semver 17.0.2 is needed by the Docker tag, tarball URL and release headings; expressed with {{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}} (and {{if eq .Patch 0}} for the 'Release 17' heading) in 3 artifacts + 2 headings instead. Verbose, not impossible: rejected as not strictly required; candidate if Go/Linux/Python (1.22 vs 1.22.0) are onboarded."
+    - "lineage: major / a two-part scheme: would change Version.Line(), release kinds and path selection everywhere; the major.0.patch mapping gets the same behaviour for free"
+    - "separate upgrade-guide source for 'Migration to Version X': the role default (migration + actionRequired) would mark 'A dump/restore is not required' as an action; classify rules on the single notes source (section + text) are more precise"
+    - "extract type for docker-library versions.json (supported majors, base OS): its content is a mapping keyed by major, yaml-records wants a list"
+    - "github-advisories for the mirror: rejected (see discoveryRejected)"
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/domain/version.go, purpose: "HasVersionGroups + componentVersion: a tagPattern with a (?P<major>) group assembles the semantic version from component groups"}
+    - {file: internal/domain/version_groups_test.go, purpose: "tests: PostgreSQL, Go, Linux, Ruby, Python tags; ordering; version group wins"}
+    - {file: internal/catalog/validate.go, purpose: "accept component patterns for versioning.tagPattern and git-tags locators (no sample-tag warning); validate extract.format"}
+    - {file: internal/catalog/definition.go, purpose: "Extract.Format, FormatMarkdown/FormatDocBook constants; doc of TagPattern"}
+    - {file: internal/catalog/versiongroups_test.go, purpose: "tests: validation, line/prev/kind rendering for two-part versions, published-form templates"}
+    - {file: schemas/product-definition.schema.json, purpose: "tagPattern description for component groups; extract.format enum"}
+    - {file: internal/ingest/versions.go, purpose: "locator tagPattern fallback accepts component groups (domain.HasVersionGroups)"}
+    - {file: internal/ingest/docs.go, purpose: "render format docbook documents as markdown (on a copy) before extraction; set DocInput.ListItems"}
+    - {file: internal/ingest/docbook_test.go, purpose: "tests: docbook source conversion + list-item mode wiring, format validation"}
+    - {file: internal/normalize/docbook.go, purpose: "DocBookToMarkdown: line-preserving DocBook/SGML to markdown renderer"}
+    - {file: internal/normalize/docbook_test.go, purpose: "tests: line preservation, headings, bullets, code, entities, shorthand, section selection, list-item parsing"}
+    - {file: internal/normalize/testdata/postgresql/release-excerpt.sgml, purpose: "fixture condensed from PostgreSQL's release-NN.sgml structure"}
+    - {file: internal/normalize/api.go, purpose: "DocInput.ListItems"}
+    - {file: internal/normalize/notes.go, purpose: "noteParser.listItems: structural list-item reading (no folding of sub-sections)"}
+unreachableSources:
+  - {host: ftp.postgresql.org, reason: "egress policy 403 on CONNECT (source tarballs)"}
+  - {host: www.postgresql.org, reason: "egress policy (security pages, versioning/support policy, HTML release notes)"}
+  - {host: git.postgresql.org, reason: "egress policy (canonical git host; the GitHub mirror is used)"}
+  - {host: "github.com/postgres/postgres/archive, codeload.github.com", reason: "tag tarballs answer 403 from the sandbox"}
+  - {host: api.github.com, reason: "advisories/releases API blocked"}
+  - {host: registry-1.docker.io, reason: "reachable but anonymous pulls were rate limited (HTTP 429) while ~12 agents share the address: mirror.gcr.io declared as second channel"}
+ambiguousRelationships:
+  - "17.2 is semver 17.0.2 inside the model (ReleaseNote/Change 'release' fields, JSON, evidence) but the text output and `ri upgrade` accept only the tag (REL_17_2) or the semver (17.0.2), not the published '17.2'. Users type 17.2: version display and lookup of two-part versions is a gap."
+  - "the minor-release notes say 'see 17.6' for earlier versions (xref linkend release-17-6); the converter renders the link id, it is not resolved to a release."
+  - "18.5 was never released (tags, notes and Docker Hub agree): `PrevTag` of 18.6 is 18.4; nothing breaks, but a tool looking for 'the next patch' must not assume contiguity."
+  - "Docker tags of EOL lines: 10.22, 10.23, 11.19-11.22 default tags removed, 9.6.x kept: encoded as curated exceptions; whether more EOL tags vanish later is unknown."
+  - "evidence excerpts are the markdown rendering of the SGML lines (locators are original line numbers, digest is of the original bytes): the excerpt is not byte-verbatim."
+  - "source tarball modelled as artifact type 'package': there is no source-archive type (source-release only allows git-tags/github-releases channels)."
+representability: partial
+gaps:
+  - "Support lifecycle (five-year policy, EOL dates per major) cannot be represented at all: the model has no support-window concept and the only authoritative page (postgresql.org/support/versioning) is blocked. Dates are visible only indirectly (last minor of each line in the notes). Matters for 'is my version still supported' questions."
+  - "Compatibility matrix: nothing machine-readable (pg_upgrade 'supports upgrades from 9.2.X and later' is prose; docker-library versions.json base-OS data is keyed by major and not a list). The compatibility role stays empty."
+  - "Security: the canonical CVE pages are blocked and no adapter reads http security sources; CVEs come from the release notes only (they are complete there: every CVE of a minor is cited in its Changes list)."
+  - "Releases before 8.0: two-part first-release tags (REL7_4) cannot be told from the post-10 scheme by one pattern; version listing starts at 8.0."
+  - "Distribution packages (PGDG apt/yum, version = upstream + packaging revision) and Windows/macOS installers are not modelled."
+  - "Version display/lookup for two-part versions (see ambiguousRelationships)."
+sampleEdge:
+  from: REL_17_11
+  to: REL_18_6
+  summary: "11 breaking · 5 action required · 575 changes · 1 warning"
+  evidenceRecords: 713
+  notes: "Path REL_18_0 -> 18_1 -> 18_2 -> 18_3 -> 18_4 -> 18_6 (minor-lineage). Breaking = exactly the 11 <listitem>s of 'Migration to Version 18'; action required = the dump/restore requirement and the 18.2/18.6 REINDEX hints; 51 security items, every one citing a CVE; 300 bug fixes. Patch-only edge REL_17_9 -> REL_17_11: 0 breaking, 2 migration, 41 security, 126 bug fixes."
+notes: "Representable only after two small generic constructs; the rest of the topology (versions, per-release notes, upgrade guidance, CVEs, Docker image) is plain configuration. Classification quality is good because the notes are structured (one listitem per change, Migration section = incompatibilities): breaking counts match the document exactly. Sample-edge reading: 'Deprecate MD5 ...' needed a product rule (verb not in the builtin heuristics); 'Remove ... configure options' and 'Require ...' are flagged action required by the generic 'required' keyword (low value). Environment: Docker Hub rate limiting (429) made the first check run mark both images unverifiable, the mirror.gcr.io channel removed that flakiness."

@@ -20,7 +20,7 @@
       "properties": {
         "scheme": {"enum": ["semver"]},
         "tagPrefix": {"type": "string"},
-        "tagPattern": {"type": "string", "description": "Regex with a named group (?P<version>...)."},
+        "tagPattern": {"type": "string", "description": "Regex with a named group (?P<version>...) holding the semantic version, or named component groups (?P<major>...) with optional (?P<minor>...), (?P<patch>...) (default 0) and (?P<prerelease>...), assembled into major.minor.patch[-prerelease]; e.g. '^REL_(?P<major>\\d+)_(?P<patch>\\d+)$' reads REL_17_2 as 17.0.2."},
         "lineage": {"enum": ["minor", "linear"]},
         "includePrereleases": {"type": "boolean"}
       }
@@ -116,6 +116,7 @@
       "required": ["type"],
       "properties": {
         "type": {"enum": ["whole", "markdown-section", "markdown-table", "yaml-records", "release-note-yaml"]},
+        "format": {"enum": ["markdown", "docbook"], "description": "Markup of the document. 'docbook' (SGML/XML) is rendered as line-preserving markdown before extraction; only with types whole and markdown-section."},
         "heading": {"type": "string"},
         "keyColumns": {"$ref": "#/$defs/stringList"},
         "keyMatch": {"type": "string"},

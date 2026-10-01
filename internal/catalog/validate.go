@@ -308,8 +308,8 @@ func (v *validator) versioning(d *ProductDefinition) {
 		re, err := regexp.Compile(d.Versioning.TagPattern)
 		if err != nil {
 			v.errf("versioning.tagPattern", "%v", err)
-		} else if re.SubexpIndex("version") < 0 {
-			v.errf("versioning.tagPattern", "must contain a named group (?P<version>...)")
+		} else if !domain.HasVersionGroups(re) {
+			v.errf("versioning.tagPattern", "must contain a named group (?P<version>...) or (?P<major>...)")
 		}
 	}
 	switch d.Versioning.Lineage {
@@ -317,7 +317,8 @@ func (v *validator) versioning(d *ProductDefinition) {
 	default:
 		v.errf("versioning.lineage", "must be %q or %q", LineageMinor, LineageLinear)
 	}
-	if p, err := d.VersionParser(); err == nil {
+	if p, err := d.VersionParser(); err == nil && !(p.Pattern.SubexpIndex("version") < 0 && p.Pattern.SubexpIndex("major") > 0) {
+		// (a component pattern has its own tag shape: no "1.2.3" sample)
 		sample := d.Versioning.TagPrefix + "1.2.3"
 		if _, err := p.Parse(sample); err != nil {
 			v.warnf("versioning", "sample tag %q does not parse: %v", sample, err)
@@ -346,7 +347,7 @@ func (v *validator) locator(path string, l Locator, rc RenderContext) {
 		re, err := regexp.Compile(l.TagPattern)
 		if err != nil {
 			v.errf(path+".tagPattern", "%v", err)
-		} else if re.SubexpIndex("version") < 0 {
+		} else if re.SubexpIndex("version") < 0 && !(l.Kind == LocatorGitTags && domain.HasVersionGroups(re)) {
 			v.errf(path+".tagPattern", "must contain a named group (?P<version>...)")
 		}
 	}
@@ -368,6 +369,15 @@ func (v *validator) extract(path string, e Extract, rc RenderContext) {
 		} else if _, err := regexp.Compile(e.LabelParagraphs); err != nil {
 			v.errf(path+".labelParagraphs", "invalid regex: %v", err)
 		}
+	}
+	switch e.Format {
+	case "", FormatMarkdown:
+	case FormatDocBook:
+		if e.Type != ExtractWhole && e.Type != ExtractMarkdownSection && e.Type != "" {
+			v.errf(path+".format", "%q documents are supported by extract types %s and %s only", e.Format, ExtractWhole, ExtractMarkdownSection)
+		}
+	default:
+		v.errf(path+".format", "must be %q or %q, got %q", FormatMarkdown, FormatDocBook, e.Format)
 	}
 	switch e.Type {
 	case ExtractWhole, ExtractReleaseNoteYAML:

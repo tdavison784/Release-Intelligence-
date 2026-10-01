@@ -1,0 +1,155 @@
+<!-- doc/src/sgml/release-17.sgml -->
+<!-- See header comment in release.sgml about typical markup -->
+
+ <sect1 id="release-17-2">
+  <title>Release 17.2</title>
+
+  <formalpara>
+  <title>Release date:</title>
+  <para>2024-11-21</para>
+  </formalpara>
+
+  <para>
+   This release contains a variety of fixes from 17.1.
+   For information about new features in major release 17, see
+   <xref linkend="release-17"/>.
+  </para>
+
+  <sect2 id="release-17-2-migration">
+   <title>Migration to Version 17.2</title>
+
+   <para>
+    A dump/restore is not required for those running 17.X.
+   </para>
+
+   <para>
+    However, if you use <filename>contrib/btree_gist</filename>, you may
+    need to reindex indexes made with that extension.
+   </para>
+  </sect2>
+
+  <sect2 id="release-17-2-changes">
+   <title>Changes</title>
+
+   <itemizedlist>
+
+    <listitem>
+<!--
+Author: Noah Misch <noah@leadboat.com>
+Branch: master [3b0a0c2d5] 2024-11-04 06:04:46 -0800
+-->
+     <para>
+      Restore functionality of <literal>ALTER {ROLE|DATABASE} SET
+      role</literal> (Tom Lane, Noah Misch)
+      <ulink url="&commit_baseurl;3b0a0c2d5">&sect;</ulink>
+     </para>
+
+     <para>
+      The fix for CVE-2024-10978 accidentally caused settings for
+      <varname>role</varname> to not be applied. For example:
+<programlisting>
+ALTER ROLE app SET role = 'owner';
+</programlisting>
+      Affected installations should
+      <link linkend="sql-alterrole">re-apply</link> them.
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      Fix crash in <application>pg_rewind</application> (&Aacute;lvaro Herrera)
+     </para>
+
+     <itemizedlist>
+      <listitem>
+       <para>Only affects servers with <emphasis>no</emphasis> WAL archive.</para>
+      </listitem>
+     </itemizedlist>
+    </listitem>
+
+   </itemizedlist>
+  </sect2>
+ </sect1>
+
+ <sect1 id="release-17">
+  <title>Release 17</title>
+
+  <sect2 id="release-17-migration">
+   <title>Migration to Version 17</title>
+
+   <para>
+    A dump/restore using <xref linkend="app-pg-dumpall"/> or use of
+    <xref linkend="pgupgrade"/> is required for those wishing to migrate
+    data from any previous release.
+   </para>
+
+   <para>
+    Version 17 contains a number of changes that may affect compatibility
+    with previous releases.  Observe the following incompatibilities:
+   </para>
+
+   <itemizedlist>
+    <listitem>
+     <para>
+      Remove server variable <varname>old_snapshot_threshold</varname>
+      (Thomas Munro)
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      Change <command>SET SESSION AUTHORIZATION</command> handling
+      (Joseph Koshakow)
+     </para>
+    </listitem>
+   </itemizedlist>
+  </sect2>
+
+  <sect2 id="release-17-changes">
+   <title>Changes</title>
+
+   <para>
+    Below you will find a detailed account of the changes.
+   </para>
+
+   <sect3 id="release-17-server">
+    <title>Server</title>
+
+    <sect4 id="release-17-optimizer">
+     <title>Optimizer</title>
+
+     <itemizedlist>
+      <listitem>
+       <para>
+        Allow the optimizer to improve <literal>IS [NOT] NULL</literal>
+        plans (David Rowley)
+       </para>
+      </listitem>
+     </itemizedlist>
+    </sect4>
+   </sect3>
+  </sect2>
+
+  <sect2 id="release-17-acknowledgements">
+   <title>Acknowledgments</title>
+   <para>The following individuals have contributed to this release.</para>
+   <simplelist>
+    <member>Alice Example</member>
+   </simplelist>
+  </sect2>
+ </sect1>
+
+ <sect1 id="release-9-6-1">
+  <title>Release 9.6.1</title>
+  <sect2>
+   <title>Changes</title>
+   <itemizedlist>
+    <listitem>
+     <para>
+      Fix <literal>postgres_fdw</> to handle <acronym>SQL</> properly (see
+      <xref linkend="postgres-fdw">)
+     </para>
+    </listitem>
+   </itemizedlist>
+  </sect2>
+ </sect1>

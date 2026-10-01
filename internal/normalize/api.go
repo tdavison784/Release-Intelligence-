@@ -54,6 +54,12 @@ type DocInput struct {
 	// matching it (e.g. "SECURITY:") is treated as a heading one level below
 	// the last real heading when the document is split into items.
 	LabelPattern string
+	// ListItems selects the structural reading used for DocBook-derived
+	// content: headings only structure the document, every top-level list
+	// item is one item (whatever prose precedes the list), and prose becomes
+	// an item only as the own text of a level >= 2 section; nothing is folded
+	// into a parent section.
+	ListItems bool
 }
 
 // Section is a markdown section.

@@ -1,0 +1,210 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: postgresql
+name: PostgreSQL
+description: >-
+  Relational database server. Not a Kubernetes product and not semver: since
+  10 a version is MAJOR.MINOR (17.2 = second minor release of major 17), before
+  10 it was MAJOR.MINOR.PATCH (9.6.24). Each major is a release line,
+  maintained in parallel on a REL_NN_STABLE branch for five years. Ships as
+  source tarballs and as the Docker official image; release notes are DocBook
+  SGML in the source tree.
+homepage: https://www.postgresql.org
+
+versioning:
+  scheme: semver
+  # REL_17_2 -> 17.0.2 (the MINOR of a two-part version is semver's patch, so
+  # a major is a line "17.0"); REL9_6_24 -> 9.6.24. REL_17_RC1 -> 17.0.0-RC1.
+  # Releases before 8.0 are out of scope: their first releases are two-part
+  # tags (REL7_4 = 7.4.0) that the pattern cannot tell from REL_17_2; so are
+  # PG95-1_01 and Release_* tags.
+  tagPattern: '^REL_?(?P<major>[89]|\d{2})_(?:(?P<minor>\d+)_)?(?:(?P<patch>\d+)|(?P<prerelease>(?:ALPHA|BETA|RC)\d+))$'
+  lineage: minor
+
+sources:
+  # --- canonical versions -------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/postgres/postgres
+
+  # --- release notes + upgrade guidance ------------------------------------
+  # doc/src/sgml/release-NN.sgml (release-9.6.sgml before 10) at the release's
+  # own tag: DocBook, one <sect1> per release, newest first, headed
+  # "Release 17.2" ("Release 17" for 17.0). Its "Migration to Version X"
+  # sub-section is the upgrade guide (REINDEX, dump/restore, incompatibilities);
+  # "Changes" lists one <listitem> per change, CVEs included, so this one
+  # document serves the release-notes, upgrade-guide and security facts.
+  - id: release-notes
+    roles: [release-notes]
+    availability: ">= 10.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/postgres/postgres
+      ref: "{{.Tag}}"
+      path: doc/src/sgml/release-{{.Major}}.sgml
+    extract:
+      format: docbook
+      type: markdown-section
+      heading: '^Release {{if eq .Patch 0}}{{.Major}}{{else}}{{.Major}}\.{{.Patch}}{{end}}$'
+    validatedAgainst: [10.0.0, 10.0.23, 12.0.0, 13.0.0, 16.0.0, 16.0.15, 17.0.0, 17.0.11, 18.0.0, 18.0.6]
+    classify:
+      - section: '(?i)^acknowledg'
+        skip: true
+      # the generated introduction of a section is not a change
+      - text: '^(Overview|Changes): '
+        skip: true
+      - text: '^Deprecate\b'
+        category: deprecation
+      # minor releases: "Changes" holds fixes; the ones citing a CVE are security fixes
+      - section: '^Release \d+\.\d+ › Changes$'
+        text: 'CVE-\d{4}-\d+'
+        category: security
+      - section: '^Release \d+\.\d+ › Changes$'
+        category: bugfix
+      # minor releases: "Migration to Version 17.2" says what to do after updating
+      - section: '^Migration to Version \d+\.\d+$'
+        text: '(?i)re-?index|re-?create|rebuild|you (may|might|will) need|must |before (upgrading|updating)|after (upgrading|updating)'
+        category: migration
+        actionRequired: true
+      # (without such a hint the section only says that no dump/restore is needed)
+      - section: '^Migration to Version \d+\.\d+$'
+        category: other
+      # X.0: "Migration to Version 17" opens with the dump/restore requirement,
+      # then lists the incompatibilities (every other item of the section)
+      - section: '^Migration to Version \d+$'
+        text: '(?i)dump/restore[^.]* is required'
+        category: migration
+        actionRequired: true
+      - section: '^Migration to Version \d+$'
+        text: '^(?:[^M]|M[^i]|Mi[^g])'
+        breaking: true
+      - section: '^Release \d+ › Overview$'
+        category: feature
+      - section: '^Release \d+ › Changes'
+        text: '^(Add|Allow|Support|Improve|Enable|Introduce|Implement|Provide)\b'
+        category: feature
+      - section: '^Release \d+ › Changes'
+        text: '^(Fix|Prevent|Avoid|Correct)\b'
+        category: bugfix
+  - id: release-notes-legacy
+    roles: [release-notes]
+    availability: "< 10.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/postgres/postgres
+      ref: "{{.Tag}}"
+      path: doc/src/sgml/release-{{.Major}}.{{.Minor}}.sgml
+    extract:
+      format: docbook
+      type: markdown-section
+      heading: '^Release {{if eq .Patch 0}}{{.Major}}\.{{.Minor}}{{else}}{{regexQuote .Version}}{{end}}$'
+    validatedAgainst: [8.4.22, 9.4.26, 9.5.25, 9.6.0, 9.6.24]
+    classify:
+      - section: '(?i)^acknowledg'
+        skip: true
+      - text: '^(Overview|Changes): '
+        skip: true
+      - text: '^Deprecate\b'
+        category: deprecation
+      # patch releases (9.6.24): fixes, CVEs are security fixes
+      - section: '^Release \d+\.\d+\.\d+ › Changes$'
+        text: 'CVE-\d{4}-\d+'
+        category: security
+      - section: '^Release \d+\.\d+\.\d+ › Changes$'
+        category: bugfix
+      - section: '^Migration to Version \d+\.\d+\.\d+$'
+        text: '(?i)re-?index|re-?create|rebuild|you (may|might|will) need|must |before (upgrading|updating)|after (upgrading|updating)'
+        category: migration
+        actionRequired: true
+      - section: '^Migration to Version \d+\.\d+\.\d+$'
+        category: other
+      # 9.6 (a major release): same shape as "Migration to Version 17"
+      - section: '^Migration to Version \d+\.\d+$'
+        text: '(?i)dump/restore[^.]* is required'
+        category: migration
+        actionRequired: true
+      - section: '^Migration to Version \d+\.\d+$'
+        text: '^(?:[^M]|M[^i]|Mi[^g])'
+        breaking: true
+      - section: '^Release \d+\.\d+ › Overview$'
+        category: feature
+      - section: '^Release \d+\.\d+ › Changes'
+        text: '^(Add|Allow|Support|Improve|Enable|Introduce|Implement|Provide)\b'
+        category: feature
+      - section: '^Release \d+\.\d+ › Changes'
+        text: '^(Fix|Prevent|Avoid|Correct)\b'
+        category: bugfix
+
+  # --- security -----------------------------------------------------------
+  # The PostgreSQL project is its own CNA: advisories live on postgresql.org
+  # (blocked from the sandbox) and every CVE is also cited in the release
+  # notes above (classified security, with CVE references). No adapter reads
+  # this page; it is declared so the canonical channel is on record.
+  - id: security-page
+    roles: [security]
+    locator:
+      kind: http
+      url: https://www.postgresql.org/support/security/
+
+artifacts:
+  # --- source tarball -----------------------------------------------------
+  # ftp.postgresql.org/pub/source/v17.2/postgresql-17.2.tar.bz2 (also .gz,
+  # .xz and .sha256 files). Neither this host nor the GitHub tag archive
+  # (codeload) is reachable from the sandbox, so the artifact stays "expected".
+  - id: source-tarball
+    type: package
+    name: postgresql.tar.bz2
+    description: Source distribution tarball (the project's primary release artifact).
+    version: {strategy: template, template: "{{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}}"}
+    channels:
+      - kind: http
+        url: "https://ftp.postgresql.org/pub/source/v{{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}}/postgresql-{{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}}.tar.bz2"
+
+  # --- Docker official image ----------------------------------------------
+  # docker.io/library/postgres:17.2 (also 17.2-bookworm, 17.2-alpine, ...);
+  # mirror.gcr.io is a reachable pull-through mirror when Docker Hub answers
+  # 429 (anonymous pull rate limit) to a shared egress address.
+  - id: postgres-image
+    type: container-image
+    name: postgres
+    version: {strategy: template, template: "{{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/library/postgres
+      - kind: oci
+        repository: mirror.gcr.io/library/postgres
+    exceptions:
+      - versions: [10.0.22, 10.0.23, 11.0.19, 11.0.20, 11.0.21, 11.0.22]
+        reason: >-
+          The default (Debian) tags of the last releases of the end-of-life
+          lines 10 and 11 were removed from Docker Hub (checked 2026-10-01:
+          10.22, 10.23, 11.19-11.22 answer 404); their -alpine tags remain.
+    validatedAgainst: [8.4.22, 9.4.26, 9.5.25, 9.6.0, 9.6.24, 10.0.0, 12.0.0, 13.0.0, 16.0.0, 16.0.15, 17.0.0, 17.0.11, 18.0.0, 18.0.6]
+  - id: postgres-image-alpine
+    type: container-image
+    name: postgres-alpine
+    availability: ">= 9.6.1"
+    version: {strategy: template, template: "{{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}}-alpine"}
+    channels:
+      - kind: oci
+        repository: docker.io/library/postgres
+      - kind: oci
+        repository: mirror.gcr.io/library/postgres
+    notes: >-
+      Alpine variants exist from 9.6.1 (9.6.0-alpine and 9.5.0-alpine are absent;
+      only some 9.4/9.5 patch releases have one).
+    validatedAgainst: [9.6.24, 10.0.0, 10.0.23, 12.0.0, 13.0.0, 16.0.0, 16.0.15, 17.0.0, 17.0.11, 18.0.0, 18.0.6]
+
+provenance:
+  method: manual+research
+  updated: "2026-10-01"
+  validatedReleases: [8.4.22, 9.4.26, 9.5.25, 9.6.0, 9.6.24, 10.0.0, 10.0.23, 12.0.0, 13.0.0, 16.0.0, 16.0.15, 17.0.0, 17.0.11, 18.0.0, 18.0.6]
+  notes: >-
+    Authored from docs/research/postgresql.md. Versions are the semver
+    mapping of the tags (17.2 = 17.0.2); the "validated" lists use that form.
+    ftp.postgresql.org, www.postgresql.org and git.postgresql.org are
+    unreachable from the sandbox, so the tarball and the security page are
+    declared but unverified.
