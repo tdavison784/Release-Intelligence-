@@ -90,6 +90,9 @@ func (r *renderer) render() {
 	r.evidenceLegend()
 }
 
+// header prints the funnel: every upstream change is analyzed and every
+// verdict class is counted explicitly — unknowns are never folded into
+// "not affected" (docs/ACTION_CLASSIFICATION.md).
 func (r *renderer) header() {
 	e := r.r
 	name := e.Product.Name
@@ -97,9 +100,28 @@ func (r *renderer) header() {
 		name = string(e.Product.ID)
 	}
 	r.line("%s", r.paint(ansiBold, fmt.Sprintf("%s %s → %s — impact on this environment", name, e.From, e.To)))
+	r.line("%d upstream changes analyzed", e.Summary.UpstreamChanges)
 	s := e.Summary
-	r.line("%d upstream changes · %d affect this environment · %d action required · %d review · %d informational",
-		s.UpstreamChanges, s.AffectEnvironment, s.ActionRequired, s.Review, s.Informational)
+	counts := []struct {
+		label string
+		n     int
+		color string
+	}{
+		{"ACTION REQUIRED", s.ActionRequired, ansiRed},
+		{"REVIEW REQUIRED", s.ReviewRequired, ansiYellow},
+		{"INFORMATIONAL", s.Informational, ansiGreen},
+		{"NOT AFFECTED", s.NotAffected, ansiDim},
+		{"UNKNOWN", s.Unknown, ansiMagenta},
+	}
+	width := 1
+	for _, c := range counts {
+		if d := len(fmt.Sprint(c.n)); d > width {
+			width = d
+		}
+	}
+	for _, c := range counts {
+		r.line("%s %*d", r.paint(c.color, c.label+":"), width+2, c.n)
+	}
 }
 
 func (r *renderer) environmentSection() {
@@ -139,28 +161,81 @@ func (r *renderer) findingSections() {
 	}
 	titles := map[domain.ImpactClass]string{
 		domain.ImpactActionRequired: "Action required",
-		domain.ImpactReview:         "Review",
+		domain.ImpactReviewRequired: "Review required",
 		domain.ImpactInformational:  "Informational",
+		domain.ImpactUnknown:        "Unknown — insufficient evidence",
+		domain.ImpactNotAffected:    "Not affected",
 	}
 	colors := map[domain.ImpactClass]string{
 		domain.ImpactActionRequired: ansiRed,
-		domain.ImpactReview:         ansiYellow,
+		domain.ImpactReviewRequired: ansiYellow,
 		domain.ImpactInformational:  ansiGreen,
+		domain.ImpactUnknown:        ansiMagenta,
+		domain.ImpactNotAffected:    ansiDim,
 	}
 	for _, class := range domain.AllImpactClasses {
 		fs := byClass[class]
 		if len(fs) == 0 {
 			continue
 		}
+		if class == domain.ImpactNotAffected && !r.opts.ShowNotAffected {
+			continue // counted in the funnel; rendered only in verbose mode
+		}
 		r.heading(colors[class], fmt.Sprintf("%s (%d)", titles[class], len(fs)))
 		for i, f := range fs {
-			r.finding(i+1, f)
+			if class == domain.ImpactUnknown {
+				r.unknownFinding(i+1, f)
+			} else {
+				r.finding(i+1, f)
+			}
 		}
 	}
 }
 
+// unknownFinding renders one unknown verdict. The missing-evidence list is
+// the point of the class, so it is always printed; otherwise identical to a
+// normal finding.
+func (r *renderer) unknownFinding(n int, f domain.ImpactFinding) {
+	r.line("  %d. %s %s", n, f.Title, r.paint(ansiDim, "["+f.ID+"]"))
+	r.line("     missing: %s", strings.Join(f.NeededToDetermine, "; "))
+	r.changeAndDetail(f)
+	r.upstreamChain(f)
+}
+
 func (r *renderer) finding(n int, f domain.ImpactFinding) {
 	r.line("  %d. %s %s", n, f.Title, r.paint(ansiDim, "["+f.ID+"]"))
+	r.changeAndDetail(f)
+	// chain 2: what in the environment matched, where
+	for _, m := range f.Matches {
+		var evs []string
+		for _, id := range m.Evidence {
+			evs = append(evs, r.citeLoc(id))
+		}
+		r.line("     environment: %s %s  (%s)", m.Kind, m.Subject, strings.Join(evs, ", "))
+	}
+	// evaluation record of a not-affected verdict: what was checked against what
+	for _, c := range f.Checks {
+		d := string(c.Dimension)
+		if c.Platform != "" {
+			d += " (" + c.Platform + ")"
+		}
+		var evs []string
+		for _, id := range c.Evidence {
+			evs = append(evs, r.citeLoc(id))
+		}
+		evPart := ""
+		if len(evs) > 0 {
+			evPart = "  [" + strings.Join(evs, ", ") + "]"
+		}
+		r.line("     checked: %s, %d fact(s)  ← %s%s", d, c.Facts, strings.Join(c.Subjects, ", "), evPart)
+	}
+	if len(f.NeededToDetermine) > 0 {
+		r.line("     missing: %s", strings.Join(f.NeededToDetermine, "; "))
+	}
+	r.upstreamChain(f)
+}
+
+func (r *renderer) changeAndDetail(f domain.ImpactFinding) {
 	if f.ChangeID != "" {
 		marks := ""
 		if f.ChangeBreaking {
@@ -176,14 +251,9 @@ func (r *renderer) finding(n int, f domain.ImpactFinding) {
 		}
 		r.line("     %s", ln)
 	}
-	// chain 2: what in the environment matched, where
-	for _, m := range f.Matches {
-		var evs []string
-		for _, id := range m.Evidence {
-			evs = append(evs, r.citeLoc(id))
-		}
-		r.line("     environment: %s %s  (%s)", m.Kind, m.Subject, strings.Join(evs, ", "))
-	}
+}
+
+func (r *renderer) upstreamChain(f domain.ImpactFinding) {
 	// chain 1: upstream evidence
 	var ups []string
 	for _, id := range f.UpstreamEvidence {

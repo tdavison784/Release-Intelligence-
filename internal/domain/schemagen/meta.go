@@ -78,7 +78,15 @@ var enums = []enumSet{
 		domain.RepresentationSourceTree, domain.RepresentationChartTGZ, domain.RepresentationOCIChart,
 		domain.RepresentationReleaseAsset, domain.RepresentationHTTPDocument, domain.RepresentationRegistryManifest,
 	),
-	enumOf(domain.ImpactActionRequired, domain.ImpactReview, domain.ImpactInformational),
+	enumOf(
+		domain.ImpactActionRequired, domain.ImpactReviewRequired, domain.ImpactInformational,
+		domain.ImpactNotAffected, domain.ImpactUnknown,
+	),
+	enumOf(domain.SeverityCritical, domain.SeverityHigh, domain.SeverityMedium, domain.SeverityLow),
+	enumOf(
+		domain.DimensionValues, domain.DimensionManifests, domain.DimensionCRDs,
+		domain.DimensionImages, domain.DimensionCluster,
+	),
 	enumOf(
 		domain.MatchValuesKey, domain.MatchAPIVersion, domain.MatchCRD, domain.MatchCRDVersion,
 		domain.MatchManifestField, domain.MatchImage, domain.MatchKubernetes,
@@ -129,21 +137,25 @@ var fieldPatches = map[string]obj{
 	"Enrichment.citations": o("minItems", 1, "uniqueItems", true),
 
 	// The impact report is a deterministic document too: its findings carry
-	// computed provenance and must cite BOTH chains (upstream evidence copied
-	// from the edge, environment evidence from the local files). That the ids
-	// resolve is referential and checked by domain.ImpactReport.Validate().
+	// computed provenance and the class-specific provenance rules of
+	// docs/ACTION_CLASSIFICATION.md. That the evidence ids resolve is
+	// referential and checked by domain.ImpactReport.Validate().
 	"ImpactReport.schemaVersion":        o("const", domain.ImpactReportSchemaVersion),
 	"ImpactFinding.provenance":          o("$ref", "#/$defs/"+defDeterminist),
 	"ImpactFinding.upstreamEvidence":    o("minItems", 1, "uniqueItems", true),
-	"ImpactFinding.environmentEvidence": o("minItems", 1, "uniqueItems", true),
+	"ImpactFinding.environmentEvidence": o("uniqueItems", true),
 	"ImpactFinding.title":               o("pattern", `\S`),
 	"ImpactMatch.evidence":              o("minItems", 1),
+	"ImpactCheck.subjects":              o("minItems", 1),
 }
 
 // typePatches are appended to the schema generated for a whole struct,
 // keyed by type name.
 var typePatches = map[string]obj{
 	"Enrichment": o("allOf", enrichmentKindRules()),
+	// The action-classification contract (docs/ACTION_CLASSIFICATION.md):
+	// which provenance each class must carry.
+	"ImpactFinding": o("allOf", impactClassRules()),
 	// "Exactly one of the typed payloads is set", and it is the one that
 	// matches kind.
 	"Snapshot": o(
@@ -158,6 +170,41 @@ var typePatches = map[string]obj{
 			snapshotKindRule(domain.SnapshotImages, "images"),
 		},
 	),
+}
+
+// impactClassRules encodes the per-class provenance rules of
+// docs/ACTION_CLASSIFICATION.md as JSON Schema conditionals:
+//   - affected classes carry at least one environment match and cite the
+//     environment chain;
+//   - action-required carries high confidence only (below-high is demoted to
+//     review-required);
+//   - not-affected carries the evaluation record (checks) and no
+//     neededToDetermine;
+//   - unknown carries neededToDetermine; affected classes carry neither
+//     checks nor neededToDetermine.
+func impactClassRules() []any {
+	classIs := func(classes ...domain.ImpactClass) obj {
+		vals := make([]any, len(classes))
+		for i, c := range classes {
+			vals[i] = string(c)
+		}
+		return o("properties", o("classification", o("enum", vals)), "required", []string{"classification"})
+	}
+	affected := []domain.ImpactClass{domain.ImpactActionRequired, domain.ImpactReviewRequired, domain.ImpactInformational}
+	return []any{
+		o("if", classIs(affected...),
+			"then", o("required", []string{"matches", "environmentEvidence"},
+				"properties", o("matches", o("minItems", 1), "environmentEvidence", o("minItems", 1),
+					"checks", o("maxItems", 0), "neededToDetermine", o("maxItems", 0)))),
+		o("if", classIs(domain.ImpactActionRequired),
+			"then", o("properties", o("provenance", o("properties", o("confidence", o("const", string(domain.ConfidenceHigh))))))),
+		o("if", classIs(domain.ImpactNotAffected),
+			"then", o("required", []string{"checks"},
+				"properties", o("checks", o("minItems", 1), "neededToDetermine", o("maxItems", 0), "matches", o("maxItems", 0)))),
+		o("if", classIs(domain.ImpactUnknown),
+			"then", o("required", []string{"neededToDetermine"},
+				"properties", o("neededToDetermine", o("minItems", 1), "matches", o("maxItems", 0)))),
+	}
 }
 
 // enrichmentKindRules: clusters and related changes connect at least two
@@ -233,29 +280,40 @@ var descriptions = map[string]string{
 		"domain.ImpactReport.Validate() in Go and cannot be expressed in JSON Schema.",
 	"ImpactReport.schemaVersion":       "Serialisation version of this document.",
 	"ImpactReport.environment":         "What the join ran against: the supplied cluster version, the parsed input files with digests, counts of extracted facts and parsing warnings.",
-	"ImpactReport.summary":             "The funnel: all upstream changes, those affecting this environment, and the action classification counts.",
-	"ImpactReport.findings":            "One per (upstream change or constraint) × (environment fact) overlap; action-required first.",
+	"ImpactReport.summary":             "The funnel: all upstream changes, those with affected findings, and the explicit count of every verdict class — unknowns are counted, never folded into not-affected.",
+	"ImpactReport.findings":            "One verdict per analyzed unit: affected overlaps first (action-required, review-required, informational), then unknown, then the not-affected evaluation records.",
 	"ImpactReport.evidence":            "Chain 1: upstream Evidence records cited by findings, copied from the UpgradeEdge the report was built from.",
 	"ImpactReport.environmentEvidence": "Chain 2: Evidence records of kind local-file / input pointing at the user's environment inputs.",
 	"ImpactReport.generatedAt":         "When the report was built (UTC).",
 	"ImpactReport.definitionDigest":    "Digest of the product definition revision the underlying edge was built from.",
-	"ImpactFinding": "One deterministic conclusion of the join: an upstream change (or compatibility constraint) " +
-		"met an environment fact. Explains itself via `detail` and cites both evidence chains.",
-	"ImpactFinding.classification":      "action-required: the environment must change or the upgrade fails / silently misbehaves. review: plausible impact, depends on intent the files cannot show. informational: confirmed overlap with no action implied.",
-	"ImpactFinding.rule":                "Join rule that fired, e.g. \"impact:values-removed\".",
-	"ImpactFinding.detail":              "Prose explaining how the two chains meet: what upstream changed and which environment fact matched.",
-	"ImpactFinding.changeId":            "Id of the upstream Change in the UpgradeEdge this report was built from; absent when the finding comes from a compatibility constraint alone (cluster-version check).",
+	"ImpactFinding": "One deterministic verdict of the applicability engine: an upstream change (or compatibility " +
+		"constraint, or moved image artifact) met the environment — or could not be evaluated. Affected classes " +
+		"(action-required / review-required / informational) cite both evidence chains; not-affected carries the " +
+		"evaluation record (`checks`); unknown carries `neededToDetermine`. See docs/ACTION_CLASSIFICATION.md.",
+	"ImpactFinding.classification":      "What to do (docs/ACTION_CLASSIFICATION.md): action-required — the environment must change to avoid concrete failure, evidenced on both chains, high confidence only; review-required — credible overlap, applicability not deterministically provable; informational — evidenced overlap with no action implied; not-affected — checked against a supplied environment dimension and clear; unknown — applicability undeterminable, `neededToDetermine` says why.",
+	"ImpactFinding.severity":            "How bad if it bites (independent axis): critical (upgrade fails outright), high (concrete degradation), medium (needs a look), low (confirmed no-action overlap). Absent for not-affected/unknown.",
+	"ImpactFinding.rule":                "Join rule that fired, e.g. \"impact:values-removed\"; verdict records use impact:values-unset / impact:not-joined / impact:insufficient-visibility / ... .",
+	"ImpactFinding.detail":              "Prose explaining the verdict: what upstream changed and which environment fact matched — or what could not be checked, and why.",
+	"ImpactFinding.changeId":            "Id of the upstream Change in the UpgradeEdge this report was built from; absent when the finding comes from a compatibility constraint or artifact move alone.",
 	"ImpactFinding.changeTitle":         "Copy of the upstream change's title, so the report renders standalone.",
 	"ImpactFinding.changeCategory":      "Copy of the upstream change's category.",
 	"ImpactFinding.changeBreaking":      "Copy of the upstream change's breaking flag.",
-	"ImpactFinding.matches":             "The environment facts that made the finding fire, each with its own environment evidence.",
-	"ImpactFinding.upstreamEvidence":    "Chain 1: Evidence ids resolving in `evidence`.",
-	"ImpactFinding.environmentEvidence": "Chain 2: Evidence ids resolving in `environmentEvidence`.",
+	"ImpactFinding.matches":             "The environment facts that made the finding fire, each with its own environment evidence (affected classes only).",
+	"ImpactFinding.upstreamEvidence":    "Chain 1: Evidence ids resolving in `evidence` (every class).",
+	"ImpactFinding.environmentEvidence": "Chain 2: Evidence ids resolving in `environmentEvidence` (affected classes; check evidence for verdict records).",
+	"ImpactFinding.checks":              "Evaluation record of a not-affected verdict (and the partial record of an unknown one): which environment dimension was consulted, how many facts were compared, which upstream subjects were compared.",
+	"ImpactFinding.neededToDetermine":   "What evidence was missing for an unknown verdict, e.g. \"Helm values files (--values) not supplied\"; unknown-only by contract.",
+	"ImpactCheck":                       "One entry of an evaluation record: what was checked against what, so a not-affected verdict is auditable without re-running anything.",
+	"ImpactCheck.dimension":             "The environment input class consulted: values, manifests, crds, images, or cluster-version (platform names it).",
+	"ImpactCheck.platform":              "Cluster platform of a cluster-version check (\"kubernetes\", \"openshift\", ...).",
+	"ImpactCheck.facts":                 "How many environment facts of that dimension were compared (0 when the input was supplied but yielded none).",
+	"ImpactCheck.subjects":              "The upstream subjects compared against those facts.",
+	"ImpactCheck.evidence":              "Environment evidence proving a directly-supplied input (the --kubernetes / --images flag); file-backed dimensions are audited through environment.files digests.",
 	"ImpactMatch":                       "One environment fact that matched: what it is (subject) and the local evidence that proves the environment has it.",
 	"ImpactMatch.kind":                  "What kind of environment fact: a set values key, an apiVersion in use, an installed CRD or one of its versions, a manifest field path, an image in use, or the cluster Kubernetes version.",
 	"ImpactMatch.subject":               "The fact itself: a values key path, \"group/version Kind\", a CRD name, a field path, an image reference or a version string.",
 	"ImpactMatch.evidence":              "Environment evidence ids backing this match.",
-	"ImpactSummary":                     "Counts of the impact funnel; must equal the findings (checked by Validate).",
+	"ImpactSummary":                     "Counts of the impact funnel; must equal the findings (checked by Validate). Unknowns are counted explicitly, never folded into not-affected.",
 	"ImpactFile":                        "One environment input file with the digest of the bytes that were parsed.",
 	"ImpactFile.path":                   "Path exactly as supplied on the command line (evidence URIs use the same form).",
 	"ImpactEnvironment":                 "Summary of the environment inputs the join consumed.",

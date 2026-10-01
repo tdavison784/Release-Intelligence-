@@ -79,7 +79,7 @@ type Environment struct {
 type ImpactLink struct {
 	// Expected is the id of an Expected item.
 	Expected  string `json:"expected"`
-	Relevance string `json:"relevance"` // action-required | review | informational | not-affected
+	Relevance string `json:"relevance"` // action-required | review | informational | not-affected (the dataset's ground-truth vocabulary)
 	Why       string `json:"why,omitempty"`
 }
 
@@ -94,7 +94,7 @@ type ExpectedFinding struct {
 type FindingMatcher struct {
 	Subject        string `json:"subject,omitempty"`        // exact subject of one of the finding's matches
 	Rule           string `json:"rule,omitempty"`           // exact join rule, e.g. impact:values-pinned
-	Classification string `json:"classification,omitempty"` // action-required | review | informational
+	Classification string `json:"classification,omitempty"` // action-required | review-required | informational (docs/ACTION_CLASSIFICATION.md)
 }
 
 // NotExpectedFinding is a finding shape that must not be produced.

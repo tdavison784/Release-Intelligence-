@@ -1,10 +1,13 @@
 // Package impact joins an UpgradeEdge with an environment (package env) and
 // answers "which of these changes matter to THIS environment?". The join is
-// pure and deterministic: no cluster access, no network, no LLM. Every
-// finding cites two provenance chains — the upstream evidence of the change
-// (copied from the edge) and the environment evidence of the local fact that
-// matched — so no conclusion is unexplained. Rendering of reports for humans
-// also lives here.
+// pure and deterministic: no cluster access, no network, no LLM. Applicability
+// is decided first for every analyzed unit (AFFECTED / NOT_AFFECTED /
+// UNKNOWN, per docs/ACTION_CLASSIFICATION.md); only an affected unit receives
+// an action class. Every verdict is explained: affected findings cite two
+// provenance chains — the upstream evidence of the change (copied from the
+// edge) and the environment evidence of the local fact that matched — while
+// not-affected records carry the evaluation record and unknown records carry
+// the missing-evidence list. Rendering of reports for humans also lives here.
 //
 // CONTRACT NOTE: the exported API in this file is used by the CLI /
 // orchestration layer.
@@ -58,6 +61,38 @@ const (
 	RuleKubeVersionBlocked = "impact:kubeversion-blocked"
 	// An image the environment references changed between the endpoints.
 	RuleImageChanged = "impact:image-changed"
+
+	// --- verdict rules (docs/ACTION_CLASSIFICATION.md) -----------------------
+
+	// A not-affected verdict for a values change: the deciding dimension
+	// (values) was supplied, the changed keys were checked, and the
+	// environment does not set any of them.
+	RuleValuesUnset = "impact:values-unset"
+	// A not-affected verdict for a CRD-removal change: the CRD is not
+	// installed in the environment.
+	RuleCRDUnused = "impact:crd-unused"
+	// A not-affected verdict for a CRD version change: no installed CRD
+	// declares the version and no manifest uses it.
+	RuleCRDVersionUnused = "impact:crd-version-unused"
+	// A not-affected verdict for a removed CRD field: no manifest sets the
+	// removed path (or anything below it).
+	RuleCRDFieldUnset = "impact:crd-field-unset"
+	// A not-affected verdict for an image change: the environment does not
+	// reference the image repository.
+	RuleImageNotReferenced = "impact:image-not-referenced"
+	// A not-affected verdict for a compatibility constraint the supplied
+	// cluster version satisfies (minimum admitted, kubeVersion admits, or a
+	// tested-range hit). supported+admits produces the informational
+	// RuleKubernetesInRange instead.
+	RuleCompatSatisfied = "impact:compatibility-satisfied"
+	// An unknown verdict: the change has no machine-comparable subject (or
+	// its diff rule has no join rule), so the deterministic join cannot
+	// evaluate its applicability. neededToDetermine says exactly that.
+	RuleNotJoined = "impact:not-joined"
+	// An unknown verdict: a deciding environment dimension was not supplied
+	// (or the upstream constraint is not machine-readable), so applicability
+	// cannot be determined. neededToDetermine names what is missing.
+	RuleInsufficientVisibility = "impact:insufficient-visibility"
 )
 
 // Input is everything Build needs.
@@ -77,10 +112,15 @@ func Build(in Input) (*domain.ImpactReport, error) {
 type RenderOptions struct {
 	// Color enables ANSI colours.
 	Color bool
+	// ShowNotAffected renders the not-affected section with its evaluation
+	// records; the summary always counts them.
+	ShowNotAffected bool
 }
 
 // RenderText writes a human-readable report: the funnel summary, the
-// environment, then per-finding why-blocks citing both evidence chains.
+// environment, then per-finding why-blocks citing both evidence chains (and,
+// for unknown verdicts, the missing evidence; for not-affected verdicts the
+// evaluation record, verbose mode only).
 func RenderText(w io.Writer, r *domain.ImpactReport, opts RenderOptions) error {
 	return renderText(w, r, opts)
 }

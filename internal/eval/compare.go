@@ -410,10 +410,13 @@ func findUnsupportedChanges(edge *domain.UpgradeEdge) []UnsupportedAudit {
 	return out
 }
 
-// findUnsupportedFindings returns findings whose two provenance chains do
-// not resolve within the report, or that join a change absent from the edge
-// the report was built from (edge may be nil only when there is no edge at
-// all; findings of a real report always come from one).
+// findUnsupportedFindings returns findings whose provenance does not resolve
+// within the report, or that join a change absent from the edge the report
+// was built from (edge may be nil only when there is no edge at all;
+// findings of a real report always come from one). The per-class provenance
+// rules of docs/ACTION_CLASSIFICATION.md apply: affected findings need both
+// chains, unknown findings need upstream evidence plus neededToDetermine,
+// not-affected findings need upstream evidence plus their evaluation record.
 func findUnsupportedFindings(report *domain.ImpactReport, edge *domain.UpgradeEdge) []UnsupportedAudit {
 	var out []UnsupportedAudit
 	up := map[domain.EvidenceID]bool{}
@@ -431,8 +434,14 @@ func findUnsupportedFindings(report *domain.ImpactReport, edge *domain.UpgradeEd
 	for _, f := range report.Findings {
 		var reason string
 		switch {
-		case len(f.UpstreamEvidence) == 0 || len(f.EnvironmentEvidence) == 0:
+		case len(f.UpstreamEvidence) == 0:
 			reason = "cites an empty provenance chain"
+		case f.Classification.Affected() && len(f.EnvironmentEvidence) == 0:
+			reason = "affected finding cites no environment evidence"
+		case f.Classification == domain.ImpactUnknown && len(f.NeededToDetermine) == 0:
+			reason = "unknown finding does not say what evidence was missing"
+		case f.Classification == domain.ImpactNotAffected && len(f.Checks) == 0:
+			reason = "not-affected finding has no evaluation record"
 		default:
 			for _, id := range f.UpstreamEvidence {
 				if !up[id] {
@@ -447,6 +456,17 @@ func findUnsupportedFindings(report *domain.ImpactReport, edge *domain.UpgradeEd
 				if !local[id] {
 					reason = fmt.Sprintf("environment evidence %s does not resolve in the report", id)
 					break
+				}
+			}
+			for _, c := range f.Checks {
+				if reason != "" {
+					break
+				}
+				for _, id := range c.Evidence {
+					if !local[id] {
+						reason = fmt.Sprintf("evaluation-record evidence %s does not resolve in the report", id)
+						break
+					}
 				}
 			}
 			if reason == "" && f.ChangeID != "" && !changes[f.ChangeID] {
@@ -482,7 +502,10 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 	findingsFor := func(expID string) []string {
 		var ids []string
 		for _, f := range report.Findings {
-			if f.ChangeID != "" && expIDForChange[f.ChangeID] == expID {
+			// only AFFECTED findings establish that an expected item reaches
+			// this environment; an unknown ("cannot tell") or not-affected
+			// ("checked, clear") record about the same change is not a hit.
+			if f.Classification.Affected() && f.ChangeID != "" && expIDForChange[f.ChangeID] == expID {
 				ids = append(ids, f.ID)
 			}
 		}

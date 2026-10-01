@@ -22,7 +22,8 @@ func TestImpactRepoCommand(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, want := range []string{
-		"51 upstream changes · 5 affect this environment",
+		"51 upstream changes analyzed",
+		"ACTION REQUIRED:",
 		"Cluster Kubernetes 1.28 is below the supported range 1.29–1.33",
 		"customer-repo/clusters/prod/values-cert-manager.yaml",
 		"is not built with kustomize",

@@ -108,6 +108,19 @@ func (in Inputs) Empty() bool {
 	return in.KubernetesVersion == "" && len(in.ValuesFiles) == 0 && len(in.Manifests) == 0 && len(in.CRDs) == 0 && len(in.Images) == 0 && strings.TrimSpace(in.Repo) == ""
 }
 
+// SuppliedInputs records which environment inputs were given on the command
+// line, independently of whether they yielded facts. The impact join needs
+// the distinction: "checked the values you supplied and found no overlap"
+// (not-affected) is a different claim from "no values were supplied, so
+// applicability cannot be decided" (unknown).
+type SuppliedInputs struct {
+	Kubernetes bool
+	Values     bool
+	Manifests  bool
+	CRDs       bool
+	Images     bool
+}
+
 // File is one parsed input file.
 type File struct {
 	Path   string
@@ -203,6 +216,9 @@ type Environment struct {
 	// Discovered lists every file the walk classified, with its evidence.
 	RepoRoot   string
 	Discovered []RepoDiscovery
+
+	// Supplied records which inputs were given (see SuppliedInputs).
+	Supplied SuppliedInputs
 
 	Files    []File
 	Evidence []domain.Evidence
@@ -302,8 +318,8 @@ func Load(in Inputs) (*Environment, error) {
 	if v := strings.TrimSpace(in.KubernetesVersion); v != "" {
 		id := l.evInput("flag:--kubernetes", v)
 		l.env.Kubernetes = &KubernetesVersion{Version: v, Evidence: []domain.EvidenceID{id}}
+		l.env.Supplied.Kubernetes = true
 	}
-
 	var discVals, discMans []string
 	if strings.TrimSpace(in.Repo) != "" {
 		vals, mans, err := l.discoverRepo(in.Repo)
@@ -369,6 +385,13 @@ func Load(in Inputs) (*Environment, error) {
 	})
 	l.finalizeGVK()
 	l.finalizeInstalled()
+
+	// Supplied reflects anything that reached the loader: explicit inputs or
+	// repo-discovered files (the impact layer reads it for visibility rules).
+	l.env.Supplied.Values = len(in.ValuesFiles) > 0 || len(discVals) > 0
+	l.env.Supplied.Manifests = len(in.Manifests) > 0 || len(discMans) > 0
+	l.env.Supplied.CRDs = len(in.CRDs) > 0
+	l.env.Supplied.Images = len(in.Images) > 0 || len(l.env.Images) > 0
 
 	// A dimension is "supplied" when anything reached the loader for it —
 	// explicit inputs or repo-discovered files (vals/mans already merged).

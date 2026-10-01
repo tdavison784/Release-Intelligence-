@@ -83,10 +83,19 @@ func TestE2EImpactRepo(t *testing.T) {
 		t.Errorf("no image finding for the pinned controller reference: %+v", byRule[impact.RuleImageChanged])
 	}
 
-	// environment evidence points into the discovered repo
+	// environment evidence points into the discovered repo. Both chains are
+	// mandatory for affected findings (the ACTION/review/informational set);
+	// not-affected/unknown carry their evaluation records instead
+	// (docs/ACTION_CLASSIFICATION.md).
 	for _, f := range rep.Findings {
-		if len(f.UpstreamEvidence) == 0 || len(f.EnvironmentEvidence) == 0 {
-			t.Errorf("finding %s lacks a chain", f.ID)
+		if f.Classification.Affected() {
+			if len(f.UpstreamEvidence) == 0 || len(f.EnvironmentEvidence) == 0 {
+				t.Errorf("affected finding %s (%s) lacks a chain", f.ID, f.Classification)
+			}
+			continue
+		}
+		if len(f.Checks) == 0 && len(f.NeededToDetermine) == 0 {
+			t.Errorf("non-affected finding %s (%s) has neither checks nor neededToDetermine", f.ID, f.Classification)
 		}
 	}
 	var citesRepo bool
