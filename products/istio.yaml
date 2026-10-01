@@ -1,0 +1,298 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: istio
+name: Istio
+description: >-
+  Service mesh. Ships istiod/proxy/CNI/ztunnel images, several Helm charts
+  (version == appVersion == release version), CRDs inside the base chart and
+  istioctl archives. Release notes live in the istio.io website repository;
+  structured per-change YAML notes live in the main repository.
+homepage: https://istio.io
+
+versioning:
+  scheme: semver
+  # Bare semver tags (no "v" prefix); snapshot tags are ignored.
+  tagPattern: '^(?P<version>\d+\.\d+\.\d+(?:-(?:alpha|beta|rc)\.\d+)?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions -------------------------------------------------
+  - id: github-releases
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: github-releases
+      repository: istio/istio
+    notes: release-builder marks every GitHub release draft+prerelease at creation; prerelease status is derived from the semver suffix.
+  - id: git-tags
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: git-tags
+      repository: github.com/istio/istio
+
+  # --- release notes ------------------------------------------------------
+  # Structured notes: releasenotes/notes/*.yaml accumulate in the source
+  # repository; a release's notes are the files added since the previous
+  # release in lineage order (X.Y.0 ← X.Y-1.0, X.Y.Z ← X.Y.Z-1).
+  - id: structured-notes
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: change-notes
+    availability: ">= 1.10.0"
+    locator:
+      kind: repo-dir
+      repository: github.com/istio/istio
+      ref: "{{.Tag}}"
+      baseRef: "{{.PrevTag}}"
+      path: releasenotes/notes
+      glob: "*.yaml"
+    extract:
+      type: release-note-yaml
+    validatedAgainst: [1.29.0, 1.30.0, 1.31.0]
+  # Rendered change notes of minor releases (generated from the YAML notes).
+  - id: change-notes
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: change-notes
+    releaseKinds: [major, minor]
+    locator:
+      kind: repo-file
+      repository: github.com/istio/istio.io
+      ref: master
+      path: content/en/news/releases/{{.Major}}.{{.Minor}}.x/announcing-{{.Major}}.{{.Minor}}/change-notes/index.md
+  # Patch announcements carry "Security Update" sections listing CVEs. The
+  # newest minor's patch notes exist only on its release branch until they
+  # are cherry-picked to master.
+  - id: patch-notes
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: patch-notes
+    releaseKinds: [patch]
+    locator:
+      kind: repo-file
+      repository: github.com/istio/istio.io
+      ref: master
+      path: content/en/news/releases/{{.Major}}.{{.Minor}}.x/announcing-{{.Version}}/index.md
+    classify:
+      - section: '(?i)security update'
+        category: security
+  - id: patch-notes-release-branch
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: patch-notes
+    releaseKinds: [patch]
+    locator:
+      kind: repo-file
+      repository: github.com/istio/istio.io
+      ref: release-{{.Major}}.{{.Minor}}
+      path: content/en/news/releases/{{.Major}}.{{.Minor}}.x/announcing-{{.Version}}/index.md
+    classify:
+      - section: '(?i)security update'
+        category: security
+
+  # --- upgrade guide ------------------------------------------------------
+  # One "##" section per change that breaks or alters behaviour.
+  - id: upgrade-notes
+    roles: [upgrade-guide]
+    releaseKinds: [major, minor]
+    locator:
+      kind: repo-file
+      repository: github.com/istio/istio.io
+      ref: master
+      path: content/en/news/releases/{{.Major}}.{{.Minor}}.x/announcing-{{.Major}}.{{.Minor}}/upgrade-notes/index.md
+    classify:
+      - text: '(?i)break(s|ing)? backwards compatibility|must (be )?upgrade|before upgrading'
+        breaking: true
+
+  # --- compatibility ------------------------------------------------------
+  - id: support-status
+    roles: [compatibility]
+    locator:
+      kind: repo-file
+      repository: github.com/istio/istio.io
+      ref: master
+      path: data/compatibility/supportStatus.yml
+    extract:
+      type: yaml-records
+      keyColumns: [version]
+      keyMatch: '^{{regexQuote .Line}}$'
+      columns:
+        - platform: kubernetes
+          kind: supported
+          headers: [k8sVersions]
+        - platform: kubernetes
+          kind: tested
+          headers: [testedK8sVersions]
+    notes: Mutable after release (new Kubernetes versions get added); evidence pins the retrieved digest.
+
+  # --- security -----------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: istio/istio
+    notes: Istio also publishes bulletins at istio.io/news/security (front matter lists CVEs and affected releases) — not yet ingested.
+
+artifacts:
+  # --- Helm charts (version == appVersion == release version) ---------------
+  - id: chart-base
+    type: helm-chart
+    name: base
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/istio/release/charts/base
+      - kind: helm-repo
+        url: https://istio-release.storage.googleapis.com/charts
+        chart: base
+    contents:
+      - kind: helm-values
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/base/values.yaml}
+  - id: chart-istiod
+    type: helm-chart
+    name: istiod
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/istio/release/charts/istiod
+      - kind: helm-repo
+        url: https://istio-release.storage.googleapis.com/charts
+        chart: istiod
+    contents:
+      - kind: helm-values
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-control/istio-discovery/values.yaml}
+  - id: chart-gateway
+    type: helm-chart
+    name: gateway
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/istio/release/charts/gateway
+      - kind: helm-repo
+        url: https://istio-release.storage.googleapis.com/charts
+        chart: gateway
+    contents:
+      - kind: helm-values
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/gateway/values.yaml}
+  - id: chart-cni
+    type: helm-chart
+    name: cni
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/istio/release/charts/cni
+      - kind: helm-repo
+        url: https://istio-release.storage.googleapis.com/charts
+        chart: cni
+    contents:
+      - kind: helm-values
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-cni/values.yaml}
+  - id: chart-ztunnel
+    type: helm-chart
+    name: ztunnel
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/istio/release/charts/ztunnel
+      - kind: helm-repo
+        url: https://istio-release.storage.googleapis.com/charts
+        chart: ztunnel
+    contents:
+      - kind: helm-values
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/ztunnel/values.yaml}
+
+  # --- CRDs (shipped inside the base chart) -------------------------------
+  - id: crds
+    type: crd
+    name: crd-all.gen.yaml
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://raw.githubusercontent.com/istio/istio/{{.Tag}}/manifests/charts/base/files/crd-all.gen.yaml
+    availability: ">= 1.24.0"
+    contents:
+      - kind: crds
+
+  # --- images (docker.io/istio is authoritative; gcr.io ends at 1.30) -----
+  - id: pilot-image
+    type: container-image
+    name: pilot
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/istio/pilot
+      - kind: oci
+        repository: gcr.io/istio-release/pilot
+  - id: proxyv2-image
+    type: container-image
+    name: proxyv2
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/istio/proxyv2
+      - kind: oci
+        repository: gcr.io/istio-release/proxyv2
+  - id: install-cni-image
+    type: container-image
+    name: install-cni
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/istio/install-cni
+  - id: ztunnel-image
+    type: container-image
+    name: ztunnel
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/istio/ztunnel
+  - id: istioctl-image
+    type: container-image
+    name: istioctl
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/istio/istioctl
+  - id: operator-image
+    type: container-image
+    name: operator
+    availability: "< 1.24.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/istio/operator
+    notes: The in-cluster operator was removed in 1.24.
+  - id: agentgateway-image
+    type: container-image
+    name: agentgateway
+    availability: ">= 1.29.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/istio/agentgateway
+
+  # --- binaries -----------------------------------------------------------
+  - id: release-archive
+    type: binary
+    name: istio-linux-amd64.tar.gz
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://github.com/istio/istio/releases/download/{{.Tag}}/istio-{{.Version}}-linux-amd64.tar.gz
+  - id: istioctl-archive
+    type: binary
+    name: istioctl-linux-amd64.tar.gz
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://github.com/istio/istio/releases/download/{{.Tag}}/istioctl-{{.Version}}-linux-amd64.tar.gz
+
+provenance:
+  method: manual+research
+  updated: "2026-10-01"
+  validatedReleases: [1.29.0, 1.30.0, 1.31.0, 1.31.1]
+  notes: >-
+    Authored from docs/research/istio.md. blob.istio.io (current Helm repo)
+    and registry.istio.io were unreachable; the GCS chart index is frozen at
+    1.30.x, so the OCI charts on ghcr.io are the primary chart channel.

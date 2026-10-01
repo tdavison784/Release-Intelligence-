@@ -1,0 +1,204 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: argo-cd
+name: Argo CD
+description: >-
+  Declarative GitOps continuous delivery for Kubernetes. Ships one
+  multi-component image, static install manifests with CRDs, CLI binaries
+  and a community Helm chart (argo-helm) whose versions are independent of
+  the application version and do not exist for every application release.
+homepage: https://argo-cd.readthedocs.io
+
+versioning:
+  scheme: semver
+  tagPrefix: v
+  # vX.Y.Z and vX.Y.Z-rcN; odd legacy tags (v2.1.2-hf1, v2.2.8-1, stable,
+  # gitops-engine/*) do not match.
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-rc\d+)?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions -------------------------------------------------
+  - id: github-releases
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: github-releases
+      repository: argoproj/argo-cd
+  - id: git-tags
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: git-tags
+      repository: github.com/argoproj/argo-cd
+
+  # --- release notes ------------------------------------------------------
+  # GoReleaser-generated GitHub release bodies (Breaking Changes / Features /
+  # Bug fixes / ... groups) — only reachable through the GitHub API. The
+  # in-repo CHANGELOG.md stopped at v2.4.8 and must not be used.
+  - id: github-release-notes
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: release-notes
+    locator:
+      kind: github-releases
+      repository: argoproj/argo-cd
+      ref: "{{.Tag}}"
+    classify:
+      - section: '(?i)^(documentation|other work)$'
+        category: other
+  # Deterministic fallback: the commit subjects the release notes are
+  # generated from (conventional commits, e.g. "feat(appset)!: ...").
+  - id: commit-log
+    roles: [changelog]
+    priority: 1
+    fallbackGroup: release-notes
+    locator:
+      kind: git-log
+      repository: github.com/argoproj/argo-cd
+      ref: "{{.PrevTag}}..{{.Tag}}"
+    classify:
+      - text: '^(test|ci)(\(.+\))?:'
+        skip: true
+      - text: '^Merge pull request from GHSA-'
+        category: security
+
+  # --- upgrade guide ------------------------------------------------------
+  # docs/operator-manual/upgrading/<prev>-<cur>.md; breaking items are "###"
+  # sections with Detection/Remediation sub-sections.
+  - id: upgrade-guide
+    roles: [upgrade-guide]
+    releaseKinds: [major, minor]
+    locator:
+      kind: repo-file
+      repository: github.com/argoproj/argo-cd
+      ref: "{{.Tag}}"
+      path: docs/operator-manual/upgrading/{{.PrevMajor}}.{{.PrevMinor}}-{{.Major}}.{{.Minor}}.md
+    classify:
+      - section: '(?i)breaking changes'
+        breaking: true
+        actionRequired: true
+      - section: '(?i)deprecated'
+        category: deprecation
+      - section: '(?i)security changes'
+        category: security
+    validatedAgainst: [3.0.0, 3.1.0, 3.5.0]
+
+  # --- compatibility ------------------------------------------------------
+  # Generated from the CI k3s matrix; only the row of the release's own line
+  # is authoritative.
+  - id: tested-kubernetes-versions
+    roles: [compatibility]
+    availability: ">= 2.8.0"
+    locator:
+      kind: repo-file
+      repository: github.com/argoproj/argo-cd
+      ref: "{{.Tag}}"
+      path: docs/operator-manual/tested-kubernetes-versions.md
+    extract:
+      type: markdown-table
+      keyColumns: [Argo CD version]
+      keyMatch: '^{{regexQuote .Line}}$'
+      columns:
+        - platform: kubernetes
+          kind: tested
+          headers: [Kubernetes versions]
+
+  # --- security -----------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: argoproj/argo-cd
+    notes: Private-fork fixes land as "Merge pull request from GHSA-..." commits and do not appear in generated release notes.
+
+artifacts:
+  - id: image
+    type: container-image
+    name: argocd
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/argoproj/argocd
+    references:
+      - artifact: install-manifest
+        pattern: "quay.io/argoproj/argocd:{{.Tag}}"
+    notes: ghcr.io/argoproj/argo-cd/argocd only carries master snapshots; Docker Hub is stale since v2.6.
+
+  # Static install manifest at the tag; also the source of third-party image
+  # pins (dex, redis) whose versions change within patch releases.
+  - id: install-manifest
+    type: manifest
+    name: install.yaml
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://raw.githubusercontent.com/argoproj/argo-cd/{{.Tag}}/manifests/install.yaml
+    contents:
+      - kind: image-refs
+    notes: v2.14.0 and v3.0.10 reference the previous image tag (upstream errata); the image cross-reference fails there by design.
+
+  - id: crds
+    type: crd
+    name: manifests/crds
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://raw.githubusercontent.com/argoproj/argo-cd/{{.Tag}}/manifests/crds/application-crd.yaml
+    contents:
+      - kind: crds
+        locator:
+          kind: repo-dir
+          repository: github.com/argoproj/argo-cd
+          path: manifests/crds
+          glob: "*-crd.yaml"
+
+  # Community chart: chart version != app version; the chart for an app
+  # release is found by appVersion. Many app releases never ship a chart.
+  - id: helm-chart
+    type: helm-chart
+    name: argo-cd
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Tag}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://argoproj.github.io/argo-helm
+        chart: argo-cd
+      - kind: helm-repo
+        url: https://raw.githubusercontent.com/argoproj/argo-helm/gh-pages
+        chart: argo-cd
+      - kind: oci
+        repository: ghcr.io/argoproj/argo-helm/argo-cd
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/argoproj/argo-helm
+          ref: "argo-cd-{{.ArtifactVersion}}"
+          path: charts/argo-cd/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/argoproj/argo-helm
+          ref: "argo-cd-{{.ArtifactVersion}}"
+          path: charts/argo-cd/Chart.yaml
+
+  - id: cli-linux-amd64
+    type: binary
+    name: argocd-linux-amd64
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://github.com/argoproj/argo-cd/releases/download/{{.Tag}}/argocd-linux-amd64
+
+provenance:
+  method: manual+research
+  updated: "2026-10-01"
+  validatedReleases: [2.14.0, 3.0.0, 3.3.14, 3.4.9, 3.5.3]
+  notes: >-
+    Authored from docs/research/argo-cd.md. quay.io, argoproj.github.io and
+    the GitHub API were unreachable; the chart index is read from the
+    gh-pages branch and the image is cross-checked against install.yaml.
