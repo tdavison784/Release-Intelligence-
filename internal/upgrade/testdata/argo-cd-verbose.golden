@@ -1,0 +1,85 @@
+Argo CD v3.0.4 → v3.1.0
+Path: v3.1.0  (policy minor-lineage; 2 backport releases skipped)
+Skipped: v3.0.5, v3.0.6
+Summary: 2 breaking · 1 action required · 14 changes · 1 warning · 1 AI enrichment
+Generated 2026-10-01T12:00:00Z
+
+Sources:
+  ✓ tags         git-tags           versions       ok
+  ✗ advisories   github-advisories  security       unavailable: api.github.com blocked
+  ✗ gh-releases  github-releases    release-notes  unavailable (v3.0.4, v3.1.0): api.github.com blocked
+  ✓ tested-k8s   repo-file          compatibility  ok (v3.0.4, v3.1.0)
+  ✓ git-log      git-log            release-notes  ok (v3.1.0)
+  ✓ upgrade      repo-file          upgrade-guide  ok (v3.1.0)
+
+Breaking changes (2):
+  • [v3.1.0] The `server.rbac.log.enforce.enable` setting was removed; logs RBAC is now always enforced  (configuration · declared · ev-29a8cc75a0a8)
+      The `server.rbac.log.enforce.enable` setting was removed; logs RBAC is now always enforced. Grant the `logs, get` permission to roles that need to read pod logs before upgrading.
+  • [diff] Application v1alpha1 schema: 1 field removed: `spec.syncPolicy.retry.refresh`  (crd-schema · computed · ev-75e082e155b7, ev-aa1fc46c0164)
+      Fields no longer in the argoproj.io/v1alpha1 schema of applications.argoproj.io are pruned from stored objects and rejected or dropped in manifests. Remove them from your resources.
+      Removed paths:
+      spec.syncPolicy.retry.refresh
+
+Migration requirements / action required (1):
+  • [diff] Kubernetes tested versions narrowed: 1.29–1.32 → 1.30–1.33 (drops 1.29)  (compatibility · computed · ev-b0c921e4900f, ev-eaec1b2dfa9c)
+      Verify the cluster runs a tested Kubernetes version (1.30–1.33) before upgrading.
+
+Deprecations & removals (1):
+  • [v3.1.0] chore: deprecate the `--redis-compress` flag in favour of `redis.compression`  (deprecation · heuristic/medium · ev-ca125ff3fd7e)
+      chore: deprecate the `--redis-compress` flag in favour of `redis.compression` (#22200)
+
+API & CRD schema changes (1):
+  • [diff] Application v1alpha1 schema: 1 field added: `spec.sourceHydrator`  (crd-schema · computed · ev-75e082e155b7, ev-aa1fc46c0164)
+      New paths in the argoproj.io/v1alpha1 schema of applications.argoproj.io:
+      spec.sourceHydrator
+      spec.sourceHydrator.drySource
+      spec.sourceHydrator.syncSource
+
+Artifact changes (5 updated):
+  image       quay.io/argoproj/argocd  v3.0.4 → v3.1.0  [verified]  (computed · ev-8eb27fd24a98, ev-4370bc61fe24)
+  install     https://raw.githubusercontent.com/argoproj/argo-cd/{v3.0.4 → v3.1.0}/manifests/install.yaml  [verified]  (computed · ev-ee5a881d8603, ev-622222fcea35)
+  install-ha  https://raw.githubusercontent.com/argoproj/argo-cd/{v3.0.4 → v3.1.0}/manifests/ha/install.yaml  [verified]  (computed · ev-dde06be7225e, ev-8f9461dc3989)
+  chart       ghcr.io/argoproj/argo-helm/argo-cd  8.0.10 → 8.2.0  [verified]  (computed · ev-3274c17a3364, ev-7e3ac821ac7a)
+  … and 1 more
+
+Image & dependency changes (4):
+  • [v3.1.0] Dex was upgraded to v2.43.0; review the Dex release notes if you rely on custom connectors  (dependency · declared · ev-6af5fc977408)
+  • [v3.1.0] Helm was upgraded to 3.18.4  (dependency · declared · ev-65a6484f4d71)
+  • [diff] Image `redis` now pulled from `public.ecr.aws/docker/library/redis:7.2.7-alpine` (was `redis:7.2.7-alpine`)  (dependency · computed · ev-896f1b7bb14b, ev-00b3b519d07d, ev-83b05ad4cd99, +1)
+      The registry/repository of this third-party image changed. Update image mirrors, pull-through caches and registry allow-lists.
+  • [diff] Third-party image `ghcr.io/dexidp/dex`: v2.41.1 → v2.43.0  (dependency · computed · ev-896f1b7bb14b, ev-00b3b519d07d, ev-83b05ad4cd99, +1)
+
+Kubernetes compatibility:
+  tested: 1.29–1.32 → 1.30–1.33; drops 1.29, adds 1.33  [narrowed]  (computed · ev-b0c921e4900f, ev-eaec1b2dfa9c)
+      v3.0.4: v1.32, v1.31, v1.30, v1.29
+      v3.1.0: v1.33, v1.32, v1.31, v1.30
+
+Other notable changes (5):
+  • [v3.1.0] feat(appset): add `ignoreApplicationDifferences` to the matrix generator  (feature · heuristic/medium · ev-baabaa6e357f)
+      feat(appset): add `ignoreApplicationDifferences` to the matrix generator (#22011)
+  • [v3.1.0] feat: source hydrator can push to a separate hydrated branch  (feature · heuristic/medium · ev-2702be845d5d)
+      feat: source hydrator can push to a separate hydrated branch (#22000)
+  • [v3.1.0] fix(ui): resource tree does not refresh after sync  (bugfix · heuristic/medium · ev-5131f4456742)
+      fix(ui): resource tree does not refresh after sync (#22111)
+  • [v3.1.0] fix: application controller leaks goroutines on cluster removal  (bugfix · heuristic/medium · ev-119b0683164f)
+      fix: application controller leaks goroutines on cluster removal (#22100)
+  … and 1 more
+
+AI enrichments (1) — AI-derived, not deterministic; verify before acting:
+  • [migration-step] Grant log access before upgrading  (AI-derived · claude-test-model · ev-29a8cc75a0a8)
+      Add `p, role:dev, logs, get, */*, allow` to argocd-rbac-cm for every role that reads pod logs.
+      Then upgrade the control plane.
+
+Warnings (1):
+  ! Security advisories were not fully retrieved (advisories: unavailable — api.github.com blocked); advisory matching may be incomplete
+
+Evidence (27 records, 24 cited above):
+  ev-29a8cc75a0a8  https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.0/docs/operator-manual/upgrading/3.0-3.1.md  L10-L11
+      │ The `server.rbac.log.enforce.enable` setting was removed; logs RBAC is now always enforced. Grant the `logs, get` permission to roles that need to read pod logs before upgrading.
+  ev-75e082e155b7  https://raw.githubusercontent.com/argoproj/argo-cd/v3.0.4/manifests/crds/application-crd.yaml
+      │ crds of install
+  ev-aa1fc46c0164  https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.0/manifests/crds/application-crd.yaml
+      │ crds of install
+  ev-b0c921e4900f  https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.0/docs/operator-manual/tested-kubernetes-versions.md  row 3.0
+      │ v1.32, v1.31, v1.30, v1.29
+  … and 23 more
