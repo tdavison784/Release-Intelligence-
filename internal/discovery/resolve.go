@@ -259,7 +259,7 @@ func (r *resolver) versionSources() {
 	if len(pubs) == 0 {
 		return
 	}
-	fb := catalog.Source{ID: "github-releases", Roles: []domain.SourceRole{domain.RoleVersions}, Priority: 1, Fallback: true,
+	fb := catalog.Source{ID: "github-releases", Roles: []domain.SourceRole{domain.RoleVersions}, Priority: 1,
 		Locator: catalog.Locator{Kind: catalog.LocatorGitHubReleases, Repository: repo.Slug()}}
 	r.addSource(fb, "versions.github-releases-fallback", domain.ConfidenceMedium, []string{TargetReleaseSource},
 		"Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list.", pubs...)
@@ -426,10 +426,9 @@ func (r *resolver) notesSources() {
 			r.exclude(c, "notes.lower-ranked-template", "Another per-release notes path template ranks higher.")
 		}
 	}
-	fallback := priority > 0
 	switch {
 	case okLine && bestLine.Attr("sectionHeadings") == "true":
-		s := catalog.Source{ID: "release-notes-docs", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Priority: priority, Fallback: fallback,
+		s := catalog.Source{ID: "release-notes-docs", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Priority: priority, FallbackGroup: "release-notes",
 			Locator: r.repoFile(bestLine, bestLine.Value),
 			Extract: &catalog.Extract{Type: catalog.ExtractMarkdownSection, Heading: `^v?{{regexQuote .Version}}$`}}
 		r.addSource(s, "notes.per-line-file-with-release-sections", domain.ConfidenceHigh, []string{TargetReleaseNotes},
@@ -441,13 +440,13 @@ func (r *resolver) notesSources() {
 			if bestPatch.Attr("zeroPatch") == "true" || !okLine {
 				kinds = nil
 			}
-			s := catalog.Source{ID: "release-notes-docs", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Priority: priority, Fallback: fallback,
+			s := catalog.Source{ID: "release-notes-docs", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Priority: priority, FallbackGroup: "release-notes",
 				Locator: r.repoFile(bestPatch, bestPatch.Value), ReleaseKinds: kinds}
 			r.addSource(s, "notes.per-release-file", domain.ConfidenceHigh, []string{TargetReleaseNotes},
 				fmt.Sprintf("One notes document per release (%s instances, newest %s).", bestPatch.Attr("instances"), bestPatch.Attr("newest")), bestPatch)
 		}
 		if okLine {
-			s := catalog.Source{ID: "release-notes-line", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Priority: priority, Fallback: fallback,
+			s := catalog.Source{ID: "release-notes-line", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Priority: priority, FallbackGroup: "release-notes",
 				Locator: r.repoFile(bestLine, bestLine.Value), ReleaseKinds: []string{"minor", "major"}}
 			r.addSource(s, "notes.per-line-file", domain.ConfidenceMedium, []string{TargetReleaseNotes},
 				fmt.Sprintf("One notes document per release line (%s instances, newest %s), used for X.Y.0 releases.", bestLine.Attr("instances"), bestLine.Attr("newest")), bestLine)
@@ -464,7 +463,7 @@ func (r *resolver) notesSources() {
 		if glob == "" {
 			glob = "*.yaml"
 		}
-		s := catalog.Source{ID: "release-note-files", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Priority: priority, Fallback: priority > 0,
+		s := catalog.Source{ID: "release-note-files", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Priority: priority, FallbackGroup: "release-notes",
 			Locator: catalog.Locator{Kind: catalog.LocatorRepoDir, Repository: r.in.Repo.String(), Path: c.Value, Glob: glob, BaseRef: "{{.PrevTag}}"},
 			Extract: &catalog.Extract{Type: catalog.ExtractReleaseNoteYAML},
 			Notes:   "Structured per-change notes accumulate in this directory; a release's notes are the files added since the previous release."}
@@ -477,7 +476,7 @@ func (r *resolver) notesSources() {
 	if body == nil && r.in.Repo.IsGitHub() {
 		pubs := append(append([]Candidate{}, r.byK[KindReleasePublisher]...), r.ownAssets()...)
 		if len(pubs) > 0 {
-			s := catalog.Source{ID: "release-notes-github", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Priority: priority, Fallback: priority > 0,
+			s := catalog.Source{ID: "release-notes-github", Roles: []domain.SourceRole{domain.RoleReleaseNotes}, Priority: priority, FallbackGroup: "release-notes",
 				Locator: catalog.Locator{Kind: catalog.LocatorGitHubReleases, Repository: r.in.Repo.Slug(), Ref: tmplTag}}
 			r.addSource(s, "notes.hosted-release-body", domain.ConfidenceMedium, []string{TargetReleaseNotes},
 				"Hosted GitHub releases exist (assets are downloaded from them); their body may carry notes.", pubs...)

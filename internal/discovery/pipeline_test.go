@@ -195,7 +195,7 @@ func TestPipelineIstioLike(t *testing.T) {
 	}
 	renderPath(t, istioFixture, ta, line.Locator, "1.31.0")
 	files := source(t, def, "release-note-files")
-	if files.Locator.Kind != catalog.LocatorRepoDir || files.Locator.BaseRef != "{{.PrevTag}}" || files.Extract.Type != catalog.ExtractReleaseNoteYAML || !files.Fallback {
+	if files.Locator.Kind != catalog.LocatorRepoDir || files.Locator.BaseRef != "{{.PrevTag}}" || files.Extract.Type != catalog.ExtractReleaseNoteYAML || files.FallbackGroup != "release-notes" {
 		t.Errorf("structured notes: %+v", files)
 	}
 	up := source(t, def, "upgrade-guide")
