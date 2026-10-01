@@ -30,6 +30,9 @@ type ProductDefinition struct {
 	Versioning Versioning `yaml:"versioning" json:"versioning"`
 	Sources    []Source   `yaml:"sources" json:"sources"`
 	Artifacts  []Artifact `yaml:"artifacts" json:"artifacts"`
+	// Lifecycle states that the product (or some of its releases) is
+	// deprecated or end-of-life; see Lifecycle.
+	Lifecycle []Lifecycle `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
 
 	// Provenance documents how this definition was produced and validated.
 	Provenance *DefinitionProvenance `yaml:"provenance,omitempty" json:"provenance,omitempty"`

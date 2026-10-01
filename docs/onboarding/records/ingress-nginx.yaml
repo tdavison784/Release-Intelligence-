@@ -1,0 +1,142 @@
+product: ingress-nginx
+order: 10
+wave: 1
+repository: github.com/kubernetes/ingress-nginx
+onboarding:
+  startedAt: "2026-10-01T11:50:15Z"
+  finishedAt: "2026-10-01T12:15:00Z"
+  minutes: 25                     # wall-clock, agent time (research, authoring, one generic construct with tests)
+discovery:
+  proposal: docs/onboarding/discovery/ingress-nginx.proposed.yaml
+  report: docs/onboarding/discovery/ingress-nginx.report.md
+# Every source and artifact of the FINAL definition, with where it came from.
+sources:
+  - id: github-releases
+    origin: discovered-modified
+    note: "locator as proposed; the version relation was wrong: versioning.tagPrefix helm-chart- -> controller-v (discovery picks the most numerous tag family, 125 chart tags vs 101 controller tags)"
+  - id: git-tags
+    origin: discovered-modified
+    note: "proposal id `tags`; same tagPrefix correction"
+  - id: controller-changelog
+    origin: manual
+    note: "changelog/controller-X.Y.Z.md at main; discovery listed the changelog only as a candidate and proposed the chart changelog instead"
+  - id: github-release-notes
+    origin: discovered
+    note: "proposal id release-notes-github; fallback for versions without a changelog file"
+  - id: retirement-notice
+    origin: manual
+    note: "README 'Retiring' banner; evidence of the lifecycle statement"
+  - id: supported-versions
+    origin: manual
+    note: "README 'Supported Versions table'; discovery reported compatibility as not-found"
+  - id: github-advisories
+    origin: discovered
+    note: "proposal id advisories"
+artifacts:
+  - {id: controller-image, origin: discovered-modified, note: "proposal `controller` tagged {{.Tag}} (= helm-chart-4.15.1); tag is v{{.Version}}; references to the manifest added"}
+  - {id: controller-chroot-image, origin: manual, note: "second image of every release since 1.2.0, found in the changelog 'Images:' block"}
+  - {id: helm-chart, origin: discovered-modified, note: "proposal had version template {{.Version}} on the chart tag family; chart version is independent: lookup appVersion; gh-pages and helm-git channels added"}
+  - {id: deploy-baremetal, origin: discovered}
+  - {id: deploy-aws, origin: discovered}
+  - {id: deploy-do, origin: discovered}
+  - {id: deploy-scw, origin: discovered}
+  - {id: deploy-cloud, origin: manual, note: "the manifest the docs and the controller-image reference use; not proposed"}
+  - {id: deploy-aws-nlb-tls, origin: manual}
+  - {id: deploy-exoscale, origin: manual}
+  - {id: deploy-kind, origin: manual}
+  - {id: deploy-oracle, origin: manual}
+discoveryRejected:
+  - {id: release-notes-docs, reason: "chart changelog (helm-chart-X.md): the chart train, one line per release, repeats the controller changelog"}
+  - {id: kubectl-ingress-nginx-binary, reason: "dropped by discovery (failed validation); confirmed by probing 1.1.0 ... 1.15.1: no release has the asset, krew-index is at v0.31.0"}
+  - {id: defaultbackend-amd64, reason: "coordinates are not registries (an eu.gcr.io /manifests/ URL, quay.io repository paths); the image is independently versioned (registry.k8s.io/defaultbackend-amd64:1.5) and disabled by default"}
+  - {id: ingress-nginx-chart, reason: "proposed as a template-versioned chart; replaced by helm-chart (lookup)"}
+  - {id: "versioning.tagPrefix: helm-chart-", reason: "wrong product train, see github-releases"}
+relationships:
+  # Default `ri check` (-n 3) covers 1.13.0 1.13.9 1.14.0 1.14.5 1.15.0 1.15.1; the saved run is `-n 20` (34 releases).
+  historicalReleasesChecked: [0.47.0, 0.48.1, 0.49.0, 0.49.3, 0.51.0, 1.0.0, 1.0.5, 1.1.0, 1.1.3, 1.2.0, 1.2.1, 1.3.0, 1.3.1, 1.4.0, 1.5.1, 1.6.4, 1.7.0, 1.7.1, 1.8.0, 1.8.5, 1.9.0, 1.9.6, 1.10.0, 1.10.6, 1.11.0, 1.11.8, 1.12.0, 1.12.8, 1.13.0, 1.13.9, 1.14.0, 1.14.5, 1.15.0, 1.15.1]
+  initialFailures: 0              # first complete draft, default 6-release check: 0 failing, 1 unverifiable (controller-chroot-image)
+  initialFailuresExtended: 6      # same draft at -n 20: controller-changelog, supported-versions, deploy-aws-nlb-tls (+image-refs), deploy-oracle (+image-refs)
+  finalFailures: 0
+  manualInterventions:
+    - {subject: versioning, change: "tagPrefix helm-chart- -> controller-v", reason: "the product is the controller train; the proposal took the most numerous tag family"}
+    - {subject: helm-chart, change: "version strategy template -> lookup appVersion == {{.Version}}", reason: "chart 4.x is independent of the controller version and has no 1:1 template (1.9.x shifts: 1.9.0 -> 4.8.0, 1.9.5 -> 4.9.0; 1.10+ is 4.<minor>.<patch>)"}
+    - {subject: controller-image, change: "tag v{{.Version}}; reference pattern for k8s.gcr.io (<= 1.2.1)", reason: "image tags carry a v and the pre-migration manifests name another registry host"}
+    - {subject: controller-changelog, change: "availability >= 1.6.4; exceptions 1.8.4, 1.8.5", reason: "check -n 20: the per-release files start at 1.6.4 and two were never back-filled"}
+    - {subject: supported-versions, change: "availability >= 1.3.1; exceptions 1.7.0 1.8.0 1.8.1 1.8.2 1.8.5", reason: "check -n 20: the README table has rows for some patch releases only"}
+    - {subject: deploy-aws-nlb-tls, change: "availability >= 1.1.2", reason: "check -n 20: the file first exists in controller-v1.1.2"}
+    - {subject: deploy-oracle, change: "availability >= 1.8.1", reason: "check -n 20: the file first exists in controller-v1.8.1"}
+    - {subject: "deploy-* (9 manifests)", change: "exceptions 0.47.0 0.51.0 1.6.4 1.7.1 1.8.2 1.8.5 1.9.0 1.9.3 (one YAML anchor)", reason: "found after the check reported the image reference unverifiable on those tags: the tag was cut before the manifest-bump commit, so the manifest names the previous release's image"}
+    - {subject: helm-chart/helm-values, change: "ignoreKeys controller.image.tag/digest/digestChroot", reason: "rewritten by release tooling each release; duplicates the image diff"}
+  unverifiable:
+    - {subject: controller-image, reason: "registry.k8s.io blocked; verified through the manifest reference on 28 of 34 releases (k8s.gcr.io pattern for <= 1.2.1), unverifiable only where the manifest at the tag is stale (6 sampled releases of the 8 stale tags)"}
+    - {subject: controller-chroot-image, reason: "registry.k8s.io blocked and no manifest names the chroot image (the changelog 'Images:' block does, but references only accept artifacts)"}
+    - {subject: github-release-notes, reason: "api.github.com blocked (covered by the changelog file for 1.6.4+)"}
+    - {subject: helm-chart canonical channel, reason: "kubernetes.github.io blocked; verified through gh-pages/index.yaml on raw.githubusercontent.com"}
+    - {subject: github-advisories, reason: "api.github.com blocked; not part of ri check"}
+constructs:
+  new:
+    - name: lifecycle
+      kind: "definition field `lifecycle[]` (state deprecated|end-of-life, since, versions constraint, summary, evidence sources) + upgrade rule"
+      justification: >-
+        The product's retirement is a fact about the future (no more releases or fixes) that no release artifact,
+        note or table carries, so it cannot be ingested, only stated, with evidence. With existing constructs the
+        README banner can only be a release-notes source: it then surfaces as three unrelated bullets attributed
+        to the first path release ('[controller-v1.14.0] Best-effort maintenance will continue until March 2026',
+        classified as a deprecation), including a reassurance as an action-required item, and says nothing about the
+        target. The construct states the status once, cites the banner as evidence (its note items are removed from
+        the per-release notes), applies it to a version range, and the edge reports an action-required deprecation
+        when the target is end-of-life, an informational one when the upgrade leaves an end-of-life line, plus a
+        warning. Deterministic (declared, no clock), no new domain types or schema changes of the edge.
+      otherProducts: [argo-cd, cert-manager, istio, postgresql, elasticsearch, redis, linkerd]
+      note: "per-line end-of-life (versions: '< 3.3.0') is needed by Argo CD (last 3 minors supported), cert-manager and Istio today, PostgreSQL / Elasticsearch / Redis (published EOL dates) in waves 1-3, Linkerd (stable channel discontinued); rolling windows are better extracted from the support tables (gap below), terminal states like this one are best declared"
+  considered:
+    - {name: "release-notes source for the banner", rejected: "works without code but misattributes a product-level fact to a release, splits it per bullet, repeats per path release and cannot be scoped to the target; kept as the evidence source only"}
+    - {name: "new source role `lifecycle`", rejected: "touches the role enum, schema and ingest for no gain over a notes source cited by the statement"}
+    - {name: "compatibility kind `bundled` for the README's Nginx/Alpine columns", rejected: "validator allows supported/tested/minimum only and the edge would say 'verify you use a supported Nginx'; also needed by Argo CD (Helm/Kustomize/Dex), Istio (Envoy), Cilium (Envoy) and kube-prometheus-stack, so a candidate for the next wave, recorded as a gap"}
+    - {name: "variants / matrix expansion for the 9 provider manifests", rejected: "representable (9 stanzas of 11 lines, one YAML anchor for exceptions); a matrix construct would also serve Argo CD manifests, cert-manager/istioctl/vault/prometheus binaries per OS/arch"}
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/catalog/lifecycle.go, purpose: "Lifecycle type, states, Affects/HasSource, validator"}
+    - {file: internal/catalog/definition.go, purpose: "ProductDefinition.Lifecycle field"}
+    - {file: internal/catalog/validate.go, purpose: "calls the lifecycle validator"}
+    - {file: schemas/product-definition.schema.json, purpose: "lifecycle property"}
+    - {file: internal/upgrade/lifecycle.go, purpose: "lifecycle changes and warning for the edge"}
+    - {file: internal/upgrade/build.go, purpose: "one call: b.lifecycleChanges()"}
+    - {file: internal/upgrade/notes.go, purpose: "skip note items of lifecycle sources"}
+    - {file: internal/catalog/lifecycle_test.go, purpose: "validation, Affects, parse + schema (valid and invalid)"}
+    - {file: internal/upgrade/lifecycle_test.go, purpose: "end-of-life target, range, deprecated, no evidence, no lifecycle"}
+unreachableSources:
+  - {host: api.github.com, reason: "egress policy 403 (releases, advisories)"}
+  - {host: registry.k8s.io, reason: "egress policy (controller and chroot images, OCI chart)"}
+  - {host: k8s.gcr.io, reason: "302 to registry.k8s.io"}
+  - {host: kubernetes.github.io, reason: "egress policy (Helm repo, docs); gh-pages/index.yaml on raw.githubusercontent.com used instead"}
+  - {host: kubernetes.io, reason: "egress policy (retirement blog post, official CVE feed)"}
+  - {host: api.osv.dev, reason: "egress policy"}
+  - {host: gcr.io/k8s-staging-ingress-nginx, reason: "anonymous access denied (401)"}
+ambiguousRelationships:
+  - "Chart OCI tags in the k8s.io promotion list carry a v (charts/ingress-nginx: v4.15.1) while the chart version has none; a channel cannot carry its own tag template, so the OCI chart is not declared (and registry.k8s.io is blocked anyway)."
+  - "Releases through 1.9.3: the tag is cut before the commit that bumps the manifests (8 tags), so 'manifest at the tag' is not 'manifest of the release'; consistent from 1.9.4."
+  - "Several charts per controller version in 4.0.x (1.1.0 -> 4.0.10-4.0.13) and nine duplicate index entries for 4.12.0-beta.0; select: latest picks one."
+  - "Tags helm-chart-3.16.0, 4.0.0, 4.0.4, 4.0.7 exist but are absent from the index; 49 legacy `ingress-nginx-*` chart tags and 4.0.0-beta.1 are index-only."
+  - "The exact end-of-maintenance date is not published ('until March 2026'); since = 2026-03 is the README wording, last tag 2026-03-19, repository pushed_at 2026-03-23, archived (GitHub search API, 2026-10-01)."
+representability: full            # of the release topology, once the lifecycle construct exists; partial without it
+gaps:
+  - "Per-release support windows: the README 'Supported' column and k8s lists are the project's own support state, but only the k8s list is extractable (a compat constraint); a table cell state (supported / not) has no home. Argo CD, cert-manager, Istio, PostgreSQL, Elasticsearch, Redis need the same: a source-extracted support/EOL state per release line would replace curated lifecycle ranges for rolling windows."
+  - "Bundled component versions (NGINX, Alpine per release; README columns) have no compatibility kind (see considered)."
+  - "`references` can only point at another artifact; the changelog 'Images:' block (digest-pinned controller and controller-chroot refs) and the k8s.io promotion list (controller digest -> tag) are strong registry-free evidence in documents, but cannot back an image artifact."
+  - "No http/asset channel for a helm-chart artifact (validator allows helm-repo, oci, helm-git), so the GitHub release .tgz cannot be probed directly; the index entry lists it."
+  - "A channel has no tag template: OCI chart tags with a v prefix (see ambiguous) cannot be declared."
+  - "Docs/config surface (annotations, ConfigMap options) is not diffed; only chart values, images and note items are."
+  - "Discovery: it follows the most numerous tag family (here the chart); finding the product train needs 'the family whose versions equal the chart's appVersion'. It also missed the README support table, the cloud manifest, the controller changelog and the banner."
+sampleEdge:
+  from: 1.13.9
+  to: 1.15.1
+  summary: "0 breaking · 2 action required · 132 changes · 3 warnings"
+  evidenceRecords: 260
+  also: "1.10.6 -> 1.12.1: 9 breaking · 9 action required · 328 changes · 3 warnings (516 evidence records); the nine breaking items are eight warning-sign bullets plus the computed removal of the podSecurityPolicy values section"
+notes: >-
+  The retired state made two things visible. (1) A product is not only its releases: the strongest upgrade-relevant
+  fact here (do not rely on future fixes) lives outside any release. (2) Verification is weakest where it matters
+  least: the chart (gh-pages index), manifests (git) and notes are all verifiable; only the registry is not. The
+  definition is 7 sources, 12 artifacts, one lifecycle statement; 25 minutes, 0 product-specific Go lines.

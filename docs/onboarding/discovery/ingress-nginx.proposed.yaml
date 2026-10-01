@@ -1,0 +1,193 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: ingress-nginx
+name: ingress-nginx
+homepage: https://github.com/kubernetes/ingress-nginx
+versioning:
+  scheme: semver
+  tagPrefix: helm-chart-
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/kubernetes/ingress-nginx
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: kubernetes/ingress-nginx
+    priority: 1
+  - id: release-notes-docs
+    roles:
+      - release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/kubernetes/ingress-nginx
+      path: charts/ingress-nginx/changelog/helm-chart-{{.Version}}.md
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: kubernetes/ingress-nginx
+      ref: '{{.Tag}}'
+    priority: 1
+    fallbackGroup: release-notes
+    notes: 'Unverified by discovery (insufficient: 4.13.0 covered (covered by release-notes-docs (fallback group release-notes): fetch https://api.github.com/repos/kubernetes/ingress-nginx/releases/tags/helm-chart-4.13.0: unavailable (HTTP 403): {"message":"GitHub access to this repository is not enabled for this session. Use add_repo to request access. If add_repo answers that read access is already available and you need GitHub API or write…); 4.13.9 covered (covered by release-notes-docs (fallback group release-notes): fetch https://api.github.com/repos/kubernetes/ingress-nginx/releases/tags/helm-chart-4.13.9: unavailable (HTTP 403): {"message":"GitHub access to this repository is not enabled for this session. Use add_repo to request access. If add_repo answers that read access is already available and you need GitHub API or write…); 4.14.0 covered (covered by release-notes-docs (fallback group release-notes): fetch https://api.github.com/repos/kubernetes/ingress-nginx/releases/tags/helm-chart-4.14.0: unavailable (HTTP 403): {"message":"GitHub access to this repository is not enabled for this session. Use add_repo to request access. If add_repo answers that read access is already available and you need GitHub API or write…); 4.14.5 covered (covered by release-notes-docs (fallback group release-notes): fetch https://api.github.com/repos/kubernetes/ingress-nginx/releases/tags/helm-chart-4.14.5: unavailable (HTTP 403): {"message":"GitHub access to this repository is not enabled for this session. Use add_repo to request access. If add_repo answers that read access is already available and you need GitHub API or write…); …).'
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: kubernetes/ingress-nginx
+artifacts:
+  - id: ingress-nginx-chart
+    type: helm-chart
+    name: ingress-nginx
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: helm-repo
+        url: https://kubernetes.github.io/ingress-nginx
+        chart: ingress-nginx
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/kubernetes/ingress-nginx
+          path: charts/ingress-nginx/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/kubernetes/ingress-nginx
+          path: charts/ingress-nginx/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 4.13.0 unverifiable (not verifiable: https://kubernetes.github.io/ingress-nginx/ingress-nginx:4.13.0 (helm-repo: unavailable)); 4.13.9 unverifiable (not verifiable: https://kubernetes.github.io/ingress-nginx/ingress-nginx:4.13.9 (helm-repo: unavailable)); 4.14.0 unverifiable (not verifiable: https://kubernetes.github.io/ingress-nginx/ingress-nginx:4.14.0 (helm-repo: unavailable)); 4.14.5 unverifiable (not verifiable: https://kubernetes.github.io/ingress-nginx/ingress-nginx:4.14.5 (helm-repo: unavailable)); …).'
+  - id: deploy-static-provider-aws-deploy
+    type: manifest
+    name: deploy.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/aws/deploy.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: deploy-static-provider-do-deploy
+    type: manifest
+    name: deploy.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/do/deploy.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: deploy-static-provider-scw-deploy
+    type: manifest
+    name: deploy.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/scw/deploy.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: deploy-static-provider-baremetal-deploy
+    type: manifest
+    name: deploy.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/baremetal/deploy.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: controller
+    type: container-image
+    name: controller
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: registry.k8s.io/ingress-nginx/controller
+    notes: 'Unverified by discovery (unverifiable: 4.13.0 unverifiable (not verifiable: registry.k8s.io/ingress-nginx/controller:helm-chart-4.13.0 (oci: unavailable)); 4.13.9 unverifiable (not verifiable: registry.k8s.io/ingress-nginx/controller:helm-chart-4.13.9 (oci: unavailable)); 4.14.0 unverifiable (not verifiable: registry.k8s.io/ingress-nginx/controller:helm-chart-4.14.0 (oci: unavailable)); 4.14.5 unverifiable (not verifiable: registry.k8s.io/ingress-nginx/controller:helm-chart-4.14.5 (oci: unavailable)); …).'
+  - id: defaultbackend-amd64
+    type: container-image
+    name: defaultbackend-amd64
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultbackend-amd64
+      - kind: oci
+        repository: quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller/defaultbackend-amd64
+      - kind: oci
+        repository: quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller-arm/defaultbackend-amd64
+      - kind: oci
+        repository: quay.io/repository/kubernetes-ingress-controller/defaultbackend-amd64
+      - kind: oci
+        repository: k8s.gcr.io/kubernetes/defaultbackend-amd64
+    notes: 'Unverified by discovery (unverifiable: 4.13.0 unverifiable (not verifiable: eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultbackend-amd64:helm-chart-4.13.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller/defaultbackend-amd64:helm-chart-4.13.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller-arm/defaultbackend-amd64:helm-chart-4.13.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/defaultbackend-amd64:helm-chart-4.13.0 (oci: unavailable), k8s.gcr.io/kubernetes/defaultbackend-amd64:helm-chart-4.13.0 (oci: unavailable)); 4.13.9 unverifiable (not verifiable: eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultbackend-amd64:helm-chart-4.13.9 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller/defaultbackend-amd64:helm-chart-4.13.9 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller-arm/defaultbackend-amd64:helm-chart-4.13.9 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/defaultbackend-amd64:helm-chart-4.13.9 (oci: unavailable), k8s.gcr.io/kubernetes/defaultbackend-amd64:helm-chart-4.13.9 (oci: unavailable)); 4.14.0 unverifiable (not verifiable: eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultbackend-amd64:helm-chart-4.14.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller/defaultbackend-amd64:helm-chart-4.14.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller-arm/defaultbackend-amd64:helm-chart-4.14.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/defaultbackend-amd64:helm-chart-4.14.0 (oci: unavailable), k8s.gcr.io/kubernetes/defaultbackend-amd64:helm-chart-4.14.0 (oci: unavailable)); 4.14.5 unverifiable (not verifiable: eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultbackend-amd64:helm-chart-4.14.5 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller/defaultbackend-amd64:helm-chart-4.14.5 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller-arm/defaultbackend-amd64:helm-chart-4.14.5 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/defaultbackend-amd64:helm-chart-4.14.5 (oci: unavailable), k8s.gcr.io/kubernetes/defaultbackend-amd64:helm-chart-4.14.5 (oci: unavailable)); …).'
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  validatedReleases:
+    - helm-chart-4.13.0
+    - helm-chart-4.13.9
+    - helm-chart-4.14.0
+    - helm-chart-4.14.5
+    - helm-chart-4.15.0
+    - helm-chart-4.15.1
+  notes: Proposed by automated discovery; relationship checks run against helm-chart-4.13.0, helm-chart-4.13.9, helm-chart-4.14.0, helm-chart-4.14.5, helm-chart-4.15.0, helm-chart-4.15.1.
