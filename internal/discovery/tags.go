@@ -278,12 +278,15 @@ func (ta *TagAnalysis) SelectValidationReleases(n int) []domain.Version {
 			add(v)
 		}
 	}
-	if len(ta.Lines) > 0 {
-		for _, v := range ta.stable {
-			if v.Line() == ta.Lines[0] && v.Patch() == 0 {
-				add(v)
-				break
-			}
+	// Each sampled line's X.Y.0 release too: sources that only exist for
+	// minor releases (upgrade guides, minor announcements) need them.
+	lines := map[string]bool{}
+	for _, v := range out {
+		lines[v.Line()] = true
+	}
+	for _, v := range ta.stable {
+		if lines[v.Line()] && v.Patch() == 0 {
+			add(v)
 		}
 	}
 	// fall back to more patches when there are fewer lines than needed

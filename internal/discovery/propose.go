@@ -65,6 +65,20 @@ func Propose(d *Draft, vr *ValidationResult, proposals []Proposal, ta *TagAnalys
 	var keepArtifacts []catalog.Artifact
 	for _, a := range def.Artifacts {
 		key := "artifact:" + a.ID
+		// An artifact found by lookup (e.g. "chart whose appVersion is the
+		// release tag") legitimately does not exist for every release. When
+		// it holds for some releases, absence elsewhere is a fact about the
+		// artifact, not a broken relationship: keep it as optional.
+		if a.Version.Strategy == catalog.VersionLookup && vr != nil && vr.Verdict(key) == VerdictFailing {
+			if pass, _ := vr.counts(key); pass >= 1 {
+				a.Optional = true
+				a.Notes = strings.TrimSpace(a.Notes + " Not published for every release (" + vr.detail(key) + "); marked optional by validation.")
+				a.ValidatedAgainst = vr.Passed[key]
+				decide(key, "annotate", "validate.optional-lookup", "Lookup artifact present for "+itoa(pass)+" sampled release(s) and absent for others; kept as optional.", domain.ConfidenceMedium, domain.MethodComputed)
+				keepArtifacts = append(keepArtifacts, a)
+				continue
+			}
+		}
 		keep, _ := applyVerdict(key, vr, ta, func(av string) { a.Availability = av }, &a.Notes, decide)
 		if keep {
 			a.ValidatedAgainst = validatedReleases(vr, key)

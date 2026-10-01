@@ -14,7 +14,7 @@ import (
 func TestValidatorPaths(t *testing.T) {
 	checker := &fakeChecker{outcome: func(kind, subject, release string) (string, string) {
 		switch {
-		case subject == "release-notes-docs" && release == "v1.0.1":
+		case subject == "release-notes-docs" && (release == "v1.0.0" || release == "v1.0.1"):
 			return ingest.OutcomeFail, "404 release-notes-1.0.md"
 		case subject == "compatibility":
 			return ingest.OutcomeUnverifiable, "host blocked"
@@ -29,7 +29,8 @@ func TestValidatorPaths(t *testing.T) {
 	}}
 	res := runFixture(t, certFixture, &Discoverer{Checker: checker}, Request{})
 	def, rep := res.Definition, res.Report
-	want := []string{"v1.0.1", "v1.1.2", "v1.2.0", "v1.2.1"}
+	// newest patch of each sampled line plus each line's X.Y.0
+	want := []string{"v1.0.0", "v1.0.1", "v1.1.0", "v1.1.2", "v1.2.0", "v1.2.1"}
 	if checker.calls != 1 || strings.Join(rep.Validation.Releases, ",") != strings.Join(want, ",") {
 		t.Fatalf("validation releases %v (calls %d)", rep.Validation.Releases, checker.calls)
 	}
@@ -129,8 +130,9 @@ func TestSelectValidationReleases(t *testing.T) {
 	for _, v := range ta.SelectValidationReleases(4) {
 		got = append(got, v.Tag)
 	}
-	// newest patch of each of the newest lines + X.Y.0 of the newest line; no prereleases
-	if strings.Join(got, ",") != "v2.9.5,v3.0.3,v3.1.0,v3.1.2" {
+	// newest patch of each of the newest lines + each sampled line's X.Y.0
+	// (minor-only sources such as upgrade guides need them); no prereleases
+	if strings.Join(got, ",") != "v2.9.0,v2.9.5,v3.0.0,v3.0.3,v3.1.0,v3.1.2" {
 		t.Errorf("got %v", got)
 	}
 }

@@ -73,7 +73,7 @@ func TestLLMProposalValidatedEntersDefinition(t *testing.T) {
 	}
 
 	notes := source(t, def, "release-notes")
-	if notes.Locator.Repository != "github.com/example/website" || len(notes.ValidatedAgainst) != 4 || !strings.Contains(notes.Notes, "AI-proposed") || !strings.Contains(notes.Notes, "fake-model-1") {
+	if notes.Locator.Repository != "github.com/example/website" || len(notes.ValidatedAgainst) != 6 || !strings.Contains(notes.Notes, "AI-proposed") || !strings.Contains(notes.Notes, "fake-model-1") {
 		t.Errorf("validated AI source should enter with provenance notes: %+v", notes)
 	}
 	for _, s := range def.Sources {
