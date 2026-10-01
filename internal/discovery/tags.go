@@ -361,8 +361,12 @@ func tagFamilies(tags []RemoteTag, prefixes map[string]int) []TagFamily {
 			if strings.Contains(t.Name, "/") {
 				continue
 			}
+			// latest by version, not by listing order (ls-remote sorts
+			// lexicographically: v1.9.0 > v1.15.0)
 			if v, err := parser.Parse(t.Name); err == nil && !v.IsPrerelease() {
-				f.Latest, f.LatestVersion = v.Tag, v.Semver
+				if f.Latest == "" || domain.MustVersion(f.Latest, f.LatestVersion).Less(v) {
+					f.Latest, f.LatestVersion = v.Tag, v.Semver
+				}
 			}
 		}
 		if f.Latest != "" {
@@ -447,6 +451,7 @@ func inferComponentPattern(tags []RemoteTag) (string, int) {
 		return "", 0
 	}
 	prefix, groups, dropMiddle := top.prefix, top.groups, false
+	siblingPrefix := top.prefix
 	for _, k := range order[1:] {
 		s := shapes[k]
 		if s.sep != top.sep || s.groups+1 != top.groups && top.groups+1 != s.groups || !sepSiblingPrefix(top.prefix, s.prefix) {
@@ -456,6 +461,9 @@ func inferComponentPattern(tags []RemoteTag) (string, int) {
 			continue
 		}
 		prefix = commonPrefix(top.prefix, s.prefix)
+		if len(s.prefix) > len(siblingPrefix) {
+			siblingPrefix = s.prefix
+		}
 		two, three := top, s
 		if three.groups == 2 {
 			two, three = s, top
@@ -474,9 +482,9 @@ func inferComponentPattern(tags []RemoteTag) (string, int) {
 	if prefix != "" {
 		b.WriteString(regexp.QuoteMeta(prefix))
 	}
-	// A merged sibling (REL vs REL_) leaves the separator inside the prefix
-	// optional so both spellings match.
-	if len(prefix) < len(top.prefix) && isAllSep(top.prefix[len(prefix):]) {
+	// A merged sibling (REL vs REL_) leaves the separator inside the longer
+	// prefix optional so both spellings match.
+	if len(siblingPrefix) > len(prefix) && isAllSep(siblingPrefix[len(prefix):]) {
 		b.WriteString(sepQ + `?`)
 	}
 	b.WriteString(`(?P<major>\d+)`)

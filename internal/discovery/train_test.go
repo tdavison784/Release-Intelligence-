@@ -254,3 +254,43 @@ func TestChartAppVersionLookupResolver(t *testing.T) {
 		t.Fatalf("lookup match = %q, want {{.Tag}}", chart.Version.Match)
 	}
 }
+
+func TestTagFamiliesLatestByVersion(t *testing.T) {
+	// ls-remote order is lexicographic: v1.9.0 sorts after v1.15.0. The
+	// family latest must be the newest version, not the last listed.
+	repo := mustRepo(t, "github.com/example/ordered")
+	ta := AnalyzeTags(repo, remoteTags("v1.15.0", "v1.9.0", "v1.2.0", "v1.1.0", "v1.0.0", "v1.14.0", "v1.13.0", "v1.12.0"))
+	if len(ta.Families) != 1 || ta.Families[0].Latest != "v1.15.0" {
+		t.Fatalf("families = %+v, want latest v1.15.0", ta.Families)
+	}
+}
+
+func TestPromoteLineImage(t *testing.T) {
+	// A manual promotion workflow whose dispatch input names a version
+	// publishes release-tagged images even when the tag is a variable
+	// argument (crossplane's promote-images).
+	res := scanFixture(t, promoteFixture, promoteFixture.repo, ProfileSource)
+	c := mustCand(t, res.Candidates, KindImage, "ghcr.io/example/promoter/promoter")
+	if !setOf(c.Attr("classes"))[tagRelease] {
+		t.Fatalf("promote image classes = %q, want release", c.Attr("classes"))
+	}
+	if c.Attr("tagTemplate") != tmplTag {
+		t.Fatalf("promote image template = %q", c.Attr("tagTemplate"))
+	}
+}
+
+var promoteFixture = fixture{
+	repo: "github.com/example/promoter",
+	dirs: map[string]string{"github.com/example/promoter": "testdata/promotelike"},
+	tags: map[string][]string{"github.com/example/promoter": {"v1.0.0", "v1.1.0", "v1.2.0", "v1.2.1"}},
+}
+
+func TestDevChartChannelDropped(t *testing.T) {
+	res := runFixture(t, nginxFixture, nil, Request{NoFollow: true})
+	chart := artifact(t, res.Definition, "ingress-nginx-chart")
+	for _, ch := range chart.Channels {
+		if ch.Kind == catalog.LocatorHelmRepo && strings.Contains(ch.URL, "/master") {
+			t.Fatalf("development channel kept: %+v", ch)
+		}
+	}
+}

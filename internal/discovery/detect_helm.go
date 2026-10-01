@@ -87,20 +87,66 @@ func detectChart(st *scanState, f *File) {
 	// directories (published chart vs sample).
 	st.emit(KindHelmChart, c.Name+"@"+dir, conf, "helm.chart", attrs, ev...)
 	if !placeholder {
-		if refTag, refVer := st.refTag(); refTag != "" {
-			// appVersion first: it names the packaged release even when the
-			// chart has its own, independent version (ingress-nginx 4.x
-			// packaging controller v1.x).
-			if _, t := classifyTag(c.AppVersion, refTag, refVer); t != "" {
-				st.emit(KindVersionRelation, "chart.appVersion = "+t, conf, "helm.chart-appversion-matches-ref",
-					map[string]string{"subject": "chart.appVersion", "template": t, "chart": c.Name, "appVersion": c.AppVersion, "files": f.Path}, f.Evidence(appVersionLine(lines, c.AppVersion)))
+		// appVersion first: it names the packaged release even when the chart
+		// has its own, independent version (ingress-nginx 4.x packaging
+		// controller v1.x). Chart releases are often cut AFTER the operator
+		// tag, so the chart found at a release tag may still package the
+		// previous release (external-secrets); the relation still holds.
+		if tmpl, lag, ok := st.chartValueRelation(c.AppVersion); ok {
+			rule := "helm.chart-appversion-matches-ref"
+			ra := map[string]string{"subject": "chart.appVersion", "template": tmpl, "chart": c.Name, "appVersion": c.AppVersion, "files": f.Path}
+			if lag > 0 {
+				rule, ra["lag"] = "helm.chart-appversion-lags-release", itoa(lag)
 			}
-			if _, t := classifyTag(c.Version, refTag, refVer); t != "" {
-				st.emit(KindVersionRelation, "chart.version = "+t, conf, "helm.chart-version-matches-ref",
-					map[string]string{"subject": "chart.version", "template": t, "chart": c.Name, "files": f.Path}, f.Evidence(versionLine))
+			st.emit(KindVersionRelation, "chart.appVersion = "+tmpl, conf, rule, ra, f.Evidence(appVersionLine(lines, c.AppVersion)))
+		}
+		if tmpl, lag, ok := st.chartValueRelation(c.Version); ok {
+			rule := "helm.chart-version-matches-ref"
+			ra := map[string]string{"subject": "chart.version", "template": tmpl, "chart": c.Name, "files": f.Path}
+			if lag > 0 {
+				rule, ra["lag"] = "helm.chart-version-lags-release", itoa(lag)
 			}
+			st.emit(KindVersionRelation, "chart.version = "+tmpl, conf, rule, ra, f.Evidence(versionLine))
 		}
 	}
+}
+
+// chartValueRelation relates a Chart.yaml value (version, appVersion) to the
+// release version: directly at the scanned ref, or to one of the recent
+// releases when the chart lags behind the tag. lag is how many releases
+// behind the scanned ref the value is (0 for a direct match).
+func (st *scanState) chartValueRelation(value string) (tmpl string, lag int, ok bool) {
+	value = strings.Trim(strings.TrimSpace(value), `"'`)
+	if value == "" {
+		return "", 0, false
+	}
+	if refTag, refVer := st.refTag(); refTag != "" {
+		if _, t := classifyTag(value, refTag, refVer); t != "" {
+			return t, 0, true
+		}
+	}
+	if st.in.Tags == nil {
+		return "", 0, false
+	}
+	stable := st.in.Tags.stable
+	if len(stable) > 6 {
+		stable = stable[len(stable)-6:]
+	}
+	for i := len(stable) - 1; i >= 0; i-- {
+		v := stable[i]
+		switch value {
+		case v.Tag:
+			return tmplTag, len(stable) - 1 - i, true
+		case v.Semver:
+			return tmplVersion, len(stable) - 1 - i, true
+		case "v" + v.Semver:
+			if strings.HasPrefix(v.Tag, "v") {
+				return tmplTag, len(stable) - 1 - i, true
+			}
+			return "v" + tmplVersion, len(stable) - 1 - i, true
+		}
+	}
+	return "", 0, false
 }
 
 // appVersionLine finds the 1-based line of the appVersion key.

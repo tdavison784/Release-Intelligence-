@@ -79,17 +79,17 @@ type imageInfo struct {
 }
 
 func (r *resolver) artifacts() {
-	charts := r.helmCharts()
+	charts, chartAppVersion := r.helmCharts()
 	r.externalCharts()
 	manifests := r.inRepoManifests()
 	r.releaseAssets()
 	r.crds()
-	r.images(charts, manifests)
+	r.images(charts, chartAppVersion, manifests)
 }
 
 // images groups product images by name; channels are the registries that
 // publish them.
-func (r *resolver) images(chartTemplate string, manifests map[string]Candidate) {
+func (r *resolver) images(chartTemplate, chartAppVersion string, manifests map[string]Candidate) {
 	byName := map[string][]imageInfo{}
 	var names []string
 	for _, c := range r.byK[KindImage] {
@@ -190,6 +190,8 @@ func (r *resolver) images(chartTemplate string, manifests map[string]Candidate) 
 		case tmpl != "":
 		case setOf(infos[0].c.Attr("classes"))["chart-appversion"] && chartTemplate != "":
 			tmpl, rule, why = chartTemplate, "image.tag-from-chart-appversion", "The chart leaves the image tag empty so it defaults to the chart appVersion, which follows the release."
+		case setOf(infos[0].c.Attr("classes"))["chart-appversion"] && chartAppVersion != "":
+			tmpl, rule, why = chartAppVersion, "image.tag-from-chart-appversion", "The chart leaves the image tag empty so it defaults to the chart appVersion, which equals the release tag."
 		default:
 			tmpl, rule, conf, why = tmplTag, "image.tag-assumed-release", domain.ConfidenceLow, "No explicit tag evidence; assuming images are tagged with the release tag."
 		}
@@ -252,8 +254,9 @@ func registryScore(c Candidate) int {
 }
 
 // helmCharts adds in-repo charts with publication evidence and returns the
-// version template of the main chart ("" when none).
-func (r *resolver) helmCharts() string {
+// version template of the main chart plus its appVersion lookup match (""
+// when none).
+func (r *resolver) helmCharts() (string, string) {
 	type chart struct {
 		c         Candidate
 		name, dir string
@@ -322,7 +325,7 @@ func (r *resolver) helmCharts() string {
 			anyPublished = true
 		}
 	}
-	mainTemplate := ""
+	mainTemplate, appVersionMatch := "", ""
 	for _, ch := range charts {
 		if !ch.published && (anyPublished || !r.productRelated(ch.name+" "+ch.dir)) {
 			r.exclude(ch.c, "helm.unpublished", "No publication channel (OCI push/reference or Helm repository) mentions this chart.")
@@ -347,6 +350,29 @@ func (r *resolver) helmCharts() string {
 				if x == o.Value || strings.HasPrefix(x, strings.TrimSuffix(o.Value, "/")+"/") {
 					cands = append(cands, o)
 				}
+			}
+		}
+		// Development channels (charts.crossplane.io/master: unreleased main
+		// builds) are dropped when a stable sibling repository of the same
+		// chart exists.
+		if len(ch.repos) > 1 {
+			hasStable := false
+			for _, h := range ch.repos {
+				if !devChannelURL(h.Value) {
+					hasStable = true
+					break
+				}
+			}
+			if hasStable {
+				kept := ch.repos[:0]
+				for _, h := range ch.repos {
+					if devChannelURL(h.Value) {
+						r.exclude(h, "helm.dev-channel", "Chart repository path is a development channel (unreleased main builds); a stable channel of the same chart exists.")
+						continue
+					}
+					kept = append(kept, h)
+				}
+				ch.repos = kept
 			}
 		}
 		// Canonical *.github.io repository first, then the same index on
@@ -383,8 +409,11 @@ func (r *resolver) helmCharts() string {
 		if mainTemplate == "" && vr.Strategy == catalog.VersionTemplate {
 			mainTemplate = vr.Template
 		}
+		if appVersionMatch == "" && vr.Strategy == catalog.VersionLookup && vr.Field == "appVersion" {
+			appVersionMatch = vr.Match
+		}
 	}
-	return mainTemplate
+	return mainTemplate, appVersionMatch
 }
 
 // chartVersion derives the relation between chart and release versions.
@@ -400,9 +429,12 @@ func (r *resolver) chartVersion(c Candidate, dir string) (catalog.VersionRelatio
 	}
 	for _, vr := range r.byK[KindVersionRelation] {
 		if vr.Attr("subject") == "chart.appVersion" && vr.Attr("template") != "" && (vr.Attr("chart") == "" || strings.HasPrefix(c.Value, vr.Attr("chart")+"@")) {
+			why := fmt.Sprintf("Chart.yaml sets appVersion %q, which equals a release tag; the chart release for a product release is looked up by appVersion == %s (the chart's own version moves independently).", vr.Attr("appVersion"), vr.Attr("template"))
+			if vr.Attr("lag") != "" {
+				why = fmt.Sprintf("Chart.yaml at the scanned release still packages the previous chart (appVersion %q, %s release(s) behind): chart releases are cut after the product tag; the chart for a release is looked up by appVersion == %s.", vr.Attr("appVersion"), vr.Attr("lag"), vr.Attr("template"))
+			}
 			return catalog.VersionRelation{Strategy: catalog.VersionLookup, Field: "appVersion", Match: vr.Attr("template"), Select: "latest"},
-				"helm.appversion-lookup", domain.ConfidenceHigh,
-				fmt.Sprintf("Chart.yaml sets appVersion %q, which equals the scanned release tag; the chart release for a product release is looked up by appVersion == %s (the chart's own version moves independently).", vr.Attr("appVersion"), vr.Attr("template"))
+				"helm.appversion-lookup", domain.ConfidenceHigh, why
 		}
 	}
 	for _, vr := range r.byK[KindVersionRelation] {
@@ -677,6 +709,15 @@ func (r *resolver) hasBuildTool(tool string) bool {
 		}
 	}
 	return false
+}
+
+var devChannelRe = regexp.MustCompile(`(?i)/(master|main|dev|devel|nightly|canary|edge|testing)(/|$)`)
+
+// devChannelURL reports whether a chart repository URL points at a
+// development channel of a repository that also has stable releases.
+func devChannelURL(u string) bool {
+	u = strings.TrimSuffix(strings.TrimSpace(u), "/")
+	return devChannelRe.MatchString(u)
 }
 
 // tagFamilyCandidate turns a tag family into a pseudo-candidate so that the

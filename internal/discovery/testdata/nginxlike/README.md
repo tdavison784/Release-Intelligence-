@@ -6,11 +6,14 @@ kubernetes/ingress-nginx.
 
 ## Supported Versions table
 
-| Ingress-nginx Version | Controller Version | Kubernetes Version |
-|-----------------------|--------------------|--------------------|
-| 1.13.0                | 1.13.0             | 1.30, 1.31, 1.32   |
-| 1.14.0                | 1.14.0             | 1.31, 1.32, 1.33   |
-| 1.15.0                | 1.15.0             | 1.32, 1.33, 1.34   |
+Supported versions mean E2E tests pass for the versions listed.
+
+| Supported | Ingress-nginx version | k8s supported version |
+|:---------:|-----------------------|------------------------|
+| 🔄 | **v1.15.1** | 1.32, 1.33, 1.34 |
+| 🔄 | **v1.15.0** | 1.32, 1.33, 1.34 |
+| 🔄 | **v1.14.0** | 1.31, 1.32, 1.33 |
+| 🔄 | **v1.13.0** | 1.30, 1.31, 1.32 |
 
 ## Installation
 

@@ -231,7 +231,10 @@ func cleanCell(s string) string {
 }
 
 // detectCompatTables finds markdown tables keyed by product versions with a
-// Kubernetes column.
+// Kubernetes column. The key column is the first of the leading columns whose
+// cells are product version lines — some projects put a status icon or the
+// supported flag before the version (ingress-nginx "Supported | Ingress-NGINX
+// version | k8s supported version | …").
 func detectCompatTables(st *scanState, f *File) {
 	tables := parseMarkdownTables(f.Lines())
 	if len(tables) == 0 {
@@ -242,19 +245,30 @@ func detectCompatTables(st *scanState, f *File) {
 	firstLine, rows := 0, 0
 	var headings []string
 	for _, t := range tables {
+		keyCol := -1
 		versionKeys := 0
-		for _, r := range t.rows {
-			if len(r) > 0 && st.isProductLineCell(cleanCell(r[0])) {
-				versionKeys++
+		scanCols := len(t.header)
+		if scanCols > 3 {
+			scanCols = 3
+		}
+		for c := 0; c < scanCols; c++ {
+			n := 0
+			for _, r := range t.rows {
+				if len(r) > c && st.isProductLineCell(cleanCell(r[c])) {
+					n++
+				}
+			}
+			if n > versionKeys {
+				keyCol, versionKeys = c, n
 			}
 		}
-		if versionKeys == 0 {
+		if keyCol < 0 {
 			continue // keyed by something else (vendors, other products)
 		}
 		found := false
 		for i, h := range t.header {
 			hc := cleanCell(h)
-			if i == 0 || !kubeHeaderRe.MatchString(hc) {
+			if i <= keyCol || !kubeHeaderRe.MatchString(hc) {
 				continue
 			}
 			found = true
@@ -275,7 +289,7 @@ func detectCompatTables(st *scanState, f *File) {
 		if !found {
 			continue
 		}
-		keyCols[cleanCell(t.header[0])] = true
+		keyCols[cleanCell(t.header[keyCol])] = true
 		rows += versionKeys
 		if firstLine == 0 {
 			firstLine = t.line
