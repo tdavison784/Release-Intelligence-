@@ -1,0 +1,98 @@
+cert-manager v1.14.4 → v1.15.1
+Path: v1.15.0 → v1.15.1  (policy minor-lineage; 3 backport releases skipped)
+Summary: 1 breaking · 6 action required · 18 changes · 3 warnings
+
+Sources:
+  ✓ tags           git-tags           versions       ok
+  ✓ advisories     github-advisories  security       ok
+  ✓ notes          repo-file          release-notes  ok
+  ✓ github-assets  http               versions       ok
+  ✗ quay           oci                —              unavailable: quay.io blocked (HTTP 403)
+  ✓ compat         repo-file          compatibility  ok
+  ✓ upgrade        repo-file          upgrade-guide  ok
+
+Breaking changes (1):
+  • [v1.15.0] The `cmctl` binary and the `quay.io/jetstack/cert-manager-ctl` image are no longer published from this repository  (removal · declared · ev-19d1a74d9110)
+
+Migration requirements / action required (6):
+  • [v1.15.0] If you use `cmctl` or the `cert-manager-ctl` image in automation, switch to the standalone cmctl release before upgrading  (migration · declared · ev-6dfc17d30bb5)
+  • [diff] Helm values `global.podSecurityPolicy.*` removed (2 keys)  (helm-values · computed · ev-ecd9308c1a1d, ev-6633de6a05da)
+      ↳ `global.podSecurityPolicy` of chart cert-manager no longer exists in v1.15.1. Remove these keys from your values and migrate the configuration they controlled…
+  • [diff] Kubernetes support narrowed: 1.24–1.29 → 1.25–1.30 (drops 1.24)  (compatibility · computed · ev-81b4237654a0, ev-8219c314e4e6)
+      ↳ Verify the cluster runs a supported Kubernetes version (1.25–1.30) before upgrading.
+  • [diff] OpenShift support narrowed: 4.11–4.16 → 4.12–4.17 (drops 4.11)  (compatibility · computed · ev-7f1aa99f172c, ev-351abc3d8218)
+      ↳ Verify the cluster runs a supported OpenShift version (4.12–4.17) before upgrading.
+  • [diff] GHSA-r4pg-vg54-wxx4 (CVE-2024-12401) still affects target v1.15.1: Potential DoS when parsing specially crafted PEM inputs  (security · computed · ev-0ca1443b101d)
+      ↳ Severity: moderate. Affected versions: < 1.12.14 || >= 1.13.0, < 1.15.4 || >= 1.16.0, < 1.16.2. Patched: 1.12.14, 1.15.4, 1.16.2. Consider upgrading to a…
+  • [diff] Container image `cert-manager-ctl` is no longer published  (artifact · computed · ev-75771a4ab9c0)
+      ↳ Present in v1.14.4 as quay.io/jetstack/cert-manager-ctl:v1.14.4 (referenced); not applicable to v1.15.1 according to the product definition (availability <…
+
+Deprecations & removals (1):
+  • [v1.15.0] Helm: the `installCRDs` value is deprecated in favour of `crds.enabled`  (deprecation · declared · ev-7d90ee541966)
+
+API & CRD schema changes (1):
+  • [diff] Certificate v1 schema: 1 field added: `spec.keystores.pkcs12.profile`  (crd-schema · computed · ev-7853e2061c32, ev-181f2d346211)
+
+Helm value changes (3):
+  • [diff] Default of Helm value `startupapicheck.image.repository` changed: "quay.io/jetstack/cert-manager-ctl" → "quay.io/jetstack/cert-manager-startupapicheck"  (helm-values · computed · ev-ecd9308c1a1d, ev-6633de6a05da)
+  • [diff] Default of Helm value `webhook.timeoutSeconds` changed: 10 → 30  (helm-values · computed · ev-ecd9308c1a1d, ev-6633de6a05da)
+  • [diff] New Helm values section `crds.*` (2 values)  (helm-values · computed · ev-ecd9308c1a1d, ev-6633de6a05da)
+
+Artifact changes (8 updated, 1 removed):
+  manifest         https://github.com/cert-manager/cert-manager/releases/download/{v1.14.4 → v1.15.1}/cert-manager.yaml  [verified]  (computed · ev-1252e2015d3f, ev-4621d2941711)
+  crds             https://github.com/cert-manager/cert-manager/releases/download/{v1.14.4 → v1.15.1}/cert-manager.crds.yaml  [verified]  (computed · ev-894796d9b735, ev-3634b4803939)
+  chart            quay.io/jetstack/charts/cert-manager  v1.14.4 → v1.15.1  [expected]  (computed · no evidence)
+  controller       quay.io/jetstack/cert-manager-controller  v1.14.4 → v1.15.1  [referenced]  (computed · ev-5d7ca806277d, ev-c3b5c60495e3)
+  webhook          quay.io/jetstack/cert-manager-webhook  v1.14.4 → v1.15.1  [referenced]  (computed · ev-bedeeb823b5e, ev-c3024195d0ff)
+  cainjector       quay.io/jetstack/cert-manager-cainjector  v1.14.4 → v1.15.1  [referenced]  (computed · ev-4035a9d93c31, ev-25dd90536d2a)
+  acmesolver       quay.io/jetstack/cert-manager-acmesolver  v1.14.4 → v1.15.1  [referenced]  (computed · ev-62e0eb0d0b8d, ev-3c5ed660240a)
+  startupapicheck  quay.io/jetstack/cert-manager-startupapicheck  v1.14.4 → v1.15.1  [expected]  (computed · no evidence)
+  ctl              − quay.io/jetstack/cert-manager-ctl:v1.14.4  (removed)  [referenced → not-applicable]  (computed · ev-75771a4ab9c0)
+
+Kubernetes compatibility:
+  supported: 1.24–1.29 → 1.25–1.30; drops 1.24, adds 1.30  [narrowed]  (computed · ev-81b4237654a0, ev-8219c314e4e6)
+
+OpenShift compatibility:
+  supported: 4.11–4.16 → 4.12–4.17; drops 4.11, adds 4.17  [narrowed]  (computed · ev-7f1aa99f172c, ev-351abc3d8218)
+
+Security changes (2):
+  • [v1.15.0] Fixes GHSA-synt-heti-c001 (CVE-2099-0001): Webhook may log Secret data at verbosity >= 5  (security · computed · ev-65f3b29a14da)
+  • [v1.15.1] Bump `golang.org/x/net` to address CVE-2024-45338  (security · heuristic/medium · ev-cc305d03b2d0)
+
+Other notable changes (1):
+  • [v1.15.0] Upgrade Go to 1.22.4  (other · declared · ev-2c20baca46ff)
+  (2 features and 1 bug fix not shown; use verbose output)
+
+Warnings (3):
+  ! 2 artifacts of v1.15.1 only expected (not observed or referenced): chart, startupapicheck
+  ! Target v1.15.1 is affected by GHSA-r4pg-vg54-wxx4 (CVE-2024-12401), severity moderate; patched versions: 1.12.14, 1.15.4, 1.16.2
+  ! Advisory GHSA-synt-heti-c002 has no machine-readable affected-version range; check manually whether it applies (https://github.com/cert-manager/cert-manager/security/advisories/GHSA-synt-heti-c002)
+
+Evidence (42 records, 28 cited above):
+  ev-19d1a74d9110  https://raw.githubusercontent.com/cert-manager/website/master/content/docs/releases/release-notes/release-notes-1.15.md  L10-L11
+  ev-6dfc17d30bb5  https://raw.githubusercontent.com/cert-manager/website/master/content/docs/releases/upgrading/upgrading-1.14-1.15.md  L28-L29
+  ev-ecd9308c1a1d  https://raw.githubusercontent.com/cert-manager/cert-manager/v1.14.4/deploy/charts/cert-manager/values.yaml
+  ev-6633de6a05da  https://raw.githubusercontent.com/cert-manager/cert-manager/v1.15.1/deploy/charts/cert-manager/values.yaml
+  ev-81b4237654a0  https://raw.githubusercontent.com/cert-manager/website/master/content/docs/releases/README.md  row 1.14
+  ev-8219c314e4e6  https://raw.githubusercontent.com/cert-manager/website/master/content/docs/releases/README.md  row 1.15
+  ev-7f1aa99f172c  https://raw.githubusercontent.com/cert-manager/website/master/content/docs/releases/README.md  row 1.14
+  ev-351abc3d8218  https://raw.githubusercontent.com/cert-manager/website/master/content/docs/releases/README.md  row 1.15
+  ev-0ca1443b101d  https://github.com/cert-manager/cert-manager/security/advisories/GHSA-r4pg-vg54-wxx4
+  ev-75771a4ab9c0  https://artifacts.example/quay.io/jetstack/cert-manager-ctl:v1.14.4
+  ev-7d90ee541966  https://raw.githubusercontent.com/cert-manager/website/master/content/docs/releases/release-notes/release-notes-1.15.md  L13-L14
+  ev-7853e2061c32  https://github.com/cert-manager/cert-manager/releases/download/v1.14.4/cert-manager.crds.yaml
+  ev-181f2d346211  https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml
+  ev-1252e2015d3f  https://artifacts.example/https://github.com/cert-manager/cert-manager/releases/download/v1.14.4/cert-manager.yaml
+  ev-4621d2941711  https://artifacts.example/https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.yaml
+  ev-894796d9b735  https://artifacts.example/https://github.com/cert-manager/cert-manager/releases/download/v1.14.4/cert-manager.crds.yaml
+  ev-3634b4803939  https://artifacts.example/https://github.com/cert-manager/cert-manager/releases/download/v1.15.1/cert-manager.crds.yaml
+  ev-5d7ca806277d  https://artifacts.example/quay.io/jetstack/cert-manager-controller:v1.14.4
+  ev-c3b5c60495e3  https://artifacts.example/quay.io/jetstack/cert-manager-controller:v1.15.1
+  ev-bedeeb823b5e  https://artifacts.example/quay.io/jetstack/cert-manager-webhook:v1.14.4
+  ev-c3024195d0ff  https://artifacts.example/quay.io/jetstack/cert-manager-webhook:v1.15.1
+  ev-4035a9d93c31  https://artifacts.example/quay.io/jetstack/cert-manager-cainjector:v1.14.4
+  ev-25dd90536d2a  https://artifacts.example/quay.io/jetstack/cert-manager-cainjector:v1.15.1
+  ev-62e0eb0d0b8d  https://artifacts.example/quay.io/jetstack/cert-manager-acmesolver:v1.14.4
+  ev-3c5ed660240a  https://artifacts.example/quay.io/jetstack/cert-manager-acmesolver:v1.15.1
+  … and 3 more
+  (14 uncited records not shown; use verbose or JSON output)
