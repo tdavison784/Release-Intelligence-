@@ -119,6 +119,27 @@ func (d *Discoverer) Run(ctx context.Context, req Request) (*Result, error) {
 	if err != nil {
 		return nil, fmt.Errorf("scan %s: %w", repo, err)
 	}
+	// 3a. tag-train disambiguation: several version trains live in this
+	// repository and the scan evidence (release triggers, chart appVersion)
+	// names another one than the most numerous. Re-checkout at the new
+	// train's latest release and re-scan, so every downstream inference
+	// (path templates, image tag classes, relations) sees the right ref.
+	if req.Ref == "" {
+		if f, why := selectTagTrain(ta, main.Candidates); f != nil {
+			nt := ta.SwitchFamily(*f, ta.raw)
+			nt.TrainSwitch = &TrainSwitch{From: ta.Families[0], To: *f, Rationale: why}
+			if t2, cerr := d.Checkout.Checkout(ctx, repo, nt.Latest, CheckoutOptions{}); cerr == nil {
+				rv, _ := nt.Find(nt.Latest)
+				if m2, serr := scanner.Scan(ctx, t2, ScanInput{Profile: ProfileSource, Product: hints, Main: repo, Tags: nt, RefVersion: rv}); serr == nil {
+					ta, tree, main = nt, t2, m2
+					ref, refVersion = nt.Latest, rv
+					rep.Tags, rep.Ref = ta, ref
+					info := tree.Info()
+					rep.Commit = info.Commit
+				}
+			}
+		}
+	}
 	cands := append([]Candidate{tagCandidate(ta, d.now())}, main.Candidates...)
 	rep.Scans = append(rep.Scans, *main)
 	// 3b. referenced repositories
@@ -241,6 +262,11 @@ func tagCandidate(ta *TagAnalysis, now time.Time) Candidate {
 	c := Candidate{Kind: KindTagScheme, Value: ta.TagRegex(), Confidence: domain.ConfidenceHigh, Rules: []string{"tags.ls-remote"},
 		Attributes: map[string]string{"prefix": ta.Prefix, "latest": ta.Latest, "stable": itoa(ta.StableCount), "prereleases": itoa(ta.PrereleaseCount),
 			"junk": strings.Join(firstN(ta.Junk, 8), ","), "lineage": ta.Lineage}}
+	if ta.Scheme == SchemeComponentGroups {
+		c.Attributes["scheme"] = SchemeComponentGroups
+		c.Attributes["matches"] = ta.PatternCoverage
+		c.Confidence = domain.ConfidenceMedium
+	}
 	if ta.Latest != "" {
 		c.Evidence = append(c.Evidence, ta.Evidence(ta.Latest, now))
 	}

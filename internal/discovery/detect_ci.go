@@ -242,8 +242,14 @@ func detectWorkflow(st *scanState, f *File) {
 		if chartReleaserRe.MatchString(line) {
 			st.emit(KindBuildTool, "chart-releaser", base, "workflow.chart-releaser", attrs(nil), f.Evidence(n))
 			if st.info.Repo.IsGitHub() {
+				slug := st.info.Repo.Slug()
 				u := "https://" + strings.ToLower(st.info.Repo.Owner) + ".github.io/" + st.info.Repo.Name
 				st.emit(KindHelmRepo, u, domain.ConfidenceMedium, "workflow.chart-releaser-pages", attrs(nil), f.Evidence(n))
+				// chart-releaser writes index.yaml to the gh-pages branch; the
+				// same index is reachable on raw.githubusercontent.com even
+				// when the *.github.io host is not.
+				st.emit(KindHelmRepo, "https://raw.githubusercontent.com/"+slug+"/gh-pages", domain.ConfidenceMedium,
+					"workflow.chart-releaser-pages-raw", attrs(map[string]string{"pagesIndex": "true"}), f.Evidence(n))
 			}
 		}
 		if cosignSignRe.MatchString(line) {

@@ -88,12 +88,29 @@ func detectChart(st *scanState, f *File) {
 	st.emit(KindHelmChart, c.Name+"@"+dir, conf, "helm.chart", attrs, ev...)
 	if !placeholder {
 		if refTag, refVer := st.refTag(); refTag != "" {
+			// appVersion first: it names the packaged release even when the
+			// chart has its own, independent version (ingress-nginx 4.x
+			// packaging controller v1.x).
+			if _, t := classifyTag(c.AppVersion, refTag, refVer); t != "" {
+				st.emit(KindVersionRelation, "chart.appVersion = "+t, conf, "helm.chart-appversion-matches-ref",
+					map[string]string{"subject": "chart.appVersion", "template": t, "chart": c.Name, "appVersion": c.AppVersion, "files": f.Path}, f.Evidence(appVersionLine(lines, c.AppVersion)))
+			}
 			if _, t := classifyTag(c.Version, refTag, refVer); t != "" {
 				st.emit(KindVersionRelation, "chart.version = "+t, conf, "helm.chart-version-matches-ref",
 					map[string]string{"subject": "chart.version", "template": t, "chart": c.Name, "files": f.Path}, f.Evidence(versionLine))
 			}
 		}
 	}
+}
+
+// appVersionLine finds the 1-based line of the appVersion key.
+func appVersionLine(lines []string, v string) int {
+	for i, l := range lines {
+		if strings.HasPrefix(strings.TrimSpace(l), "appVersion:") {
+			return i + 1
+		}
+	}
+	return 1
 }
 
 // valuesCtx carries registry defaults through a values.yaml walk.
@@ -181,18 +198,27 @@ func walkValues(st *scanState, f *File, n *yaml.Node, parentKey string, vc value
 	}
 	repo, reg, name, tag := scalar(mapGet(n, "repository")), scalar(mapGet(n, "registry")), scalar(mapGet(n, "name")), scalar(mapGet(n, "tag"))
 	full, line := "", 0
+	defaultReg := ""
+	if reg != "" {
+		defaultReg = reg
+	} else if vc.registry != "" {
+		defaultReg = vc.registry
+	}
 	switch {
 	case repo != "" && (strings.Contains(repo, "/") || isRegistryHost(strings.Split(repo, "/")[0])):
 		full, line = repo, mapKeyLine(n, "repository")
 		if reg != "" && !isRegistryHost(strings.Split(repo, "/")[0]) {
 			full = reg + "/" + repo
 		}
-	case parentKey == "image" && name != "" && (reg != "" || vc.registry != ""):
-		r := reg
-		if r == "" {
-			r = vc.registry
+		// A hostless repository ("external-secrets/external-secrets") joined
+		// with the chart's default registry (global.imageRegistry or
+		// image.registry) — the actual publish channel (ghcr.io), not the
+		// implicit Docker Hub namespace.
+		if !isRegistryHost(strings.Split(repo, "/")[0]) && defaultReg != "" && isRegistryHost(defaultReg) {
+			full = defaultReg + "/" + repo
 		}
-		full, line = r, mapKeyLine(n, "name")
+	case parentKey == "image" && name != "" && defaultReg != "":
+		full, line = defaultReg, mapKeyLine(n, "name")
 		if vc.namespace != "" {
 			full += "/" + vc.namespace
 		}
@@ -223,8 +249,33 @@ func walkValues(st *scanState, f *File, n *yaml.Node, parentKey string, vc value
 	}
 	if img := scalar(mapGet(n, "image")); img != "" && !strings.ContainsAny(img, "{$") {
 		line := mapKeyLine(n, "image")
+		tagVal := scalar(mapGet(n, "tag"))
 		if ref, ok := parseImageValue(img); ok && strings.Contains(img, "/") && isRegistryHost(ref.Registry) && strings.Contains(strings.Split(img, "/")[0], ".") {
 			st.emit(KindImage, ref.Repository(), confFor(ctx, domain.ConfidenceMedium), "helm.values-image", attrs(), f.Evidence(line))
+		} else if strings.Contains(img, "/") && (reg != "" || vc.registry != "") {
+			// registry + image ("registry.k8s.io" + "ingress-nginx/controller")
+			// + tag: the ingress-nginx values shape
+			host := reg
+			if host == "" {
+				host = vc.registry
+			}
+			if full := host + "/" + img; isRegistryHost(host) {
+				if ref, ok := parseImageValue(full); ok {
+					a := attrs()
+					refTag, refVer := st.refTag()
+					class, tmpl := classifyTag(tagVal, refTag, refVer)
+					if tagVal == "" {
+						class = "chart-appversion"
+						a["tagDefault"] = "appVersion"
+					}
+					a["classes"], a["tagTemplate"] = class, tmpl
+					if tagVal != "" {
+						a["tags"] = tagVal
+					}
+					st.emit(KindImage, ref.Repository(), confFor(ctx, domain.ConfidenceHigh), "helm.values-image", a, f.Evidence(line))
+					return
+				}
+			}
 		} else if !strings.ContainsAny(img, "/:") {
 			st.emit(KindImageName, img, confFor(ctx, domain.ConfidenceMedium), "helm.values-image-name", attrs(), f.Evidence(line))
 		}

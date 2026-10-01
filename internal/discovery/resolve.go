@@ -18,6 +18,41 @@ const (
 	OriginAI            = "ai"
 )
 
+// Element statuses: the closed vocabulary classifying every proposed
+// relationship by how it is known (set by Propose after validation).
+const (
+	// StatusDiscovered: deterministic finding grounded in scanned-file
+	// evidence; not (yet) checked against historical releases.
+	StatusDiscovered = "discovered"
+	// StatusHistoricallyValidated: the real relationship checker observed the
+	// relationship hold for at least ingest.MinValidations sampled releases.
+	StatusHistoricallyValidated = "historically-validated"
+	// StatusInferred: heuristic or AI answer — plausible, grounded in
+	// evidence, but not identical to it (assumptions made). AI proposals are
+	// always at most inferred.
+	StatusInferred = "inferred"
+	// StatusUnverified: the checks ran but could not decide (channels
+	// unreachable, too few samples).
+	StatusUnverified = "unverified"
+	// StatusException: holds only with curated exceptions or an availability
+	// annotation derived from validation failures.
+	StatusException = "exception"
+)
+
+// AllStatuses lists the element statuses in report order.
+var AllStatuses = []string{StatusHistoricallyValidated, StatusDiscovered, StatusInferred, StatusUnverified, StatusException}
+
+// ElementStatus counts elements per status.
+func ElementStatuses(es []*Element) map[string]int {
+	m := map[string]int{}
+	for _, e := range es {
+		if e.Status != "" {
+			m[e.Status]++
+		}
+	}
+	return m
+}
+
 // Element describes one source or artifact of a draft definition and how
 // it was obtained.
 type Element struct {
@@ -27,6 +62,13 @@ type Element struct {
 	Origin     string            `json:"origin"`
 	Rule       string            `json:"rule"`
 	Confidence domain.Confidence `json:"confidence"`
+	// Status classifies the proposal (see the Status* vocabulary); set when
+	// the proposal is finalised, from the element's origin, confidence and
+	// historical-validation verdict.
+	Status string `json:"status,omitempty"`
+	// Evidence lists the URIs of the scanned files (or tag lists) that ground
+	// the proposal, bounded to a few per element.
+	Evidence   []string          `json:"evidence,omitempty"`
 	Candidates []string          `json:"candidates,omitempty"`
 	ProposalID string            `json:"proposal,omitempty"`
 	// Replaces names the deterministic element an AI variant would replace.
@@ -224,19 +266,50 @@ func (r *resolver) versioning() {
 	}
 	cands := r.byK[KindTagScheme]
 	rationale := ta.Summary()
-	if ta.TagPattern != "" {
+	if ta.Scheme == SchemeComponentGroups {
+		rationale = "no dot-separated semver family exists; component tag scheme " + ta.TagPattern + " mined from the tag list and tested against it (" + ta.PatternCoverage + " tags match, e.g. " + ta.Latest + " = " + latestSemver(ta) + ")"
+		r.draft.Open = append(r.draft.Open, "Component tag scheme inferred from the tag shapes: confirm the digit roles (a two-number tag such as "+ta.Latest+" is read as "+latestSemver(ta)+").")
+	}
+	if ta.TagPattern != "" && ta.Scheme != SchemeComponentGroups {
 		rationale += "; strict tagPattern excludes junk tags such as " + strings.Join(firstN(ta.Junk, 4), ", ")
 	}
+	if sw := ta.TrainSwitch; sw != nil {
+		r.decide("versioning", "replace", "tags.train-switch",
+			fmt.Sprintf("The most numerous tag family %q (%d tags) is the wrong train; switched to %q (%d tags): %s.", sw.From.Prefix, sw.From.Count, sw.To.Prefix, sw.To.Count, sw.Rationale),
+			domain.ConfidenceHigh, domain.MethodComputed, cands...)
+	}
 	for _, t := range r.byK[KindReleaseTrigger] {
-		if ta.Prefix != "" && !strings.HasPrefix(t.Value, ta.Prefix) && !strings.HasPrefix(t.Value, "*") {
+		if ta.Prefix != "" && !strings.HasPrefix(t.Value, ta.Prefix) && !strings.HasPrefix(t.Value, "*") && !triggerNamesFamily(t.Value, ta.Prefix) {
 			r.draft.Open = append(r.draft.Open, fmt.Sprintf("Release workflow triggers on tags %q, which does not match the tag prefix %q.", t.Value, ta.Prefix))
 		}
 		cands = append(cands, t)
 	}
 	r.decide("versioning", "include", "tags.scheme", rationale, domain.ConfidenceHigh, domain.MethodComputed, cands...)
+	r.draft.Elements["versioning"] = &Element{Key: "versioning", Kind: "versioning", ID: "versioning",
+		Origin: OriginDeterministic, Rule: "tags.scheme", Confidence: domain.ConfidenceHigh, Targets: []string{TargetReleaseSource},
+		Candidates: candIDs(cands)}
 	if ta.StableCount == 0 {
 		r.draft.Open = append(r.draft.Open, "No stable release tags were found; the tag scheme could not be inferred.")
 	}
+}
+
+// candIDs collects candidate ids for an element.
+func candIDs(cs []Candidate) []string {
+	var out []string
+	for _, c := range cs {
+		if c.ID != "" && !containsStr(out, c.ID) {
+			out = append(out, c.ID)
+		}
+	}
+	return out
+}
+
+// latestSemver is the semver of the latest stable tag ("" when none).
+func latestSemver(ta *TagAnalysis) string {
+	if v, ok := ta.LatestVersion(); ok {
+		return v.Semver
+	}
+	return ""
 }
 
 func firstN(xs []string, n int) []string {

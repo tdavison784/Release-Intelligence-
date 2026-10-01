@@ -204,6 +204,10 @@ func classifyTag(tag, refTag, refVersion string) (string, string) {
 		return tagRelease, tmplTag
 	case refVersion != "" && tag == refVersion:
 		return tagRelease, tmplVersion
+	case refVersion != "" && tag == "v"+refVersion:
+		// the tag carries a v the product tag family does not
+		// (ingress-nginx controller images: controller-v1.15.1 vs v1.15.1)
+		return tagRelease, "v" + tmplVersion
 	case strings.Contains(tag, markVersionFile) && strings.Contains(tag, markGitCommit):
 		return tagSnapshot, ""
 	case floatingTagRe.MatchString(tag):
