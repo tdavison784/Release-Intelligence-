@@ -16,6 +16,10 @@
 //	                                    --crds, --images)
 //	ri discover <repository>            propose a product definition
 //	ri stats [product...]               measure onboarding scalability
+//	ri eval [entries...]                score the validation dataset
+//	                                    (eval/cases) against the pipeline;
+//	                                    -update rewrites eval/results after
+//	                                    review; non-zero exit on regression
 //
 // Global flags (before the command): -products DIR, -state DIR, -offline,
 // -refresh, -v.
@@ -51,6 +55,7 @@ Commands:
   impact <product> <from> <to>      which upgrade changes matter to your environment
   discover <repository>             inspect an upstream repository and propose a definition
   stats [product ...]               measure onboarding: constructs, effort, discovery, validation
+  eval [entries ...]                score the validation dataset (eval/cases) against the pipeline
 
 Global flags:
 `
@@ -140,6 +145,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return c.discover(cmdArgs)
 	case "stats":
 		return c.stats(cmdArgs)
+	case "eval":
+		return c.eval(cmdArgs)
 	default:
 		fs.Usage()
 		return fmt.Errorf("%w: unknown command %q", app.ErrUsage, cmd)

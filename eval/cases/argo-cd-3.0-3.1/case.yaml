@@ -1,0 +1,70 @@
+id: argo-cd-3.0-3.1
+product: argo-cd
+from: v3.0.6
+to: v3.1.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/upgrading/3.0-3.1.md
+expected:
+  - id: E1
+    title: v1 Actions API endpoint deprecated in favour of /actions/v2 (query params become a JSON body)
+    kind: deprecation
+    importance: important
+    actionRequired: false      # old endpoint still works in 3.1, warns
+    match:
+      - text: '(?i)actions.*v2|RunResourceActionV2'
+      - text: '(?i)resource/actions.*deprecated|deprecated.*resource/actions'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/upgrading/3.0-3.1.md
+        quote: "The `/api/v1/applications/{name}/resource/actions` endpoint is deprecated in favor of `/api/v1/applications/{name}/resource/actions/v2`."
+  - id: E2
+    title: OIDC authorization-code flow with PKCE now handled by the server; IdP redirect URIs must include /auth/callback
+    kind: behaviour-change
+    importance: critical
+    actionRequired: true       # identity-provider configuration change required
+    match:
+      - text: '(?i)PKCE'
+      - text: '(?i)enablePKCEAuthentication'
+      - text: '(?i)auth/callback'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/upgrading/3.0-3.1.md
+        quote: "Previously, when PKCE was enabled, the authorization code flow … was handled by the UI … The server now always handles this flow."
+  - id: E3
+    title: --staticassets directory protected against out-of-bounds symlinks (500 errors)
+    kind: behaviour-change
+    importance: minor
+    actionRequired: true       # only if custom staticassets with symlinks are used
+    match:
+      - text: '(?i)staticassets|symlink'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/upgrading/3.0-3.1.md
+        quote: "If you have any symlinks in your `--staticassets` directory to a location outside the directory, they will return a 500 error starting with 3.1."
+  - id: E4
+    title: Project API response sanitized (no more repo/cluster credentials) — GHSA-786q-9hcg-v9ff
+    kind: security
+    importance: important
+    actionRequired: false      # breaking for API consumers that read those fields
+    match:
+      - text: '(?i)sanitized'
+      - text: '(?i)GHSA-786q-9hcg-v9ff'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/upgrading/3.0-3.1.md
+        quote: "the project API response was sanitized to remove sensitive information. This includes credentials of project-scoped repositories and clusters."
+      - url: https://github.com/argoproj/argo-cd/security/advisories/GHSA-786q-9hcg-v9ff
+        quote: "the project API response was sanitized to remove sensitive information"
+  - id: E5
+    title: Bundled Helm upgraded to 3.18.4 and Kustomize to 5.7.0
+    kind: dependency
+    importance: important
+    actionRequired: false      # rendering differences possible; upstream notes say no breaking changes
+    match:
+      - text: '(?i)Helm 3\.18|Kustomize 5\.7'
+      - text: '(?i)bundled (Helm|Kustomize)'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/upgrading/3.0-3.1.md
+        quote: 'Argo CD v3.1 upgrades the bundled Helm version to 3.18.4. … Argo CD v3.1 upgrades the bundled Kustomize version to 5.7.0.'
+notExpected:
+  - title: added health checks for third-party CRDs are features, not upgrade work
+    match: [{text: '(?i)healthcheck|health check'}]
+  - title: docs/chore/CI commit noise from the git log
+    match: [{text: '(?i)^(docs|chore|ci|test)\(?s?\)?:'}]

@@ -82,7 +82,15 @@ internal/llm           LLM port + Anthropic implementation, response cache (by p
 internal/enrich        AI enrichment of edges: deterministic candidate groups → bounded prompts →
                        validator → Enrichments with full provenance (docs/ENRICHMENT.md)
 internal/store         local JSON store for ingested releases and edges
+internal/eval          validation dataset: loads eval/cases ground truth, runs the
+                       real pipeline per entry (via an injected Pipeline port) and
+                       scores recall, false positives, duplicates, unsupported
+                       conclusions and environment-impact accuracy; compares against
+                       committed snapshots in eval/results and reports regressions
+                       (eval/FORMAT.md, eval/REPORT.md)
 products/              checked-in product definitions
+eval/                  validation dataset (cases with hand-curated ground truth +
+                       stored result snapshots) consumed by `ri eval`
 schemas/               JSON Schemas (draft 2020-12): product-definition (hand-written); upgrade-edge,
                        release and impact-report (generated from internal/domain, run
                        `go run ./internal/domain/schemagen`; a test fails when they are stale)
@@ -96,7 +104,11 @@ depends on `domain` and `catalog`. `ingest` depends on `sources`, `normalize`,
 both sides of the impact join speak the same key-path syntax). `impact`
 depends on `domain`, `env` and `upgrade` (constraint semantics).
 `discovery` depends on `ingest`, `catalog`, `llm` and `sources`. `enrich`
-depends only on `domain` and `llm`. Adapters never import `ingest` or `upgrade`.
+depends only on `domain` and `llm`. `eval` depends on `domain` and `env`
+only; the pipeline under test is injected as a `eval.Pipeline` port, which
+`cmd/ri` implements over `app` (so eval scores live runs and offline test
+replays with the same code, and `app` never imports `eval`). Adapters never
+import `ingest` or `upgrade`.
 
 ## Data flow of `ri upgrade <product> <from> <to>`
 
@@ -165,6 +177,34 @@ depends only on `domain` and `llm`. Adapters never import `ingest` or `upgrade`.
    chains. `impact.RenderText` prints the funnel summary and per-finding
    why-blocks; `-o json` prints the report
    (`schemas/impact-report.schema.json`).
+
+## Data flow of `ri eval [entries...]`
+
+1. `eval` loads the dataset entries (`eval/cases/<id>/case.yaml`, format in
+   `eval/FORMAT.md`): hand-curated expectations with matchers (text regex,
+   exact subject, category, release, evidence-URI regex, flags), `notExpected`
+   entries, and — when the case ships an `environment/` fixture —
+   environment-side expectations (`expectedImpact` links, `expectedFindings`,
+   `notExpectedFindings`).
+2. Per entry the REAL pipeline runs through the injected `Pipeline` (the
+   `app.App` of this process): `Upgrade` for every case, plus `Impact` for
+   environment cases (inputs assembled from the fixture directory).
+3. `eval.ScoreEntry` scores the edge/report against the ground truth:
+   recall of the must-find list (with the importance of every miss), false
+   positives (changes matching `notExpected`), duplicate conclusions (same
+   normalized title, same category+subject set, or ≥0.75 title-token overlap
+   on the same subjects), unsupported conclusions (evidence chains that do
+   not resolve inside their document, findings joining nonexistent changes)
+   and environment accuracy (expectedImpact links surfaced as findings,
+   expected findings found, forbidden findings absent). Every hit records
+   the matching change, the matcher that fired and a human-openable evidence
+   URI, so hits and misses are auditable without re-running.
+4. The command prints per-entry and aggregate results (text) or the whole
+   report (JSON), then diffs against the committed snapshots in
+   `eval/results/`: fewer found items, new misses, more false
+   positives/duplicates/unsupported or worse environment numbers are
+   regressions and exit non-zero (CI gate). `-update` rewrites the
+   snapshots after review — expectations are never derived from output.
 
 ## Locator kinds
 
