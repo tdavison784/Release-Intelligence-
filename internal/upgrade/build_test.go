@@ -849,6 +849,35 @@ func TestSourcesAndGapWarnings(t *testing.T) {
 	}
 }
 
+// Alternatives of one role (fallback-group members such as a docs page on
+// master and on an archive tag) cover each other: the gap warning is raised
+// only when no source of the role answered.
+func TestGapWarningsAlternativeSourcesCoverEachOther(t *testing.T) {
+	from := newRel("demo", "v1.0.0").
+		source("compat-primary", "repo-file", domain.SourceNotFound, "404", domain.RoleCompatibility).
+		source("compat-archive", "repo-file", domain.SourceOK, "", domain.RoleCompatibility)
+	mid := newRel("demo", "v1.1.0").
+		source("guide-primary", "repo-file", domain.SourceNotFound, "404", domain.RoleUpgradeGuide).
+		source("guide-archive", "repo-file", domain.SourceOK, "", domain.RoleUpgradeGuide)
+	to := newRel("demo", "v1.2.0").
+		source("guide-primary", "repo-file", domain.SourceNotFound, "404", domain.RoleUpgradeGuide).
+		source("guide-archive", "repo-file", domain.SourceUnavailable, "blocked", domain.RoleUpgradeGuide)
+	e := mustBuild(t, simpleInput(from, to, mid))
+	for _, w := range []string{"Upgrade guide for v1.1.0", "Compatibility data for v1.0.0"} {
+		if hasWarning(e, w) {
+			t.Errorf("unexpected warning %q although an alternative source answered: %v", w, e.Warnings)
+		}
+	}
+	for _, w := range []string{
+		"Upgrade guide for v1.2.0 was not retrieved (guide-primary: not-found — 404)",
+		"Upgrade guide for v1.2.0 was not retrieved (guide-archive: unavailable — blocked)",
+	} {
+		if !hasWarning(e, w) {
+			t.Errorf("missing warning %q in %v", w, e.Warnings)
+		}
+	}
+}
+
 func TestFactsAreLinkedAndResolvable(t *testing.T) {
 	in := cmInput(t)
 	// a fact whose evidence is not part of any release is dropped with a warning

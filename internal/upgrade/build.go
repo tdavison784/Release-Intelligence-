@@ -292,6 +292,27 @@ func statusPhrase(s domain.SourceStatus) string {
 	return p
 }
 
+// unretrievedSources returns the sources of the given role that failed to
+// answer for release r (unavailable, error, not found). It returns nil as
+// soon as one source of that role answered: alternatives, for example the
+// members of a fallback group such as a docs page on master and on an
+// archive tag, cover each other, as they do for release notes.
+func unretrievedSources(r *domain.Release, role domain.SourceRole) []domain.SourceStatus {
+	var failed []domain.SourceStatus
+	for _, s := range r.Sources {
+		if !statusFor(r, s) || !hasRole(s, role) {
+			continue
+		}
+		switch s.State {
+		case domain.SourceOK, domain.SourcePartial:
+			return nil
+		case domain.SourceUnavailable, domain.SourceError, domain.SourceNotFound:
+			failed = append(failed, s)
+		}
+	}
+	return failed
+}
+
 // gapWarnings reports missing release notes, upgrade guides, compatibility
 // data and advisories.
 func (b *builder) gapWarnings() {
@@ -318,25 +339,13 @@ func (b *builder) gapWarnings() {
 			}
 			b.warnf("Release notes for %s were not retrieved (%s); changes introduced by %s may be missing", r.Version, strings.Join(why, "; "), r.Version)
 		}
-		for _, s := range r.Sources {
-			if !statusFor(r, s) || !hasRole(s, domain.RoleUpgradeGuide) {
-				continue
-			}
-			switch s.State {
-			case domain.SourceUnavailable, domain.SourceError, domain.SourceNotFound:
-				b.warnf("Upgrade guide for %s was not retrieved (%s)", r.Version, statusPhrase(s))
-			}
+		for _, s := range unretrievedSources(r, domain.RoleUpgradeGuide) {
+			b.warnf("Upgrade guide for %s was not retrieved (%s)", r.Version, statusPhrase(s))
 		}
 	}
 	for _, r := range []*domain.Release{b.from, b.to} {
-		for _, s := range r.Sources {
-			if !statusFor(r, s) || !hasRole(s, domain.RoleCompatibility) {
-				continue
-			}
-			switch s.State {
-			case domain.SourceUnavailable, domain.SourceError, domain.SourceNotFound:
-				b.warnf("Compatibility data for %s was not retrieved (%s)", r.Version, statusPhrase(s))
-			}
+		for _, s := range unretrievedSources(r, domain.RoleCompatibility) {
+			b.warnf("Compatibility data for %s was not retrieved (%s)", r.Version, statusPhrase(s))
 		}
 	}
 	for _, s := range b.in.ExtraSources {
