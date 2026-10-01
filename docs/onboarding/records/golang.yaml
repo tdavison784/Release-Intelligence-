@@ -1,0 +1,147 @@
+product: golang
+order: 28
+wave: 4
+repository: github.com/golang/go
+onboarding:
+  startedAt: "2026-10-01T16:30:40Z"
+  finishedAt: "2026-10-01T16:58:40Z"
+  minutes: 28                   # wall-clock, agent time (discovery, research, authoring, checks, edges, record)
+discovery:
+  proposal: docs/onboarding/discovery/golang.proposed.yaml
+  report: docs/onboarding/discovery/golang.report.md
+# Discovery baseline at the "~2500+ tags" scale: WRONG PREMISE, trivial run.
+# A fresh partial clone lists 496 tags (not 2500+: 269 three-part stable, 20
+# two-part minors go1..go1.20, 99 weekly.*, 65 rc, 29 alpha/beta, strays) and
+# discovery finished in 8.3 s over all of them. It proposed exactly 3
+# elements (tag scheme, git-tags channel, advisories) and found nothing else
+# — correctly: the repo has no images, no charts, no release workflow, and
+# the notes are .html files its markdown scanners pass over. Its one
+# substantive miss: the proposed semver tagPrefix 'go' treated the 20
+# two-part minor tags as junk (227 junk incl. go1..go1.20), i.e. discovery
+# cannot invent the component-group mapping that this product is the
+# justification test for. Everything except git-tags and advisories is
+# research; there was nothing wrong to reject.
+sources:
+  - {id: git-tags, origin: discovered-modified, note: "proposal id 'tags'; versioning rewritten with the component-group pattern (one pattern, both tag eras) after discovery's scheme dropped the 20 two-part minors"}
+  - {id: release-notes, origin: manual, note: "https://go.dev/doc/go1.{{.Minor}} (all minors 1.1-1.27), extract.format html (new construct), whole; the mutable published page, digests pin the read"}
+  - {id: release-notes-repo, origin: manual, note: "doc/go1.{{.Minor}}.html at the tag (era A < 1.21), format html, fallback of the minor-notes group; exceptions [1.19.0]: the file was deleted at the go1.19 tag (present at go1.19rc2) - the doc/next workflow began mid-1.19"}
+  - {id: patch-log, origin: manual, note: "git-log {{.PrevTag}}..{{.Tag}} on the release branch (argo-cd's construct): the curated backport list is the only addressable per-patch notes channel (15 commits for go1.27.1)"}
+  - {id: support-policy, origin: manual, note: "'Release Policy' section of go.dev/doc/devel/release, format html; evidence of the lifecycle statement"}
+  - {id: github-advisories, origin: discovered, note: "golang/go publishes 0 repository advisories (checked 2026-10-01); the feed is declared as the standard channel, the real ones (vuln.go.dev, golang-announce) have no adapter (gaps)"}
+artifacts:
+  - {id: source-tarball, origin: manual, note: "dl.google.com/go/{{.Tag}}.src.tar.gz - the tag IS the published version string in both eras; storage.googleapis.com/golang 403s, dl.google.com serves the same objects"}
+  - {id: source-tarball-checksum, origin: manual, note: ".sha256 sidecar; availability >= 1.5.4 (probed: 1.5.3 and older 404)"}
+  - {id: linux-amd64-archive, origin: manual, note: "one representative of the 46-file platform set; present from the oldest tag"}
+  - {id: darwin-arm64-archive, origin: manual, note: "availability >= 1.16.0 (M1 era)"}
+  - {id: windows-amd64-installer, origin: manual, note: ".msi (zip twin not modeled); present from the oldest tag"}
+  - {id: golang-image, origin: manual, note: "docker.io/library/golang:{{.Version}} - three-part tags in BOTH eras (golang:1.20.0 exists for the go1.20 minor); docker.io answered 200 anonymous, mirror.gcr.io second"}
+  - {id: golang-image-alpine, origin: manual, note: "availability >= 1.7.0 (oldest exact -alpine tag)"}
+discoveryRejected: []            # nothing else was proposed
+relationships:
+  # Default run (1.25.0, 1.25.14, 1.26.0, 1.26.8, 1.27.0, 1.27.1) plus two era
+  # runs over the tag-scheme boundary and the artifact floors: 1.16.0,
+  # 1.16.15, 1.17.0, 1.18.0, 1.19.0 (the doc exception), 1.19.13, 1.20.0,
+  # 1.20.14, 1.21.0, 1.21.13, 1.22.0 and the deep run 1.2.2, 1.5.0, 1.5.4,
+  # 1.7.0 (sha256/alpine/darwin-arm64 floors).
+  historicalReleasesChecked: [1.2.2, 1.5.0, 1.5.4, 1.7.0, 1.16.0, 1.16.15, 1.17.0, 1.18.0, 1.19.0, 1.19.13, 1.20.0, 1.20.14, 1.21.0, 1.21.13, 1.22.0, 1.25.0, 1.25.14, 1.26.0, 1.26.8, 1.27.0, 1.27.1]
+  initialFailures: 0            # first complete draft, default window: 0 failing, 0 unverifiable
+  initialFailuresExtended: 2    # the deep era run (1.2.2) found the sha256-sidecar and alpine-image floors, fixed as availability windows, not exceptions (upstream never published them that far back)
+  finalFailures: 0
+  manualInterventions:
+    - {subject: release-history (source), change: "removed after the first era check", reason: "research misread the release-history page: the per-patch 'includes security fixes to X' paragraphs are <p id=go1.N.M> elements under one shared 'Minor revisions' h3 per minor line - not headings - so no markdown-section template can select them; the heading-matched variant was covered by the patch-log fallback and the source was dropped rather than bent (see gaps)"}
+    - {subject: source-tarball-checksum, change: "availability >= 1.5.4", reason: "1.2.2 and 1.5.3-and-older .sha256 sidecars 404 (probed)"}
+    - {subject: golang-image-alpine, change: "availability >= 1.7.0", reason: "no exact -alpine image tags before 1.7.0 (checked the full 1892-tag list)"}
+    - {subject: notes classify, change: "footer skip rules (Copyright/Privacy Policy/Report an Issue/Terms of Service), '› New ' feature-first rule, tightened removal patterns ('has been removed', 'no longer supported') and ': fix'/'security' rules on patch-log subjects", reason: "reading the 1.26.8 -> 1.27.1 edge: go.dev footer items classified compatibility, json/v2 (a new package) classified removal, every patch commit was 'other'"}
+  unverifiable: []              # every channel answered in all three runs
+constructs:
+  new:
+    - name: "format:html"
+      kind: extraction
+      justification: "Go's release notes exist ONLY as HTML: the in-tree doc/go1.N.html at every era-A tag (go1..go1.20, still stamped 'DRAFT RELEASE NOTES' in-tree) and the published go.dev/doc/go1.N pages of the whole 1.21+ era - there are no GitHub releases at all (empty /releases, /releases/latest 404) and the markdown sources (doc/next/*.md) are deleted from master at each release cut, so they exist at no tag. normalize.HTMLToMarkdown is the fourth member of the format slot created for docbook and filled for rst and adoc: line-preserving (output line N renders input line N, evidence locators stay on original lines), h1-h6 become headings written back onto their opening line, li become bullets (2-space nesting), dt/dd become term/description lines, pre is 4-space code, code becomes backticks, a[href] markdown links, entities decoded, comments and head/style/script dropped; parsed in list-item mode like the other converted formats. Whole and markdown-section only (no table conversion - Go has none; the validator and schema say so)."
+      otherProducts:
+        - "Tomcat (per-line changelog.html on tomcat.apache.org, no markdown twin)"
+        - "Kafka ('Notable changes' per release only on the downloads page)"
+        - "Maven (docs/history.html release notes)"
+        - "Mozilla/Firefox release notes (mozilla.org HTML)"
+        - "the slot itself was justified by postgresql ('the format field is the slot for the other non-markdown note formats') and filled by cilium (rst) and elasticsearch (adoc)"
+  considered:
+    - {name: "paragraph-anchor section selection (markdown-section over <p id=go1.N.M> blocks)", rejected: "would need a new locator construct (anchor/paragraph addressing) whose cross-product case is weak - Tomcat/Kafka HTML is heading-structured - while the git-log channel already carries every patch fact deterministically; the lost content is the 'includes security fixes to X, Y' summaries (recorded under gaps)"}
+    - {name: "rc/beta/alpha tags inside the version pattern", rejected: "Go's prerelease suffix attaches after the minor (go1.21rc1) AND after the patch (go1.9.2rc2): one named (?P<prerelease>) group cannot sit in both alternation positions, and the component-group construct has no second prerelease slot; stable-only is the honest scope (postgresql included its RCs because they sit in one position)"}
+    - {name: "the dl page JSON (go.dev/dl/?mode=json&include=all) as an artifact version index", rejected: "365-entry machine-readable manifest (files, sha256, size) but no adapter reads a JSON version index, and nothing needs it: every artifact URL templates on {{.Tag}} exactly; noted in research as a future 'manifest evidence' source"}
+    - {name: "a published-version/display template variable", rejected: "postgresql rejected the same idea pending 'Go/Linux/Python': for Go it is unnecessary - the tag IS the published string (go1.20, go1.21.0) and the image uses {{.Version}} (golang:1.20.0 exists); neither eq/ge/Patch display templates nor a new variable are needed"}
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/normalize/html.go, purpose: "HTMLToMarkdown: line-preserving HTML-to-markdown renderer (headings written back to their opening line, li/dt/dd/pre/code/a handling, comments and head/style/script dropped)"}
+    - {file: internal/normalize/html_test.go, purpose: "tests: line preservation over a fixture condensing the go.dev page and the era-A in-tree copy, section selection, list-item parsing, unclosed li/p/dd handling"}
+    - {file: internal/normalize/testdata/golang/release-notes-excerpt.html, purpose: "fixture condensed from go.dev/doc/go1.26 and doc/go1.20.html shapes"}
+    - {file: internal/catalog/definition.go, purpose: "FormatHTML constant and the format field doc (fourth member of the slot)"}
+    - {file: internal/catalog/validate.go, purpose: "format enum: html allowed with whole and markdown-section only"}
+    - {file: internal/ingest/docs.go, purpose: "convert format html documents before extraction, in list-item mode"}
+    - {file: internal/ingest/html_test.go, purpose: "tests: ingest wiring (markdown-section over converted HTML, listItems pass-through, memo not converted in place) and validator cases"}
+    - {file: schemas/product-definition.schema.json, purpose: "format enum + description"}
+unreachableSources:
+  - {host: storage.googleapis.com/golang, reason: "403 from the sandbox (the raw object bucket behind dl.google.com); dl.google.com serves the same objects and is used"}
+ambiguousRelationships:
+  - "The tag scheme changed at go1.21 and one pattern absorbs it: go1.20 is 1.20.0 (component group, missing patch = 0) while go1.21.0 already carries the .0 - upstream's own statement ('Starting in Go 1.21, the first release is now Go 1.N.0'). Nothing in the definition distinguishes the eras except availability windows."
+  - "The go.dev notes and release-history pages are mutable (the notes pages grow patch annotations); evidence digests pin what was read, and the era-A in-tree twin is the ref-stable alternative."
+  - "mirror.gcr.io/library/golang lags the newest release: golang:1.27.1 and the bare 1.27 alias were absent on 2026-10-01 while 1.27.1-alpine existed and docker.io answered 200 directly - the inverse of the usual Hub-429 situation; docker.io is the first channel, so checks passed."
+  - "The library notes bundle several changes per package paragraph (one item per h4 package / dt-dd pair): a paragraph that adds a feature AND removes a GODEBUG (go/types 1.27, go fix 1.27) is classified by its most action-relevant mention (removal); per-change granularity does not exist upstream in era B."
+  - "doc/go1.19.html exists at go1.19rc2 but not at go1.19 (deleted at the final tag, absent from the release branch): encoded as a source exception; whether 1.21+ 'would-be' files were ever committed to a tag is moot (they never were)."
+  - "Alias image tags (1.27, 1.27-bookworm) and the rolling 1 tag are not modeled: they move days behind upstream and re-pointing aliases are registry state, not release facts."
+representability: full          # versions (both eras, one pattern), notes (both eras + patches), policy, lifecycle, tarballs/installers/image are all represented; prereleases and the per-patch security paragraphs are scoped out (gaps)
+gaps:
+  - "Prerelease tags (go1.NrcM, go1.N.MrcM, beta/alpha) are outside the release space: the rc suffix attaches at two positions and one named group cannot occupy both; matters only for RC-window testing."
+  - "The release-history page's per-patch paragraphs ('go1.26.1 (released ...) includes security fixes to the crypto/x509, ... packages') are the densest per-patch security summaries upstream publishes, and they are addressed only by <p id> anchors no construct selects; patch security visibility is limited to patch-log subjects that say 'security' (rare on the branch) - most security backports classify as plain bugfixes."
+  - "The Go vulnerability database (vuln.go.dev, JSON API, reachable) and golang-announce (reachable, JS-rendered) have no adapters; the GHSA repository feed is empty. Toolchain CVEs are therefore invisible as advisories."
+  - "OS/arch requirements (macOS 13, Windows 10) are prose in the Ports section: they surface as action-required compatibility items, not CompatibilityConstraints - the impact join cannot key on the environment's OS."
+  - "GOTOOLCHAIN auto-switching (1.21+), the golang.org/toolchain module it downloads, the x/... module ecosystem and gopls are separate compatibility surfaces, noted in research but not modeled."
+  - "The Go 1 compatibility promise itself ('we expect almost all Go programs to continue to compile and run as before') has no representation beyond the Introduction item it produces."
+sampleEdge:
+  from: 1.26.8
+  to: 1.27.1
+  summary: "0 breaking · 2 action required · 62 changes · 0 warnings"
+  evidenceRecords: 96
+  notes: >-
+    Path go1.27.0 -> go1.27.1 (minor-lineage). The two action-required items
+    are the raised OS floors ('Go 1.27 requires macOS 13 Ventura or later',
+    'at least Windows 10 or Windows Server 2016') with line evidence into the
+    converted go.dev page; 4 removals, every one genuine (bzr support, the
+    GODEBUG settings whose support was removed, the fmtappendf modernizer,
+    the gotypesalias GODEBUG), 31 declared features (generic methods,
+    crypto/mldsa, uuid, encoding/json/v2, simd) and the artifact table shows
+    every channel verified, docker.io included. Other edges: 1.27.0 ->
+    1.27.1 (0 breaking · 14 changes: 6 bugfix, 1 feature, 7 other - the
+    release branch's 14 backports minus the release commit, exactly) and
+    1.20.14 -> 1.21.0 across the tag-scheme boundary (3 action required:
+    the EOL lifecycle statement fires for the target, macOS 10.15 and
+    Windows 10 floors; artifact URLs render go1.20 in era A and go1.21.0 in
+    era B from the same templates). Tuning iterations: 2, both from reading
+    edges.
+notes: >-
+  THE HEADLINE - the component-group construct held, and the product it was
+  named for corrected its example rather than its need. PostgreSQL's
+  justification said "Go (go1.22 is 1.22.0)": the tag go1.22 does not exist -
+  upstream renamed the scheme at 1.21 ("Starting in Go 1.21, the first
+  release is now Go 1.N.0"), so the two-part shape the construct assembles
+  (missing patch = 0) applies to go1..go1.20 and the 1.21+ minors carry the
+  .0 in the tag. One pattern covers both eras, the lineage/kind/availability
+  machinery works unchanged, and - the part PostgreSQL predicted wrong - no
+  display-template machinery was needed at all: Go's tag IS its published
+  version string (go1.20 in URLs, golang:1.20.0 on the image), so neither
+  the {{if ge .Major}}/.Patch templates nor a published-version variable
+  were required. The construct verdict: necessary (20 real releases would
+  otherwise be unrepresentable), sufficient (nothing else was needed for
+  versions), and its one real limit found by contact: a single named
+  prerelease group cannot express Go's rc-after-minor AND rc-after-patch
+  tags, so prereleases are out of scope. The second stress test, the
+  tfaws no-charts shape, decomposed the same way (tarballs + image + no
+  fallback releases feed). The HTML problem was SOLVED generically
+  (format:html, the fourth converter in the docbook-created slot) rather
+  than recorded - without it the whole 1.21+ era would have had no notes
+  channel at all, since golang/go publishes no GitHub releases; the
+  release-notes ARE the HTML, not mirrored by it. The two-minor support
+  policy is a lifecycle statement citing the reachable policy page
+  ("< 1.26.0 end-of-life since 2026-08"), and the edges show it firing on
+  old targets. 66 constructs used, 1 new, 98% reuse, 0 product-specific Go.
+  28 minutes.

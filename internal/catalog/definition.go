@@ -213,14 +213,22 @@ const (
 	// selects a section by title, "markdown-table" reads converted tables
 	// and "whole" parses the topics as notes.
 	FormatAsciiDoc = "adoc"
+	// FormatHTML: the document is HTML; it is rendered as line-preserving
+	// markdown before extraction (normalize.HTMLToMarkdown): h1..h6 become
+	// headings, li become bullets, dt/dd become term/description lines, pre
+	// becomes indented code, comments and head/style/script are dropped, so
+	// "markdown-section" selects a section by its rendered heading and
+	// "whole" parses the page as notes.
+	FormatHTML = "html"
 )
 
 // Extract configures how to extract information from a fetched document.
 type Extract struct {
 	// Format is the markup of the document ("markdown" when empty); "docbook",
-	// "rst" and "adoc" documents are converted to markdown first (docbook for
-	// the types "whole" and "markdown-section"; rst and adoc also for
-	// "markdown-table", because their tables are converted to pipe tables).
+	// "rst", "adoc" and "html" documents are converted to markdown first
+	// (docbook and html for the types "whole" and "markdown-section"; rst and
+	// adoc also for "markdown-table", because their tables are converted to
+	// pipe tables).
 	Format string `yaml:"format,omitempty" json:"format,omitempty"`
 	Type   string `yaml:"type" json:"type"`
 	// Heading is a regex template selecting the section (markdown-section).
