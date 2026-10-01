@@ -19,7 +19,7 @@ sources:
     locator: {kind: git-tags, repository: github.com/example/good}
 `
 
-func productsDir(t *testing.T, files map[string]string) string {
+func loadTestProductsDir(t *testing.T, files map[string]string) string {
 	t.Helper()
 	dir := t.TempDir()
 	for name, content := range files {
@@ -33,7 +33,7 @@ func productsDir(t *testing.T, files map[string]string) string {
 // A malformed product file is logged by New, does not hide the other
 // products, and is named when its product is requested.
 func TestNewToleratesMalformedProductFile(t *testing.T) {
-	dir := productsDir(t, map[string]string{
+	dir := loadTestProductsDir(t, map[string]string{
 		"good.yaml": goodProduct,
 		"bad.yaml":  "id: [unterminated\n",
 	})
@@ -59,7 +59,7 @@ func TestNewToleratesMalformedProductFile(t *testing.T) {
 }
 
 func TestProductUnknownWithoutLoadErrors(t *testing.T) {
-	a, err := New(Config{ProductsDir: productsDir(t, map[string]string{"good.yaml": goodProduct}), StateDir: t.TempDir(), Offline: true})
+	a, err := New(Config{ProductsDir: loadTestProductsDir(t, map[string]string{"good.yaml": goodProduct}), StateDir: t.TempDir(), Offline: true})
 	if err != nil {
 		t.Fatal(err)
 	}

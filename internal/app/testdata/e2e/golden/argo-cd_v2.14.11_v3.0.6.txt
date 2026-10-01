@@ -1,16 +1,16 @@
 Argo CD v2.14.11 → v3.0.6
 Path: v3.0.0 → v3.0.1 → v3.0.2 → v3.0.3 → v3.0.4 → v3.0.5 → v3.0.6  (policy minor-lineage; 10 backport releases skipped)
-Summary: 18 breaking · 7 action required · 391 changes · 1 warning
+Summary: 18 breaking · 6 action required · 399 changes · 1 warning
 
 Sources:
   ✗ github-releases              github-releases    versions       unavailable: fetch https://api.github.com/repos/argoproj/argo-cd/releases?per_page=100: not in cache (offline mode)
   ✓ git-tags                     git-tags           versions       ok
-  ✗ github-advisories            github-advisories  security       unavailable: fetch https://api.github.com/repos/argoproj/argo-cd/security-advisories?per_page=100&state=published: not in cache (offline mode)
+  ✗ github-advisories            github-advisories  security       unavailable: fetch https://api.github.com/repos/argoproj/argo-cd/security-advisories?per_page=100&state=published: not in…
   ✗ github-release-notes         github-releases    release-notes  unavailable: fetch https://api.github.com/repos/argoproj/argo-cd/releases/tags/v2.14.11: not in cache (offline mode)
   ✓ commit-log                   git-log            changelog      ok
   ✓ upgrade-guide                repo-file          upgrade-guide  ok
   ✓ tested-kubernetes-versions   repo-file          compatibility  ok
-  ✗ image                        oci                —              unavailable: oci: probe quay.io/argoproj/argocd:v2.14.11: fetch https://quay.io/v2/argoproj/argocd/manifests/v2.14.11: not in cache (offline mode)
+  ✗ image                        oci                —              unavailable: oci: probe quay.io/argoproj/argocd:v2.14.11: fetch https://quay.io/v2/argoproj/argocd/manifests/v2.14.11: not…
   ✓ install-manifest             http               —              ok
   ✓ install-manifest/image-refs  http               —              ok
   ✓ crds                         http               —              ok
@@ -40,9 +40,7 @@ Breaking changes (18):
   • [v3.0.0] chore(config)!: Ignore all `.status` updates & known high churn changes by default (#21760) (335b65b)  (other · declared · ev-b3077c05bd87)
   • [v3.0.0] chore(metrics)!: remove deprecated metrics (#21697) (4e08b8d)  (other · declared · ev-46291a5e0c01)
 
-Migration requirements / action required (7):
-  • [diff] Kubernetes tested versions narrowed: 1.28–1.31 → 1.29–1.32 (drops 1.28)  (compatibility · computed · ev-90cf881f4383, ev-1cbf6064e35e)
-      ↳ Verify the cluster runs a tested Kubernetes version (1.29–1.32) before upgrading.
+Migration requirements / action required (6):
   • [v3.0.0] Empty Environment Variables in Plugins: In Argo CD 3.0, empty environment variables are now passed to config management plugins  (other · declared · ev-a41a36159297)
   • [v3.0.0] Health status in the Application CR: The health status of each object used to be persisted under `/status` in the Application CR by default  (other · declared · ev-5616a3c7f69a)
   • [v3.0.0] Ignoring all status updates and high churn mutations: Argo CD manifest now contains a default configuration for `resource.customizations.ignoreResourceUpdates`…  (other · declared · ev-94989021db77)
@@ -82,37 +80,12 @@ Artifact changes (5 updated):
   helm-chart        https://raw.githubusercontent.com/argoproj/argo-helm/gh-pages argo-cd  7.9.1 → 8.1.2  [verified]  (computed · ev-9b9983ccd819, ev-de8add0dbe64)
   cli-linux-amd64   https://github.com/argoproj/argo-cd/releases/download/{v2.14.11 → v3.0.6}/argocd-linux-amd64  [verified]  (computed · ev-d678fe467360, ev-d92f9b0562b2)
 
-Image & dependency changes (90):
-  • [v3.0.0] chore(deps): Bump argoproj repos versions (#22104) (#22198) (29c69b3)  (dependency · declared · ev-ae16d236bc3f)
-  • [v3.0.0] chore(deps): Bump utfutil to v1.0.0 (#22228) (#22243) (14a09be)  (dependency · declared · ev-3af47ff01d33)
-  • [v3.0.0] chore(deps): bump code.gitea.io/sdk/gitea from 0.19.0 to 0.20.0 (#21464) (5207508)  (dependency · declared · ev-696868036580)
-  • [v3.0.0] chore(deps): bump github.com/Azure/azure-sdk-for-go/sdk/azidentity from 1.8.0 to 1.8.1 (#21566) (1d47e1c)  (dependency · declared · ev-691d8433fc2f)
-  • [v3.0.0] chore(deps): bump github.com/Azure/azure-sdk-for-go/sdk/azidentity from 1.8.1 to 1.8.2 (#21867) (b3bf182)  (dependency · declared · ev-f855990f4d8e)
-  • [v3.0.0] chore(deps): bump github.com/Azure/kubelogin from 0.1.6 to 0.1.8 (#22271) (627da11)  (dependency · declared · ev-d956f982cdf9)
-  • [v3.0.0] chore(deps): bump github.com/Azure/kubelogin from 0.1.8 to 0.1.9 (#22308) (c8e1de6)  (dependency · declared · ev-cc3df230717f)
-  • [v3.0.0] chore(deps): bump github.com/alicebob/miniredis/v2 from 2.33.0 to 2.34.0 (#21232) (2a760e1)  (dependency · declared · ev-5fb80f9ac097)
-  • [v3.0.0] chore(deps): bump github.com/aws/aws-sdk-go from 1.55.5 to 1.55.6 (#21514) (2194443)  (dependency · declared · ev-4664ad43a301)
-  • [v3.0.0] chore(deps): bump github.com/bmatcuk/doublestar/v4 from 4.7.1 to 4.8.0 (#21483) (5d84eb4)  (dependency · declared · ev-a3acb27e53b6)
-  • [v3.0.0] chore(deps): bump github.com/bmatcuk/doublestar/v4 from 4.8.0 to 4.8.1 (#21677) (5e5ec1b)  (dependency · declared · ev-ab7761e8d843)
-  • [v3.0.0] chore(deps): bump github.com/bradleyfalzon/ghinstallation/v2 (#21353) (4723abd)  (dependency · declared · ev-9e6e1e6bb696)
-  • [v3.0.0] chore(deps): bump github.com/bradleyfalzon/ghinstallation/v2 from 2.13.0 to 2.14.0 (#21955) (ecee599)  (dependency · declared · ev-28b2bcc35950)
-  • [v3.0.0] chore(deps): bump github.com/casbin/casbin/v2 from 2.102.0 to 2.103.0 (#21330) (635e592)  (dependency · declared · ev-69ca334baefb)
-  • [v3.0.0] chore(deps): bump github.com/casbin/govaluate from 1.2.0 to 1.3.0 (#21331) (84f2ab8)  (dependency · declared · ev-72b998d13ea2)
-  • [v3.0.0] chore(deps): bump github.com/coreos/go-oidc/v3 from 3.11.0 to 3.12.0 (#21383) (b3e31ed)  (dependency · declared · ev-548032d54ceb)
-  • [v3.0.0] chore(deps): bump github.com/coreos/go-oidc/v3 from 3.12.0 to 3.13.0 (#22347) (de40dc2)  (dependency · declared · ev-0c62be51ebb5)
-  • [v3.0.0] chore(deps): bump github.com/cyphar/filepath-securejoin (#21233) (d29124f)  (dependency · declared · ev-16a7401e6394)
-  • [v3.0.0] chore(deps): bump github.com/cyphar/filepath-securejoin from 0.3.6 to 0.4.0 (#21484) (9a51757)  (dependency · declared · ev-16f17cb5ec8b)
-  • [v3.0.0] chore(deps): bump github.com/cyphar/filepath-securejoin from 0.4.0 to 0.4.1 (#21700) (eb8f05a)  (dependency · declared · ev-134a31fc8c9f)
-  • [v3.0.0] chore(deps): bump github.com/dlclark/regexp2 from 1.11.4 to 1.11.5 (#21853) (ab05f35)  (dependency · declared · ev-1834c729f22e)
-  • [v3.0.0] chore(deps): bump github.com/evanphx/json-patch from 5.9.0+incompatible to 5.9.11+incompatible (#21699) (b9f49df)  (dependency · declared · ev-6c463a61c5f3)
-  • [v3.0.0] chore(deps): bump github.com/go-git/go-git/v5 from 5.12.0 to 5.13.0 (#21329) (dd366f5)  (dependency · declared · ev-a864e5be70a1)
-  • [v3.0.0] chore(deps): bump github.com/go-git/go-git/v5 from 5.13.0 to 5.13.1 (#21352) (8200e3d)  (dependency · declared · ev-c046c6eff6db)
-  • [v3.0.0] chore(deps): bump github.com/go-git/go-git/v5 from 5.13.1 to 5.13.2 (#21641) (bcf2143)  (dependency · declared · ev-af5bda56ba64)
-  … and 65 more
+Image & dependency changes (1):
+  • [diff] Third-party image `redis`: 7.0.15-alpine → 7.2.7-alpine  (dependency · computed · ev-cf12fa87c2ba, ev-6a987d1322c8)
 
 Kubernetes compatibility:
-  minimum: ≥ 1.25 (unchanged)  (computed · ev-5e6f866a325d, ev-0484f42cbd51)
-  tested: 1.28–1.31 → 1.29–1.32; drops 1.28, adds 1.32  [narrowed]  (computed · ev-90cf881f4383, ev-1cbf6064e35e)
+  tested: 1.28–1.31 → 1.29–1.32; drops 1.28, adds 1.32  [narrowed, informational]  (computed · ev-90cf881f4383, ev-1cbf6064e35e)
+  chart kubeVersion: ≥ 1.25 (unchanged)  (computed · ev-5e6f866a325d, ev-0484f42cbd51)
 
 Security changes (4):
   • [v3.0.0] Merge commit from fork (6f5537b)  (security · heuristic/medium · ev-add5780c600b)
@@ -120,7 +93,7 @@ Security changes (4):
   • [v3.0.0] fix: upgrade x/crypto to v0.35.0 to solve CVE-2025-22869 (#22048) (94b34f8)  (security · heuristic · ev-4e0558c7040a)
   • [v3.0.4] Merge commit from fork (040ed44)  (security · heuristic/medium · ev-d53e014231f5)
 
-Other notable changes (97):
+Other notable changes (105):
   • [v3.0.0] Bump major version to 3 (#21410) (4d98359)  (other · heuristic/low · ev-139dc8621dd3)
   • [v3.0.0] Fix application url for custom base href (#21377) (3f0a155)  (other · heuristic/low · ev-6f8436bcc0ed)
   • [v3.0.0] Fixing the link in the docs (#21316) (c689352)  (other · heuristic/low · ev-415cdc2fc829)
@@ -128,7 +101,15 @@ Other notable changes (97):
   • [v3.0.0] Stabilize on-deployed notification trigger (#21333) (9309688)  (other · heuristic/low · ev-a3b04784e01b)
   • [v3.0.0] Update ingress.md (#21324) (cce4a28)  (other · heuristic/low · ev-aa6aa4cd210e)
   • [v3.0.0] Update toolchain-guide.md (#21288) (80edbfe)  (other · heuristic/low · ev-11c2ea669b74)
-  • [v3.0.0] [Bot] docs: Update Snyk reports (#21290) (ac8e3f0)  (other · heuristic/low · ev-a7f55e99badf, ev-aa84f178f688, ev-aebeb260fa13, +6)
+  • [v3.0.0] [Bot] docs: Update Snyk report (#21558) (2cfaab3)  (other · heuristic/low · ev-2a857543d0e3)
+  • [v3.0.0] [Bot] docs: Update Snyk report (#21733) (95b8a4a)  (other · heuristic/low · ev-3eb743c8b015)
+  • [v3.0.0] [Bot] docs: Update Snyk report (#21883) (f78c7ee)  (other · heuristic/low · ev-643853182db3)
+  • [v3.0.0] [Bot] docs: Update Snyk report (#22106) (e38c7ae)  (other · heuristic/low · ev-ded6b451b671)
+  • [v3.0.0] [Bot] docs: Update Snyk report (#22263) (5e9fc55)  (other · heuristic/low · ev-24fd23a0c8fd)
+  • [v3.0.0] [Bot] docs: Update Snyk reports (#21290) (ac8e3f0)  (other · heuristic/low · ev-a7f55e99badf)
+  • [v3.0.0] [Bot] docs: Update Snyk reports (#21322) (8bb2119)  (other · heuristic/low · ev-aa84f178f688)
+  • [v3.0.0] [Bot] docs: Update Snyk reports (#21376) (b4912cf)  (other · heuristic/low · ev-aebeb260fa13)
+  • [v3.0.0] [Bot] docs: Update Snyk reports (#21459) (ced8441)  (other · heuristic/low · ev-8b4047e56540)
   • [v3.0.0] add `project` missing field to spec (#21277) (0b542ba)  (other · heuristic/low · ev-031d6f982ad6)
   • [v3.0.0] added-ACL (#21238) (1194766)  (other · heuristic/low · ev-4e0d32679cfb)
   • [v3.0.0] chore(appset): simplify cluster list code (#21820) (928fd19)  (other · declared · ev-7f37e6238b23)
@@ -138,21 +119,13 @@ Other notable changes (97):
   • [v3.0.0] chore(controller): simplify sharding code (#21244) (ab07b0a)  (other · declared · ev-2fad8bf14fda)
   • [v3.0.0] chore(health): report progressing status for AppSets (#22092) (261137d)  (other · declared · ev-4494d170a47e)
   • [v3.0.0] chore(hydrator): improve error message (#21987) (be293fe)  (other · declared · ev-20cc963fd795)
-  • [v3.0.0] chore(lint): fix deep copy informers lint (#22290) (42219fd)  (other · declared · ev-51c9d0dd9154)
-  • [v3.0.0] chore(refactor): remove app destination inferrence logic (#21189) (bd37458)  (other · declared · ev-df0d1e7ab254)
-  • [v3.0.0] chore(refactor): remove unused function/file (#21245) (34fd729)  (other · declared · ev-29db56e2c7ac)
-  • [v3.0.0] chore(repo-server): simplify Kustomize/Helm version detection (#21540) (bd9923f)  (other · declared · ev-f097aef42c43)
-  • [v3.0.0] chore(test): simplify test assertions (#21242) (566bc2e)  (other · declared · ev-f087d14608cf)
-  • [v3.0.0] chore(ui): resolve `ts-jest` config under `globals` is deprecated (#20036) (ecd0bcd)  (other · declared · ev-70a287899c7c)
-  • [v3.0.0] chore: Fix data race detection failures in application tests (#21271) (12a4dab)  (other · declared · ev-ddf991211347)
-  • [v3.0.0] chore: Graceful shutdown for API Server (#18642) (#21224) (45e4886)  (other · declared · ev-1d8b92c4417f)
-  … and 72 more
-  (39 features and 117 bug fixes not shown; use verbose output)
+  … and 80 more
+  (39 features, 117 bug fixes and 89 dependency updates not shown; use verbose output)
 
 Warnings (1):
   ! Security advisories were not fully retrieved (github-advisories: unavailable — fetch https://api.github.com/repos/argoproj/argo-cd/security-advisories?per_page=100&state=published: not in cache (offline mode)); advisory matching may be incomplete
 
-Evidence (503 records, 109 cited above):
+Evidence (503 records, 78 cited above):
   ev-0b6150153730  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L93-L126 (v2.14 to 3.0 › Breaking Changes › Changes to RBAC with Dex SSO Authentication)
   ev-3437aa882db2  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L60-L75 (v2.14 to 3.0 › Breaking Changes › Default `resource.exclusions` configurations)
   ev-d0cda25040fe  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L12-L24 (v2.14 to 3.0 › Breaking Changes › Fine-Grained RBAC for application `update` and `delete` sub-resources)
@@ -171,12 +144,12 @@ Evidence (503 records, 109 cited above):
   ev-d1cb365a1a4b  https://github.com/argoproj/argo-cd/compare/v2.14.0...v3.0.0  L215-L215 (Commits v2.14.0..v3.0.0)
   ev-b3077c05bd87  https://github.com/argoproj/argo-cd/compare/v2.14.0...v3.0.0  L399-L399 (Commits v2.14.0..v3.0.0)
   ev-46291a5e0c01  https://github.com/argoproj/argo-cd/compare/v2.14.0...v3.0.0  L189-L189 (Commits v2.14.0..v3.0.0)
-  ev-90cf881f4383  https://github.com/argoproj/argo-cd/blob/v2.14.11/docs/operator-manual/tested-kubernetes-versions.md  L3
-  ev-1cbf6064e35e  https://github.com/argoproj/argo-cd/blob/v3.0.6/docs/operator-manual/tested-kubernetes-versions.md  L3
   ev-a41a36159297  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L380-L396 (v2.14 to 3.0 › Other changes › Empty Environment Variables in Plugins)
   ev-5616a3c7f69a  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L307-L378 (v2.14 to 3.0 › Other changes › Health status in the Application CR)
   ev-94989021db77  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L299-L305 (v2.14 to 3.0 › Other changes › Ignoring all status updates and high churn mutations)
   ev-63314a5fae82  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L398-L417 (v2.14 to 3.0 › Other changes › Ignoring resource updates configured in `ignoreDifferences` by default)
   ev-c5faeec10a04  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L419-L437 (v2.14 to 3.0 › Other changes › Ignoring status field from differences by default)
-  … and 84 more
-  (394 uncited records not shown; use verbose or JSON output)
+  ev-adf2ed32df1c  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L288-L297 (v2.14 to 3.0 › Other changes › Using `cluster.inClusterEnabled: "false"`)
+  ev-8eae0cc64e07  https://github.com/argoproj/argo-cd/compare/v2.14.0...v3.0.0  L32-L32 (Commits v2.14.0..v3.0.0)
+  … and 53 more
+  (425 uncited records not shown; use verbose or JSON output)
