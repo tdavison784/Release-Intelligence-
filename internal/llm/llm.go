@@ -8,6 +8,8 @@ package llm
 import (
 	"context"
 	"encoding/json"
+	"strings"
+	"time"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 )
@@ -33,7 +35,25 @@ type Request struct {
 type Response struct {
 	Text  string `json:"text"`
 	Model string `json:"model"` // model that actually served the request
+	// ModelVersion is the most precise version identifier reported with the
+	// answer. Providers that report a single pinned model id (the Anthropic
+	// Messages API) repeat it here; it is never filled in from the request.
+	ModelVersion string `json:"modelVersion,omitempty"`
+	// GeneratedAt is when the answer was produced, when the client knows it
+	// (the cache and the exchange record it; zero otherwise).
+	GeneratedAt time.Time `json:"generatedAt,omitzero"`
+	// Origin says where the answer came from: OriginAPI, OriginCache,
+	// OriginExchange or OriginFake.
+	Origin string `json:"origin,omitempty"`
 }
+
+// Response origins.
+const (
+	OriginAPI      = "api"
+	OriginCache    = "cache"
+	OriginExchange = "exchange"
+	OriginFake     = "fake"
+)
 
 // Client is implemented by model providers and by test fakes.
 type Client interface {
@@ -44,4 +64,10 @@ type Client interface {
 func PromptDigest(req Request) string {
 	b, _ := json.Marshal(req)
 	return domain.Digest(b)
+}
+
+// digestHex returns the hex part of a PromptDigest ("sha256:<hex>"), used
+// as a file name by the cache and the exchange.
+func digestHex(digest string) string {
+	return strings.TrimPrefix(digest, "sha256:")
 }

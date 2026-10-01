@@ -89,17 +89,6 @@ type PathStep struct {
 	Reason      string     `json:"reason"` // e.g. "minor-release", "target-line-patch"
 }
 
-// Enrichment is AI-derived information. It is kept apart from Changes and must
-// carry AI provenance referencing the evidence it was generated from.
-type Enrichment struct {
-	ID         string     `json:"id"`
-	Kind       string     `json:"kind"` // "summary", "migration-step", "classification", "risk"
-	Title      string     `json:"title,omitempty"`
-	Content    string     `json:"content"`
-	RelatesTo  []string   `json:"relatesTo,omitempty"` // change IDs
-	Provenance Provenance `json:"provenance"`
-}
-
 // UpgradeEdgeSchemaVersion is the current serialisation version.
 const UpgradeEdgeSchemaVersion = "ri.dev/upgrade-edge/v1alpha1"
 
@@ -126,6 +115,10 @@ type UpgradeEdge struct {
 
 	GeneratedAt      time.Time `json:"generatedAt"`
 	DefinitionDigest string    `json:"definitionDigest,omitempty"`
+
+	// EnrichmentRun describes the AI run that produced Enrichments (absent
+	// when no enrichment was attempted). See enrichment.go.
+	EnrichmentRun *EnrichmentRun `json:"enrichmentRun,omitempty"`
 }
 
 // ChangesWhere returns changes matching pred.
@@ -142,7 +135,9 @@ func (e *UpgradeEdge) ChangesWhere(pred func(Change) bool) []Change {
 // Validate enforces the provenance invariants of an edge:
 //   - every Change has deterministic provenance and at least one evidence ID
 //     that resolves within the edge;
-//   - every Enrichment has valid AI provenance whose input evidence resolves;
+//   - every Enrichment has complete AI provenance, relates to existing
+//     Changes and cites only evidence it was given, which resolves within the
+//     edge (see validateEnrichments);
 //   - every fact's evidence resolves.
 func (e *UpgradeEdge) Validate() error {
 	var errs []error
@@ -183,19 +178,7 @@ func (e *UpgradeEdge) Validate() error {
 			}
 		}
 	}
-	for _, en := range e.Enrichments {
-		if en.Provenance.Method != MethodAI {
-			errs = append(errs, fmt.Errorf("enrichment %s must have ai provenance", en.ID))
-		}
-		if err := en.Provenance.Validate(); err != nil {
-			errs = append(errs, fmt.Errorf("enrichment %s: %w", en.ID, err))
-		}
-		for _, id := range en.Provenance.InputEvidence {
-			if !ev[id] {
-				errs = append(errs, fmt.Errorf("enrichment %s references unknown evidence %s", en.ID, id))
-			}
-		}
-	}
+	errs = append(errs, e.validateEnrichments(ev)...)
 	if e.From.Compare(e.To) >= 0 {
 		errs = append(errs, errors.New("edge 'from' must be lower than 'to'"))
 	}

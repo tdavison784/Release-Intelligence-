@@ -58,12 +58,17 @@ func withEnrichment(t *testing.T, e *domain.UpgradeEdge) *domain.UpgradeEdge {
 	}
 	gen := fixedNow
 	e.Enrichments = append(e.Enrichments, domain.Enrichment{
-		ID: "enr-1", Kind: "migration-step", Title: "Grant log access before upgrading",
+		ID: "enr-1", Kind: domain.EnrichmentMigrationSummary, Title: "Grant log access before upgrading",
 		Content:   "Add `p, role:dev, logs, get, */*, allow` to argocd-rbac-cm for every role that reads pod logs.\nThen upgrade the control plane.",
 		RelatesTo: []string{brk[0].ID},
-		Provenance: domain.Provenance{Method: domain.MethodAI, Producer: "llm.enrich@v1", Confidence: domain.ConfidenceMedium,
-			Model: "claude-test-model", PromptDigest: "sha256:0123", InputEvidence: brk[0].Evidence, GeneratedAt: &gen},
+		Citations: brk[0].Evidence[:1],
+		Provenance: domain.Provenance{Method: domain.MethodAI, Producer: "enrich@v1", Rule: "group:cand-1", Confidence: domain.ConfidenceMedium,
+			Model: "fake-model", ModelVersion: "fake-model-v1", PromptVersion: "enrich/v1", PromptDigest: "sha256:0123",
+			InputEvidence: brk[0].Evidence, GeneratedAt: &gen},
 	})
+	e.EnrichmentRun = &domain.EnrichmentRun{Producer: "enrich@v1", PromptVersion: "enrich/v1", CandidateGroups: 2, Requests: 2, Pending: 1, Accepted: 1,
+		Rejected: []domain.EnrichmentRejection{{Group: "cand-1", PromptDigest: "sha256:0123", Kind: domain.EnrichmentCluster,
+			RelatesTo: []string{brk[0].ID, "chg-unknown"}, Reason: "unknown change id chg-unknown (not in the edge)"}}}
 	if err := e.Validate(); err != nil {
 		t.Fatal(err)
 	}
@@ -250,5 +255,27 @@ func TestRenderArtifactStatuses(t *testing.T) {
 	verbose := string(render(t, e, RenderOptions{Verbose: true}))
 	if !strings.Contains(verbose, "https://x/crds.yaml  (unchanged)  [verified]") {
 		t.Errorf("unchanged artifact must be listed with Verbose:\n%s", verbose)
+	}
+}
+
+// The enriched section is additive: removing it (and the enrichment count of
+// the summary line) gives back exactly the deterministic report.
+func TestEnrichmentLeavesDeterministicSectionsUnchanged(t *testing.T) {
+	for _, verbose := range []bool{false, true} {
+		plain := string(render(t, mustBuild(t, argoInput(t)), RenderOptions{Verbose: verbose}))
+		enriched := string(render(t, withEnrichment(t, mustBuild(t, argoInput(t))), RenderOptions{Verbose: verbose}))
+		start := strings.Index(enriched, "\n"+EnrichedHeading)
+		if start < 0 {
+			t.Fatal("no enriched section")
+		}
+		end := strings.Index(enriched[start+1:], "\n\n")
+		if end < 0 {
+			t.Fatal("enriched section is not followed by another section")
+		}
+		stripped := enriched[:start] + enriched[start+2+end:]
+		stripped = strings.Replace(stripped, " · 1 AI enrichment\n", "\n", 1)
+		if stripped != plain {
+			t.Errorf("verbose=%v: deterministic sections changed:\n--- plain ---\n%s\n--- enriched (section removed) ---\n%s", verbose, plain, stripped)
+		}
 	}
 }

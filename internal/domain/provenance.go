@@ -20,8 +20,9 @@ const (
 	// MethodHeuristic: deterministic but pattern-based interpretation
 	// (e.g. keyword matching "deprecated" inside a bug-fix bullet).
 	MethodHeuristic Method = "heuristic"
-	// MethodAI: produced by a language model. Must carry model, prompt digest
-	// and input evidence.
+	// MethodAI: produced by a language model. Must carry the model and model
+	// version that answered, the prompt version and digest, the input
+	// evidence and the generation time.
 	MethodAI Method = "ai"
 )
 
@@ -46,6 +47,13 @@ type Provenance struct {
 	PromptDigest  string       `json:"promptDigest,omitempty"`
 	InputEvidence []EvidenceID `json:"inputEvidence,omitempty"`
 	GeneratedAt   *time.Time   `json:"generatedAt,omitempty"`
+	// ModelVersion is the most precise version identifier of the model as
+	// reported by whoever produced the answer (the API response or an
+	// exchange response file); it is never assumed from the request.
+	ModelVersion string `json:"modelVersion,omitempty"`
+	// PromptVersion names the prompt templates (e.g. "enrich/v1"); the
+	// digest pins the exact rendered prompt.
+	PromptVersion string `json:"promptVersion,omitempty"`
 }
 
 // Deterministic reports whether the provenance is not AI-derived.
@@ -56,7 +64,7 @@ func (p Provenance) Validate() error {
 	var errs []error
 	switch p.Method {
 	case MethodDeclared, MethodComputed, MethodHeuristic:
-		if p.Model != "" || p.PromptDigest != "" {
+		if p.Model != "" || p.PromptDigest != "" || p.ModelVersion != "" || p.PromptVersion != "" || len(p.InputEvidence) > 0 || p.GeneratedAt != nil {
 			errs = append(errs, fmt.Errorf("deterministic provenance (%s) must not carry model/prompt fields", p.Method))
 		}
 	case MethodAI:
@@ -68,6 +76,15 @@ func (p Provenance) Validate() error {
 		}
 		if len(p.InputEvidence) == 0 {
 			errs = append(errs, errors.New("ai provenance requires inputEvidence"))
+		}
+		if p.ModelVersion == "" {
+			errs = append(errs, errors.New("ai provenance requires modelVersion"))
+		}
+		if p.PromptVersion == "" {
+			errs = append(errs, errors.New("ai provenance requires promptVersion"))
+		}
+		if p.GeneratedAt == nil || p.GeneratedAt.IsZero() {
+			errs = append(errs, errors.New("ai provenance requires generatedAt"))
 		}
 	default:
 		errs = append(errs, fmt.Errorf("unknown provenance method %q", p.Method))

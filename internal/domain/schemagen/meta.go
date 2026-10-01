@@ -51,6 +51,7 @@ var enums = []enumSet{
 		domain.SourceUnavailable, domain.SourceSkipped, domain.SourceError,
 	),
 	enumOf(domain.ChangeAdded, domain.ChangeRemoved, domain.ChangeUpdated, domain.ChangeUnchanged),
+	enumOf(domain.EnrichmentCluster, domain.EnrichmentMigrationSummary, domain.EnrichmentDiffExplanation, domain.EnrichmentRelated),
 	enumOf(
 		domain.EvidenceDocument, domain.EvidenceGitRef, domain.EvidenceRegistry, domain.EvidenceReleaseAsset,
 		domain.EvidenceStructured, domain.EvidenceAdvisory, domain.EvidenceRepoFile,
@@ -104,11 +105,23 @@ var fieldPatches = map[string]obj{
 	// every provenance names its producer.
 	"Change.evidence":     o("minItems", 1),
 	"Provenance.producer": o("minLength", 1),
+
+	// Enrichments never appear as Changes: the id spaces are disjoint.
+	"Change.id":     o("not", o("pattern", "^"+domain.EnrichmentIDPrefix)),
+	"Enrichment.id": o("pattern", "^"+domain.EnrichmentIDPrefix),
+	// An enrichment says something (non-blank), about at least one change,
+	// and cites at least one piece of evidence. That the ids resolve (changes
+	// in `changes`, citations ⊆ provenance.inputEvidence ⊆ `evidence`) is
+	// referential and checked by domain.UpgradeEdge.Validate().
+	"Enrichment.content":   o("pattern", `\S`),
+	"Enrichment.relatesTo": o("minItems", 1, "uniqueItems", true),
+	"Enrichment.citations": o("minItems", 1, "uniqueItems", true),
 }
 
 // typePatches are appended to the schema generated for a whole struct,
 // keyed by type name.
 var typePatches = map[string]obj{
+	"Enrichment": o("allOf", enrichmentKindRules()),
 	// "Exactly one of the typed payloads is set", and it is the one that
 	// matches kind.
 	"Snapshot": o(
@@ -123,6 +136,25 @@ var typePatches = map[string]obj{
 			snapshotKindRule(domain.SnapshotImages, "images"),
 		},
 	),
+}
+
+// enrichmentKindRules: clusters and related changes connect at least two
+// changes; "related" (and only "related") is a hypothesis marked unverified.
+func enrichmentKindRules() []any {
+	kindIs := func(kinds ...domain.EnrichmentKind) obj {
+		vals := make([]any, len(kinds))
+		for i, k := range kinds {
+			vals[i] = string(k)
+		}
+		return o("properties", o("kind", o("enum", vals)), "required", []string{"kind"})
+	}
+	return []any{
+		o("if", kindIs(domain.EnrichmentCluster, domain.EnrichmentRelated),
+			"then", o("properties", o("relatesTo", o("minItems", 2)))),
+		o("if", kindIs(domain.EnrichmentRelated),
+			"then", o("required", []string{"unverified"}, "properties", o("unverified", o("const", true))),
+			"else", o("properties", o("unverified", o("const", false)))),
+	}
 }
 
 func snapshotKindRule(kind domain.SnapshotKind, payload string) obj {
@@ -152,10 +184,11 @@ var descriptions = map[string]string{
 	"UpgradeEdge.skippedReleases":  "Releases between the endpoints deliberately not traversed, e.g. backport patches of intermediate lines.",
 	"UpgradeEdge.sources":          "What happened when each source was consulted. Gaps are reported here (state unavailable, not-found, ...) instead of being hidden.",
 	"UpgradeEdge.changes":          "Deterministic conclusions (declared, computed or heuristic), most important first. Never AI-derived.",
-	"UpgradeEdge.enrichments":      "AI-derived additions (summaries, migration steps, risk notes). Always labelled method \"ai\" and never mixed into `changes`.",
+	"UpgradeEdge.enrichments":      "AI-derived additions (clusters, migration summaries, diff explanations, related changes). Always labelled method \"ai\" and never mixed into `changes`.",
 	"UpgradeEdge.facts":            "Deterministic statements extracted from sources, without interpretation.",
 	"UpgradeEdge.evidence":         "Every piece of source evidence referenced by id anywhere in this document, de-duplicated.",
 	"UpgradeEdge.warnings":         "Human-readable notes about gaps or degraded input that a consumer should surface.",
+	"UpgradeEdge.enrichmentRun":    "Present when enrichment was attempted: how the AI enrichments were produced and what the validator rejected.",
 	"UpgradeEdge.generatedAt":      "When the edge was assembled (UTC).",
 	"UpgradeEdge.definitionDigest": "Digest of the product definition revision the edge was built from.",
 
@@ -181,10 +214,11 @@ var descriptions = map[string]string{
 		"allowed (Change.provenance, NoteItem.classification, CompatibilityConstraint.provenance) and " +
 		"AIProvenance for Enrichment.provenance.",
 	defDeterminist: "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the " +
-		"AI-only fields (model, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
-	defAI: "Provenance of AI output: method is \"ai\" and model, promptDigest and inputEvidence (at least one " +
-		"evidence id) are required, so every enrichment can be traced to the model, the exact prompt and the " +
-		"evidence it was given.",
+		"AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. " +
+		"A Change can never be method \"ai\".",
+	defAI: "Provenance of AI output: method is \"ai\" and model, modelVersion, promptVersion, promptDigest, " +
+		"inputEvidence (at least one evidence id) and generatedAt are required, so every enrichment can be traced " +
+		"to the model that answered, the exact prompt and the evidence it was given.",
 	"Provenance.method": "How the knowledge was derived. " +
 		"declared: upstream stated it explicitly in a structured or labelled way (an item under a \"Breaking Changes\" heading, " +
 		"a release-note YAML with \"action required\", a published support matrix). " +
@@ -195,7 +229,9 @@ var descriptions = map[string]string{
 	"Provenance.producer":      "Component and version that produced the record, e.g. \"normalize.notes@v1\".",
 	"Provenance.rule":          "Identifier of the rule that fired, e.g. \"section:/breaking/i\".",
 	"Provenance.confidence":    "Coarse confidence in the classification.",
-	"Provenance.model":         "AI only: model identifier.",
+	"Provenance.model":         "AI only: identifier of the model that answered, as reported by the API response or the exchange response file (never assumed from the request).",
+	"Provenance.modelVersion":  "AI only: the most precise version identifier of that model reported with the answer (a pinned snapshot id when the provider reports no separate version).",
+	"Provenance.promptVersion": "AI only: version of the prompt templates, e.g. \"enrich/v1\"; promptDigest pins the exact rendered prompt.",
 	"Provenance.promptDigest":  "AI only: digest of the exact prompt, so the generation can be reproduced or audited.",
 	"Provenance.inputEvidence": "AI only: ids of the Evidence records the model was given as input.",
 	"Provenance.generatedAt":   "AI only: when the output was generated.",
@@ -217,10 +253,24 @@ var descriptions = map[string]string{
 	"Reference.type":  "Kind of identifier, e.g. \"cve\", \"ghsa\", \"pull-request\", \"issue\" or \"url\".",
 
 	// --- AI ------------------------------------------------------------------
-	"Enrichment": "AI-derived information (summary, migration step, risk note). Kept apart from Changes: it must " +
-		"carry method \"ai\" together with model, promptDigest and inputEvidence. Consumers should present it as AI-generated.",
-	"Enrichment.kind":      "Kind of enrichment, e.g. \"summary\", \"migration-step\", \"classification\" or \"risk\".",
-	"Enrichment.relatesTo": "Ids of the Changes the enrichment is about.",
+	"Enrichment": "AI-derived information that groups, summarises, connects or explains deterministic Changes. " +
+		"It never replaces or modifies a Change or a source fact: it refers to Changes by id and cites the evidence " +
+		"it relies on. It carries AIProvenance (model, model version, prompt version and digest, input evidence, " +
+		"generation time). Consumers must present it as AI-generated and verify it against the cited evidence.",
+	"Enrichment.id": "Identifier starting with \"enr-\"; Change ids never use that prefix.",
+	"Enrichment.kind": "cluster: semantically equivalent Changes from different sources consolidated into one conclusion " +
+		"(≥2 changes). migration-summary: one migration requirement summarised from one or more Changes. " +
+		"diff-explanation: why a computed diff matters, citing the release-note statement that explains it. " +
+		"related: Changes that are potentially related; a hypothesis that requires verification (≥2 changes, unverified).",
+	"Enrichment.relatesTo":  "Ids of the Changes the enrichment is about; each resolves within the edge's `changes`.",
+	"Enrichment.citations":  "Evidence ids the enrichment relies on: a subset of provenance.inputEvidence, which is a subset of the edge's `evidence`.",
+	"Enrichment.unverified": "True exactly for kind \"related\": the relation was suggested by the model and is not established by the citations.",
+	"EnrichmentRun": "How the enrichments of this edge were produced: deterministic candidate groups, prompts, answers " +
+		"pending or rejected by the validator, and the duplicate metric. Metadata about AI output, never a conclusion.",
+	"EnrichmentRun.candidateGroups":        "Deterministic candidate groups (changes sharing subjects, references, wording, a diffed key, or an upgrade-guide/release-note pairing) found before any model was asked.",
+	"EnrichmentRun.pending":                "Requests written to the file exchange that have no response yet.",
+	"EnrichmentRun.rejected":               "Model proposals refused by the validator (unknown change ids, citations outside the input, empty content, ...).",
+	"EnrichmentRun.duplicatesConsolidated": "clusteredChanges - clusters: how many Changes duplicate another Change of the same cluster.",
 
 	// --- evidence and facts ------------------------------------------------
 	"Evidence": "A verifiable pointer to source material supporting a fact or conclusion. `uri` is something a " +

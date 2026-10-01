@@ -712,27 +712,130 @@ func (r *renderer) compatibility() {
 
 // --- enrichments, warnings, evidence ---
 
+// EnrichedHeading titles the AI section of the text report.
+const EnrichedHeading = "Enriched conclusions (AI · verify against evidence)"
+
+// enrichments renders AI enrichments apart from the deterministic sections:
+// kind, content, the deterministic changes they relate to and the evidence
+// they cite (id, uri, locator), followed by the run's consolidation metric.
+// Cited evidence is listed inline and not added to the deterministic
+// evidence list, which therefore reads the same with or without enrichment.
 func (r *renderer) enrichments() {
-	if len(r.e.Enrichments) == 0 {
+	run := r.e.EnrichmentRun
+	if len(r.e.Enrichments) == 0 && run == nil {
 		return
 	}
-	r.heading(ansiMagenta+";"+ansiBold, fmt.Sprintf("AI enrichments (%d) — AI-derived, not deterministic; verify before acting:", len(r.e.Enrichments)))
+	r.heading(ansiMagenta+";"+ansiBold, fmt.Sprintf("%s (%d):", EnrichedHeading, len(r.e.Enrichments)))
+	changes := map[string]domain.Change{}
+	for _, c := range r.e.Changes {
+		changes[c.ID] = c
+	}
+	if len(r.e.Enrichments) == 0 {
+		r.line("  none accepted")
+	}
 	n := r.limit(len(r.e.Enrichments))
 	for _, en := range r.e.Enrichments[:n] {
-		head := en.Title
-		content := strings.TrimSpace(en.Content)
-		if head == "" {
-			head = shorten(firstLine(content), MaxTitle)
-		}
-		meta := fmt.Sprintf("(AI-derived · %s · %s)", en.Provenance.Model, r.cite(en.Provenance.InputEvidence))
-		r.line("  • [%s] %s  %s", en.Kind, head, r.paint(ansiDim, meta))
-		if r.opts.Verbose && content != "" {
-			for _, l := range strings.Split(content, "\n") {
-				r.line("      %s", strings.TrimRight(l, " "))
-			}
-		}
+		r.enrichment(en, changes)
 	}
 	r.more(n, len(r.e.Enrichments))
+	if run != nil {
+		r.enrichmentRun(run)
+	}
+}
+
+func (r *renderer) enrichment(en domain.Enrichment, changes map[string]domain.Change) {
+	content := strings.TrimSpace(en.Content)
+	head := en.Title
+	if head == "" {
+		head = shorten(firstLine(content), MaxTitle)
+	}
+	kind := string(en.Kind)
+	if en.Unverified {
+		kind += " · unverified"
+	}
+	p := en.Provenance
+	model := p.Model
+	if p.ModelVersion != "" && p.ModelVersion != p.Model {
+		model += " " + p.ModelVersion
+	}
+	r.line("  ◆ [%s] %s  %s", r.paint(ansiMagenta, kind), head, r.paint(ansiDim, fmt.Sprintf("(%s · %s · %s)", p.Method, model, p.Confidence)))
+	for _, l := range strings.Split(content, "\n") {
+		r.line("      %s", strings.TrimRight(l, " "))
+	}
+	r.line("      %s", r.paint(ansiDim, "changes:"))
+	w := 0
+	for _, id := range en.RelatesTo {
+		w = max(w, utf8.RuneCountInString(id))
+	}
+	for _, id := range en.RelatesTo {
+		c, ok := changes[id]
+		if !ok {
+			r.line("        %s  (not in edge)", pad(id, w))
+			continue
+		}
+		rel := "diff"
+		if c.Release != "" {
+			rel = r.tag(c.Release)
+		}
+		r.line("        %s  [%s] %s", pad(id, w), rel, shorten(firstLine(c.Title), MaxTitle))
+	}
+	r.line("      %s", r.paint(ansiDim, "evidence:"))
+	w = 0
+	for _, id := range en.Citations {
+		w = max(w, utf8.RuneCountInString(string(id)))
+	}
+	for _, id := range en.Citations {
+		x, ok := r.evByID[id]
+		if !ok {
+			r.line("        %s  (not in edge)", pad(string(id), w))
+			continue
+		}
+		loc := ""
+		if x.Locator != "" {
+			loc = "  " + x.Locator
+		}
+		r.line("        %s  %s%s", pad(string(id), w), x.URI, loc)
+		if r.opts.Verbose && x.Excerpt != "" {
+			r.line("          │ %s", shorten(collapseSpace(x.Excerpt), 160))
+		}
+	}
+	if r.opts.Verbose {
+		gen := "unknown"
+		if p.GeneratedAt != nil {
+			gen = p.GeneratedAt.UTC().Format("2006-01-02T15:04:05Z")
+		}
+		r.line("      %s", r.paint(ansiDim, fmt.Sprintf("prompt %s %s · generated %s · %s",
+			p.PromptVersion, shorten(p.PromptDigest, 23), gen, plural(len(p.InputEvidence), "input evidence record", "input evidence records"))))
+	}
+}
+
+// enrichmentRun prints the duplicate metric and what did not become an
+// enrichment (pending, failed, rejected).
+func (r *renderer) enrichmentRun(run *domain.EnrichmentRun) {
+	parts := []string{
+		fmt.Sprintf("%s consolidated into %s (%s)", plural(run.ClusteredChanges, "change", "changes"),
+			plural(run.Clusters, "cluster", "clusters"), plural(run.DuplicatesConsolidated, "duplicate", "duplicates")),
+		plural(run.CandidateGroups, "candidate group", "candidate groups"),
+		plural(run.Requests, "prompt", "prompts"),
+	}
+	if run.Pending > 0 {
+		parts = append(parts, fmt.Sprintf("%d pending", run.Pending))
+	}
+	if run.Failed > 0 {
+		parts = append(parts, fmt.Sprintf("%d failed", run.Failed))
+	}
+	parts = append(parts, fmt.Sprintf("%d rejected", len(run.Rejected)))
+	r.line("  %s", r.paint(ansiDim, "Duplicates: "+strings.Join(parts, " · ")))
+	if !r.opts.Verbose {
+		return
+	}
+	for _, rj := range run.Rejected {
+		what := string(rj.Kind)
+		if what == "" {
+			what = "answer"
+		}
+		r.line("    %s rejected %s (%s): %s", r.paint(ansiYellow, "✗"), what, rj.Group, rj.Reason)
+	}
 }
 
 func (r *renderer) warnings() {

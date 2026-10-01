@@ -324,14 +324,18 @@ func (g *gen) addProvenanceVariants() {
 			o("required", []string{"promptDigest"}),
 			o("required", []string{"inputEvidence"}),
 			o("required", []string{"generatedAt"}),
+			o("required", []string{"modelVersion"}),
+			o("required", []string{"promptVersion"}),
 		}),
 	))
 	g.defs[defAI] = g.describeDef(defAI, o(
 		"allOf", base,
-		"required", []string{"model", "promptDigest", "inputEvidence"},
+		"required", []string{"model", "modelVersion", "promptVersion", "promptDigest", "inputEvidence", "generatedAt"},
 		"properties", o(
 			"method", o("const", string(domain.MethodAI)),
 			"model", o("minLength", 1),
+			"modelVersion", o("minLength", 1),
+			"promptVersion", o("minLength", 1),
 			"promptDigest", o("minLength", 1),
 			"inputEvidence", o("minItems", 1),
 		),

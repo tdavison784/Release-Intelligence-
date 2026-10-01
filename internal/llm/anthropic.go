@@ -334,7 +334,10 @@ func (a *Anthropic) once(ctx context.Context, body []byte, structured bool) (*Re
 			text.WriteString(c.Text)
 		}
 	}
-	out := &Response{Text: text.String(), Model: ar.Model}
+	// The Messages API reports one model identifier, which names the pinned
+	// model that answered (after any server-side fallback); it is recorded
+	// as both the model and its version.
+	out := &Response{Text: text.String(), Model: ar.Model, ModelVersion: ar.Model, Origin: OriginAPI}
 	if structured && !json.Valid([]byte(strings.TrimSpace(out.Text))) {
 		return nil, fmt.Errorf("anthropic: structured answer is not valid JSON (stop_reason %q)", ar.StopReason)
 	}

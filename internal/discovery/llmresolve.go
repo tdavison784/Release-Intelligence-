@@ -28,6 +28,9 @@ type LLMResolver struct {
 	Clock         func() time.Time
 }
 
+// llmPromptVersion names the discovery prompt templates in provenance.
+const llmPromptVersion = "discovery/v1"
+
 const llmSystem = `You help map how an open-source project publishes releases. You are given deterministic findings from its repository (file:line excerpts). Answer only with JSON matching the schema. Base every statement on the findings; use "unknown" instead of guessing. Keep rationales to one sentence citing the evidence ids you relied on.`
 
 // Resolve answers the draft's questions and stages proposals.
@@ -118,7 +121,8 @@ func (l *LLMResolver) ask(ctx context.Context, user string, schema string) (*llm
 func (l *LLMResolver) provenance(q Question, resp *llm.Response, req llm.Request, ids []domain.EvidenceID) domain.Provenance {
 	t := l.now()
 	return domain.Provenance{Method: domain.MethodAI, Producer: ProducerLLM, Rule: "question:" + q.Kind, Confidence: domain.ConfidenceMedium,
-		Model: resp.Model, PromptDigest: llm.PromptDigest(req), InputEvidence: ids, GeneratedAt: &t}
+		Model: resp.Model, ModelVersion: resp.ModelVersion, PromptVersion: llmPromptVersion,
+		PromptDigest: llm.PromptDigest(req), InputEvidence: ids, GeneratedAt: &t}
 }
 
 func header(in ResolveInput) string {
