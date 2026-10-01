@@ -1,0 +1,26 @@
+case: istio-1.23-1.24
+reviewedAt: "2026-10-01"
+method: >-
+    Sample-based human adjudication (G9): every change matching a notExpected
+    entry plus a sample of unmatched changes, each read against the case's
+    cited upstream documents. Dataset false positives are confirmed or
+    overturned; unmatched samples get true-positive / false-positive /
+    uncertain verdicts. Verdicts feed labeledPrecision and the false-action
+    rate.
+adjudications:
+  - changeId: chg-95862c07058d
+    verdict: false-positive
+    reason: "new Helm value ipFamilies (chart istiod); feature surface, not upgrade work"
+    # output was: New Helm value `ipFamilies` (chart istiod)
+  - changeId: chg-2122fefeda41
+    verdict: false-positive
+    reason: "new Helm value base.enableIstioConfigCRDs; feature surface"
+    # output was: New Helm value `base.enableIstioConfigCRDs` (chart istiod)
+  - changeId: chg-914b9693d402
+    verdict: false-positive
+    reason: "new Helm values section resources.* (chart cni); feature surface"
+    # output was: New Helm values section `resources.*` (2 values) (chart cni)
+  - changeId: chg-39c380865449
+    verdict: false-positive
+    reason: "new Helm value revision (chart cni); feature surface"
+    # output was: New Helm value `revision` (chart cni)

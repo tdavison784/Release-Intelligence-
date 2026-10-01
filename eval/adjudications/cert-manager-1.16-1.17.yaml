@@ -1,0 +1,26 @@
+case: cert-manager-1.16-1.17
+reviewedAt: "2026-10-01"
+method: >-
+    Sample-based human adjudication (G9): every change matching a notExpected
+    entry plus a sample of unmatched changes, each read against the case's
+    cited upstream documents. Dataset false positives are confirmed or
+    overturned; unmatched samples get true-positive / false-positive /
+    uncertain verdicts. Verdicts feed labeledPrecision and the false-action
+    rate.
+adjudications:
+  - changeId: chg-8d5050bf3851
+    verdict: true-positive
+    reason: "Issuer v1 schema gains spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID — a CRD addition the must-find list lacks (E4 covers only the keystore fields)"
+    # output was: Issuer v1 schema: 1 field added: `spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID`
+  - changeId: chg-ab677b7fc4b4
+    verdict: false-positive
+    reason: "renewBeforePercentage bugfix; corrects prior behaviour, no upgrade decision"
+    # output was: Fix the behavior of `renewBeforePercentage` to comply with its spec
+  - changeId: chg-ac846ef641f0
+    verdict: false-positive
+    reason: "helm chart accepts percentages for podDisruptionBudget keys; fix, not work"
+    # output was: BUGFIX: Helm will now accept percentages for the `podDisruptionBudget.minAvailable` and `podDisrupti
+  - changeId: chg-f54820f8d4e4
+    verdict: false-positive
+    reason: "internal parsing limit raise; no operator surface"
+    # output was: Increase the amount of PEM data `pki.DecodeX509CertificateSetBytes` is able to parse, to enable read

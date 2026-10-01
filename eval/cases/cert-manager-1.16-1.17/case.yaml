@@ -1,0 +1,111 @@
+id: cert-manager-1.16-1.17
+product: cert-manager
+from: v1.16.0
+to: v1.17.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md
+  - https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md
+  - https://github.com/cert-manager/cert-manager/blob/v1.16.0/deploy/charts/cert-manager/values.yaml
+  - https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml
+expected:
+  # Change type covered: breaking behavioural change (signature/hash policy).
+  - id: E1
+    title: RSA certificates with 3072/4096-bit keys are now signed with SHA-384/SHA-512 instead of always SHA-256
+    kind: behaviour-change
+    importance: important
+    actionRequired: false       # consciously review: verifiers that reject the stronger hashes would break at rotation
+    classification: review-required   # the guide says "worth bearing in mind if you start to see errors"; applicability depends on the verifier landscape
+    match:
+      - text: '(?i)SHA-?384|SHA-?512|hash algorithm'
+      - text: '(?i)RSA Certificate Compliance|RSA certificates with keys'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md
+        quote: "RSA certificates with keys of length 3072 or 4096 will now use SHA-384 or SHA-512 respectively as hash algorithms."
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md
+        quote: "In v1.17.0, cert-manager will choose a hash algorithm based on the RSA key length: 3072-bit keys will use SHA-384, and 4096-bit keys will use SHA-512."
+  # Change type covered: feature-gate deprecation with a removal scheduled.
+  - id: E2
+    title: ValidateCAA feature gate deprecated; removed in v1.18 — stop enabling it
+    kind: deprecation
+    importance: important
+    actionRequired: true        # operators who enable it must stop before 1.18
+    classification: action-required   # if the operator enables the gate, stopping is mandatory work
+    match:
+      - text: '(?i)ValidateCAA'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md
+        quote: "The `ValidateCAA` feature gate has been deprecated and will be removed in cert-manager v1.18. If you're manually enabling this feature gate, it's advisable to stop."
+  # Change type covered: new default-on behaviour via feature-gate promotion.
+  - id: E3
+    title: NameConstraints and UseDomainQualifiedFinalizer feature gates promoted to beta and enabled by default
+    kind: behaviour-change
+    importance: important
+    actionRequired: false       # new behaviour appears; action only if it surprises
+    classification: informational     # a changed default the operator must know, not act on
+    match:
+      - text: '(?i)NameConstraints'
+      - text: '(?i)UseDomainQualifiedFinalizer'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md
+        quote: "In cert-manager v1.17, two feature gates have been promoted to \"beta\", and as such are now enabled by default in all installations: `NameConstraints` … `UseDomainQualifiedFinalizer`"
+  # Change type covered: CRD field addition (new Certificate API field).
+  - id: E4
+    title: Certificate keystores gain literal password fields (jks/pkcs12 create supports password alongside passwordSecretRef, mutually exclusive)
+    kind: crd-schema
+    importance: minor
+    actionRequired: false
+    classification: informational
+    match:
+      - text: '(?i)keystore.*(password|passwordSecretRef)'
+      - text: '(?i)Easier Keystore Passwords'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md
+        quote: "In cert-manager v1.17, it's now possible to set a keystore password using a literal string value inside the `Certificate` resource itself … The new `password` field is mutually exclusive with the `passwordSecretRef` field"
+  # Change type covered: operational-behaviour change (log formats).
+  - id: E5
+    title: Log lines across cert-manager gained structured context — literal string matching on logs may break
+    kind: behaviour-change
+    importance: minor
+    actionRequired: false       # only bites operators filtering on exact log strings
+    classification: informational
+    match:
+      - text: '(?i)structured|log messages across cert-manager|log lines have changed|filtering logs'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md
+        quote: "Log messages across cert-manager have been augmented with better contextual structured data. If you were matching on literal strings in log lines, it's possible that may break."
+notExpected:
+  - title: dependency bumps in test-only or build-only paths
+    match: [{text: '(?i)bump .* in /(test|hack)'}]
+  - title: documentation-only pull requests listed in the GitHub release body
+    match: [{text: '(?i)^docs?:'}]
+environment:
+  description: >-
+    Production cluster on Kubernetes 1.29 running cert-manager 1.16 via Helm.
+    The values file explicitly enables the ValidateCAA feature gate (a legacy
+    PKI-compliance requirement from onboarding) and pins the controller log
+    format settings. Workloads include an internal CA hierarchy issuing
+    4096-bit RSA certificates consumed by a strict verifier appliance.
+  kubernetes: "1.29"
+  expectedImpact:
+    - expected: E1
+      relevance: review        # the fixture's CA issues 4096-bit RSA certificates; signatures switch to SHA-512 at rotation
+      why: the environment issues 4096-bit RSA certificates, so every rotation changes the signature hash; the verifier appliance must accept it
+    - expected: E2
+      relevance: action-required
+      why: the values file enables ValidateCAA, which v1.18 removes; the operator must stop relying on it during this upgrade
+    - expected: E3
+      relevance: informational
+      why: the gates turn on by default; NameConstraints only matters when the fixture uses it (it does not set name constraints)
+  expectedFindings:
+    - id: F1
+      match:
+        rule: impact:kubernetes-in-range
+      why: cluster Kubernetes 1.29 is inside cert-manager v1.17's supported range (README support table), which should be confirmed, not flagged
+  notExpectedFindings:
+    - title: no Helm values key is removed by this upgrade
+      match: {rule: impact:values-removed}
+      why: the v1.17.0 chart removes no values keys relative to v1.16.0 (verified by diffing the two values.yaml files)
+    - title: no CRD is removed by this upgrade
+      match: {rule: impact:crd-removed}
+      why: cert-manager v1.17.0 still ships every CRD v1.16.0 shipped

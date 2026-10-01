@@ -118,8 +118,8 @@ func TestRoutineNeverCoversExpectedItems(t *testing.T) {
 	if gated == 0 {
 		t.Fatal("no dataset entries found")
 	}
-	if gated != 9 {
-		t.Errorf("expected to gate 9 dataset entries, got %d", gated)
+	if gated != 17 {
+		t.Errorf("expected to gate 17 dataset entries, got %d", gated)
 	}
 }
 

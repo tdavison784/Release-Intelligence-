@@ -1,0 +1,23 @@
+# Attack: the customer explicitly pins the OLD value of a key whose default
+# changed. A simplistic "default changed → you must act" join false-alarms;
+# a pin keeps winning, which is informational by the contract.
+id: values-old-default-pinned
+attacks: customer explicitly pins an old default
+expectation: >-
+  the pin keeps winning → informational (impact:values-pinned), never
+  action-required (docs/ACTION_CLASSIFICATION.md §informational: "a changed
+  default the customer explicitly overrides")
+edge:
+  changes:
+    - rule: values:default-changed
+      title: "Default of server.legacyAuth changed from true to false in v2.0.0"
+      subjects: [server.legacyAuth]
+      category: helm-values
+environment:
+  files: [values.yaml]
+expect:
+  present:
+    - rule: impact:values-pinned
+      classification: informational
+  absent:
+    - classification: action-required

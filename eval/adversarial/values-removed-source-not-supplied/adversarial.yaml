@@ -1,0 +1,25 @@
+# Attack: the deciding configuration source (Helm values) is NOT supplied —
+# only manifests are. "No match" must never be read as "not affected":
+# without values there is nothing to compare, so the verdict is UNKNOWN with
+# neededToDetermine naming the missing input.
+id: values-removed-source-not-supplied
+attacks: relevant config source not supplied (→ unknown, not not-affected)
+expectation: >-
+  unknown (impact:insufficient-visibility) naming the missing values input;
+  never impact:values-unset (that would claim a check that never ran) and
+  never action-required (nothing was compared)
+edge:
+  changes:
+    - rule: values:removed
+      title: "The value auth.proxy.enabled was removed in v2.0.0"
+      subjects: [auth.proxy.enabled]
+      category: helm-values
+environment:
+  files: [manifests]
+expect:
+  present:
+    - rule: impact:insufficient-visibility
+      classification: unknown
+  absent:
+    - rule: impact:values-unset
+    - classification: action-required

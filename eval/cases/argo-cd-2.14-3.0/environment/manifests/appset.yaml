@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: tenants
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - list:
+        elements:
+          - tenant: payments
+          - tenant: search
+  template:
+    metadata:
+      name: '{{.tenant}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://git.example.com/platform/tenants.git
+        targetRevision: HEAD
+        path: '{{.tenant}}'
+      destination:
+        name: in-cluster
+        namespace: '{{.tenant}}'

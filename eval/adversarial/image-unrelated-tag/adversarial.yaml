@@ -1,0 +1,23 @@
+# Attack: the upstream image's tag changed, but the customer's mirror list
+# references a DIFFERENT repository entirely (an unrelated tag of a similarly
+# shaped name). A name-similarity join false-alarms; repository identity must
+# decide.
+id: image-unrelated-tag
+attacks: image with an unrelated tag / different repository
+expectation: >-
+  the change does not reach the environment → not-affected
+  (impact:image-not-referenced), never impact:image-changed
+edge:
+  changes:
+    - rule: images:tag-changed
+      title: "Image registry.upstream.example/app tag changed 1.2.3 → 2.0.0"
+      subjects: [registry.upstream.example/app]
+      category: artifact
+environment:
+  files: [images.txt]
+expect:
+  present:
+    - rule: impact:image-not-referenced
+      classification: not-affected
+  absent:
+    - rule: impact:image-changed

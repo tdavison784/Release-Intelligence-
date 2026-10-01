@@ -1,0 +1,2042 @@
+{
+ "caseId": "postgresql-17.2-17.3",
+ "recordedFrom": "ri upgrade postgresql REL_17_2 REL_17_3 (live, 2026-10-01)",
+ "changes": [
+  {
+   "id": "chg-92796230d06b",
+   "category": "bugfix",
+   "title": "Add `psql` tab completion for `COPY (MERGE INTO)` (Jian He)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-ee146be74058"
+   ]
+  },
+  {
+   "id": "chg-dfb60dfa6c3c",
+   "category": "bugfix",
+   "title": "Allow dshash tables to grow past 1GB (Matthias van de Meent) This avoids errors like \"invalid DSA memory alloc request size\"",
+   "detail": "Allow dshash tables to grow past 1GB (Matthias van de Meent) This avoids errors like \"invalid DSA memory alloc request size\". The case can occur for example in transactions that process several million tables.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-ad7ad05f46ea"
+   ]
+  },
+  {
+   "id": "chg-1b6f2c2ae371",
+   "category": "bugfix",
+   "title": "Avoid assertion failure in rule deparsing if a set operation leaf query contains set operations (Man Zeng, Tom Lane)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-4928e9ce0d59"
+   ]
+  },
+  {
+   "id": "chg-cba76fe58b0b",
+   "category": "bugfix",
+   "title": "Avoid crash if a server process tried to iterate over a shared radix tree that it didn't create (Masahiko Sawada) There is no code in core PostgreSQL that does…",
+   "detail": "Avoid crash if a server process tried to iterate over a shared radix tree that it didn't create (Masahiko Sawada) There is no code in core PostgreSQL that does this, but an extension might wish to.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-5b0cd5c3ecfd"
+   ]
+  },
+  {
+   "id": "chg-13a774d7ab26",
+   "category": "bugfix",
+   "title": "Avoid crash when a background process tries to check a new value of `synchronized_standby_slots` (Álvaro Herrera)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-b3139a35d5c6"
+   ]
+  },
+  {
+   "id": "chg-eb5c2ec82da1",
+   "category": "bugfix",
+   "title": "Avoid data loss when starting a bulk write on a relation fork that already contains data (Matthias van de Meent) Any pre-existing data was overwritten with…",
+   "detail": "Avoid data loss when starting a bulk write on a relation fork that already contains data (Matthias van de Meent) Any pre-existing data was overwritten with zeroes. This is not an issue for core PostgreSQL, which never does that. Some extensions would like to, however.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-876c2bb6f829"
+   ]
+  },
+  {
+   "id": "chg-7958bfa69474",
+   "category": "bugfix",
+   "title": "Avoid edge-case assertion failure in parallel query startup (Tom Lane)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-5492afb01edd"
+   ]
+  },
+  {
+   "id": "chg-8666960b8796",
+   "category": "bugfix",
+   "title": "Avoid integer overflow while testing `wal_skip_threshold` condition (Tom Lane) A transaction that created a very large relation could mistakenly decide to…",
+   "detail": "Avoid integer overflow while testing `wal_skip_threshold` condition (Tom Lane) A transaction that created a very large relation could mistakenly decide to ensure durability by copying the relation into WAL instead of fsync'ing it, thereby negating the point of `wal_skip_threshold`. (This only matters when `wal_level` is set to `minimal`, else a WAL copy is required anyway.)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-6c89ebb6a007"
+   ]
+  },
+  {
+   "id": "chg-bb8c57ad0737",
+   "category": "bugfix",
+   "title": "Avoid possible integer overflow in `bringetbitmap()` (James Hunter, Evgeniy Gorbanyov) Since the result is only used for statistical purposes, the effects of…",
+   "detail": "Avoid possible integer overflow in `bringetbitmap()` (James Hunter, Evgeniy Gorbanyov) Since the result is only used for statistical purposes, the effects of this error were mostly cosmetic.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-f31c4f0ad435"
+   ]
+  },
+  {
+   "id": "chg-dc7398f4631b",
+   "category": "bugfix",
+   "title": "Avoid possibly losing an update of `pg_database`.`datfrozenxid` when `VACUUM` runs concurrently with a `REASSIGN OWNED` that changes that database's owner…",
+   "detail": "Avoid possibly losing an update of `pg_database`.`datfrozenxid` when `VACUUM` runs concurrently with a `REASSIGN OWNED` that changes that database's owner (Kirill Reshke)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-92e8c9b80823"
+   ]
+  },
+  {
+   "id": "chg-df5bb7e960d2",
+   "category": "bugfix",
+   "title": "Avoid potential use-after-free in parallel vacuum (Vallimaharajan G, John Naylor) This bug seems to have no consequences in standard builds, but it's…",
+   "detail": "Avoid potential use-after-free in parallel vacuum (Vallimaharajan G, John Naylor) This bug seems to have no consequences in standard builds, but it's theoretically a hazard.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-3348bbbfdf07"
+   ]
+  },
+  {
+   "id": "chg-a9a735c5d2b4",
+   "category": "bugfix",
+   "title": "Avoid valgrind complaints about string hashing code (John Naylor)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-9e85baba3426"
+   ]
+  },
+  {
+   "id": "chg-2f924ed90a25",
+   "category": "bugfix",
+   "title": "Correct miscalculation of SLRU bank numbers (Yura Sokolov) This error led to using a smaller number of banks than intended, causing more contention but no…",
+   "detail": "Correct miscalculation of SLRU bank numbers (Yura Sokolov) This error led to using a smaller number of banks than intended, causing more contention but no functional misbehavior.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-0c173c574da8"
+   ]
+  },
+  {
+   "id": "chg-1bb58c28ff64",
+   "category": "bugfix",
+   "title": "Detect version mismatch between `contrib/pageinspect`'s SQL declarations and the underlying shared library (Tomas Vondra) Previously, such a mismatch could…",
+   "detail": "Detect version mismatch between `contrib/pageinspect`'s SQL declarations and the underlying shared library (Tomas Vondra) Previously, such a mismatch could result in a crash while calling `brin_page_items()`. Instead throw an error recommending updating the extension.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-e2686ab1fc5c"
+   ]
+  },
+  {
+   "id": "chg-d380f2ce84d9",
+   "category": "bugfix",
+   "title": "Don't merge `UNION` operations if their column collations aren't consistent (Tom Lane) Previously we ignored collations when deciding if it's safe to merge…",
+   "detail": "Don't merge `UNION` operations if their column collations aren't consistent (Tom Lane) Previously we ignored collations when deciding if it's safe to merge `UNION` steps into a single N-way `UNION` operation. This was arguably valid before the introduction of nondeterministic collations, but it's not anymore, since the collation in use can affect the definition of uniqueness.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-c404f441ea65"
+   ]
+  },
+  {
+   "id": "chg-4b60fda5f136",
+   "category": "bugfix",
+   "title": "Drop \"Lock\" suffix from LWLock wait event names (Bertrand Drouvot) Refactoring unintentionally caused the `pg_stat_activity` view to show lock-related wait…",
+   "detail": "Drop \"Lock\" suffix from LWLock wait event names (Bertrand Drouvot) Refactoring unintentionally caused the `pg_stat_activity` view to show lock-related wait event names with a \"Lock\" suffix, which among other things broke joining it to `pg_wait_events`.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-f07bfe45ba25"
+   ]
+  },
+  {
+   "id": "chg-f3d26ec494c7",
+   "category": "bugfix",
+   "title": "Ensure that an already-set process latch doesn't prevent the postmaster from noticing socket events (Thomas Munro) An extremely heavy workload of backends…",
+   "detail": "Ensure that an already-set process latch doesn't prevent the postmaster from noticing socket events (Thomas Munro) An extremely heavy workload of backends launching workers and workers exiting could prevent the postmaster from responding to incoming client connections in a timely fashion.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-3f7f89f585cf"
+   ]
+  },
+  {
+   "id": "chg-cfd738aeb9d2",
+   "category": "bugfix",
+   "title": "Ensure that expression preprocessing is applied to a default null value in `INSERT` (Tom Lane) If the target column is of a domain type, the planner must…",
+   "detail": "Ensure that expression preprocessing is applied to a default null value in `INSERT` (Tom Lane) If the target column is of a domain type, the planner must insert a coerce-to-domain step not just a null constant, and this expression missed going through some required processing steps. There is no known consequence with domains based on core data types, but in theory an error could occur with domains based on extension types.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-4d1214274715"
+   ]
+  },
+  {
+   "id": "chg-f9ee5de16dd0",
+   "category": "bugfix",
+   "title": "Exclude parallel workers from connection privilege checks and limits (Tom Lane) Do not check `datallowconn`, `rolcanlogin`, and `ACL_CONNECT` privileges when…",
+   "detail": "Exclude parallel workers from connection privilege checks and limits (Tom Lane) Do not check `datallowconn`, `rolcanlogin`, and `ACL_CONNECT` privileges when starting a parallel worker, instead assuming that it's enough for the leader process to have passed similar checks originally. This avoids, for example, unexpected failures of parallelized queries when the leader is running as a role that lacks login privilege. In the same vein, enforce `ReservedConnections`, `datconnlimit`, and `rolconnlimit` limits only against regular backends, and count only regular backends while checking if the limits were already reached. Those limits are meant to prevent excessive consumption of process slots for regular backends --- but parallel workers and other special processes have their own pools of process slots with their own limit checks.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-46dc82a22340"
+   ]
+  },
+  {
+   "id": "chg-f20a94cbbdc7",
+   "category": "bugfix",
+   "title": "Fix PL/Tcl to compile with Tcl 9 (Peter Eisentraut)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-5e8f8b16802b"
+   ]
+  },
+  {
+   "id": "chg-23bef3a0fc20",
+   "category": "bugfix",
+   "title": "Fix `pg_basebackup` to correctly handle `pg_wal.tar` files exceeding 2GB on Windows (Davinder Singh, Thomas Munro)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-4e91744b0e5c"
+   ]
+  },
+  {
+   "id": "chg-0acb3a543f64",
+   "category": "bugfix",
+   "title": "Fix `pg_get_constraintdef`'s support for `NOT NULL` constraints on domains (Álvaro Herrera)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-0d97c604acd4"
+   ]
+  },
+  {
+   "id": "chg-b9ab37bb5926",
+   "category": "bugfix",
+   "title": "Fix `psql` to safely handle file path names that are encoded in SJIS (Tom Lane) Some two-byte characters in SJIS have a second byte that is equal to ASCII…",
+   "detail": "Fix `psql` to safely handle file path names that are encoded in SJIS (Tom Lane) Some two-byte characters in SJIS have a second byte that is equal to ASCII backslash (`\\`). These characters were corrupted by path name normalization, preventing access to files whose names include such characters.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-b404c658b114"
+   ]
+  },
+  {
+   "id": "chg-ceee50b13d77",
+   "category": "bugfix",
+   "title": "Fix assertion failure at shutdown when writing out the statistics file (Michael Paquier)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-600e9116160f"
+   ]
+  },
+  {
+   "id": "chg-676e8dc50cc5",
+   "category": "bugfix",
+   "title": "Fix assertion failure in `WITH RECURSIVE ..",
+   "detail": "Fix assertion failure in `WITH RECURSIVE ... UNION` queries (David Rowley)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-14c4d9069885"
+   ]
+  },
+  {
+   "id": "chg-bb506467322f",
+   "category": "bugfix",
+   "title": "Fix cases where an operator family member operator or support procedure could become a dangling reference (Tom Lane) In some cases a data type could be dropped…",
+   "detail": "Fix cases where an operator family member operator or support procedure could become a dangling reference (Tom Lane) In some cases a data type could be dropped while references to its OID still remain in `pg_amop` or `pg_amproc`. While that caused no immediate issues, an attempt to drop the owning operator family would fail, and `pg_dump` would produce bogus output when dumping the operator family. This fix causes creation and modification of operator families/classes to add needed dependency entries so that dropping a data type will also drop any dependent operator family elements. That does not help vulnerable pre-existing operator families, though, so a band-aid has also been added to `DROP OPERATOR FAMILY` to prevent failure when dropping a family that has dangling members.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-3777df776e24"
+   ]
+  },
+  {
+   "id": "chg-559831518928",
+   "category": "bugfix",
+   "title": "Fix data corruption when relation truncation fails (Thomas Munro) The filesystem calls needed to perform relation truncation could fail, leaving inconsistent…",
+   "detail": "Fix data corruption when relation truncation fails (Thomas Munro) The filesystem calls needed to perform relation truncation could fail, leaving inconsistent state on disk (for example, effectively reviving deleted data). We can't really prevent that, but we can recover by dint of making such failures into PANICs, so that consistency is restored by replaying from WAL up to just before the attempted truncation. This isn't a hugely desirable behavior, but such failures are rare enough that it seems an acceptable solution.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-9962bf9b71a0"
+   ]
+  },
+  {
+   "id": "chg-b78358b24249",
+   "category": "bugfix",
+   "title": "Fix detach of a partition that has its own foreign-key constraint referencing a partitioned table (Amul Sul) In common cases, foreign keys are defined on a…",
+   "detail": "Fix detach of a partition that has its own foreign-key constraint referencing a partitioned table (Amul Sul) In common cases, foreign keys are defined on a partitioned table's top level; but if instead one is defined on a partition and references a partitioned table, and the referencing partition is detached, the relevant `pg_constraint` entries were updated incorrectly. This led to errors like \"could not find ON INSERT check triggers of foreign key constraint\".",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-46788cc039f2"
+   ]
+  },
+  {
+   "id": "chg-c5a102b876a6",
+   "category": "bugfix",
+   "title": "Fix incorrect `tg_updatedcols` values passed to `AFTER UPDATE` triggers (Tom Lane) In some cases the `tg_updatedcols` bitmap could describe the set of columns…",
+   "detail": "Fix incorrect `tg_updatedcols` values passed to `AFTER UPDATE` triggers (Tom Lane) In some cases the `tg_updatedcols` bitmap could describe the set of columns updated by an earlier command in the same transaction, fooling the trigger into doing the wrong thing. Also, prevent memory bloat caused by making too many copies of the `tg_updatedcols` bitmap.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-fdf8bab5375d"
+   ]
+  },
+  {
+   "id": "chg-9b53a8e1d90a",
+   "category": "bugfix",
+   "title": "Fix memory leak in `pg_restore` with zstd-compressed data (Tom Lane) The leak was per-decompression-operation, so would be most noticeable with a dump…",
+   "detail": "Fix memory leak in `pg_restore` with zstd-compressed data (Tom Lane) The leak was per-decompression-operation, so would be most noticeable with a dump containing many tables or large objects.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-efbc831fd5c3"
+   ]
+  },
+  {
+   "id": "chg-dfb7796e3a89",
+   "category": "bugfix",
+   "title": "Fix meson build system to support old OpenSSL libraries on Windows (Darek Slusarczyk) Add support for the legacy library names `ssleay32` and `libeay32`",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-6c60060fc5dd"
+   ]
+  },
+  {
+   "id": "chg-98c163ab5e80",
+   "category": "bugfix",
+   "title": "Fix meson configuration process to correctly detect OSSP's `uuid.h` header file under MSVC (Andrew Dunstan)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-c7add03fcb7b"
+   ]
+  },
+  {
+   "id": "chg-cb1c3efc69d8",
+   "category": "bugfix",
+   "title": "Fix mis-processing of `to_timestamp`'s `FFn` format codes (Tom Lane) An integer format code immediately preceding `FFn` would consume all available digits…",
+   "detail": "Fix mis-processing of `to_timestamp`'s `FFn` format codes (Tom Lane) An integer format code immediately preceding `FFn` would consume all available digits, leaving none for `FFn`.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-7c188a048a5a"
+   ]
+  },
+  {
+   "id": "chg-904176c018a1",
+   "category": "bugfix",
+   "title": "Fix misexecution of some nested `\\if` constructs in `pgbench` (Michail Nikolaev) An `\\if` command appearing within a false (not-being-executed) `\\if` branch…",
+   "detail": "Fix misexecution of some nested `\\if` constructs in `pgbench` (Michail Nikolaev) An `\\if` command appearing within a false (not-being-executed) `\\if` branch was incorrectly treated the same as `\\elif`.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-84cc723dc3c1"
+   ]
+  },
+  {
+   "id": "chg-158d71bd1ebc",
+   "category": "bugfix",
+   "title": "Fix missed expression processing for partition pruning steps (Tom Lane) This oversight could lead to \"unrecognized node type\" errors, and perhaps other…",
+   "detail": "Fix missed expression processing for partition pruning steps (Tom Lane) This oversight could lead to \"unrecognized node type\" errors, and perhaps other problems, in queries accessing partitioned tables.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-8269d7729de6"
+   ]
+  },
+  {
+   "id": "chg-44290a937b65",
+   "category": "bugfix",
+   "title": "Fix multiple memory leaks in logical decoding output (Vignesh C, Masahiko Sawada, Boyu Yang)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-c5c7fbbbd6d9"
+   ]
+  },
+  {
+   "id": "chg-1060a9ef54ef",
+   "category": "bugfix",
+   "title": "Fix planning of pre-sorted `UNION` operations for cases where the input column datatypes don't all match (David Rowley) This error could lead to sorting data…",
+   "detail": "Fix planning of pre-sorted `UNION` operations for cases where the input column datatypes don't all match (David Rowley) This error could lead to sorting data with the wrong sort operator, with consequences ranging from no visible problem to core dumps.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-f1d096255e8b"
+   ]
+  },
+  {
+   "id": "chg-da95db5b6f61",
+   "category": "bugfix",
+   "title": "Fix possible \"failed to resolve name\" failures when using JIT on older ARM platforms (Thomas Munro) This could occur as a consequence of inconsistency about…",
+   "detail": "Fix possible \"failed to resolve name\" failures when using JIT on older ARM platforms (Thomas Munro) This could occur as a consequence of inconsistency about the default setting of `-moutline-atomics` between gcc and clang. At least Debian and Ubuntu are known to ship gcc and clang compilers that target armv8-a but differ on the use of outline atomics by default.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-f33e688d7c7e"
+   ]
+  },
+  {
+   "id": "chg-e92d16858165",
+   "category": "bugfix",
+   "title": "Fix possible crash in `pg_dump` with identity sequences attached to tables that are extension members (Tom Lane)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-863f43919bfa"
+   ]
+  },
+  {
+   "id": "chg-36427c28b41c",
+   "category": "bugfix",
+   "title": "Fix possible failure to return all matching tuples for a btree index scan with a ScalarArrayOp (`= ANY`) condition (Peter Geoghegan)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-bfd9ab53c42d"
+   ]
+  },
+  {
+   "id": "chg-47f406b1628f",
+   "category": "bugfix",
+   "title": "Fix possible re-use of stale results in window aggregates (David Rowley) A window aggregate with a \"run condition\" optimization and a pass-by-reference result…",
+   "detail": "Fix possible re-use of stale results in window aggregates (David Rowley) A window aggregate with a \"run condition\" optimization and a pass-by-reference result type might incorrectly return the result from the previous partition instead of performing a fresh calculation.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-d5e81a2ac81f"
+   ]
+  },
+  {
+   "id": "chg-88082d0dd281",
+   "category": "bugfix",
+   "title": "Fix race condition that could cause failure to add a newly-inserted catalog entry to a catalog cache list (Heikki Linnakangas) This could result, for example…",
+   "detail": "Fix race condition that could cause failure to add a newly-inserted catalog entry to a catalog cache list (Heikki Linnakangas) This could result, for example, in failure to use a newly-created function within an existing session.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-b898f4c83d1f"
+   ]
+  },
+  {
+   "id": "chg-5b7741051464",
+   "category": "bugfix",
+   "title": "Fix small memory leak when updating the `application_name` or `cluster_name` settings (Tofig Aliev)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-572fad955f1b"
+   ]
+  },
+  {
+   "id": "chg-929020bf273d",
+   "category": "bugfix",
+   "title": "Fix unintended promotion of FATAL errors to PANIC during early process startup (Noah Misch) This fixes some unlikely cases that would result in \"PANIC…",
+   "detail": "Fix unintended promotion of FATAL errors to PANIC during early process startup (Noah Misch) This fixes some unlikely cases that would result in \"PANIC: proc_exit() called in child process\".",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-84990fbc140c"
+   ]
+  },
+  {
+   "id": "chg-dc3bf6272bff",
+   "category": "bugfix",
+   "title": "Fix unsafe order of operations during cache lookups (Noah Misch) The only known consequence was a usually-harmless \"you don't own a lock of type ExclusiveLock\"…",
+   "detail": "Fix unsafe order of operations during cache lookups (Noah Misch) The only known consequence was a usually-harmless \"you don't own a lock of type ExclusiveLock\" warning during `GRANT TABLESPACE`.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-7dbdd640200f"
+   ]
+  },
+  {
+   "id": "chg-99d573e980fb",
+   "category": "bugfix",
+   "title": "Fix use of wrong version of `pqsignal()` in `pgbench` and `psql` (Fujii Masao, Tom Lane) This error could lead to misbehavior when using the `-T` option in…",
+   "detail": "Fix use of wrong version of `pqsignal()` in `pgbench` and `psql` (Fujii Masao, Tom Lane) This error could lead to misbehavior when using the `-T` option in `pgbench` or the `\\watch` command in `psql`, due to interrupted system calls not being resumed as expected.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-b4fc96e6de48"
+   ]
+  },
+  {
+   "id": "chg-6d0ab67f581b",
+   "category": "bugfix",
+   "title": "Give the slotsync worker process its own process slot (Tom Lane, Hou Zhijie) This was overlooked in the addition of the slotsync worker, with the result that…",
+   "detail": "Give the slotsync worker process its own process slot (Tom Lane, Hou Zhijie) This was overlooked in the addition of the slotsync worker, with the result that its process slot effectively came out of the pool meant for regular backend processes. This could result in failure to launch the worker, or to subsequent failures of connection requests that should have succeeded according to the configured settings, if the number of regular backend processes approached `max_connections`.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-5c9b7ab2524f"
+   ]
+  },
+  {
+   "id": "chg-37423bfdeb55",
+   "category": "bugfix",
+   "title": "Harden `PQescapeString` and allied functions against invalidly-encoded input strings (Andres Freund, Noah Misch) Data-quoting functions supplied by `libpq` now…",
+   "detail": "Harden `PQescapeString` and allied functions against invalidly-encoded input strings (Andres Freund, Noah Misch) Data-quoting functions supplied by `libpq` now fully check the encoding validity of their input. If invalid characters are detected, they report an error if possible. For the ones that lack an error return convention, the output string is adjusted to ensure that the server will report invalid encoding and no intervening processing will be fooled by bytes that might happen to match single quote, backslash, etc. The purpose of this change is to guard against SQL-injection attacks that are possible if one of these functions is used to quote crafted input. There is no hazard when the resulting string is sent directly to a PostgreSQL server (which would check its encoding anyway), but there is a risk when it is passed through `psql` or other client-side code. Historically such code has not carefully vetted encoding, and in many cases it's not clear what it should do if it did detect such a problem. This fix is effective only if the data-quoting function, the server, and any intermediate processing agree on the character encoding that's being used. Applications that insert…",
+   "release": "17.0.3",
+   "references": [
+    {
+     "type": "cve",
+     "id": "CVE-2025-1094",
+     "url": "https://www.cve.org/CVERecord?id=CVE-2025-1094"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-b6fd9a732af9"
+   ]
+  },
+  {
+   "id": "chg-d7e1827b512c",
+   "category": "bugfix",
+   "title": "Ignore nulling-relation marker bits when looking up statistics (Richard Guo) This oversight could lead to failure to use relevant statistics about expressions…",
+   "detail": "Ignore nulling-relation marker bits when looking up statistics (Richard Guo) This oversight could lead to failure to use relevant statistics about expressions, or to \"corrupt MVNDistinct entry\" errors.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-3f14e7c9f105"
+   ]
+  },
+  {
+   "id": "chg-a752489693c7",
+   "category": "bugfix",
+   "title": "In Windows builds using meson, ensure all libcommon and libpgport functions are exported (Vladlen Popolitov, Heikki Linnakangas) This fixes \"unresolved…",
+   "detail": "In Windows builds using meson, ensure all libcommon and libpgport functions are exported (Vladlen Popolitov, Heikki Linnakangas) This fixes \"unresolved external symbol\" build errors for extensions.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-29b3e93b1893"
+   ]
+  },
+  {
+   "id": "chg-7105e7edf03a",
+   "category": "bugfix",
+   "title": "In `NULLIF()`, avoid passing a read-write expanded object pointer to the data type's equality function (Tom Lane) The equality function could modify or delete…",
+   "detail": "In `NULLIF()`, avoid passing a read-write expanded object pointer to the data type's equality function (Tom Lane) The equality function could modify or delete the object if it's given a read-write pointer, which would be bad if we decide to return it as the `NULLIF()` result. There is probably no problem with any built-in equality function, but it's easy to demonstrate a failure with one coded in PL/pgSQL.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-fe79a6fdb7a3"
+   ]
+  },
+  {
+   "id": "chg-8353bb31ed83",
+   "category": "bugfix",
+   "title": "In `ecpg`, fix compile-time warnings about unsupported use of `COPY ..",
+   "detail": "In `ecpg`, fix compile-time warnings about unsupported use of `COPY ... FROM STDIN` (Ryo Kanbayashi) Previously, the intended warning was not issued due to a typo.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-5d2f869c7bf1"
+   ]
+  },
+  {
+   "id": "chg-83c23fdba8e5",
+   "category": "bugfix",
+   "title": "In `pgbench`, fix possible misdisplay of progress messages during table initialization (Yushi Ogiwara, Tatsuo Ishii, Fujii Masao)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-093545e03b23"
+   ]
+  },
+  {
+   "id": "chg-90aa43b3c298",
+   "category": "bugfix",
+   "title": "In the `ecpg` preprocessor, fix possible misprocessing of cursors that reference out-of-scope variables (Tom Lane)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-fd3e73af96f6"
+   ]
+  },
+  {
+   "id": "chg-a88fdaec6526",
+   "category": "bugfix",
+   "title": "Include the `ldapscheme` option in `pg_hba_file_rules()` output (Laurenz Albe)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-63283a92ac5e"
+   ]
+  },
+  {
+   "id": "chg-ef1cf5ab4cd6",
+   "category": "bugfix",
+   "title": "Keep `TransactionXmin` in sync with `MyProc-\u003exmin` (Heikki Linnakangas) This oversight could permit a process to try to access data that had already been…",
+   "detail": "Keep `TransactionXmin` in sync with `MyProc-\u003exmin` (Heikki Linnakangas) This oversight could permit a process to try to access data that had already been vacuumed away. One known consequence is transient \"could not access status of transaction\" errors.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-c96e13871353"
+   ]
+  },
+  {
+   "id": "chg-3c5749060b3f",
+   "category": "bugfix",
+   "title": "Make `pg_controldata` more robust against corrupted `pg_control` files (Ilyasov Ian, Anton Voloshin) Since `pg_controldata` will attempt to print the contents…",
+   "detail": "Make `pg_controldata` more robust against corrupted `pg_control` files (Ilyasov Ian, Anton Voloshin) Since `pg_controldata` will attempt to print the contents of `pg_control` even if the CRC check fails, it must take care not to misbehave for invalid field values. This patch fixes some issues triggered by invalid timestamps and apparently-negative WAL segment sizes.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-26c8344b3d68"
+   ]
+  },
+  {
+   "id": "chg-864a6b213f20",
+   "category": "bugfix",
+   "title": "Prevent \"wrong varnullingrels\" planner errors after pulling up a subquery that's underneath an outer join (Tom Lane)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-5402fd1b9b93"
+   ]
+  },
+  {
+   "id": "chg-139e0621e22d",
+   "category": "bugfix",
+   "title": "Prevent checkpoints from starting during relation truncation (Robert Haas) This avoids a race condition wherein the modified file might not get fsync'd before…",
+   "detail": "Prevent checkpoints from starting during relation truncation (Robert Haas) This avoids a race condition wherein the modified file might not get fsync'd before completing the checkpoint, creating a risk of data corruption if the operating system crashes soon after.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-6edc21e59118"
+   ]
+  },
+  {
+   "id": "chg-727cae9d0a37",
+   "category": "bugfix",
+   "title": "Prevent possible catalog corruption when a system catalog is vacuumed concurrently with an update (Noah Misch)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-ae1aa79f2b9d"
+   ]
+  },
+  {
+   "id": "chg-db7fc708592a",
+   "category": "bugfix",
+   "title": "Prevent streaming standby servers from looping infinitely when reading a WAL record that crosses pages (Kyotaro Horiguchi, Alexander Kukushkin) This would…",
+   "detail": "Prevent streaming standby servers from looping infinitely when reading a WAL record that crosses pages (Kyotaro Horiguchi, Alexander Kukushkin) This would happen when the record's continuation is on a page that needs to be read from a different WAL source.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-1cc8281472af"
+   ]
+  },
+  {
+   "id": "chg-6a2058411019",
+   "category": "bugfix",
+   "title": "Repair memory leaks in PL/Python (Mat Arye, Tom Lane) Repeated use of `PLyPlan.execute` or `plpy.cursor` resulted in memory leakage for the duration of the…",
+   "detail": "Repair memory leaks in PL/Python (Mat Arye, Tom Lane) Repeated use of `PLyPlan.execute` or `plpy.cursor` resulted in memory leakage for the duration of the calling PL/Python function.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-b3bffa9e98d4"
+   ]
+  },
+  {
+   "id": "chg-d92a635e71f0",
+   "category": "bugfix",
+   "title": "Restore auto-truncation of database and user names appearing in connection requests (Nathan Bossart) This reverts a v17 change that proved to cause trouble for…",
+   "detail": "Restore auto-truncation of database and user names appearing in connection requests (Nathan Bossart) This reverts a v17 change that proved to cause trouble for some users. Over-length names should be truncated in an encoding-aware fashion, but for now just return to the former behavior of blind truncation at `NAMEDATALEN-1` bytes.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-e8cccf4e4c12"
+   ]
+  },
+  {
+   "id": "chg-31c4cf745767",
+   "category": "bugfix",
+   "title": "Update configuration probes that determine the compiler switches needed to access ARM CRC instructions (Tom Lane) On ARM platforms where the baseline CPU…",
+   "detail": "Update configuration probes that determine the compiler switches needed to access ARM CRC instructions (Tom Lane) On ARM platforms where the baseline CPU target lacks CRC instructions, we need to supply a `-march` switch to persuade the compiler to compile such instructions. Recent versions of gcc reject the value we were trying, leading to silently falling back to software CRC.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-9081d0458e37"
+   ]
+  },
+  {
+   "id": "chg-78b445de2812",
+   "category": "bugfix",
+   "title": "Update time zone data files to `tzdata` release 2025a for DST law changes in Paraguay, plus historical corrections for the Philippines (Tom Lane)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-bf671a813918"
+   ]
+  },
+  {
+   "id": "chg-323babca98b3",
+   "category": "bugfix",
+   "title": "Use SQL-standard function bodies in the declarations of `contrib/earthdistance`'s SQL-language functions (Tom Lane, Ronan Dunklau) This change allows their…",
+   "detail": "Use SQL-standard function bodies in the declarations of `contrib/earthdistance`'s SQL-language functions (Tom Lane, Ronan Dunklau) This change allows their references to `contrib/cube` to be resolved during extension creation, reducing the risk of search-path-based failures and possible attacks. In particular, this restores their usability in contexts like generated columns, for which PostgreSQL v17 restricts the search path on security grounds. We have received reports of databases failing to be upgraded to v17 because of that. This patch has been included in v16 to provide a workaround: updating the `earthdistance` extension to this version beforehand should allow an upgrade to succeed.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-b90b496cc6ea"
+   ]
+  },
+  {
+   "id": "chg-0aeaa79ca245",
+   "category": "bugfix",
+   "title": "When building with meson, install `pgevent` in `pkglibdir` not `bindir` (Peter Eisentraut) This matches the behavior of the make-based build system and the old…",
+   "detail": "When building with meson, install `pgevent` in `pkglibdir` not `bindir` (Peter Eisentraut) This matches the behavior of the make-based build system and the old MSVC build system.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-8cf4e1326143"
+   ]
+  },
+  {
+   "id": "chg-f7f1b93f8a78",
+   "category": "bugfix",
+   "title": "When building with meson, install `sepgsql.sql` under `share/contrib/` not `share/extension/` (Peter Eisentraut) This matches what the make-based build system…",
+   "detail": "When building with meson, install `sepgsql.sql` under `share/contrib/` not `share/extension/` (Peter Eisentraut) This matches what the make-based build system does.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-e81f5321134a"
+   ]
+  },
+  {
+   "id": "chg-736990f7dbd5",
+   "category": "bugfix",
+   "title": "When deparsing a `PASSING` clause in a SQL/JSON query function, ensure that variable names are double-quoted when necessary (Dean Rasheed)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-ccc0f5514e12"
+   ]
+  },
+  {
+   "id": "chg-5a45df69c34a",
+   "category": "bugfix",
+   "title": "When deparsing an `XMLTABLE()` expression, ensure that XML namespace names are double-quoted when necessary (Dean Rasheed)",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-56a289192bcc"
+   ]
+  },
+  {
+   "id": "chg-ebeeee4d7283",
+   "category": "bugfix",
+   "title": "When trying to cancel a remote query in `contrib/postgres_fdw`, re-issue the cancel request a few times if it didn't seem to do anything (Tom Lane) This fixes…",
+   "detail": "When trying to cancel a remote query in `contrib/postgres_fdw`, re-issue the cancel request a few times if it didn't seem to do anything (Tom Lane) This fixes a race condition where we might try to cancel a just-sent query before the remote server has started to process it, so that the initial cancel request is ignored.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:4",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-3e0b7670f0de"
+   ]
+  },
+  {
+   "id": "chg-fe7c70efbc21",
+   "category": "other",
+   "title": "Migration to Version 17.3: A dump/restore is not required for those running 17.X",
+   "detail": "Migration to Version 17.3: A dump/restore is not required for those running 17.X. However, if you are upgrading from a version earlier than 17.1, see `release-17-1`.",
+   "release": "17.0.3",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:6",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-3de7ba60976d"
+   ]
+  }
+ ],
+ "evidence": [
+  {
+   "id": "ev-38d2823d2a83",
+   "kind": "git-ref",
+   "uri": "https://github.com/postgres/postgres/releases/tag/REL_17_2",
+   "locator": "refs/tags/REL_17_2",
+   "excerpt": "6304632eaa2107bb1763d29e213ff166ff6104c0 refs/tags/REL_17_2",
+   "contentDigest": "sha256:37a614413aadc102dda19f3e73e74ed5e8ceae18379d58cf508c864d6f22f6db",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-3212a8623ec5",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_2/doc/src/sgml/release-17.sgml",
+   "locator": "L5-L220",
+   "excerpt": "Release 17.2",
+   "contentDigest": "sha256:a54c9a1c436011fe3eea3c469aec4ee7b9ad42db91e044f1e32f9840bbe60952",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-a45704178413",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_2/doc/src/sgml/release-17.sgml",
+   "locator": "L19-L27 (Release 17.2 › Migration to Version 17.2)",
+   "excerpt": "## Migration to Version 17.2\n\n\nA dump/restore is not required for those running 17.X.\n\n\n\nHowever, if you are upgrading from a version earlier than 17.1,\nsee `release-17-1`.",
+   "contentDigest": "sha256:a54c9a1c436011fe3eea3c469aec4ee7b9ad42db91e044f1e32f9840bbe60952",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-d6b64ce1e263",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_2/doc/src/sgml/release-17.sgml",
+   "locator": "L45-L54 (Release 17.2 › Changes)",
+   "excerpt": "- Repair ABI break for extensions that work with\n  struct `ResultRelInfo` (Tom Lane)\n\n\n\n\n  Last week's minor releases unintentionally broke binary\n  compatibility with `timescaledb` and\n  several other extensions. Restore the affected structure to its\n  previous size, so that such extensions need not be rebuilt.",
+   "contentDigest": "sha256:a54c9a1c436011fe3eea3c469aec4ee7b9ad42db91e044f1e32f9840bbe60952",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-30dc04f86f88",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_2/doc/src/sgml/release-17.sgml",
+   "locator": "L70-L80 (Release 17.2 › Changes)",
+   "excerpt": "- Restore functionality of `ALTER {ROLE|DATABASE} SET\n  role` (Tom Lane, Noah Misch)\n\n\n\n\n  The fix for CVE-2024-10978 accidentally caused settings\n  for `role` to not be applied if they come from\n  non-interactive sources, including previous `ALTER\n  {ROLE|DATABASE}` commands and\n  the `PGOPTIONS` environment variable.",
+   "contentDigest": "sha256:a54c9a1c436011fe3eea3c469aec4ee7b9ad42db91e044f1e32f9840bbe60952",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-3b7f18fd2482",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_2/doc/src/sgml/release-17.sgml",
+   "locator": "L95-L108 (Release 17.2 › Changes)",
+   "excerpt": "- Fix cases where a logical replication\n  slot's `restart_lsn` could go backwards\n  (Masahiko Sawada)\n\n\n\n\n  Previously, restarting logical replication could sometimes cause the\n  slot's restart point to be recomputed as an older value than had\n  previously been advertised\n  in `pg_replication_slots`. This is bad,\n  since for example WAL files might have been removed on the basis of\n  the later `restart_lsn` value, in which\n  case replication would fail to restart.",
+   "contentDigest": "sha256:a54c9a1c436011fe3eea3c469aec4ee7b9ad42db91e044f1e32f9840bbe60952",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-bc05a2040c04",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_2/doc/src/sgml/release-17.sgml",
+   "locator": "L122-L138 (Release 17.2 › Changes)",
+   "excerpt": "- Avoid deleting still-needed WAL files\n  during `pg_rewind`\n  (Polina Bungina, Alexander Kukushkin)\n\n\n\n\n  Previously, in unlucky cases, it was possible\n  for `pg_rewind` to remove important WAL\n  files from the rewound demoted primary. In particular this happens\n  if those files have been marked for archival (i.e.,\n  their `.ready` files were created) but not yet\n  archived. Then the newly promoted node no longer has such files\n  because of them having been recycled, but likely they are needed\n  for recovery in the demoted node.\n  If `pg_rewind` removes them, recovery is\n  not possible anymor…",
+   "contentDigest": "sha256:a54c9a1c436011fe3eea3c469aec4ee7b9ad42db91e044f1e32f9840bbe60952",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-8b52d71def91",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_2/doc/src/sgml/release-17.sgml",
+   "locator": "L151-L158 (Release 17.2 › Changes)",
+   "excerpt": "- Fix race conditions associated with dropping shared statistics\n  entries (Kyotaro Horiguchi, Michael Paquier)\n\n\n\n\n  These bugs could lead to loss of statistics data, assertion\n  failures, or \"can only drop stats once\" errors.",
+   "contentDigest": "sha256:a54c9a1c436011fe3eea3c469aec4ee7b9ad42db91e044f1e32f9840bbe60952",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-60926ddeb29d",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_2/doc/src/sgml/release-17.sgml",
+   "locator": "L173-L176 (Release 17.2 › Changes)",
+   "excerpt": "- Count index scans in `contrib/bloom` indexes in\n  the statistics views, such as the\n  `pg_stat_user_indexes`.`idx_scan`\n  counter (Masahiro Ikeda)",
+   "contentDigest": "sha256:a54c9a1c436011fe3eea3c469aec4ee7b9ad42db91e044f1e32f9840bbe60952",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-efb672b5eb0f",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_2/doc/src/sgml/release-17.sgml",
+   "locator": "L192-L199 (Release 17.2 › Changes)",
+   "excerpt": "- Fix crash when checking to see if an index's opclass options have\n  changed (Alexander Korotkov)\n\n\n\n\n  Some forms of `ALTER TABLE` would fail if the\n  table has an index with non-default operator class options.",
+   "contentDigest": "sha256:a54c9a1c436011fe3eea3c469aec4ee7b9ad42db91e044f1e32f9840bbe60952",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-229d453e943d",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_2/doc/src/sgml/release-17.sgml",
+   "locator": "L213-L220 (Release 17.2 › Changes)",
+   "excerpt": "- Avoid assertion failure caused by disconnected NFA sub-graphs in\n  regular expression parsing (Tom Lane)\n\n\n\n\n  This bug does not appear to have any visible consequences in\n  non-assert builds.",
+   "contentDigest": "sha256:a54c9a1c436011fe3eea3c469aec4ee7b9ad42db91e044f1e32f9840bbe60952",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-9d07ca9fc709",
+   "kind": "release-asset",
+   "uri": "https://ftp.postgresql.org/pub/source/v17.2/postgresql-17.2.tar.bz2",
+   "excerpt": "HEAD https://ftp.postgresql.org/pub/source/v17.2/postgresql-17.2.tar.bz2 -\u003e HTTP 200 application/octet-stream",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-c36d08bafed0",
+   "kind": "registry",
+   "uri": "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:3267c505060a0052e5aa6e5175a7b41ab6b04da2f8c4540fc6e98a37210aa2d3",
+   "locator": "manifests/17.2",
+   "excerpt": "digest=sha256:3267c505060a0052e5aa6e5175a7b41ab6b04da2f8c4540fc6e98a37210aa2d3 mediaType=application/vnd.oci.image.index.v1+json",
+   "contentDigest": "sha256:3267c505060a0052e5aa6e5175a7b41ab6b04da2f8c4540fc6e98a37210aa2d3",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-af09a08079b9",
+   "kind": "registry",
+   "uri": "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:7e5df973a74872482e320dcbdeb055e178d6f42de0558b083892c50cda833c96",
+   "locator": "manifests/17.2-alpine",
+   "excerpt": "digest=sha256:7e5df973a74872482e320dcbdeb055e178d6f42de0558b083892c50cda833c96 mediaType=application/vnd.oci.image.index.v1+json",
+   "contentDigest": "sha256:7e5df973a74872482e320dcbdeb055e178d6f42de0558b083892c50cda833c96",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-09c37f76d468",
+   "kind": "git-ref",
+   "uri": "https://github.com/postgres/postgres/releases/tag/REL_17_3",
+   "locator": "refs/tags/REL_17_3",
+   "excerpt": "3819b30c4c5bbb4e772a6f209fa7bbccccb91a11 refs/tags/REL_17_3",
+   "contentDigest": "sha256:00e75361ec6ce5e689f414baabbd796051700abbcafde76a56d2aa1cc03d725f",
+   "retrievedAt": "2026-10-01T22:47:41Z"
+  },
+  {
+   "id": "ev-5d4837d48ce8",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L5-L1630",
+   "excerpt": "Release 17.3",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-3de7ba60976d",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L19-L27 (Release 17.3 › Migration to Version 17.3)",
+   "excerpt": "## Migration to Version 17.3\n\n\nA dump/restore is not required for those running 17.X.\n\n\n\nHowever, if you are upgrading from a version earlier than 17.1,\nsee `release-17-1`.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-b6fd9a732af9",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L79-L128 (Release 17.3 › Changes)",
+   "excerpt": "- Harden `PQescapeString` and allied functions\n  against invalidly-encoded input strings (Andres Freund, Noah Misch)\n\n\n\n\n\n\n\n\n\n  Data-quoting functions supplied by `libpq`\n  now fully check the encoding validity of their input. If invalid\n  characters are detected, they report an error if possible. For the\n  ones that lack an error return convention, the output string is\n  adjusted to ensure that the server will report invalid encoding and\n  no intervening processing will be fooled by bytes that might happen\n  to match single quote, backslash, etc.\n\n\n\n  The purpose of this change is to guard ag…",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-e8cccf4e4c12",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L139-L148 (Release 17.3 › Changes)",
+   "excerpt": "- Restore auto-truncation of database and user names appearing in\n  connection requests (Nathan Bossart)\n\n\n\n\n  This reverts a v17 change that proved to cause trouble for some\n  users. Over-length names should be truncated in an encoding-aware\n  fashion, but for now just return to the former behavior of blind\n  truncation at `NAMEDATALEN-1` bytes.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-46dc82a22340",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L163-L183 (Release 17.3 › Changes)",
+   "excerpt": "- Exclude parallel workers from connection privilege checks and limits\n  (Tom Lane)\n\n\n\n\n  Do not\n  check `datallowconn`, `rolcanlogin`,\n  and `ACL_CONNECT` privileges when starting a\n  parallel worker, instead assuming that it's enough for the leader\n  process to have passed similar checks originally. This avoids, for\n  example, unexpected failures of parallelized queries when the leader\n  is running as a role that lacks login privilege. In the same vein,\n  enforce `ReservedConnections`,\n  `datconnlimit`, and `rolconnlimit`\n  limits only against regular backends, and count only regular\n  backe…",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-f07bfe45ba25",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L194-L204 (Release 17.3 › Changes)",
+   "excerpt": "- Drop \"Lock\" suffix from LWLock wait event names\n  (Bertrand Drouvot)\n\n\n\n\n  Refactoring unintentionally caused\n  the `pg_stat_activity` view to show\n  lock-related wait event names with a \"Lock\" suffix,\n  which among other things broke joining it\n  to `pg_wait_events`.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-bfd9ab53c42d",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L215-L217 (Release 17.3 › Changes)",
+   "excerpt": "- Fix possible failure to return all matching tuples for a btree index\n  scan with a ScalarArrayOp (`= ANY`) condition\n  (Peter Geoghegan)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-d5e81a2ac81f",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L231-L240 (Release 17.3 › Changes)",
+   "excerpt": "- Fix possible re-use of stale results in window aggregates (David\n  Rowley)\n\n\n\n\n  A window aggregate with a \"run condition\" optimization\n  and a pass-by-reference result type might incorrectly return the\n  result from the previous partition instead of performing a fresh\n  calculation.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-c96e13871353",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L255-L264 (Release 17.3 › Changes)",
+   "excerpt": "- Keep `TransactionXmin` in sync\n  with `MyProc-\u003exmin` (Heikki Linnakangas)\n\n\n\n\n  This oversight could permit a process to try to access data that had\n  already been vacuumed away. One known consequence is\n  transient \"could not access status of transaction\"\n  errors.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-b898f4c83d1f",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L279-L286 (Release 17.3 › Changes)",
+   "excerpt": "- Fix race condition that could cause failure to add a newly-inserted\n  catalog entry to a catalog cache list (Heikki Linnakangas)\n\n\n\n\n  This could result, for example, in failure to use a newly-created\n  function within an existing session.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-ae1aa79f2b9d",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L303-L304 (Release 17.3 › Changes)",
+   "excerpt": "- Prevent possible catalog corruption when a system catalog is\n  vacuumed concurrently with an update (Noah Misch)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-9962bf9b71a0",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L331-L344 (Release 17.3 › Changes)",
+   "excerpt": "- Fix data corruption when relation truncation fails (Thomas Munro)\n\n\n\n\n\n\n  The filesystem calls needed to perform relation truncation could\n  fail, leaving inconsistent state on disk (for example, effectively\n  reviving deleted data). We can't really prevent that, but we can\n  recover by dint of making such failures into PANICs, so that\n  consistency is restored by replaying from WAL up to just before the\n  attempted truncation. This isn't a hugely desirable behavior, but\n  such failures are rare enough that it seems an acceptable solution.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-6edc21e59118",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L359-L367 (Release 17.3 › Changes)",
+   "excerpt": "- Prevent checkpoints from starting during relation truncation\n  (Robert Haas)\n\n\n\n\n  This avoids a race condition wherein the modified file might not get\n  fsync'd before completing the checkpoint, creating a risk of data\n  corruption if the operating system crashes soon after.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-92e8c9b80823",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L382-L386 (Release 17.3 › Changes)",
+   "excerpt": "- Avoid possibly losing an update of\n  `pg_database`.`datfrozenxid`\n  when `VACUUM` runs concurrently with\n  a `REASSIGN OWNED` that changes that database's\n  owner (Kirill Reshke)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-fdf8bab5375d",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L402-L416 (Release 17.3 › Changes)",
+   "excerpt": "- Fix incorrect `tg_updatedcols` values\n  passed to `AFTER UPDATE` triggers (Tom Lane)\n\n\n\n\n  In some cases the `tg_updatedcols` bitmap\n  could describe the set of columns updated by an earlier command in\n  the same transaction, fooling the trigger into doing the wrong\n  thing.\n\n\n\n  Also, prevent memory bloat caused by making too many copies of\n  the `tg_updatedcols` bitmap.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-46788cc039f2",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L429-L441 (Release 17.3 › Changes)",
+   "excerpt": "- Fix detach of a partition that has its own foreign-key constraint\n  referencing a partitioned table (Amul Sul)\n\n\n\n\n  In common cases, foreign keys are defined on a partitioned table's\n  top level; but if instead one is defined on a partition and\n  references a partitioned table, and the referencing partition is\n  detached, the relevant `pg_constraint`\n  entries were updated incorrectly. This led to errors\n  like \"could not find ON INSERT check triggers of foreign key\n  constraint\".",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-0d97c604acd4",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L452-L454 (Release 17.3 › Changes)",
+   "excerpt": "- Fix `pg_get_constraintdef`'s support\n  for `NOT NULL` constraints on domains\n  (Álvaro Herrera)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-7c188a048a5a",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L470-L480 (Release 17.3 › Changes)",
+   "excerpt": "- Fix mis-processing of `to_timestamp`'s\n  `FFn` format codes\n  (Tom Lane)\n\n\n\n\n  An integer format code immediately\n  preceding `FFn` would\n  consume all available digits, leaving none\n  for `FFn`.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-ccc0f5514e12",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L491-L493 (Release 17.3 › Changes)",
+   "excerpt": "- When deparsing a `PASSING` clause in a SQL/JSON\n  query function, ensure that variable names are double-quoted when\n  necessary (Dean Rasheed)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-56a289192bcc",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L509-L511 (Release 17.3 › Changes)",
+   "excerpt": "- When deparsing an `XMLTABLE()` expression, ensure\n  that XML namespace names are double-quoted when necessary (Dean\n  Rasheed)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-63283a92ac5e",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L533-L534 (Release 17.3 › Changes)",
+   "excerpt": "- Include the `ldapscheme` option\n  in `pg_hba_file_rules()` output (Laurenz Albe)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-f1d096255e8b",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L547-L555 (Release 17.3 › Changes)",
+   "excerpt": "- Fix planning of pre-sorted `UNION` operations for\n  cases where the input column datatypes don't all match (David\n  Rowley)\n\n\n\n\n  This error could lead to sorting data with the wrong sort operator,\n  with consequences ranging from no visible problem to core dumps.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-c404f441ea65",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L570-L581 (Release 17.3 › Changes)",
+   "excerpt": "- Don't merge `UNION` operations if their column\n  collations aren't consistent (Tom Lane)\n\n\n\n\n  Previously we ignored collations when deciding if it's safe to\n  merge `UNION` steps into a single\n  N-way `UNION` operation. This was arguably valid\n  before the introduction of nondeterministic collations, but it's not\n  anymore, since the collation in use can affect the definition of\n  uniqueness.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-5402fd1b9b93",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L596-L597 (Release 17.3 › Changes)",
+   "excerpt": "- Prevent \"wrong varnullingrels\" planner errors after\n  pulling up a subquery that's underneath an outer join (Tom Lane)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-3f14e7c9f105",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L611-L619 (Release 17.3 › Changes)",
+   "excerpt": "- Ignore nulling-relation marker bits when looking up statistics\n  (Richard Guo)\n\n\n\n\n  This oversight could lead to failure to use relevant statistics\n  about expressions, or to \"corrupt MVNDistinct\n  entry\" errors.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-8269d7729de6",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L634-L642 (Release 17.3 › Changes)",
+   "excerpt": "- Fix missed expression processing for partition pruning steps\n  (Tom Lane)\n\n\n\n\n  This oversight could lead to \"unrecognized node type\"\n  errors, and perhaps other problems, in queries accessing partitioned\n  tables.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-5c9b7ab2524f",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L653-L665 (Release 17.3 › Changes)",
+   "excerpt": "- Give the slotsync worker process its own process slot (Tom Lane, Hou\n  Zhijie)\n\n\n\n\n  This was overlooked in the addition of the slotsync worker, with the\n  result that its process slot effectively came out of the pool meant\n  for regular backend processes. This could result in failure to\n  launch the worker, or to subsequent failures of connection requests\n  that should have succeeded according to the configured settings,\n  if the number of regular backend processes\n  approached `max_connections`.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-ad7ad05f46ea",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L680-L687 (Release 17.3 › Changes)",
+   "excerpt": "- Allow dshash tables to grow past 1GB (Matthias van de Meent)\n\n\n\n\n  This avoids errors like \"invalid DSA memory alloc request\n  size\". The case can occur for example in transactions that\n  process several million tables.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-f31c4f0ad435",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L702-L710 (Release 17.3 › Changes)",
+   "excerpt": "- Avoid possible integer overflow\n  in `bringetbitmap()` (James Hunter, Evgeniy\n  Gorbanyov)\n\n\n\n\n  Since the result is only used for statistical purposes, the effects\n  of this error were mostly cosmetic.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-0c173c574da8",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L721-L727 (Release 17.3 › Changes)",
+   "excerpt": "- Correct miscalculation of SLRU bank numbers (Yura Sokolov)\n\n\n\n\n  This error led to using a smaller number of banks than intended,\n  causing more contention but no functional misbehavior.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-3f7f89f585cf",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L739-L747 (Release 17.3 › Changes)",
+   "excerpt": "- Ensure that an already-set process latch doesn't prevent the\n  postmaster from noticing socket events (Thomas Munro)\n\n\n\n\n  An extremely heavy workload of backends launching workers and\n  workers exiting could prevent the postmaster from responding to\n  incoming client connections in a timely fashion.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-1cc8281472af",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L762-L770 (Release 17.3 › Changes)",
+   "excerpt": "- Prevent streaming standby servers from looping infinitely when\n  reading a WAL record that crosses pages (Kyotaro Horiguchi,\n  Alexander Kukushkin)\n\n\n\n\n  This would happen when the record's continuation is on a page that\n  needs to be read from a different WAL source.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-84990fbc140c",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L785-L792 (Release 17.3 › Changes)",
+   "excerpt": "- Fix unintended promotion of FATAL errors to PANIC during early\n  process startup (Noah Misch)\n\n\n\n\n  This fixes some unlikely cases that would result in \"PANIC:\n  proc_exit() called in child process\".",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-3777df776e24",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L813-L831 (Release 17.3 › Changes)",
+   "excerpt": "- Fix cases where an operator family member operator or support\n  procedure could become a dangling reference (Tom Lane)\n\n\n\n\n\n  In some cases a data type could be dropped while references to its\n  OID still remain in `pg_amop`\n  or `pg_amproc`. While that caused no\n  immediate issues, an attempt to drop the owning operator family\n  would fail, and `pg_dump` would produce\n  bogus output when dumping the operator family. This fix causes\n  creation and modification of operator families/classes to add\n  needed dependency entries so that dropping a data type will also\n  drop any dependent operator …",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-c5c7fbbbd6d9",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L857-L858 (Release 17.3 › Changes)",
+   "excerpt": "- Fix multiple memory leaks in logical decoding output (Vignesh C,\n  Masahiko Sawada, Boyu Yang)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-572fad955f1b",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L873-L875 (Release 17.3 › Changes)",
+   "excerpt": "- Fix small memory leak when\n  updating the `application_name`\n  or `cluster_name` settings (Tofig Aliev)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-b3139a35d5c6",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L887-L888 (Release 17.3 › Changes)",
+   "excerpt": "- Avoid crash when a background process tries to check a new value\n  of `synchronized_standby_slots` (Álvaro Herrera)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-6c89ebb6a007",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L904-L915 (Release 17.3 › Changes)",
+   "excerpt": "- Avoid integer overflow while\n  testing `wal_skip_threshold` condition (Tom Lane)\n\n\n\n\n  A transaction that created a very large relation could mistakenly\n  decide to ensure durability by copying the relation into WAL instead\n  of fsync'ing it, thereby negating the point\n  of `wal_skip_threshold`. (This only matters\n  when `wal_level` is set\n  to `minimal`, else a WAL copy is required anyway.)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-7dbdd640200f",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L930-L937 (Release 17.3 › Changes)",
+   "excerpt": "- Fix unsafe order of operations during cache lookups (Noah Misch)\n\n\n\n\n  The only known consequence was a usually-harmless \"you don't\n  own a lock of type ExclusiveLock\" warning\n  during `GRANT TABLESPACE`.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-3348bbbfdf07",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L948-L955 (Release 17.3 › Changes)",
+   "excerpt": "- Avoid potential use-after-free in parallel vacuum (Vallimaharajan G,\n  John Naylor)\n\n\n\n\n  This bug seems to have no consequences in standard builds, but it's\n  theoretically a hazard.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-f33e688d7c7e",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L970-L980 (Release 17.3 › Changes)",
+   "excerpt": "- Fix possible \"failed to resolve name\" failures when\n  using JIT on older ARM platforms (Thomas Munro)\n\n\n\n\n  This could occur as a consequence of inconsistency about the default\n  setting of `-moutline-atomics` between gcc and clang.\n  At least Debian and Ubuntu are known to ship gcc and clang compilers\n  that target armv8-a but differ on the use of outline atomics by\n  default.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-14c4d9069885",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L995-L996 (Release 17.3 › Changes)",
+   "excerpt": "- Fix assertion failure in `WITH RECURSIVE ... UNION`\n  queries (David Rowley)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-4928e9ce0d59",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1012-L1013 (Release 17.3 › Changes)",
+   "excerpt": "- Avoid assertion failure in rule deparsing if a set operation leaf\n  query contains set operations (Man Zeng, Tom Lane)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-5492afb01edd",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1029-L1029 (Release 17.3 › Changes)",
+   "excerpt": "- Avoid edge-case assertion failure in parallel query startup (Tom Lane)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-600e9116160f",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1043-L1044 (Release 17.3 › Changes)",
+   "excerpt": "- Fix assertion failure at shutdown when writing out the statistics\n  file (Michael Paquier)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-9e85baba3426",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1056-L1056 (Release 17.3 › Changes)",
+   "excerpt": "- Avoid valgrind complaints about string hashing code (John Naylor)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-fe79a6fdb7a3",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1072-L1083 (Release 17.3 › Changes)",
+   "excerpt": "- In `NULLIF()`, avoid passing a read-write\n  expanded object pointer to the data type's equality function\n  (Tom Lane)\n\n\n\n\n  The equality function could modify or delete the object if it's\n  given a read-write pointer, which would be bad if we decide to\n  return it as the `NULLIF()` result. There is\n  probably no problem with any built-in equality function, but it's\n  easy to demonstrate a failure with one coded in PL/pgSQL.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-4d1214274715",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1097-L1107 (Release 17.3 › Changes)",
+   "excerpt": "- Ensure that expression preprocessing is applied to a default null\n  value in `INSERT` (Tom Lane)\n\n\n\n\n  If the target column is of a domain type, the planner must insert a\n  coerce-to-domain step not just a null constant, and this expression\n  missed going through some required processing steps. There is no\n  known consequence with domains based on core data types, but in\n  theory an error could occur with domains based on extension types.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-876c2bb6f829",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1118-L1126 (Release 17.3 › Changes)",
+   "excerpt": "- Avoid data loss when starting a bulk write on a relation fork that\n  already contains data (Matthias van de Meent)\n\n\n\n\n  Any pre-existing data was overwritten with zeroes. This is not an\n  issue for core PostgreSQL, which never\n  does that. Some extensions would like to, however.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-5b0cd5c3ecfd",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1136-L1143 (Release 17.3 › Changes)",
+   "excerpt": "- Avoid crash if a server process tried to iterate over a shared radix\n  tree that it didn't create (Masahiko Sawada)\n\n\n\n\n  There is no code in core PostgreSQL that\n  does this, but an extension might wish to.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-b3bffa9e98d4",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1158-L1165 (Release 17.3 › Changes)",
+   "excerpt": "- Repair memory leaks in PL/Python (Mat Arye, Tom Lane)\n\n\n\n\n  Repeated use of `PLyPlan.execute`\n  or `plpy.cursor` resulted in memory leakage for\n  the duration of the calling PL/Python function.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-5e8f8b16802b",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1180-L1180 (Release 17.3 › Changes)",
+   "excerpt": "- Fix PL/Tcl to compile with Tcl 9 (Peter Eisentraut)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-fd3e73af96f6",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1196-L1198 (Release 17.3 › Changes)",
+   "excerpt": "- In the `ecpg` preprocessor, fix possible\n  misprocessing of cursors that reference out-of-scope variables\n  (Tom Lane)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-5d2f869c7bf1",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1214-L1221 (Release 17.3 › Changes)",
+   "excerpt": "- In `ecpg`, fix compile-time warnings about\n  unsupported use of `COPY ... FROM STDIN` (Ryo\n  Kanbayashi)\n\n\n\n\n  Previously, the intended warning was not issued due to a typo.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-b404c658b114",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1236-L1245 (Release 17.3 › Changes)",
+   "excerpt": "- Fix `psql` to safely handle file path names\n  that are encoded in SJIS (Tom Lane)\n\n\n\n\n  Some two-byte characters in SJIS have a second byte that is equal to\n  ASCII backslash (`\\`). These characters were\n  corrupted by path name normalization, preventing access to files\n  whose names include such characters.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-ee146be74058",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1256-L1257 (Release 17.3 › Changes)",
+   "excerpt": "- Add `psql` tab completion for `COPY\n  (MERGE INTO)` (Jian He)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-b4fc96e6de48",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1273-L1284 (Release 17.3 › Changes)",
+   "excerpt": "- Fix use of wrong version of `pqsignal()`\n  in `pgbench`\n  and `psql` (Fujii Masao, Tom Lane)\n\n\n\n\n  This error could lead to misbehavior when using\n  the `-T` option in `pgbench`\n  or the `\\watch` command\n  in `psql`, due to interrupted system calls\n  not being resumed as expected.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-84cc723dc3c1",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1299-L1307 (Release 17.3 › Changes)",
+   "excerpt": "- Fix misexecution of some nested `\\if` constructs\n  in `pgbench` (Michail Nikolaev)\n\n\n\n\n  An `\\if` command appearing within a false\n  (not-being-executed) `\\if` branch was incorrectly\n  treated the same as `\\elif`.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-093545e03b23",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1329-L1331 (Release 17.3 › Changes)",
+   "excerpt": "- In `pgbench`, fix possible misdisplay of\n  progress messages during table initialization (Yushi Ogiwara, Tatsuo\n  Ishii, Fujii Masao)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-26c8344b3d68",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1348-L1359 (Release 17.3 › Changes)",
+   "excerpt": "- Make `pg_controldata` more robust against\n  corrupted `pg_control` files (Ilyasov Ian, Anton\n  Voloshin)\n\n\n\n\n  Since `pg_controldata` will attempt to\n  print the contents of `pg_control` even if the\n  CRC check fails, it must take care not to misbehave for invalid\n  field values. This patch fixes some issues triggered by invalid\n  timestamps and apparently-negative WAL segment sizes.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-863f43919bfa",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1374-L1376 (Release 17.3 › Changes)",
+   "excerpt": "- Fix possible crash in `pg_dump` with\n  identity sequences attached to tables that are extension members\n  (Tom Lane)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-efbc831fd5c3",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1389-L1396 (Release 17.3 › Changes)",
+   "excerpt": "- Fix memory leak in `pg_restore`\n  with zstd-compressed data (Tom Lane)\n\n\n\n\n  The leak was per-decompression-operation, so would be most\n  noticeable with a dump containing many tables or large objects.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-4e91744b0e5c",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1417-L1419 (Release 17.3 › Changes)",
+   "excerpt": "- Fix `pg_basebackup` to correctly\n  handle `pg_wal.tar` files exceeding 2GB on\n  Windows (Davinder Singh, Thomas Munro)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-b90b496cc6ea",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1433-L1453 (Release 17.3 › Changes)",
+   "excerpt": "- Use SQL-standard function bodies in the declarations\n  of `contrib/earthdistance`'s SQL-language\n  functions (Tom Lane, Ronan Dunklau)\n\n\n\n\n  This change allows their references\n  to `contrib/cube` to be resolved during extension\n  creation, reducing the risk of search-path-based failures and\n  possible attacks.\n\n\n\n  In particular, this restores their usability in contexts like\n  generated columns, for which PostgreSQL\n  v17 restricts the search path on security grounds. We have received\n  reports of databases failing to be upgraded to v17 because of that.\n  This patch has been included in v1…",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-e2686ab1fc5c",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1464-L1473 (Release 17.3 › Changes)",
+   "excerpt": "- Detect version mismatch\n  between `contrib/pageinspect`'s SQL declarations\n  and the underlying shared library (Tomas Vondra)\n\n\n\n\n  Previously, such a mismatch could result in a crash while\n  calling `brin_page_items()`. Instead throw an\n  error recommending updating the extension.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-3e0b7670f0de",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1484-L1493 (Release 17.3 › Changes)",
+   "excerpt": "- When trying to cancel a remote query\n  in `contrib/postgres_fdw`, re-issue the cancel\n  request a few times if it didn't seem to do anything (Tom Lane)\n\n\n\n\n  This fixes a race condition where we might try to cancel a just-sent\n  query before the remote server has started to process it, so that\n  the initial cancel request is ignored.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-9081d0458e37",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1508-L1518 (Release 17.3 › Changes)",
+   "excerpt": "- Update configuration probes that determine the compiler switches\n  needed to access ARM CRC instructions (Tom Lane)\n\n\n\n\n  On ARM platforms where the baseline CPU target lacks CRC\n  instructions, we need to supply a `-march` switch to\n  persuade the compiler to compile such instructions. Recent versions\n  of gcc reject the value we were trying, leading to silently falling\n  back to software CRC.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-6c60060fc5dd",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1529-L1537 (Release 17.3 › Changes)",
+   "excerpt": "- Fix meson build system to support old OpenSSL libraries on Windows\n  (Darek Slusarczyk)\n\n\n\n\n  Add support for the legacy library\n  names `ssleay32`\n  and `libeay32`.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-29b3e93b1893",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1552-L1560 (Release 17.3 › Changes)",
+   "excerpt": "- In Windows builds using meson, ensure all libcommon and libpgport\n  functions are exported (Vladlen Popolitov, Heikki Linnakangas)\n\n\n\n\n\n  This fixes \"unresolved external symbol\" build errors\n  for extensions.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-c7add03fcb7b",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1571-L1573 (Release 17.3 › Changes)",
+   "excerpt": "- Fix meson configuration process to correctly detect\n  OSSP's `uuid.h` header file under MSVC\n  (Andrew Dunstan)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-8cf4e1326143",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1586-L1594 (Release 17.3 › Changes)",
+   "excerpt": "- When building with meson, install `pgevent`\n  in `pkglibdir`\n  not `bindir` (Peter Eisentraut)\n\n\n\n\n  This matches the behavior of the make-based build system and the old\n  MSVC build system.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-e81f5321134a",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1606-L1613 (Release 17.3 › Changes)",
+   "excerpt": "- When building with meson, install `sepgsql.sql`\n  under `share/contrib/`\n  not `share/extension/` (Peter Eisentraut)\n\n\n\n\n  This matches what the make-based build system does.",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-bf671a813918",
+   "kind": "document",
+   "sourceId": "release-notes",
+   "uri": "https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml",
+   "locator": "L1628-L1630 (Release 17.3 › Changes)",
+   "excerpt": "- Update time zone data files to `tzdata`\n  release 2025a for DST law changes in Paraguay, plus historical\n  corrections for the Philippines (Tom Lane)",
+   "contentDigest": "sha256:e4eabcf9d340f07ac299c87c4c981bf35166105c80191aeed321ed0474f68e87",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-dbed67f64a7a",
+   "kind": "release-asset",
+   "uri": "https://ftp.postgresql.org/pub/source/v17.3/postgresql-17.3.tar.bz2",
+   "excerpt": "HEAD https://ftp.postgresql.org/pub/source/v17.3/postgresql-17.3.tar.bz2 -\u003e HTTP 200 application/octet-stream",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-2e9a4c787fc1",
+   "kind": "registry",
+   "uri": "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:0321e2252ebfeecb8bc1a899755084d29bce872953e1a5a3e25ec0860b739098",
+   "locator": "manifests/17.3",
+   "excerpt": "digest=sha256:0321e2252ebfeecb8bc1a899755084d29bce872953e1a5a3e25ec0860b739098 mediaType=application/vnd.oci.image.index.v1+json",
+   "contentDigest": "sha256:0321e2252ebfeecb8bc1a899755084d29bce872953e1a5a3e25ec0860b739098",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  },
+  {
+   "id": "ev-2f98b365fc6e",
+   "kind": "registry",
+   "uri": "https://registry-1.docker.io/v2/library/postgres/manifests/sha256:80d3d7d6bb3ddb1e44b79612330f7bfc6c451f093f6dd14a1317e777a260b602",
+   "locator": "manifests/17.3-alpine",
+   "excerpt": "digest=sha256:80d3d7d6bb3ddb1e44b79612330f7bfc6c451f093f6dd14a1317e777a260b602 mediaType=application/vnd.oci.image.index.v1+json",
+   "contentDigest": "sha256:80d3d7d6bb3ddb1e44b79612330f7bfc6c451f093f6dd14a1317e777a260b602",
+   "retrievedAt": "2026-10-01T22:47:42Z"
+  }
+ ]
+}

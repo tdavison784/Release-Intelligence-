@@ -1,0 +1,31 @@
+# Attack: the target prunes databases.db.example.io/v1 spec.retention; the
+# customer runs a completely unrelated resource (a Policy of the
+# networking.example.io group) that happens to carry the identical
+# spec.retention path. A bare-path join blames the Policy; GVK scoping must
+# not.
+id: crd-field-unrelated-identical-path
+attacks: unrelated resource with an identical spec.* path
+expectation: >-
+  the field path only counts inside the change's API identity; the Policy is
+  not a databases.db.example.io, so the verdict is checked-and-clear
+  (impact:crd-field-unset, not-affected) — never impact:crd-field-removed
+edge:
+  changes:
+    - rule: crd:fields-removed
+      title: "Database v1 schema: 1 field(s) removed: spec.retention"
+      detail: >-
+        Fields no longer in the db.example.io/v1 schema of
+        databases.db.example.io are pruned from stored objects and rejected
+        or dropped in manifests. Removed: spec.retention.
+      subjects: [spec.retention]
+      category: crd-schema
+environment:
+  files: [manifests]
+expect:
+  present:
+    - rule: impact:crd-field-unset
+      classification: not-affected
+  absent:
+    - rule: impact:crd-field-removed
+    - subject: spec.retention
+      classification: action-required

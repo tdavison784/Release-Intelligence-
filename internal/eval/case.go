@@ -37,11 +37,17 @@ type Case struct {
 // Expected is one item of ground truth: upgrade work a competent operator
 // must know about for this transition.
 type Expected struct {
-	ID             string     `json:"id"`
-	Title          string     `json:"title"`
-	Kind           string     `json:"kind"`
-	Importance     string     `json:"importance"`
-	ActionRequired bool       `json:"actionRequired,omitempty" yaml:"actionRequired,omitempty"`
+	ID             string `json:"id"`
+	Title          string `json:"title"`
+	Kind           string `json:"kind"`
+	Importance     string `json:"importance"`
+	ActionRequired bool   `json:"actionRequired,omitempty" yaml:"actionRequired,omitempty"`
+	// Classification (G9) is the class a correct system should output for
+	// this item — action-required, review-required, informational (and,
+	// where the fixture genuinely cannot decide, unknown). Optional: legacy
+	// cases predate it and simply score on presence. See eval/FORMAT.md and
+	// docs/ACTION_CLASSIFICATION.md.
+	Classification string     `json:"classification,omitempty"`
 	Match          []Matcher  `json:"match"`
 	Evidence       []Citation `json:"evidence,omitempty"`
 	References     []string   `json:"references,omitempty"`
@@ -54,10 +60,16 @@ type Citation struct {
 }
 
 // NotExpected names output a tool might produce but that is NOT
-// upgrade-relevant: matches are false positives.
+// upgrade-relevant: matches are false positives. Classification, when set, is
+// the class such output should NOT have carried (usually action-required:
+// "must NOT false-alarm") — it feeds the confusion matrix and the
+// false-action rate.
 type NotExpected struct {
-	Title string    `json:"title"`
-	Match []Matcher `json:"match"`
+	Title string `json:"title"`
+	// Classification, when set, is the class such output should NOT have
+	// carried (see Expected.Classification).
+	Classification string    `json:"classification,omitempty"`
+	Match          []Matcher `json:"match"`
 }
 
 // Environment describes the fixture in <case>/environment/ (values.yaml,
@@ -99,9 +111,12 @@ type FindingMatcher struct {
 
 // NotExpectedFinding is a finding shape that must not be produced.
 type NotExpectedFinding struct {
-	Title string         `json:"title"`
-	Match FindingMatcher `json:"match"`
-	Why   string         `json:"why,omitempty"`
+	Title string `json:"title"`
+	// Classification, when set, is the class such a finding should NOT have
+	// carried — it labels the confusion matrix's false-alarm cells.
+	Classification string         `json:"classification,omitempty"`
+	Match          FindingMatcher `json:"match"`
+	Why            string         `json:"why,omitempty"`
 }
 
 // Matcher recognises a generated Change as covering a ground-truth item.
@@ -254,6 +269,9 @@ func (c *Case) Validate() error {
 		if !importances[e.Importance] {
 			errs = append(errs, fmt.Errorf("expected %s: unknown importance %q", e.ID, e.Importance))
 		}
+		if e.Classification != "" && !classes[e.Classification] {
+			errs = append(errs, fmt.Errorf("expected %s: unknown classification %q", e.ID, e.Classification))
+		}
 		if len(e.Match) == 0 {
 			errs = append(errs, fmt.Errorf("expected %s: no matchers (an unmatchable expectation can never be found)", e.ID))
 		}
@@ -275,6 +293,9 @@ func (c *Case) Validate() error {
 		ne := &c.NotExpected[i]
 		if ne.Title == "" {
 			errs = append(errs, fmt.Errorf("notExpected[%d]: title is required", i))
+		}
+		if ne.Classification != "" && !classes[ne.Classification] {
+			errs = append(errs, fmt.Errorf("notExpected %q: unknown classification %q", ne.Title, ne.Classification))
 		}
 		for j := range ne.Match {
 			if err := ne.Match[j].compile(); err != nil {

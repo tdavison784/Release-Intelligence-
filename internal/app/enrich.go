@@ -37,8 +37,15 @@ type EnrichOptions struct {
 }
 
 // LLMCacheDir is where model answers are cached (keyed by prompt digest), so
-// enrichment replays offline byte for byte.
-func (a *App) LLMCacheDir() string { return filepath.Join(a.cfg.StateDir, "llm-cache") }
+// enrichment replays offline byte for byte. cfg.LLMCacheDir overrides the
+// default (StateDir/llm-cache) — e.g. `ri eval -enriched` replaying a
+// committed fixture cache instead of the user's state.
+func (a *App) LLMCacheDir() string {
+	if a.cfg.LLMCacheDir != "" {
+		return a.cfg.LLMCacheDir
+	}
+	return filepath.Join(a.cfg.StateDir, "llm-cache")
+}
 
 // EnrichmentBackend describes the model backend Enrich will use.
 func (a *App) EnrichmentBackend(opts EnrichOptions) string {

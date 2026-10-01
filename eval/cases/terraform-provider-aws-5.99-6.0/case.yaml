@@ -1,0 +1,129 @@
+id: terraform-provider-aws-5.99-6.0
+product: terraform-provider-aws
+from: v5.99.1
+to: v6.0.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
+  - https://registry.terraform.io/providers/hashicorp/aws/6.0.0/docs/guides/upgrading-version-6
+expected:
+  # Change type covered: breaking behavioural change (state/output semantics).
+  - id: E1
+    title: aws_instance user_data now displays cleartext instead of a hash — base64 content must move to user_data_base64
+    kind: breaking
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)user_data.{0,40}cleartext|user_data_base64'
+    evidence:
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
+        quote: "resource/aws_instance: `user_data` now displays cleartext instead of a hash. Base64 encoded content should use `user_data_base64` instead. ([#42078])"
+  # Change type covered: attribute removals with migration targets.
+  - id: E2
+    title: aws_flow_log log_group_name removed — use log_destination instead
+    kind: removal
+    importance: important
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)flow_log.{0,60}log_group_name'
+    evidence:
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
+        quote: "resource/aws_flow_log: `log_group_name` has been removed. Use `log_destination` instead. ([#42333])"
+  # Change type covered: default value change.
+  - id: E3
+    title: aws_redshift_cluster publicly_accessible now defaults to false
+    kind: behaviour-change
+    importance: important
+    actionRequired: false       # silently safer for most; clusters relying on public access must set it explicitly
+    classification: review-required
+    match:
+      - text: '(?i)publicly_accessible.{0,30}defaults to .false.'
+    evidence:
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
+        quote: "resource/aws_redshift_cluster: The `publicly_accessible` attribute now defaults to `false` ([#41978])"
+  # Change type covered: attribute removals with migration targets.
+  - id: E4
+    title: aws_redshift_cluster logging and snapshot_copy attributes removed — replaced by the aws_redshift_logging / aws_redshift_snapshot_copy resources
+    kind: removal
+    importance: important
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)redshift_cluster.{0,40}(logging|snapshot_copy).{0,20}removed'
+      - text: '(?i)aws_redshift_(logging|snapshot_copy)'
+    evidence:
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
+        quote: "resource/aws_redshift_cluster: The `logging` attribute has been removed ([#42013]) … resource/aws_redshift_cluster: The `snapshot_copy` attribute has been removed ([#41995])"
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/website/docs/guides/version-6-upgrade.html.markdown
+        quote: "Remove `logging`—it is no longer supported. Use the `aws_redshift_logging` resource instead. … Remove `snapshot_copy`—it is no longer supported. Use the `aws_redshift_snapshot_copy` resource instead."
+  # Change type covered: CPU attribute removals with replacement.
+  - id: E5
+    title: aws_instance cpu_core_count and cpu_threads_per_core removed — use cpu_options
+    kind: removal
+    importance: important
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)cpu_core_count|cpu_options'
+    evidence:
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
+        quote: "resource/aws_instance: Remove `cpu_core_count` and `cpu_threads_per_core`. Instead, use `cpu_options`. ([#42280])"
+  # Change type covered: end-of-life feature removals.
+  - id: E6
+    title: aws_launch_template elastic_gpu_specifications and elastic_inference_accelerator removed (EOL features)
+    kind: removal
+    importance: minor
+    actionRequired: false
+    classification: review-required
+    match:
+      - text: '(?i)elastic_gpu_specifications|elastic_inference_accelerator'
+    evidence:
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
+        quote: "resource/aws_launch_template: Remove `elastic_inference_accelerator` attribute. Amazon Elastic Inference reached end of life on April, 2024. ([#42137]) … resource/aws_launch_template: `elastic_gpu_specifications` has been removed ([#42312])"
+  # Change type covered: data-source attribute removal/deprecation.
+  - id: E7
+    title: aws_opensearch_domain kibana_endpoint removed; aws_region data-source name deprecated in favour of region
+    kind: removal
+    importance: minor
+    actionRequired: false
+    classification: review-required
+    match:
+      - text: '(?i)kibana_endpoint'
+      - text: '(?i)data-source/aws_region.{0,60}name.{0,20}deprecated'
+    evidence:
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
+        quote: "resource/aws_opensearch_domain: `kibana_endpoint` has been removed ([#42268])"
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
+        quote: "data-source/aws_region: The `name` attribute has been deprecated. All configurations using `name` should be updated to use the `region` attribute instead ([#42131])"
+  # Change type covered: validation tightening (accepted value domain narrows).
+  - id: E8
+    title: Boolean-typed attributes across elasticache, imagebuilder, launch_template and friends now only accept "" / true / false (nullable boolean validation update)
+    kind: breaking
+    importance: important
+    actionRequired: false       # only configurations passing non-literal booleans
+    classification: review-required
+    match:
+      - text: '(?i)now only accept one of .{0,10}(empty string)?.{0,5}true.{0,5}false'
+      - text: '(?i)nullable [Bb]oolean [Vv]alidation [Uu]pdate|NullableBooleanValidation'
+    evidence:
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
+        quote: "resource/aws_elasticache_cluster: `auto_minor_version_upgrade` now only accepts one of `\"\"` (empty string), `true`, or `false` ([#42434])"
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/website/docs/guides/version-6-upgrade.html.markdown
+        quote: "Nullable Boolean Validation Update — the following attributes now only accept `\"\"` (empty string), `true`, or `false` … | `aws_elasticache_cluster` | `auto_minor_version_upgrade` |"
+  # Change type covered: provider-level deprecation with a removal horizon.
+  - id: E9
+    title: Global S3 endpoint and s3_us_east_1_regional_endpoint deprecated; removal in v7.0.0
+    kind: deprecation
+    importance: minor
+    actionRequired: false
+    classification: informational
+    match:
+      - text: '(?i)s3_us_east_1_regional_endpoint|global S3 endpoint'
+    evidence:
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
+        quote: "provider: Support for the global S3 endpoint is deprecated, along with the `s3_us_east_1_regional_endpoint` argument. The ability to use the global S3 endpoint will be removed in `v7.0.0`. ([#42375])"
+notExpected:
+  - title: enhancement and bugfix entries of the v6.0.0 changelog
+    match: [{text: '(?i)^(ENHANCEMENTS|BUG FIXES)|Add (plan-time )?validation|Add import support'}]

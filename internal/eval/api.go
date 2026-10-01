@@ -74,3 +74,50 @@ var relevances = map[string]bool{
 	RelevanceActionRequired: true, RelevanceReview: true,
 	RelevanceInformational: true, RelevanceNotAffected: true,
 }
+
+// Expected classifications (G9): the class a correct system should output for
+// an expected item — the five-class contract of docs/ACTION_CLASSIFICATION.md,
+// dataset vocabulary. Mirrors domain.ImpactClass; declared locally so the
+// evaluator stays below the domain of the join (matching the package's
+// dependency direction) and so case.yaml can be validated without a domain
+// import in the vocabulary itself.
+const (
+	ClassActionRequired = "action-required"
+	ClassReviewRequired = "review-required"
+	ClassInformational  = "informational"
+	ClassNotAffected    = "not-affected"
+	ClassUnknown        = "unknown"
+)
+
+// classes is the closed vocabulary of Expected.Classification and
+// NotExpected.Classification. Empty is allowed (the field is optional; legacy
+// cases predate it and score on presence only).
+var classes = map[string]bool{
+	ClassActionRequired: true, ClassReviewRequired: true, ClassInformational: true,
+	ClassNotAffected: true, ClassUnknown: true,
+}
+
+// classOrder ranks classes by how bad a miss they are (docs/ACTION_CLASSIFICATION.md
+// severity weighting): when several findings join one expected item, the
+// item's actual class is the strongest one — a miss that denies required
+// action is worse than an over-report, and unknown (cannot tell) is worse
+// than a checked-and-clear not-affected.
+var classOrder = map[string]int{
+	ClassActionRequired: 4, ClassReviewRequired: 3, ClassInformational: 2,
+	ClassUnknown: 1, ClassNotAffected: 0,
+}
+
+// StrongestClass returns the class that ranks higher under the miss-severity
+// order (b when equal or either is empty).
+func StrongestClass(a, b string) string {
+	if b == "" {
+		return a
+	}
+	if a == "" {
+		return b
+	}
+	if classOrder[b] > classOrder[a] {
+		return b
+	}
+	return a
+}

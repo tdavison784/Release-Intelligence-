@@ -28,6 +28,9 @@ type Config struct {
 	Offline     bool   // serve only from cache
 	Refresh     bool   // bypass caches (network + stored releases)
 	GitHubToken string // optional; enables the GitHub API adapters
+	// LLMCacheDir overrides the enrichment answer cache location (default
+	// StateDir/llm-cache); used by replay fixtures and `ri eval -enriched`.
+	LLMCacheDir string
 	Logf        func(format string, args ...any)
 	// Now is the clock used for the ingester and for the edge's generation
 	// time (default time.Now). Tests and golden runs inject a fixed clock so
