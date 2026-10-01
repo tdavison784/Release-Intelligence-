@@ -1,0 +1,521 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.dev/schemas/upgrade-edge/v1alpha1.json",
+  "title": "UpgradeEdge",
+  "description": "Everything relevant to upgrading a product from one version to another: the release path that was traversed, the deterministic changes found along it (each with provenance and evidence), compatibility and artifact deltas, the status of every consulted source, and optional AI enrichments, which are kept apart from changes. Referential integrity (every evidence/fact id resolves within this document, from < to) is checked by domain.UpgradeEdge.Validate() in Go and cannot be expressed in JSON Schema.",
+  "$ref": "#/$defs/UpgradeEdge",
+  "$defs": {
+    "AIProvenance": {
+      "description": "Provenance of AI output: method is \"ai\" and model, promptDigest and inputEvidence (at least one evidence id) are required, so every enrichment can be traced to the model, the exact prompt and the evidence it was given.",
+      "allOf": [{"$ref": "#/$defs/Provenance"}],
+      "required": ["model", "promptDigest", "inputEvidence"],
+      "properties": {
+        "method": {"const": "ai"},
+        "model": {"minLength": 1},
+        "promptDigest": {"minLength": 1},
+        "inputEvidence": {"minItems": 1}
+      }
+    },
+    "ArtifactChange": {
+      "type": "object",
+      "description": "Comparison of one artifact between the two endpoints of an edge.",
+      "required": ["artifactId", "type", "name", "change"],
+      "properties": {
+        "artifactId": {"type": "string"},
+        "type": {"$ref": "#/$defs/ArtifactType"},
+        "name": {"type": "string"},
+        "change": {
+          "$ref": "#/$defs/ChangeType",
+          "description": "added, removed, updated or unchanged between `from` and `to`."
+        },
+        "from": {"$ref": "#/$defs/ArtifactInstance"},
+        "to": {"$ref": "#/$defs/ArtifactInstance"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "ArtifactInstance": {
+      "type": "object",
+      "description": "One concrete artifact (image, chart, manifest, ...) belonging to a release.",
+      "required": ["artifactId", "type", "name", "coordinate", "status"],
+      "properties": {
+        "artifactId": {"type": "string", "description": "Id of the artifact in the product definition."},
+        "type": {"$ref": "#/$defs/ArtifactType"},
+        "name": {"type": "string"},
+        "coordinate": {
+          "type": "string",
+          "description": "Where to find it, e.g. \"quay.io/jetstack/cert-manager-controller:v1.18.0\"."
+        },
+        "version": {
+          "type": "string",
+          "description": "The artifact's own version; a chart version may differ from the application version."
+        },
+        "digest": {"type": "string"},
+        "channel": {"type": "string", "description": "Publication channel that confirmed the artifact."},
+        "status": {
+          "$ref": "#/$defs/ArtifactStatus",
+          "description": "How strongly the artifact is confirmed: verified (observed at its channel), referenced (named by another verified artifact of the same release), expected (predicted by the definition only; channel unreachable), missing (channel reachable, artifact absent), not-applicable (does not exist for this release)."
+        },
+        "detail": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "ArtifactStatus": {
+      "type": "string",
+      "enum": ["verified", "referenced", "expected", "missing", "not-applicable"]
+    },
+    "ArtifactType": {
+      "type": "string",
+      "enum": [
+        "source-release",
+        "helm-chart",
+        "container-image",
+        "operator",
+        "binary",
+        "package",
+        "manifest",
+        "crd",
+        "documentation"
+      ]
+    },
+    "Category": {
+      "type": "string",
+      "enum": [
+        "feature",
+        "bugfix",
+        "deprecation",
+        "removal",
+        "migration",
+        "configuration",
+        "helm-values",
+        "crd-schema",
+        "api",
+        "compatibility",
+        "security",
+        "artifact",
+        "dependency",
+        "other"
+      ]
+    },
+    "Change": {
+      "type": "object",
+      "description": "A deterministic conclusion about the upgrade: from a release-note item (declared or heuristic) or from a computed diff of two releases (values, CRDs, images, compatibility, advisories).",
+      "required": ["id", "category", "title", "provenance", "evidence"],
+      "properties": {
+        "id": {"type": "string"},
+        "category": {"$ref": "#/$defs/Category", "description": "Primary classification of the change."},
+        "breaking": {
+          "type": "boolean",
+          "description": "True when upgrading across this change can break existing deployments or integrations, as declared upstream or computed (for example a removed Helm value or CRD version). Omitted when false."
+        },
+        "actionRequired": {
+          "type": "boolean",
+          "description": "True when operators must take a manual step before, during or after the upgrade (migration, config change, manifest edit). Omitted when false. A change can be action-required without being breaking."
+        },
+        "title": {"type": "string", "description": "One-line summary."},
+        "detail": {"type": "string"},
+        "release": {
+          "type": "string",
+          "description": "Version (semver) of the release that introduced the change; omitted for diffs between the two endpoints."
+        },
+        "subjects": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "What the change affects: Helm value paths, CRD names, image repositories, API versions."
+        },
+        "references": {"type": "array", "items": {"$ref": "#/$defs/Reference"}},
+        "provenance": {"$ref": "#/$defs/DeterministicProvenance"},
+        "facts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/FactID"},
+          "description": "Ids of the Facts this conclusion is based on."
+        },
+        "evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "minItems": 1,
+          "description": "Ids of the Evidence records that support the change; at least one, each resolving within the edge's `evidence`."
+        }
+      },
+      "additionalProperties": false
+    },
+    "ChangeType": {"type": "string", "enum": ["added", "removed", "updated", "unchanged"]},
+    "CompatibilityChange": {
+      "type": "object",
+      "description": "Comparison of one platform constraint between the two endpoints of an edge.",
+      "required": ["platform", "summary"],
+      "properties": {
+        "platform": {"type": "string"},
+        "from": {"$ref": "#/$defs/CompatibilityConstraint"},
+        "to": {"$ref": "#/$defs/CompatibilityConstraint"},
+        "summary": {"type": "string"},
+        "narrowed": {
+          "type": "boolean",
+          "description": "True when the target supports a strict subset of the platform versions the source supported (support for an older platform version was dropped)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "CompatibilityConstraint": {
+      "type": "object",
+      "description": "A platform requirement stated for a release, e.g. Kubernetes \"1.29 - 1.33\".",
+      "required": ["platform", "constraint", "raw", "sourceId", "provenance", "evidence"],
+      "properties": {
+        "platform": {
+          "type": "string",
+          "description": "Platform name, e.g. \"kubernetes\", \"openshift\" or \"helm\"."
+        },
+        "constraint": {
+          "type": "string",
+          "description": "Normalised semver constraint when derivable, e.g. \">=1.29.0-0 <=1.33.x\"."
+        },
+        "versions": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Explicit platform versions when the source enumerates them."
+        },
+        "raw": {"type": "string", "description": "Verbatim value from the source."},
+        "kind": {
+          "type": "string",
+          "description": "e.g. \"supported\", \"tested\", \"minimum\" or \"chart-kubeVersion\"."
+        },
+        "sourceId": {"type": "string"},
+        "provenance": {"$ref": "#/$defs/DeterministicProvenance"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "Confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+    "DeterministicProvenance": {
+      "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
+      "allOf": [{"$ref": "#/$defs/Provenance"}],
+      "properties": {
+        "method": {"enum": ["declared", "computed", "heuristic"]}
+      },
+      "not": {
+        "anyOf": [
+          {"required": ["model"]},
+          {"required": ["promptDigest"]},
+          {"required": ["inputEvidence"]},
+          {"required": ["generatedAt"]}
+        ]
+      }
+    },
+    "Enrichment": {
+      "type": "object",
+      "description": "AI-derived information (summary, migration step, risk note). Kept apart from Changes: it must carry method \"ai\" together with model, promptDigest and inputEvidence. Consumers should present it as AI-generated.",
+      "required": ["id", "kind", "content", "provenance"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {
+          "type": "string",
+          "description": "Kind of enrichment, e.g. \"summary\", \"migration-step\", \"classification\" or \"risk\"."
+        },
+        "title": {"type": "string"},
+        "content": {"type": "string"},
+        "relatesTo": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Ids of the Changes the enrichment is about."
+        },
+        "provenance": {"$ref": "#/$defs/AIProvenance"}
+      },
+      "additionalProperties": false
+    },
+    "Evidence": {
+      "type": "object",
+      "description": "A verifiable pointer to source material supporting a fact or conclusion. `uri` is something a human can open; `locator` narrows it down; `excerpt` and `contentDigest` pin what was read.",
+      "required": ["id", "kind", "uri", "retrievedAt"],
+      "properties": {
+        "id": {"$ref": "#/$defs/EvidenceID"},
+        "kind": {"$ref": "#/$defs/EvidenceKind"},
+        "sourceId": {
+          "type": "string",
+          "description": "Id of the product-definition source or artifact that produced the evidence."
+        },
+        "uri": {
+          "type": "string",
+          "description": "Location a human or a later run can open to check the claim."
+        },
+        "locator": {
+          "type": "string",
+          "description": "Position within the document, e.g. a line range (\"L120-L131\"), a heading (\"## Breaking Changes\") or a JSONPath (\"$.spec.versions[1]\")."
+        },
+        "excerpt": {"type": "string", "description": "Short verbatim excerpt of the source, truncated."},
+        "contentDigest": {
+          "type": "string",
+          "description": "sha256 of the complete retrieved document, so the exact bytes the conclusion was drawn from can be identified later."
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the source was fetched (UTC)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "EvidenceID": {
+      "type": "string",
+      "description": "Stable identifier derived from the evidence content (\"ev-\" followed by a short hash)."
+    },
+    "EvidenceKind": {
+      "type": "string",
+      "enum": [
+        "document",
+        "git-ref",
+        "registry",
+        "release-asset",
+        "structured",
+        "advisory",
+        "repo-file"
+      ]
+    },
+    "Fact": {
+      "type": "object",
+      "description": "A deterministic statement extracted from sources, with evidence. Facts hold no interpretation; interpretation lives in Changes.",
+      "required": ["id", "kind", "subject", "statement", "extractor", "evidence"],
+      "properties": {
+        "id": {"$ref": "#/$defs/FactID"},
+        "kind": {"$ref": "#/$defs/FactKind"},
+        "subject": {
+          "type": "string",
+          "description": "What the fact is about, e.g. \"cert-manager@1.18.0\" or an artifact coordinate."
+        },
+        "release": {"type": "string", "description": "Semver of the release the fact is about."},
+        "statement": {"type": "string"},
+        "attributes": {"type": "object", "additionalProperties": {"type": "string"}},
+        "extractor": {
+          "type": "string",
+          "description": "Component and version that extracted the fact, e.g. \"normalize.notes@v1\"."
+        },
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
+    },
+    "FactID": {
+      "type": "string",
+      "description": "Stable identifier derived from the fact content (\"fact-\" followed by a short hash)."
+    },
+    "FactKind": {
+      "type": "string",
+      "enum": [
+        "release.published",
+        "artifact.published",
+        "document.retrieved",
+        "compatibility",
+        "snapshot",
+        "advisory",
+        "relationship"
+      ]
+    },
+    "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
+    "PathStep": {
+      "type": "object",
+      "required": ["version", "reason"],
+      "properties": {
+        "version": {"$ref": "#/$defs/Version"},
+        "publishedAt": {"type": "string", "format": "date-time"},
+        "reason": {
+          "type": "string",
+          "description": "Why the release is traversed, e.g. \"release\", \"patch\", \"major-release\", \"minor-release\", \"line-entry\" or \"target-line-patch\"."
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProductID": {"type": "string"},
+    "ProductRef": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {"$ref": "#/$defs/ProductID"},
+        "name": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "Provenance": {
+      "type": "object",
+      "description": "How a Change, note classification, compatibility constraint or Enrichment was produced. This is the generic shape; documents use DeterministicProvenance where only deterministic methods are allowed (Change.provenance, NoteItem.classification, CompatibilityConstraint.provenance) and AIProvenance for Enrichment.provenance.",
+      "required": ["method", "producer", "confidence"],
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/Method",
+          "description": "How the knowledge was derived. declared: upstream stated it explicitly in a structured or labelled way (an item under a \"Breaking Changes\" heading, a release-note YAML with \"action required\", a published support matrix). computed: deterministic computation over source data (a diff of two values.yaml files or two CRD sets). heuristic: deterministic but pattern-based interpretation (keyword matching such as \"deprecated\" inside a bug-fix bullet); treat with more caution than declared or computed. ai: produced by a language model; only valid on Enrichments."
+        },
+        "producer": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Component and version that produced the record, e.g. \"normalize.notes@v1\"."
+        },
+        "rule": {
+          "type": "string",
+          "description": "Identifier of the rule that fired, e.g. \"section:/breaking/i\"."
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence",
+          "description": "Coarse confidence in the classification."
+        },
+        "model": {"type": "string", "description": "AI only: model identifier."},
+        "promptDigest": {
+          "type": "string",
+          "description": "AI only: digest of the exact prompt, so the generation can be reproduced or audited."
+        },
+        "inputEvidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "description": "AI only: ids of the Evidence records the model was given as input."
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "AI only: when the output was generated."
+        }
+      },
+      "additionalProperties": false
+    },
+    "Reference": {
+      "type": "object",
+      "description": "An external identifier mentioned by a source.",
+      "required": ["type", "id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Kind of identifier, e.g. \"cve\", \"ghsa\", \"pull-request\", \"issue\" or \"url\"."
+        },
+        "id": {"type": "string"},
+        "url": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "SourceRole": {
+      "type": "string",
+      "enum": ["versions", "release-notes", "changelog", "upgrade-guide", "compatibility", "security"]
+    },
+    "SourceState": {
+      "type": "string",
+      "enum": ["ok", "partial", "not-found", "unavailable", "skipped", "error"]
+    },
+    "SourceStatus": {
+      "type": "object",
+      "description": "What happened when a source was consulted; lets consumers tell \"nothing found\" from \"could not look\".",
+      "required": ["sourceId", "kind", "state"],
+      "properties": {
+        "sourceId": {"type": "string"},
+        "kind": {
+          "type": "string",
+          "description": "Locator kind, e.g. \"github-releases\", \"repo-file\" or \"oci\"."
+        },
+        "roles": {"type": "array", "items": {"$ref": "#/$defs/SourceRole"}},
+        "version": {
+          "type": "string",
+          "description": "Release the status refers to; omitted for product-level sources."
+        },
+        "state": {
+          "$ref": "#/$defs/SourceState",
+          "description": "ok; partial (some data missing); not-found (reachable, nothing for this version); unavailable (unreachable, blocked or auth required); skipped (not applicable or disabled); error."
+        },
+        "detail": {"type": "string"},
+        "uri": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "UpgradeEdge": {
+      "type": "object",
+      "description": "Everything relevant to upgrading a product from one version to another: the release path that was traversed, the deterministic changes found along it (each with provenance and evidence), compatibility and artifact deltas, the status of every consulted source, and optional AI enrichments, which are kept apart from changes. Referential integrity (every evidence/fact id resolves within this document, from < to) is checked by domain.UpgradeEdge.Validate() in Go and cannot be expressed in JSON Schema.",
+      "required": [
+        "schemaVersion",
+        "product",
+        "from",
+        "to",
+        "pathPolicy",
+        "path",
+        "sources",
+        "changes",
+        "evidence",
+        "generatedAt"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "const": "ri.dev/upgrade-edge/v1alpha1",
+          "description": "Serialisation version of this document."
+        },
+        "product": {"$ref": "#/$defs/ProductRef"},
+        "from": {"$ref": "#/$defs/Version"},
+        "to": {"$ref": "#/$defs/Version"},
+        "pathPolicy": {
+          "type": "string",
+          "description": "How the traversed releases were chosen, e.g. \"minor-lineage\" (the X.Y.0 release of each line after `from`, then the patches of the target line), \"all\" (every release in (from, to]) or \"unspecified\"."
+        },
+        "path": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/PathStep"},
+          "description": "Releases traversed by the upgrade, ascending; excludes `from`, ends with `to`."
+        },
+        "skippedReleases": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Version"},
+          "description": "Releases between the endpoints deliberately not traversed, e.g. backport patches of intermediate lines."
+        },
+        "sources": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/SourceStatus"},
+          "description": "What happened when each source was consulted. Gaps are reported here (state unavailable, not-found, ...) instead of being hidden."
+        },
+        "changes": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Change"},
+          "description": "Deterministic conclusions (declared, computed or heuristic), most important first. Never AI-derived."
+        },
+        "compatibility": {"type": "array", "items": {"$ref": "#/$defs/CompatibilityChange"}},
+        "artifacts": {"type": "array", "items": {"$ref": "#/$defs/ArtifactChange"}},
+        "enrichments": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Enrichment"},
+          "description": "AI-derived additions (summaries, migration steps, risk notes). Always labelled method \"ai\" and never mixed into `changes`."
+        },
+        "facts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Fact"},
+          "description": "Deterministic statements extracted from sources, without interpretation."
+        },
+        "evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Evidence"},
+          "description": "Every piece of source evidence referenced by id anywhere in this document, de-duplicated."
+        },
+        "warnings": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Human-readable notes about gaps or degraded input that a consumer should surface."
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the edge was assembled (UTC)."
+        },
+        "definitionDigest": {
+          "type": "string",
+          "description": "Digest of the product definition revision the edge was built from."
+        }
+      },
+      "additionalProperties": false
+    },
+    "Version": {
+      "type": "object",
+      "description": "A release version of a product.",
+      "required": ["tag", "version"],
+      "properties": {
+        "tag": {
+          "type": "string",
+          "description": "Identifier exactly as published by the canonical release channel, e.g. \"v1.18.0\"."
+        },
+        "version": {
+          "type": "string",
+          "description": "Normalised semantic version without any tag prefix, e.g. \"1.18.0\"."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
