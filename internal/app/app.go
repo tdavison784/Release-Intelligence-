@@ -29,6 +29,10 @@ type Config struct {
 	Refresh     bool   // bypass caches (network + stored releases)
 	GitHubToken string // optional; enables the GitHub API adapters
 	Logf        func(format string, args ...any)
+	// Now is the clock used for the ingester and for the edge's generation
+	// time (default time.Now). Tests and golden runs inject a fixed clock so
+	// that outputs are byte-for-byte reproducible.
+	Now func() time.Time
 }
 
 // App is the composition root.
@@ -52,6 +56,9 @@ func New(cfg Config) (*App, error) {
 	}
 	if cfg.Logf == nil {
 		cfg.Logf = func(string, ...any) {}
+	}
+	if cfg.Now == nil {
+		cfg.Now = time.Now
 	}
 	cat, err := catalog.LoadDir(cfg.ProductsDir)
 	if err != nil {
@@ -77,8 +84,9 @@ func New(cfg Config) (*App, error) {
 		Registry: reg,
 		Ingester: ingest.New(reg),
 		Store:    store.New(filepath.Join(cfg.StateDir, "store")),
-		now:      time.Now,
+		now:      cfg.Now,
 	}
+	a.Ingester.Clock = cfg.Now
 	return a, nil
 }
 
