@@ -166,15 +166,17 @@
       "additionalProperties": false,
       "required": ["strategy"],
       "properties": {
-        "strategy": {"enum": ["template", "lookup", "independent"]},
+        "strategy": {"enum": ["template", "lookup", "field", "independent"]},
         "template": {"type": "string"},
-        "field": {"type": "string"},
+        "field": {"type": "string", "description": "lookup: index field (e.g. appVersion); field: YAML path read from the from document (e.g. dependencies[name=kube-state-metrics].version)"},
         "match": {"type": "string"},
+        "from": {"$ref": "#/$defs/locator", "description": "field strategy: the document the version is read from, rendered with the release context (repo-file or http)"},
         "select": {"enum": ["latest", "earliest", "all"]}
       },
       "allOf": [
         {"if": {"properties": {"strategy": {"const": "template"}}}, "then": {"required": ["template"]}},
-        {"if": {"properties": {"strategy": {"const": "lookup"}}}, "then": {"required": ["field", "match"]}}
+        {"if": {"properties": {"strategy": {"const": "lookup"}}}, "then": {"required": ["field", "match"]}},
+        {"if": {"properties": {"strategy": {"const": "field"}}}, "then": {"required": ["field", "from"]}}
       ]
     },
     "artifact": {

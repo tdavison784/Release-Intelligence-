@@ -282,6 +282,7 @@ type Artifact struct {
 const (
 	VersionTemplate    = "template"    // artifact version = render(template)
 	VersionLookup      = "lookup"      // search channel index for entries whose Field matches render(Match)
+	VersionField       = "field"       // artifact version = a YAML field of the document at From (read at the release ref)
 	VersionIndependent = "independent" // no derivable relationship
 )
 
@@ -292,9 +293,14 @@ type VersionRelation struct {
 	Strategy string `yaml:"strategy" json:"strategy"`
 	Template string `yaml:"template,omitempty" json:"template,omitempty"`
 	// Lookup: Field of the index entry (e.g. "appVersion") compared with Match.
-	Field  string `yaml:"field,omitempty" json:"field,omitempty"`
-	Match  string `yaml:"match,omitempty" json:"match,omitempty"`
-	Select string `yaml:"select,omitempty" json:"select,omitempty"` // "latest" (default), "earliest", "all"
+	Field string `yaml:"field,omitempty" json:"field,omitempty"`
+	Match string `yaml:"match,omitempty" json:"match,omitempty"`
+	// Field: YAML path read out of the From document (e.g. "appVersion" or
+	// "dependencies[name=kube-state-metrics].version").
+	// From: locator of the document the field is read from, rendered with the
+	// release context (e.g. Chart.yaml at "{{.Tag}}").
+	From  *Locator `yaml:"from,omitempty" json:"from,omitempty"`
+	Select string `yaml:"select,omitempty" json:"select,omitempty"` // lookup: "latest" (default), "earliest", "all"
 }
 
 // ArtifactReference declares that another artifact references this one.

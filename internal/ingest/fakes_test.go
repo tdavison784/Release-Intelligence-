@@ -642,6 +642,10 @@ func (f *fakeParser) ParseVersionRange(raw string) (string, []string, error) {
 	return strings.ReplaceAll(raw, " ", ""), nil, nil
 }
 
+func (f *fakeParser) ReadYAMLPath(b []byte, path string) (string, int, error) {
+	return normalize.ReadYAMLPath(b, path)
+}
+
 func (f *fakeParser) ParseChartMetadata(b []byte) (*normalize.ChartMetadata, error) {
 	md := &normalize.ChartMetadata{}
 	for _, l := range strings.Split(string(b), "\n") {

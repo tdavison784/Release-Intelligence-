@@ -173,6 +173,7 @@ upstream channel needed it.
 | `fallbackGroup` | Alternatives tried in priority order | website notes vs GitHub release body; master vs release branch |
 | `releaseKinds`, `availability` | Restrict to minor releases or version ranges | upgrade guides exist only for X.Y.0; cert-manager-ctl < 1.15 |
 | `version.strategy: lookup` | Find artifact versions by a field in an index | Argo CD chart whose `appVersion` is the app tag |
+| `version.strategy: field` + `from` | Read the artifact version out of a YAML field of a document at the release ref | kube-prometheus-stack's pinned sub-components: `appVersion` (prometheus-operator), `dependencies[name=x].version` (charts), values.yaml image tags |
 | `optional` | Absence is a fact, not a broken relationship | about half of Argo CD releases ship in no chart |
 | `exceptions` (with reason) | Curated releases where a relationship does not hold | Argo CD v3.4.0 has no release assets |
 | `references` | Cross-check an artifact inside another artifact | image tags in the install manifest when quay.io is unreachable |
