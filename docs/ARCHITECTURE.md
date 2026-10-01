@@ -7,7 +7,7 @@ every conclusion points back to source evidence.
 ## Principles
 
 - **Deterministic first.** The recurring ingestion path (`ingest`, `normalize`,
-  `upgrade`) never calls an LLM. LLMs are used only for discovery, for
+  `upgrade`, `drift`) never calls an LLM. LLMs are used only for discovery, for
   resolving ambiguous sources and for optional enrichment (`discovery`,
   `enrich`, `llm`).
 - **Facts ≠ conclusions ≠ AI.** `domain.Fact` holds deterministic
@@ -59,6 +59,10 @@ internal/normalize     pure parsing for ONE release: markdown sections, note ite
                        classification, tables → compatibility, Chart.yaml, values, CRDs, images
 internal/ingest        deterministic pipeline: definition + registry → domain.Release;
                        version listing; historical relationship checks
+internal/drift         deterministic source-drift detection: re-validates the definition
+                       against the newest releases (vs a saved `ri check` baseline),
+                       reports evidence-backed events + proposed changes, never mutates
+                       (docs/DRIFT.md)
 internal/upgrade       pure: path selection, diffs, edge assembly, text rendering
 internal/discovery     AI-assisted source discovery: repo scanner → candidates →
                        (optional LLM resolution) → validation against ≥3 releases → proposed definition
@@ -75,7 +79,8 @@ schemas/               JSON Schemas (draft 2020-12): product-definition (hand-wr
 
 Dependency direction: `domain` ← `catalog` ← `sources` ← adapters; `normalize`
 depends on `domain` and `catalog`. `ingest` depends on `sources`, `normalize`,
-`catalog` and `domain`. `upgrade` depends only on `domain` and `catalog`.
+`catalog` and `domain`. `drift` depends on `ingest`, `catalog`, `sources` and
+`domain`. `upgrade` depends only on `domain` and `catalog`.
 `discovery` depends on `ingest`, `catalog`, `llm` and `sources`. `enrich`
 depends only on `domain` and `llm`. Adapters never import `ingest` or `upgrade`.
 
@@ -104,6 +109,28 @@ depends only on `domain` and `llm`. Adapters never import `ingest` or `upgrade`.
    compares compatibility constraints, matches advisories (fixed by the
    upgrade, or still affecting To) and validates the edge.
 7. `upgrade.RenderText` prints the report. `-o json` prints the edge.
+
+## Data flow of `ri drift <product>` (docs/DRIFT.md)
+
+1. `ingest.ListVersions` lists the canonical versions; if no versions source
+   answers at all, the failure itself becomes the report (unreachable is
+   `unverifiable`, a reachable source whose tags no longer match the declared
+   convention is `relationship-broken`).
+2. The baseline is the saved `ri check -o json` report in
+   `docs/onboarding/checks/<id>.json` (when present) or the definition's
+   `validatedAgainst` lists; the cutoff is the newest baseline release.
+3. `ingest.IngestChecked` re-runs the exhaustive relationship validation on
+   the newest `-n` releases newer than the cutoff.
+4. `drift.Analyze` compares fresh outcomes with baseline outcomes:
+   reachable-and-different is **drift**, unreachable is **unverifiable**
+   (never drift), already-failing-at-baseline is a note. It additionally
+   re-probes declared channels for move detection (an artifact absent from
+   its leading channel but present at a declared fallback) and availability
+   violations, and scans `image-refs` snapshots for release-tagged image
+   repositories no declared artifact covers.
+5. Events cite `domain.Evidence` from the same run; each may carry a proposed,
+   annotated definition fragment. The command prints the report (or `-o json`)
+   plus the proposal (stdout or `-out`), never touching `products/`.
 
 ## Locator kinds
 
