@@ -29,3 +29,10 @@ sections exist on N.M.0 releases).
   last version with support for Kubernetes 1.25 and 1.26; from 0.48.0 only
   1.27+"), which implies 0.46 still supports 1.25+ — 1.29 is comfortably in
   range.
+- Correction during the first live run (upstream-verified, not
+  pipeline-derived): the notes initially claimed "no Strimzi CRD is removed"
+  — wrong. Diffing packaging/install/cluster-operator at both tags shows
+  0.46.0 removes 045-Crd-kafkamirrormaker.yaml (the MirrorMaker 1 CRD —
+  consistent with E2) and adds 045-Crd-kafkanodepool.yaml. F3 now EXPECTS
+  the crd-removed finding. A lesson recorded for the protocol: even
+  "obviously unchanged" CRD sets must be diffed before asserting absence.

@@ -1,0 +1,2205 @@
+{
+ "caseId": "cert-manager-1.16-1.17",
+ "recordedFrom": "ri upgrade cert-manager v1.16.0 v1.17.0 (live, 2026-10-01)",
+ "changes": [
+  {
+   "id": "chg-719dc2322343",
+   "category": "migration",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "Log messages across cert-manager have been augmented with better contextual structured data",
+   "detail": "Log messages across cert-manager have been augmented with better contextual structured data. If you were matching on literal strings in log lines, it's possible that may break.",
+   "release": "1.17.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:1, role:upgrade-guide",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-775b7a64f057"
+   ]
+  },
+  {
+   "id": "chg-1cd1a2462c54",
+   "category": "migration",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "RSA certificates with keys of length 3072 or 4096 will now use SHA-384 or SHA-512 respectively as hash algorithms",
+   "detail": "RSA certificates with keys of length 3072 or 4096 will now use SHA-384 or SHA-512 respectively as hash algorithms. These hash algorithms are widely supported, and we don't expect this to be an issue, but it's worth bearing in mind if you start to see errors as your larger RSA keys rotate.",
+   "release": "1.17.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:1, role:upgrade-guide",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-463f236bf567"
+   ]
+  },
+  {
+   "id": "chg-0f79940f5f35",
+   "category": "migration",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "The `ValidateCAA` feature gate has been deprecated and will be removed in cert-manager v1.18",
+   "detail": "The `ValidateCAA` feature gate has been deprecated and will be removed in cert-manager v1.18. If you're manually enabling this feature gate, it's advisable to stop.",
+   "release": "1.17.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:1, role:upgrade-guide",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-09a9c9047035"
+   ]
+  },
+  {
+   "id": "chg-5facf6216af6",
+   "category": "feature",
+   "breaking": true,
+   "title": "Potentially BREAKING: The CA and SelfSigned issuers now use SHA-512 when signing with RSA keys 4096 bits and above, and SHA-384 when signing with RSA keys 3072…",
+   "detail": "Potentially BREAKING: The CA and SelfSigned issuers now use SHA-512 when signing with RSA keys 4096 bits and above, and SHA-384 when signing with RSA keys 3072 bits and above. If you were previously using a larger RSA key as a CA, be sure to check that your systems support the new hash algorithms. (#7368, @SgtCoDFish)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7368",
+     "url": "https://github.com/cert-manager/website/issues/7368"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7368",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7368"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "marker:breaking, section:/feature|enhancement/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-53fb690413df"
+   ]
+  },
+  {
+   "id": "chg-9bef9868dcf5",
+   "category": "other",
+   "breaking": true,
+   "title": "⚠️ Potentially BREAKING: Log messages that were not structured have now been replaced with structured logs",
+   "detail": "⚠️ Potentially BREAKING: Log messages that were not structured have now been replaced with structured logs. If you were matching on specific log strings, this could break your setup. (#7461, @inteon)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7461",
+     "url": "https://github.com/cert-manager/website/issues/7461"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7461",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7461"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "marker:breaking, section:/other|cleanup|flake|misc/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-df7847de6bcb"
+   ]
+  },
+  {
+   "id": "chg-004dae7481e0",
+   "category": "compatibility",
+   "actionRequired": true,
+   "title": "Kubernetes support narrowed: 1.25–1.32 → 1.29–1.33 (drops 1.25–1.28)",
+   "detail": "Verify the cluster runs a supported Kubernetes version (1.29–1.33) before upgrading.",
+   "subjects": [
+    "kubernetes/supported"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "compat:narrowed",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-bef3f9206900",
+    "fact-8f377dd8d348",
+    "fact-26544ef62b09",
+    "fact-48ddd178fc07",
+    "fact-dfe2998f037f",
+    "fact-317da8a7b78e"
+   ],
+   "evidence": [
+    "ev-61759165fc1c",
+    "ev-904e0ae133bd"
+   ]
+  },
+  {
+   "id": "chg-c994b54e254d",
+   "category": "compatibility",
+   "actionRequired": true,
+   "title": "OpenShift support narrowed: 4.14–4.17 → 4.16–4.20 (drops 4.14–4.15)",
+   "detail": "Verify the cluster runs a supported OpenShift version (4.16–4.20) before upgrading.",
+   "subjects": [
+    "openshift/supported"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "compat:narrowed",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-bef3f9206900",
+    "fact-8f377dd8d348",
+    "fact-26544ef62b09",
+    "fact-48ddd178fc07",
+    "fact-dfe2998f037f",
+    "fact-317da8a7b78e"
+   ],
+   "evidence": [
+    "ev-61759165fc1c",
+    "ev-904e0ae133bd"
+   ]
+  },
+  {
+   "id": "chg-eea0e014d7da",
+   "category": "removal",
+   "title": "Remove `Neither --kubeconfig nor --master was specified` warning message when the controller and the webhook services boot",
+   "detail": "Remove `Neither --kubeconfig nor --master was specified` warning message when the controller and the webhook services boot (#7457, @Peac36)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7457",
+     "url": "https://github.com/cert-manager/website/issues/7457"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7457",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7457"
+    }
+   ],
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "kw:remove-verb, section:/other|cleanup|flake|misc/i",
+    "confidence": "medium"
+   },
+   "evidence": [
+    "ev-969cbf095c23"
+   ]
+  },
+  {
+   "id": "chg-fdbf4141cd23",
+   "category": "deprecation",
+   "title": "DEPRECATION: The `ValidateCAA` feature gate is now deprecated, with removal scheduled for cert-manager 1.18",
+   "detail": "DEPRECATION: The `ValidateCAA` feature gate is now deprecated, with removal scheduled for cert-manager 1.18. In 1.17, enabling this feature gate will print a warning. (#7491, @jsoref)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7491",
+     "url": "https://github.com/cert-manager/website/issues/7491"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7491",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7491"
+    }
+   ],
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "kw:deprecat, section:/other|cleanup|flake|misc/i",
+    "confidence": "medium"
+   },
+   "evidence": [
+    "ev-6db6001fefb2"
+   ]
+  },
+  {
+   "id": "chg-123447d3ab93",
+   "category": "deprecation",
+   "title": "Feature Flag Promotions / Deprecations: cert-manager's feature flags allow for easier testing and adoption of new features with a reduced risk of breaking…",
+   "detail": "Feature Flag Promotions / Deprecations: cert-manager's feature flags allow for easier testing and adoption of new features with a reduced risk of breaking changes. In cert-manager v1.17, two feature gates have been promoted to \"beta\", and as such are now enabled by default in all installations: - `NameConstraints`, allowing users to specify the name constraints extension which can be helpful when creating CA certificates for private PKI - `UseDomainQualifiedFinalizer`, which stops a Kubernetes warning from being printed in logs In addition, we added a new feature gate: `CAInjectorMerging`, which intelligently combines certificates used by the `CAInjector` component, making it safer to use when issuing certificates are rotated. If you're making heavy use of the CA injector, you should consider enabling this feature gate. Finally, we deprecated the `ValidateCAA` feature gate which will be removed entirely in cert-manager v1.18.0. This feature gate aimed to validate the `CAA` DNS record during ACME issuance, but has seen low adoption and limited testing since its introduction back in 2019.",
+   "release": "1.17.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/deprecat/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-0d3b308e9192"
+   ]
+  },
+  {
+   "id": "chg-644b13d0eb78",
+   "category": "crd-schema",
+   "title": "Certificate v1 schema: 2 fields added: `spec.keystores.jks.password`, `spec.keystores.pkcs12.password`",
+   "detail": "New paths in the cert-manager.io/v1 schema of certificates.cert-manager.io:\nspec.keystores.jks.password\nspec.keystores.pkcs12.password",
+   "subjects": [
+    "spec.keystores.jks.password",
+    "spec.keystores.pkcs12.password"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "crd:fields-added",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-70f07f30ff84",
+    "fact-afbcc60c8f35"
+   ],
+   "evidence": [
+    "ev-84061d76ea1b",
+    "ev-60054fcf0986"
+   ]
+  },
+  {
+   "id": "chg-e6e1c5e37bf6",
+   "category": "crd-schema",
+   "title": "Challenge v1 schema: 1 field added: `spec.solver.dns01.azureDNS.managedIdentity.tenantID`",
+   "detail": "New paths in the acme.cert-manager.io/v1 schema of challenges.acme.cert-manager.io:\nspec.solver.dns01.azureDNS.managedIdentity.tenantID",
+   "subjects": [
+    "spec.solver.dns01.azureDNS.managedIdentity.tenantID"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "crd:fields-added",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-70f07f30ff84",
+    "fact-afbcc60c8f35"
+   ],
+   "evidence": [
+    "ev-84061d76ea1b",
+    "ev-60054fcf0986"
+   ]
+  },
+  {
+   "id": "chg-20e84ac6af3b",
+   "category": "crd-schema",
+   "title": "ClusterIssuer v1 schema: 1 field added: `spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID`",
+   "detail": "New paths in the cert-manager.io/v1 schema of clusterissuers.cert-manager.io:\nspec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID",
+   "subjects": [
+    "spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "crd:fields-added",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-70f07f30ff84",
+    "fact-afbcc60c8f35"
+   ],
+   "evidence": [
+    "ev-84061d76ea1b",
+    "ev-60054fcf0986"
+   ]
+  },
+  {
+   "id": "chg-8d5050bf3851",
+   "category": "crd-schema",
+   "title": "Issuer v1 schema: 1 field added: `spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID`",
+   "detail": "New paths in the cert-manager.io/v1 schema of issuers.cert-manager.io:\nspec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID",
+   "subjects": [
+    "spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "crd:fields-added",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-70f07f30ff84",
+    "fact-afbcc60c8f35"
+   ],
+   "evidence": [
+    "ev-84061d76ea1b",
+    "ev-60054fcf0986"
+   ]
+  },
+  {
+   "id": "chg-71788d4cc4ed",
+   "category": "helm-values",
+   "title": "New Helm value `enabled`",
+   "detail": "Defaults in v1.17.0:\nenabled = true  # Field that can be used as a condition when cert-manager is a dependency. This definition is only here as a placeholder such that it is included in the json schema. See https://helm.sh/docs/chart_best_practices/dependencies/#conditions-and-tags for more info.",
+   "subjects": [
+    "enabled"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "values:added",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-70b825b33d52",
+    "fact-553e04f913b7"
+   ],
+   "evidence": [
+    "ev-fdc96eee87bf",
+    "ev-717ddb6f40cd"
+   ]
+  },
+  {
+   "id": "chg-a57172ddc4ff",
+   "category": "security",
+   "title": "SECURITY (low risk): Limit maximum allowed PEM size to prevent potential DoS in cert-manager controller from attacker-controlled PEM",
+   "detail": "SECURITY (low risk): Limit maximum allowed PEM size to prevent potential DoS in cert-manager controller from attacker-controlled PEM. See `GHSA-r4pg-vg54-wxx4` (#7400, @SgtCoDFish)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-r4pg-vg54-wxx4",
+     "url": "https://github.com/advisories/GHSA-r4pg-vg54-wxx4"
+    },
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7400",
+     "url": "https://github.com/cert-manager/website/issues/7400"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7400",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7400"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "label:security",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-36b8d942ea46"
+   ]
+  },
+  {
+   "id": "chg-9d751d9ab6c2",
+   "category": "feature",
+   "title": "Add `CAInjectorMerging` feature gate to the ca-injector, enabling this will change the behavior of the ca-injector to merge in new CA certificates instead of…",
+   "detail": "Add `CAInjectorMerging` feature gate to the ca-injector, enabling this will change the behavior of the ca-injector to merge in new CA certificates instead of outright replacing the existing one. (#7469, @ThatsMrTalbot)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7469",
+     "url": "https://github.com/cert-manager/website/issues/7469"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7469",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7469"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/feature|enhancement/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-e3729e495e40"
+   ]
+  },
+  {
+   "id": "chg-29bb04e99bf9",
+   "category": "feature",
+   "title": "Added image pull secrets to deployments when service accounts aren't created",
+   "detail": "Added image pull secrets to deployments when service accounts aren't created (#7411, @TheHenrick)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7411",
+     "url": "https://github.com/cert-manager/website/issues/7411"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7411",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7411"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/feature|enhancement/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-772ebf21cd9f"
+   ]
+  },
+  {
+   "id": "chg-87f1d7410ba7",
+   "category": "feature",
+   "title": "Added the ability to customize client ID when using username/password authentication for Venafi client",
+   "detail": "Added the ability to customize client ID when using username/password authentication for Venafi client (#7484, @ilyesAj)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7484",
+     "url": "https://github.com/cert-manager/website/issues/7484"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7484",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7484"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/feature|enhancement/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-fe02a4220985"
+   ]
+  },
+  {
+   "id": "chg-6045339adc1b",
+   "category": "feature",
+   "title": "Adds a new configuration option - `tenantID` - for the AzureDNS provider when using managed identities with service principals",
+   "detail": "Adds a new configuration option - `tenantID` - for the AzureDNS provider when using managed identities with service principals. This enhancement allows users to specify the tenant ID when using managed identities, offering better flexibility in multi-tenant environments. (#7376, @jochenrichter)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7376",
+     "url": "https://github.com/cert-manager/website/issues/7376"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7376",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7376"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/feature|enhancement/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-cd466139dded"
+   ]
+  },
+  {
+   "id": "chg-39af49c96bad",
+   "category": "feature",
+   "title": "Allow JKS/PKCS12 keystore passwords to be set as literal values in Certificate resources, mutually exclusive with the existing `passwordSecretRef` field",
+   "detail": "Allow JKS/PKCS12 keystore passwords to be set as literal values in Certificate resources, mutually exclusive with the existing `passwordSecretRef` field (#6657, @rquinio1A)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#6657",
+     "url": "https://github.com/cert-manager/website/issues/6657"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#6657",
+     "url": "https://github.com/cert-manager/cert-manager/pull/6657"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/feature|enhancement/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-d308231cd8ab"
+   ]
+  },
+  {
+   "id": "chg-fde9a1cc7d0b",
+   "category": "feature",
+   "title": "Allow templating ServiceAccount annotations by running the built-in Helm `tpl` function on keys and values, to aid with workload identity configuration",
+   "detail": "Allow templating ServiceAccount annotations by running the built-in Helm `tpl` function on keys and values, to aid with workload identity configuration (#7501, @fcrespofastly)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7501",
+     "url": "https://github.com/cert-manager/website/issues/7501"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7501",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7501"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/feature|enhancement/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-e7cf2f463686"
+   ]
+  },
+  {
+   "id": "chg-210865084e27",
+   "category": "feature",
+   "title": "Helm: New value `webhook.extraEnv` allows you to set custom environment variables in the webhook Pod",
+   "detail": "Helm: New value `webhook.extraEnv` allows you to set custom environment variables in the webhook Pod. Helm: New value `cainjector.extraEnv` allows you to set custom environment variables in the cainjector Pod. Helm: New value `startupapicheck.extraEnv` allows you to set custom environment variables in the startupapicheck Pod. (#7317, @wallrj)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7317",
+     "url": "https://github.com/cert-manager/website/issues/7317"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7317",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7317"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/feature|enhancement/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-fe0fca386a7a"
+   ]
+  },
+  {
+   "id": "chg-f54820f8d4e4",
+   "category": "feature",
+   "title": "Increase the amount of PEM data `pki.DecodeX509CertificateSetBytes` is able to parse, to enable reading larger TLS trust bundles",
+   "detail": "Increase the amount of PEM data `pki.DecodeX509CertificateSetBytes` is able to parse, to enable reading larger TLS trust bundles (#7464, @SgtCoDFish)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7464",
+     "url": "https://github.com/cert-manager/website/issues/7464"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7464",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7464"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/feature|enhancement/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-db955cc00d69"
+   ]
+  },
+  {
+   "id": "chg-929e3fd06ae3",
+   "category": "feature",
+   "title": "Promote CA `NameConstraints` feature gate to Beta (enabled by default)",
+   "detail": "Promote CA `NameConstraints` feature gate to Beta (enabled by default) (#7494, @tanujd11)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7494",
+     "url": "https://github.com/cert-manager/website/issues/7494"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7494",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7494"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/feature|enhancement/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-619c0cea3aa4"
+   ]
+  },
+  {
+   "id": "chg-2965d6c746c8",
+   "category": "feature",
+   "title": "Promote the `UseDomainQualifiedFinalizer` feature to Beta",
+   "detail": "Promote the `UseDomainQualifiedFinalizer` feature to Beta. (#7488, @jsoref)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7488",
+     "url": "https://github.com/cert-manager/website/issues/7488"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7488",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7488"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/feature|enhancement/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-c54ac338953d"
+   ]
+  },
+  {
+   "id": "chg-2a31294482fc",
+   "category": "bugfix",
+   "title": "BUGFIX: A change in v1.16.0 caused cert-manager's ACME ClusterIssuer to look in the wrong namespace for resources required for the issuance (e.g. credential…",
+   "detail": "BUGFIX: A change in v1.16.0 caused cert-manager's ACME ClusterIssuer to look in the wrong namespace for resources required for the issuance (e.g. credential Secrets). This is now fixed in v1.16.1+ and v1.17.0+ (#7339, @inteon)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7339",
+     "url": "https://github.com/cert-manager/website/issues/7339"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7339",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7339"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/bug|fix|regression/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-aa02449851f9"
+   ]
+  },
+  {
+   "id": "chg-ac846ef641f0",
+   "category": "bugfix",
+   "title": "BUGFIX: Helm will now accept percentages for the `podDisruptionBudget.minAvailable` and `podDisruptionBudget.maxAvailable` values",
+   "detail": "BUGFIX: Helm will now accept percentages for the `podDisruptionBudget.minAvailable` and `podDisruptionBudget.maxAvailable` values. (#7343, @inteon)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7343",
+     "url": "https://github.com/cert-manager/website/issues/7343"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7343",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7343"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/bug|fix|regression/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-d176cffb7417"
+   ]
+  },
+  {
+   "id": "chg-3d9ddd642630",
+   "category": "bugfix",
+   "title": "Fix ACME HTTP-01 solver for IPv6 endpoints",
+   "detail": "Fix ACME HTTP-01 solver for IPv6 endpoints (#7391, @Peac36)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7391",
+     "url": "https://github.com/cert-manager/website/issues/7391"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7391",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7391"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/bug|fix|regression/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-4fef58672646"
+   ]
+  },
+  {
+   "id": "chg-ab677b7fc4b4",
+   "category": "bugfix",
+   "title": "Fix the behavior of `renewBeforePercentage` to comply with its spec",
+   "detail": "Fix the behavior of `renewBeforePercentage` to comply with its spec (#7421, @adam-sroka)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7421",
+     "url": "https://github.com/cert-manager/website/issues/7421"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7421",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7421"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/bug|fix|regression/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-cae85181502c"
+   ]
+  },
+  {
+   "id": "chg-d245e6ed129a",
+   "category": "bugfix",
+   "title": "Helm: allow `enabled` to be set as a value to toggle cert-manager as a dependency",
+   "detail": "Helm: allow `enabled` to be set as a value to toggle cert-manager as a dependency. (#7350, @inteon)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7350",
+     "url": "https://github.com/cert-manager/website/issues/7350"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7350",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7350"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/bug|fix|regression/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-c3fa8260181b"
+   ]
+  },
+  {
+   "id": "chg-a86ad56d5f5a",
+   "category": "bugfix",
+   "title": "The Certificate object will no longer create CertificateRequest or Secret objects while being deleted",
+   "detail": "The Certificate object will no longer create CertificateRequest or Secret objects while being deleted (#7361, @ThatsMrTalbot)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7361",
+     "url": "https://github.com/cert-manager/website/issues/7361"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7361",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7361"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/bug|fix|regression/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-ab4bd1639399"
+   ]
+  },
+  {
+   "id": "chg-c9d30bbce225",
+   "category": "bugfix",
+   "title": "The issuer will now more quickly retry when its linked Secret is updated to fix an issue that caused a high back-off timeout",
+   "detail": "The issuer will now more quickly retry when its linked Secret is updated to fix an issue that caused a high back-off timeout. (#7455, @inteon)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7455",
+     "url": "https://github.com/cert-manager/website/issues/7455"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7455",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7455"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/bug|fix|regression/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-10c8b1c28d66"
+   ]
+  },
+  {
+   "id": "chg-da416a65f86f",
+   "category": "bugfix",
+   "title": "Upgrades the Venafi `vCert` library, fixing a bug which caused the RSA 3072 bit key size for TPP certificate enrollment to not work",
+   "detail": "Upgrades the Venafi `vCert` library, fixing a bug which caused the RSA 3072 bit key size for TPP certificate enrollment to not work. (#7498, @inteon)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7498",
+     "url": "https://github.com/cert-manager/website/issues/7498"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7498",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7498"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/bug|fix|regression/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-12d2733c5dd3"
+   ]
+  },
+  {
+   "id": "chg-0421d2cf600b",
+   "category": "other",
+   "title": "Add example for IPv6 in `--dns01-recursive-nameservers`",
+   "detail": "Add example for IPv6 in `--dns01-recursive-nameservers` (#7367, @SgtCoDFish)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7367",
+     "url": "https://github.com/cert-manager/website/issues/7367"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7367",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7367"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/documentation|docs/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-7fdda4292ba5"
+   ]
+  },
+  {
+   "id": "chg-3716abdee086",
+   "category": "other",
+   "title": "Easier Keystore Passwords for PKCS#12 and JKS: Specifying passwords on PKCS#12 and JKS keystores is supported in cert-manager for compatibility reasons with…",
+   "detail": "Easier Keystore Passwords for PKCS#12 and JKS: Specifying passwords on PKCS#12 and JKS keystores is supported in cert-manager for compatibility reasons with software which expects or requires passwords to be set; however, these passwords are not relevant to security and never have been in cert-manager. The initial implementation of the `keystores` feature required these \"passwords\" to be stored in a Kubernetes secret, which would then be read by cert-manager when creating the keystore after a certificate was issued. This is cumbersome, especially when many passwords are set to default values such as `changeit` or `password`. In cert-manager v1.17, it's now possible to set a keystore password using a literal string value inside the `Certificate` resource itself, making this process much easier with no change to security. For example: The new `password` field is mutually exclusive with the `passwordSecretRef` field, so be sure to only set one.",
+   "release": "1.17.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-4c3d690d4f9d"
+   ]
+  },
+  {
+   "id": "chg-f8b18001f2fd",
+   "category": "other",
+   "title": "Move 'live' DNS tests into a separate package to contain test flakiness and improve developer UX",
+   "detail": "Move 'live' DNS tests into a separate package to contain test flakiness and improve developer UX (#7530, @SgtCoDFish)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7530",
+     "url": "https://github.com/cert-manager/website/issues/7530"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7530",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7530"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/other|cleanup|flake|misc/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-7ed93148a767"
+   ]
+  },
+  {
+   "id": "chg-cdbe001f21d8",
+   "category": "other",
+   "title": "OperatorHub Packages Discontinued: We no longer publish OperatorHub packages for cert-manager",
+   "detail": "OperatorHub Packages Discontinued: We no longer publish OperatorHub packages for cert-manager. Why? Because the cert-manager maintainers no longer have the time or resources to maintain and test those packages. cert-manager `v1.16.5` is the last release on OperatorHub. ℹ️ cert-manager `v1.16.5` for RedHat OpenShift OperatorHub. ℹ️ cert-manager `v1.16.5` for `operatorhub.io`. ℹ️ Archived `cert-manager-olm` repository.",
+   "release": "1.17.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-a89ac42d3167"
+   ]
+  },
+  {
+   "id": "chg-5eddbd618934",
+   "category": "other",
+   "title": "Other Changes: There are many other PRs which were merged in this release cycle and we'd encourage you to read the release notes below",
+   "detail": "Other Changes: There are many other PRs which were merged in this release cycle and we'd encourage you to read the release notes below. One PR that's worth highlighting is a change to add more structured logging information to certain log lines. If you were previously filtering logs using `grep` or similar tools (which is highly discouraged!) be aware that some log lines have changed format.",
+   "release": "1.17.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/other|cleanup|flake|misc/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-95c9a508db46"
+   ]
+  },
+  {
+   "id": "chg-be5c1fe63bfd",
+   "category": "other",
+   "title": "RSA Certificate Compliance: The United States Department of Defense published a memo: Department of Defense Transition to Stronger Public Key Infrastructure…",
+   "detail": "RSA Certificate Compliance: The United States Department of Defense published a memo: Department of Defense Transition to Stronger Public Key Infrastructure Algorithms in 2022 which introduced some requirements on the kinds of cryptography they require to be supported in software they use. In effect, the memo requires that software be able to support larger RSA keys (3072-bit and 4096-bit) and hashing algorithms (SHA-384 at a minimum). cert-manager supported large RSA keys long before the memo was published, but a quirk in implementation meant that cert-manager always used SHA-256 when signing with RSA. In v1.17.0, cert-manager will choose a hash algorithm based on the RSA key length: 3072-bit keys will use SHA-384, and 4096-bit keys will use SHA-512. This matches similar behavior already present for ECDSA signatures. Our expectation is that this change will have minimal impact beyond a slight increase in security and better compliance; we're not aware of Kubernetes-based environments which support RSA 2048 and SHA-256 but fail with RSA 4096 and SHA-512. However, if you're using larger RSA keys, you should be aware of the change.",
+   "release": "1.17.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-c76ce5c9366c"
+   ]
+  },
+  {
+   "id": "chg-628c013cdca8",
+   "category": "other",
+   "title": "Updated the chart documentation to show `enableGatewayAPI` in the config example",
+   "detail": "Updated the chart documentation to show `enableGatewayAPI` in the config example. (#7354, @puerco)",
+   "release": "1.17.0",
+   "references": [
+    {
+     "type": "github-ref",
+     "id": "cert-manager/website#7354",
+     "url": "https://github.com/cert-manager/website/issues/7354"
+    },
+    {
+     "type": "pull-request",
+     "id": "cert-manager/cert-manager#7354",
+     "url": "https://github.com/cert-manager/cert-manager/pull/7354"
+    }
+   ],
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "section:/documentation|docs/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-a3e4f9945cf7"
+   ]
+  }
+ ],
+ "evidence": [
+  {
+   "id": "ev-d38dbe2bad11",
+   "kind": "git-ref",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/tag/v1.16.0",
+   "locator": "refs/tags/v1.16.0",
+   "excerpt": "release v1.16.0 published 2024-10-03T15:00:40Z",
+   "retrievedAt": "2026-10-01T22:46:25Z"
+  },
+  {
+   "id": "ev-58a58de9ac74",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L315-L378",
+   "excerpt": "v1.16.0",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-a48dde89dacb",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L321-L321 (v1.16.0 › Feature)",
+   "excerpt": "- Add `SecretRef` support for Venafi TPP issuer CA Bundle ([#7036](https://github.com/cert-manager/cert-manager/pull/7036), [`@sankalp-at-gh`](https://github.com/sankalp-at-gh))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-fbb03d62e68d",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L322-L322 (v1.16.0 › Feature)",
+   "excerpt": "- Add `renewBeforePercentage` alternative to `renewBefore` ([#6987](https://github.com/cert-manager/cert-manager/pull/6987), [`@cbroglie`](https://github.com/cbroglie))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-2a00bc4554ea",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L323-L323 (v1.16.0 › Feature)",
+   "excerpt": "- Add a metrics server to the cainjector ([#7194](https://github.com/cert-manager/cert-manager/pull/7194), [`@wallrj`](https://github.com/wallrj))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-65624b43b34e",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L324-L324 (v1.16.0 › Feature)",
+   "excerpt": "- Add a metrics server to the webhook ([#7182](https://github.com/cert-manager/cert-manager/pull/7182), [`@wallrj`](https://github.com/wallrj))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-8a8e05a49236",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L325-L325 (v1.16.0 › Feature)",
+   "excerpt": "- Add client certificate auth method for Vault issuer ([#4330](https://github.com/cert-manager/cert-manager/pull/4330), [`@joshmue`](https://github.com/joshmue))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-4dd63baebce4",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L326-L326 (v1.16.0 › Feature)",
+   "excerpt": "- Add process and go runtime metrics for controller ([#6966](https://github.com/cert-manager/cert-manager/pull/6966), [`@mindw`](https://github.com/mindw))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-e5b561c812e2",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L327-L327 (v1.16.0 › Feature)",
+   "excerpt": "- Added `app.kubernetes.io/managed-by: cert-manager` label to the cert-manager-webhook-ca Secret ([#7154](https://github.com/cert-manager/cert-manager/pull/7154), [`@jrcichra`](https://github.com/jrcichra))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-646a159a4d78",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L328-L328 (v1.16.0 › Feature)",
+   "excerpt": "- Allow the user to specify a Pod template when using GatewayAPI HTTP01 solver, this mirrors the behavior when using the Ingress HTTP01 solver. ([#7211](https://github.com/cert-manager/cert-manager/pull/7211), [`@ThatsMrTalbot`](https://github.com/ThatsMrTalbot))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-75bbd895f8e7",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L329-L329 (v1.16.0 › Feature)",
+   "excerpt": "- Create token request RBAC for the cert-manager ServiceAccount by default ([#7213](https://github.com/cert-manager/cert-manager/pull/7213), [`@Jasper-Ben`](https://github.com/Jasper-Ben))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-a96584bbfa43",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L330-L330 (v1.16.0 › Feature)",
+   "excerpt": "- Feature: Append cert-manager user-agent string to all AWS API requests, including IMDS and STS requests. ([#7295](https://github.com/cert-manager/cert-manager/pull/7295), [`@wallrj`](https://github.com/wallrj))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-5531604c78c9",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L331-L331 (v1.16.0 › Feature)",
+   "excerpt": "- Feature: Log AWS SDK warnings and API requests at cert-manager debug level to help debug AWS Route53 problems in the field. ([#7292](https://github.com/cert-manager/cert-manager/pull/7292), [`@wallrj`](https://github.com/wallrj))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-a6528cd68445",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L332-L333 (v1.16.0 › Feature)",
+   "excerpt": "- Feature: The Route53 DNS solver of the ACME Issuer will now use regional STS endpoints computed from the region that is supplied in the Issuer spec or in the `AWS_REGION` environment variable.\n  Feature: The Route53 DNS solver of the ACME Issuer now uses the \"ambient\" region (`AWS_REGION` or `AWS_DEFAULT_REGION`) if `issuer.spec.acme.solvers.dns01.route53.region` is empty; regardless of the flags `--issuer-ambient-credentials` and `--cluster-issuer-ambient-credentials`. ([#7299](https://github.com/cert-manager/cert-manager/pull/7299), [`@wallrj`](https://github.com/wallrj))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-f078508c712d",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L334-L334 (v1.16.0 › Feature)",
+   "excerpt": "- Helm: adds JSON schema validation for the Helm values. ([#7069](https://github.com/cert-manager/cert-manager/pull/7069), [`@inteon`](https://github.com/inteon))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-cff9d83af4b1",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L335-L336 (v1.16.0 › Feature)",
+   "excerpt": "- If the `--controllers` flag only specifies disabled controllers, the default controllers are now enabled implicitly.\n  Added `disableAutoApproval` and `approveSignerNames` Helm chart options. ([#7049](https://github.com/cert-manager/cert-manager/pull/7049), [`@inteon`](https://github.com/inteon))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-807a633a4ea9",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L337-L337 (v1.16.0 › Feature)",
+   "excerpt": "- Make it easier to configure cert-manager using Helm by defaulting `config.apiVersion` and `config.kind` within the Helm chart. ([#7126](https://github.com/cert-manager/cert-manager/pull/7126), [`@ThatsMrTalbot`](https://github.com/ThatsMrTalbot))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-f4fe3b6b5c98",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L338-L338 (v1.16.0 › Feature)",
+   "excerpt": "- Now passes down specified duration to Venafi client instead of using the CA default only. ([#7104](https://github.com/cert-manager/cert-manager/pull/7104), [`@Guitarkalle`](https://github.com/Guitarkalle))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-2373c65eccb2",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L339-L340 (v1.16.0 › Feature)",
+   "excerpt": "- Reduce the memory usage of `cainjector`, by only caching the metadata of Secret resources.\n  Reduce the load on the K8S API server when `cainjector` starts up, by only listing the metadata of Secret resources. ([#7161](https://github.com/cert-manager/cert-manager/pull/7161), [`@wallrj`](https://github.com/wallrj))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-738df8a6d0c8",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L341-L343 (v1.16.0 › Feature)",
+   "excerpt": "- The Route53 DNS01 solver of the ACME Issuer can now detect the AWS region from the `AWS_REGION` and `AWS_DEFAULT_REGION` environment variables, which is set by the IAM for Service Accounts (IRSA) webhook and by the Pod Identity webhook.\n  The `issuer.spec.acme.solvers.dns01.route53.region` field is now optional.\n  The API documentation of the `region` field has been updated to explain when and how the region value is used. ([#7287](https://github.com/cert-manager/cert-manager/pull/7287), [`@wallrj`](https://github.com/wallrj))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-c8264bd757a8",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L344-L345 (v1.16.0 › Feature)",
+   "excerpt": "- Venafi TPP issuer can now be used with a username \u0026 password combination with OAuth. Fixes #4653.\n  Breaking: cert-manager will no longer use the API Key authentication method which was deprecated in 20.2 and since removed in 24.1 of TPP. ([#7084](https://github.com/cert-manager/cert-manager/pull/7084), [`@hawksight`](https://github.com/hawksight))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-7722be4ff086",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L346-L346 (v1.16.0 › Feature)",
+   "excerpt": "- You can now configure the pod security context of HTTP-01 solver pods. ([#5373](https://github.com/cert-manager/cert-manager/pull/5373), [`@aidy`](https://github.com/aidy))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-d6744930cc7f",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L347-L349 (v1.16.0 › Feature)",
+   "excerpt": "- Helm: New value `webhook.extraEnv`, allows you to set custom environment variables in the webhook Pod.\n  Helm: New value `cainjector.extraEnv`, allows you to set custom environment variables in the cainjector Pod.\n  Helm: New value `startupapicheck.extraEnv`, allows you to set custom environment variables in the startupapicheck Pod. ([#7319](https://github.com/cert-manager/cert-manager/pull/7319), [`@wallrj`](https://github.com/wallrj))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-092a7e1b261b",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L353-L353 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Adds support (behind a flag) to use a domain qualified finalizer. If the feature is enabled (which is not by default), it should prevent Kubernetes from reporting: `metadata.finalizers: \"finalizer.acme.cert-manager.io\": prefer a domain-qualified finalizer name to avoid accidental conflicts with other finalizer writers` ([#7273](https://github.com/cert-manager/cert-manager/pull/7273), [`@jsoref`](https://github.com/jsoref))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-587b87ca394b",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L354-L354 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- BUGFIX Route53: explicitly set the `aws-global` STS region which is now required by the `github.com/aws/aws-sdk-go-v2` library. ([#7108](https://github.com/cert-manager/cert-manager/pull/7108), [`@inteon`](https://github.com/inteon))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-8b96bf786977",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L355-L355 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- BUGFIX: fix issue that caused Vault issuer to not retry signing when an error was encountered. ([#7105](https://github.com/cert-manager/cert-manager/pull/7105), [`@inteon`](https://github.com/inteon))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-8224ef6cf12b",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L356-L356 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- BUGFIX: the dynamic certificate source used by the webhook TLS server failed to detect a root CA approaching expiration, due to a calculation error. This will cause the webhook TLS server to fail renewing its CA certificate. Please upgrade before the expiration of this CA certificate is reached. ([#7230](https://github.com/cert-manager/cert-manager/pull/7230), [`@inteon`](https://github.com/inteon))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-2a933528aebf",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L357-L357 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Bugfix: Prevent aggressive Route53 retries caused by IRSA authentication failures by removing the Amazon Request ID from errors wrapped by the default credential cache. ([#7291](https://github.com/cert-manager/cert-manager/pull/7291), [`@wallrj`](https://github.com/wallrj))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-c206cb60af26",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L358-L358 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Bugfix: Prevent aggressive Route53 retries caused by STS authentication failures by removing the Amazon Request ID from STS errors. ([#7259](https://github.com/cert-manager/cert-manager/pull/7259), [`@wallrj`](https://github.com/wallrj))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-fa43eb8ceeee",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L359-L359 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Bump `grpc-go` to fix `GHSA-xr7q-jx4m-x55m` ([#7164](https://github.com/cert-manager/cert-manager/pull/7164), [`@SgtCoDFish`](https://github.com/SgtCoDFish))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-680be7a0f0bc",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L360-L360 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Bump the `go-retryablehttp` dependency to fix `CVE-2024-6104` ([#7125](https://github.com/cert-manager/cert-manager/pull/7125), [`@SgtCoDFish`](https://github.com/SgtCoDFish))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-85acca5bcef4",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L361-L361 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Fix Azure DNS causing panics whenever authentication error happens ([#7177](https://github.com/cert-manager/cert-manager/pull/7177), [`@eplightning`](https://github.com/eplightning))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-5ad03dd35c6f",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L362-L362 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Fix incorrect indentation of `endpointAdditionalProperties` in the `PodMonitor` template of the Helm chart ([#7190](https://github.com/cert-manager/cert-manager/pull/7190), [`@wallrj`](https://github.com/wallrj))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-77ae0b2ca689",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L363-L363 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Fixes ACME HTTP01 challenge behavior when using Gateway API to prevent unbounded creation of HTTPRoute resources ([#7178](https://github.com/cert-manager/cert-manager/pull/7178), [`@miguelvr`](https://github.com/miguelvr))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-95a15061c9e5",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L364-L364 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Handle errors arising from challenges missing from the ACME server ([#7202](https://github.com/cert-manager/cert-manager/pull/7202), [`@bdols`](https://github.com/bdols))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-7207b28f2f4b",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L365-L365 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Helm BUGFIX: the cainjector ConfigMap was not mounted in the cainjector deployment. ([#7052](https://github.com/cert-manager/cert-manager/pull/7052), [`@inteon`](https://github.com/inteon))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-4a929cda839d",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L366-L366 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Improve the startupapicheck: validate that the validating and mutating webhooks are doing their job. ([#7057](https://github.com/cert-manager/cert-manager/pull/7057), [`@inteon`](https://github.com/inteon))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-1631ee65121d",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L367-L367 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- The `KeyUsages` X.509 extension is no longer added when there are no key usages set (in accordance to RFC 5280 Section 4.2.1.3) ([#7250](https://github.com/cert-manager/cert-manager/pull/7250), [`@inteon`](https://github.com/inteon))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-f2bc52d75ce4",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L368-L368 (v1.16.0 › Bug or Regression)",
+   "excerpt": "- Update `github.com/Azure/azure-sdk-for-go/sdk/azidentity` to address `CVE-2024-35255` ([#7087](https://github.com/cert-manager/cert-manager/pull/7087), [`@dependabot[bot]`](https://github.com/apps/dependabot))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-ad203fdd7c44",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L372-L376 (v1.16.0 › Other (Cleanup or Flake))",
+   "excerpt": "- Old API versions were removed from the codebase.\n  Removed:\n  (acme.)cert-manager.io/v1alpha2\n  (acme.)cert-manager.io/v1alpha3\n  (acme.)cert-manager.io/v1beta1 ([#7278](https://github.com/cert-manager/cert-manager/pull/7278), [`@inteon`](https://github.com/inteon))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-2afe966ad37f",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L377-L377 (v1.16.0 › Other (Cleanup or Flake))",
+   "excerpt": "- Upgrading to client-go `v0.31.0` removes a lot of noisy `reflector.go: unable to sync list result: internal error: cannot cast object DeletedFinalStateUnknown` errors from logs. ([#7237](https://github.com/cert-manager/cert-manager/pull/7237), [`@inteon`](https://github.com/inteon))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-bca6b1577852",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L378-L378 (v1.16.0 › Other (Cleanup or Flake))",
+   "excerpt": "- Bump Go to `v1.23.2` ([#7324](https://github.com/cert-manager/cert-manager/pull/7324), [`@cert-manager-bot`](https://github.com/cert-manager-bot))",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-c4ccc3bdfb6f",
+   "kind": "document",
+   "sourceId": "website-breaking-changes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L10-L29",
+   "excerpt": "Breaking changes",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-306758f5617c",
+   "kind": "document",
+   "sourceId": "website-breaking-changes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L12-L13 (Breaking changes)",
+   "excerpt": "1. Helm schema validation may reject your existing Helm values files if they contain typos or unrecognized fields.\n   For more details, refer to the [Helm](#helm) section below.",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-d0cc79fca215",
+   "kind": "document",
+   "sourceId": "website-breaking-changes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L14-L15 (Breaking changes)",
+   "excerpt": "1. Venafi Issuer may fail to renew certificates if the requested duration conflicts with the CA’s minimum or maximum policy settings in Venafi.\n   For more details, refer to the [Venafi Issuer](#venafi-issuer) section below.",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-152ade43b07f",
+   "kind": "document",
+   "sourceId": "website-breaking-changes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L16-L17 (Breaking changes)",
+   "excerpt": "1. Venafi Issuer may fail to renew Certificates if the issuer has been configured for TPP with username-password authentication.\n   For more details, refer to the [Venafi Issuer](#venafi-issuer) section below.",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-6d2a78c11554",
+   "kind": "document",
+   "sourceId": "website-breaking-changes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md",
+   "locator": "L19-L29 (Breaking changes › OperatorHub Packages Discontinued)",
+   "excerpt": "### OperatorHub Packages Discontinued\n\nWe no longer publish OperatorHub packages for cert-manager.\nWhy? Because the cert-manager maintainers no longer have the time or resources to maintain and test those packages.\ncert-manager `v1.16.5` is the last release on OperatorHub.\n\n\u003e ℹ️ [cert-manager `v1.16.5` for RedHat OpenShift OperatorHub](https://github.com/redhat-openshift-ecosystem/community-operators-prod/tree/main/operators/cert-manager/1.16.5).\n\u003e\n\u003e ℹ️ [cert-manager `v1.16.5` for `operatorhub.io`](https://github.com/k8s-operatorhub/community-operators/tree/main/operators/cert-manager/…",
+   "contentDigest": "sha256:30515a6bf2ddc0319c5a66b941956bedf8f986166a470fb1f9648878271ed97e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-a7a9e80e94cb",
+   "kind": "document",
+   "sourceId": "upgrade-guide",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.15-1.16.md",
+   "locator": "L1-L17",
+   "excerpt": "---",
+   "contentDigest": "sha256:4056133b010ab8ff773ef44cadf763d1cb1f68e0c60c1871414202988a4233fd",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-7f8fc5f1fa79",
+   "kind": "document",
+   "sourceId": "upgrade-guide",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.15-1.16.md",
+   "locator": "L8-L9",
+   "excerpt": "1. Helm schema validation may reject your existing Helm values files if they contain typos or unrecognized fields.\n   For more details, refer to the [Helm](../release-notes/release-notes-1.16.md#helm) section in the release notes.",
+   "contentDigest": "sha256:4056133b010ab8ff773ef44cadf763d1cb1f68e0c60c1871414202988a4233fd",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-fac8772473cf",
+   "kind": "document",
+   "sourceId": "upgrade-guide",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.15-1.16.md",
+   "locator": "L10-L11",
+   "excerpt": "1. Venafi Issuer may fail to renew certificates if the requested duration conflicts with the CA’s minimum or maximum policy settings in Venafi.\n   For more details, refer to the [Venafi Issuer](../release-notes/release-notes-1.16.md#venafi-issuer) section in the release notes.",
+   "contentDigest": "sha256:4056133b010ab8ff773ef44cadf763d1cb1f68e0c60c1871414202988a4233fd",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-36e4ead3cbec",
+   "kind": "document",
+   "sourceId": "upgrade-guide",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.15-1.16.md",
+   "locator": "L12-L13",
+   "excerpt": "1. Venafi Issuer may fail to renew Certificates if the issuer has been configured for TPP with username-password authentication.\n   For more details, refer to the [Venafi Issuer](../release-notes/release-notes-1.16.md#venafi-issuer) section in the release notes.",
+   "contentDigest": "sha256:4056133b010ab8ff773ef44cadf763d1cb1f68e0c60c1871414202988a4233fd",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-61759165fc1c",
+   "kind": "document",
+   "sourceId": "supported-releases",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md",
+   "locator": "L308",
+   "excerpt": "| Release      | Release Date | EOL          | Compatible Kubernetes versions | Compatible OpenShift versions |\n| [1.16][]     | Oct 03, 2024 | Jun 10, 2025 | 1.25 → 1.32                    | 4.14 → 4.17                   |",
+   "contentDigest": "sha256:2d1aa5f5dd48b1baadc10dd7381d9ce6f2848567f21069109b37bda5f417bf9e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-dd533db90863",
+   "kind": "release-asset",
+   "sourceId": "install-manifest",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.16.0/cert-manager.yaml",
+   "excerpt": "# Copyright 2022 The cert-manager Authors.",
+   "contentDigest": "sha256:09b262d4c1d37b191c27b5a95268b62d544576c57f7cd1f56322aa6b7dbad11c",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-74be7f470a9e",
+   "kind": "structured",
+   "sourceId": "install-manifest",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.16.0/cert-manager.yaml",
+   "excerpt": "# Copyright 2022 The cert-manager Authors.",
+   "contentDigest": "sha256:09b262d4c1d37b191c27b5a95268b62d544576c57f7cd1f56322aa6b7dbad11c",
+   "representation": "release-asset",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-e65ad3f48ca0",
+   "kind": "release-asset",
+   "sourceId": "crds",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.16.0/cert-manager.crds.yaml",
+   "excerpt": "# Copyright 2022 The cert-manager Authors.",
+   "contentDigest": "sha256:6b81e668c80301955ea3c618a0e29ceb98b54d1d80a7b0082c77e5c7d827b41b",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-84061d76ea1b",
+   "kind": "structured",
+   "sourceId": "crds",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.16.0/cert-manager.crds.yaml",
+   "excerpt": "# Copyright 2022 The cert-manager Authors.",
+   "contentDigest": "sha256:6b81e668c80301955ea3c618a0e29ceb98b54d1d80a7b0082c77e5c7d827b41b",
+   "representation": "release-asset",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-14c7eb39f3e2",
+   "kind": "registry",
+   "uri": "https://charts.jetstack.io/index.yaml",
+   "locator": "entries.cert-manager[version=v1.16.0]",
+   "excerpt": "version: v1.16.0, appVersion: v1.16.0",
+   "contentDigest": "sha256:8976420b58e5046cf910c362b67a039651c6ddc69c3cc0c1442646746d29ccd3",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-fdc96eee87bf",
+   "kind": "structured",
+   "sourceId": "helm-chart",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.16.0/deploy/charts/cert-manager/values.yaml",
+   "locator": "deploy/charts/cert-manager/values.yaml",
+   "excerpt": "# +docs:section=Global",
+   "contentDigest": "sha256:6cc03b3cfa9205cd76f35956d008dbc5f97d6b0a2b68427b182fb40747de7e92",
+   "representation": "source-tree",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-5ba3aed875c6",
+   "kind": "structured",
+   "sourceId": "helm-chart",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.16.0/deploy/charts/cert-manager/Chart.template.yaml",
+   "locator": "deploy/charts/cert-manager/Chart.template.yaml",
+   "excerpt": "apiVersion: v2",
+   "contentDigest": "sha256:cfbb039df2146182a768109612a728b199f4f4e5db5d469538f0134a4919d0c0",
+   "representation": "source-tree",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-0cfd5ea985e9",
+   "kind": "structured",
+   "sourceId": "helm-chart",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.16.0/deploy/charts/cert-manager/Chart.template.yaml",
+   "locator": "L23",
+   "excerpt": "kubeVersion: \"\u003e= 1.22.0-0\"",
+   "contentDigest": "sha256:cfbb039df2146182a768109612a728b199f4f4e5db5d469538f0134a4919d0c0",
+   "representation": "source-tree",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-bcdfd1c8b86d",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-controller/manifests/sha256:80499ee045471972a3ffcf5ad25832b310b520fbd2b93c98bbfbd99bccd68549",
+   "locator": "manifests/v1.16.0",
+   "excerpt": "digest=sha256:80499ee045471972a3ffcf5ad25832b310b520fbd2b93c98bbfbd99bccd68549 mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:80499ee045471972a3ffcf5ad25832b310b520fbd2b93c98bbfbd99bccd68549",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-199c9c0943df",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-webhook/manifests/sha256:b800bb15426a382a54879988c864fb57b5259926a081c073f86181b3ba4a42af",
+   "locator": "manifests/v1.16.0",
+   "excerpt": "digest=sha256:b800bb15426a382a54879988c864fb57b5259926a081c073f86181b3ba4a42af mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:b800bb15426a382a54879988c864fb57b5259926a081c073f86181b3ba4a42af",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-211c49956905",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-cainjector/manifests/sha256:540b393295fe828d7d0829ffe5a223fc781ef59b2d12dcd6438b069e35763697",
+   "locator": "manifests/v1.16.0",
+   "excerpt": "digest=sha256:540b393295fe828d7d0829ffe5a223fc781ef59b2d12dcd6438b069e35763697 mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:540b393295fe828d7d0829ffe5a223fc781ef59b2d12dcd6438b069e35763697",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-93f65537f15c",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-acmesolver/manifests/sha256:a4b65f0a5b8f31ae6731e415492c68663b4ae2292674e8747037b2d18b1fa51e",
+   "locator": "manifests/v1.16.0",
+   "excerpt": "digest=sha256:a4b65f0a5b8f31ae6731e415492c68663b4ae2292674e8747037b2d18b1fa51e mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:a4b65f0a5b8f31ae6731e415492c68663b4ae2292674e8747037b2d18b1fa51e",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-cdfd8a1e6381",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-startupapicheck/manifests/sha256:f4327a7714a6f10e68d82905fc2284285daa1113823c18f943c8eafabd67e925",
+   "locator": "manifests/v1.16.0",
+   "excerpt": "digest=sha256:f4327a7714a6f10e68d82905fc2284285daa1113823c18f943c8eafabd67e925 mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:f4327a7714a6f10e68d82905fc2284285daa1113823c18f943c8eafabd67e925",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-2b9b20190ec5",
+   "kind": "git-ref",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/tag/v1.17.0",
+   "locator": "refs/tags/v1.17.0",
+   "excerpt": "release v1.17.0 published 2025-02-03T17:48:49Z",
+   "retrievedAt": "2026-10-01T22:46:25Z"
+  },
+  {
+   "id": "ev-ea366f9f5823",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L184-L224",
+   "excerpt": "v1.17.0",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-53fb690413df",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L188-L188 (v1.17.0 › Feature)",
+   "excerpt": "- Potentially BREAKING: The CA and SelfSigned issuers now use SHA-512 when signing with RSA keys 4096 bits and above, and SHA-384 when signing with RSA keys 3072 bits and above. If you were previously using a larger RSA key as a CA, be sure to check that your systems support the new hash algorithms. ([#7368](https://github.com/cert-manager/cert-manager/pull/7368), [@SgtCoDFish](https://github.com/SgtCoDFish))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-e3729e495e40",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L189-L189 (v1.17.0 › Feature)",
+   "excerpt": "- Add `CAInjectorMerging` feature gate to the ca-injector, enabling this will change the behavior of the ca-injector to merge in new CA certificates instead of outright replacing the existing one. ([#7469](https://github.com/cert-manager/cert-manager/pull/7469), [@ThatsMrTalbot](https://github.com/ThatsMrTalbot))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-772ebf21cd9f",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L190-L190 (v1.17.0 › Feature)",
+   "excerpt": "- Added image pull secrets to deployments when service accounts aren't created ([#7411](https://github.com/cert-manager/cert-manager/pull/7411), [@TheHenrick](https://github.com/TheHenrick))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-fe02a4220985",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L191-L191 (v1.17.0 › Feature)",
+   "excerpt": "- Added the ability to customize client ID when using username/password authentication for Venafi client ([#7484](https://github.com/cert-manager/cert-manager/pull/7484), [@ilyesAj](https://github.com/ilyesAj))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-fe0fca386a7a",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L192-L194 (v1.17.0 › Feature)",
+   "excerpt": "- Helm: New value `webhook.extraEnv` allows you to set custom environment variables in the webhook Pod.\n  Helm: New value `cainjector.extraEnv` allows you to set custom environment variables in the cainjector Pod.\n  Helm: New value `startupapicheck.extraEnv` allows you to set custom environment variables in the startupapicheck Pod. ([#7317](https://github.com/cert-manager/cert-manager/pull/7317), [@wallrj](https://github.com/wallrj))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-db955cc00d69",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L195-L195 (v1.17.0 › Feature)",
+   "excerpt": "- Increase the amount of PEM data `pki.DecodeX509CertificateSetBytes` is able to parse, to enable reading larger TLS trust bundles ([#7464](https://github.com/cert-manager/cert-manager/pull/7464), [@SgtCoDFish](https://github.com/SgtCoDFish))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-cd466139dded",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L196-L196 (v1.17.0 › Feature)",
+   "excerpt": "- Adds a new configuration option - `tenantID` - for the AzureDNS provider when using managed identities with service principals. This enhancement allows users to specify the tenant ID when using managed identities, offering better flexibility in multi-tenant environments. ([#7376](https://github.com/cert-manager/cert-manager/pull/7376), [@jochenrichter](https://github.com/jochenrichter))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-c54ac338953d",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L197-L197 (v1.17.0 › Feature)",
+   "excerpt": "- Promote the `UseDomainQualifiedFinalizer` feature to Beta. ([#7488](https://github.com/cert-manager/cert-manager/pull/7488), [@jsoref](https://github.com/jsoref))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-d308231cd8ab",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L198-L198 (v1.17.0 › Feature)",
+   "excerpt": "- Allow JKS/PKCS12 keystore passwords to be set as literal values in Certificate resources, mutually exclusive with the existing `passwordSecretRef` field ([#6657](https://github.com/cert-manager/cert-manager/pull/6657), [@rquinio1A](https://github.com/rquinio1A))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-e7cf2f463686",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L199-L199 (v1.17.0 › Feature)",
+   "excerpt": "- Allow templating ServiceAccount annotations by running the built-in Helm `tpl` function on keys and values, to aid with workload identity configuration ([#7501](https://github.com/cert-manager/cert-manager/pull/7501), [@fcrespofastly](https://github.com/fcrespofastly))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-619c0cea3aa4",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L200-L200 (v1.17.0 › Feature)",
+   "excerpt": "- Promote CA `NameConstraints` feature gate to Beta (enabled by default) ([#7494](https://github.com/cert-manager/cert-manager/pull/7494), [@tanujd11](https://github.com/tanujd11))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-7fdda4292ba5",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L204-L204 (v1.17.0 › Documentation)",
+   "excerpt": "- Add example for IPv6 in `--dns01-recursive-nameservers` ([#7367](https://github.com/cert-manager/cert-manager/pull/7367), [@SgtCoDFish](https://github.com/SgtCoDFish))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-a3e4f9945cf7",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L205-L205 (v1.17.0 › Documentation)",
+   "excerpt": "- Updated the chart documentation to show `enableGatewayAPI` in the config example. ([#7354](https://github.com/cert-manager/cert-manager/pull/7354), [@puerco](https://github.com/puerco))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-aa02449851f9",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L209-L209 (v1.17.0 › Bug or Regression)",
+   "excerpt": "- BUGFIX: A change in v1.16.0 caused cert-manager's ACME ClusterIssuer to look in the wrong namespace for resources required for the issuance (e.g. credential Secrets). This is now fixed in v1.16.1+ and v1.17.0+ ([#7339](https://github.com/cert-manager/cert-manager/pull/7339), [@inteon](https://github.com/inteon))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-d176cffb7417",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L210-L210 (v1.17.0 › Bug or Regression)",
+   "excerpt": "- BUGFIX: Helm will now accept percentages for the `podDisruptionBudget.minAvailable` and `podDisruptionBudget.maxAvailable` values. ([#7343](https://github.com/cert-manager/cert-manager/pull/7343), [@inteon](https://github.com/inteon))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-4fef58672646",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L211-L211 (v1.17.0 › Bug or Regression)",
+   "excerpt": "- Fix ACME HTTP-01 solver for IPv6 endpoints ([#7391](https://github.com/cert-manager/cert-manager/pull/7391), [@Peac36](https://github.com/Peac36))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-cae85181502c",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L212-L212 (v1.17.0 › Bug or Regression)",
+   "excerpt": "- Fix the behavior of `renewBeforePercentage` to comply with its spec ([#7421](https://github.com/cert-manager/cert-manager/pull/7421), [@adam-sroka](https://github.com/adam-sroka))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-c3fa8260181b",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L213-L213 (v1.17.0 › Bug or Regression)",
+   "excerpt": "- Helm: allow `enabled` to be set as a value to toggle cert-manager as a dependency. ([#7350](https://github.com/cert-manager/cert-manager/pull/7350), [@inteon](https://github.com/inteon))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-36b8d942ea46",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L214-L214 (v1.17.0 › Bug or Regression)",
+   "excerpt": "- SECURITY (low risk): Limit maximum allowed PEM size to prevent potential DoS in cert-manager controller from attacker-controlled PEM. See [`GHSA-r4pg-vg54-wxx4`](https://github.com/cert-manager/cert-manager/security/advisories/GHSA-r4pg-vg54-wxx4) ([#7400](https://github.com/cert-manager/cert-manager/pull/7400), [@SgtCoDFish](https://github.com/SgtCoDFish))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-ab4bd1639399",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L215-L215 (v1.17.0 › Bug or Regression)",
+   "excerpt": "- The Certificate object will no longer create CertificateRequest or Secret objects while being deleted ([#7361](https://github.com/cert-manager/cert-manager/pull/7361), [@ThatsMrTalbot](https://github.com/ThatsMrTalbot))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-10c8b1c28d66",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L216-L216 (v1.17.0 › Bug or Regression)",
+   "excerpt": "- The issuer will now more quickly retry when its linked Secret is updated to fix an issue that caused a high back-off timeout. ([#7455](https://github.com/cert-manager/cert-manager/pull/7455), [@inteon](https://github.com/inteon))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-12d2733c5dd3",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L217-L217 (v1.17.0 › Bug or Regression)",
+   "excerpt": "- Upgrades the Venafi `vCert` library, fixing a bug which caused the RSA 3072 bit key size for TPP certificate enrollment to not work. ([#7498](https://github.com/cert-manager/cert-manager/pull/7498), [@inteon](https://github.com/inteon))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-df7847de6bcb",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L221-L221 (v1.17.0 › Other (Cleanup or Flake))",
+   "excerpt": "- ⚠️ Potentially BREAKING: Log messages that were not structured have now been replaced with structured logs. If you were matching on specific log strings, this could break your setup. ([#7461](https://github.com/cert-manager/cert-manager/pull/7461), [@inteon](https://github.com/inteon))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-6db6001fefb2",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L222-L222 (v1.17.0 › Other (Cleanup or Flake))",
+   "excerpt": "- DEPRECATION: The `ValidateCAA` feature gate is now deprecated, with removal scheduled for cert-manager 1.18. In 1.17, enabling this feature gate will print a warning. ([#7491](https://github.com/cert-manager/cert-manager/pull/7491), [@jsoref](https://github.com/jsoref))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-969cbf095c23",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L223-L223 (v1.17.0 › Other (Cleanup or Flake))",
+   "excerpt": "- Remove `Neither --kubeconfig nor --master was specified` warning message when the controller and the webhook services boot ([#7457](https://github.com/cert-manager/cert-manager/pull/7457), [@Peac36](https://github.com/Peac36))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-7ed93148a767",
+   "kind": "document",
+   "sourceId": "website-release-notes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L224-L224 (v1.17.0 › Other (Cleanup or Flake))",
+   "excerpt": "- Move 'live' DNS tests into a separate package to contain test flakiness and improve developer UX ([#7530](https://github.com/cert-manager/cert-manager/pull/7530), [@SgtCoDFish](https://github.com/SgtCoDFish))",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-39f895304452",
+   "kind": "document",
+   "sourceId": "website-major-themes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L13-L88",
+   "excerpt": "Major Themes",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-a89ac42d3167",
+   "kind": "document",
+   "sourceId": "website-major-themes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L15-L25 (Major Themes › OperatorHub Packages Discontinued)",
+   "excerpt": "### OperatorHub Packages Discontinued\n\nWe no longer publish OperatorHub packages for cert-manager.\nWhy? Because the cert-manager maintainers no longer have the time or resources to maintain and test those packages.\ncert-manager `v1.16.5` is the last release on OperatorHub.\n\n\u003e ℹ️ [cert-manager `v1.16.5` for RedHat OpenShift OperatorHub](https://github.com/redhat-openshift-ecosystem/community-operators-prod/tree/main/operators/cert-manager/1.16.5).\n\u003e\n\u003e ℹ️ [cert-manager `v1.16.5` for `operatorhub.io`](https://github.com/k8s-operatorhub/community-operators/tree/main/operators/cert-manager/…",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-c76ce5c9366c",
+   "kind": "document",
+   "sourceId": "website-major-themes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L27-L37 (Major Themes › RSA Certificate Compliance)",
+   "excerpt": "### RSA Certificate Compliance\n\nThe United States Department of Defense published a [memo: Department of Defense Transition to Stronger Public Key Infrastructure Algorithms](https://dl.dod.cyber.mil/wp-content/uploads/pki-pke/pdf/unclass-memo_dodcryptoalgorithms.pdf) in 2022 which introduced some requirements on the kinds of cryptography they require to be supported in software they use.\n\nIn effect, the memo requires that software be able to support larger RSA keys (3072-bit and 4096-bit) and hashing algorithms (SHA-384 at a minimum).\n\ncert-manager supported large RSA keys long before the memo…",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-4c3d690d4f9d",
+   "kind": "document",
+   "sourceId": "website-major-themes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L39-L71 (Major Themes › Easier Keystore Passwords for PKCS#12 and JKS)",
+   "excerpt": "### Easier Keystore Passwords for PKCS#12 and JKS\n\nSpecifying passwords on PKCS#12 and JKS keystores is supported in cert-manager\nfor compatibility reasons with software which expects or requires passwords to be set; however, these passwords are [not relevant to security](../../faq/README.md#why-are-passwords-on-jks-or-pkcs12-files-not-helpful) and never have been in cert-manager.\n\nThe initial implementation of the `keystores` feature required these \"passwords\" to be stored in a Kubernetes secret, which would then be read by cert-manager when creating the keystore after a certificate was issue…",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-0d3b308e9192",
+   "kind": "document",
+   "sourceId": "website-major-themes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L73-L82 (Major Themes › Feature Flag Promotions / Deprecations)",
+   "excerpt": "### Feature Flag Promotions / Deprecations\n\ncert-manager's feature flags allow for easier testing and adoption of new features with a reduced risk of breaking changes. In cert-manager v1.17, two feature gates have been promoted to \"beta\", and as such are now enabled by default in all installations:\n\n- `NameConstraints`, allowing users to specify the name constraints extension which can be helpful when creating CA certificates for private PKI\n- `UseDomainQualifiedFinalizer`, which stops a Kubernetes warning from being printed in logs\n\nIn addition, we added a new feature gate: `CAInjectorMerging…",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-95c9a508db46",
+   "kind": "document",
+   "sourceId": "website-major-themes",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+   "locator": "L84-L88 (Major Themes › Other Changes)",
+   "excerpt": "### Other Changes\n\nThere are many other PRs which were merged in this release cycle and we'd encourage you to read the release notes below. One PR that's worth highlighting is a change to add more structured logging information to certain log lines.\n\nIf you were previously filtering logs using `grep` or similar tools (which is highly discouraged!) be aware that some log lines have changed format.",
+   "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-68604c5f543d",
+   "kind": "document",
+   "sourceId": "upgrade-guide",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md",
+   "locator": "L1-L16",
+   "excerpt": "---",
+   "contentDigest": "sha256:a4a4540952ac6f84f8cc6fc7bdcd1b1453f6e202fc2ff5a09440242545d159bd",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-463f236bf567",
+   "kind": "document",
+   "sourceId": "upgrade-guide",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md",
+   "locator": "L8-L8",
+   "excerpt": "1. RSA certificates with keys of length 3072 or 4096 will now use SHA-384 or SHA-512 respectively as hash algorithms. These hash algorithms are widely supported, and we don't expect this to be an issue, but it's worth bearing in mind if you start to see errors as your larger RSA keys rotate.",
+   "contentDigest": "sha256:a4a4540952ac6f84f8cc6fc7bdcd1b1453f6e202fc2ff5a09440242545d159bd",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-775b7a64f057",
+   "kind": "document",
+   "sourceId": "upgrade-guide",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md",
+   "locator": "L10-L10",
+   "excerpt": "2. Log messages across cert-manager have been augmented with better contextual structured data. If you were matching on literal strings in log lines, it's possible that may break.",
+   "contentDigest": "sha256:a4a4540952ac6f84f8cc6fc7bdcd1b1453f6e202fc2ff5a09440242545d159bd",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-09a9c9047035",
+   "kind": "document",
+   "sourceId": "upgrade-guide",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md",
+   "locator": "L12-L12",
+   "excerpt": "3. The `ValidateCAA` feature gate has been deprecated and will be removed in cert-manager v1.18. If you're manually enabling this feature gate, it's advisable to stop.",
+   "contentDigest": "sha256:a4a4540952ac6f84f8cc6fc7bdcd1b1453f6e202fc2ff5a09440242545d159bd",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-904e0ae133bd",
+   "kind": "document",
+   "sourceId": "supported-releases",
+   "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md",
+   "locator": "L307",
+   "excerpt": "| Release      | Release Date | EOL          | Compatible Kubernetes versions | Compatible OpenShift versions |\n| [1.17][]     | Feb 03, 2025 | Oct 07, 2025 | 1.29 → 1.33                    | 4.16 → 4.20                   |",
+   "contentDigest": "sha256:2d1aa5f5dd48b1baadc10dd7381d9ce6f2848567f21069109b37bda5f417bf9e",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-61f2d0cbe116",
+   "kind": "release-asset",
+   "sourceId": "install-manifest",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml",
+   "excerpt": "# Copyright 2022 The cert-manager Authors.",
+   "contentDigest": "sha256:ea3b9018be5ac6afb462570d0c0445d4a561c18d1d321cf4051d6ee134d60e67",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-c60d9c17abab",
+   "kind": "structured",
+   "sourceId": "install-manifest",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml",
+   "excerpt": "# Copyright 2022 The cert-manager Authors.",
+   "contentDigest": "sha256:ea3b9018be5ac6afb462570d0c0445d4a561c18d1d321cf4051d6ee134d60e67",
+   "representation": "release-asset",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-4742bdc41054",
+   "kind": "release-asset",
+   "sourceId": "crds",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml",
+   "excerpt": "# Copyright 2022 The cert-manager Authors.",
+   "contentDigest": "sha256:af6faeb6b75a13a70d0ac7f5db2b5b694f8cb9023c54bfbafd4d7d2fd95846d3",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-60054fcf0986",
+   "kind": "structured",
+   "sourceId": "crds",
+   "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml",
+   "excerpt": "# Copyright 2022 The cert-manager Authors.",
+   "contentDigest": "sha256:af6faeb6b75a13a70d0ac7f5db2b5b694f8cb9023c54bfbafd4d7d2fd95846d3",
+   "representation": "release-asset",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-e87866a14e84",
+   "kind": "registry",
+   "uri": "https://charts.jetstack.io/index.yaml",
+   "locator": "entries.cert-manager[version=v1.17.0]",
+   "excerpt": "version: v1.17.0, appVersion: v1.17.0",
+   "contentDigest": "sha256:8976420b58e5046cf910c362b67a039651c6ddc69c3cc0c1442646746d29ccd3",
+   "retrievedAt": "2026-10-01T22:46:27Z"
+  },
+  {
+   "id": "ev-717ddb6f40cd",
+   "kind": "structured",
+   "sourceId": "helm-chart",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml",
+   "locator": "deploy/charts/cert-manager/values.yaml",
+   "excerpt": "# +docs:section=Global",
+   "contentDigest": "sha256:7ec69688c8da46d802f4937e30bcbe0dd9f5b1ed5d040e013206bc2c9a7c7bfb",
+   "representation": "source-tree",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-4936dd853f6f",
+   "kind": "structured",
+   "sourceId": "helm-chart",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/Chart.template.yaml",
+   "locator": "deploy/charts/cert-manager/Chart.template.yaml",
+   "excerpt": "apiVersion: v2",
+   "contentDigest": "sha256:cfbb039df2146182a768109612a728b199f4f4e5db5d469538f0134a4919d0c0",
+   "representation": "source-tree",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-4a1dd653bec2",
+   "kind": "structured",
+   "sourceId": "helm-chart",
+   "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/Chart.template.yaml",
+   "locator": "L23",
+   "excerpt": "kubeVersion: \"\u003e= 1.22.0-0\"",
+   "contentDigest": "sha256:cfbb039df2146182a768109612a728b199f4f4e5db5d469538f0134a4919d0c0",
+   "representation": "source-tree",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-7544a945040e",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-controller/manifests/sha256:424263d7a11b54b56b26953d22bf28bd87338056b518dd007e391ad0b702c5f0",
+   "locator": "manifests/v1.17.0",
+   "excerpt": "digest=sha256:424263d7a11b54b56b26953d22bf28bd87338056b518dd007e391ad0b702c5f0 mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:424263d7a11b54b56b26953d22bf28bd87338056b518dd007e391ad0b702c5f0",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-99d163a43b3a",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-webhook/manifests/sha256:6e8f1c96b7acd9526b7dec7ce8af45e4a774877e24be183e3ce36a25c9d5ed3b",
+   "locator": "manifests/v1.17.0",
+   "excerpt": "digest=sha256:6e8f1c96b7acd9526b7dec7ce8af45e4a774877e24be183e3ce36a25c9d5ed3b mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:6e8f1c96b7acd9526b7dec7ce8af45e4a774877e24be183e3ce36a25c9d5ed3b",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-d6a5cd306e39",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-cainjector/manifests/sha256:63ea34d0e82ebfd91242498c54ad104d6bce7a56c7a2e24de5461aabd744a9b2",
+   "locator": "manifests/v1.17.0",
+   "excerpt": "digest=sha256:63ea34d0e82ebfd91242498c54ad104d6bce7a56c7a2e24de5461aabd744a9b2 mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:63ea34d0e82ebfd91242498c54ad104d6bce7a56c7a2e24de5461aabd744a9b2",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-ca5d65b3cb64",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-acmesolver/manifests/sha256:43b6cd6af3de83720f523419eddd50299d15c616229f7842c2e36578d9c612af",
+   "locator": "manifests/v1.17.0",
+   "excerpt": "digest=sha256:43b6cd6af3de83720f523419eddd50299d15c616229f7842c2e36578d9c612af mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:43b6cd6af3de83720f523419eddd50299d15c616229f7842c2e36578d9c612af",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  },
+  {
+   "id": "ev-2c20097827f8",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/jetstack/cert-manager-startupapicheck/manifests/sha256:d0f48f7993ff9a09e78e93e1536b8afabd6243e1d8fe4f84ea92afe1d6b02ec2",
+   "locator": "manifests/v1.17.0",
+   "excerpt": "digest=sha256:d0f48f7993ff9a09e78e93e1536b8afabd6243e1d8fe4f84ea92afe1d6b02ec2 mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:d0f48f7993ff9a09e78e93e1536b8afabd6243e1d8fe4f84ea92afe1d6b02ec2",
+   "retrievedAt": "2026-10-01T22:46:28Z"
+  }
+ ]
+}

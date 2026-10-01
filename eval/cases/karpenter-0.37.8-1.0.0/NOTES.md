@@ -12,14 +12,22 @@ Authored blind on 2026-10-01 from the upstream documents below.
   (E3), taint rename (E4), required fields (E5), httpPutResponseHopLimit
   default (E6), dropped/renamed env vars (E7), Ubuntu (E8), forceful
   expiration (E9), Helm topology spread + metrics port (E10).
-- Chart values at v0.37.8 and v1.0.0, diffed for the environment findings:
-  `logConfig` section and `assumeRoleARN`/`assumeRoleDuration` keys are gone
-  in v1.0.0 (F1's rule), `controller.metrics.port` default 8000 → 8080 (F2).
-  The tag line inside values.yaml still says 0.37.0 at both tags (the chart
-  default template); the digest/tag the release ships differs — the image
-  findings come from the controller-image artifact, not the values file.
-- compatibility.yaml at v1.0.0: 0.37.x admits Kubernetes 1.23-1.30 — grounds
-  F4 for the fixture's 1.29 cluster.
+- Chart values at v0.37.8 and v1.0.0, diffed for the environment: `logConfig`
+  section and `assumeRoleARN`/`assumeRoleDuration` keys are gone in v1.0.0;
+  `controller.metrics.port` default 8000 → 8080. These ground the E7 link
+  (the values file sets exactly the dropped keys), but they CANNOT ground
+  finding-level expectations: the definition's karpenter-chart artifact
+  intentionally carries no values snapshots (the chart is rewritten in CI and
+  published only to OCI; the in-repo values.yaml at a tag still carries the
+  previous release — see products/karpenter.yaml), so the join has no
+  helm-values diff to compare against. An earlier draft expected
+  values-removed/values-pinned findings here; corrected to no finding-level
+  values claims, with the honest E7 link miss standing as the measurement of
+  that channel gap.
+- compatibility.yaml at v1.0.0: the 1.0.x row declares the supported
+  Kubernetes window (minimum constraint) — grounds F4: the fixture's 1.29
+  cluster satisfies it, and the join's vocabulary for an admitted minimum is
+  compatibility-satisfied (not-affected).
 
 ## Judgement calls
 

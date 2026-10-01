@@ -141,8 +141,9 @@ environment:
   expectedFindings:
     - id: F1
       match:
-        rule: impact:kubernetes-in-range
-      why: Kubernetes 1.29 is among the versions Argo CD 3.0 tests (tested-kubernetes-versions table), which should be confirmed, not flagged
+        rule: impact:compatibility-satisfied
+      classification: not-affected
+      why: Kubernetes 1.29 is among the versions Argo CD 3.0 tests (tested-kubernetes-versions table); the tested-range check admits the cluster, which should be confirmed (not-affected), not flagged
   notExpectedFindings:
     - title: no Argo CD CRD is removed by this upgrade
       match: {rule: impact:crd-removed}

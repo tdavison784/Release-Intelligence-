@@ -761,12 +761,27 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 		case ClassUnknown:
 			res.Metrics.UnknownFindings++
 		}
-		// matrix: one label per finding — expectedFinding class when one
-		// matches, else the expectedImpact relevance of the covered item
+		// matrix: one cell per (expected item × change) pair — the strongest
+		// class among the findings joining that change — plus per-finding
+		// cells for expectedFinding-labelled subjects. Counting every
+		// finding would let one fragmented change (a 25-key values-section
+		// removal) manufacture dozens of cells out of one underlying
+		// judgement.
 		if expected := efLabel(f); expected != "" {
 			labelled(expected, string(f.Classification))
-		} else if expID, ok := expIDForChange[f.ChangeID]; ok {
-			labelled(classForRelevance(relevanceFor[expID]), string(f.Classification))
+		}
+	}
+	strongestByChange := map[string]string{}
+	for _, f := range report.Findings {
+		strongestByChange[f.ChangeID] = StrongestClass(strongestByChange[f.ChangeID], string(f.Classification))
+	}
+	for changeID, expID := range expIDForChange {
+		expected := classForRelevance(relevanceFor[expID])
+		if expected == "" {
+			continue
+		}
+		if actual := strongestByChange[changeID]; actual != "" {
+			labelled(expected, actual)
 		}
 	}
 	if matrix.Labelled > 0 {

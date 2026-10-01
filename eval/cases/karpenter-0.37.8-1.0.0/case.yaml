@@ -165,25 +165,15 @@ environment:
       relevance: action-required
       why: the values file sets logConfig (dropped for logOutputPaths) and pins the old metrics port
   expectedFindings:
-    - id: F1
-      match:
-        subject: logConfig.enabled
-        rule: impact:values-removed
-      classification: action-required
-      why: the values file sets keys of the logConfig section, which the v1.0.0 chart removes
-    - id: F2
-      match:
-        subject: controller.metrics.port
-      classification: informational
-      why: the values file pins the old 8000 default; the v1.0.0 default is 8080, the pin keeps winning
     - id: F3
       match:
         rule: impact:image-changed
       why: the mirror list references the karpenter controller repository, whose tag moves between the endpoints
     - id: F4
       match:
-        rule: impact:kubernetes-in-range
-      why: "Kubernetes 1.29 is inside the v1.0.0 supported range (compatibility matrix: 0.37.x admits 1.23-1.30)"
+        rule: impact:compatibility-satisfied
+      classification: not-affected
+      why: "Kubernetes 1.29 satisfies the v1.0.0 compatibility-matrix constraint (the matrix declares a minimum for 1.0.x; 1.29 is inside it) — an admitted minimum is a confirmed-clear check, not a flag"
   notExpectedFindings:
     - title: no Karpenter CRD is removed by this upgrade
       match: {rule: impact:crd-removed}

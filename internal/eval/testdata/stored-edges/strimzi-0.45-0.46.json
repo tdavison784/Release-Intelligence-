@@ -1,0 +1,1554 @@
+{
+ "caseId": "strimzi-0.45-0.46",
+ "recordedFrom": "ri upgrade strimzi 0.45.0 0.46.0 (live, 2026-10-01)",
+ "changes": [
+  {
+   "id": "chg-c3675527969d",
+   "category": "helm-values",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "Helm values section `kafkaMirrorMaker.*` removed (4 keys)",
+   "detail": "`kafkaMirrorMaker` of chart strimzi-kafka-operator no longer exists in 0.46.0. Remove these keys from your values and migrate the configuration they controlled; values set here no longer take effect (or are rejected when the chart validates values against a schema).\nRemoved keys:\nkafkaMirrorMaker.image.name (default \"kafka\")\nkafkaMirrorMaker.image.registry (default \"\")\nkafkaMirrorMaker.image.repository (default \"\")\nkafkaMirrorMaker.image.tagPrefix (default \"\")",
+   "subjects": [
+    "kafkaMirrorMaker.image.name",
+    "kafkaMirrorMaker.image.registry",
+    "kafkaMirrorMaker.image.repository",
+    "kafkaMirrorMaker.image.tagPrefix"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "values:section-removed",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-05988c40e6f1",
+    "fact-ceadbb67601e"
+   ],
+   "evidence": [
+    "ev-e72bce22446c",
+    "ev-542822dbd6a4"
+   ]
+  },
+  {
+   "id": "chg-45b1663f05f1",
+   "category": "crd-schema",
+   "breaking": true,
+   "title": "CRD `kafkamirrormakers.kafka.strimzi.io` (KafkaMirrorMaker) removed",
+   "detail": "0.46.0 no longer ships this CustomResourceDefinition (versions v1beta2). Existing KafkaMirrorMaker resources are no longer reconciled; migrate or delete them before upgrading.",
+   "subjects": [
+    "kafkamirrormakers.kafka.strimzi.io"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "crd:removed",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-374f9dd4adb2",
+    "fact-a8478fa565f1"
+   ],
+   "evidence": [
+    "ev-5d73e704055d",
+    "ev-d758a7cb99a4"
+   ]
+  },
+  {
+   "id": "chg-ec511fa9d617",
+   "category": "configuration",
+   "breaking": true,
+   "title": "The `ContinueReconciliationOnManualRollingUpdateFailure` feature gate moves to GA stage and is permanently enabled without the possibility to disable it",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "product:3",
+    "confidence": "medium"
+   },
+   "evidence": [
+    "ev-173f5593d910"
+   ]
+  },
+  {
+   "id": "chg-9ed47feae8b0",
+   "category": "deprecation",
+   "actionRequired": true,
+   "title": "From Kafka 4.0.0, to enable the JMXReporter you must either enable metrics in `.spec.kafka.metrics`, or explicitly add JMXReporter in `metric.reporters`",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:7, section:/deprecat/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-f432b7205700"
+   ]
+  },
+  {
+   "id": "chg-a41caeeb138d",
+   "category": "deprecation",
+   "actionRequired": true,
+   "title": "Kafka 4.0 and newer is using Log4j2 for logging instead of Reload4j/Log4j1",
+   "detail": "Kafka 4.0 and newer is using Log4j2 for logging instead of Reload4j/Log4j1. If you have any custom logging configuration, you might need to update it during the upgrade to Kafka 4.0.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:7, section:/deprecat/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-526028ea7180"
+   ]
+  },
+  {
+   "id": "chg-ee85931083d3",
+   "category": "deprecation",
+   "actionRequired": true,
+   "title": "Kubernetes events for Pod restarts no longer have the Pod as the `regardingObject`. If you are using `regardingObject` as a `field-selector` for listing events…",
+   "detail": "Kubernetes events for Pod restarts no longer have the Pod as the `regardingObject`. If you are using `regardingObject` as a `field-selector` for listing events you must update the selector to specify the Kafka resource instead.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:7, section:/deprecat/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-2dffc916b09a"
+   ]
+  },
+  {
+   "id": "chg-241e11581624",
+   "category": "deprecation",
+   "actionRequired": true,
+   "title": "Removed the `statefulset.kubernetes.io/pod-name` label from pods and external listeners Kubernetes Services",
+   "detail": "Removed the `statefulset.kubernetes.io/pod-name` label from pods and external listeners Kubernetes Services. * If you have any custom setup leveraging such label, please use the `strimzi.io/pod-name` one instead.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:7, section:/deprecat/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-4fdefdd841ec"
+   ]
+  },
+  {
+   "id": "chg-fe58ab812a01",
+   "category": "deprecation",
+   "actionRequired": true,
+   "title": "Strimzi EnvVar Configuration Provider (deprecated in Strimzi 0.38.0) and Strimzi MirrorMaker 2 Extensions (deprecated in Strimzi 0.28.0) plugins were removed…",
+   "detail": "Strimzi EnvVar Configuration Provider (deprecated in Strimzi 0.38.0) and Strimzi MirrorMaker 2 Extensions (deprecated in Strimzi 0.28.0) plugins were removed from Strimzi container images. Please use the Apache Kafka EnvVarConfigProvider and Identity Replication Policy instead.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:7, section:/deprecat/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-4851b37425c0"
+   ]
+  },
+  {
+   "id": "chg-e2faf5a42f72",
+   "category": "deprecation",
+   "actionRequired": true,
+   "title": "The Open Policy Agent authorization (`type: opa`) has been deprecated and will be removed in the future",
+   "detail": "The Open Policy Agent authorization (`type: opa`) has been deprecated and will be removed in the future. To use the Open Policy Agent authorizer, you can use the `type: custom` authorization.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:7, section:/deprecat/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-b55698b84a79"
+   ]
+  },
+  {
+   "id": "chg-452534a02c34",
+   "category": "deprecation",
+   "actionRequired": true,
+   "title": "The `secrets` list for mounting additional Kubernetes Secrets in `type: custom` authentication was deprecated and will be removed in the future",
+   "detail": "The `secrets` list for mounting additional Kubernetes Secrets in `type: custom` authentication was deprecated and will be removed in the future. Please use the template section to configure additional volumes instead.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:7, section:/deprecat/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-88ae24e32184"
+   ]
+  },
+  {
+   "id": "chg-61bb02f7c0de",
+   "category": "deprecation",
+   "actionRequired": true,
+   "title": "The storage overrides for configuring per-broker storage class are not supported anymore",
+   "detail": "The storage overrides for configuring per-broker storage class are not supported anymore. If you are using the storage overrides, you should instead use multiple KafkaNodePool resources with a different storage class each. For more details about migrating from storage overrides, please follow the documentation.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:7, section:/deprecat/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-a6197708b375"
+   ]
+  },
+  {
+   "id": "chg-c02e25f3066e",
+   "category": "deprecation",
+   "actionRequired": true,
+   "title": "When using Kafka Connect or Kafka MirrorMaker 2 operands and upgrading from Strimzi 0.38 or older, make sure the `StableConnectIdentities` feature gate is…",
+   "detail": "When using Kafka Connect or Kafka MirrorMaker 2 operands and upgrading from Strimzi 0.38 or older, make sure the `StableConnectIdentities` feature gate is enabled and `StrimziPodSets` are used before upgrading.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:7, section:/deprecat/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-17b3774eb9ee"
+   ]
+  },
+  {
+   "id": "chg-412e9dfc860b",
+   "category": "deprecation",
+   "actionRequired": true,
+   "title": "When using the Kafka operand and upgrading from Strimzi 0.34 or older, make sure the `UseStrimziPodSets` feature gate is enabled and `StrimziPodSet` resources…",
+   "detail": "When using the Kafka operand and upgrading from Strimzi 0.34 or older, make sure the `UseStrimziPodSets` feature gate is enabled and `StrimziPodSet` resources are used before upgrading.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "declared",
+    "producer": "normalize.notes@v1",
+    "rule": "product:7, section:/deprecat/i",
+    "confidence": "high"
+   },
+   "evidence": [
+    "ev-0fe6816db4bb"
+   ]
+  },
+  {
+   "id": "chg-0573190b77d2",
+   "category": "security",
+   "actionRequired": true,
+   "title": "GHSA-mw9r-p8xp-wx96 (CVE-2026-55225) still affects target 0.46.0: Cross-namespace privilege escalation via `Kafka.spec.entityOperator`",
+   "detail": "Severity: high. Affected versions: \u003c= 1.0.0. Patched: 1.0.1, 1.1.0. Consider upgrading to a patched release instead.",
+   "subjects": [
+    "GHSA-mw9r-p8xp-wx96"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-mw9r-p8xp-wx96",
+     "url": "https://github.com/strimzi/strimzi-kafka-operator/security/advisories/GHSA-mw9r-p8xp-wx96"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2026-55225"
+    }
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "advisory:affects-target",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-022efaf0b646"
+   ],
+   "evidence": [
+    "ev-b3f1fec70ca5"
+   ]
+  },
+  {
+   "id": "chg-c2a2f2bb64ef",
+   "category": "security",
+   "actionRequired": true,
+   "title": "GHSA-r427-j2h7-wv3m (CVE-2026-55226) still affects target 0.46.0: Unrestricted access to all Secrets within namespace watched by the Topic operator",
+   "detail": "Severity: medium. Affected versions: \u003c= 1.0.0. Patched: 1.0.1, 1.1.0. Consider upgrading to a patched release instead.",
+   "subjects": [
+    "GHSA-r427-j2h7-wv3m"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-r427-j2h7-wv3m",
+     "url": "https://github.com/strimzi/strimzi-kafka-operator/security/advisories/GHSA-r427-j2h7-wv3m"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2026-55226"
+    }
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "advisory:affects-target",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-55277c3c894e"
+   ],
+   "evidence": [
+    "ev-09b54bf8f708"
+   ]
+  },
+  {
+   "id": "chg-5ffdf44ce43c",
+   "category": "feature",
+   "actionRequired": true,
+   "title": "Support for MirrorMaker 1 has been removed",
+   "detail": "Support for MirrorMaker 1 has been removed. Please make sure to migrate to MirrorMaker 2 before upgrading to Strimzi 0.46 or newer.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "product:6, product:7",
+    "confidence": "medium"
+   },
+   "evidence": [
+    "ev-87094cfdd770"
+   ]
+  },
+  {
+   "id": "chg-8d624ebd4b37",
+   "category": "feature",
+   "actionRequired": true,
+   "title": "Support for ZooKeeper-based clusters and for migration from ZooKeeper-based clusters to KRaft has been removed",
+   "detail": "Support for ZooKeeper-based clusters and for migration from ZooKeeper-based clusters to KRaft has been removed. Please make sure all your clusters are using KRaft before upgrading to Strimzi 0.46.0 or newer!",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "product:6, product:7",
+    "confidence": "medium"
+   },
+   "evidence": [
+    "ev-4c2676e4665a"
+   ]
+  },
+  {
+   "id": "chg-e9a93e00d14f",
+   "category": "removal",
+   "title": "Implicit IPv4 preference when enabling JMX has been removed, and will now use JVM defaults",
+   "detail": "Implicit IPv4 preference when enabling JMX has been removed, and will now use JVM defaults. This will make the cluster boot up correctly in IPv6 only environments, where IPv4 preference will break it due to lack of IPv4 addresses.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "kw:removed",
+    "confidence": "medium"
+   },
+   "evidence": [
+    "ev-6b927d45a8a3"
+   ]
+  },
+  {
+   "id": "chg-74c5f5d4d4a6",
+   "category": "crd-schema",
+   "title": "Kafka v1beta2 schema: 33 fields added: `spec.cruiseControl.resources.claims[].request`, `spec.cruiseControl.template.pod.dnsConfig`, `spec.cruiseControl.templa…",
+   "detail": "New paths in the kafka.strimzi.io/v1beta2 schema of kafkas.kafka.strimzi.io:\nspec.cruiseControl.resources.claims[].request\nspec.cruiseControl.template.pod.dnsConfig\nspec.cruiseControl.template.pod.dnsConfig.nameservers[]\nspec.cruiseControl.template.pod.dnsConfig.options[]\nspec.cruiseControl.template.pod.dnsConfig.options[].name\nspec.cruiseControl.template.pod.dnsConfig.options[].value\nspec.cruiseControl.template.pod.dnsConfig.searches[]\nspec.cruiseControl.template.pod.dnsPolicy\nspec.cruiseControl.template.pod.securityContext.seLinuxChangePolicy\nspec.cruiseControl.template.pod.securityContext.supplementalGroupsPolicy\nspec.cruiseControl.tlsSidecar.resources.claims[].request\nspec.entityOperator.template.pod.dnsConfig\nspec.entityOperator.template.pod.dnsConfig.nameservers[]\nspec.entityOperator.template.pod.dnsConfig.options[]\nspec.entityOperator.template.pod.dnsConfig.options[].name\nspec.entityOperator.template.pod.dnsConfig.options[].value\nspec.entityOperator.template.pod.dnsConfig.searches[]\nspec.entityOperator.template.pod.dnsPolicy\nspec.entityOperator.template.pod.securityContext.seLinuxChangePolicy\nspec.entityOperator.template.pod.securityContext.supplementalGroupsPolicy\nspec.entityOperator.tlsSidecar.resources.claims[].request\nspec.entityOperator.topicOperator.resources.claims[].request\nspec.entityOperator.userOperator.resources.claims[].request\nspec.jmxTrans.resources.claims[].request\nspec.jmxTrans.template.pod.dnsConfig\nspec.jmxTrans.template.pod.dnsConfig.nameservers[]\nspec.jmxTrans.template.pod.dnsConfig.options[]\nspec.jmxTrans.template.pod.dnsConfig.options[].name\nspec.jmxTrans.template.pod.dnsConfig.options[].value\nspec.jmxTrans.template.pod.dnsConfig.searches[]\nspec.jmxTrans.template.pod.dnsPolicy\nspec.jmxTrans.template.pod.securityContext.seLinuxChangePolicy\nspec.jmxTrans.template.pod.securityContext.supplementalGroupsPolicy\nspec.kafka.resources.claims[].request\nspec.kafka.template.pod.dnsConfig\nspec.kafka.template.pod.dnsConfig.nameservers[]\nspec.kafka.template.pod.dnsConfig.options[]\nspec.kafka.template.pod.dnsConfig.options[].name\nspec.kafka.template.pod.dnsConfig.options[].value\nspec.kafka.template.pod.dnsConfig.searches[]\nspec.kafka.template.pod.dnsPolicy\nspec.kafka.template.pod.securityContext.seLinuxChangePolicy\nspec.kafka.template.pod.securityContext.supplementalGroupsPolicy\nspec.kafkaExporter.resources.claims[].request\nspec.kafkaExporter.template.pod.dnsConfig\nspec.kafkaExporter.template.pod.dnsConfig.nameservers[]\nspec.kafkaExporter.template.pod.dnsConfig.options[]\nspec.kafkaExporter.template.pod.dnsConfig.options[].name\nspec.kafkaExporter.template.pod.dnsConfig.options[].value\nspec.kafkaExporter.template.pod.dnsConfig.searches[]\nspec.kafkaExporter.template.pod.dnsPolicy\nspec.kafkaExporter.template.pod.securityContext.seLinuxChangePolicy\nspec.kafkaExporter.template.pod.securityContext.supplementalGroupsPolicy\nspec.zookeeper.resources.claims[].request\nspec.zookeeper.template.pod.dnsConfig\nspec.zookeeper.template.pod.dnsConfig.nameservers[]\nspec.zookeeper.template.pod.dnsConfig.options[]\nspec.zookeeper.template.pod.dnsConfig.options[].name\nspec.zookeeper.template.pod.dnsConfig.options[].value\nspec.zookeeper.template.pod.dnsConfig.searches[]\nspec.zookeeper.template.pod.dnsPolicy\nspec.zookeeper.template.pod.securityContext.seLinuxChangePolicy\nspec.zookeeper.template.pod.securityContext.supplementalGroupsPolicy",
+   "subjects": [
+    "spec.cruiseControl.resources.claims[].request",
+    "spec.cruiseControl.template.pod.dnsConfig",
+    "spec.cruiseControl.template.pod.dnsConfig.nameservers[]",
+    "spec.cruiseControl.template.pod.dnsConfig.options[]",
+    "spec.cruiseControl.template.pod.dnsConfig.options[].name",
+    "spec.cruiseControl.template.pod.dnsConfig.options[].value",
+    "spec.cruiseControl.template.pod.dnsConfig.searches[]",
+    "spec.cruiseControl.template.pod.dnsPolicy",
+    "spec.cruiseControl.template.pod.securityContext.seLinuxChangePolicy",
+    "spec.cruiseControl.template.pod.securityContext.supplementalGroupsPolicy",
+    "spec.cruiseControl.tlsSidecar.resources.claims[].request",
+    "spec.entityOperator.template.pod.dnsConfig",
+    "spec.entityOperator.template.pod.dnsConfig.nameservers[]",
+    "spec.entityOperator.template.pod.dnsConfig.options[]",
+    "spec.entityOperator.template.pod.dnsConfig.options[].name",
+    "spec.entityOperator.template.pod.dnsConfig.options[].value",
+    "spec.entityOperator.template.pod.dnsConfig.searches[]",
+    "spec.entityOperator.template.pod.dnsPolicy",
+    "spec.entityOperator.template.pod.securityContext.seLinuxChangePolicy",
+    "spec.entityOperator.template.pod.securityContext.supplementalGroupsPolicy",
+    "spec.entityOperator.tlsSidecar.resources.claims[].request",
+    "spec.entityOperator.topicOperator.resources.claims[].request",
+    "spec.entityOperator.userOperator.resources.claims[].request",
+    "spec.jmxTrans.resources.claims[].request",
+    "spec.jmxTrans.template.pod.dnsConfig",
+    "spec.jmxTrans.template.pod.dnsConfig.nameservers[]",
+    "spec.jmxTrans.template.pod.dnsConfig.options[]",
+    "spec.jmxTrans.template.pod.dnsConfig.options[].name",
+    "spec.jmxTrans.template.pod.dnsConfig.options[].value",
+    "spec.jmxTrans.template.pod.dnsConfig.searches[]",
+    "spec.jmxTrans.template.pod.dnsPolicy",
+    "spec.jmxTrans.template.pod.securityContext.seLinuxChangePolicy",
+    "spec.jmxTrans.template.pod.securityContext.supplementalGroupsPolicy",
+    "spec.kafka.resources.claims[].request",
+    "spec.kafka.template.pod.dnsConfig",
+    "spec.kafka.template.pod.dnsConfig.nameservers[]",
+    "spec.kafka.template.pod.dnsConfig.options[]",
+    "spec.kafka.template.pod.dnsConfig.options[].name",
+    "spec.kafka.template.pod.dnsConfig.options[].value",
+    "spec.kafka.template.pod.dnsConfig.searches[]",
+    "spec.kafka.template.pod.dnsPolicy",
+    "spec.kafka.template.pod.securityContext.seLinuxChangePolicy",
+    "spec.kafka.template.pod.securityContext.supplementalGroupsPolicy",
+    "spec.kafkaExporter.resources.claims[].request",
+    "spec.kafkaExporter.template.pod.dnsConfig",
+    "spec.kafkaExporter.template.pod.dnsConfig.nameservers[]",
+    "spec.kafkaExporter.template.pod.dnsConfig.options[]",
+    "spec.kafkaExporter.template.pod.dnsConfig.options[].name",
+    "spec.kafkaExporter.template.pod.dnsConfig.options[].value",
+    "spec.kafkaExporter.template.pod.dnsConfig.searches[]",
+    "spec.kafkaExporter.template.pod.dnsPolicy",
+    "spec.kafkaExporter.template.pod.securityContext.seLinuxChangePolicy",
+    "spec.kafkaExporter.template.pod.securityContext.supplementalGroupsPolicy",
+    "spec.zookeeper.resources.claims[].request",
+    "spec.zookeeper.template.pod.dnsConfig",
+    "spec.zookeeper.template.pod.dnsConfig.nameservers[]",
+    "spec.zookeeper.template.pod.dnsConfig.options[]",
+    "spec.zookeeper.template.pod.dnsConfig.options[].name",
+    "spec.zookeeper.template.pod.dnsConfig.options[].value",
+    "spec.zookeeper.template.pod.dnsConfig.searches[]",
+    "spec.zookeeper.template.pod.dnsPolicy",
+    "spec.zookeeper.template.pod.securityContext.seLinuxChangePolicy",
+    "spec.zookeeper.template.pod.securityContext.supplementalGroupsPolicy"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "crd:fields-added",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-374f9dd4adb2",
+    "fact-a8478fa565f1"
+   ],
+   "evidence": [
+    "ev-5d73e704055d",
+    "ev-d758a7cb99a4"
+   ]
+  },
+  {
+   "id": "chg-9144655a6a84",
+   "category": "crd-schema",
+   "title": "KafkaBridge v1beta2 schema: 5 fields added: `spec.resources.claims[].request`, `spec.template.pod.dnsConfig`, `spec.template.pod.dnsPolicy` and 2 more",
+   "detail": "New paths in the kafka.strimzi.io/v1beta2 schema of kafkabridges.kafka.strimzi.io:\nspec.resources.claims[].request\nspec.template.pod.dnsConfig\nspec.template.pod.dnsConfig.nameservers[]\nspec.template.pod.dnsConfig.options[]\nspec.template.pod.dnsConfig.options[].name\nspec.template.pod.dnsConfig.options[].value\nspec.template.pod.dnsConfig.searches[]\nspec.template.pod.dnsPolicy\nspec.template.pod.securityContext.seLinuxChangePolicy\nspec.template.pod.securityContext.supplementalGroupsPolicy",
+   "subjects": [
+    "spec.resources.claims[].request",
+    "spec.template.pod.dnsConfig",
+    "spec.template.pod.dnsConfig.nameservers[]",
+    "spec.template.pod.dnsConfig.options[]",
+    "spec.template.pod.dnsConfig.options[].name",
+    "spec.template.pod.dnsConfig.options[].value",
+    "spec.template.pod.dnsConfig.searches[]",
+    "spec.template.pod.dnsPolicy",
+    "spec.template.pod.securityContext.seLinuxChangePolicy",
+    "spec.template.pod.securityContext.supplementalGroupsPolicy"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "crd:fields-added",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-374f9dd4adb2",
+    "fact-a8478fa565f1"
+   ],
+   "evidence": [
+    "ev-5d73e704055d",
+    "ev-d758a7cb99a4"
+   ]
+  },
+  {
+   "id": "chg-7e0ba6b48c5e",
+   "category": "crd-schema",
+   "title": "KafkaConnect v1beta2 schema: 10 fields added: `spec.build.resources.claims[].request`, `spec.resources.claims[].request`, `spec.template.buildPod.dnsConfig`…",
+   "detail": "New paths in the kafka.strimzi.io/v1beta2 schema of kafkaconnects.kafka.strimzi.io:\nspec.build.resources.claims[].request\nspec.resources.claims[].request\nspec.template.buildPod.dnsConfig\nspec.template.buildPod.dnsConfig.nameservers[]\nspec.template.buildPod.dnsConfig.options[]\nspec.template.buildPod.dnsConfig.options[].name\nspec.template.buildPod.dnsConfig.options[].value\nspec.template.buildPod.dnsConfig.searches[]\nspec.template.buildPod.dnsPolicy\nspec.template.buildPod.securityContext.seLinuxChangePolicy\nspec.template.buildPod.securityContext.supplementalGroupsPolicy\nspec.template.pod.dnsConfig\nspec.template.pod.dnsConfig.nameservers[]\nspec.template.pod.dnsConfig.options[]\nspec.template.pod.dnsConfig.options[].name\nspec.template.pod.dnsConfig.options[].value\nspec.template.pod.dnsConfig.searches[]\nspec.template.pod.dnsPolicy\nspec.template.pod.securityContext.seLinuxChangePolicy\nspec.template.pod.securityContext.supplementalGroupsPolicy",
+   "subjects": [
+    "spec.build.resources.claims[].request",
+    "spec.resources.claims[].request",
+    "spec.template.buildPod.dnsConfig",
+    "spec.template.buildPod.dnsConfig.nameservers[]",
+    "spec.template.buildPod.dnsConfig.options[]",
+    "spec.template.buildPod.dnsConfig.options[].name",
+    "spec.template.buildPod.dnsConfig.options[].value",
+    "spec.template.buildPod.dnsConfig.searches[]",
+    "spec.template.buildPod.dnsPolicy",
+    "spec.template.buildPod.securityContext.seLinuxChangePolicy",
+    "spec.template.buildPod.securityContext.supplementalGroupsPolicy",
+    "spec.template.pod.dnsConfig",
+    "spec.template.pod.dnsConfig.nameservers[]",
+    "spec.template.pod.dnsConfig.options[]",
+    "spec.template.pod.dnsConfig.options[].name",
+    "spec.template.pod.dnsConfig.options[].value",
+    "spec.template.pod.dnsConfig.searches[]",
+    "spec.template.pod.dnsPolicy",
+    "spec.template.pod.securityContext.seLinuxChangePolicy",
+    "spec.template.pod.securityContext.supplementalGroupsPolicy"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "crd:fields-added",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-374f9dd4adb2",
+    "fact-a8478fa565f1"
+   ],
+   "evidence": [
+    "ev-5d73e704055d",
+    "ev-d758a7cb99a4"
+   ]
+  },
+  {
+   "id": "chg-ca3dfb8c90a5",
+   "category": "crd-schema",
+   "title": "KafkaMirrorMaker2 v1beta2 schema: 9 fields added: `spec.resources.claims[].request`, `spec.template.buildPod.dnsConfig`, `spec.template.buildPod.dnsPolicy` and…",
+   "detail": "New paths in the kafka.strimzi.io/v1beta2 schema of kafkamirrormaker2s.kafka.strimzi.io:\nspec.resources.claims[].request\nspec.template.buildPod.dnsConfig\nspec.template.buildPod.dnsConfig.nameservers[]\nspec.template.buildPod.dnsConfig.options[]\nspec.template.buildPod.dnsConfig.options[].name\nspec.template.buildPod.dnsConfig.options[].value\nspec.template.buildPod.dnsConfig.searches[]\nspec.template.buildPod.dnsPolicy\nspec.template.buildPod.securityContext.seLinuxChangePolicy\nspec.template.buildPod.securityContext.supplementalGroupsPolicy\nspec.template.pod.dnsConfig\nspec.template.pod.dnsConfig.nameservers[]\nspec.template.pod.dnsConfig.options[]\nspec.template.pod.dnsConfig.options[].name\nspec.template.pod.dnsConfig.options[].value\nspec.template.pod.dnsConfig.searches[]\nspec.template.pod.dnsPolicy\nspec.template.pod.securityContext.seLinuxChangePolicy\nspec.template.pod.securityContext.supplementalGroupsPolicy",
+   "subjects": [
+    "spec.resources.claims[].request",
+    "spec.template.buildPod.dnsConfig",
+    "spec.template.buildPod.dnsConfig.nameservers[]",
+    "spec.template.buildPod.dnsConfig.options[]",
+    "spec.template.buildPod.dnsConfig.options[].name",
+    "spec.template.buildPod.dnsConfig.options[].value",
+    "spec.template.buildPod.dnsConfig.searches[]",
+    "spec.template.buildPod.dnsPolicy",
+    "spec.template.buildPod.securityContext.seLinuxChangePolicy",
+    "spec.template.buildPod.securityContext.supplementalGroupsPolicy",
+    "spec.template.pod.dnsConfig",
+    "spec.template.pod.dnsConfig.nameservers[]",
+    "spec.template.pod.dnsConfig.options[]",
+    "spec.template.pod.dnsConfig.options[].name",
+    "spec.template.pod.dnsConfig.options[].value",
+    "spec.template.pod.dnsConfig.searches[]",
+    "spec.template.pod.dnsPolicy",
+    "spec.template.pod.securityContext.seLinuxChangePolicy",
+    "spec.template.pod.securityContext.supplementalGroupsPolicy"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "crd:fields-added",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-374f9dd4adb2",
+    "fact-a8478fa565f1"
+   ],
+   "evidence": [
+    "ev-5d73e704055d",
+    "ev-d758a7cb99a4"
+   ]
+  },
+  {
+   "id": "chg-a8b346fc7183",
+   "category": "crd-schema",
+   "title": "KafkaNodePool v1beta2 schema: 5 fields added: `spec.resources.claims[].request`, `spec.template.pod.dnsConfig`, `spec.template.pod.dnsPolicy` and 2 more",
+   "detail": "New paths in the kafka.strimzi.io/v1beta2 schema of kafkanodepools.kafka.strimzi.io:\nspec.resources.claims[].request\nspec.template.pod.dnsConfig\nspec.template.pod.dnsConfig.nameservers[]\nspec.template.pod.dnsConfig.options[]\nspec.template.pod.dnsConfig.options[].name\nspec.template.pod.dnsConfig.options[].value\nspec.template.pod.dnsConfig.searches[]\nspec.template.pod.dnsPolicy\nspec.template.pod.securityContext.seLinuxChangePolicy\nspec.template.pod.securityContext.supplementalGroupsPolicy",
+   "subjects": [
+    "spec.resources.claims[].request",
+    "spec.template.pod.dnsConfig",
+    "spec.template.pod.dnsConfig.nameservers[]",
+    "spec.template.pod.dnsConfig.options[]",
+    "spec.template.pod.dnsConfig.options[].name",
+    "spec.template.pod.dnsConfig.options[].value",
+    "spec.template.pod.dnsConfig.searches[]",
+    "spec.template.pod.dnsPolicy",
+    "spec.template.pod.securityContext.seLinuxChangePolicy",
+    "spec.template.pod.securityContext.supplementalGroupsPolicy"
+   ],
+   "provenance": {
+    "method": "computed",
+    "producer": "upgrade@v1",
+    "rule": "crd:fields-added",
+    "confidence": "high"
+   },
+   "facts": [
+    "fact-374f9dd4adb2",
+    "fact-a8478fa565f1"
+   ],
+   "evidence": [
+    "ev-5d73e704055d",
+    "ev-d758a7cb99a4"
+   ]
+  },
+  {
+   "id": "chg-ddbdbee4c932",
+   "category": "compatibility",
+   "title": "Add support for Kafka 4.0.0",
+   "detail": "Add support for Kafka 4.0.0. Remove support for Kafka 3.8.0 and 3.8.1.",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "product:1",
+    "confidence": "medium"
+   },
+   "evidence": [
+    "ev-a7c9af863980"
+   ]
+  },
+  {
+   "id": "chg-cf1e4f88ab62",
+   "category": "dependency",
+   "title": "Update HTTP bridge to 0.32.0",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "product:5",
+    "confidence": "medium"
+   },
+   "evidence": [
+    "ev-c58562fb98a9"
+   ]
+  },
+  {
+   "id": "chg-f6d19dbfcf39",
+   "category": "feature",
+   "title": "Support for MirrorMaker 1 has been removed",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "product:6",
+    "confidence": "medium"
+   },
+   "evidence": [
+    "ev-5d8b8b113b70"
+   ]
+  },
+  {
+   "id": "chg-d0ce8eee6124",
+   "category": "feature",
+   "title": "Support for ZooKeeper-based Apache Kafka clusters and for KRaft migration has been removed",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "product:6",
+    "confidence": "medium"
+   },
+   "evidence": [
+    "ev-628f9c0eccb2"
+   ]
+  },
+  {
+   "id": "chg-e5eb9204c215",
+   "category": "feature",
+   "title": "Support for storage class overrides has been removed",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "product:6",
+    "confidence": "medium"
+   },
+   "evidence": [
+    "ev-c366ac6bf338"
+   ]
+  },
+  {
+   "id": "chg-031013975f59",
+   "category": "other",
+   "title": "Added support to configure `dnsPolicy` and `dnsConfig` using the `template` sections",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-99017d1c8007"
+   ]
+  },
+  {
+   "id": "chg-ef2176c8e78e",
+   "category": "other",
+   "title": "Adopted new Kafka Connect health check endpoint (see proposal 89)",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-da7ff24b2c60"
+   ]
+  },
+  {
+   "id": "chg-ce25d17d6845",
+   "category": "other",
+   "title": "Allow configuring `ssl.principal.mapping.rules` and custom trusted CAs in Kafka brokers with `type: custom` authentication",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-580b3720cb97"
+   ]
+  },
+  {
+   "id": "chg-f1807d1884ec",
+   "category": "other",
+   "title": "Dependency updates (Vert.x 4.5.14, Netty 4.1.118.Final)",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-d7b673b6053f"
+   ]
+  },
+  {
+   "id": "chg-d3d8b4bc2af9",
+   "category": "other",
+   "title": "Improved the MirrorMaker2 example Grafana dashboard to set metric units and include chart descriptions",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-52ec3b963cc5"
+   ]
+  },
+  {
+   "id": "chg-a4c05dc0e298",
+   "category": "other",
+   "title": "Kubernetes events emitted during a Pod restart updated to have the Kafka resource as the `regardingObject` and the Pod in the `related` field",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-4308bfa38162"
+   ]
+  },
+  {
+   "id": "chg-d8333d8de3b2",
+   "category": "other",
+   "title": "Moved HTTP bridge configuration to the ConfigMap setup by the operator",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-52d05bff16ea"
+   ]
+  },
+  {
+   "id": "chg-0414a71d2c08",
+   "category": "other",
+   "title": "Moved Kafka Connect configuration to the ConfigMap created by the operator",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-12b17c85ab22"
+   ]
+  },
+  {
+   "id": "chg-7c4737e52236",
+   "category": "other",
+   "title": "Store Kafka node certificates in separate Secrets, one Secret per pod",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-acec48f57273"
+   ]
+  },
+  {
+   "id": "chg-136cfee8ad80",
+   "category": "other",
+   "title": "Strimzi Drain Cleaner updated to 1.3.0 (included in the Strimzi installation files)",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-6e79b1b1f3a7"
+   ]
+  },
+  {
+   "id": "chg-a40e6d6cc13a",
+   "category": "other",
+   "title": "Update Kafka Exporter to 1.9.0",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-2ed9c1d1b698"
+   ]
+  },
+  {
+   "id": "chg-628bf5003ce3",
+   "category": "other",
+   "title": "Update OAuth library to 0.16.2",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-1207394288b0"
+   ]
+  },
+  {
+   "id": "chg-4706e3b7a8e2",
+   "category": "other",
+   "title": "Update standalone User Operator to handle Cluster CA cert Secret being missing when TLS is not needed",
+   "release": "0.46.0",
+   "provenance": {
+    "method": "heuristic",
+    "producer": "normalize.notes@v1",
+    "rule": "fallback:other",
+    "confidence": "low"
+   },
+   "evidence": [
+    "ev-35ea1afad43d"
+   ]
+  }
+ ],
+ "evidence": [
+  {
+   "id": "ev-4ef2176ed8ac",
+   "kind": "git-ref",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/releases/tag/0.45.0",
+   "locator": "refs/tags/0.45.0",
+   "excerpt": "b5060222ffc07b67b7efe003bd326e48b2896fc8 refs/tags/0.45.0",
+   "contentDigest": "sha256:154227d47f8f0fc814c31e223145ca3d1bde29510bbce30eeb1ce14648d64265",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-26369f949ec1",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/CHANGELOG.md",
+   "locator": "L3-L20",
+   "excerpt": "0.45.0",
+   "contentDigest": "sha256:a60dad735e89c26fc5fa74c98c4720a41bee01c49537fbf40dc1d25d3b52f4c1",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-239295fce42e",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/CHANGELOG.md",
+   "locator": "L5-L6 (0.45.0)",
+   "excerpt": "* Add support for Kafka 3.9.0 and 3.8.1. \n  Remove support for Kafka 3.7.0 and 3.7.1",
+   "contentDigest": "sha256:a60dad735e89c26fc5fa74c98c4720a41bee01c49537fbf40dc1d25d3b52f4c1",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-ccd9de755a43",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/CHANGELOG.md",
+   "locator": "L7-L7 (0.45.0)",
+   "excerpt": "* Ability to move data between JBOD disks using Cruise Control.",
+   "contentDigest": "sha256:a60dad735e89c26fc5fa74c98c4720a41bee01c49537fbf40dc1d25d3b52f4c1",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-7d180bd666d8",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/CHANGELOG.md",
+   "locator": "L8-L8 (0.45.0)",
+   "excerpt": "* Allow using custom certificates for communication with container registry in Kafka Connect Build with Kaniko",
+   "contentDigest": "sha256:a60dad735e89c26fc5fa74c98c4720a41bee01c49537fbf40dc1d25d3b52f4c1",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-65d057c87844",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/CHANGELOG.md",
+   "locator": "L9-L10 (0.45.0)",
+   "excerpt": "* Only roll pods once for ClientsCa cert renewal.\n  This change also means the restart reason ClientCaCertKeyReplaced is removed and either CaCertRenewed or CaCertHasOldGeneration will be used.",
+   "contentDigest": "sha256:a60dad735e89c26fc5fa74c98c4720a41bee01c49537fbf40dc1d25d3b52f4c1",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-a5e2dbcc4d20",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/CHANGELOG.md",
+   "locator": "L11-L11 (0.45.0)",
+   "excerpt": "* Allow rolling update for new cluster CA trust (during Cluster CA key replacement) to continue where it left off before interruption without rolling all pods again.",
+   "contentDigest": "sha256:a60dad735e89c26fc5fa74c98c4720a41bee01c49537fbf40dc1d25d3b52f4c1",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-1fac39cc8634",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/CHANGELOG.md",
+   "locator": "L12-L12 (0.45.0)",
+   "excerpt": "* Update HTTP bridge to 0.31.1",
+   "contentDigest": "sha256:a60dad735e89c26fc5fa74c98c4720a41bee01c49537fbf40dc1d25d3b52f4c1",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-9b6c877b8691",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/CHANGELOG.md",
+   "locator": "L13-L13 (0.45.0)",
+   "excerpt": "* Add support for mounting CSI volumes using the `template` sections",
+   "contentDigest": "sha256:a60dad735e89c26fc5fa74c98c4720a41bee01c49537fbf40dc1d25d3b52f4c1",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-230a20f92f9d",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/CHANGELOG.md",
+   "locator": "L17-L18 (0.45.0 › Major changes, deprecations and removals)",
+   "excerpt": "* **Strimzi 0.45 is the last minor Strimzi version with support for ZooKeeper-based Apache Kafka clusters and MirrorMaker 1 deployments.**\n  **Please make sure to [migrate to KRaft](https://strimzi.io/docs/operators/latest/full/deploying.html#assembly-kraft-mode-str) and MirrorMaker 2 before upgrading to Strimzi 0.46 or newer.**",
+   "contentDigest": "sha256:a60dad735e89c26fc5fa74c98c4720a41bee01c49537fbf40dc1d25d3b52f4c1",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-0e97bd33f11f",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/CHANGELOG.md",
+   "locator": "L19-L20 (0.45.0 › Major changes, deprecations and removals)",
+   "excerpt": "* **Strimzi 0.45 is the last Strimzi version to include the [Strimzi EnvVar Configuration Provider](https://github.com/strimzi/kafka-env-var-config-provider) (deprecated in Strimzi 0.38.0) and [Strimzi MirrorMaker 2 Extensions](https://github.com/strimzi/mirror-maker-2-extensions) (deprecated in Strimzi 0.28.0).**\n  Please use the Apache Kafka [EnvVarConfigProvider](https://github.com/strimzi/kafka-env-var-config-provider?tab=readme-ov-file#deprecation-notice) and [Identity Replication Policy](https://github.com/strimzi/mirror-maker-2-extensions?tab=readme-ov-file#identity-replication-policy) …",
+   "contentDigest": "sha256:a60dad735e89c26fc5fa74c98c4720a41bee01c49537fbf40dc1d25d3b52f4c1",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-4ccd7a3b985c",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/strimzi-helm/strimzi-kafka-operator/manifests/sha256:44552f9f4875b30d98366c4cdc7c9ddeac5d2b63e780eeeb5df23bfe93782109",
+   "locator": "manifests/0.45.0",
+   "excerpt": "digest=sha256:44552f9f4875b30d98366c4cdc7c9ddeac5d2b63e780eeeb5df23bfe93782109 mediaType=application/vnd.oci.image.manifest.v1+json",
+   "contentDigest": "sha256:44552f9f4875b30d98366c4cdc7c9ddeac5d2b63e780eeeb5df23bfe93782109",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-e72bce22446c",
+   "kind": "structured",
+   "sourceId": "chart",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/packaging/helm-charts/helm3/strimzi-kafka-operator/values.yaml",
+   "locator": "packaging/helm-charts/helm3/strimzi-kafka-operator/values.yaml",
+   "excerpt": "# Default values for strimzi-kafka-operator.",
+   "contentDigest": "sha256:b2a5854e7e771509026a66e1a72f6721aab147097944b0ae765b292751faf3c4",
+   "representation": "source-tree",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-89b8fde8015c",
+   "kind": "release-asset",
+   "sourceId": "crds",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.45.0/strimzi-crds-0.45.0.yaml",
+   "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+   "contentDigest": "sha256:e859c73429319225b4a52e78dd03ec4d061dcb75b67140d327a0996ea162bdf4",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-5d73e704055d",
+   "kind": "structured",
+   "sourceId": "crds",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.45.0/strimzi-crds-0.45.0.yaml",
+   "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+   "contentDigest": "sha256:e859c73429319225b4a52e78dd03ec4d061dcb75b67140d327a0996ea162bdf4",
+   "representation": "release-asset",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-f30e7746a73a",
+   "kind": "release-asset",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.45.0/strimzi-0.45.0.zip",
+   "excerpt": "HEAD https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.45.0/strimzi-0.45.0.zip -\u003e HTTP 200 application/octet-stream",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-2490be89dc68",
+   "kind": "document",
+   "sourceId": "cluster-operator-manifest",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/packaging/install/cluster-operator/060-Deployment-strimzi-cluster-operator.yaml",
+   "excerpt": "apiVersion: apps/v1",
+   "contentDigest": "sha256:0a389bd3e589eca8015708efd402d69a3ad09900788744b62b9881175c0ac3c9",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-9e0366261a27",
+   "kind": "structured",
+   "sourceId": "cluster-operator-manifest",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/packaging/install/cluster-operator/060-Deployment-strimzi-cluster-operator.yaml",
+   "locator": "packaging/install/cluster-operator/060-Deployment-strimzi-cluster-operator.yaml",
+   "excerpt": "apiVersion: apps/v1",
+   "contentDigest": "sha256:0a389bd3e589eca8015708efd402d69a3ad09900788744b62b9881175c0ac3c9",
+   "representation": "source-tree",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-afe1cfa5f1a2",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/strimzi/operator/manifests/sha256:328829a67886159943a9d9f6a2e6ca1cfffadceea48eb53451395b7e795ec17e",
+   "locator": "manifests/0.45.0",
+   "excerpt": "digest=sha256:328829a67886159943a9d9f6a2e6ca1cfffadceea48eb53451395b7e795ec17e mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:328829a67886159943a9d9f6a2e6ca1cfffadceea48eb53451395b7e795ec17e",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-0ec2af643b38",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/strimzi/kaniko-executor/manifests/sha256:ef1a39c363e145041d80103c3c12da9429ce06cf21dff6fb1fb75d0c0ed9c35b",
+   "locator": "manifests/0.45.0",
+   "excerpt": "digest=sha256:ef1a39c363e145041d80103c3c12da9429ce06cf21dff6fb1fb75d0c0ed9c35b mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:ef1a39c363e145041d80103c3c12da9429ce06cf21dff6fb1fb75d0c0ed9c35b",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-614574214a66",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/strimzi/maven-builder/manifests/sha256:ed0261b9479000417adb624c776d54f18bd5bc301f3b5cfa0883c0f22cb2a249",
+   "locator": "manifests/0.45.0",
+   "excerpt": "digest=sha256:ed0261b9479000417adb624c776d54f18bd5bc301f3b5cfa0883c0f22cb2a249 mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:ed0261b9479000417adb624c776d54f18bd5bc301f3b5cfa0883c0f22cb2a249",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-5effc2a27713",
+   "kind": "structured",
+   "sourceId": "kafka-bridge-image",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/packaging/helm-charts/helm3/strimzi-kafka-operator/values.yaml",
+   "locator": "L129",
+   "excerpt": "kafkaBridge.image.tag: 0.31.1",
+   "contentDigest": "sha256:b2a5854e7e771509026a66e1a72f6721aab147097944b0ae765b292751faf3c4",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-2b808de3de90",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/strimzi/kafka-bridge/manifests/sha256:834c20a495442584fce53a98c250b38ac0597a807996447cf94131cedf590a6f",
+   "locator": "manifests/0.31.1",
+   "excerpt": "digest=sha256:834c20a495442584fce53a98c250b38ac0597a807996447cf94131cedf590a6f mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:834c20a495442584fce53a98c250b38ac0597a807996447cf94131cedf590a6f",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-0569c8a8a01e",
+   "kind": "git-ref",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/releases/tag/0.46.0",
+   "locator": "refs/tags/0.46.0",
+   "excerpt": "58f559c753fb68f58a04b4ad8c7612d472de5059 refs/tags/0.46.0",
+   "contentDigest": "sha256:467f549fa8e959f755fa054cd58854b7b52746fd5d10aa19871ba7d9f131917f",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-06037af181fc",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L3-L51",
+   "excerpt": "0.46.0",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-a7c9af863980",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L5-L6 (0.46.0)",
+   "excerpt": "* Add support for Kafka 4.0.0.\n  Remove support for Kafka 3.8.0 and 3.8.1.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-628f9c0eccb2",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L7-L7 (0.46.0)",
+   "excerpt": "* Support for ZooKeeper-based Apache Kafka clusters and for KRaft migration has been removed",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-5d8b8b113b70",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L8-L8 (0.46.0)",
+   "excerpt": "* Support for MirrorMaker 1 has been removed",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-c366ac6bf338",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L9-L9 (0.46.0)",
+   "excerpt": "* Support for storage class overrides has been removed",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-99017d1c8007",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L10-L10 (0.46.0)",
+   "excerpt": "* Added support to configure `dnsPolicy` and `dnsConfig` using the `template` sections.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-acec48f57273",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L11-L11 (0.46.0)",
+   "excerpt": "* Store Kafka node certificates in separate Secrets, one Secret per pod.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-580b3720cb97",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L12-L12 (0.46.0)",
+   "excerpt": "* Allow configuring `ssl.principal.mapping.rules` and custom trusted CAs in Kafka brokers with `type: custom` authentication",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-52d05bff16ea",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L13-L13 (0.46.0)",
+   "excerpt": "* Moved HTTP bridge configuration to the ConfigMap setup by the operator.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-d7b673b6053f",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L14-L14 (0.46.0)",
+   "excerpt": "* Dependency updates (Vert.x 4.5.14, Netty 4.1.118.Final)",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-12b17c85ab22",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L15-L15 (0.46.0)",
+   "excerpt": "* Moved Kafka Connect configuration to the ConfigMap created by the operator.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-2ed9c1d1b698",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L16-L16 (0.46.0)",
+   "excerpt": "* Update Kafka Exporter to [1.9.0](https://github.com/danielqsj/kafka_exporter/releases/tag/v1.9.0)",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-da7ff24b2c60",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L17-L17 (0.46.0)",
+   "excerpt": "* Adopted new Kafka Connect health check endpoint (see [proposal 89](https://github.com/strimzi/proposals/blob/main/089-adopt-connect-health-endpoint.md)).",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-35ea1afad43d",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L18-L18 (0.46.0)",
+   "excerpt": "* Update standalone User Operator to handle Cluster CA cert Secret being missing when TLS is not needed.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-6e79b1b1f3a7",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L19-L19 (0.46.0)",
+   "excerpt": "* Strimzi Drain Cleaner updated to 1.3.0 (included in the Strimzi installation files)",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-6b927d45a8a3",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L20-L21 (0.46.0)",
+   "excerpt": "* Implicit IPv4 preference when enabling JMX has been removed, and will now use JVM defaults.\n  This will make the cluster boot up correctly in IPv6 only environments, where IPv4 preference will break it due to lack of IPv4 addresses.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-52ec3b963cc5",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L22-L22 (0.46.0)",
+   "excerpt": "* Improved the MirrorMaker2 example Grafana dashboard to set metric units and include chart descriptions.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-173f5593d910",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L23-L23 (0.46.0)",
+   "excerpt": "* The `ContinueReconciliationOnManualRollingUpdateFailure` feature gate moves to GA stage and is permanently enabled without the possibility to disable it.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-1207394288b0",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L24-L24 (0.46.0)",
+   "excerpt": "* Update OAuth library to 0.16.2.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-c58562fb98a9",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L25-L25 (0.46.0)",
+   "excerpt": "* Update HTTP bridge to 0.32.0.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-4308bfa38162",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L26-L26 (0.46.0)",
+   "excerpt": "* Kubernetes events emitted during a Pod restart updated to have the Kafka resource as the `regardingObject` and the Pod in the `related` field.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-4c2676e4665a",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L30-L31 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* **Support for ZooKeeper-based clusters and for migration from ZooKeeper-based clusters to KRaft has been removed.**\n  **Please make sure all your clusters are using KRaft before upgrading to Strimzi 0.46.0 or newer!**",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-87094cfdd770",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L32-L33 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* Support for MirrorMaker 1 has been removed.\n  Please make sure to migrate to MirrorMaker 2 before upgrading to Strimzi 0.46 or newer.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-4851b37425c0",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L34-L35 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* [Strimzi EnvVar Configuration Provider](https://github.com/strimzi/kafka-env-var-config-provider) (deprecated in Strimzi 0.38.0) and [Strimzi MirrorMaker 2 Extensions](https://github.com/strimzi/mirror-maker-2-extensions) (deprecated in Strimzi 0.28.0) plugins were removed from Strimzi container images.\n  Please use the Apache Kafka [EnvVarConfigProvider](https://github.com/strimzi/kafka-env-var-config-provider?tab=readme-ov-file#deprecation-notice) and [Identity Replication Policy](https://github.com/strimzi/mirror-maker-2-extensions?tab=readme-ov-file#identity-replication-policy) instead.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-17b3774eb9ee",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L36-L36 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* When using Kafka Connect or Kafka MirrorMaker 2 operands and upgrading from Strimzi 0.38 or older, make sure the `StableConnectIdentities` feature gate is enabled and `StrimziPodSets` are used before upgrading.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-0fe6816db4bb",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L37-L37 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* When using the Kafka operand and upgrading from Strimzi 0.34 or older, make sure the `UseStrimziPodSets` feature gate is enabled and `StrimziPodSet` resources are used before upgrading.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-a6197708b375",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L38-L40 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* The storage overrides for configuring per-broker storage class are not supported anymore.\n  If you are using the storage overrides, you should instead use multiple KafkaNodePool resources with a different storage class each.\n  For more details about migrating from storage overrides, please follow the [documentation](https://strimzi.io/docs/operators/0.45.0/full/deploying.html#con-config-storage-zookeeper-str).",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-b55698b84a79",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L41-L42 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* The Open Policy Agent authorization (`type: opa`) has been deprecated and will be removed in the future.\n  To use the Open Policy Agent authorizer, you can use the `type: custom` authorization.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-4fdefdd841ec",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L43-L44 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* Removed the `statefulset.kubernetes.io/pod-name` label from pods and external listeners Kubernetes Services.\n  * If you have any custom setup leveraging such label, please use the `strimzi.io/pod-name` one instead.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-88ae24e32184",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L45-L46 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* The `secrets` list for mounting additional Kubernetes Secrets in `type: custom` authentication was deprecated and will be removed in the future.\n  Please use the template section to configure additional volumes instead.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-526028ea7180",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L47-L48 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* Kafka 4.0 and newer is using Log4j2 for logging instead of Reload4j/Log4j1.\n  If you have any custom logging configuration, you might need to update it during the upgrade to Kafka 4.0.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-2dffc916b09a",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L49-L50 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* Kubernetes events for Pod restarts no longer have the Pod as the `regardingObject`.\n  If you are using `regardingObject` as a `field-selector` for listing events you must update the selector to specify the Kafka resource instead.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-f432b7205700",
+   "kind": "document",
+   "sourceId": "changelog",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+   "locator": "L51-L51 (0.46.0 › Major changes, deprecations and removals)",
+   "excerpt": "* From Kafka 4.0.0, to enable the JMXReporter you must either enable metrics in `.spec.kafka.metrics`, or explicitly add JMXReporter in `metric.reporters`.",
+   "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-fdf149602114",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/strimzi-helm/strimzi-kafka-operator/manifests/sha256:5431e651fdcf3a34ad8074f5fd0cae9a471b46bd4f9d211dbb1c95fc6e8cc231",
+   "locator": "manifests/0.46.0",
+   "excerpt": "digest=sha256:5431e651fdcf3a34ad8074f5fd0cae9a471b46bd4f9d211dbb1c95fc6e8cc231 mediaType=application/vnd.oci.image.manifest.v1+json",
+   "contentDigest": "sha256:5431e651fdcf3a34ad8074f5fd0cae9a471b46bd4f9d211dbb1c95fc6e8cc231",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-542822dbd6a4",
+   "kind": "structured",
+   "sourceId": "chart",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/packaging/helm-charts/helm3/strimzi-kafka-operator/values.yaml",
+   "locator": "packaging/helm-charts/helm3/strimzi-kafka-operator/values.yaml",
+   "excerpt": "# Default values for strimzi-kafka-operator.",
+   "contentDigest": "sha256:5d523eb80228e7934adc2c6b262d38440323baf8878fe11c81012d5988872688",
+   "representation": "source-tree",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-5d728b7b0dfd",
+   "kind": "release-asset",
+   "sourceId": "crds",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.46.0/strimzi-crds-0.46.0.yaml",
+   "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+   "contentDigest": "sha256:81cc621b04f1ca6acb4cf4c6c2070c82a4e71d416011466dd3184bf3be4114e2",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-d758a7cb99a4",
+   "kind": "structured",
+   "sourceId": "crds",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.46.0/strimzi-crds-0.46.0.yaml",
+   "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+   "contentDigest": "sha256:81cc621b04f1ca6acb4cf4c6c2070c82a4e71d416011466dd3184bf3be4114e2",
+   "representation": "release-asset",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-70d11d8ffb3d",
+   "kind": "release-asset",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.46.0/strimzi-0.46.0.zip",
+   "excerpt": "HEAD https://github.com/strimzi/strimzi-kafka-operator/releases/download/0.46.0/strimzi-0.46.0.zip -\u003e HTTP 200 application/octet-stream",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-1709629e6246",
+   "kind": "document",
+   "sourceId": "cluster-operator-manifest",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/packaging/install/cluster-operator/060-Deployment-strimzi-cluster-operator.yaml",
+   "excerpt": "apiVersion: apps/v1",
+   "contentDigest": "sha256:eb6b02be607b57cc3a0eb9f30b545d5ba55c6e31e642e40a42a79a0838de69ba",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-b6929a0242c4",
+   "kind": "structured",
+   "sourceId": "cluster-operator-manifest",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/packaging/install/cluster-operator/060-Deployment-strimzi-cluster-operator.yaml",
+   "locator": "packaging/install/cluster-operator/060-Deployment-strimzi-cluster-operator.yaml",
+   "excerpt": "apiVersion: apps/v1",
+   "contentDigest": "sha256:eb6b02be607b57cc3a0eb9f30b545d5ba55c6e31e642e40a42a79a0838de69ba",
+   "representation": "source-tree",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-2ecc8d8b863e",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/strimzi/operator/manifests/sha256:ac434a48ac2b27b2b8f36001814897649c0193a78eb76d7cb4719c7f8cb4b275",
+   "locator": "manifests/0.46.0",
+   "excerpt": "digest=sha256:ac434a48ac2b27b2b8f36001814897649c0193a78eb76d7cb4719c7f8cb4b275 mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:ac434a48ac2b27b2b8f36001814897649c0193a78eb76d7cb4719c7f8cb4b275",
+   "retrievedAt": "2026-10-01T22:47:36Z"
+  },
+  {
+   "id": "ev-6def0d91b426",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/strimzi/kaniko-executor/manifests/sha256:ef1a39c363e145041d80103c3c12da9429ce06cf21dff6fb1fb75d0c0ed9c35b",
+   "locator": "manifests/0.46.0",
+   "excerpt": "digest=sha256:ef1a39c363e145041d80103c3c12da9429ce06cf21dff6fb1fb75d0c0ed9c35b mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:ef1a39c363e145041d80103c3c12da9429ce06cf21dff6fb1fb75d0c0ed9c35b",
+   "retrievedAt": "2026-10-01T22:47:36Z"
+  },
+  {
+   "id": "ev-646a844ce343",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/strimzi/maven-builder/manifests/sha256:b532234c234fc30fecec992ad1a6154c5ef08ebf9a20ec8bc62e0c88d791ff36",
+   "locator": "manifests/0.46.0",
+   "excerpt": "digest=sha256:b532234c234fc30fecec992ad1a6154c5ef08ebf9a20ec8bc62e0c88d791ff36 mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:b532234c234fc30fecec992ad1a6154c5ef08ebf9a20ec8bc62e0c88d791ff36",
+   "retrievedAt": "2026-10-01T22:47:36Z"
+  },
+  {
+   "id": "ev-e2b66c24453f",
+   "kind": "structured",
+   "sourceId": "kafka-bridge-image",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/packaging/helm-charts/helm3/strimzi-kafka-operator/values.yaml",
+   "locator": "L123",
+   "excerpt": "kafkaBridge.image.tag: 0.32.0",
+   "contentDigest": "sha256:5d523eb80228e7934adc2c6b262d38440323baf8878fe11c81012d5988872688",
+   "retrievedAt": "2026-10-01T22:47:35Z"
+  },
+  {
+   "id": "ev-46e88cbe8a06",
+   "kind": "registry",
+   "uri": "https://quay.io/v2/strimzi/kafka-bridge/manifests/sha256:428c5587f547dabfc995a73745569d113380c7e6b8bf0b2504c6a9a00d6c4608",
+   "locator": "manifests/0.32.0",
+   "excerpt": "digest=sha256:428c5587f547dabfc995a73745569d113380c7e6b8bf0b2504c6a9a00d6c4608 mediaType=application/vnd.docker.distribution.manifest.list.v2+json",
+   "contentDigest": "sha256:428c5587f547dabfc995a73745569d113380c7e6b8bf0b2504c6a9a00d6c4608",
+   "retrievedAt": "2026-10-01T22:47:36Z"
+  },
+  {
+   "id": "ev-b3f1fec70ca5",
+   "kind": "advisory",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/security/advisories/GHSA-mw9r-p8xp-wx96",
+   "locator": "GHSA-mw9r-p8xp-wx96",
+   "excerpt": "GHSA-mw9r-p8xp-wx96 (high): Cross-namespace privilege escalation via `Kafka.spec.entityOperator`; vulnerable: \u003c= 1.0.0; patched: 1.0.1, 1.1.0",
+   "contentDigest": "sha256:90c5af790bf9278a5c174b9f25417fea1c5f62d81ccc6483fe6a8fe2dd638a23",
+   "retrievedAt": "2026-10-01T22:47:36Z"
+  },
+  {
+   "id": "ev-09b54bf8f708",
+   "kind": "advisory",
+   "uri": "https://github.com/strimzi/strimzi-kafka-operator/security/advisories/GHSA-r427-j2h7-wv3m",
+   "locator": "GHSA-r427-j2h7-wv3m",
+   "excerpt": "GHSA-r427-j2h7-wv3m (medium): Unrestricted access to all Secrets within namespace watched by the Topic operator; vulnerable: \u003c= 1.0.0; patched: 1.0.1, 1.1.0",
+   "contentDigest": "sha256:825a9f8ab14283fb4ffb91191be2f46782049474f751138dd0cebc14bb369c2c",
+   "retrievedAt": "2026-10-01T22:47:36Z"
+  }
+ ]
+}

@@ -43,18 +43,21 @@ expected:
     evidence:
       - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
         quote: "resource/aws_redshift_cluster: The `publicly_accessible` attribute now defaults to `false` ([#41978])"
-  # Change type covered: more attribute removals on one resource.
+  # Change type covered: attribute removals with migration targets.
   - id: E4
-    title: aws_redshift_cluster logging and snapshot_copy attributes removed
+    title: aws_redshift_cluster logging and snapshot_copy attributes removed — replaced by the aws_redshift_logging / aws_redshift_snapshot_copy resources
     kind: removal
     importance: important
     actionRequired: true
     classification: action-required
     match:
       - text: '(?i)redshift_cluster.{0,40}(logging|snapshot_copy).{0,20}removed'
+      - text: '(?i)aws_redshift_(logging|snapshot_copy)'
     evidence:
       - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
         quote: "resource/aws_redshift_cluster: The `logging` attribute has been removed ([#42013]) … resource/aws_redshift_cluster: The `snapshot_copy` attribute has been removed ([#41995])"
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/website/docs/guides/version-6-upgrade.html.markdown
+        quote: "Remove `logging`—it is no longer supported. Use the `aws_redshift_logging` resource instead. … Remove `snapshot_copy`—it is no longer supported. Use the `aws_redshift_snapshot_copy` resource instead."
   # Change type covered: CPU attribute removals with replacement.
   - id: E5
     title: aws_instance cpu_core_count and cpu_threads_per_core removed — use cpu_options
@@ -96,16 +99,19 @@ expected:
         quote: "data-source/aws_region: The `name` attribute has been deprecated. All configurations using `name` should be updated to use the `region` attribute instead ([#42131])"
   # Change type covered: validation tightening (accepted value domain narrows).
   - id: E8
-    title: Boolean-typed attributes across elasticache, imagebuilder, launch_template and friends now only accept "" / true / false
+    title: Boolean-typed attributes across elasticache, imagebuilder, launch_template and friends now only accept "" / true / false (nullable boolean validation update)
     kind: breaking
     importance: important
     actionRequired: false       # only configurations passing non-literal booleans
     classification: review-required
     match:
       - text: '(?i)now only accept one of .{0,10}(empty string)?.{0,5}true.{0,5}false'
+      - text: '(?i)nullable [Bb]oolean [Vv]alidation [Uu]pdate|NullableBooleanValidation'
     evidence:
       - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/CHANGELOG.md
         quote: "resource/aws_elasticache_cluster: `auto_minor_version_upgrade` now only accepts one of `\"\"` (empty string), `true`, or `false` ([#42434])"
+      - url: https://github.com/hashicorp/terraform-provider-aws/blob/v6.0.0/website/docs/guides/version-6-upgrade.html.markdown
+        quote: "Nullable Boolean Validation Update — the following attributes now only accept `\"\"` (empty string), `true`, or `false` … | `aws_elasticache_cluster` | `auto_minor_version_upgrade` |"
   # Change type covered: provider-level deprecation with a removal horizon.
   - id: E9
     title: Global S3 endpoint and s3_us_east_1_regional_endpoint deprecated; removal in v7.0.0

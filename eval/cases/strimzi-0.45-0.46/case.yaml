@@ -122,15 +122,18 @@ environment:
       relevance: review
       why: the fixture's authorization configuration references OPA; deprecated but still functional in 0.46
   expectedFindings:
-    - id: F1
-      match:
-        rule: impact:kubernetes-in-range
-      why: Kubernetes 1.29 is inside Strimzi 0.46's supported range (support for 1.25/1.26 is only dropped from 0.48 on)
     - id: F2
       match:
         rule: impact:image-changed
       why: the mirror list pins the operator repository, whose image moves between 0.45.0 and 0.46.0
+    - id: F3
+      match:
+        rule: impact:crd-removed
+      why: 0.46.0 removes the KafkaMirrorMaker (MirrorMaker 1) CRD — packaging/install/cluster-operator loses 045-Crd-kafkamirrormaker.yaml and gains 045-Crd-kafkanodepool.yaml between the tags; the fixture's installed CRD bundle is the 0.45 one, so the removed-CRD check must fire for the MM1 CRD
   notExpectedFindings:
-    - title: no Strimzi CRD is removed by this upgrade
-      match: {rule: impact:crd-removed}
-      why: 0.46.0 still ships the same CRD set (kafka.strimzi.io etc.) as 0.45.0
+    - title: no cluster-version findings (Strimzi declares no Kubernetes compatibility constraint for the operator)
+      match: {rule: impact:kubernetes-in-range}
+      why: the definition deliberately carries no kubernetes compatibility source (see products/strimzi.yaml); a cluster-version finding would be invented
+    - title: no cluster-version rejection findings either (the Kafka support window lives in changelog bullets, not a constraint)
+      match: {rule: impact:kubernetes-below-range}
+      why: the Kafka support window (E5) is changelog knowledge, not a machine constraint the join can admit or reject

@@ -18,6 +18,13 @@ eval/cases/<case-id>/
 eval/results/        # stored results (snapshots), committed after review;
                      # `ri eval -update` rewrites them, tools never touch
                      # case.yaml
+eval/adjudications/  # optional: sample-based human verdicts on output changes
+                     # (<case>.yaml; input to labeledPrecision — see below)
+eval/adversarial/    # offline join-fooling fixtures with contract-derived
+                     # assertions (run by `go test ./internal/eval`, not eval
+                     # cases; see eval/adversarial/README.md)
+eval/gates.yaml      # pre-registered hard-gate thresholds (`ri eval` exits
+                     # non-zero when a gate fails)
 ```
 
 ## case.yaml
@@ -39,6 +46,10 @@ expected:                      # the upgrade work a competent operator must know
     kind: behaviour-change     # breaking | removal | deprecation | behaviour-change | helm-values | crd-schema | api | compatibility | security | artifact | migration-step | dependency
     importance: critical       # critical (would break/surprise prod) | important (should know/act) | minor (nice to know)
     actionRequired: true       # an operator must do something (or consciously decide)
+    classification: review-required  # G9: the class a correct system should output for
+                               # this item — action-required | review-required |
+                               # informational | not-affected | unknown (optional;
+                               # legacy cases predate it and score on presence only)
     # How an evaluator recognises a generated change as covering this item.
     # A change matches when ANY matcher matches (each matcher: all given fields must match).
     match:
@@ -58,6 +69,9 @@ expected:                      # the upgrade work a competent operator must know
 notExpected:                   # things that a tool might flag but that are NOT upgrade-relevant (optional)
   - title: test-only dependency bumps
     match: [{text: '(?i)bump .* in /test'}]
+    classification: action-required  # optional G9: the class such output should NOT have carried
+                                     # ("must NOT false-alarm"); feeds the confusion matrix and
+                                     # the false-action rate
 environment:                   # optional, only when environment/ exists
   description: Small production cluster, Kubernetes 1.31, ACME HTTP01 via ingress-nginx, Prometheus ServiceMonitor enabled
   kubernetes: "1.31"
