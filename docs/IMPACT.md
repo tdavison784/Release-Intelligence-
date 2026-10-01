@@ -234,13 +234,52 @@ a whole section.
 
 ### 2. CRDs and API versions (`--manifests`, `--crds`)
 
+CRD/schema changes are matched by **API identity, never by path alone**. The
+join pins each upstream change to CRD name / group / version / kind — parsed
+from the differ's own deterministic output, never guessed — and checks it
+against the environment's GVK usage inventory (`Environment.GVKUsage`):
+
+- `crd:removed` subjects are CRD names (`certificates.cert-manager.io`);
+- `crd:version-*` subjects are `name/version`;
+- a `crd:fields-removed` change's subjects are bare schema paths; its identity
+  lives in the title (`Certificate v1alpha2 schema: 2 fields removed: …`, the
+  label being the CRD's kind when the snapshot knows it, else its name) and
+  the detail (`… in the cert-manager.io/v1alpha2 schema of
+  certificates.cert-manager.io are pruned …`).
+
+A change that yields no API group this way is UNKNOWN
+(`impact:not-joined`, `neededToDetermine` names the gap) — matching its paths
+by name alone would flag every unrelated resource that sets a same-named path
+(a Deployment's `spec.foo` is not a cert-manager impact).
+
+On the environment side, "usage" means a **resource manifest** of the
+group/version/kind: an installed CRD document stages its served versions in
+the inventory too, but sets no field paths there, so a non-empty `FieldPaths`
+list is the marker of manifest use — "the CRD is installed" never
+masquerades as "a resource of this kind exists". The confidence ladder:
+
+| Ladder step | Requirement | Confidence ceiling |
+|---|---|---|
+| exact GVK (+ exact field) | group/version/kind pinned by the change and in manifest use; `crd:fields-removed`: the removed path is set at/below it under that GVK | `high` → `action-required` when the upstream change is a removal (`crd:*-removed` critical, `crd:field-removed` high) |
+| known CRD + compatible kind | the CRD name matches an installed CRD and manifests use its `names.kind` (version unpinned for `crd:removed`); kind only *inferred* (installed CRD states none) → `medium` | `high`/`medium` (medium is demoted to review per the contract) |
+| same API group (/version) only | the group matches but the kind is not pinned (CRD not installed) or does not match | `medium` → `review-required` at most, never action |
+| field path only | the change states no parsable identity (or a `name/version` subject without version) | — → `impact:not-joined` · unknown (`neededToDetermine`) |
+| no match, deciding dimension supplied | installed CRDs / manifests were checked | `impact:crd-unused` / `impact:crd-version-unused` / `impact:crd-field-unset` · not-affected (evaluation record) |
+
+Why-blocks of GVK-scoped findings name the matched resources —
+`Environment: Certificate/istio-system/example-com
+(manifests/certificate.yaml:L1) sets spec.privateKey (L8)` — and group-only
+findings say exactly what is missing to decide (the kind, via the installed
+CRD's `names.kind`).
+
 | Upstream rule | Environment fact matched | Finding |
 |---|---|---|
-| `crd:removed` | installed CRD with that name; or manifest usage of the CRD's API group (kind checked when the installed CRD is known) | `impact:crd-removed` · action-required (name match) / review-required (group-only match: medium confidence, demoted per the contract) |
-| `crd:version-removed` / `crd:version-unserved` | manifest `apiVersion` equal to group/version; or an installed CRD declaring the version | `impact:crd-version-removed` · action-required |
-| `crd:version-deprecated` | same | `impact:crd-version-deprecated` · review-required |
-| `crd:fields-removed` | manifest field path equal to, or below, the removed path (`[]` array markers are stripped on the upstream side) | `impact:crd-field-removed` · action-required (exact/below) or review-required (the manifest sets a section above it) |
-| no overlap, deciding dimension supplied (`--crds` for the first three, `--manifests` for fields) | — | `impact:crd-unused` / `impact:crd-version-unused` / `impact:crd-field-unset` · not-affected |
+| `crd:removed` | installed CRD with that name **and** manifest usage of its group (+kind when the CRD states it); group-only usage → review | `impact:crd-removed` · action-required · critical (high confidence only with usage; installed-but-unused → not-affected when manifests were supplied, review otherwise; group-only → review) |
+| `crd:version-removed` / `crd:version-unserved` | exact GVK in manifest use (kind pinned via the installed CRD); group/version with unpinnable kind → review; installed CRD declares the version but no manifest uses the GVK → not-affected (with manifests) / review (without) | `impact:crd-version-removed` · action-required · critical |
+| `crd:version-deprecated` | same matching; every affected verdict is review (a deprecation breaks nothing today) | `impact:crd-version-deprecated` · review-required · medium |
+| `crd:fields-removed` | the removed path (array markers stripped) set at/below it **within the change's GVK**; a same-named path under another GVK never matches | `impact:crd-field-removed` · action-required · high (exact GVK) / review (kind or version unpinned, or a set section above the path) |
+| unparseable upstream identity | — | `impact:not-joined` · unknown |
+| no overlap, deciding dimension supplied (`--crds` for the CRD/version rules, `--manifests` for fields) | — | `impact:crd-unused` / `impact:crd-version-unused` / `impact:crd-field-unset` · not-affected |
 
 ### 3. Kubernetes compatibility (`--kubernetes`)
 
@@ -324,15 +363,8 @@ warnings — see `TestE2EImpactRepo` and the `cert-manager_repo_*` goldens.
   counts them in the funnel as UNKNOWN (with the reason) instead of silently
   skipping them. Turning them into real verdicts needs subjects the snapshots
   do not carry (see `docs/ARCHITECTURE.md` on honest gaps).
-- **CRD field removal matches by path only.** The upstream change lists
-  schema paths without the CRD's identity (the edge's CRD snapshots are
-  per-release summaries); a removed `spec.x` matches any manifest setting
-  `spec.x`. The GVK usage inventory now carries the per-document identity a
-  GVK-scoped matcher needs; the join itself does not use it yet.
-- **Group-only API matches are demoted to review-required.** Without an
-  installed CRD, a group/version match cannot distinguish kinds of the same
-  group; medium confidence may not carry ACTION REQUIRED (the contract's
-  demotion rule).
+- **CRD matching is GVK-scoped; the identity is parsed from the differ's output.** The edge's CRD snapshots are per-release summaries, so a `crd:fields-removed` change carries its CRD identity only in its title and detail text; the join parses those deterministic strings and treats a change that yields no API group as UNKNOWN rather than guessing. Resource *clients* outside the supplied manifests (operators, controllers, API consumers) stay invisible.
+- **Group-only CRD matches stay below action.** Without an installed CRD of the changed name, a group (or group/version) match cannot distinguish kinds of the same group — another CRD could serve the kind in use — so they are review-required at most (medium confidence may not carry ACTION REQUIRED, the contract's demotion rule).
 - **Values semantics are syntactic.** The join reasons about key paths, not
   Helm's full merge/type-coercion behaviour; `review-required` is the honest
   outcome wherever merge behaviour could surprise.
