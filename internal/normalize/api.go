@@ -103,9 +103,11 @@ func SelectSection(md []byte, re *regexp.Regexp) (*Section, error) {
 //
 // Classification order (every fired signal is listed in Provenance.Rule):
 // product rules, upstream labels (section headings, bold verbs, "Security
-// (HIGH):", conventional commits, breaking markers), keyword heuristics,
-// role defaults (upgrade-guide => migration + ActionRequired), fallback
-// "other". See classify.go for the exact tables.
+// (HIGH):", conventional commits, breaking markers), explicit CVE / GHSA
+// identifiers (an item citing one is a security item unless a product rule
+// set the category; recorded first, method heuristic, confidence high),
+// keyword heuristics, role defaults (upgrade-guide => migration +
+// ActionRequired), fallback "other". See classify.go for the exact tables.
 func ParseNotes(in DocInput, rules []catalog.ClassifyRule) ([]domain.NoteItem, []domain.Evidence, error) {
 	return parseNotes(in, rules)
 }
@@ -230,13 +232,18 @@ func ParseImageRef(s string) (domain.ImageRef, error) {
 	return parseImageRef(s)
 }
 
-// ExtractReferences finds CVE ids, GHSA ids, and pull-request / issue
-// references (GitHub URLs or "#1234" when repository is given), de-duplicated
-// and in order of first appearance. Reference IDs of GitHub items are
-// "owner/name#N"; a "#N" that is also present as a PR/issue URL of the same
+// ExtractReferences finds CVE ids, GHSA ids, pull-request / issue references
+// (GitHub URLs or "#1234" when repository is given) and commit references,
+// de-duplicated and in order of first appearance. Reference IDs of GitHub items
+// are "owner/name#N"; a "#N" that is also present as a PR/issue URL of the same
 // repository is folded into the URL reference. repository may be "owner/name",
 // "github.com/owner/name" or a github.com URL; other hosts yield no bare
 // references.
+//
+// A GitHub or GitLab commit URL (".../commit/<sha>", GitLab also
+// ".../-/commit/<sha>") yields Reference{Type: "commit", ID: <first 7 chars of
+// the sha, lower-case>, URL: <the URL>}; the same abbreviation listed twice
+// is one reference.
 func ExtractReferences(text, repository string) []domain.Reference {
 	return extractReferences(text, repository)
 }

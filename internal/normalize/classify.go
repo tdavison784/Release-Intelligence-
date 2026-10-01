@@ -18,6 +18,12 @@ import (
 //  1. product rules (catalog.ClassifyRule)
 //  2. upstream labels: item-level (bold verbs, "Security (HIGH):", conventional
 //     commits, breaking markers) and section headings
+//  2b. explicit identifiers: an item citing a concrete CVE or GHSA id is a
+//     security item whatever the upstream label says ("fix: ... CVE-2025-1",
+//     a "Bug Fixes" section). Only a product rule that set the category wins
+//     over it. The identifier is the decisive (first) provenance signal, method
+//     heuristic (it is found by pattern matching, not declared by upstream)
+//     with confidence high (the identifier is explicit, not a guess).
 //  3. keyword heuristics, only when 1 and 2 set neither category nor flag
 //  4. role defaults (upgrade-guide => migration + ActionRequired)
 //  5. fallback category "other"
@@ -189,7 +195,9 @@ func sectionLabels(path []string) []labelHit {
 
 var (
 	boldVerbRe = regexp.MustCompile(`^\s*(?:\*\*|__)\s*([A-Za-z]+)\s*:?\s*(?:\*\*|__)`)
-	securityRe = regexp.MustCompile(`(?i)^\s*(?:\*\*|__)?\s*security\s*(?:\((?:critical|high|moderate|medium|low)\))?\s*:`)
+	// "Security:", "Security (HIGH):", "SECURITY (low risk):", "**Security (LOW):**":
+	// any short parenthesised qualifier, case-insensitive
+	securityRe = regexp.MustCompile(`(?i)^\s*(?:\*\*|__)?\s*security\s*(?:\([^()]{1,40}\))?\s*(?:\*\*|__)?\s*:`)
 	// conventional commit subject, optionally preceded by a commit SHA as in
 	// goreleaser changelogs ("* a1b2c3d4: feat(x): ...")
 	ccRe      = regexp.MustCompile(`(?i)^\s*(?:\*\*|__)?(?:[0-9a-f]{7,40}:?\s+)?(feat|fix|docs?|style|refactor|perf|tests?|build|ci|chore|revert)(?:\(([^)\s]*)\))?(!)?:\s`)
@@ -333,11 +341,16 @@ func yamlKindCategory(kind string) domain.Category {
 // ---- keyword heuristics ----------------------------------------------------
 
 var (
-	kwBreakingRe    = regexp.MustCompile(`(?i)\bbreaking[ -]changes?\b`)
-	kwDeprecatedRe  = regexp.MustCompile(`(?i)deprecat`)
-	kwRemovedRe     = regexp.MustCompile(`(?i)\b(?:removed|no longer (?:supported|available|served))\b`)
-	kwSecurityRe    = regexp.MustCompile(`(?i)\bCVE-\d{4}-\d{4,}\b|\bGHSA-|vulnerab`)
-	kwActionRe      = regexp.MustCompile(`(?i)\b(?:must|required|manually|migrat\w*)\b`)
+	kwBreakingRe   = regexp.MustCompile(`(?i)\bbreaking[ -]changes?\b`)
+	kwDeprecatedRe = regexp.MustCompile(`(?i)deprecat`)
+	kwSecurityRe   = regexp.MustCompile(`(?i)\bCVE-\d{4}-\d{4,}\b|\bGHSA-|vulnerab`)
+	// kwActionRe only accepts directive phrasing: ordinary prose such as "a
+	// password is required by the keystore" or "manually triggered" is not an
+	// instruction to the reader.
+	kwActionRe = regexp.MustCompile(`(?i)\b(?:you|users?|operators?|admins?|administrators?)\s+(?:must|need(?:s)?\s+to|(?:have|has)\s+to)\b|` +
+		`\bmust\s+be\b|\b(?:is|are)\s+now\s+required\b|\baction\s+(?:is\s+)?required\b|` +
+		`\bmanual(?:ly)?\s+(?:steps?|interventions?|migrations?)\b|\bmigrate\s+(?:your|existing)\b|` +
+		`\bbefore\s+(?:you\s+)?upgrad(?:e|ing)\b`)
 	skipSectionsRe  = regexp.MustCompile(`(?i)^(?:community|contributors?|new contributors|special thanks|thanks(?: to)?|thank you|acknowledg(?:e)?ments?|credits?|maintainers|steering committee|full changelog|next steps|see also|further reading)\b`)
 	categoryHeading = regexp.MustCompile(`(?i)^(?:the\s+)?(?:new\s+)?(?:` +
 		`features?|enhancements?|improvements?|bug\s*fix(?:es)?|bugs?(?:\s+(?:or|and|&)\s+regressions?)?|fix(?:es|ed)?|regressions?|` +
@@ -376,6 +389,120 @@ func builtinSkip(path []string) bool {
 		}
 	}
 	return false
+}
+
+// ---- lifecycle keywords (deprecation / removal) ------------------------------
+
+// advRe is an adverb that may sit between a modal and its verb
+// ("will soon be removed", "will then also be removed").
+const advRe = `(?:(?:\w+ly|soon|also|then|just|simply|eventually|always|now)\s+)`
+
+var (
+	// a removal that has happened
+	removalPhraseRe = regexp.MustCompile(`(?i)\b(?:removed|no longer (?:be )?(?:supported|available|served))\b`)
+	// text that ends in future / conditional phrasing leading up to the removal
+	// verb: "will be", "may be", "to be", "can be overridden or", ...
+	futureBeRe = regexp.MustCompile(`(?i)\b(?:will|would|may|might|could|can|shall|should|must|to|going\s+to)\s+` + advRe + `*be\s+` + advRe +
+		`*(?:(?:[\w,/-]+\s+){0,4}?(?:or|and)\s+` + advRe + `*)?$`)
+	// ... or leading up to "no longer": "will no longer", "may no longer"
+	futureNoLongerRe = regexp.MustCompile(`(?i)\b(?:will|would|may|might|could|can|shall|should)\s+` + advRe + `*$`)
+	// a future removal counts as a deprecation notice only when it says so
+	removalNoticeRe = regexp.MustCompile(`(?i)\bin (?:a|an|the) (?:future|upcoming|next)(?: (?:major|minor))? (?:release|version)s?\b`)
+	sentenceEndRe   = regexp.MustCompile(`[.!?;]\s|\n`)
+
+	// An item that starts with the verb Remove / Drop (after an optional bold
+	// marker, commit sha, conventional-commit prefix and "Label: ") is a removal.
+	removalVerbRe = regexp.MustCompile(`(?i)^\s*(?:(?:\*\*|__)\s*)?(?:[0-9a-f]{7,40}:?\s+)?` +
+		`(?:(?:feat|fix|docs?|style|refactor|perf|tests?|build|ci|chore|revert)(?:\([^)\s]*\))?!?:\s+)?` +
+		`(?:[^\s:][^:]{0,38}:\s+)?(?:(?:\*\*|__)\s*)?(remove[d]?|drop(?:ped)?)\b`)
+	// "Dropped connections after ..." is a bug description, not a removal
+	dropObjectRe = regexp.MustCompile(`(?i)^\s*(?:connections?|packets?|requests?|messages?|events?|traffic|logs?|samples?|frames?|spans?|metrics?|updates?|writes?|reads?)\b`)
+
+	// subjects that make a deprecation / removal keyword meaningless as a
+	// classification of the item: test, CI and tooling housekeeping
+	housekeepingSubjectRe = regexp.MustCompile(`(?i)\b(?:e2e|tests?|testing|ci|lint|linter|makefile|tooling)\b`)
+)
+
+// startsWithRemovalVerb reports whether txt opens with the verb Remove / Drop.
+func startsWithRemovalVerb(txt string) bool {
+	m := removalVerbRe.FindStringSubmatchIndex(txt)
+	if m == nil {
+		return false
+	}
+	verb := strings.ToLower(txt[m[2]:m[3]])
+	rest := txt[m[3]:]
+	if strings.HasPrefix(rest, "-") || strings.HasPrefix(rest, "'") || strings.HasPrefix(rest, "\u2019") { // "Drop-in", "Remove's"
+		return false
+	}
+	if strings.HasPrefix(verb, "drop") && dropObjectRe.MatchString(rest) {
+		return false
+	}
+	return true
+}
+
+// removalPhrases scans txt for removal phrases. done is true when one states
+// a removal that has happened ("was removed", "no longer supported"); future
+// is true when one is future or conditional ("will be removed", "may be
+// removed", "to be removed", "can be overridden or removed", "will no
+// longer ...").
+func removalPhrases(txt string) (done, future bool) {
+	for _, m := range removalPhraseRe.FindAllStringIndex(txt, -1) {
+		lo := m[0] - 120
+		if lo < 0 {
+			lo = 0
+		}
+		before := txt[lo:m[0]]
+		if all := sentenceEndRe.FindAllStringIndex(before, -1); len(all) > 0 { // same sentence only
+			before = before[all[len(all)-1][1]:]
+		}
+		re := futureBeRe
+		if strings.HasPrefix(strings.ToLower(txt[m[0]:m[1]]), "no longer") {
+			re = futureNoLongerRe
+		}
+		if re.MatchString(before) {
+			future = true
+		} else {
+			done = true
+		}
+	}
+	return done, future
+}
+
+// lifecycleKeyword is the keyword classification of deprecations and
+// removals: a leading Remove / Drop verb is a removal (even of a "deprecated"
+// thing), then "deprecat", then a removal that has happened. Future or
+// conditional removal ("will be removed", "may be removed") is not a removal;
+// it is a deprecation notice only when the item says "deprecated" or "in a
+// future release", and no category otherwise.
+func lifecycleKeyword(txt string) (domain.Category, string) {
+	if startsWithRemovalVerb(txt) {
+		return domain.CategoryRemoval, "kw:remove-verb"
+	}
+	if kwDeprecatedRe.MatchString(txt) {
+		return domain.CategoryDeprecation, "kw:deprecat"
+	}
+	done, future := removalPhrases(txt)
+	if done {
+		return domain.CategoryRemoval, "kw:removed"
+	}
+	if future && removalNoticeRe.MatchString(txt) {
+		return domain.CategoryDeprecation, "kw:removal-notice"
+	}
+	return "", ""
+}
+
+// securityIDRules lists the explicit security identifiers cited by the item
+// ("id:cve", "id:ghsa"). Both the cleaned text and the markdown-intact text
+// are searched: the id may only appear in a link target.
+func securityIDRules(ci classInput) []string {
+	var rules []string
+	if cveRe.MatchString(ci.text) || cveRe.MatchString(ci.raw) {
+		rules = append(rules, "id:cve")
+	}
+	if ghsaRe.MatchString(ci.text) || ghsaRe.MatchString(ci.raw) {
+		rules = append(rules, "id:ghsa")
+	}
+	return rules
 }
 
 // ---- main entry -------------------------------------------------------------
@@ -466,6 +593,28 @@ func (c *classifier) classify(ci classInput) verdict {
 		chosen = secCat
 	}
 	productSetCat := v.category != ""
+	// 2b. an explicit CVE / GHSA id makes the item a security item, whatever
+	// upstream label (section, bold verb, conventional commit) said. Product
+	// rules still win. When no label and no flag fired at all, the keyword step
+	// (3b) classifies the item as security itself (kw:cve, medium).
+	if idRules := securityIDRules(ci); len(idRules) > 0 && !productSetCat && chosen != domain.CategorySecurity {
+		flagged := v.breaking || v.actionRequired
+		for _, group := range [][]labelHit{itemHits, secHits} {
+			for _, h := range group {
+				flagged = flagged || h.breaking || h.action
+			}
+		}
+		if chosen != "" || flagged {
+			chosen = domain.CategorySecurity
+			idSigs := make([]signal, 0, len(idRules)+len(sigs))
+			for _, r := range idRules {
+				idSigs = append(idSigs, signal{domain.MethodHeuristic, domain.ConfidenceHigh, r})
+			}
+			// the identifier decides method/confidence: put it first
+			sigs = append(idSigs, sigs...)
+			rules = append(append([]string{}, idRules...), rules...)
+		}
+	}
 	if !productSetCat {
 		v.category = chosen
 	}
@@ -491,16 +640,16 @@ func (c *classifier) classify(ci classInput) verdict {
 	// 3. keyword heuristics
 	// 3a. refine a weak category: an upstream "Other"/"Cleanup"/"Docs"
 	// heading says little, so a strong keyword in the item (CVE, deprecat,
-	// removed) refines it. Product rules are never overridden.
+	// removed) refines it. Product rules are never overridden. Deprecation and
+	// removal keywords are not applied to test / CI / tooling housekeeping
+	// ("Migrate E2E tests from deprecated X" deprecates nothing).
 	if v.category == domain.CategoryOther && !productSetCat && itemCat == "" {
 		refined, rule := domain.Category(""), ""
 		switch {
 		case kwSecurityRe.MatchString(ci.text):
 			refined, rule = domain.CategorySecurity, "kw:cve"
-		case kwDeprecatedRe.MatchString(ci.text):
-			refined, rule = domain.CategoryDeprecation, "kw:deprecat"
-		case kwRemovedRe.MatchString(ci.text):
-			refined, rule = domain.CategoryRemoval, "kw:removed"
+		case !housekeepingSubjectRe.MatchString(ci.text):
+			refined, rule = lifecycleKeyword(ci.text)
 		}
 		if refined != "" {
 			v.category = refined
@@ -519,23 +668,18 @@ func (c *classifier) classify(ci classInput) verdict {
 			kwRules = append(kwRules, "kw:breaking change")
 			conf = domain.ConfidenceMedium
 		}
-		switch {
-		case kwSecurityRe.MatchString(txt):
+		if kwSecurityRe.MatchString(txt) {
 			v.category = domain.CategorySecurity
 			kwRules = append(kwRules, "kw:cve")
 			conf = domain.ConfidenceMedium
-		case kwDeprecatedRe.MatchString(txt):
-			v.category = domain.CategoryDeprecation
-			kwRules = append(kwRules, "kw:deprecat")
-			conf = domain.ConfidenceMedium
-		case kwRemovedRe.MatchString(txt):
-			v.category = domain.CategoryRemoval
-			kwRules = append(kwRules, "kw:removed")
+		} else if cat, rule := lifecycleKeyword(txt); cat != "" {
+			v.category = cat
+			kwRules = append(kwRules, rule)
 			conf = domain.ConfidenceMedium
 		}
 		if ci.role != domain.RoleUpgradeGuide && kwActionRe.MatchString(txt) { // implied by the role otherwise
 			v.actionRequired = true
-			kwRules = append(kwRules, "kw:must|required|manually|migrat")
+			kwRules = append(kwRules, "kw:must|required|manual|migrate (directive)")
 		}
 		for _, r := range kwRules {
 			add(domain.MethodHeuristic, conf, r)

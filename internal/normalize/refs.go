@@ -14,6 +14,10 @@ var (
 	ghsaRe = regexp.MustCompile(`(?i)\bGHSA(?:-[2-9cfghjmpqrvwx]{4}){3}\b`)
 	// https://github.com/owner/repo/pull/123 and .../issues/123
 	ghURLRe = regexp.MustCompile(`(?i)https?://(?:www\.)?github\.com/([A-Za-z0-9][A-Za-z0-9-]*)/([A-Za-z0-9_.-]+)/(pull|issues)/(\d+)`)
+	// commit URLs of GitHub (".../owner/repo/commit/<sha>") and GitLab
+	// (".../group/[subgroup/]project/-/commit/<sha>", also the older layout without
+	// "/-/"); the hosts are the ones package gitsrc builds commit links for
+	commitURLRe = regexp.MustCompile(`(?i)https?://(?:www\.)?(?:github|gitlab)\.[a-z0-9.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+?/(?:-/)?commit/([0-9a-f]{7,64})\b`)
 	// owner/repo#123
 	crossRefRe = regexp.MustCompile(`(?:^|[^\w/.#-])([A-Za-z][A-Za-z0-9-]*)/([A-Za-z0-9][A-Za-z0-9_.-]*)#(\d{1,7})\b`)
 	// bare #123, not part of a word, an HTML entity, a URL path or fragment
@@ -68,6 +72,11 @@ func extractReferences(text, repository string) []domain.Reference {
 		raw := text[m[0]:m[1]]
 		id := "GHSA" + strings.ToLower(raw[4:])
 		add(m[0], domain.Reference{Type: "ghsa", ID: id, URL: "https://github.com/advisories/" + id})
+	}
+
+	// commit URLs: the ID is the 7-character abbreviation of the sha
+	for _, m := range commitURLRe.FindAllStringSubmatchIndex(text, -1) {
+		add(m[0], domain.Reference{Type: "commit", ID: strings.ToLower(text[m[2] : m[2]+7]), URL: text[m[0]:m[1]]})
 	}
 
 	// GitHub URLs first, so that "#123" mentions of the same item are folded.

@@ -96,15 +96,24 @@ func TestFixtureCertManager118PatchSection(t *testing.T) {
 	if got := countCat(items, domain.CategoryFeature); got != 15 {
 		t.Errorf("features = %d, want 15", got)
 	}
-	if got := countCat(items, domain.CategoryBugfix); got != 14 {
-		t.Errorf("bugfixes = %d, want 14", got)
+	// 14 items were bugfixes before items citing a concrete CVE / GHSA id (five
+	// "Bump ... to patch CVE-..." items under "Bug or Regression") became security
+	if got := countCat(items, domain.CategoryBugfix); got != 9 {
+		t.Errorf("bugfixes = %d, want 9", got)
+	}
+	if got := countCat(items, domain.CategorySecurity); got != 5 {
+		t.Errorf("security = %d, want 5 (the CVE / GHSA fixes)", got)
 	}
 	if got := countCat(items, domain.CategoryOther); got < 7 {
 		t.Errorf("other = %d, want >= 7 (Documentation and Other (Cleanup or Flake))", got)
 	}
-	// a weak "Other (Cleanup or Flake)" label is refined by a strong keyword
-	if got := countCat(items, domain.CategoryDeprecation); got != 1 {
-		t.Errorf("deprecations = %d, want 1 (Remove deprecated feature gate ValidateCAA)", got)
+	// a weak "Other (Cleanup or Flake)" label is refined by a strong keyword:
+	// the verb "Remove" makes it a removal, not a deprecation
+	if got := countCat(items, domain.CategoryRemoval); got != 1 {
+		t.Errorf("removals = %d, want 1 (Remove deprecated feature gate ValidateCAA)", got)
+	}
+	if got := countCat(items, domain.CategoryDeprecation); got != 0 {
+		t.Errorf("deprecations = %d, want 0", got)
 	}
 	ids := map[string]bool{}
 	for _, it := range items {
@@ -116,8 +125,12 @@ func TestFixtureCertManager118PatchSection(t *testing.T) {
 			t.Errorf("section path of %q = %q", it.Text, it.Section)
 		}
 		wantMethod, wantConf := domain.MethodDeclared, domain.ConfidenceHigh
-		if it.Category == domain.CategoryDeprecation {
+		switch {
+		case it.Category == domain.CategoryRemoval:
 			wantMethod, wantConf = domain.MethodHeuristic, domain.ConfidenceMedium
+		case it.Category == domain.CategorySecurity && strings.HasPrefix(it.Classification.Rule, "id:"):
+			// decided by the explicit identifier, listed first in the provenance
+			wantMethod, wantConf = domain.MethodHeuristic, domain.ConfidenceHigh
 		}
 		if it.Classification.Method != wantMethod || it.Classification.Confidence != wantConf {
 			t.Errorf("%q: %+v", it.Text, it.Classification)
@@ -542,13 +555,32 @@ func TestFixtureArgoGitLog(t *testing.T) {
 	if breaking != 3 {
 		t.Errorf("breaking = %d, want 3 (fix!, feat!, BREAKING CHANGE)", breaking)
 	}
-	// commit URLs are not references, PR numbers are
+	// every commit-derived item references its PR (when it has one) and its commit
 	first := items[0]
-	if len(first.References) != 1 || first.References[0].ID != "argoproj/argo-cd#21234" || first.References[0].Type != "github-ref" {
+	if len(first.References) != 2 || first.References[0].ID != "argoproj/argo-cd#21234" || first.References[0].Type != "github-ref" {
 		t.Errorf("references = %+v", first.References)
 	}
 	if first.References[0].URL != "https://github.com/argoproj/argo-cd/issues/21234" {
 		t.Errorf("url = %q", first.References[0].URL)
+	}
+	if c := first.References[1]; c.Type != "commit" || c.ID != "abc1234" || c.URL != "https://github.com/argoproj/argo-cd/commit/abc1234def5678" {
+		t.Errorf("commit reference = %+v", c)
+	}
+	// only bullets that carry a commit link get a commit reference (the merge
+	// commit and the bullet without link do not)
+	withCommit := 0
+	for _, it := range items {
+		for _, r := range it.References {
+			if r.Type == "commit" {
+				withCommit++
+				if len(r.ID) != 7 || !strings.HasPrefix(r.URL, "https://github.com/argoproj/argo-cd/commit/"+r.ID) {
+					t.Errorf("%q: commit reference = %+v", it.Text, r)
+				}
+			}
+		}
+	}
+	if want := strings.Count(string(doc), "/commit/"); withCommit != want {
+		t.Errorf("commit references = %d, want %d (one per commit link)", withCommit, want)
 	}
 	checkEvidenceLines(t, doc, items, evs)
 }
