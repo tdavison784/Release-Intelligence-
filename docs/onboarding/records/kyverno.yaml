@@ -1,0 +1,128 @@
+product: kyverno
+order: 21
+wave: 3
+repository: github.com/kyverno/kyverno
+onboarding:
+  startedAt: "2026-10-01T15:36:03Z"
+  finishedAt: "2026-10-01T15:52:48Z"
+  minutes: 17                   # wall-clock, agent time
+discovery:
+  proposal: docs/onboarding/discovery/kyverno.proposed.yaml
+  report: docs/onboarding/discovery/kyverno.report.md
+# Discovery quality: the best chart call of any onboarding so far — it found
+# BOTH charts in charts/ and proposed the appVersion-lookup relation for
+# kyverno-policies itself (historically-validated 6/6 by its own checks), and
+# its validation run flagged the real readiness-checker boundary (fail at
+# v1.17.0, absent from ghcr). Its two chart/CLI drops were proposer
+# static-validation errors (ghcr.io/${{/ template syntax, goreleaser .Arch
+# variables), and it missed the six other images (release-workflow-only
+# evidence), the upgrade guide and the kyverno-api pin (research supplied
+# those).
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags'; 733 tags, 125 stable (v0.1.0-v1.19.1), 181 pre-releases, 427 junk; tagPattern kept verbatim"}
+  - {id: github-releases, origin: discovered, note: "versions fallback priority 1"}
+  - {id: release-notes-blog, origin: discovered-modified, note: "proposal id release-notes-line (historically-validated 3/3 by discovery); availability '>= 1.12.0' added (older minors used the kyverno-1.X-released blog naming), listItems added (TL;DR bullets were folding into one mixed item), classify added for bold-wrapped ATX sections"}
+  - {id: release-notes-github, origin: discovered-modified, note: "proposal id release-notes-github (historically-validated 6/6); classify added to tame the github-native 'What's Changed' PR list (dependabot/ci/test skips, feat/fix/deprecat/remov categories)"}
+  - {id: upgrade-guide, origin: manual, note: "discovery reported upgrade-docs not-found; upgrading.md in kyverno/website carries '## Upgrading to Kyverno v1.X' sections per minor (only for minors with upgrade steps: 1.13, 1.19 today); the deprecation/removal policy channel"}
+  - {id: support-policy, origin: manual, note: "installation/releases.md as lifecycle evidence ('approximately three months of community patch support' for the newest minor only), flux support-policy pattern"}
+  - {id: advisories, origin: discovered, note: "34 published GHSAs; the adapter works from this sandbox"}
+artifacts:
+  - {id: chart, origin: discovered-modified, note: "discovery saw charts/kyverno but as helm.independent-version (wrong relation) and dropped it on a ghcr.io/${{/ template error; rebuilt as the lookup relation its kyverno-policies proposal already had (appVersion == {{.Tag}}, v-prefixed), channels fixed to the gh-pages index + ghcr OCI; contents (helm-values, chart-metadata for kubeVersion) added"}
+  - {id: policies-chart, origin: discovered-modified, note: "proposal kyverno-policies-chart with the RIGHT appversion-lookup relation, historically-validated by discovery; channels fixed (same template error)"}
+  - {id: kyverno-api-chart, origin: manual, note: "the CRD chart dependency pinned per release in Chart.yaml since 1.17 (version:field over dependencies[name=kyverno-api].version, the kube-prometheus-stack pin shape); from 1.19 on it is how the chart installs CRDs"}
+  - {id: crds, origin: discovered-modified, note: "discovery proposed cmd/cli/kubectl-kyverno/data/crds (the CLI's test data, 20 CRDs); corrected to config/crds (the shipped set, recursive over group subdirs, 11-22 CRDs per era); contents kept"}
+  - {id: kyverno-image, origin: manual, note: "release workflow publishes 7 images per tag; discovery only surfaced readiness-checker (108 image refs found, 1 included)"}
+  - {id: kyvernopre-image, origin: manual, note: "same"}
+  - {id: kyverno-cli-image, origin: manual, note: "same"}
+  - {id: cleanup-controller-image, origin: manual, note: "same; availability '>= 1.9.0' (404 at v1.8.5, 200 from v1.9.0)"}
+  - {id: background-controller-image, origin: manual, note: "availability '>= 1.10.0'"}
+  - {id: reports-controller-image, origin: manual, note: "availability '>= 1.10.0'"}
+  - {id: readiness-checker-image, origin: discovered, note: "discovery's image.tag-assumed-release proposal; its own validation flagged the v1.17.0 failure — the availability '>= 1.17.2' window (chart test hook image, first tagged v1.17.2-rc.1)"}
+  - {id: install-manifest, origin: discovered, note: "kept as proposed (template {{.Tag}}, http release asset); image-refs contents added"}
+  - {id: cli-binary, origin: discovered-modified, note: "discovery's binary died on goreleaser's .Arch/.Arm template variables; rebuilt with the concrete asset name kyverno-cli_{{.Tag}}_linux_x86_64.tar.gz (v-prefixed in the asset name, 200 v1.8.0-v1.19.1)"}
+discoveryRejected:
+  - {id: "kyverno-chart as helm.independent-version", reason: "the chart's version moves independently but every stable release has a chart whose appVersion is the release tag (268 index entries, checked 1.10.0-1.19.1): the lookup is the relation, not independence"}
+  - {id: "cmd/cli/kubectl-kyverno/data/crds as the CRD artifact", reason: "the CLI's bundled test-data CRDs (cli.kyverno.io_* etc.); the shipped set is config/crds (and the 22 per-release assets / the chart's crds subchart)"}
+  - {id: "CHANGELOG.md as a notes source", reason: "not proposed, and correctly so it turns out: stale — the newest section is v1.13.0 even at the v1.19.1 tag"}
+  - {id: "release-asset checksums/sigstore signatures (cand-a158dd63f398)", reason: "integrity files, correctly annotated not modelled"}
+relationships:
+  # Default `ri check` (1.17.0, 1.17.2, 1.18.0, 1.18.2, 1.19.0, 1.19.1) plus an
+  # era run over 1.8.5, 1.9.0, 1.10.0, 1.12.0, 1.13.0, 1.14.0, 1.16.0 (the
+  # satellite-image boundaries, the blog naming era, the upgrade-guide era, the
+  # chart 2.x/3.0 eras).
+  historicalReleasesChecked: [1.8.5, 1.9.0, 1.10.0, 1.12.0, 1.13.0, 1.14.0, 1.16.0, 1.17.0, 1.17.2, 1.18.0, 1.18.2, 1.19.0, 1.19.1]
+  # First complete draft: 1 failing subject — upgrade-guide @ 1.19.0 (heading
+  # templated with the full version; upstream titles sections by minor).
+  initialFailures: 1
+  finalFailures: 0
+  manualInterventions:
+    - {subject: upgrade-guide, change: "heading '{{regexQuote .Version}}' -> 'v{{.Major}}.{{.Minor}}'", reason: "sections are titled 'Upgrading to Kyverno v1.19' (major.minor), not the full version"}
+    - {subject: release-notes-blog, change: "extract.listItems true", reason: "reading the 1.18.2 -> 1.19.1 edge: the TL;DR lead-in folded four bullets into one item classified migration+breaking; listItems (karpenter's construct) splits them into the four clean statements"}
+    - {subject: upgrade-guide, change: "classify: '(has been|were) removed' -> removal+breaking; skip the 'not going away' reassurance bullet", reason: "the CLI 'kyverno json scan' removal sat in 'other' while a PolicyReport reassurance was action-required (the ingress-nginx reassurance lesson)"}
+    - {subject: readiness-checker-image, change: "availability '>= 1.17.2'", reason: "discovery flagged v1.17.0 absent; probe boundary v1.17.1=404, v1.17.2=200 (first tag v1.17.2-rc.1)"}
+  unverifiable: []              # every channel answered in both runs; no blocked hosts this onboarding
+constructs:
+  new: []                       # 96 used, all introduced by earlier products (0 unaccounted in ri stats)
+  considered:
+    - {name: "policy-types/overview.md (the API-status + deprecation-schedule tables) as a source", rejected: "a mutable current-state page: attaching it at historical minors would misattribute timing (the 'As of v1.19' statements), and the schedule table rows do not parse as note items; the time-scoped representations (upgrading.md sections, the 1.19 blog) carry the same policy with correct per-release attribution"}
+    - {name: "CRD release assets as the crds artifact channel", rejected: "22 per-release URLs cannot be one channel; config/crds at the tag is the same set with per-file evidence"}
+    - {name: "reports-server / grafana / openreports chart-dependency pins", rejected: "constant (0.1.6) or in-tree-moving (3.9.1 == chart version) pins with no upgrade signal; kyverno-api is modeled because it is the CRD distribution and it moves"}
+    - {name: "crds contents on install-manifest", rejected: "would duplicate the crds artifact snapshot of the same definitions"}
+    - {name: "a compatibility source from installation/releases.md", rejected: "the page states the CURRENT line's Kubernetes set (v1.33-1.35); no per-release history exists — the per-release minimum is the chart kubeVersion, captured as chart-metadata content"}
+    - {name: "policies-chart contents (helm-values/chart-metadata)", rejected: "expressible with existing constructs but the chart's values are policy-set toggles that change per chart version, not per app release; declined scope, not a representation gap"}
+goChanges:
+  productSpecific: 0
+  generic: []                   # configuration only
+unreachableSources: []          # ghcr.io (anonymous), kyverno.github.io, raw.githubusercontent, github release downloads, api.github.com (quota-limited but answering) all reachable 2026-10-01
+ambiguousRelationships:
+  - "The charts' appVersion is v-PREFIXED (v1.19.1), unlike Argo CD/flux whose lookups match the unprefixed version: match is {{.Tag}}, not {{.Version}}."
+  - "Chart majors track app majors (chart 2.x -> app 1.5-1.9, 3.x -> 1.10+) but chart minors are their own (chart 3.4.5 AND 3.4.6 both have appVersion v1.14.5); select latest resolves, and a chart fix can re-publish the same appVersion."
+  - "Upstream writes an 'Upgrading to Kyverno v1.X' section only for minors that need steps (1.13, 1.19 today); 1.14-1.18 are declared as source exceptions — absence is upstream's statement that none are needed (the 1.18 blog: 'There are no breaking changes')."
+  - "From 1.19 the chart installs CRDs via the kyverno-api dependency while config/crds stays in the source tree: two representations of one CRD set; the definition snapshots the source tree (cilium precedent), the kyverno-api pin reports the shipped chart version."
+  - "Tag v1.15.20 is an extra-looking patch of the 1.15 line (after 1.15.3); never traversed by the checked edges."
+  - "readiness-checker is a Helm test-hook image (test.image), not a workload image; published by the release workflow like the other six."
+  - "2023-era advisories (CVE-2023-4281x) carry no machine-readable affected ranges; they surface as check-manually warnings (the flux pattern)."
+representability: full          # the multi-image + same-repo-chart + pinned-CRD-chart topology is fully represented with constructs from orders 1-15
+gaps:
+  - "The deprecation schedule's forward-looking rows ('v1.20 | Nov 2026 | Removed') reach edges only as text items of the 1.19 sources; there is no construct for a future-removal constraint keyed by a target release that does not exist yet (the CRD-version diff will state the removal factually once v1.20 ships)."
+  - "The Kubernetes supported SET per release (v1.33-1.35 for 1.19) exists only on the mutable releases.md page; only the chart kubeVersion minimum is captured per release (the set-valued compatibility column flux also recorded)."
+  - "The CLI asset family per OS/arch (darwin/windows, arm64/s390x) is one modeled channel (linux_x86_64); asset families are not expressible (flux recorded the same)."
+  - "policies-chart contents are not snapshotted (see constructs.considered)."
+sampleEdge:
+  from: 1.18.2
+  to: 1.19.1
+  summary: "7 breaking · 14 action required · 77 changes · 9 warnings"
+  evidenceRecords: 235
+  notes: >-
+    Path v1.19.0 -> v1.19.1 (minor crossing). The breaking list IS the
+    documented deprecation/removal policy: the four 'deprecated in 1.19,
+    removed in v1.20' statements (ClusterPolicy/Policy, CleanupPolicy/
+    ClusterCleanupPolicy, legacy PolicyException, from upgrading.md
+    L24-L37), the schedule items from the 1.19 blog, and the 'kyverno json
+    scan' CLI removal — each breaking + action required with line evidence.
+    The artifact table shows the whole topology verified: chart 3.8.2 ->
+    3.9.1, policies-chart 3.8.2 -> 3.9.1, kyverno-api 0.0.1-alpha.2 ->
+    0.0.1-alpha.4 (the CRD chart pin), all seven images v1.18.2 -> v1.19.1
+    at ghcr, install.yaml and the CLI tarball at the release tag. Computed
+    deprecations from the CRD diff (kyverno.io/v1 of ClusterPolicy, v2 of
+    PolicyException, ...) echo the documented policy from the other side:
+    the CRDs themselves gained the deprecation markers. Helm-values diffs
+    (nodeSelector os keys moved to global, new prometheusRule section),
+    20 crd-schema additions, 5 GHSA fixes at 1.19.1, the EOL lifecycle
+    change (1.18.2 end-of-life since 2026-08) and 8 no-range advisories as
+    warnings. Tuning iterations: 3, all found by reading the edge, not by
+    failing checks.
+notes: >-
+  The fifth zero-new-construct onboarding (grafana, strimzi, otel-collector,
+  redis): the multi-image + same-repository-chart + pinned-CRD-subchart
+  topology decomposed entirely into constructs earlier products introduced —
+  lookup (argo-cd), version:field pins (kube-prometheus-stack), availability
+  windows, source exceptions (vault), lifecycle statements (ingress-nginx,
+  traefik, flux) and listItems (karpenter). 96 constructs used, 0 new, 0
+  product-specific Go. Discovery contributed the versioning, both notes
+  channels, the advisories, the install manifest and the readiness-checker
+  boundary; research contributed the six release-workflow images, the chart
+  relation correction, the kyverno-api pin and the website's deprecation
+  channels. Fastest onboarding so far (17 minutes): every relationship
+  validated from the first draft except one heading assumption, and no host
+  was blocked.
