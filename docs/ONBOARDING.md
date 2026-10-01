@@ -60,7 +60,7 @@ What convergence looks like:
 ## Summary
 
 - 9 product definitions, 9 onboarding records, 9 saved relationship reports.
-- 141 distinct constructs are used across all definitions; the records introduce 135.
+- 141 distinct constructs are used across all definitions; the records introduce 140.
 - 1 of 9 recorded products introduced no new construct. The latest product that introduced one has order 10.
 - Product-specific Go changes recorded: 0 (must be 0).
 
@@ -88,11 +88,11 @@ What convergence looks like:
 | 2 | istio | 81 | 12 | 69 | 85% | 99 | 7 / 0 | n/a | full |
 | 3 | argo-cd | 98 | 14 | 84 | 86% | 113 | 4 / 0 | n/a | full |
 | 5 | postgresql | 56 | 7 | 49 | 88% | 120 | 14 / 0 | 25 | partial |
-| 6 | kube-prometheus-stack | 81 | 2 | 70 | 86% | 122 | 12 / 0 | 27 | full |
-| 7 | vault | 82 | 7 | 75 | 91% | 129 | 10 / 0 | 23 | partial |
-| 8 | crossplane | 72 | 1 | 71 | 99% | 130 | 2 / 0 | 18 | partial |
-| 9 | external-secrets | 85 | 0 | 85 | 100% | 130 | 0 / 0 | 18 | full |
-| 10 | ingress-nginx | 93 | 5 | 88 | 95% | 135 | 9 / 0 | 25 | full |
+| 6 | kube-prometheus-stack | 81 | 7 | 70 | 86% | 127 | 12 / 0 | 27 | full |
+| 7 | vault | 82 | 7 | 75 | 91% | 134 | 10 / 0 | 23 | partial |
+| 8 | crossplane | 72 | 1 | 71 | 99% | 135 | 2 / 0 | 18 | partial |
+| 9 | external-secrets | 85 | 0 | 85 | 100% | 135 | 0 / 0 | 18 | full |
+| 10 | ingress-nginx | 93 | 5 | 88 | 95% | 140 | 9 / 0 | 25 | full |
 
 ### Discovery and relationship validation
 
@@ -116,11 +116,11 @@ What convergence looks like:
 | 2 | istio | 12 | 99 | 81 | 69 | 85% | 11 | 99 |
 | 3 | argo-cd | 14 | 113 | 98 | 84 | 86% | 14 | 113 |
 | 5 | postgresql | 7 | 120 | 56 | 49 | 88% | 7 | 120 |
-| 6 | kube-prometheus-stack | 2 | 122 | 81 | 70 | 86% | 11 | 131 |
-| 7 | vault | 7 | 129 | 82 | 75 | 91% | 4 | 135 |
-| 8 | crossplane | 1 | 130 | 72 | 71 | 99% | 1 | 136 |
-| 9 | external-secrets | 0 | 130 | 85 | 85 | 100% | 0 | 136 |
-| 10 | ingress-nginx | 5 | 135 | 93 | 88 | 95% | 5 | 141 |
+| 6 | kube-prometheus-stack | 7 | 127 | 81 | 70 | 86% | 11 | 131 |
+| 7 | vault | 7 | 134 | 82 | 75 | 91% | 4 | 135 |
+| 8 | crossplane | 1 | 135 | 72 | 71 | 99% | 1 | 136 |
+| 9 | external-secrets | 0 | 135 | 85 | 85 | 100% | 0 | 136 |
+| 10 | ingress-nginx | 5 | 140 | 93 | 88 | 95% | 5 | 141 |
 
 New constructs per product, in onboarding order (records):
 
@@ -129,7 +129,7 @@ New constructs per product, in onboarding order (records):
   2  istio                    12  ██████
   3  argo-cd                  14  ███████
   5  postgresql                7  ████
-  6  kube-prometheus-stack     2  █
+  6  kube-prometheus-stack     7  ████
   7  vault                     7  ████
   8  crossplane                1  █
   9  external-secrets          0  
@@ -139,15 +139,15 @@ New constructs per product, in onboarding order (records):
 Cumulative constructs introduced:
 
 ```text
-  1  cert-manager             87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  2  istio                    99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  3  argo-cd                 113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  5  postgresql              120  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  6  kube-prometheus-stack   122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  7  vault                   129  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  8  crossplane              130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  9  external-secrets        130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 10  ingress-nginx           135  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  1  cert-manager             87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  2  istio                    99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  3  argo-cd                 113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  5  postgresql              120  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  6  kube-prometheus-stack   127  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault                   134  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane              135  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets        135  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 10  ingress-nginx           140  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -203,9 +203,14 @@ Cumulative constructs introduced:
 - `template-func:ge`: First definition use: '{{if ge .Major 10}}' renders the published two-part form of versions >= 10 in the tarball URL and the Docker image tags (3 artifacts + 2 headings, see considered: the rejected published-version variable).
 - `template-var:Patch`: REL_17_2 / REL9_6_24 cannot be read by a (?P<version>) group: the numbers are underscore-separated, 17.2 has two parts and a major (17) must be a release line. Components are assembled into major.minor.patch[-prerelease] (missing minor/patch = 0), so 17.2 is 17.0.2, line 17.0, kind major/patch, and PrevTag/lineage/releaseKinds/availability work unchanged. Accepted for versioning.tagPattern and git-tags locators; validated by the Go validator and the JSON Schema. The assembled components are rendered back to the published two-part form in templates ({{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}}, and {{if eq .Patch 0}} for the 'Release 17' heading): the first definition use of the .Patch template variable and of the eq/ge template functions (see considered: the rejected published-version variable). (also needed by Go (go1.22 is 1.22.0), Linux kernel (v6.7), Python (v3.13.0rc1, glued prerelease), Ruby (v3_3_0), OpenSSL 1.x (OpenSSL_1_1_1), PHP (php-8.3.0RC1), MariaDB, none of the other planned Phase-2 products tags this way (Redis, Elasticsearch, ... are three-part semver): justified by well-known projects, not by the plan)
 
-### kube-prometheus-stack (order 6, wave 1): 2 new
+### kube-prometheus-stack (order 6, wave 1): 7 new
 
-- `field:artifacts.version.from`: the document half of the construct above; a separate name because stats counts it separately (also needed by same as version:field)
+- `field:artifacts.channels.glob`: the gh-pages index of the monorepo lists every sibling chart; the channel needs kube-prometheus-stack-*.tgz to select its own entries (mirror of the tagPrefix idea on tags) (also needed by loki-stack and any helm monorepo product (grafana charts moved to a monorepo too))
+- `field:artifacts.version.from.kind`: the document half of version:field; stats counts each leaf separately. from is a repo-file/http locator rendered at the release ref (also needed by same as version:field)
+- `field:artifacts.version.from.path`: each pin lives in a named file at the release ref; the path is the join key between artifact and evidence line (also needed by same as version:field)
+- `field:artifacts.version.from.ref`: pins move with the chart tag, so the ref is the release tag; without it the pin would be read from the default branch and drift (also needed by same as version:field)
+- `field:artifacts.version.from.repository`: the aggregator's pins live in the product repository itself, unlike lookup whose index is a registry (also needed by same as version:field)
+- `field:sources.locator.chart`: git-tags of prometheus-community/helm-charts carries every chart's tag family; the versions source needs chart=kube-prometheus-stack to keep its own tags (tagPrefix keeps the version shape, chart keeps the product) (also needed by any product whose canonical channel is a chart in a multi-chart repository)
 - `version:field`: The mirror of lookup: lookup finds the artifact whose index field matches the release (operator products use it for "the chart whose appVersion is my version"); field reads the version FROM a file of the release — required whenever the product is an aggregator that pins sub-components per release. Here it yields probe-able artifact instances with upstream evidence (Chart.yaml L9 for a dependency pin, values.yaml for an image tag), which a content snapshot cannot: the edge then states "kube-state-metrics chart 8.4.2 → 8.6.0 [verified]" instead of diffing text. Catalog gains the strategy + path validation (catalog.SplitYAMLPath), normalize the path walker over yaml.Node (normalize.ReadYAMLPath, ErrNoMatch semantics), ingest the resolution with the document as evidence, plus JSON Schema and unit tests in all three packages. (also needed by bitnami application charts (app image tag pinned in values.yaml, common dependency; well known), vault-helm (appVersion is the Vault version; vault already models the reverse lookup — the chart product would use field))
 
 ### vault (order 7, wave 1): 7 new
@@ -239,7 +244,7 @@ No new constructs: the definition is configuration only.
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
-| 1 | postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 6 (external-secrets) | 22 (3.7) | 93% | 47 / 0 | 24 (n=6) | 16/19/47 (43%) | 75/0/13/4 (6 of 6 reports) | 37 | full 3, partial 3 |
+| 1 | postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 6 (external-secrets) | 27 (4.5) | 93% | 47 / 0 | 24 (n=6) | 16/19/47 (43%) | 75/0/13/4 (6 of 6 reports) | 37 | full 3, partial 3 |
 
 ## Notes from the records
 
@@ -267,4 +272,4 @@ Observations about the inputs (missing, inconsistent or later-adopted data). The
 
 - cert-manager uses constructs introduced by a later product (the definition was migrated after they appeared): field:sources.fallbackGroup (introduced by istio)
 - kube-prometheus-stack uses constructs introduced by a later product (the definition was migrated after they appeared): field:artifacts.channels.path (introduced by vault), field:artifacts.channels.tagPattern (introduced by vault), locator:helm-git (introduced by vault)
-- kube-prometheus-stack uses 6 construct(s) that no record introduces: field:artifacts.channels.glob, field:artifacts.version.from.kind, field:artifacts.version.from.path, field:artifacts.version.from.ref, field:artifacts.version.from.repository, field:sources.locator.chart
+- kube-prometheus-stack uses 1 construct(s) that no record introduces: field:artifacts.version.from
