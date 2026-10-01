@@ -8,6 +8,9 @@
 //	                                    relationships against history
 //	ri ingest <product> <version>       ingest one release (facts + evidence)
 //	ri upgrade <product> <from> <to>    describe the upgrade edge
+//	ri impact <product> <from> <to>     join the edge with your environment
+//	                                    (--kubernetes, --values, --manifests,
+//	                                    --crds, --images)
 //	ri discover <repository>            propose a product definition
 //	ri stats [product...]               measure onboarding scalability
 //
@@ -41,6 +44,7 @@ Commands:
   check <product>                   validate declared relationships against historical releases
   ingest <product> <version>        ingest one release and print its facts
   upgrade <product> <from> <to>     describe everything relevant to upgrading from → to
+  impact <product> <from> <to>      which upgrade changes matter to your environment
   discover <repository>             inspect an upstream repository and propose a definition
   stats [product ...]               measure onboarding: constructs, effort, discovery, validation
 
@@ -124,6 +128,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return c.ingest(cmdArgs)
 	case "upgrade":
 		return c.upgrade(cmdArgs)
+	case "impact":
+		return c.impact(cmdArgs)
 	case "discover":
 		return c.discover(cmdArgs)
 	case "stats":

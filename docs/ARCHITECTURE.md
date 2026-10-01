@@ -60,6 +60,11 @@ internal/normalize     pure parsing for ONE release: markdown sections, note ite
 internal/ingest        deterministic pipeline: definition + registry → domain.Release;
                        version listing; historical relationship checks
 internal/upgrade       pure: path selection, diffs, edge assembly, text rendering
+internal/env           environment model parsed from LOCAL files (values, manifests,
+                       installed CRDs, images) with per-fact evidence
+internal/impact        pure: joins an UpgradeEdge with an environment into an
+                       ImpactReport; every finding cites upstream + environment
+                       evidence (docs/IMPACT.md)
 internal/discovery     AI-assisted source discovery: repo scanner → candidates →
                        (optional LLM resolution) → validation against ≥3 releases → proposed definition
 internal/app           composition root + use cases (wires adapters by locator kind; offline e2e tests)
@@ -68,14 +73,17 @@ internal/enrich        AI enrichment of edges: deterministic candidate groups �
                        validator → Enrichments with full provenance (docs/ENRICHMENT.md)
 internal/store         local JSON store for ingested releases and edges
 products/              checked-in product definitions
-schemas/               JSON Schemas (draft 2020-12): product-definition (hand-written); upgrade-edge and
-                       release (generated from internal/domain, run `go run ./internal/domain/schemagen`;
-                       a test fails when they are stale)
+schemas/               JSON Schemas (draft 2020-12): product-definition (hand-written); upgrade-edge,
+                       release and impact-report (generated from internal/domain, run
+                       `go run ./internal/domain/schemagen`; a test fails when they are stale)
 ```
 
 Dependency direction: `domain` ← `catalog` ← `sources` ← adapters; `normalize`
 depends on `domain` and `catalog`. `ingest` depends on `sources`, `normalize`,
 `catalog` and `domain`. `upgrade` depends only on `domain` and `catalog`.
+`env` depends on `domain` and `normalize` (it reuses the values-flattening so
+both sides of the impact join speak the same key-path syntax). `impact`
+depends on `domain`, `env` and `upgrade` (constraint semantics).
 `discovery` depends on `ingest`, `catalog`, `llm` and `sources`. `enrich`
 depends only on `domain` and `llm`. Adapters never import `ingest` or `upgrade`.
 
@@ -104,6 +112,23 @@ depends only on `domain` and `llm`. Adapters never import `ingest` or `upgrade`.
    compares compatibility constraints, matches advisories (fixed by the
    upgrade, or still affecting To) and validates the edge.
 7. `upgrade.RenderText` prints the report. `-o json` prints the edge.
+
+## Data flow of `ri impact <product> <from> <to> --kubernetes … --values …`
+
+1–7 are the `ri upgrade` pipeline above. Then:
+
+8. `env.Load` parses the local environment inputs (values files, manifest
+   directories, installed CRDs, an image list, a cluster version flag) into
+   an `env.Environment`: every extracted fact carries local evidence
+   (file, line/YAML path, excerpt, file digest).
+9. `impact.Build` joins the edge's computed changes and compatibility
+   constraints with the environment facts (key-path, apiVersion, constraint
+   and image matching; docs/IMPACT.md) into a `domain.ImpactReport`. Each
+   finding cites the upstream evidence of the change AND the environment
+   evidence of the matched fact; `ImpactReport.Validate()` enforces both
+   chains. `impact.RenderText` prints the funnel summary and per-finding
+   why-blocks; `-o json` prints the report
+   (`schemas/impact-report.schema.json`).
 
 ## Locator kinds
 

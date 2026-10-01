@@ -475,3 +475,69 @@ func (b *builder) compatChanges() {
 		}
 	}
 }
+
+// evaluatePlatformConstraint checks a single platform version against one
+// constraint, reusing the range machinery of the endpoint diff. A version
+// given as a line ("1.31") counts as admitted when any patch of the line is.
+func evaluatePlatformConstraint(c *domain.CompatibilityConstraint, version string) PlatformVersionCheck {
+	var out PlatformVersionCheck
+	if c == nil {
+		return out
+	}
+	out.Display = rawOf(c)
+	cands := candidateLines(c)
+	set := evalSet(c, cands)
+	if set.ok {
+		out.Display = set.display(cands)
+	}
+	vk, ok := parseLine(version)
+	if !ok {
+		// A full version parses too (minorRe finds "1.31" inside "1.31.5");
+		// anything else cannot be checked.
+		out.Computable = false
+		return out
+	}
+	switch {
+	case len(c.Versions) > 0:
+		out.Computable = true
+		for _, v := range c.Versions {
+			if k, isLine := parseLine(v); isLine && k == vk {
+				out.Admits = true
+				break
+			}
+		}
+	case strings.TrimSpace(c.Constraint) != "":
+		cs, err := semver.NewConstraint(c.Constraint)
+		if err != nil {
+			return out
+		}
+		out.Computable = true
+		// A bare line admits when any patch of it does; the check uses the
+		// line's first and last conceivable patch, mirroring evalSet.
+		out.Admits = cs.Check(semver.New(vk.major, vk.minor, 0, "", "")) ||
+			cs.Check(semver.New(vk.major, vk.minor, 999, "", ""))
+	}
+	if out.Admits || !set.ok || len(set.members) == 0 {
+		return out
+	}
+	// Position the missed version relative to the admitted lines, for the
+	// "below/above the supported range" wording. Open-ended sets have no
+	// boundary on the open side.
+	var min, max lineKey
+	first := true
+	for k := range set.members {
+		if first || k.less(min) {
+			min = k
+		}
+		if first || max.less(k) {
+			max = k
+		}
+		first = false
+	}
+	if vk.less(min) {
+		out.Below = min.String()
+	} else if max.less(vk) {
+		out.Above = max.String()
+	}
+	return out
+}

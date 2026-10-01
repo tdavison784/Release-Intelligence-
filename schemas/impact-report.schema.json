@@ -1,0 +1,390 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.dev/schemas/impact-report/v1alpha1.json",
+  "title": "ImpactReport",
+  "description": "Which of an upgrade edge's changes matter to ONE environment, produced by joining an UpgradeEdge with locally parsed environment inputs (values files, manifests, installed CRDs, image references, a cluster version). Every finding cites two provenance chains: upstream evidence copied from the edge and environment evidence pointing at the user's files. Deterministic only; referential integrity (both chains resolve within this document) is checked by domain.ImpactReport.Validate() in Go and cannot be expressed in JSON Schema.",
+  "$ref": "#/$defs/ImpactReport",
+  "$defs": {
+    "AIProvenance": {
+      "description": "Provenance of AI output: method is \"ai\" and model, modelVersion, promptVersion, promptDigest, inputEvidence (at least one evidence id) and generatedAt are required, so every enrichment can be traced to the model that answered, the exact prompt and the evidence it was given.",
+      "allOf": [{"$ref": "#/$defs/Provenance"}],
+      "required": ["model", "modelVersion", "promptVersion", "promptDigest", "inputEvidence", "generatedAt"],
+      "properties": {
+        "method": {"const": "ai"},
+        "model": {"minLength": 1},
+        "modelVersion": {"minLength": 1},
+        "promptVersion": {"minLength": 1},
+        "promptDigest": {"minLength": 1},
+        "inputEvidence": {"minItems": 1}
+      }
+    },
+    "Category": {
+      "type": "string",
+      "enum": [
+        "feature",
+        "bugfix",
+        "deprecation",
+        "removal",
+        "migration",
+        "configuration",
+        "helm-values",
+        "crd-schema",
+        "api",
+        "compatibility",
+        "security",
+        "artifact",
+        "dependency",
+        "other"
+      ]
+    },
+    "Confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+    "DeterministicProvenance": {
+      "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
+      "allOf": [{"$ref": "#/$defs/Provenance"}],
+      "properties": {
+        "method": {"enum": ["declared", "computed", "heuristic"]}
+      },
+      "not": {
+        "anyOf": [
+          {"required": ["model"]},
+          {"required": ["promptDigest"]},
+          {"required": ["inputEvidence"]},
+          {"required": ["generatedAt"]},
+          {"required": ["modelVersion"]},
+          {"required": ["promptVersion"]}
+        ]
+      }
+    },
+    "Evidence": {
+      "type": "object",
+      "description": "A verifiable pointer to source material supporting a fact or conclusion. `uri` is something a human can open; `locator` narrows it down; `excerpt` and `contentDigest` pin what was read.",
+      "required": ["id", "kind", "uri"],
+      "properties": {
+        "id": {"$ref": "#/$defs/EvidenceID"},
+        "kind": {"$ref": "#/$defs/EvidenceKind"},
+        "sourceId": {
+          "type": "string",
+          "description": "Id of the product-definition source or artifact that produced the evidence."
+        },
+        "uri": {
+          "type": "string",
+          "description": "Location a human or a later run can open to check the claim."
+        },
+        "locator": {
+          "type": "string",
+          "description": "Position within the document, e.g. a line range (\"L120-L131\"), a heading (\"## Breaking Changes\") or a JSONPath (\"$.spec.versions[1]\")."
+        },
+        "excerpt": {"type": "string", "description": "Short verbatim excerpt of the source, truncated."},
+        "contentDigest": {
+          "type": "string",
+          "description": "sha256 of the complete retrieved document, so the exact bytes the conclusion was drawn from can be identified later."
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the source was fetched (UTC)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "EvidenceID": {
+      "type": "string",
+      "description": "Stable identifier derived from the evidence content (\"ev-\" followed by a short hash)."
+    },
+    "EvidenceKind": {
+      "type": "string",
+      "enum": [
+        "document",
+        "git-ref",
+        "registry",
+        "release-asset",
+        "structured",
+        "advisory",
+        "repo-file",
+        "local-file",
+        "input"
+      ]
+    },
+    "ImpactClass": {"type": "string", "enum": ["action-required", "review", "informational"]},
+    "ImpactEnvironment": {
+      "type": "object",
+      "description": "Summary of the environment inputs the join consumed.",
+      "required": ["valuesKeys", "manifestDocs", "apiVersions", "crds", "manifestPaths", "images"],
+      "properties": {
+        "kubernetes": {
+          "type": "string",
+          "description": "Cluster Kubernetes version as supplied (e.g. \"1.31\" or \"1.31.5\")."
+        },
+        "files": {"type": "array", "items": {"$ref": "#/$defs/ImpactFile"}},
+        "valuesKeys": {"type": "integer"},
+        "manifestDocs": {"type": "integer"},
+        "apiVersions": {"type": "integer"},
+        "crds": {"type": "integer"},
+        "manifestPaths": {"type": "integer"},
+        "images": {"type": "integer"},
+        "warnings": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "ImpactFile": {
+      "type": "object",
+      "description": "One environment input file with the digest of the bytes that were parsed.",
+      "required": ["path", "digest"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path exactly as supplied on the command line (evidence URIs use the same form)."
+        },
+        "digest": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ImpactFinding": {
+      "type": "object",
+      "description": "One deterministic conclusion of the join: an upstream change (or compatibility constraint) met an environment fact. Explains itself via `detail` and cites both evidence chains.",
+      "required": [
+        "id",
+        "classification",
+        "rule",
+        "title",
+        "matches",
+        "upstreamEvidence",
+        "environmentEvidence",
+        "provenance"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "classification": {
+          "$ref": "#/$defs/ImpactClass",
+          "description": "action-required: the environment must change or the upgrade fails / silently misbehaves. review: plausible impact, depends on intent the files cannot show. informational: confirmed overlap with no action implied."
+        },
+        "rule": {
+          "type": "string",
+          "description": "Join rule that fired, e.g. \"impact:values-removed\"."
+        },
+        "title": {"type": "string", "pattern": "\\S"},
+        "detail": {
+          "type": "string",
+          "description": "Prose explaining how the two chains meet: what upstream changed and which environment fact matched."
+        },
+        "changeId": {
+          "type": "string",
+          "description": "Id of the upstream Change in the UpgradeEdge this report was built from; absent when the finding comes from a compatibility constraint alone (cluster-version check)."
+        },
+        "changeTitle": {
+          "type": "string",
+          "description": "Copy of the upstream change's title, so the report renders standalone."
+        },
+        "changeCategory": {"$ref": "#/$defs/Category", "description": "Copy of the upstream change's category."},
+        "changeBreaking": {"type": "boolean", "description": "Copy of the upstream change's breaking flag."},
+        "changeActionRequired": {"type": "boolean"},
+        "matches": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ImpactMatch"},
+          "description": "The environment facts that made the finding fire, each with its own environment evidence."
+        },
+        "upstreamEvidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Chain 1: Evidence ids resolving in `evidence`."
+        },
+        "environmentEvidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Chain 2: Evidence ids resolving in `environmentEvidence`."
+        },
+        "provenance": {"$ref": "#/$defs/DeterministicProvenance"}
+      },
+      "additionalProperties": false
+    },
+    "ImpactMatch": {
+      "type": "object",
+      "description": "One environment fact that matched: what it is (subject) and the local evidence that proves the environment has it.",
+      "required": ["kind", "subject", "evidence"],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ImpactMatchKind",
+          "description": "What kind of environment fact: a set values key, an apiVersion in use, an installed CRD or one of its versions, a manifest field path, an image in use, or the cluster Kubernetes version."
+        },
+        "subject": {
+          "type": "string",
+          "description": "The fact itself: a values key path, \"group/version Kind\", a CRD name, a field path, an image reference or a version string."
+        },
+        "evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "minItems": 1,
+          "description": "Environment evidence ids backing this match."
+        }
+      },
+      "additionalProperties": false
+    },
+    "ImpactMatchKind": {
+      "type": "string",
+      "enum": [
+        "values-key",
+        "api-version",
+        "crd",
+        "crd-version",
+        "manifest-field",
+        "image",
+        "kubernetes"
+      ]
+    },
+    "ImpactReport": {
+      "type": "object",
+      "description": "Which of an upgrade edge's changes matter to ONE environment, produced by joining an UpgradeEdge with locally parsed environment inputs (values files, manifests, installed CRDs, image references, a cluster version). Every finding cites two provenance chains: upstream evidence copied from the edge and environment evidence pointing at the user's files. Deterministic only; referential integrity (both chains resolve within this document) is checked by domain.ImpactReport.Validate() in Go and cannot be expressed in JSON Schema.",
+      "required": [
+        "schemaVersion",
+        "product",
+        "from",
+        "to",
+        "environment",
+        "summary",
+        "findings",
+        "evidence",
+        "environmentEvidence",
+        "generatedAt"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "type": "string",
+          "const": "ri.dev/impact-report/v1alpha1",
+          "description": "Serialisation version of this document."
+        },
+        "product": {"$ref": "#/$defs/ProductRef"},
+        "from": {"$ref": "#/$defs/Version"},
+        "to": {"$ref": "#/$defs/Version"},
+        "environment": {
+          "$ref": "#/$defs/ImpactEnvironment",
+          "description": "What the join ran against: the supplied cluster version, the parsed input files with digests, counts of extracted facts and parsing warnings."
+        },
+        "summary": {
+          "$ref": "#/$defs/ImpactSummary",
+          "description": "The funnel: all upstream changes, those affecting this environment, and the action classification counts."
+        },
+        "findings": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ImpactFinding"},
+          "description": "One per (upstream change or constraint) × (environment fact) overlap; action-required first."
+        },
+        "evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Evidence"},
+          "description": "Chain 1: upstream Evidence records cited by findings, copied from the UpgradeEdge the report was built from."
+        },
+        "environmentEvidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/Evidence"},
+          "description": "Chain 2: Evidence records of kind local-file / input pointing at the user's environment inputs."
+        },
+        "warnings": {"type": "array", "items": {"type": "string"}},
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the report was built (UTC)."
+        },
+        "definitionDigest": {
+          "type": "string",
+          "description": "Digest of the product definition revision the underlying edge was built from."
+        }
+      },
+      "additionalProperties": false
+    },
+    "ImpactSummary": {
+      "type": "object",
+      "description": "Counts of the impact funnel; must equal the findings (checked by Validate).",
+      "required": ["upstreamChanges", "affectEnvironment", "actionRequired", "review", "informational"],
+      "properties": {
+        "upstreamChanges": {"type": "integer"},
+        "affectEnvironment": {"type": "integer"},
+        "actionRequired": {"type": "integer"},
+        "review": {"type": "integer"},
+        "informational": {"type": "integer"}
+      },
+      "additionalProperties": false
+    },
+    "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
+    "ProductID": {"type": "string"},
+    "ProductRef": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {"$ref": "#/$defs/ProductID"},
+        "name": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "Provenance": {
+      "type": "object",
+      "description": "How a Change, note classification, compatibility constraint or Enrichment was produced. This is the generic shape; documents use DeterministicProvenance where only deterministic methods are allowed (Change.provenance, NoteItem.classification, CompatibilityConstraint.provenance) and AIProvenance for Enrichment.provenance.",
+      "required": ["method", "producer", "confidence"],
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/Method",
+          "description": "How the knowledge was derived. declared: upstream stated it explicitly in a structured or labelled way (an item under a \"Breaking Changes\" heading, a release-note YAML with \"action required\", a published support matrix). computed: deterministic computation over source data (a diff of two values.yaml files or two CRD sets). heuristic: deterministic but pattern-based interpretation (keyword matching such as \"deprecated\" inside a bug-fix bullet); treat with more caution than declared or computed. ai: produced by a language model; only valid on Enrichments."
+        },
+        "producer": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Component and version that produced the record, e.g. \"normalize.notes@v1\"."
+        },
+        "rule": {
+          "type": "string",
+          "description": "Identifier of the rule that fired, e.g. \"section:/breaking/i\"."
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence",
+          "description": "Coarse confidence in the classification."
+        },
+        "model": {
+          "type": "string",
+          "description": "AI only: identifier of the model that answered, as reported by the API response or the exchange response file (never assumed from the request)."
+        },
+        "modelVersion": {
+          "type": "string",
+          "description": "AI only: the most precise version identifier of that model reported with the answer (a pinned snapshot id when the provider reports no separate version)."
+        },
+        "promptVersion": {
+          "type": "string",
+          "description": "AI only: version of the prompt templates, e.g. \"enrich/v1\"; promptDigest pins the exact rendered prompt."
+        },
+        "promptDigest": {
+          "type": "string",
+          "description": "AI only: digest of the exact prompt, so the generation can be reproduced or audited."
+        },
+        "inputEvidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "description": "AI only: ids of the Evidence records the model was given as input."
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "AI only: when the output was generated."
+        }
+      },
+      "additionalProperties": false
+    },
+    "Version": {
+      "type": "object",
+      "description": "A release version of a product.",
+      "required": ["tag", "version"],
+      "properties": {
+        "tag": {
+          "type": "string",
+          "description": "Identifier exactly as published by the canonical release channel, e.g. \"v1.18.0\"."
+        },
+        "version": {
+          "type": "string",
+          "description": "Normalised semantic version without any tag prefix, e.g. \"1.18.0\"."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

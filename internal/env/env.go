@@ -1,0 +1,536 @@
+// Package env models a Kubernetes environment from LOCAL inputs only (no
+// cluster access): a cluster version, Helm values files, manifests,
+// installed CustomResourceDefinitions and container image references.
+//
+// Everything is parsed deterministically and every extracted fact carries
+// domain.Evidence pointing at the file (and line / YAML path) it came from,
+// so the impact join can cite the environment chain exactly as the upgrade
+// edge cites upstream sources.
+//
+// CONTRACT NOTE: Load is the API used by the orchestration layer (app).
+package env
+
+import (
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"time"
+
+	"gopkg.in/yaml.v3"
+
+	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/normalize"
+)
+
+// Producer identifies the parser in warnings.
+const Producer = "env@v1"
+
+// Caps that bound extraction on hostile inputs; hitting one is a warning,
+// never a silent truncation.
+const (
+	maxValuesKeys      = 10000 // flattened keys across all values files
+	maxManifestDocs    = 2000  // documents across all manifests/CRDs inputs
+	maxManifestPaths   = 8000  // flattened manifest field paths
+	maxEvidencePerFact = 5     // occurrences cited per apiVersion/image use
+)
+
+// Inputs are the environment sources to load. Every field is optional; the
+// caller decides how much of the join applies.
+type Inputs struct {
+	// KubernetesVersion is the cluster version ("1.31" or "1.31.5").
+	KubernetesVersion string
+	// ValuesFiles are Helm values files, in the order -f would apply them.
+	ValuesFiles []string
+	// Manifests are files or directories of Kubernetes manifests
+	// (multi-document YAML streams).
+	Manifests []string
+	// CRDs are files or directories of installed CustomResourceDefinitions.
+	// CRD documents inside Manifests are picked up as well.
+	CRDs []string
+	// Images are explicit image references (mirror lists and the like).
+	Images []string
+}
+
+// Empty reports whether no input was given at all.
+func (in Inputs) Empty() bool {
+	return in.KubernetesVersion == "" && len(in.ValuesFiles) == 0 && len(in.Manifests) == 0 && len(in.CRDs) == 0 && len(in.Images) == 0
+}
+
+// File is one parsed input file.
+type File struct {
+	Path   string
+	Digest string
+}
+
+// KubernetesVersion is the cluster version with the evidence of where it was
+// declared (a direct input, recorded as evidence of kind input).
+type KubernetesVersion struct {
+	Version  string
+	Evidence []domain.EvidenceID
+}
+
+// ValuesKey is one key a user's values file sets, flattened with exactly the
+// same path syntax as domain.ValuesSnapshot entries (lists are leaves).
+type ValuesKey struct {
+	Path     string
+	Value    string // JSON-encoded leaf
+	Line     int    // 1-based line of the key in its file
+	Evidence []domain.EvidenceID
+}
+
+// APIVersionUse is one distinct apiVersion (+kind) that manifests use.
+type APIVersionUse struct {
+	GroupVersion string // "cert-manager.io/v1"
+	Kind         string
+	Evidence     []domain.EvidenceID // one per using document, capped
+}
+
+// CRDVersion is one version of an installed CRD.
+type CRDVersion struct {
+	Name               string
+	Served             bool
+	Storage            bool
+	Deprecated         bool
+	DeprecationWarning string
+}
+
+// InstalledCRD is a CustomResourceDefinition found in the inputs.
+type InstalledCRD struct {
+	Name     string // "certificates.cert-manager.io"
+	Group    string // "cert-manager.io"
+	Kind     string // "Certificate"
+	Versions []CRDVersion
+	// PreserveUnknownFields is spec.preserveUnknownFields when stated.
+	HasPreserveUnknownFields bool
+	PreserveUnknownFields    bool
+	Evidence                 []domain.EvidenceID
+}
+
+// ManifestField is one flattened field path set by a manifest document
+// (same path syntax as values keys), remembering the document's identity so
+// removed CRD fields can be matched against what the environment really sets.
+type ManifestField struct {
+	Path       string // "spec.secretTemplate.labels"
+	APIVersion string
+	Kind       string
+	Line       int
+	Evidence   []domain.EvidenceID
+}
+
+// ImageUse is one container image the environment references.
+type ImageUse struct {
+	Reference  string // as written, e.g. "quay.io/jetstack/cert-manager-controller:v1.17.0"
+	Repository string
+	Tag        string
+	Digest     string
+	Source     string // "manifest" | "values" | "list"
+	Line       int    // 1-based line in the file (0 for list entries)
+	Evidence   []domain.EvidenceID
+}
+
+// Environment is the parsed environment: a value type plus the local
+// evidence pool backing every fact.
+type Environment struct {
+	Kubernetes *KubernetesVersion
+
+	ValuesKeys       []ValuesKey
+	APIVersions      []APIVersionUse
+	CRDs             []InstalledCRD
+	ManifestFields   []ManifestField
+	Images           []ImageUse
+	ManifestDocCount int
+
+	Files    []File
+	Evidence []domain.Evidence
+	Warnings []string
+}
+
+// loader accumulates state while Load runs.
+type loader struct {
+	env      *Environment
+	evidence map[domain.EvidenceID]bool
+	files    map[string]string // path → digest
+	warned   map[string]bool
+	capped   map[string]int
+}
+
+func (l *loader) warnf(format string, args ...any) {
+	w := fmt.Sprintf(format, args...)
+	if l.warned[w] {
+		return
+	}
+	l.warned[w] = true
+	l.env.Warnings = append(l.env.Warnings, w)
+}
+
+// ev records one piece of local-file evidence and returns its id.
+func (l *loader) ev(uri, locator, excerpt string) domain.EvidenceID {
+	return l.record(domain.NewEvidence(domain.EvidenceLocalFile, "", uri, locator, domain.TruncateExcerpt(excerpt), l.files[uri], zeroTime))
+}
+
+// evInput records evidence of a directly supplied value (a flag).
+func (l *loader) evInput(uri, value string) domain.EvidenceID {
+	return l.record(domain.NewEvidence(domain.EvidenceInput, "", uri, "", value, domain.Digest([]byte(uri+":"+value)), zeroTime))
+}
+
+func (l *loader) record(e domain.Evidence) domain.EvidenceID {
+	if !l.evidence[e.ID] {
+		l.evidence[e.ID] = true
+		l.env.Evidence = append(l.env.Evidence, e)
+	}
+	return e.ID
+}
+
+// Load parses the inputs. It returns an error only when nothing can be done
+// at all (an input path does not exist / cannot be read); per-document
+// problems are warnings.
+func Load(in Inputs) (*Environment, error) {
+	l := &loader{
+		env: &Environment{}, evidence: map[domain.EvidenceID]bool{},
+		files: map[string]string{}, warned: map[string]bool{}, capped: map[string]int{},
+	}
+	if v := strings.TrimSpace(in.KubernetesVersion); v != "" {
+		id := l.evInput("flag:--kubernetes", v)
+		l.env.Kubernetes = &KubernetesVersion{Version: v, Evidence: []domain.EvidenceID{id}}
+	}
+
+	for _, p := range in.ValuesFiles {
+		if err := l.loadValues(p); err != nil {
+			return nil, err
+		}
+	}
+	for _, p := range in.CRDs {
+		if err := l.loadStream(p, true); err != nil {
+			return nil, err
+		}
+	}
+	for _, p := range in.Manifests {
+		if err := l.loadStream(p, false); err != nil {
+			return nil, err
+		}
+	}
+	for _, ref := range in.Images {
+		l.addImageAt(ref, "list", "", 0)
+	}
+
+	sort.Slice(l.env.APIVersions, func(i, j int) bool {
+		a, b := l.env.APIVersions[i], l.env.APIVersions[j]
+		if a.GroupVersion != b.GroupVersion {
+			return a.GroupVersion < b.GroupVersion
+		}
+		return a.Kind < b.Kind
+	})
+	sort.Slice(l.env.CRDs, func(i, j int) bool { return l.env.CRDs[i].Name < l.env.CRDs[j].Name })
+	sort.Slice(l.env.Images, func(i, j int) bool {
+		if l.env.Images[i].Repository != l.env.Images[j].Repository {
+			return l.env.Images[i].Repository < l.env.Images[j].Repository
+		}
+		return l.env.Images[i].Reference < l.env.Images[j].Reference
+	})
+	return l.env, nil
+}
+
+// zeroTime keeps environment evidence timeless: it describes files, not a
+// retrieval. (Evidence ids never included the time anyway.)
+var zeroTime time.Time
+
+// readFile records the file digest and returns its bytes.
+func (l *loader) readFile(path string) ([]byte, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	if _, seen := l.files[path]; !seen {
+		d := domain.Digest(b)
+		l.files[path] = d
+		l.env.Files = append(l.env.Files, File{Path: path, Digest: d})
+	}
+	return b, nil
+}
+
+// expand turns an input entry into the list of files it names: a directory
+// becomes its .yaml/.yml/.json files (sorted), a file names itself.
+func expand(path string) ([]string, error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return nil, fmt.Errorf("env: %w", err)
+	}
+	if !fi.IsDir() {
+		return []string{path}, nil
+	}
+	var out []string
+	err = filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+		switch strings.ToLower(filepath.Ext(p)) {
+		case ".yaml", ".yml", ".json":
+			out = append(out, p)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("env: walk %s: %w", path, err)
+	}
+	sort.Strings(out)
+	return out, nil
+}
+
+// loadValues parses one Helm values file.
+func (l *loader) loadValues(path string) error {
+	files, err := expand(path)
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		b, err := l.readFile(f)
+		if err != nil {
+			return fmt.Errorf("env: %w", err)
+		}
+		if len(strings.TrimSpace(string(b))) == 0 {
+			continue
+		}
+		flat, err := normalize.FlattenValues(b)
+		if err != nil {
+			l.warnf("%s was not parsed as a Helm values mapping: %v", f, err)
+			continue
+		}
+		for _, kv := range flat {
+			if len(l.env.ValuesKeys) >= maxValuesKeys {
+				l.warnf("more than %d values keys; the rest of %s was ignored", maxValuesKeys, f)
+				break
+			}
+			l.env.ValuesKeys = append(l.env.ValuesKeys, ValuesKey{
+				Path: kv.Path, Value: kv.Value, Line: kv.Line,
+				Evidence: []domain.EvidenceID{l.ev(f, fmt.Sprintf("$.%s (L%d)", kv.Path, kv.Line), kv.Path+": "+kv.Value)},
+			})
+		}
+		// images set through the usual chart conventions
+		byPath := make(map[string]normalize.FlattenedValue, len(flat))
+		for _, kv := range flat {
+			byPath[kv.Path] = kv
+		}
+		for _, kv := range flat {
+			base := lastSegment(kv.Path)
+			if base != "repository" && base != "hub" && base != "image" {
+				continue
+			}
+			ref := strings.Trim(strings.Trim(kv.Value, `"`), `'`)
+			if !strings.Contains(ref, "/") {
+				continue // a bare name or a non-reference value
+			}
+			tag := ""
+			if base != "image" {
+				if sib, ok := byPath[siblingPath(kv.Path, "tag")]; ok {
+					tag = strings.Trim(strings.Trim(sib.Value, `"`), `'`)
+				}
+			}
+			full := ref
+			if tag != "" && base != "image" {
+				full = ref + ":" + tag
+			}
+			if _, err := normalize.ParseImageRef(full); err != nil {
+				continue
+			}
+			l.addImageAt(full, "values", f, kv.Line)
+		}
+	}
+	return nil
+}
+
+// doc is one YAML document of a stream.
+type doc struct {
+	node      *yaml.Node // resolved root node (nil: empty document)
+	file      string
+	startLine int // 1-based line of the document's first content in the file
+}
+
+// loadStream parses one manifest/CRD input (file or directory). Only CRD
+// documents are kept from crdOnly inputs; manifest inputs keep everything.
+func (l *loader) loadStream(path string, crdOnly bool) error {
+	files, err := expand(path)
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		b, err := l.readFile(f)
+		if err != nil {
+			return fmt.Errorf("env: %w", err)
+		}
+		docs, err := splitDocs(b)
+		if err != nil {
+			l.warnf("%s was not parsed: %v", f, err)
+			continue
+		}
+		for i := range docs {
+			docs[i].file = f
+		}
+		for i, d := range docs {
+			if d.node == nil {
+				continue
+			}
+			if l.env.ManifestDocCount >= maxManifestDocs {
+				l.warnf("more than %d manifest documents; the rest of %s was ignored", maxManifestDocs, f)
+				return nil
+			}
+			l.env.ManifestDocCount++
+			kind := scalarOf(d.node, "kind")
+			if kind == "CustomResourceDefinition" {
+				l.loadCRD(d)
+				continue
+			}
+			if crdOnly {
+				l.warnf("%s doc %d is a %q document, not a CustomResourceDefinition", f, i+1, kind)
+				continue
+			}
+			l.loadManifest(d)
+		}
+	}
+	return nil
+}
+
+func (l *loader) loadCRD(d doc) {
+	spec := fieldOf(d.node, "spec")
+	if spec == nil {
+		l.warnf("%s L%d: CustomResourceDefinition without spec", d.file, d.startLine)
+		return
+	}
+	group := scalarOf(spec, "group")
+	names := fieldOf(spec, "names")
+	kind := ""
+	if names != nil {
+		kind = scalarOf(names, "kind")
+	}
+	name := scalarOf(d.node, "metadata", "name")
+	if name == "" && group != "" {
+		plural := ""
+		if names != nil {
+			plural = scalarOf(names, "plural")
+		}
+		if plural != "" {
+			name = plural + "." + group
+		}
+	}
+	if name == "" || group == "" {
+		l.warnf("%s L%d: CustomResourceDefinition without name or group", d.file, d.startLine)
+		return
+	}
+	crd := InstalledCRD{Name: name, Group: group, Kind: kind}
+	if pv := fieldOf(spec, "preserveUnknownFields"); pv != nil && pv.Tag == "!!bool" {
+		crd.HasPreserveUnknownFields = true
+		crd.PreserveUnknownFields = pv.Value == "true"
+	}
+	if versions := fieldOf(spec, "versions"); versions != nil {
+		for _, vn := range itemsOf(versions) {
+			v := CRDVersion{Name: scalarOf(vn, "name")}
+			if s := scalarOf(vn, "served"); s != "" {
+				v.Served = s == "true"
+			}
+			if s := scalarOf(vn, "storage"); s != "" {
+				v.Storage = s == "true"
+			}
+			if s := scalarOf(vn, "deprecated"); s != "" {
+				v.Deprecated = s == "true"
+			}
+			v.DeprecationWarning = scalarOf(vn, "deprecationWarning")
+			crd.Versions = append(crd.Versions, v)
+		}
+	}
+	ev := l.ev(d.file, fmt.Sprintf("L%d", d.startLine), "CustomResourceDefinition "+name)
+	crd.Evidence = []domain.EvidenceID{ev}
+	// A CRD document also states the group/version pairs it serves.
+	for _, v := range crd.Versions {
+		l.useAPIVersion(group+"/"+v.Name, kind, d, 1)
+	}
+	l.env.CRDs = append(l.env.CRDs, crd)
+}
+
+func (l *loader) loadManifest(d doc) {
+	apiVersion := scalarOf(d.node, "apiVersion")
+	kind := scalarOf(d.node, "kind")
+	if apiVersion != "" && kind != "" {
+		l.useAPIVersion(apiVersion, kind, d, maxEvidencePerFact)
+	}
+	// images: any mapping key "image" with a reference value
+	walkMappings(d.node, func(key string, val *yaml.Node, path string) {
+		if key != "image" || val.Kind != yaml.ScalarNode {
+			return
+		}
+		ref := val.Value
+		if strings.ContainsAny(ref, "{}$") || !strings.Contains(ref, ":") && !strings.Contains(ref, "/") {
+			return
+		}
+		l.addImageAt(ref, "manifest", d.file, val.Line)
+	})
+	// flattened field paths, for removed-CRD-field matching
+	if apiVersion == "" || kind == "" {
+		return
+	}
+	walkFieldPaths(d.node, "", func(path string, val *yaml.Node) {
+		if len(l.env.ManifestFields) >= maxManifestPaths {
+			l.warnf("more than %d manifest field paths; the rest of %s was ignored", maxManifestPaths, d.file)
+			return
+		}
+		line := 0
+		if val != nil {
+			line = val.Line
+		}
+		l.env.ManifestFields = append(l.env.ManifestFields, ManifestField{
+			Path: path, APIVersion: apiVersion, Kind: kind, Line: line,
+			Evidence: []domain.EvidenceID{l.ev(d.file, fmt.Sprintf("$.%s (L%d)", path, line), path)},
+		})
+	})
+}
+
+func (l *loader) useAPIVersion(gv, kind string, d doc, cap int) {
+	for i := range l.env.APIVersions {
+		u := &l.env.APIVersions[i]
+		if u.GroupVersion != gv || u.Kind != kind {
+			continue
+		}
+		if len(u.Evidence) < cap {
+			u.Evidence = append(u.Evidence, l.ev(d.file, fmt.Sprintf("L%d", d.startLine), "apiVersion: "+gv+" / kind: "+kind))
+		}
+		return
+	}
+	l.env.APIVersions = append(l.env.APIVersions, APIVersionUse{
+		GroupVersion: gv, Kind: kind,
+		Evidence: []domain.EvidenceID{l.ev(d.file, fmt.Sprintf("L%d", d.startLine), "apiVersion: "+gv+" / kind: "+kind)},
+	})
+}
+
+func (l *loader) addImageAt(ref, source, file string, line int) {
+	parsed, err := normalize.ParseImageRef(ref)
+	if err != nil {
+		if source != "list" {
+			return // manifest/values fields are often not references
+		}
+		l.warnf("%q is not a parsable image reference", ref)
+		return
+	}
+	var evidence []domain.EvidenceID
+	if file != "" {
+		evidence = []domain.EvidenceID{l.ev(file, fmt.Sprintf("L%d", line), "image: "+ref)}
+	} else {
+		evidence = []domain.EvidenceID{l.evInput("flag:--images", ref)}
+	}
+	for i := range l.env.Images {
+		u := &l.env.Images[i]
+		if u.Reference == ref && u.Source == source {
+			if len(u.Evidence) < maxEvidencePerFact {
+				u.Evidence = append(u.Evidence, evidence[0])
+			}
+			return
+		}
+	}
+	l.env.Images = append(l.env.Images, ImageUse{
+		Reference: ref, Repository: parsed.Repository, Tag: parsed.Tag, Digest: parsed.Digest,
+		Source: source, Line: line, Evidence: evidence,
+	})
+}
