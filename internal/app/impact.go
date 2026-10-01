@@ -12,7 +12,7 @@ import (
 
 // ErrNoEnvironmentInput marks `ri impact` invocations without any environment
 // input; the join is only meaningful against an environment.
-var ErrNoEnvironmentInput = errors.New("at least one environment input is required (--kubernetes, --values, --manifests, --crds or --images)")
+var ErrNoEnvironmentInput = errors.New("at least one environment input is required (--repo, --kubernetes, --values, --manifests, --crds or --images)")
 
 // ImpactOptions tunes Impact.
 type ImpactOptions struct {

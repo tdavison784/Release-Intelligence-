@@ -1,0 +1,18 @@
+# The CI pipeline mirrors the images it deploys. Repo mode takes the image
+# references (scalar "image:" keys); the rest of the workflow is not an
+# environment input.
+name: mirror-images
+on:
+  push:
+    branches: [main]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/jetstack/cert-manager-controller:v1.17.0
+    steps:
+      - uses: aquasecurity/trivy-action@master
+        with:
+          image: quay.io/jetstack/cert-manager-webhook:v1.17.0
+      - name: summary
+        run: echo done
