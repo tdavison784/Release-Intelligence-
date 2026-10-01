@@ -172,6 +172,7 @@ upstream channel needed it.
 | `extract: markdown-section` + `heading` | Pick one release's section from a cumulative document | cert-manager per-minor notes with one section per patch |
 | `extract: markdown-table` / `yaml-records` | Pick a row from a support matrix | cert-manager README tables; Istio `supportStatus.yml` |
 | `columns[].separator/part` | Split a combined cell | "1.33 → 1.36 / 4.20 → 4.22" (Kubernetes / OpenShift) |
+| `columns[].kind: maximum` | A support-matrix column that bounds the platform from above | Karpenter's `maxK8sVersion` (compatibility.yaml: `minK8sVersion`/`maxK8sVersion` per app version) |
 | `locator.baseRef` (repo-dir) | Only the files added since another ref | Istio's accumulating `releasenotes/notes/*.yaml` |
 | `git-log` locator | Commit subjects between tags, as notes | Argo CD release notes exist only behind the GitHub API |
 | `fallbackGroup` | Alternatives tried in priority order | website notes vs GitHub release body; master vs release branch |

@@ -153,7 +153,9 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			ex.Type = catalog.ExtractWhole
 		}
 	}
-	structuralLists := false
+	// extract.listItems selects the structural reading for markdown too;
+	// docbook/rst conversions always use it
+	structuralLists := ex.ListItems
 	if ex.Format == catalog.FormatDocBook || ex.Format == catalog.FormatRST {
 		// render DocBook / reStructuredText as markdown (line for line) on a
 		// copy: documents are shared with other sources through the memo
