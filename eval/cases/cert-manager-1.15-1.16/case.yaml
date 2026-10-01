@@ -1,0 +1,71 @@
+id: cert-manager-1.15-1.16
+product: cert-manager          # definition id in products/
+from: v1.15.4                  # tags as published
+to: v1.16.0
+researchedAt: "2026-10-01"
+sources:                       # every upstream document consulted
+  - https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.15-1.16.md
+  - https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md
+expected:                      # the upgrade work a competent operator must know about
+  - id: E1
+    title: Helm chart values are schema-validated; values files with typos or unrecognized fields are rejected
+    kind: helm-values
+    importance: critical
+    actionRequired: true
+    match:
+      - text: '(?i)schema validation'
+      - text: '(?i)values .*(typo|unrecognized)'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.15-1.16.md
+        quote: "Helm schema validation may reject your existing Helm values files if they contain typos or unrecognized fields."
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md
+        quote: "The Helm chart now includes a JSON schema which will validate the values that you supply when installing the chart."
+  - id: E2
+    title: Venafi TPP issuers switch from API Key to OAuth authentication
+    kind: behaviour-change
+    importance: critical
+    actionRequired: true       # TPP server and service accounts may need reconfiguration for OAuth
+    match:
+      - text: '(?i)Venafi.*(OAuth|API.?key)'
+      - text: '(?i)OAuth.*Venafi'
+      - text: '(?i)username-password authentication'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md
+        quote: "If you use the Venafi Issuer with a TPP server with username-password authentication, cert-manager 1.16 now uses OAuth authentication instead of the deprecated API Key authentication."
+  - id: E3
+    title: Requested certificate duration is now sent to Venafi; renewals can fail against min/max policy
+    kind: behaviour-change
+    importance: critical
+    actionRequired: true
+    match:
+      - text: '(?i)Venafi.*duration|duration.*Venafi'
+      - text: '(?i)certificate\.spec\.duration.*Venafi|Venafi.*certificate\.spec\.duration'
+      - text: '(?i)duration .*(sent|requested).*(Venafi|API)|fail.*renew.*duration'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md
+        quote: "The desired `certificate.spec.duration` value will now be sent to the Venafi API server."
+  - id: E4
+    title: OperatorHub/OLM packages discontinued; v1.16.5 is the last release on OperatorHub
+    kind: artifact
+    importance: important
+    actionRequired: true       # OperatorHub installations must move to another install method
+    match:
+      - text: '(?i)OperatorHub|OLM'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md
+        quote: "We no longer publish OperatorHub packages for cert-manager."
+  - id: E5
+    title: Route53 DNS01 region field is now optional; controller falls back to AWS_REGION
+    kind: behaviour-change
+    importance: minor
+    actionRequired: false
+    match:
+      - text: '(?i)Route53|AWS_REGION'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.16.md
+        quote: "We have relaxed the API validation so that the `region` field is now optional. cert-manager will now fall back to using the `AWS_REGION` environment variable of the controller Pod."
+notExpected:                   # things a tool might flag but that are NOT upgrade-relevant
+  - title: dependency bumps in test-only or build-only paths
+    match: [{text: '(?i)bump .* in /(test|hack)'}]
+  - title: documentation-only pull requests listed in the GitHub release body
+    match: [{text: '(?i)^docs?:'}]

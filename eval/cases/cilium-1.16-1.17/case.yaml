@@ -1,0 +1,176 @@
+id: cilium-1.16-1.17
+product: cilium
+from: v1.16.1
+to: v1.17.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+  - https://github.com/cilium/cilium/blob/1.16.0/install/kubernetes/cilium/values.yaml
+  - https://github.com/cilium/cilium/blob/1.17.0/install/kubernetes/cilium/values.yaml
+expected:
+  - id: E1
+    title: Support for Consul (KVStore), deprecated since v1.12, has been removed
+    kind: removal
+    importance: important
+    actionRequired: true       # Consul-backed clusters cannot upgrade until they move store
+    match:
+      - text: '(?i)Consul'
+    evidence:
+      - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+        quote: "Support for Consul, deprecated since v1.12, has been removed."
+  - id: E2
+    title: L7 protocol visibility via the policy.cilium.io/proxy-visibility Pod annotation removed (deprecated since v1.15)
+    kind: removal
+    importance: important
+    actionRequired: true
+    match:
+      - text: '(?i)proxy-visibility|proxy visibility'
+    evidence:
+      - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+        quote: "Support for L7 protocol visibility using Pod annotations (``policy.cilium.io/proxy-visibility``), deprecated since v1.15, has been removed."
+  - id: E3
+    title: metallb-bgp integration removed; use the Cilium BGP control plane (bgpControlPlane) instead
+    kind: removal
+    importance: critical
+    actionRequired: true
+    match:
+      - text: '(?i)metallb-bgp|metallb.bgp'
+      - text: '(?i)bgp-config-path|bgp-announce-lb-ip|bgp-announce-pod-cidr'
+      - text: '(?i)bgpControlPlane'
+    evidence:
+      - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+        quote: "Support for ``metallb-bgp``, deprecated since 1.14, has been removed."
+  - id: E4
+    title: Helm value tls.secretsBackend deprecated, replaced by tls.readSecretsOnlyFromSecretsNamespace (+ tls.secretSync)
+    kind: helm-values
+    importance: important
+    actionRequired: true
+    match:
+      - text: '(?i)secretsBackend'
+      - subject: 'tls.secretsBackend'
+      - text: '(?i)readSecretsOnlyFromSecretsNamespace'
+    evidence:
+      - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+        quote: "The Helm value ``tls.secretsBackend`` … has been deprecated and replaced with ``tls.readSecretsOnlyFromSecretsNamespace``"
+      - url: https://github.com/cilium/cilium/blob/1.16.0/install/kubernetes/cilium/values.yaml
+        quote: "tls: secretsBackend: local"
+  - id: E5
+    title: Helm default hubble.tls.auto.certValidityDuration lowered from 1095 days to 365 days
+    kind: helm-values
+    importance: important
+    actionRequired: false      # only affects newly generated certificates
+    match:
+      - text: '(?i)certValidityDuration'
+      - subject: 'hubble.tls.auto.certValidityDuration'
+    evidence:
+      - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+        quote: "The default value of ``hubble.tls.auto.certValidityDuration`` has been lowered from 1095 days to 365 days"
+  - id: E6
+    title: Helm default dnsProxy.endpointMaxIpPerHostname raised from 50 to 1000
+    kind: helm-values
+    importance: minor
+    actionRequired: false
+    match:
+      - text: '(?i)endpointMaxIpPerHostname'
+      - subject: 'dnsProxy.endpointMaxIpPerHostname'
+    evidence:
+      - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+        quote: "The default value of ``dnsProxy.endpointMaxIpPerHostname`` … has been increased from 50 to 1000"
+  - id: E7
+    title: IPsec support for a single key removed; per-tunnel keys are always used
+    kind: removal
+    importance: important
+    actionRequired: true
+    match:
+      - text: '(?i)IPsec.*single key|single key.*IPsec'
+      - text: '(?i)per-tunnel keys'
+    evidence:
+      - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+        quote: "For IPsec, support for a single key has been removed. Per-tunnel keys will now be used regardless of the presence of the ``+`` sign in the secret."
+  - id: E8
+    title: In-cluster etcd managed by Cilium (kvstore in pod network) removed
+    kind: removal
+    importance: important
+    actionRequired: true
+    match:
+      - text: '(?i)Etcd instances.*managed in pod network|etcd.*pod network.*removed'
+      - text: '(?i)kvstore.*(etcd).*(removed|managed)'
+    evidence:
+      - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+        quote: "Cilium could previously be run in a configuration where the Etcd instances … would be managed in pod network by Cilium itself. This support … has now been removed."
+  - id: E9
+    title: External Workloads feature deprecated (removal in v1.18)
+    kind: deprecation
+    importance: important
+    actionRequired: false
+    match:
+      - text: '(?i)External Workloads'
+    evidence:
+      - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+        quote: "The External Workloads feature has been deprecated and will be removed in v1.18."
+  - id: E10
+    title: Deprecated clustermesh-ip-identities-sync-timeout flag removed in favour of clustermesh-sync-timeout
+    kind: removal
+    importance: minor
+    actionRequired: true
+    match:
+      - text: '(?i)clustermesh-ip-identities-sync-timeout'
+      - text: '(?i)clustermesh-sync-timeout'
+    evidence:
+      - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+        quote: "The previously deprecated ``clustermesh-ip-identities-sync-timeout`` flag has been removed in favor of ``clustermesh-sync-timeout``."
+  - id: E11
+    title: WireGuard userspace fallback (wireguard.userspaceFallback) removed; kernel WireGuard support required
+    kind: removal
+    importance: important
+    actionRequired: true
+    match:
+      - text: '(?i)userspaceFallback|userspace-mode fallback'
+      - text: '(?i)WireGuard.*(kernel|required)'
+    evidence:
+      - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
+        quote: "The previously deprecated built-in WireGuard userspace-mode fallback (Helm ``wireguard.userspaceFallback``) has been removed."
+notExpected:
+  - title: metrics renames and new metrics are not operator upgrade blockers
+    match: [{text: '(?i)envoy_cilium_npds_|cilium_node_health_connectivity|Added Metrics'}]
+environment:
+  description: >-
+    Mid-size production cluster running Cilium v1.16.1 installed via the Helm
+    chart. The values file pins several options whose defaults or existence
+    change in v1.17.0: TLS visibility secrets are read cluster-wide
+    (tls.secretsBackend: k8s), Hubble UI enabled with auto-generated
+    certificates at the old 1095-day validity, DNS proxy keeps the old
+    50-IPs-per-hostname cap, and BGP announcements use the removed legacy
+    metallb-bgp integration (bgp.enabled). The mirror list pins the agent and
+    operator images to v1.16.1.
+  kubernetes: "1.29"
+  expectedImpact:
+    - expected: E3
+      relevance: action-required
+      why: the values file enables bgp.enabled/bgp.announce, which v1.17.0 removes; announcements must move to bgpControlPlane before upgrading
+    - expected: E4
+      relevance: action-required
+      why: 'the values file sets tls.secretsBackend: k8s, a key that no longer exists in the v1.17.0 chart'
+  expectedFindings:
+    - id: F1
+      match:
+        subject: bgp.enabled
+      why: the user sets a key the v1.17.0 chart no longer has (metallb-bgp removed)
+    - id: F2
+      match:
+        subject: tls.secretsBackend
+      why: the user sets a key the v1.17.0 chart deprecates/empties; the replacement is readSecretsOnlyFromSecretsNamespace
+    - id: F3
+      match:
+        subject: hubble.tls.auto.certValidityDuration
+      classification: informational
+      why: the user pins 1095, so the lowered 365-day default for new certificates does not change this cluster's setting
+    - id: F4
+      match:
+        subject: dnsProxy.endpointMaxIpPerHostname
+      classification: informational
+      why: the user pins 50, keeping the old cap despite the 1000 default
+  notExpectedFindings:
+    - title: no Cilium CRD is removed by this upgrade
+      match: {rule: impact:crd-removed}
+      why: the CRD file sets of v1.16.0 and v1.17.0 are identical (repo tree comparison at both tags)

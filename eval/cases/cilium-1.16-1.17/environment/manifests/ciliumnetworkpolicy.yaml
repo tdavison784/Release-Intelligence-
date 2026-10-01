@@ -1,0 +1,22 @@
+# A TLS-aware CiliumNetworkPolicy: reads Secrets from the default namespace,
+# i.e. the workload that motivated tls.secretsBackend: k8s in values.yaml.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: api-egress-tls
+  namespace: default
+spec:
+  endpointSelector:
+    matchLabels:
+      app: api
+  egress:
+    - toFQDNs:
+        - matchName: api.example.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+          terminatingTLS:
+            secret:
+              name: api-example-com-tls
+              namespace: default

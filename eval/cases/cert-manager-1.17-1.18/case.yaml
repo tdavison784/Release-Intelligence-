@@ -1,0 +1,98 @@
+id: cert-manager-1.17-1.18
+product: cert-manager
+from: v1.17.0
+to: v1.18.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md
+  - https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md
+  - https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md
+  - https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml
+  - https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml
+expected:
+  - id: E1
+    title: Certificate private key rotationPolicy default changed from Never to Always
+    kind: behaviour-change
+    importance: critical
+    actionRequired: true       # existing Certificates without an explicit rotationPolicy silently change behaviour
+    match:
+      - text: '(?i)rotationPolicy'
+      - subject: 'spec.privateKey.rotationPolicy'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md
+        quote: "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`."
+  - id: E2
+    title: Certificate RevisionHistoryLimit default changed from nil to 1
+    kind: behaviour-change
+    importance: critical
+    actionRequired: true       # revision history beyond the last revision is pruned
+    match:
+      - text: '(?i)RevisionHistoryLimit'
+      - subject: 'spec.revisionHistoryLimit'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md
+        quote: "We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`."
+  - id: E3
+    title: ACME HTTP01 challenge paths now use PathType Exact; incompatible with ingress-nginx >= 1.12 defaults and OpenShift Routes
+    kind: compatibility
+    importance: critical
+    actionRequired: true       # pick a workaround (feature gate, ingress-nginx config, or ingress-nginx upgrade)
+    match:
+      - text: '(?i)PathType.?`?Exact|HTTP01.*PathType|PathType.*HTTP01'
+      - text: '(?i)ACMEHTTP01IngressPathTypeExact'
+      - text: '(?i)strict-validate-path-type'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md
+        quote: "We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`. … This change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controller."
+      - url: https://github.com/kubernetes/ingress-nginx/pull/11819
+        quote: "strict-validate-path-type gets enabled by default (ingress-nginx >= 1.12.0), which rejects the challenge paths cert-manager 1.18 creates."
+  - id: E4
+    title: OperatorHub packages remain discontinued (last publish v1.16.5)
+    kind: artifact
+    importance: important
+    actionRequired: true
+    match:
+      - text: '(?i)OperatorHub|OLM'
+    evidence:
+      - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md
+        quote: "We no longer publish OperatorHub packages for cert-manager."
+notExpected:
+  - title: dependency bumps in test-only or build-only paths
+    match: [{text: '(?i)bump .* in /(test|hack)'}]
+  - title: documentation-only pull requests listed in the GitHub release body
+    match: [{text: '(?i)^docs?:'}]
+environment:
+  description: >-
+    Small production cluster on Kubernetes 1.31. cert-manager installed via the
+    Helm chart with a values file pinning the Prometheus ServiceMonitor port to
+    the old numeric default, and global.rbac.disableHTTPChallengesRole already
+    set. ACME HTTP01 challenges are solved through ingress-nginx v1.12.1
+    (below the fixed v1.12.6). The private-registry mirror list pins the
+    controller and webhook images to v1.17.0.
+  kubernetes: "1.31"
+  expectedImpact:              # which expected items affect THIS environment, and why
+    - expected: E1
+      relevance: review        # Certificates do not set rotationPolicy, so they inherit the new Always default
+      why: the environment's Certificate manifests never set spec.privateKey.rotationPolicy, so re-issuance will start rotating private keys
+    - expected: E3
+      relevance: action-required
+      why: HTTP01 challenges are solved via ingress-nginx v1.12.1, whose strict-validate-path-type default rejects Exact paths containing dots
+  expectedFindings:            # impact findings the join should emit for THIS environment
+    - id: F1
+      match:
+        subject: prometheus.servicemonitor.targetPort
+      classification: informational
+      why: the values file pins targetPort 9402 (the v1.17.0 default); v1.18.0 changes the default to the string http-metrics, and the pin keeps winning
+    - id: F2
+      match:
+        subject: global.rbac.disableHTTPChallengesRole
+      rule: impact:values-new-key
+      why: the values file already sets this key, which only exists from v1.18.0, so it starts taking effect on upgrade
+    - id: F3
+      match:
+        rule: impact:kubernetes-in-range
+      why: cluster Kubernetes 1.31 is inside cert-manager v1.18's supported range 1.29-1.33 (README support table), which should be confirmed, not flagged
+  notExpectedFindings:
+    - title: no CRD removed by this upgrade
+      match: {rule: impact:crd-removed}
+      why: cert-manager v1.18.0 still ships every CRD v1.17.0 shipped

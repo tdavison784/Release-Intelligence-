@@ -1,0 +1,15 @@
+# Customer Helm values for cert-manager (eval fixture cert-manager-1.17-1.18).
+# Grounded in the upstream chart values of the two endpoints:
+#   v1.17.0: prometheus.servicemonitor.targetPort: 9402 (numeric)
+#            no global.rbac.disableHTTPChallengesRole key
+#   v1.18.0: targetPort: http-metrics (string); the RBAC key exists (default false)
+# https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml
+# https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml
+prometheus:
+  servicemonitor:
+    enabled: true
+    targetPort: 9402        # pins the OLD default; v1.18.0 changes it to "http-metrics"
+global:
+  rbac:
+    disableHTTPChallengesRole: true   # new key in v1.18.0, already set by this user
+replicaCount: 3

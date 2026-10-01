@@ -1,0 +1,73 @@
+id: kube-prometheus-stack-90-91
+product: kube-prometheus-stack
+from: kube-prometheus-stack-90.2.0
+to: kube-prometheus-stack-91.0.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/UPGRADE.md
+  - https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.0.0
+  - https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0
+expected:
+  - id: E1
+    title: Chart major 91 bumps prometheus-operator to v0.94.0
+    kind: dependency
+    importance: important
+    actionRequired: false      # the chart carries the operator
+    match:
+      - text: '(?i)prometheus-operator.*0\.94|0\.94.*prometheus-operator'
+      - text: '(?i)operator.*v0\.94'
+    evidence:
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/UPGRADE.md
+        quote: "This version upgrades Prometheus-Operator to v0.94.0"
+      - url: https://github.com/prometheus-community/helm-charts/releases/tag/kube-prometheus-stack-91.0.0
+        quote: "[kube-prometheus-stack] Bump prometheus-operator to v0.94.0"
+  - id: E2
+    title: Operator ClusterRole no longer grants wildcard verbs (tightened RBAC); RBAC that assumed wildcards may break
+    kind: behaviour-change
+    importance: important
+    actionRequired: true       # custom tooling relying on the operator's wildcards must be re-checked
+    match:
+      - text: '(?i)wildcard verbs|tightened.*RBAC|RBAC.*tighten'
+    evidence:
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/UPGRADE.md
+        quote: "The operator's ClusterRole no longer grants wildcard verbs, following the tightened RBAC shipped upstream in v0.94.0."
+      - url: https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0
+        quote: "Tighten the operator's ClusterRole by replacing wildcard verbs with explicit permissions per resource."
+  - id: E3
+    title: CRDs must be updated before the upgrade (kubectl apply --server-side of the v0.94.0 CRD set, or crds.upgradeJob.enabled)
+    kind: migration-step
+    importance: critical
+    actionRequired: true
+    match:
+      - text: '(?i)update the CRDs|CRDs? (must|need to) be (updated|applied)|crds\.upgradeJob'
+      - text: '(?i)server-side'
+    evidence:
+      - url: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-91.0.0/charts/kube-prometheus-stack/UPGRADE.md
+        quote: "For traditional upgrades, please run these commands to update the CRDs before applying the upgrade."
+  - id: E4
+    title: Operator discards zero-value duration fields (retention, clusterGossipInterval, …) in Alertmanager resources instead of passing them as flags; reported via IgnoredFields status condition
+    kind: behaviour-change
+    importance: important
+    actionRequired: false      # startup failures fixed, but IgnoredFields appears
+    match:
+      - text: '(?i)IgnoredFields|discard.*zero-value|zero-value duration'
+      - text: '(?i)clusterGossipInterval'
+    evidence:
+      - url: https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0
+        quote: "Update the default Alertmanager version to v0.34.0 and discard zero-value duration fields (`retention`, `clusterGossipInterval`, …) in `Alertmanager` resources instead of passing them as CLI flags"
+  - id: E5
+    title: ScrapeConfig CRD validation rejects empty strings in namespaceDiscovery.names / consulSDConfig services and tags
+    kind: crd-schema
+    importance: minor
+    actionRequired: true       # existing ScrapeConfigs with empty entries are rejected
+    match:
+      - text: '(?i)namespaceDiscovery|consulSDConfig'
+      - text: '(?i)Reject empty strings'
+    evidence:
+      - url: https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0
+        quote: "Reject empty strings in `namespaceDiscovery.names`, `consulSDConfig.services`, and `consulSDConfig.tags` list fields in the `ScrapeConfig` CRD."
+notExpected:
+  - title: dependency-bump chore entries from the chart's release range
+    match: [{text: '(?i)\[(renovate|CI|repo|chore)'}]
+  - title: unrelated charts in the same monorepo release feed
+    match: [{text: '(?i)\[(prometheus|grafana|alertmanager|thanos|snmp|smartctl|blackbox)[-\]]'}]

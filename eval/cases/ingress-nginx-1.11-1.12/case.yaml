@@ -1,0 +1,61 @@
+id: ingress-nginx-1.11-1.12
+product: ingress-nginx
+from: controller-v1.11.5
+to: controller-v1.12.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+  - https://github.com/kubernetes/ingress-nginx/pull/11819
+  - https://github.com/kubernetes/ingress-nginx/pull/11821
+expected:
+  - id: E1
+    title: Security features enabled by default — annotation validation on, allow-cross-namespace-resources off, annotations-risk-level High, strict-validate-path-type on
+    kind: behaviour-change
+    importance: critical
+    actionRequired: true       # existing Ingresses/annotations can be rejected after upgrade
+    match:
+      - text: '(?i)enable-annotation-validation'
+      - text: '(?i)allow-cross-namespace-resources'
+      - text: '(?i)annotations-risk-level'
+      - text: '(?i)strict-validate-path-type'
+    evidence:
+      - url: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+        quote: "Enable security features by default (#11819): --enable-annotation-validation gets enabled by default; allow-cross-namespace-resources gets disabled by default; annotations-risk-level gets lowered to \"High\" by default; strict-validate-path-type gets enabled by default."
+      - url: https://github.com/kubernetes/ingress-nginx/pull/11819
+        quote: "Enable security features by default"
+  - id: E2
+    title: Metrics (--enable-metrics) disabled by default
+    kind: behaviour-change
+    importance: critical
+    actionRequired: true       # monitoring goes dark unless re-enabled
+    match:
+      - text: '(?i)enable-metrics'
+      - text: '(?i)metrics.*disabled by default|disable[d]? by default.*metrics'
+    evidence:
+      - url: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+        quote: "Metrics: Disable by default. (#12153): `--enable-metrics` gets disabled by default."
+  - id: E3
+    title: Third-party Lua plugin support removed (plugins configuration option gone)
+    kind: removal
+    importance: important
+    actionRequired: true       # deployments using /etc/nginx/lua/plugins must be rebuilt
+    match:
+      - text: '(?i)lua plugin|plugins.*configuration option'
+    evidence:
+      - url: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+        quote: "Remove 3rd party lua plugin support (#11821): This removes the following configuration options: `plugins`"
+  - id: E4
+    title: s390x architecture images dropped
+    kind: artifact
+    importance: important
+    actionRequired: true       # s390x clusters cannot pull v1.12.0
+    match:
+      - text: '(?i)s390x'
+    evidence:
+      - url: https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.0
+        quote: "Images: Drop `s390x`. (#12137)"
+notExpected:
+  - title: image/build chore entries are not upgrade intelligence
+    match: [{text: '(?i)^(Images|CI|Go|Repository|Plugin|Tests?)[:.]'}]
+  - title: documentation additions are not upgrade work
+    match: [{text: '(?i)^Docs?[:.]'}]

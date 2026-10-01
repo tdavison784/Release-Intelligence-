@@ -1,0 +1,76 @@
+id: vault-1.21-2.0
+product: vault
+from: v1.21.4
+to: v2.0.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/hashicorp/vault/blob/v2.0.0/CHANGELOG.md
+expected:
+  - id: E1
+    title: sys/rekey and sys/generate-root (and DR operation-token) endpoints now authenticated by default; enable_unauthenticated_access HCL key restores old behavior
+    kind: behaviour-change
+    importance: critical
+    actionRequired: true       # break-glass tooling and scripts hitting these endpoints unauthenticated
+    match:
+      - text: '(?i)enable_unauthenticated_access'
+      - text: '(?i)generate-root.*authenticated|rekey.*authenticated'
+      - text: '(?i)authenticated by default'
+    evidence:
+      - url: https://github.com/hashicorp/vault/blob/v2.0.0/CHANGELOG.md
+        quote: "core: sys/rekey endpoints are now authenticated by default, with the old unauthenticated behaviour enabled by setting the new HCL config key enable_unauthenticated_access to include the value \"rekey\"."
+  - id: E2
+    title: Vault rejects non-canonical paths (e.g. double slashes) and URL-encoded non-canonical paths
+    kind: behaviour-change
+    importance: important
+    actionRequired: true       # clients that built sloppy paths get errors
+    match:
+      - text: '(?i)canonical path'
+      - text: '(?i)double slash'
+    evidence:
+      - url: https://github.com/hashicorp/vault/blob/v2.0.0/CHANGELOG.md
+        quote: "core: Vault now rejects paths that are not canonical, such as paths containing double slashes (`path//to/resource`)"
+  - id: E3
+    title: max_token_header_size listener option (default 8 KB) bounds X-Vault-Token / Authorization headers; -1 disables
+    kind: behaviour-change
+    importance: important
+    actionRequired: false      # only unusual clients with huge tokens hit it
+    match:
+      - text: '(?i)max_token_header_size'
+    evidence:
+      - url: https://github.com/hashicorp/vault/blob/v2.0.0/CHANGELOG.md
+        quote: "Added configurable `max_token_header_size` listener option (default 8 KB) to bound the size of authentication token headers"
+  - id: E4
+    title: PKI sign-verbatim endpoints no longer ignore basic constraints in CSRs
+    kind: behaviour-change
+    importance: important
+    actionRequired: false      # workflows relying on the old leniency fail
+    match:
+      - text: '(?i)sign-verbatim'
+    evidence:
+      - url: https://github.com/hashicorp/vault/blob/v2.0.0/CHANGELOG.md
+        quote: "secrets/pki: sign-verbatim endpoints no longer ignore basic constraints extension in CSRs, using them in generated certificates if isCA=false or returning an error if isCA=true"
+  - id: E5
+    title: SDK docker helpers migrate from github.com/docker/docker to github.com/moby/moby (breaking for plugin authors)
+    kind: breaking
+    importance: important
+    actionRequired: true       # only for builders of plugins/integrations
+    match:
+      - text: '(?i)docker/docker|moby/moby'
+    evidence:
+      - url: https://github.com/hashicorp/vault/blob/v2.0.0/CHANGELOG.md
+        quote: "sdk/helpers/docker: Migrate docker helpers from github.com/docker/docker to github.com/moby/moby."
+  - id: E6
+    title: Container images exported as compressed OCI layout; UBI images on UBI 10 minimal
+    kind: artifact
+    importance: minor
+    actionRequired: false
+    match:
+      - text: '(?i)OCI image layout|UBI 10'
+    evidence:
+      - url: https://github.com/hashicorp/vault/blob/v2.0.0/CHANGELOG.md
+        quote: 'packaging: Container images are now exported using a compressed OCI image layout. … packaging: UBI container images are now built on the UBI 10 minimal image.'
+notExpected:
+  - title: per-plugin version bumps are routine dependency maintenance
+    match: [{text: '(?i)^(auth|secrets|database)/.*: Update plugin to'}]
+  - title: UI-only improvements are not server upgrade work
+    match: [{text: '(?i)^ui[:/]'}]
