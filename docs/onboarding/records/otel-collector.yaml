@@ -1,0 +1,134 @@
+product: otel-collector
+order: 16
+wave: 2
+repository: github.com/open-telemetry/opentelemetry-collector-releases
+onboarding:
+  startedAt: "2026-10-01T14:43:10Z"
+  finishedAt: "2026-10-01T15:11:36Z"
+  minutes: 28
+discovery:
+  proposal: docs/onboarding/discovery/otel-collector.proposed.yaml
+  report: docs/onboarding/discovery/otel-collector.report.md
+# Discovery proposed the right skeleton: versioning (strict v-pattern, 157
+# stable tags, junk = cmd/* subdirectory tags + nightlies), the releases
+# CHANGELOG.md heading, github-releases fallback, github-advisories, and the
+# ghcr image family with SIX of eight images historically-validated itself.
+# Its wrong calls: it EXCLUDED the contrib ghcr image as "test-only" (it is
+# referenced from distributions/otelcol-contrib/.goreleaser.yaml), its binary
+# asset templates used the repo name + a nonexistent .Binary template
+# variable (static-validation failures), it proposed the OCB builder and
+# opampsupervisor images as product artifacts, and it saw nothing of the
+# core/contrib relationship (a single-repo scanner cannot). Research added
+# the core/contrib changelog sources, the docker.io+mirror channels, the
+# packages, the core-collector artifact and every exception.
+sources:
+  - {id: git-tags, origin: discovered, note: "kept as proposed (id 'tags'); strict ^v(?P<version>) pattern excludes cmd/builder|cmd/opampsupervisor subdirectory tags and nightlies"}
+  - {id: github-releases, origin: discovered, note: "versions fallback priority 1"}
+  - {id: changelog, origin: discovered-modified, note: "locator + heading kept; availability >= 0.116.0 (file starts there), exceptions (0.120.0/0.140.0 sections mis-headed as the follow-up patch; 0.146.0/0.150.0 re-cut as patches, section never existed; 5 distribution-only patches without sections) and classify rules added"}
+  - {id: core-changelog, origin: manual, note: "the core repo's CHANGELOG.md at the SAME-NUMBERED tag (the manifest pins core at the release version); heading accepts dual '## v1.68.0/v0.162.0' AND plain-at-tag shapes; availability >= 0.90.0 (before that core has no root v0.x tags); the 21 distribution-only patches excepted"}
+  - {id: contrib-changelog, origin: manual, note: "same shape for the contrib repo (66-171 items per release); plain headings until 0.161.0, dual from 0.162.0"}
+  - {id: contrib-advisories, origin: manual, note: "7 published GHSAs live on the contrib repo (component CVEs)"}
+  - {id: core-advisories, origin: manual, note: "1 GHSA on core; the releases repo itself has 0 advisories, so the product-repo convention would model nothing"}
+artifacts:
+  - {id: contrib-image, origin: discovered-modified, note: "reinstated from discovery's excluded candidate (its rule misread the goreleaser reference as test-only); docker.io canonical + mirror.gcr.io + ghcr channels; exceptions: 0.115.0 (nothing contrib published), 0.162.0 (multi-arch index tag MANIFEST_UNKNOWN on all three registries while -amd64/-arm64 exist), broken releases"}
+  - {id: contrib-binary, origin: manual, note: "otelcol-contrib_<v>_<os>_<arch>.tar.gz release asset; discovery's templates used the repo name and failed static validation"}
+  - {id: contrib-deb, origin: manual, note: ".deb package asset"}
+  - {id: contrib-rpm, origin: manual, note: ".rpm package asset"}
+  - {id: otelcol-image, origin: discovered-modified, note: "ghcr channel kept as proposed; docker.io + mirror channels and broken-release exceptions added"}
+  - {id: otelcol-binary, origin: manual, note: "otelcol_<v>_<os>_<arch>.tar.gz"}
+  - {id: otelcol-deb, origin: manual, note: "the otelcol .deb (also .rpm/.msi exist)"}
+  - {id: k8s-image, origin: discovered-modified, note: "ghcr kept; availability >= 0.98.0 (image starts there); docker.io + mirror added"}
+  - {id: k8s-binary, origin: manual, note: "tar.gz-only distribution; 0.115.1 shipped no k8s assets"}
+  - {id: otlp-image, origin: discovered-modified, note: "ghcr kept; availability >= 0.112.0"}
+  - {id: ebpf-profiler-image, origin: discovered-modified, note: "ghcr kept; availability >= 0.135.0 (verified window); ghcr-only, linux-only distribution"}
+  - {id: prometheus-image, origin: discovered-modified, note: "discovery dropped it after validation failure (absent 0.159-0.161) — the distribution is NEW at 0.162.0; reinstated with availability >= 0.162.0, verdict insufficient (1/0/0) until more releases land"}
+  - {id: core-collector, origin: manual, note: "the core release the distribution is pinned to: version template {{.Version}} (manifest lockstep) verified by the core source-archive URL at the same-numbered tag; availability >= 0.90.0; the 21 distribution-only patches excepted (their manifests pin the parent minor, e.g. 0.132.2 pins core v0.132.0)"}
+discoveryRejected:
+  - {id: opentelemetry-collector-builder, reason: "the OCB custom-distribution builder: a separate tool riding the same tag train (cmd/builder/* subdirectory tags), not something collector deployments upgrade"}
+  - {id: opentelemetry-collector-opampsupervisor, reason: "the OpAMP supervisor library binary/image: same train, separate tool"}
+  - {id: github-release-body, reason: "the stable-release body is two links to the core+contrib changelog releases plus 3 release-prep commit subjects — a pointer document; kept only as the versions fallback"}
+  - {id: "asset templates with {{ .Binary }}/{{ .Os }}/{{ .Arch }}", reason: "goreleaser template variables that catalog.RenderContext does not have; discovery's static validation dropped them; the per-OS/arch families are represented by one linux_amd64 asset per distribution"}
+relationships:
+  # First complete draft, first run (`ri check otel-collector`, the default
+  # window 0.160.0-0.162.0): 0 failures, 0 unverifiable. The -n 50 era run
+  # (65 releases, 0.113.0-0.162.0) of the SAME draft exposed 12 failing
+  # subjects: one wrong assumption (the core-changelog heading) and eleven
+  # upstream anomalies (three broken releases that published nothing,
+  # partial contrib failures, missing patch sections) — recorded as the
+  # initialFailures below. Final run: 848 pass / 0 fail / 0 unverifiable /
+  # 192 not-applicable over 65 releases.
+  historicalReleasesChecked: [0.113.0, 0.114.0, 0.115.0, 0.115.1, 0.116.0, 0.116.1, 0.117.0, 0.118.0, 0.119.0, 0.120.0, 0.121.0, 0.122.0, 0.122.1, 0.123.0, 0.123.1, 0.124.0, 0.124.1, 0.125.0, 0.126.0, 0.127.0, 0.128.0, 0.129.0, 0.129.1, 0.130.0, 0.130.1, 0.131.0, 0.131.1, 0.132.0, 0.132.4, 0.133.0, 0.134.0, 0.134.1, 0.135.0, 0.136.0, 0.137.0, 0.138.0, 0.139.0, 0.140.0, 0.140.1, 0.141.0, 0.142.0, 0.143.0, 0.143.1, 0.144.0, 0.145.0, 0.146.0, 0.146.1, 0.147.0, 0.148.0, 0.149.0, 0.150.0, 0.150.1, 0.151.0, 0.152.0, 0.152.1, 0.153.0, 0.154.0, 0.155.0, 0.156.0, 0.157.0, 0.158.0, 0.159.0, 0.160.0, 0.161.0, 0.162.0]
+  initialFailures: 12
+  finalFailures: 0
+  manualInterventions:
+    - {subject: core-changelog, change: "heading '^v\\d+\\.\\d+\\.\\d+/v<version>$' -> '^(?:v[\\d.]+/)?v<version>$'", reason: "the dual v1.NN prefix is sometimes added only after the tag freezes: at tag v0.146.0 the section is still plain '## v0.146.0' (era run failure)"}
+    - {subject: "contrib/otelcol/k8s/otlp artifacts + changelog", change: "exceptions for 0.129.0, 0.134.0, 0.150.0 (+ contrib 0.115.0/0.123.0, k8s-binary 0.115.1, changelog 0.146.0/0.150.0/0.140.0/0.120.0 and five patch releases)", reason: "broken upstream publishes: tags and changelog sections exist but no assets and no image tags on any registry (verified directly, e.g. ghcr 404, asset URL 404); re-cut as 0.X.1 whose section carries the changes; contrib-only and k8s-only partial failures"}
+    - {subject: contrib-image, change: "exception for 0.162.0", reason: "the multi-arch index tag is absent from ghcr, mirror.gcr.io AND docker.io (MANIFEST_UNKNOWN) while 0.162.0-amd64/-arm64 and latest exist — per-arch images pushed, index not"}
+    - {subject: component-changelog classify, change: "moved the feature-gate rule ahead of the removal-verb rule; gave the rename rule category migration", reason: "reading the first edge: 'Promote X feature gate to Beta ... no longer emits Y' filed as removal via the folded continuation text (configuration is the right category), and the queuebatch rename was breaking/other with no category (migration is what it asks of the user)"}
+  unverifiable: []
+constructs:
+  new: []                  # zero: third wave-2 product adds no construct
+  considered:
+    - "version.strategy field on the OCB manifest pin (distributions/*/manifest.yaml pins core per release): REJECTED. The pin shares one string with the module path ('gomod: go.opentelemetry.io/collector/extension/zpagesextension v0.162.0') and the construct's list selectors are exact-match on a field value, so no YAML path reads it; a substring/suffix selector would be a new capability whose cross-product demand is thin (only OCB manifests and go.mod-style pins — none of the 13 earlier products, and Go build constraints are not release artifacts). The same fact is represented by the lockstep template relation plus the core source-archive existence channel, verified across 50 releases."
+    - "a same-number foreign-repository relation construct ('release N of repo A implies tag N of repo B'): REJECTED — the core-collector artifact already expresses it with template {{.Version}} + an http channel at the core tag, and the exceptions list carries the honest divergence (distribution-only patches); a dedicated construct would add vocabulary, not information."
+    - "an 'image index' vs 'per-arch tag' channel distinction (the 0.162.0 contrib anomaly): REJECTED — one observed incident; the exception records it, and registry probes intentionally check the user-facing tag."
+    - "multiple security sources: NOT a construct — ingest already aggregates and de-duplicates advisory sources; declaring contrib+core needed only configuration."
+goChanges:
+  productSpecific: 0
+  generic: []              # none: configuration only
+unreachableSources:
+  - {host: api.github.com, reason: "transient: anonymous 60/h quota exhausted by the first upgrade edge (advisories 403); recovered before the final runs — contrib-advisories and core-advisories both ok in the final edge"}
+  - {host: registry-1.docker.io, reason: "anonymous manifest probes 401 without a token (the documented Docker Hub pattern); the anonymous auth.docker.io token flow answered 200 during this onboarding, and every docker.io channel also has mirror.gcr.io + ghcr fallbacks — no final-definition subject was unverifiable"}
+ambiguousRelationships:
+  - "Three version surfaces: repository tags v-prefixed, image tags and binary/package versions unprefixed (goreleaser's {{ .Version }} strips the v) — template \"{{.Version}}\" under tagPrefix v"
+  - "The core/contrib/repo lockstep: same version number pinned in distributions/*/manifest.yaml, but from 0.102.1 on the releases repo patches ALONE (21 tags with no core/contrib tag; their manifests pin the parent minor) and before 0.90.0 core/contrib have no root tags at all (subdirectory-tag era)"
+  - "Broken releases 0.129.0/0.134.0/0.150.0 published nothing anywhere; the changelog sections of re-cut minors sometimes sit under the follow-up patch heading (v0.120.0 -> '## v0.120.1', v0.140.0 -> '## v0.140.1') and sometimes never existed (0.146.0, 0.150.0)"
+  - "The releases CHANGELOG.md exists only since 0.116.0; older releases have no distribution-level notes (the GitHub body's two links cannot substitute)"
+  - "Advisory version spaces: GHSA-8hxm-mxr2-qf9h on contrib patches 'Prometheus v0.311.3' — the vendored Prometheus library's version, not the collector's; the edge reports it as affecting 0.162.0 because the advisory says the receiver depends on the vulnerable library"
+  - "The wavefrontreceiver removal is stated twice (releases changelog 'otelcol-contrib: Remove wavefrontreceiver from the contrib distribution' + contrib 'all: Remove the wavefront receiver'), with different PR numbers — two upstream statements of one change, both kept as evidence"
+  - "otelcol-k8s (>= 0.98.0) and otelcol-otlp (>= 0.112.0 images) coexist today; k8s is not a rename of otlp"
+  - "The GitHub release body of a stable tag links the core and contrib changelog releases at the same numbers — upstream's own statement of the topology modeled here"
+representability: full
+gaps:
+  - "The per-release core/contrib pins of distributions/*/manifest.yaml are not machine-readable through version.strategy field (module path and version share one gomod string); the lockstep template + existence channel represents the release-level fact, but a hypothetical future pin at a different number would not be detected by the definition (drift would, via the check baseline)."
+  - "~200 per-component gomod pins per release are not representable without ~200 artifacts; component add/remove/upgrade surfaces through the three changelog sources instead (classified, evidence-cited), not as computed artifact diffs."
+  - "No upstream upgrade-guide document exists (opentelemetry.io/docs/collector/upgrade is 404): the '🛑 Breaking changes' sections plus 'otelcol validate' are the migration discipline, so the definition has no upgrade-guide role source."
+  - "No machine-readable compatibility matrix: collector-to-core is the lockstep pin; the kubernetes/collector matrix lives in the opentelemetry-operator repository — a related product (own v0.x train) that should be onboarded separately and joined to this one."
+  - "prometheus-image is verdict-insufficient (distribution created at 0.162.0, one release old, experimental); ebpf-profiler/prometheus have no docker.io repositories to declare."
+  - "The OTel operator, OCB builder and opampsupervisor ride adjacent trains and are noted as related products, not artifacts."
+sampleEdge:
+  from: 0.160.0
+  to: 0.162.0
+  summary: "39 breaking · 2 action required · 270 changes · 1 warnings"
+  evidenceRecords: 418
+  notes: >-
+    Path 0.161.0 → 0.162.0 (minor-lineage). Breaking = removals and feature
+    gate promotions from all three changelogs (mezmo and wavefront receiver
+    removals, queuebatch→queue_batch rename as migration, gate promotions as
+    configuration), each with evidence lines. Action required (non-breaking):
+    the GHSA still affecting 0.162.0 (vendored Prometheus library) and the
+    contrib container image no longer being published at 0.162.0 — the
+    upstream index-tag gap surfacing as a user-visible migration fact.
+    Artifacts: 11 verified version bumps, prometheus-image added (new
+    distribution), contrib-image removed-at-target per the exception.
+    Classification provenance is heuristic/medium for text-matched rules and
+    declared/high for section-only rules, by design.
+notes: >-
+  Third zero-new wave-2 product: onboarding was research plus configuration.
+  The scope decision: the product is the RELEASES repository (the six
+  distributions users deploy — binaries, deb/rpm/msi packages, images on
+  docker.io + ghcr), not the core framework and not the contrib component
+  repo; core and contrib are modeled as the distribution's content — their
+  changelog sections read at the same-numbered tags (the release body itself
+  links exactly those two), plus a core-release artifact with the honest
+  distribution-only-patch exceptions. The k8s operator is noted as a related
+  product. The definition is the construct-leanest big-product shape so far
+  (57 constructs, all reused; no fallback groups needed — raw git hosts
+  answered everything). Discovery quality was the highest yet for images
+  (six ghcr channels historically-validated by itself) but its binary-asset
+  proposer still cannot template per-OS/arch asset families, and it missed
+  the multi-repository topology entirely — the one class of finding research
+  had to supply. The upstream anomalies this product exposed (three
+  releases that published nothing, a missing multi-arch index tag on the
+  newest release, sections mis-headed as follow-up patches) are exactly
+  what the exceptions construct exists for; none required Go changes.
