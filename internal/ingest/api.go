@@ -112,6 +112,9 @@ const (
 	OutcomeFail          = "fail"
 	OutcomeUnverifiable  = "unverifiable"
 	OutcomeNotApplicable = "not-applicable"
+	// OutcomeCovered: a fallback-group member that did not answer while
+	// another member of its group did.
+	OutcomeCovered = "covered"
 )
 
 // Relationship check subject kinds.

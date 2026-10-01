@@ -59,7 +59,7 @@ func summarize(checks []RelationshipCheck) []RelationshipSummary {
 	var order []key
 	perRelease := map[key]map[string]string{} // subject → release → outcome
 	var releaseOrder = map[key][]string{}
-	rank := map[string]int{OutcomeNotApplicable: 0, OutcomeUnverifiable: 1, OutcomePass: 2, OutcomeFail: 3}
+	rank := map[string]int{OutcomeNotApplicable: 0, OutcomeCovered: 1, OutcomeUnverifiable: 2, OutcomePass: 3, OutcomeFail: 4}
 	for _, c := range checks {
 		k := key{c.SubjectKind, c.Subject}
 		m, ok := perRelease[k]

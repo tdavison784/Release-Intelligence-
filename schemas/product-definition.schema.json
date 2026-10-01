@@ -44,6 +44,18 @@
     "dnsLabel": {"type": "string", "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"},
     "stringList": {"type": "array", "items": {"type": "string"}},
     "constraint": {"type": "string", "description": "Semver constraint on the release version, e.g. \">= 1.14.0\"."},
+    "exceptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["versions", "reason"],
+        "properties": {
+          "versions": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
     "role": {"enum": ["versions", "release-notes", "changelog", "upgrade-guide", "compatibility", "security"]},
     "category": {"enum": ["feature", "bugfix", "deprecation", "removal", "migration", "configuration", "helm-values", "crd-schema", "api", "compatibility", "security", "artifact", "dependency", "other"]},
     "locator": {
@@ -126,6 +138,7 @@
         "releaseKinds": {"type": "array", "items": {"enum": ["major", "minor", "patch"]}},
         "priority": {"type": "integer"},
         "fallbackGroup": {"$ref": "#/$defs/dnsLabel"},
+        "exceptions": {"$ref": "#/$defs/exceptions"},
         "validatedAgainst": {"$ref": "#/$defs/stringList"},
         "notes": {"type": "string"}
       }
@@ -180,6 +193,8 @@
           }
         },
         "availability": {"$ref": "#/$defs/constraint"},
+        "optional": {"type": "boolean"},
+        "exceptions": {"$ref": "#/$defs/exceptions"},
         "validatedAgainst": {"$ref": "#/$defs/stringList"},
         "notes": {"type": "string"}
       }

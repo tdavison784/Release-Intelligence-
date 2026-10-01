@@ -175,6 +175,7 @@ func Validate(d *ProductDefinition) ValidationReport {
 			v.classify(fmt.Sprintf("%s.classify[%d]", p, j), cr)
 		}
 		v.constraint(p+".availability", s.Availability)
+		v.exceptions(p+".exceptions", s.Exceptions)
 		for j, k := range s.ReleaseKinds {
 			if k != "major" && k != "minor" && k != "patch" {
 				v.errf(fmt.Sprintf("%s.releaseKinds[%d]", p, j), "must be major, minor or patch, got %q", k)
@@ -259,8 +260,26 @@ func Validate(d *ProductDefinition) ValidationReport {
 			v.constraint(cp+".availability", c.Availability)
 		}
 		v.constraint(p+".availability", a.Availability)
+		v.exceptions(p+".exceptions", a.Exceptions)
 	}
 	return v.r
+}
+
+func (v *validator) exceptions(path string, exs []Exception) {
+	for i, e := range exs {
+		p := fmt.Sprintf("%s[%d]", path, i)
+		if len(e.Versions) == 0 {
+			v.errf(p+".versions", "at least one version required")
+		}
+		for j, s := range e.Versions {
+			if _, err := semver.StrictNewVersion(s); err != nil {
+				v.errf(fmt.Sprintf("%s.versions[%d]", p, j), "must be a semantic version without prefix, got %q", s)
+			}
+		}
+		if strings.TrimSpace(e.Reason) == "" {
+			v.errf(p+".reason", "required: exceptions must explain themselves")
+		}
+	}
 }
 
 func (v *validator) versioning(d *ProductDefinition) {

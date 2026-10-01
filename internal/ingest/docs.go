@@ -70,6 +70,17 @@ func (i *Ingester) runGroup(ctx context.Context, r *run, g sourceGroup) groupRes
 			winner = src.ID
 		}
 	}
+	// In a satisfied fallback group, members that did not answer are covered
+	// by the winner: their absence is not a failure of the definition.
+	if winner != "" {
+		for k := range out.checks {
+			c := &out.checks[k]
+			if c.Subject != winner && (c.Outcome == OutcomeFail || c.Outcome == OutcomeUnverifiable) {
+				c.Outcome = OutcomeCovered
+				c.Detail = fmt.Sprintf("covered by %s (fallback group %s): %s", winner, g.name, c.Detail)
+			}
+		}
+	}
 	return out
 }
 
@@ -110,6 +121,9 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 	}
 	if !ok {
 		return set(domain.SourceSkipped, notApplicableDetail(r.v, src.Availability, src.ReleaseKinds))
+	}
+	if reason, ok := catalog.ExceptionFor(r.v, src.Exceptions); ok {
+		return set(domain.SourceSkipped, "known exception: "+reason)
 	}
 	loc, err := renderLocator(src.Locator, r.rc)
 	if err != nil {

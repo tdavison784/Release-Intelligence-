@@ -17,7 +17,7 @@ import (
 func (c *cli) products(args []string) error {
 	fs := c.flags("products", "")
 	output := fs.String("o", "text", "output format: text|json")
-	if err := fs.Parse(args); err != nil {
+	if _, err := parse(fs, args); err != nil {
 		return err
 	}
 	cat, err := catalog.LoadDir(c.g.products)
@@ -43,11 +43,12 @@ func (c *cli) products(args []string) error {
 func (c *cli) validate(args []string) error {
 	fs := c.flags("validate", "[product|file.yaml ...]")
 	output := fs.String("o", "text", "output format: text|json")
-	if err := fs.Parse(args); err != nil {
+	pos, err := parse(fs, args)
+	if err != nil {
 		return err
 	}
 	var defs []*catalog.ProductDefinition
-	targets := fs.Args()
+	targets := pos
 	if len(targets) == 0 {
 		cat, err := catalog.LoadDir(c.g.products)
 		if err != nil {
@@ -108,10 +109,11 @@ func (c *cli) validate(args []string) error {
 func (c *cli) versions(args []string) error {
 	fs := c.flags("versions", "<product>")
 	output := fs.String("o", "text", "output format: text|json")
-	if err := fs.Parse(args); err != nil {
+	pos, err := parse(fs, args)
+	if err != nil {
 		return err
 	}
-	if fs.NArg() != 1 {
+	if len(pos) != 1 {
 		fs.Usage()
 		return fmt.Errorf("%w: expected <product>", app.ErrUsage)
 	}
@@ -119,7 +121,7 @@ func (c *cli) versions(args []string) error {
 	if err != nil {
 		return err
 	}
-	def, err := a.Product(fs.Arg(0))
+	def, err := a.Product(pos[0])
 	if err != nil {
 		return err
 	}
@@ -148,13 +150,14 @@ func (c *cli) versions(args []string) error {
 
 func (c *cli) check(args []string) error {
 	fs := c.flags("check", "<product>")
-	n := fs.Int("n", 3, "number of most recent release lines to check (latest patch of each)")
+	n := fs.Int("n", 3, "number of most recent release lines to check (X.Y.0 and latest patch of each)")
 	versions := fs.String("versions", "", "comma-separated releases to check instead of -n")
 	output := fs.String("o", "text", "output format: text|json")
-	if err := fs.Parse(args); err != nil {
+	pos, err := parse(fs, args)
+	if err != nil {
 		return err
 	}
-	if fs.NArg() != 1 {
+	if len(pos) != 1 {
 		fs.Usage()
 		return fmt.Errorf("%w: expected <product>", app.ErrUsage)
 	}
@@ -162,7 +165,7 @@ func (c *cli) check(args []string) error {
 	if err != nil {
 		return err
 	}
-	rep, err := a.CheckRelationships(c.ctx, fs.Arg(0), splitList(*versions), *n)
+	rep, err := a.CheckRelationships(c.ctx, pos[0], splitList(*versions), *n)
 	if err != nil {
 		return err
 	}
@@ -191,10 +194,11 @@ func countVerdict(rep *ingest.RelationshipReport, verdict string) int {
 func (c *cli) ingest(args []string) error {
 	fs := c.flags("ingest", "<product> <version>")
 	output := fs.String("o", "text", "output format: text|json")
-	if err := fs.Parse(args); err != nil {
+	pos, err := parse(fs, args)
+	if err != nil {
 		return err
 	}
-	if fs.NArg() != 2 {
+	if len(pos) != 2 {
 		fs.Usage()
 		return fmt.Errorf("%w: expected <product> <version>", app.ErrUsage)
 	}
@@ -202,7 +206,7 @@ func (c *cli) ingest(args []string) error {
 	if err != nil {
 		return err
 	}
-	def, err := a.Product(fs.Arg(0))
+	def, err := a.Product(pos[0])
 	if err != nil {
 		return err
 	}
@@ -210,7 +214,7 @@ func (c *cli) ingest(args []string) error {
 	if err != nil {
 		return err
 	}
-	v, err := app.ResolveVersion(vl, fs.Arg(1))
+	v, err := app.ResolveVersion(vl, pos[1])
 	if err != nil {
 		return err
 	}
@@ -231,10 +235,11 @@ func (c *cli) upgrade(args []string) error {
 	verbose := fs.Bool("verbose", false, "include features, bug fixes and evidence excerpts")
 	policy := fs.String("policy", "", "path policy override: minor-lineage|all")
 	max := fs.Int("max", 25, "maximum items per section in text output (-1 = unlimited)")
-	if err := fs.Parse(args); err != nil {
+	pos, err := parse(fs, args)
+	if err != nil {
 		return err
 	}
-	if fs.NArg() != 3 {
+	if len(pos) != 3 {
 		fs.Usage()
 		return fmt.Errorf("%w: expected <product> <from> <to>", app.ErrUsage)
 	}
@@ -242,7 +247,7 @@ func (c *cli) upgrade(args []string) error {
 	if err != nil {
 		return err
 	}
-	edge, err := a.Upgrade(c.ctx, fs.Arg(0), fs.Arg(1), fs.Arg(2), app.UpgradeOptions{Policy: *policy})
+	edge, err := a.Upgrade(c.ctx, pos[0], pos[1], pos[2], app.UpgradeOptions{Policy: *policy})
 	if err != nil {
 		return err
 	}
@@ -283,6 +288,11 @@ func printRelationshipReport(w interface{ Write([]byte) (int, error) }, rep *ing
 		if cells[ch.Subject] == nil {
 			cells[ch.Subject] = map[string]ingest.RelationshipCheck{}
 		}
+		// several checks can share a subject (e.g. two chart-metadata
+		// contents with disjoint availability): keep the informative one
+		if prev, ok := cells[ch.Subject][ch.Release]; ok && ch.Outcome == ingest.OutcomeNotApplicable && prev.Outcome != ingest.OutcomeNotApplicable {
+			continue
+		}
 		cells[ch.Subject][ch.Release] = ch
 	}
 	tw := tabwriter.NewWriter(w, 0, 2, 2, ' ', 0)
@@ -301,6 +311,7 @@ func printRelationshipReport(w interface{ Write([]byte) (int, error) }, rep *ing
 	glyph := map[string]string{
 		ingest.OutcomePass: "✓ pass", ingest.OutcomeFail: "✗ FAIL",
 		ingest.OutcomeUnverifiable: "? unverif.", ingest.OutcomeNotApplicable: "· n/a",
+		ingest.OutcomeCovered: "↪ covered",
 	}
 	for _, s := range sum {
 		fmt.Fprintf(tw, "%s\t%s", s.Subject, s.SubjectKind)
@@ -315,7 +326,7 @@ func printRelationshipReport(w interface{ Write([]byte) (int, error) }, rep *ing
 		fmt.Fprintf(tw, "\t%s (%d/%d/%d)\n", s.Verdict, s.Passed, s.Failed, s.Unverifiable)
 	}
 	tw.Flush()
-	fmt.Fprintln(w, "\nverdict counts are pass/fail/unverifiable; 'validated' requires ≥3 passes and no failures.")
+	fmt.Fprintln(w, "\nverdict counts are pass/fail/unverifiable; 'validated' requires ≥3 passes and no failures.\n'covered' = a fallback alternative answered for that release; 'n/a' = not applicable (availability, release kind, known exception, optional artifact not published).")
 	var notes []string
 	for _, ch := range rep.Checks {
 		if (ch.Outcome == ingest.OutcomeFail || ch.Outcome == ingest.OutcomeUnverifiable) && ch.Detail != "" {

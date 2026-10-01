@@ -238,9 +238,42 @@ func (a *App) CheckRelationships(ctx context.Context, productID string, versions
 			rels = append(rels, v)
 		}
 	} else {
-		rels = LatestPerLine(vl.Versions, n)
+		rels = SampleReleases(vl.Versions, n)
 	}
 	return a.Ingester.CheckRelationships(ctx, def, rels, vl)
+}
+
+// SampleReleases picks the historical releases used for relationship
+// validation: for each of the n most recent lines, the line's first release
+// (X.Y.0, which exercises minor-only sources such as upgrade guides) and its
+// latest patch.
+func SampleReleases(vs []domain.Version, n int) []domain.Version {
+	latest := LatestPerLine(vs, n)
+	lines := map[string]bool{}
+	for _, v := range latest {
+		lines[v.Line()] = true
+	}
+	first := map[string]domain.Version{}
+	for _, v := range vs {
+		if !lines[v.Line()] {
+			continue
+		}
+		if cur, ok := first[v.Line()]; !ok || v.Less(cur) {
+			first[v.Line()] = v
+		}
+	}
+	seen := map[string]bool{}
+	var out []domain.Version
+	for _, v := range latest {
+		for _, c := range []domain.Version{first[v.Line()], v} {
+			if !seen[c.Semver] {
+				seen[c.Semver] = true
+				out = append(out, c)
+			}
+		}
+	}
+	domain.SortVersions(out)
+	return out
 }
 
 // LatestPerLine returns the newest release of each of the n most recent

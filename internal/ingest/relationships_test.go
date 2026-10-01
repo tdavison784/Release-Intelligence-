@@ -33,8 +33,9 @@ func TestCheckRelationships(t *testing.T) {
 		verdict             string
 	}
 	want := map[string]verdict{
-		// 1.1.1 has no section in the website notes
-		"site-notes": {SubjectSource, 3, 1, 0, VerdictFailing},
+		// 1.1.1 has no section in the website notes, but its fallback
+		// alternative (gh-notes) answered: covered, not failed
+		"site-notes": {SubjectSource, 3, 0, 0, VerdictValidated},
 		// exhaustive mode validates the fallback even when it is not needed
 		"gh-notes": {SubjectSource, 4, 0, 0, VerdictValidated},
 		// patch releases are not applicable
@@ -71,6 +72,16 @@ func TestCheckRelationships(t *testing.T) {
 	}
 	if len(got) != len(want) {
 		t.Errorf("summaries: %+v", rep.Summary)
+	}
+
+	covered := false
+	for _, c := range rep.Checks {
+		if c.Subject == "site-notes" && c.Release == "1.1.1" {
+			covered = c.Outcome == OutcomeCovered && strings.Contains(c.Detail, "covered by gh-notes")
+		}
+	}
+	if !covered {
+		t.Errorf("site-notes@1.1.1 should be covered by gh-notes")
 	}
 
 	// Checks carry release, channel, detail and resolvable evidence.

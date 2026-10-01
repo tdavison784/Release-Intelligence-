@@ -105,6 +105,14 @@ func (i *Ingester) runArtifact(ctx context.Context, r *run, a catalog.Artifact, 
 		ar.instances = []*instanceRun{{inst: inst}}
 		return ar
 	}
+	if reason, ok := catalog.ExceptionFor(r.v, a.Exceptions); ok {
+		inst := base
+		inst.Status = domain.ArtifactNotApplicable
+		inst.Detail = "known exception: " + reason
+		inst.Coordinate = firstCoordinate(a, r.rc)
+		ar.instances = []*instanceRun{{inst: inst}}
+		return ar
+	}
 	ar.applicable = true
 	res := i.resolveVersions(ctx, r, ar)
 	if len(res.versions) == 0 {
@@ -524,6 +532,10 @@ func artifactCheck(r *run, a catalog.Artifact, inst domain.ArtifactInstance) Rel
 		outcome = OutcomePass
 	case domain.ArtifactMissing:
 		outcome = OutcomeFail
+		if a.Optional {
+			// absence of an optional artifact is a fact, not a broken relationship
+			outcome = OutcomeNotApplicable
+		}
 	case domain.ArtifactNotApplicable:
 		outcome = OutcomeNotApplicable
 	default:

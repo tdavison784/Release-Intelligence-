@@ -158,6 +158,9 @@ artifacts:
   - id: helm-chart
     type: helm-chart
     name: argo-cd
+    # Only ~half of the app releases ever ship as a chart appVersion
+    # (76/144 since v2.11.0): absence is expected and recorded as a fact.
+    optional: true
     version:
       strategy: lookup
       field: appVersion
@@ -190,6 +193,12 @@ artifacts:
     type: binary
     name: argocd-linux-amd64
     version: {strategy: template, template: "{{.Tag}}"}
+    exceptions:
+      - versions: [3.4.0]
+        reason: >-
+          The v3.4.0 GitHub release has no assets at all (argocd-linux-amd64
+          and cli_checksums.txt return 404; v3.4.1 has them). Found by
+          `ri check argo-cd` on 2026-10-01.
     channels:
       - kind: http
         url: https://github.com/argoproj/argo-cd/releases/download/{{.Tag}}/argocd-linux-amd64

@@ -155,6 +155,26 @@ func (c *cli) writeJSON(v any) error {
 	return enc.Encode(v)
 }
 
+// parse parses flags that may appear before, between or after positional
+// arguments ("ri check cert-manager -n 4"). A literal "--" ends flag parsing.
+func parse(fs *flag.FlagSet, args []string) ([]string, error) {
+	var pos []string
+	for {
+		if err := fs.Parse(args); err != nil {
+			return nil, err
+		}
+		rest := fs.Args()
+		if len(rest) == 0 {
+			return pos, nil
+		}
+		if len(args) > 0 && len(rest) < len(args) && args[len(args)-len(rest)-1] == "--" {
+			return append(pos, rest...), nil
+		}
+		pos = append(pos, rest[0])
+		args = rest[1:]
+	}
+}
+
 func envOr(k, def string) string {
 	if v := os.Getenv(k); v != "" {
 		return v

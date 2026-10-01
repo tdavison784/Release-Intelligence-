@@ -95,10 +95,33 @@ type Source struct {
 	// the first one that answers (state ok). Sources without a group are
 	// always consulted.
 	FallbackGroup string `yaml:"fallbackGroup,omitempty" json:"fallbackGroup,omitempty"`
+	// Exceptions are releases for which this source is known not to exist
+	// upstream; they are treated as not applicable, with the reason recorded.
+	Exceptions []Exception `yaml:"exceptions,omitempty" json:"exceptions,omitempty"`
 	// ValidatedAgainst lists release versions for which this source was
 	// verified to resolve (written by discovery / relationship checks).
 	ValidatedAgainst []string `yaml:"validatedAgainst,omitempty" json:"validatedAgainst,omitempty"`
 	Notes            string   `yaml:"notes,omitempty" json:"notes,omitempty"`
+}
+
+// Exception records releases for which a declared relationship is known not
+// to hold upstream (e.g. a release whose assets were never published). It is
+// curated knowledge with a mandatory reason, so the deviation stays visible.
+type Exception struct {
+	Versions []string `yaml:"versions" json:"versions"` // semantic versions without prefix
+	Reason   string   `yaml:"reason" json:"reason"`
+}
+
+// ExceptionFor returns the reason when v is listed in exceptions.
+func ExceptionFor(v domain.Version, exceptions []Exception) (string, bool) {
+	for _, e := range exceptions {
+		for _, s := range e.Versions {
+			if s == v.Semver || s == v.Tag {
+				return e.Reason, true
+			}
+		}
+	}
+	return "", false
 }
 
 // HasRole reports whether the source has role r.
@@ -218,9 +241,16 @@ type Artifact struct {
 	// Contents are structured views to snapshot for diffing.
 	Contents []Content `yaml:"contents,omitempty" json:"contents,omitempty"`
 	// Availability is a semver constraint on release versions that ship this artifact.
-	Availability     string   `yaml:"availability,omitempty" json:"availability,omitempty"`
-	ValidatedAgainst []string `yaml:"validatedAgainst,omitempty" json:"validatedAgainst,omitempty"`
-	Notes            string   `yaml:"notes,omitempty" json:"notes,omitempty"`
+	Availability string `yaml:"availability,omitempty" json:"availability,omitempty"`
+	// Optional marks artifacts that are not published for every release
+	// (e.g. a community chart that skips some application versions). A
+	// missing instance is still reported as missing, but it does not count
+	// against the relationship.
+	Optional bool `yaml:"optional,omitempty" json:"optional,omitempty"`
+	// Exceptions are releases for which the artifact is known to be absent.
+	Exceptions       []Exception `yaml:"exceptions,omitempty" json:"exceptions,omitempty"`
+	ValidatedAgainst []string    `yaml:"validatedAgainst,omitempty" json:"validatedAgainst,omitempty"`
+	Notes            string      `yaml:"notes,omitempty" json:"notes,omitempty"`
 }
 
 // Version relation strategies.
