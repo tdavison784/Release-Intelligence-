@@ -192,3 +192,38 @@ precision 0.48, duplicate groups 10 (was 7), env accuracy 0.25. The remaining
 important miss is `kube-prometheus-stack-90-91` E4, which needs sources to
 follow a pinned component's version (new construct; also wanted by Flux for
 per-controller notes at their pinned tags).
+
+## Pinned-component sources close the last misses (2026-10-01)
+
+The standing `kube-prometheus-stack-90-91` misses (E4, E5 — the operator's
+behavioural changes, which exist only in the operator's own release notes at
+the pinned tag) are fixed by a new generic construct: **source locators and
+extract templates can follow another artifact's resolved version** with
+`{{.ArtifactVersionOf "prometheus-operator-image"}}`. The `version.strategy:
+field` artifact already read the operator pin (Chart.yaml `appVersion`, the
+`v`-prefixed operator tag format since 44.0.0); the construct renders that
+resolved pin into a `github-releases` ref, so
+`operator-release-notes` reads exactly the notes of the operator version the
+chart ships (v0.94.0 at chart 91.0.0). Classify rules declare the operator's
+own bracket taxonomy (`[CHANGE]` → api/breaking — the class an upgrader must
+review; `[FEATURE]`/`[ENHANCEMENT]` → feature; `[BUGFIX]` → bugfix), which
+the generic classifier does not know. When the pin does not resolve for a
+release, the source is skipped/unavailable with the pin's reason — never a
+wrong tag. Validation rejects references to unknown artifact ids, artifacts
+whose version strategy is not derivable from the release (lookup,
+independent), and any use outside source templates (no circularity with
+artifact version resolution by construction).
+
+Numbers for `kube-prometheus-stack-90-91`: found 3/5 → **5/5** (E4 and E5
+now match changes whose evidence is
+`github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.0` —
+exactly the citations the case was authored from), false positives 0 → 0,
+duplicate groups 1 → 1 (the operator items do not duplicate the chart's own:
+E2's wildcard-verbs change keeps two distinct wordings from two channels),
+changes 6 → 21 (the 15 v0.94.0 release-body items, now classified instead of
+unread). Aggregate over the 9 entries: recall **0.96 → 1.00** (51/53 →
+53/53, zero misses at every importance), precision 0.48 → 0.49, false
+positives 103 → 103 (the new source introduced none), duplicate groups 10 →
+10, unsupported 0, environment accuracy 0.25 (unchanged). The dataset now
+has no known miss; the open quality problem is precision (Vault,
+ingress-nginx, Cilium noise), not coverage.

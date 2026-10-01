@@ -125,7 +125,14 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 	if reason, ok := catalog.ExceptionFor(r.v, src.Exceptions); ok {
 		return set(domain.SourceSkipped, "known exception: "+reason)
 	}
-	loc, err := renderLocator(src.Locator, r.rc)
+	// Sources may follow a pinned artifact's version
+	// ({{.ArtifactVersionOf "id"}}); a follow that did not resolve is the
+	// source's status, never a half-rendered locator.
+	rc, followState, followDetail, ok := r.sourceContext(src)
+	if !ok {
+		return set(followState, followDetail)
+	}
+	loc, err := renderLocator(src.Locator, rc)
 	if err != nil {
 		state, detail, _ := stateFor(err)
 		return set(state, detail)
@@ -211,7 +218,7 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			extract = fmt.Sprintf("%d files", len(f.docs))
 		}
 	case catalog.ExtractMarkdownSection:
-		pattern, re, err := renderRegex(ex.Heading, r.rc)
+		pattern, re, err := renderRegex(ex.Heading, rc)
 		if err != nil {
 			return set(domain.SourceError, "extract heading: "+err.Error())
 		}
@@ -236,7 +243,7 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			return set(domain.SourceNotFound, fmt.Sprintf("no section matching %q in %s", pattern, where))
 		}
 	case catalog.ExtractMarkdownTable, catalog.ExtractYAMLRecords:
-		sel, keyPattern, err := tableSelector(ex, r.rc)
+		sel, keyPattern, err := tableSelector(ex, rc)
 		if err != nil {
 			return set(domain.SourceError, "extract: "+err.Error())
 		}

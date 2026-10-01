@@ -96,6 +96,41 @@ sources:
       - section: '^What''s Changed$'
         category: other
 
+  # --- the pinned operator's own notes --------------------------------------
+  # The chart bundles the operator, but the operator's behavioural changes
+  # ([CHANGE] entries — how Alertmanager/ScrapeConfig resources are accepted)
+  # live in the OPERATOR's release notes at the PINNED tag, not in the chart's
+  # own notes. {{.ArtifactVersionOf "prometheus-operator-image"}} renders the
+  # Chart.yaml appVersion pin (v-prefixed since 44.0.0, the operator's own tag
+  # format) into the release ref, so this source reads the notes of the exact
+  # operator version the chart ships. Same availability window as the pin
+  # artifact; when the pin does not resolve for a release, the source is
+  # skipped/unavailable with the pin's reason, never a wrong tag.
+  - id: operator-release-notes
+    roles: [release-notes]
+    availability: ">= 44.0.0"
+    locator:
+      kind: github-releases
+      repository: prometheus-operator/prometheus-operator
+      ref: '{{.ArtifactVersionOf "prometheus-operator-image"}}'
+    classify:
+      # The operator's release bodies are label-prefixed bullets in its own
+      # taxonomy (CONTRIBUTING.md): CHANGE alters the operator's behaviour or
+      # CRD interface (the class an upgrader must review — existing resources
+      # may be rejected or interpreted differently), FEATURE adds fields or
+      # capabilities, ENHANCEMENT improves existing behaviour, BUGFIX fixes
+      # it. The generic classifier does not know the bracket labels; these
+      # rules declare them.
+      - text: '^\[CHANGE\]'
+        category: api
+        breaking: true
+      - text: '^\[FEATURE\]'
+        category: feature
+      - text: '^\[ENHANCEMENT\]'
+        category: feature
+      - text: '^\[BUGFIX\]'
+        category: bugfix
+
   # --- upgrade guides ------------------------------------------------------
   # Cumulative guide, one "From NN.x to NN+1.x" section per chart major; the
   # section for major N describes the transition into N. Attached to X.0.0

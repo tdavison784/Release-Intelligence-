@@ -122,7 +122,9 @@ import `ingest` or `upgrade`.
    - It renders source locators with a `catalog.RenderContext`, fetches
      documents, extracts the relevant part (`markdown-section`,
      `markdown-table`, `yaml-records`, `release-note-yaml` or the whole document) and turns
-     it into `NoteItem`s and `CompatibilityConstraint`s.
+     it into `NoteItem`s and `CompatibilityConstraint`s. Sources whose
+     templates follow a pinned artifact (`{{.ArtifactVersionOf "id"}}`) get
+     that artifact's version resolved first (see `internal/ingest/pinned.go`).
    - It resolves each artifact's version (template or lookup) and probes its
      channels in order. If every channel is unreachable, it cross-checks
      `references` (for example the image tag inside the install manifest).
@@ -251,6 +253,7 @@ upstream channel needed it.
 | `version.strategy: lookup` | Find artifact versions by a field in an index | Argo CD chart whose `appVersion` is the app tag |
 | `version.strategy: field` + `from` | Read the artifact version out of a YAML field of a document at the release ref | kube-prometheus-stack's pinned sub-components: `appVersion` (prometheus-operator), `dependencies[name=x].version` (charts), values.yaml image tags |
 | `version.strategy: pattern` + `from` | Read the artifact version out of a named `(?P<version>…)` capture of a regular expression applied to the raw text of a document at the release ref (the text-mode twin of `field`) | Flux's pinned controllers: versions embedded in kustomize remote-resource URLs (`manifests/bases/*/kustomization.yaml`); also the go.mod require-line pins karpenter recorded as a gap |
+| `{{.ArtifactVersionOf "id"}}` in source templates | A source locator/extract rendered at another artifact's resolved version, so a product that pins components can read a component's own notes at its pinned tag (the artifact is resolved first; only template/field/pattern artifacts are followable, and a follow that fails makes the source skipped/unavailable, never wrong) | kube-prometheus-stack's operator release notes at the Chart.yaml appVersion pin (E4/E5 of the eval dataset); also wanted by Flux for per-controller notes at their kustomization pins |
 | `optional` | Absence is a fact, not a broken relationship | about half of Argo CD releases ship in no chart |
 | `exceptions` (with reason) | Curated releases where a relationship does not hold | Argo CD v3.4.0 has no release assets |
 | `references` | Cross-check an artifact inside another artifact | image tags in the install manifest when quay.io is unreachable |

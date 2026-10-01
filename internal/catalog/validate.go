@@ -128,6 +128,23 @@ func sampleContext(d *ProductDefinition) RenderContext {
 	return rc
 }
 
+// SampleArtifactVersion is the stand-in version every artifact id maps to
+// while validating source templates (the real versions are per-release).
+const SampleArtifactVersion = "1.2.3"
+
+// sourceSampleContext extends sampleContext so {{.ArtifactVersionOf "id"}}
+// references in source templates render during validation whatever id they
+// name: sourceArtifactRefs checks the ids separately with precise errors;
+// artifact contexts render with the bare sampleContext, whose empty map
+// makes a reference there fail loudly.
+func sourceSampleContext(rc RenderContext) RenderContext {
+	rc.anyArtifactVersion = true
+	return rc
+}
+
+// locatorFieldNames names the fields LocatorTemplateFields returns, in order.
+var locatorFieldNames = []string{"repository", "ref", "baseRef", "path", "glob", "url", "chart"}
+
 // Validate performs static validation of a definition. It does not touch the
 // network; historical relationship checks live in package discovery/ingest.
 func Validate(d *ProductDefinition) ValidationReport {
@@ -146,6 +163,14 @@ func Validate(d *ProductDefinition) ValidationReport {
 	}
 	v.versioning(d)
 	rc := sampleContext(d)
+
+	artIDs := map[string]bool{}
+	artifacts := map[string]Artifact{}
+	for _, a := range d.Artifacts {
+		artIDs[a.ID] = true
+		artifacts[a.ID] = a
+	}
+	rcSrc := sourceSampleContext(rc)
 
 	sourceIDs := map[string]bool{}
 	hasVersions := false
@@ -169,9 +194,13 @@ func Validate(d *ProductDefinition) ValidationReport {
 				hasVersions = true
 			}
 		}
-		v.locator(p+".locator", s.Locator, rc)
+		// reference checks first, so a bad reference reports the precise
+		// rule (unknown id, unresolvable strategy) rather than a sample
+		// render failure
+		v.sourceArtifactRefs(p, s, artIDs, artifacts)
+		v.locator(p+".locator", s.Locator, rcSrc)
 		if s.Extract != nil {
-			v.extract(p+".extract", *s.Extract, rc)
+			v.extract(p+".extract", *s.Extract, rcSrc)
 		}
 		for j, cr := range s.Classify {
 			v.classify(fmt.Sprintf("%s.classify[%d]", p, j), cr)
@@ -200,10 +229,6 @@ func Validate(d *ProductDefinition) ValidationReport {
 		v.warnf("sources", "no release-notes or changelog source declared")
 	}
 
-	artIDs := map[string]bool{}
-	for _, a := range d.Artifacts {
-		artIDs[a.ID] = true
-	}
 	seen := map[string]bool{}
 	for i, a := range d.Artifacts {
 		p := fmt.Sprintf("artifacts[%d]", i)
@@ -231,6 +256,7 @@ func Validate(d *ProductDefinition) ValidationReport {
 		for j, ch := range a.Channels {
 			cp := fmt.Sprintf("%s.channels[%d]", p, j)
 			v.locator(cp, ch, rc)
+			v.noArtifactRefsInLocator(cp, ch)
 			if len(allowed) > 0 && !contains(allowed, ch.Kind) {
 				v.errf(cp+".kind", "channel kind %q not valid for artifact type %s (allowed: %s)", ch.Kind, a.Type, strings.Join(allowed, ", "))
 			}
@@ -245,8 +271,11 @@ func Validate(d *ProductDefinition) ValidationReport {
 			}
 			if ref.Pattern == "" {
 				v.errf(rp+".pattern", "required")
-			} else if _, err := Render(ref.Pattern, rc); err != nil {
-				v.errf(rp+".pattern", "%v", err)
+			} else {
+				v.noArtifactRefs(rp+".pattern", ref.Pattern)
+				if _, err := Render(ref.Pattern, rc); err != nil {
+					v.errf(rp+".pattern", "%v", err)
+				}
 			}
 		}
 		for j, c := range a.Contents {
@@ -256,12 +285,14 @@ func Validate(d *ProductDefinition) ValidationReport {
 			}
 			if c.Locator != nil {
 				v.locator(cp+".locator", *c.Locator, rc)
+				v.noArtifactRefsInLocator(cp+".locator", *c.Locator)
 			} else if !contentServable(a.Channels) {
 				v.errf(cp+".locator", "required when the artifact has no channel a content can be read from (http, repo-file, repo-dir, or a packaged-chart kind: helm-repo, oci, chart-tgz)")
 			}
 			if c.CompareWith != nil {
 				vp := cp + ".compareWith"
 				v.locator(vp, *c.CompareWith, rc)
+				v.noArtifactRefsInLocator(vp, *c.CompareWith)
 				primary := c.Locator
 				if primary == nil {
 					primary = channelOf(a.Channels, contentServableKinds...)
@@ -482,8 +513,11 @@ func (v *validator) versionRelation(path string, vr VersionRelation, rc RenderCo
 	case VersionTemplate:
 		if vr.Template == "" {
 			v.errf(path+".template", "required for strategy template")
-		} else if _, err := Render(vr.Template, rc); err != nil {
-			v.errf(path+".template", "%v", err)
+		} else {
+			v.noArtifactRefs(path+".template", vr.Template)
+			if _, err := Render(vr.Template, rc); err != nil {
+				v.errf(path+".template", "%v", err)
+			}
 		}
 	case VersionLookup:
 		if vr.Field == "" {
@@ -491,8 +525,11 @@ func (v *validator) versionRelation(path string, vr VersionRelation, rc RenderCo
 		}
 		if vr.Match == "" {
 			v.errf(path+".match", "required for strategy lookup")
-		} else if _, err := Render(vr.Match, rc); err != nil {
-			v.errf(path+".match", "%v", err)
+		} else {
+			v.noArtifactRefs(path+".match", vr.Match)
+			if _, err := Render(vr.Match, rc); err != nil {
+				v.errf(path+".match", "%v", err)
+			}
 		}
 		switch vr.Select {
 		case "", "latest", "earliest", "all":
@@ -512,6 +549,7 @@ func (v *validator) versionRelation(path string, vr VersionRelation, rc RenderCo
 			v.errf(path+".from.kind", "must be %s or %s for strategy field (one document)", LocatorRepoFile, LocatorHTTP)
 		default:
 			v.locator(path+".from", *vr.From, rc)
+			v.noArtifactRefsInLocator(path+".from", *vr.From)
 		}
 		if vr.Match != "" || vr.Template != "" {
 			v.errf(path, "match/template belong to other strategies, not to %s", VersionField)
@@ -519,8 +557,11 @@ func (v *validator) versionRelation(path string, vr VersionRelation, rc RenderCo
 	case VersionPattern:
 		if vr.Pattern == "" {
 			v.errf(path+".pattern", "required for strategy pattern")
-		} else if _, err := CompileVersionPattern(vr.Pattern, rc); err != nil {
-			v.errf(path+".pattern", "%v", err)
+		} else {
+			v.noArtifactRefs(path+".pattern", vr.Pattern)
+			if _, err := CompileVersionPattern(vr.Pattern, rc); err != nil {
+				v.errf(path+".pattern", "%v", err)
+			}
 		}
 		switch {
 		case vr.From == nil:
@@ -529,6 +570,7 @@ func (v *validator) versionRelation(path string, vr VersionRelation, rc RenderCo
 			v.errf(path+".from.kind", "must be %s or %s for strategy pattern (one document)", LocatorRepoFile, LocatorHTTP)
 		default:
 			v.locator(path+".from", *vr.From, rc)
+			v.noArtifactRefsInLocator(path+".from", *vr.From)
 		}
 		if vr.Match != "" || vr.Template != "" || vr.Field != "" {
 			v.errf(path, "match/template/field belong to other strategies, not to %s", VersionPattern)
@@ -545,6 +587,67 @@ func (v *validator) constraint(path, c string) {
 	}
 	if _, err := semver.NewConstraint(c); err != nil {
 		v.errf(path, "invalid semver constraint %q: %v", c, err)
+	}
+}
+
+// sourceArtifactRefs validates the {{.ArtifactVersionOf "id"}} references of
+// one source: every id must exist and name an artifact whose version a
+// source can follow — strategy template, field or pattern, i.e. derivable
+// from the release alone (a lookup resolves through channel indexes and an
+// independent artifact has no derivable version at all, so following either
+// could never render this source's locator).
+func (v *validator) sourceArtifactRefs(path string, src Source, artIDs map[string]bool, artifacts map[string]Artifact) {
+	check := func(path, s string) {
+		for _, id := range ReferencedArtifacts(s) {
+			switch {
+			case id == "":
+				v.errf(path, "{{.ArtifactVersionOf}} needs a double-quoted artifact id")
+			case !artIDs[id]:
+				v.errf(path, "follows unknown artifact %q", id)
+			default:
+				switch artifacts[id].Version.Strategy {
+				case VersionTemplate, VersionField, VersionPattern:
+				default:
+					v.errf(path, "artifact %q resolves its version with strategy %q, which a source cannot follow (template, field or pattern required)", id, artifacts[id].Version.Strategy)
+				}
+			}
+		}
+	}
+	for i, f := range LocatorTemplateFields(src.Locator) {
+		check(path+".locator."+locatorFieldNames[i], f)
+	}
+	if src.Extract != nil {
+		for _, x := range []struct{ name, value string }{
+			{"heading", src.Extract.Heading}, {"keyMatch", src.Extract.KeyMatch}, {"tableHeading", src.Extract.TableHeading},
+		} {
+			check(path+".extract."+x.name, x.value)
+		}
+	}
+}
+
+// noArtifactRefs rejects {{.ArtifactVersionOf}} outside source templates.
+// Artifact version resolution runs before sources are consulted (a source may
+// follow an artifact) and must not itself depend on another artifact's
+// version — that would be circular; channels, references and contents render
+// only after the artifact's own version is known, but the format reserves the
+// construct for sources so the resolution order stays simple and statically
+// checkable. A reference in an artifact template, including to the artifact
+// itself, is therefore an error.
+func (v *validator) noArtifactRefs(path, s string) {
+	for _, id := range ReferencedArtifacts(s) {
+		if id == "" {
+			v.errf(path, "malformed {{.ArtifactVersionOf}} reference")
+			continue
+		}
+		v.errf(path, "cannot follow artifact %q here: {{.ArtifactVersionOf}} is available to source locators and extracts only", id)
+	}
+}
+
+// noArtifactRefsInLocator applies noArtifactRefs to every templated field of
+// a locator.
+func (v *validator) noArtifactRefsInLocator(path string, l Locator) {
+	for i, f := range LocatorTemplateFields(l) {
+		v.noArtifactRefs(path+"."+locatorFieldNames[i], f)
 	}
 }
 
