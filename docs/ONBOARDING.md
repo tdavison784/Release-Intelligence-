@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 12 product definitions, 12 onboarding records, 12 saved relationship reports.
-- 143 distinct constructs are used across all definitions; the records introduce 143.
-- 3 of 12 recorded products introduced no new construct. The latest product that introduced one has order 10.
+- 13 product definitions, 13 onboarding records, 13 saved relationship reports.
+- 147 distinct constructs are used across all definitions; the records introduce 147.
+- 3 of 13 recorded products introduced no new construct. The latest product that introduced one has order 14.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -82,6 +82,7 @@ What convergence looks like:
 | 10 | 1 | ingress-nginx | 342 (299) | 7 | 12 | 14 | 11 | 9 | 19 | 11 | 0 | 1 | 5 |
 | 11 | 2 | grafana | 380 (302) | 10 | 7 | 11 | 4 | 58 | 22 | 5 | 1 | 1 | 8 |
 | 12 | 2 | strimzi | 305 (226) | 5 | 10 | 16 | 3 | 10 | 19 | 0 | 0 | 1 | 3 |
+| 14 | 2 | karpenter | 371 (296) | 9 | 8 | 8 | 1 | 23 | 18 | 0 | 0 | 2 | 10 |
 
 ### Constructs and effort
 
@@ -99,6 +100,7 @@ What convergence looks like:
 | 10 | ingress-nginx | 93 | 5 | 88 | 95% | 143 | 9 / 0 | 25 | full |
 | 11 | grafana | 91 | 0 | 91 | 100% | 143 | 0 / 0 | 27 | full |
 | 12 | strimzi | 77 | 0 | 77 | 100% | 143 | 0 / 0 | 26 | full |
+| 14 | karpenter | 83 | 4 | 79 | 95% | 147 | 9 / 0 | 35 | full |
 
 ### Discovery and relationship validation
 
@@ -116,6 +118,7 @@ What convergence looks like:
 | ingress-nginx | 6/4/9 (53%) | 25/0/2/3 | 663/0/47/115/18 | 0 → 0 | 9 | 7 |
 | grafana | 5/3/9 (47%) | 14/0/3/0 | 70/0/0/32/0 | 0 → 0 | 4 | 0 |
 | strimzi | 6/4/5 (67%) | 15/0/0/0 | 551/0/0/60/4 | 0 → 0 | 3 | 1 |
+| karpenter | 4/5/8 (53%) | 11/0/4/0 | 63/0/0/24/3 | 0 → 0 | 3 | 0 |
 
 ## Construct-introduction curve
 
@@ -133,6 +136,7 @@ What convergence looks like:
 | 10 | ingress-nginx | 5 | 143 | 93 | 88 | 95% | 5 | 143 |
 | 11 | grafana | 0 | 143 | 91 | 91 | 100% | 0 | 143 |
 | 12 | strimzi | 0 | 143 | 77 | 77 | 100% | 0 | 143 |
+| 14 | karpenter | 4 | 147 | 83 | 79 | 95% | 4 | 147 |
 
 New constructs per product, in onboarding order (records):
 
@@ -149,23 +153,25 @@ New constructs per product, in onboarding order (records):
  10  ingress-nginx             5  ███
  11  grafana                   0  
  12  strimzi                   0  
+ 14  karpenter                 4  ██
 ```
 
 Cumulative constructs introduced:
 
 ```text
-  1  cert-manager             87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  2  istio                    99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  3  argo-cd                 113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  4  cilium                  115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  5  postgresql              122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  6  kube-prometheus-stack   130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  7  vault                   137  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  8  crossplane              138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  9  external-secrets        138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 10  ingress-nginx           143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 11  grafana                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 12  strimzi                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  1  cert-manager             87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  2  istio                    99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  3  argo-cd                 113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  4  cilium                  115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  5  postgresql              122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  6  kube-prometheus-stack   130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault                   137  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane              138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets        138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 10  ingress-nginx           143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 11  grafana                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 12  strimzi                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 14  karpenter               147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -271,13 +277,20 @@ No new constructs: the definition is configuration only.
 
 No new constructs: the definition is configuration only.
 
+### karpenter (order 14, wave 2): 4 new
+
+- `column-kind:maximum`: Karpenter's compatibility.yaml carries minK8sVersion AND maxK8sVersion per app version; the closed kind vocabulary (supported/tested/minimum) could not say "1.36 is the highest Kubernetes this release supports", so a maximum column would have rendered as a one-line 'supported' set. Catalog validator enum + JSON Schema enum + a place in upgrade's kindOrder; the constraint pipeline (ParseVersionRange, comparison, rendering) needed no change. (also needed by Strimzi (order 12, wave 2: Kafka-versions and Kubernetes support matrices bound both sides), Elasticsearch (order 18, wave 3: the support matrix lists a maximum Kubernetes per stack version), Prometheus Operator (order 24, wave 3: kubeVersion-style upper bounds in compatibility docs))
+- `column-kind:minimum`: The kind existed in the vocabulary since the Phase 1 support-matrix work (cert-manager's record accounted supported/tested only) but no earlier product used it: karpenter's minK8sVersion is its first exercise. Accounted here so the product's unaccounted-construct list is empty; no code change. (also needed by cert-manager and Istio declared minimums in their matrices but used supported/tested kinds)
+- `field:lifecycle.versions`: The lifecycle construct landed with ingress-nginx (order 9), whose record declared the free-text family name "field:lifecycle" and explicitly called the versions constraint data, not a construct; stats counts the leaf separately. Karpenter is the first product to need TWO scoped statements (end-of-life of "< 1.9.0" and of "1.10.0 - 1.13.x"), so the leaf is accounted here. No code change. (also needed by ingress-nginx (order 9) used one unscoped statement)
+- `field:sources.extract.listItems`: Karpenter's upgrade-guide sections open with a Hugo warning shortcode ({{% alert %}}) before the bullet list; the markdown section reader treats a prose-led section as one item and folds the whole list into it, so the 1.14 guide bullets (CapacityBuffers graduation, DRA, balanced consolidation) were invisible and the folded item said breaking while containing "No breaking changes 🎉". The structural reading already existed for docbook/rst conversions (internal/ingest/docs.go structuralLists); this exposes it declaratively for markdown: catalog field + validation + schema + one condition in ingest, tests in normalize (per-bullet + callout items) and ingest (DocInput.ListItems pass-through). (also needed by Traefik (order 13, wave 2: migration guides open with warning/highlight fences before bullet lists), Grafana (order 11, wave 2: breaking-change docs use callouts above lists), any Hugo/MDX docs site with alert shortcodes ahead of change lists (HashiCorp platform docs use the same shape))
+
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 30 (4.3) | 93% | 55 / 0 | 25 (n=7) | 20/24/56 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
-| 2 | grafana, strimzi | 2 of 2 (grafana, strimzi) | 0 (0.0) | 100% | 0 / 0 | 26.5 (n=2) | 11/7/14 (56%) | 29/0/3/0 (2 of 2 reports) | 1 | full 2 |
+| 2 | grafana, strimzi, karpenter | 2 of 3 (grafana, strimzi) | 4 (1.3) | 98% | 9 / 0 | 27 (n=3) | 15/12/22 (55%) | 40/0/7/0 (3 of 3 reports) | 1 | full 3 |
 
 ## Notes from the records
 
@@ -304,6 +317,8 @@ No new constructs: the definition is configuration only.
 **grafana**: Zero new constructs, zero Go changes: the wave-2 convergence point the plan predicts — everything this product needed (docs-at-main sources with release-kind and availability windows, a monorepo chart lookup by unprefixed appVersion, optional artifacts, exceptions for a removed-from-distribution release, package channels on a downloads host, CRD repo-dirs) already existed after ten onboardings. The two definition corrections that mattered (read the changelog and the upgrade guides at main; attach guides at majors too) were upstream timing facts found by research, and the classify tuning (whole-word deprecation, delete as removal, skip (Enterprise) items and plugin-development churn) was found by reading the edges, not by failing checks. Discovery's strengthened resolver was closer than for any earlier product: it had the right versioning, the right chart relation at the right post-migration index, and it validated the CRD artifact itself — its two wrong drops were both "the relationship template was rendered at the tag / with a v prefix", which is exactly the class of correction a reviewer can make in seconds.
 
 **strimzi**: Second wave-2 product, first one with zero new constructs: every channel is covered by existing constructs (markdown changelog sections, fallback groups, OCI/helm-repo channels, availability eras, references cross-checks, and version.strategy field for the bridge pin introduced by kube-prometheus-stack two orders earlier). Onboarding was configuration plus critical reading: the two substantive decisions were negative — no format:adoc construct (Strimzi's per-release intelligence is markdown/YAML, the adoc docs are generic procedures; Elasticsearch should decide that on its own evidence) and no kafka-versions compatibility source (a point constraint diffed as a set change states falsehoods; the changelog carries the matrix truthfully). The definition also demonstrates the placeholder- Chart.yaml trap: a chart whose in-tree metadata is rewritten at packaging can only be related to releases through the published artifact. Discovery quality: it proposed the right skeleton (versions, notes, chart, CRDs, zip, operator image with references, advisories) and validated 9 elements itself; its two wrong calls were the chart "independent" version (read the placeholder) and four overlapping install manifests.
+
+**karpenter**: First ECR Public product: public.ecr.aws answered anonymously end to end (token, tags, manifests, chart configs), so every image and chart relationship is registry-verified — the fleet-level verdict is "reachable, channel it normally; throttle bursts are transient". Onboarding was research-dominated: the two structures that dominate this product (the 0.35.0 registry-tag boundary and the one-release chart/website lag around the tag) are invisible to per-tag probing from the newest release alone and are exactly what discovery's relationship checks flagged as failures; both recovered as declarations (template relations + legacy twins, preview-at-tag + main fallbacks). Two generic constructs landed (a vocabulary slot and a boolean exposing an existing reading), both small and both with wave-2/3 beneficiaries; zero product-specific Go. Classification quality: the conventional-commit sections map 1:1 to categories, and the guide's tuning (skip '^No breaking changes', role-default action-required accepted) was found by reading edges, not by failing checks — the checks passed from the first draft (0 failures, 12 releases, 2 eras).
 
 ## Data quality
 

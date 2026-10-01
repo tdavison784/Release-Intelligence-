@@ -40,7 +40,7 @@ func PlatformName(p string) string {
 	return capitalize(p)
 }
 
-var kindOrder = map[string]int{"supported": 0, "minimum": 1, "tested": 2, "chart-kubeVersion": 3}
+var kindOrder = map[string]int{"supported": 0, "minimum": 1, "maximum": 2, "tested": 3, "chart-kubeVersion": 4}
 var platformOrder = map[string]int{"kubernetes": 0, "openshift": 1}
 
 func orderIndex(m map[string]int, k string) int {

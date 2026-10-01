@@ -1,0 +1,185 @@
+product: karpenter
+order: 14
+wave: 2
+repository: github.com/aws/karpenter-provider-aws
+onboarding:
+  startedAt: "2026-10-01T14:06:19Z"
+  finishedAt: "2026-10-01T14:41:30Z"
+  minutes: 35
+discovery:
+  proposal: docs/onboarding/discovery/karpenter.proposed.yaml
+  report: docs/onboarding/discovery/karpenter.report.md
+# Discovery found the right skeleton: git-tags with the strict tagPattern,
+# GitHub release body as notes, both charts as OCI on public.ecr.aws, CRDs in
+# pkg/apis/crds (validated 6/6 itself) and github-advisories — and it probed
+# public.ecr.aws successfully, establishing the new registry as reachable. It
+# was misled twice by the one-release chart lag in the source tree (proposed
+# lookup appVersion for karpenter-crd, independent for karpenter) and it
+# dropped the controller image and the website upgrade-guide after validation
+# failures ({{.Tag}} assumed for the image, versioned-docs path template for
+# the guide) — both are structurally recoverable (tag boundary 0.35.0; preview
+# docs at the tag), which is what research added.
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags'; tagPattern ^v(?P<version>...-rc.N)?$ and lineage minor kept verbatim (272 tags, 265 stable, 6 rc, 1 junk)"}
+  - {id: github-releases, origin: discovered, note: "versions fallback priority 1"}
+  - {id: release-notes, origin: discovered-modified, note: "proposal id release-notes-github, extract whole kept; classify added for the conventional-commit sections (Features/Bug Fixes/Documentation/Tests/CI/Code Refactoring/Performance/Chores/Commits) — Chores keeps **deps**-style dependabot bumps as dependency, Commits is skipped"}
+  - {id: upgrade-guide, origin: discovered-modified, note: "discovery's versioned-path template (website/content/en/vX.Y/...) 404s at every X.Y.0 tag because the versioned dirs are created post-tag from preview/; rebuilt as preview/upgrading/upgrade-guide.md at {{.Tag}} (the tagged commit is the line's release state), markdown-section 'Upgrading to `X.Y.Z`+' with releaseKinds [minor, major] and listItems"}
+  - {id: upgrade-guide-main, origin: manual, note: "fallback priority 1: the same guide on main accumulates every past section; answers for v1.13.0/v1.13.1 (section added to main only after the branch point) and v1.5.0"}
+  - {id: compatibility, origin: manual, note: "discovery reported compatibility not-found; hack/docs/compatibilitymatrix_gen/compatibility.yaml at {{.Tag}} is the machine-readable original of the website matrix (yaml-records, appVersion X.Y.x, columns minK8sVersion minimum + maxK8sVersion maximum)"}
+  - {id: compatibility-main, origin: manual, note: "fallback priority 1: the X.Y.x record is missing at most X.Y.0 tags (the file catches up on main between tags); covers v1.0.0-v1.11.0 and v1.13.x, and extends coverage to v0.21+ where the file did not exist at the tags at all"}
+  - {id: support-policy, origin: manual, note: "SUPPORT.md on main (404 at every tag) as lifecycle evidence, ingress-nginx retirement-notice pattern"}
+  - {id: github-advisories, origin: discovered, note: "proposal id advisories"}
+artifacts:
+  - {id: controller-image, origin: discovered-modified, note: "discovery dropped it ('absent from public.ecr.aws/karpenter/controller:v1.12.0'); the registry tag is the bare semver since 0.35.0 (release.sh strips the v) — template {{.Version}}, availability >= 0.35.0"}
+  - {id: controller-image-legacy, origin: manual, note: "v-prefixed ECR tags before 0.35.0 (template {{.Tag}}), verified at v0.25.0/v0.32.10/v0.34.0"}
+  - {id: karpenter-chart, origin: discovered-modified, note: "discovery proposed strategy independent (misled by the in-repo Chart.yaml lagging one release); chart version == appVersion == release version, verified from ECR chart configs at 0.37.8/1.0.0/1.14.1 — template {{.Version}}; no contents (see gaps); the bare oci public.ecr.aws/karpenter channel and the stale charts.karpenter.sh index were dropped"}
+  - {id: karpenter-chart-legacy, origin: manual, note: "v-prefixed chart tags before 0.35.0, verified at v0.25.0/v0.33.0/v0.34.0"}
+  - {id: karpenter-crd-chart, origin: discovered-modified, note: "discovery proposed lookup appVersion == {{.Version}} (same lag artifact); template relation instead"}
+  - {id: karpenter-crd-chart-legacy, origin: manual, note: "v-prefixed era"}
+  - {id: crds, origin: discovered, note: "repo-dir pkg/apis/crds glob *.yaml at the tag, kept as proposed and validated by discovery itself (5 CRDs at v1.14.1 incl. the third-party autoscaling.x-k8s.io CapacityBuffers CRD the 1.14 guide ships)"}
+  - {id: source-archive, origin: manual, note: "github tag archive; codeload answered 200"}
+discoveryRejected:
+  - {id: "oci public.ecr.aws/karpenter (bare namespace)", reason: "discovery's second chart channel prepends no chart name; the chart repositories are karpenter/karpenter and karpenter/karpenter-crd"}
+  - {id: "helm-repo https://charts.karpenter.sh", reason: "reachable but the index ends in 2022 (appVersion 0.16.3): a dead v0-era channel"}
+  - {id: "image public.ecr.aws/karpenter/karpenter", reason: "docs-only references (cosign examples for the pre-split single image); since 1.0 the image is controller and the repository hosts the chart"}
+  - {id: "image public.ecr.aws/karpenter/kwok", reason: "repository exists with zero tags (dead); hack/release publishes only ./cmd/controller via ko"}
+  - {id: "crd autoscaling.x-k8s.io_capacitybuffers.yaml", reason: "discovery excluded it as a third-party API group (crd.not-dedicated); the 1.14 upgrade guide says Karpenter ships it, so the repo-dir channel keeps it"}
+  - {id: "upgrade-guide versioned-path template website/content/en/v{{.Major}}.{{.Minor}}/upgrading/compatibility.md", reason: "404 at every X.Y.0 tag (dirs created post-tag); dropped after validation and rebuilt on preview + main fallbacks"}
+relationships:
+  # Default check (6 newest: 1.12.0, 1.12.2, 1.13.0, 1.13.1, 1.14.0, 1.14.1)
+  # plus an era-boundary run: 0.34.0, 0.35.0, 0.37.8, 1.0.0, 1.5.0, 1.9.0.
+  historicalReleasesChecked: [0.34.0, 0.35.0, 0.37.8, 1.0.0, 1.5.0, 1.9.0, 1.12.0, 1.12.2, 1.13.0, 1.13.1, 1.14.0, 1.14.1]
+  # First complete draft: 0 failing subjects. 3 subjects were unverifiable on
+  # the first run (ECR Public throttled the anonymous probes: chart manifests
+  # at 1.12.2/1.13.1/1.14.1) and cleared on the re-run; all three tags were
+  # also verified by hand (chart configs read via curl).
+  initialFailures: 0
+  finalFailures: 0
+  manualInterventions:
+    - {subject: upgrade-guide, change: "releaseKinds [minor] -> [minor, major]", reason: "v1.0.0 is a major-kind release, so the v0 -> v1 boundary's own guide section was skipped: the 0.37.8 -> 1.0.0 edge had zero guide items until the kinds were widened (found by reading the edge, not a check failure)"}
+    - {subject: upgrade-guide/classify, change: "skip '^No breaking changes' before the breaking-change rules; feature bullets keep actionRequired only from the upgrade-guide role default", reason: "'No breaking changes 🎉' matched the upstream breaking markers and was THE breaking change of the 1.13.1 -> 1.14.1 edge (1 breaking, inverted meaning); product classify rules cannot clear a flag the later layers set, so the marker is skipped"}
+    - {subject: release-notes/classify, change: "Chores split: **deps**/**deps-dev** bumps -> dependency, the rest skipped; Commits skipped", reason: "reading the v1.14.0 body: dependabot bumps are the only chore items that change what ships"}
+  unverifiable: []                # every channel of every applicable subject answered in the final runs
+constructs:
+  new:
+    - name: column-kind:maximum
+      kind: "compatibility column kind `columns[].kind: maximum` (a support-matrix column that bounds the platform from above)"
+      justification: >-
+        Karpenter's compatibility.yaml carries minK8sVersion AND maxK8sVersion per app
+        version; the closed kind vocabulary (supported/tested/minimum) could not say
+        "1.36 is the highest Kubernetes this release supports", so a maximum column
+        would have rendered as a one-line 'supported' set. Catalog validator enum +
+        JSON Schema enum + a place in upgrade's kindOrder; the constraint pipeline
+        (ParseVersionRange, comparison, rendering) needed no change.
+      otherProducts:
+        - "Strimzi (order 12, wave 2: Kafka-versions and Kubernetes support matrices bound both sides)"
+        - "Elasticsearch (order 18, wave 3: the support matrix lists a maximum Kubernetes per stack version)"
+        - "Prometheus Operator (order 24, wave 3: kubeVersion-style upper bounds in compatibility docs)"
+    - name: field:sources.extract.listItems
+      kind: "definition field `extract.listItems` (boolean, whole/markdown-section): the structural reading every list item is one item and section prose is its own"
+      justification: >-
+        Karpenter's upgrade-guide sections open with a Hugo warning shortcode
+        ({{% alert %}}) before the bullet list; the markdown section reader treats a
+        prose-led section as one item and folds the whole list into it, so the 1.14
+        guide bullets (CapacityBuffers graduation, DRA, balanced consolidation) were
+        invisible and the folded item said breaking while containing "No breaking
+        changes 🎉". The structural reading already existed for docbook/rst
+        conversions (internal/ingest/docs.go structuralLists); this exposes it
+        declaratively for markdown: catalog field + validation + schema + one
+        condition in ingest, tests in normalize (per-bullet + callout items) and
+        ingest (DocInput.ListItems pass-through).
+      otherProducts:
+        - "Traefik (order 13, wave 2: migration guides open with warning/highlight fences before bullet lists)"
+        - "Grafana (order 11, wave 2: breaking-change docs use callouts above lists)"
+        - "any Hugo/MDX docs site with alert shortcodes ahead of change lists (HashiCorp platform docs use the same shape)"
+    - name: column-kind:minimum
+      kind: "compatibility column kind `columns[].kind: minimum` (pre-existing; first accounted here)"
+      justification: >-
+        The kind existed in the vocabulary since the Phase 1 support-matrix work
+        (cert-manager's record accounted supported/tested only) but no earlier
+        product used it: karpenter's minK8sVersion is its first exercise. Accounted
+        here so the product's unaccounted-construct list is empty; no code change.
+      otherProducts: ["cert-manager and Istio declared minimums in their matrices but used supported/tested kinds"]
+    - name: field:lifecycle.versions
+      kind: "definition field `lifecycle[].versions` (semver constraint scoping a lifecycle statement; leaf of the lifecycle construct)"
+      justification: >-
+        The lifecycle construct landed with ingress-nginx (order 9), whose record
+        declared the free-text family name "field:lifecycle" and explicitly called
+        the versions constraint data, not a construct; stats counts the leaf
+        separately. Karpenter is the first product to need TWO scoped statements
+        (end-of-life of "< 1.9.0" and of "1.10.0 - 1.13.x"), so the leaf is
+        accounted here. No code change.
+      otherProducts: ["ingress-nginx (order 9) used one unscoped statement"]
+  considered:
+    - {name: "contents from OCI chart layers (helm-values/chart-metadata of the release's real chart)", rejected: "the chart a release ships is rewritten in CI and published only to public.ecr.aws; the in-repo files at the tag lag one release in every era, so a repo-file snapshot would misattribute the previous release's values. An OCI chart-layer content fetch (manifest -> layer blob -> tgz member) is the G8 shape and would also serve grafana/loki (OCI-only charts), but it is a new adapter capability, not a definition construct; recorded as a gap"}
+    - {name: "version.strategy field on go.mod (the sigs.k8s.io/karpenter pin)", rejected: "field walks YAML documents (normalize.ReadYAMLPath); go.mod's require blocks are not YAML. The pin is also sometimes a pseudo-version (v1.14.1-0.20260819221709-6e7eab7a0f48) or lagged (v0.37.8 -> v0.37.7); gap recorded"}
+    - {name: "exceptions for the missing compatibility records", rejected: "the X.Y.x record is absent at most X.Y.0 tags (verified 1.0.0-1.11.0, 1.13.0/1); that is 12+ exceptions and growing, not curation — the main-branch fallback group represents it and reports the miss honestly per release"}
+    - {name: "chart contents from the lagged in-repo files anyway", rejected: "would produce wrong values diffs (at v1.14.1 values.yaml pins controller 1.13.0); a knowingly-wrong relationship is worse than none"}
+    - {name: "classify rule for the LTS banner blockquote", rejected: "blockquotes do not parse as note items; the support window is represented by the lifecycle statements instead, which is the better channel"}
+    - {name: "labelParagraphs for the v1.0.0 section's label bullets ('* Features:' with nested bullets)", rejected: "labelParagraphs promotes standalone paragraphs, not list-item labels; the groups stay one item per label with the full sub-bullet text and a sensible category"}
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/catalog/validate.go, purpose: "column kind enum + maximum; extract.listItems type restriction (whole/markdown-section)"}
+    - {file: internal/catalog/definition.go, purpose: "Extract.ListItems field + docs; ColumnSpec.Kind vocabulary comment"}
+    - {file: schemas/product-definition.schema.json, purpose: "columnSpec kind enum + maximum; extract.listItems boolean"}
+    - {file: internal/ingest/docs.go, purpose: "structuralLists from extract.listItems (docbook/rst conversions unchanged)"}
+    - {file: internal/upgrade/compat.go, purpose: "kindOrder slot for maximum (rendering order only)"}
+    - {file: internal/catalog/catalog_test.go, purpose: "column kind vocabulary test (maximum accepted, unknown rejected)"}
+    - {file: internal/normalize/listitems_markdown_test.go, purpose: "structural reading on markdown: callout prose item + one item per bullet"}
+    - {file: internal/ingest/listitems_test.go, purpose: "extract.listItems reaches the parser as DocInput.ListItems; plain sources unchanged"}
+    - {file: docs/ARCHITECTURE.md, purpose: "construct table rows for column-kind:maximum and the listItems flag (in the extract row set)"}
+unreachableSources: []            # none: public.ecr.aws (token + /v2, anonymous) answers from this sandbox — the first ECR Public product; api.github.com anonymous works at 60/h (exhausted once mid-research, recovered within the hour); raw.githubusercontent.com, codeload, karpenter.sh, gallery.ecr.aws and charts.karpenter.sh all answered
+ambiguousRelationships:
+  - "The image/chart registry-tag boundary is 0.35.0, not the v1.0.0 GA: release.sh strips the v before ko publish/helm package, so ECR tags are bare semver from 0.35.0 and v-prefixed before (documented in the website compatibility.md); git tags stay v-prefixed throughout — hence the legacy artifact twins."
+  - "The in-repo chart files lag the tag by exactly one release in every era checked (v1.14.1 -> 1.13.0, v1.13.0 -> 1.12.1, v1.12.0 -> 1.11.1, v1.0.0 -> 0.37.0, v0.35.0 -> 0.34.0, v0.34.0 -> 0.33.0): the release job rewrites Chart.yaml/values.yaml in CI and the bump reaches main via the generated stable-release PR. This is what misled discovery into lookup/independent chart relations."
+  - "The versioned website dirs appear only after the line's .0 tag (prepare-website copies preview/ post-tag, keeps last 3 + v1.0 + preview + docs); the line's own guide section is at the tag only in preview/, and even that fails for v1.13.0/v1.13.1 (section added after the branch point) and v1.5.0 — the main fallback answers those."
+  - "compatibility.yaml record timing is inconsistent upstream: present at v1.12.0/v1.14.x tags, absent at v1.0.0-v1.11.0 and v1.13.x; the 1.12.x record is duplicated and 1.0.5 has a patch-granular record shadowed by 1.0.x."
+  - "ECR Public throttles bursts of anonymous probes (3 chart probes reported unavailable on the first check run, cleared on re-run and verified by hand); the definition treats that as transient, not as a channel property."
+  - "LTS designation is carried by release names ('v1.14.0 (LTS)', 'Supported until Jul 2027') and SUPPORT.md prose (main only); the two lifecycle statements approximate 'all but the two current LTS lines' with version constraints and will need updating when the LTS lines roll over."
+  - "The v1beta1 -> v1 migration warning is repeated in EVERY upgrade-guide section since 1.0, so every minor-crossing edge reports it; faithful to the upstream document."
+representability: full             # of the release topology: 9 sources, 8 artifacts, every channel verified incl. the new public.ecr.aws; the chart's contents and the libs pin are the cuts recorded below
+gaps:
+  - "Chart contents are not representable: the release's chart exists only as an OCI artifact to public.ecr.aws and the in-repo files lag one release, so the definition declares no helm-values/chart-metadata contents and edges carry no values diff. Needs the G8 OCI-chart-layer content fetch (also grafana/loki)."
+  - "The upstream-libs relationship (sigs.k8s.io/karpenter pinned in go.mod, mostly == release version, occasionally a pseudo-version or one patch behind) is not an artifact: the field strategy reads YAML only and go.mod is not YAML; it surfaces only as the upgrade guide's 'Full Changelog' prose link to the libs release."
+  - "LTS per release is not machine-readable (release names + SUPPORT.md prose on main): the lifecycle statements are curated approximations that will drift when the LTS lines roll over."
+  - "Patch-level upgrade-guide sections (0.27.3-style) are not selected by the minor-anchored heading (same gap shape Cilium recorded); v1.0.0's label bullets ('* Features:' + nested bullets) fold into one item per label."
+  - "compatibility.yaml's patch-granular records (1.0.5, maxK8s 1.31) are shadowed by the line records (1.0.x, maxK8s 1.30): the keyMatch cannot prefer the exact match."
+  - "The LTS banner in release bodies is a blockquote and does not parse as a note item; the support window reaches edges only through the lifecycle statements."
+sampleEdge:
+  from: 1.13.1
+  to: 1.14.1
+  summary: "1 breaking · 4 action required · 18 changes · 0 warnings"
+  evidenceRecords: 78
+  notes: >-
+    Path v1.14.0 -> v1.14.1 (minor-lineage). Breaking = the guide's standing
+    v1beta1 -> v1 migration warning (1.1.0 drops v1beta1 APIs); action
+    required = the guide bullets (CapacityBuffers graduation with the
+    karpenter-crd chart step, DRA, balanced consolidation, preview instance
+    types) plus the EOL statement "v1.13.1 is end-of-life since 2026-07; the
+    upgrade target v1.14.1 is not" citing SUPPORT.md; computed: new
+    autoscaling.x-k8s.io CapacityBuffers CRD; artifacts verified at ECR
+    (controller/chart/crd-chart 1.13.1 -> 1.14.1) and via the tag archive;
+    compatibility minimum 1.26 / maximum 1.36 unchanged (the new maximum
+    kind). v0 -> v1 major edge 0.37.8 -> 1.0.0: 1 breaking · 13 action
+    required · 43 changes — the v1.0.0 guide section (API moves/renames,
+    behavior changes, env-var drops, RBAC diffs, IMDS default) plus computed
+    v1beta1 -> v1 storage-version migrations for all three CRDs and the
+    Kubernetes minimum narrowing 1.23 -> 1.25.
+notes: >-
+  First ECR Public product: public.ecr.aws answered anonymously end to end
+  (token, tags, manifests, chart configs), so every image and chart
+  relationship is registry-verified — the fleet-level verdict is "reachable,
+  channel it normally; throttle bursts are transient". Onboarding was
+  research-dominated: the two structures that dominate this product (the
+  0.35.0 registry-tag boundary and the one-release chart/website lag around
+  the tag) are invisible to per-tag probing from the newest release alone and
+  are exactly what discovery's relationship checks flagged as failures; both
+  recovered as declarations (template relations + legacy twins, preview-at-tag
+  + main fallbacks). Two generic constructs landed (a vocabulary slot and a
+  boolean exposing an existing reading), both small and both with wave-2/3
+  beneficiaries; zero product-specific Go. Classification quality: the
+  conventional-commit sections map 1:1 to categories, and the guide's tuning
+  (skip '^No breaking changes', role-default action-required accepted) was
+  found by reading edges, not by failing checks — the checks passed from the
+  first draft (0 failures, 12 releases, 2 eras).

@@ -378,6 +378,9 @@ func (v *validator) locator(path string, l Locator, rc RenderContext) {
 }
 
 func (v *validator) extract(path string, e Extract, rc RenderContext) {
+	if e.ListItems && e.Type != ExtractWhole && e.Type != ExtractMarkdownSection && e.Type != "" {
+		v.errf(path+".listItems", "only valid for %s and %s extracts", ExtractWhole, ExtractMarkdownSection)
+	}
 	if e.LabelParagraphs != "" {
 		if e.Type != ExtractWhole && e.Type != ExtractMarkdownSection && e.Type != "" {
 			v.errf(path+".labelParagraphs", "only valid for %s and %s extracts", ExtractWhole, ExtractMarkdownSection)
@@ -430,9 +433,9 @@ func (v *validator) extract(path string, e Extract, rc RenderContext) {
 				v.errf(cp+".part", "part requires a separator and must be >= 0")
 			}
 			switch c.Kind {
-			case "", "supported", "tested", "minimum":
+			case "", "supported", "tested", "minimum", "maximum":
 			default:
-				v.errf(cp+".kind", "must be supported, tested or minimum")
+				v.errf(cp+".kind", "must be supported, tested, minimum or maximum")
 			}
 		}
 		if e.TableHeading != "" {

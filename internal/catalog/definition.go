@@ -234,12 +234,19 @@ type Extract struct {
 	// uppercase label paragraphs ("SECURITY:", "BUG FIXES:") rather than
 	// markdown headings, e.g. '^[A-Z][A-Z0-9 /&-]*:$'.
 	LabelParagraphs string `yaml:"labelParagraphs,omitempty" json:"labelParagraphs,omitempty"`
+	// ListItems (whole, markdown-section) selects the structural reading that
+	// docbook/rst conversions always use: every list item is one item of its
+	// own and the substantive prose of a section is one item, instead of a
+	// prose-led section (callout, intro) folding its whole list into a single
+	// item. For documents like Karpenter's upgrade guide, whose per-version
+	// sections open with a warning callout before the bullet list.
+	ListItems bool `yaml:"listItems,omitempty" json:"listItems,omitempty"`
 }
 
 // ColumnSpec maps a table column to a platform constraint.
 type ColumnSpec struct {
 	Platform string `yaml:"platform" json:"platform"`             // "kubernetes", "openshift", ...
-	Kind     string `yaml:"kind,omitempty" json:"kind,omitempty"` // "supported" (default), "tested", "minimum"
+	Kind     string `yaml:"kind,omitempty" json:"kind,omitempty"` // "supported" (default), "tested", "minimum", "maximum"
 	// Headers are alternative header names (case-insensitive, markdown
 	// links stripped); the first present in the table is used.
 	Headers []string `yaml:"headers" json:"headers"`

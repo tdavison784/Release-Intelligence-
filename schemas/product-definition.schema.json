@@ -105,7 +105,7 @@
       "required": ["platform", "headers"],
       "properties": {
         "platform": {"type": "string"},
-        "kind": {"enum": ["supported", "tested", "minimum"]},
+        "kind": {"enum": ["supported", "tested", "minimum", "maximum"]},
         "headers": {"type": "array", "minItems": 1, "items": {"type": "string"}},
         "separator": {"type": "string"},
         "part": {"type": "integer", "minimum": 0}
@@ -123,7 +123,7 @@
         "keyMatch": {"type": "string"},
         "columns": {"type": "array", "items": {"$ref": "#/$defs/columnSpec"}},
         "tableHeading": {"type": "string"},
-        "labelParagraphs": {"type": "string"}
+        "labelParagraphs": {"type": "string"}, "listItems": {"type": "boolean", "description": "structural reading: every list item is one item and section prose is its own item, instead of a prose-led section folding its list (docbook/rst conversions always use it)"}
       },
       "allOf": [
         {"if": {"properties": {"type": {"const": "markdown-section"}}}, "then": {"required": ["heading"]}},
