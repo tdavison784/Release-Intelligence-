@@ -1,0 +1,310 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: opensearch
+name: OpenSearch
+description: >-
+  Community search and analytics engine (the server; forked from Elasticsearch
+  OSS 7.10.2 in 2021, Apache-2.0 licensed — not a Kubernetes product: the
+  OpenSearch Kubernetes operator and OpenSearch Dashboards are separate
+  products). Plain unprefixed semver tags; the all-plugins distribution on
+  artifacts.opensearch.org (plus the bare-core "min" tarball), images on
+  docker.io with reachable mirrors, and a community Helm chart joined by
+  appVersion. Dual live majors: the 2.19 line is patched alongside the 3.x
+  lines (the distribution tracks the two most recent majors), 1.x ended with
+  1.3.20 (2024-12). Release notes are per-version markdown files in the
+  repository (read at main: a release's own file lands around release time);
+  per-version breaking changes live in the separate Jekyll-markdown
+  documentation-website repository — the fork deleted the Elasticsearch
+  asciidoc docs, so nothing here is AsciiDoc.
+homepage: https://opensearch.org
+
+versioning:
+  scheme: semver
+  # Bare X.Y.Z plus alphaN/betaN/rcN prereleases (1.0.0-rc1, 2.0.0-rc1,
+  # 3.0.0-beta1); prereleases are parsed but stay outside the canonical list.
+  tagPattern: '^(?P<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/opensearch-project/OpenSearch
+      tagPattern: '^(?P<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$'
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: opensearch-project/OpenSearch
+
+  # --- release notes (per-version markdown file, merged to main) -------------
+  # release-notes/opensearch.release-notes-X.Y.Z.md: "## Version X.Y.Z Release
+  # Notes" over "### Features / Enhancements / Bug Fixes / Maintenance" (3.6+,
+  # generated from PR labels) or "### Added / Dependencies / Changed /
+  # Deprecated / Removed / Fixed" (2.0-3.5, Keep a Changelog; 3.0.0 adds
+  # "### Breaking Changes"). 1.x files are gitlog dumps without sections.
+  # A release's own file exists at its own tag for only 38/71 releases, so the
+  # file is read at main; the two releases whose file never merged to main
+  # (2.19.2, 2.19.6 — 2.19-branch maintenance) fall back to the GitHub release
+  # body, which carries the same document.
+  - id: release-notes
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/opensearch-project/OpenSearch
+      ref: main
+      path: release-notes/opensearch.release-notes-{{.Version}}.md
+    extract:
+      type: whole
+    classify: &notes-classify
+      # the lockstep-compatibility header paragraph under the document title
+      - text: '^Compatible with OpenSearch and OpenSearch Dashboards'
+        skip: true
+      # CVE/GHSA-carrying dependency upgrades stay security ahead of sections
+      - text: 'CVE-\d{4}-\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+        category: security
+      # the Dependencies sections flood with dependabot "Bump X from A to B"
+      # items; keep them as dependency changes (grafana precedent), below the
+      # notable tier — CVE-carrying ones were already caught above
+      - section: '(?i)^Dependencies$'
+        text: '(?i)^(Bump|Update) '
+        category: dependency
+      # 3.0.0 "### Breaking Changes"; 2.0.0 "### Breaking Changes in 2.0"
+      - section: '(?i)^Breaking Changes'
+        breaking: true
+        actionRequired: true
+      # Keep a Changelog removals of deprecated functionality
+      - section: '(?i)^Removed'
+        breaking: true
+      - section: '(?i)^Deprecat'
+        category: deprecation
+      # 2.0.0-era section
+      - section: '(?i)^Security Fixes'
+        category: security
+      - section: '(?i)^(Bug Fixes|Fixed)$'
+        category: bugfix
+      - section: '(?i)^(Features|Enhancements|Added)$'
+        category: feature
+      - section: '(?i)^(Dependencies|Maintenance|Build & Infrastructure|Documentation|Refactoring|Tests|Changed|Upgrades)$'
+        category: other
+
+  # The GitHub release body of every release is the same release-notes
+  # document (verified for 2.19.2, whose in-repo file never existed): the
+  # fallback for releases whose file did not reach main.
+  - id: release-notes-github
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: release-notes
+    locator:
+      kind: github-releases
+      repository: opensearch-project/OpenSearch
+      ref: "{{.Tag}}"
+    classify: *notes-classify
+
+  # --- breaking changes (per major, documentation-website) --------------------
+  # _about/breaking-changes.md in the Jekyll docs repository: one "## X.Y.Z"
+  # section per version that introduced breaking changes (2.0.0, 3.0.0, ...;
+  # the page's own policy: breaking changes only between majors), each with
+  # "### topic" subsections ("JDK requirement", "Index version", ...). Plain
+  # markdown — the fork has no AsciiDoc, so the elasticsearch format:adoc
+  # construct is not used here. The 2.5.0/2.18.0/2.19.0 sections (minor
+  # policy exceptions carrying plugin-side changes) are a recorded gap.
+  - id: breaking-changes
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    locator:
+      kind: repo-file
+      repository: github.com/opensearch-project/documentation-website
+      ref: main
+      path: _about/breaking-changes.md
+    extract:
+      type: markdown-section
+      # "^X.Y.Z" sections; the 1.x major is titled "## 1.x" (the ES 6.8 ->
+      # OpenSearch migration limits), so a "Major.x" alternation is needed.
+      heading: '^({{regexQuote .Version}}{{if eq .Major 1}}|1\.x{{end}})$'
+      # the topics are arbitrary "### name" headings (not category names), so
+      # without the structural reading the whole section folds into one item
+      # (karpenter's listItems construct; the section-intro skip rule below
+      # then removes the one folded intro)
+      listItems: true
+    classify:
+      # section intro paragraph ("The following breaking changes were
+      # introduced in OpenSearch X.Y.Z."), folded by the reader into a
+      # "Heading: paragraphs" item, so unanchored
+      - text: '(?i)the following breaking changes? (was|were) introduced'
+        skip: true
+      - section: '.*'
+        breaking: true
+        actionRequired: true
+
+  # --- lifecycle evidence -----------------------------------------------------
+  # The org-wide release policy: the distribution tracks 2 releases in
+  # parallel (3.x + 2.19 branches active after 3.0), majors only when
+  # significant breaking changes accumulate, OpenSSF-aligned vulnerability
+  # fixing in actively maintained versions. There is no Elastic-style dated
+  # EOL table (opensearch.org/support is 404); the statements below cite this
+  # policy plus the observable last-release dates.
+  - id: release-policy
+    roles: [release-notes]
+    locator:
+      kind: http
+      url: https://raw.githubusercontent.com/opensearch-project/.github/main/RELEASING.md
+    extract:
+      type: whole
+
+  # --- security ----------------------------------------------------------------
+  # The GHSA feed of the repository is the machine-readable channel; SECURITY.md
+  # delegates to the org policy (private disclosure, OpenSSF 60-day fixing).
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: opensearch-project/OpenSearch
+
+# Dual majors in one semver space: the distribution tracks the two most
+# recent majors, so 2.19 is still patched next to 3.x and 1.x is dead.
+lifecycle:
+  - state: end-of-life
+    since: "2024-12"
+    versions: "< 2.0.0"
+    summary: >-
+      Every OpenSearch line below 2.x is past its end of maintenance: the
+      distribution tracks the two most recent major releases (RELEASING.md)
+      and 1.3.20 (2024-12-10) was the final 1.x release. Vulnerability fixes
+      land on the 2.19 and 3.x lines only; upgrades that stay below 2.0
+      target unpatched releases.
+    sources: [release-policy]
+  - state: deprecated
+    since: "2025-04"
+    versions: ">= 2.0.0, < 3.0.0"
+    summary: >-
+      2.x is the prior major: only its final minor, 2.19, still receives
+      patches (2.19.6, 2026-06-30) alongside the 3.x lines, per the
+      track-two-releases policy. Prefer the current 3.x lines for new
+      deployments (3.0 also raised the minimum JDK to 21).
+    sources: [release-policy]
+
+artifacts:
+  # --- Docker image (canonical Docker Hub + two reachable mirrors) ------------
+  # Bare X.Y.Z tags on all three registries; Docker Hub anonymous pulls are the
+  # known 401/429 flake, so mirror.gcr.io and ECR Public (which the docs
+  # install page recommends) are declared as reachable fallbacks — ECR carries
+  # every stable tag from 1.0.0 on.
+  - id: image
+    type: container-image
+    name: opensearchproject/opensearch
+    description: The OpenSearch server image.
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/opensearchproject/opensearch
+      - kind: oci
+        repository: mirror.gcr.io/opensearchproject/opensearch
+      - kind: oci
+        repository: public.ecr.aws/opensearchproject/opensearch
+
+  # --- distributions on artifacts.opensearch.net --------------------------------
+  - id: tarball
+    type: package
+    name: opensearch-X.Y.Z-linux-x64.tar.gz
+    description: All-plugins bundle distribution (what users install).
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://artifacts.opensearch.org/releases/bundle/opensearch/{{.Version}}/opensearch-{{.Version}}-linux-x64.tar.gz"
+  - id: tarball-min
+    type: package
+    name: opensearch-min-X.Y.Z-linux-x64.tar.gz
+    description: Bare-core (no plugins) distribution.
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://artifacts.opensearch.org/releases/core/opensearch/{{.Version}}/opensearch-min-{{.Version}}-linux-x64.tar.gz"
+
+  # --- source archive ------------------------------------------------------------
+  - id: source-archive
+    type: package
+    name: opensearch-source.tar.gz
+    description: Source tarball of the release tag.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/opensearch-project/OpenSearch/archive/refs/tags/{{.Tag}}.tar.gz"
+
+  # --- bundled Apache Lucene (per-release pin, verified on Maven Central) -------
+  # NOT a fork: both eras pin plain org.apache.lucene artifacts. The pin moved
+  # from the Java-properties buildSrc/version.properties to the Gradle version
+  # catalog (TOML) at 2.19.0 — a catalog is not YAML, so both eras are read
+  # with version:pattern.
+  - id: lucene-core
+    type: package
+    name: lucene-core
+    description: Bundled Apache Lucene version of the release (version-catalog era).
+    availability: ">= 2.19.0"
+    version:
+      strategy: pattern
+      pattern: '(?m)^lucene[ \t]*=[ \t]*"(?P<version>\d+\.\d+\.\d+)"'
+      from:
+        kind: repo-file
+        repository: github.com/opensearch-project/OpenSearch
+        ref: "{{.Tag}}"
+        path: gradle/libs.versions.toml
+    channels:
+      - kind: http
+        url: "https://repo1.maven.org/maven2/org/apache/lucene/lucene-core/{{.ArtifactVersion}}/lucene-core-{{.ArtifactVersion}}.jar"
+  - id: lucene-core-legacy
+    type: package
+    name: lucene-core
+    description: Bundled Apache Lucene version of the release (version.properties era).
+    availability: ">= 1.0.0, < 2.19.0"
+    version:
+      strategy: pattern
+      pattern: '(?m)^lucene[ \t]*=[ \t]*(?P<version>\d+\.\d+\.\d+)[ \t]*$'
+      from:
+        kind: repo-file
+        repository: github.com/opensearch-project/OpenSearch
+        ref: "{{.Tag}}"
+        path: buildSrc/version.properties
+    channels:
+      - kind: http
+        url: "https://repo1.maven.org/maven2/org/apache/lucene/lucene-core/{{.ArtifactVersion}}/lucene-core-{{.ArtifactVersion}}.jar"
+
+  # --- community Helm chart (independent versions, joined by appVersion) --------
+  # opensearch-project/helm-charts: chart versions do not track server versions
+  # in the 2.x era (one appVersion often has several chart versions) and two
+  # server releases (1.2.0, 1.2.2) never shipped a chart — lookup + optional,
+  # the argo-cd shape.
+  - id: helm-chart
+    type: helm-chart
+    name: opensearch
+    optional: true
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Tag}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://opensearch-project.github.io/helm-charts
+        chart: opensearch
+
+provenance:
+  method: discovery+research
+  updated: "2026-10-01"
+  notes: >-
+    Authored from docs/research/opensearch.md after `ri discover` (which
+    proposed the versioning, the per-release notes file, the GitHub release
+    body and the advisories feed, and validated the notes file against
+    3.6.0-3.9.0 — at the tag, which only holds for 38/71 releases, hence the
+    corrected main ref). Research contributed the breaking-changes page of the
+    documentation-website repository (the fork's twin of Elasticsearch's
+    asciidoc guides — plain markdown, no format:adoc), the artifacts host, the
+    three image registries, the two Lucene pin eras and the track-two-releases
+    lifecycle policy. Docker Hub is canonical with two reachable mirrors; no
+    host was blocked.

@@ -1,0 +1,120 @@
+product: opensearch
+order: 25
+wave: 4
+repository: github.com/opensearch-project/OpenSearch
+onboarding:
+  startedAt: "2026-10-01T16:30:50Z"
+  finishedAt: "2026-10-01T16:58:16Z"
+  minutes: 27
+discovery:
+  proposal: docs/onboarding/discovery/opensearch.proposed.yaml
+  report: docs/onboarding/discovery/opensearch.report.md
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags'; the bare-tag pattern (71 stable, 7 alphaN/betaN/rcN prereleases) was kept verbatim, mirrored on the locator (the crossplane strict-pattern rule)"}
+  - {id: github-releases, origin: discovered, note: "versions fallback, as proposed"}
+  - {id: release-notes, origin: discovered-modified, note: "proposal id 'release-notes-docs' with the default tag ref: the per-version file exists at its own tag for only 38/71 releases (a release's file lands on main around release time), so the ref was corrected to main — the grafana/elasticsearch fixed-ref correction; the proposal's own validation window (3.6.0-3.9.0) is inside the at-tag era, which is why it looked right"}
+  - {id: release-notes-github, origin: discovered, note: "kept, but re-roled from co-fallback to the second member of the release-notes fallbackGroup: the GitHub body IS the full release-notes document (verified for 2.19.2), so it answers for the two releases whose file never merged to main"}
+  - {id: breaking-changes, origin: manual, note: "documentation-website@main _about/breaking-changes.md, '## X.Y.Z' sections + '### topic' headings, releaseKinds [major], markdown-section + listItems — the fork's twin of elasticsearch's breaking-changes channel, in native markdown (no adoc)"}
+  - {id: release-policy, origin: manual, note: "raw .github/RELEASING.md — the track-two-releases policy; there is no dated EOL table (opensearch.org/support is 404), so the lifecycle statements cite the policy plus observable last-release dates"}
+  - {id: github-advisories, origin: discovered, note: "proposal id 'advisories'; live feed (2 GHSAs)"}
+artifacts:
+  - {id: image, origin: manual, note: "docker.io/opensearchproject/opensearch (canonical) + mirror.gcr.io + public.ecr.aws/opensearchproject/opensearch fallbacks; discovery excluded every real registry — docker.io/library/opensearch as no-release-evidence (the in-repo docker-compose pins 'opensearch:test', a floating tag), public.ecr.aws as docs-only (the image is built by opensearch-build release infrastructure, not an in-repo workflow): the same docs-only blind spot that dropped elasticsearch's docker.elastic.co image"}
+  - {id: tarball, origin: manual, note: "artifacts.opensearch.org releases/bundle/opensearch/X/opensearch-X-linux-x64.tar.gz — the all-plugins distribution, 200 across 1.0.0→3.9.0"}
+  - {id: tarball-min, origin: manual, note: "releases/core/.../opensearch-min-X-linux-x64.tar.gz — the bare-core distribution"}
+  - {id: source-archive, origin: manual, note: "GitHub tag archive"}
+  - {id: lucene-core, origin: manual, note: "version:pattern on gradle/libs.versions.toml (the Gradle version catalog is TOML, not YAML) — >= 2.19.0 era, verified on repo1.maven.org; NOT a Lucene fork: plain org.apache.lucene"}
+  - {id: lucene-core-legacy, origin: manual, note: "identical construct to elasticsearch's lucene-core (version:pattern on buildSrc/version.properties, the very file ES read before 7.14) — < 2.19.0 era"}
+  - {id: helm-chart, origin: manual, note: "lookup by appVersion + optional (69/71 releases covered; 1.2.0/1.2.2 never shipped a chart; 35 appVersions have several chart versions) — the argo-cd shape; discovery proposed the helm repository as a candidate but excluded it (chart-repo.no-product-chart)"}
+discoveryRejected:
+  - {id: "release-notes opensearch-documentation-release-notes-{{.Version}}.md", reason: "the docs repository's per-version notes copy, correctly lower-ranked against the source repository's own file"}
+  - {id: "chart-repo github.com/opensearch-project/helm-charts", reason: "excluded because no chart path is referenced from the product repository; the chart exists and joins by appVersion — the multi-repository topology discovery cannot see (the otel-collector lesson)"}
+  - {id: "image public.ecr.aws/opensearchproject/opensearch", reason: "docs-only exclusion; the image is real and ECR Public answers anonymously with all 72 stable tags — the elasticsearch DRA blind spot repeats for the org's opensearch-build publish pipeline"}
+  - {id: "image docker.io/library/opensearch", reason: "no-release-evidence because the in-repo compose file pins 'opensearch:test'; the published image is the org's opensearchproject/opensearch, also on Docker Hub"}
+relationships:
+  historicalReleasesChecked: [1.0.0, 1.3.20, 2.0.0, 2.0.1, 2.11.0, 2.18.0, 2.19.0, 2.19.1, 2.19.2, 2.19.3, 2.19.6, 3.0.0, 3.5.0, 3.6.0, 3.7.0, 3.8.0, 3.9.0]
+  # first run of the first complete draft: the default window (3.7.0-3.9.0)
+  # passed clean; the same draft's era sweep over the 17 releases above
+  # failed one subject: breaking-changes @ 1.0.0 (the page titles the 1.x
+  # major "## 1.x", not "## 1.0.0").
+  initialFailures: 1
+  finalFailures: 0
+  manualInterventions:
+    - {subject: breaking-changes, change: "heading '{{regexQuote .Version}}' -> '^({{regexQuote .Version}}{{if eq .Major 1}}|1\\.x{{end}})$'", reason: "the 1.x major's breaking changes (ES 6.8 migration limits) sit under a '## 1.x' heading; found by ri check, fixed as a relationship, not an exception"}
+    - {subject: breaking-changes, change: "added extract.listItems", reason: "the topics are arbitrary '### name' headings, not category names, so the section reader folded the whole 3.0.0 section into ONE item (the check passed — section found, 1 note item — but the edge showed zero page-sourced breaking changes: the elasticsearch item-yield blind spot, caught by reading the edge this time, fixed with karpenter's listItems construct)"}
+    - {subject: release-notes, change: "skip rule for the section intro unanchored ('the following breaking changes were introduced'); Dependencies-section '^(Bump|Update) ' items re-categorised dependency", reason: "the folded intro paragraph surfaced as a breaking change, and the 3.x dependabot bumps flooded 'other notable changes' (185 items); both found by reading the edge, the bump rule follows grafana's precedent"}
+  unverifiable: []
+constructs:
+  new: []
+  considered:
+    - {name: "format:adoc (the elasticsearch sibling's construct, justified there partly by 'opensearch (the fork … keeps the same migrate_N_0.asciidoc conventions)')", rejected: "the reuse claim is FALSE, verified against the repository: the fork has no .asciidoc anywhere (docs/ at main is one leftover build.gradle; no MIGRATION.md, no breaking-changes/ dir, no migration docs at any tag 1.0.0-3.9.0) — documentation moved to the Jekyll-markdown documentation-website repository early in 1.x, and the breaking-changes twin of ES's adoc-needing file is native markdown. The construct was not wrong for elasticsearch, but its cross-product justification did not survive contact with the one product it named"}
+    - {name: "source exceptions for 2.19.2/2.19.6 (no release-notes file at main)", rejected: "the fallbackGroup answers for both via the GitHub release body, which carries the same notes document — exceptions would hide a working fallback"}
+    - {name: "three windowed minor sources for the page's 2.5.0/2.18.0/2.19.0 breaking-changes sections", rejected: "the page's own policy is majors-only; those sections announce plugin-side changes (k-NN default engine, neural-search text_embedding) that belong to separate products' releases — recorded as a gap instead"}
+    - {name: "bundled JDK as a second version:pattern artifact (bundled_jdk = 25.0.4.1+1, adoptium)", rejected: "same as elasticsearch: no stable anonymous URL serves the exact vendor build; the lucene pin is the declared compatibility signal"}
+    - {name: "chart contents (packaged values/metadata snapshot)", rejected: "the chart is a separate-repository community wrapper joined by appVersion and optional per release; probe-only keeps the relationship honest without attributing chart-config churn to server releases"}
+goChanges:
+  productSpecific: 0
+  generic: []
+unreachableSources: []
+ambiguousRelationships:
+  - "release-notes file timing: at its own tag for 38/71 releases, at main for 69/71; 2.19.2 has no file anywhere (notes only as the GitHub body) and 2.19.6's file exists only at its own tag — 2.x maintenance commits stay on the 2.19 branch and never merge to main; an edge reads today's copy of the main files (the traefik/elasticsearch fixed-ref trade)"
+  - "the GitHub release body is the same document as the notes file, so the fallback member is not a lesser channel — but it costs api.github.com quota (the flux/falco standing tax; anonymous 60/h, no exhaustion this time)"
+  - "breaking-changes.md states 'breaking changes are only introduced between major version releases' yet carries 2.5.0/2.18.0/2.19.0 sections (minor-introduced behavior changes, plugin-side)"
+  - "the migration page and the 3.0.0 release notes describe several changes twice (JDK 21, PathHierarchy, transport-nio, _bulk batch_size); dual channels kept, each citing its own evidence (the elasticsearch TLS_RSA precedent)"
+  - "the chart's recent versions equal the server version (3.9.0/3.9.0) but 35 appVersions have several chart versions and 1.2.0/1.2.2 shipped none; lookup+select:latest+optional expresses all three facts"
+  - "ECR Public lists 72 stable tags for 71 releases: Docker Hub carries a 1.0.1 image that has no git tag (a Docker-only patch); the release list stays git-tag-driven"
+  - "the Lucene pin moved from a Java-properties file to a TOML version catalog at 2.19.0 (dependabot-driven switch); two availability-scoped artifacts read the two eras with the same version:pattern construct"
+representability: full
+gaps:
+  - "1.x-era release notes are gitlog dumps (PR title + author + commit bullets, no sections): items classify by heuristic only, so 1.x edges carry no declared feature/bugfix labels (readable, unlike elasticsearch's unreadable 8.x era — but lower quality)"
+  - "the breaking-changes page's minor sections (2.5.0 wildcard-query behavior, 2.18.0 k-NN default engine, 2.19.0 text_embedding) are not attached to their releases; the first two are server-side/plugin-adjacent behavior changes users meet on those exact hops"
+  - "the bundled JDK pin is machine-readable in the catalog era (bundled_jdk, adoptium) but no stable anonymous URL serves the exact vendor build (elasticsearch's gap, unchanged)"
+  - "no machine-readable JDK/OS compatibility matrix exists (docs prose only); the Dashboards lockstep is stated only in the notes header line, and Dashboards is a separate product not onboarded"
+  - "plugin zips (security, k-NN, ...) live in separate repositories with independent versions — separate products; the bundle tarball is the server-side aggregate"
+sampleEdge:
+  from: 2.19.6
+  to: 3.9.0
+  summary: "95 breaking · 0 action required · 1186 changes · 2 warnings"
+  evidenceRecords: 1330
+notes: >-
+  Wave 4's first edge case: the fork-reuse measurement against elasticsearch
+  (order 18). How much of the sibling's definition carried over in shape:
+  6 of its 10 sources (canonical git-tags + GitHub fallback, per-release
+  notes read at main, a breaking-changes channel, an http lifecycle-evidence
+  page, the advisory feed) and 4 of its 6 artifacts (image, tarball,
+  source archive, and the Lucene pin — lucene-core-legacy is the IDENTICAL
+  construct on the IDENTICAL file, version:pattern over
+  buildSrc/version.properties) plus the dual-major lifecycle shape
+  (one semver space, constraint-scoped statements: everything below 2.x
+  end-of-life since 1.3.20/2024-12, 2.x deprecated since 3.0/2025-04) —
+  11 of 17 declared elements are the sibling's shapes. The headline negative:
+  format:adoc carried over ZERO uses. The elasticsearch record justified the
+  construct's future by 'opensearch (the fork of this very repository keeps
+  the same migrate_N_0.asciidoc conventions)' — the fork deleted its docs
+  tree; migration intelligence lives in a separate Jekyll-markdown repository
+  whose breaking-changes page is the plain-markdown twin of the file that
+  needed adoc+labelParagraphs upstream. The claim was testable and false,
+  which is exactly what wave 4 exists to find: the construct remains
+  justified by elasticsearch's own 7.0/8.0 guides (no markdown twin exists
+  there), but its cross-product story now rests on the other named users
+  (neo4j, the elastic siblings), not this fork. What the fork added that the
+  sibling lacks: a real fallback for missing notes files (GitHub bodies with
+  full content vs ES's stubs), a community chart joined by appVersion
+  (argo-cd's lookup), image mirror channels, and the TOML-catalog pin era
+  (flux's version:pattern). Numbers: 80 constructs used, 80 reused, 0 new,
+  0 Go changes, 0 exceptions; 17 releases checked across every era, final
+  failures 0, nothing unverifiable — Docker Hub anonymous even answered
+  during research (mirrors declared regardless, per the protocol's
+  canonical-first rule). Other edges exercised: 1.3.20 -> 2.0.0 (60 breaking
+  · 194 changes · 3 warnings, the third warning being the deprecated-target
+  notice — the page's 2.0.0 topics + the notes' 'Breaking Changes in 2.0'
+  section + the type-removal items), 3.8.0 -> 3.9.0 (0 breaking · 90
+  changes, routine) and 2.19.5 -> 2.19.6 (22 changes, notes served by the
+  GitHub-body fallback). Discovery baseline: right versioning and the real
+  notes file, wrong ref (its 4-release validation window sits inside the
+  at-tag era — window placement hiding a 33/71 mismatch), zero artifacts
+  with the real registries excluded by the docs-only/no-release-evidence
+  rules (the elasticsearch DRA blind spot, now a pattern: org-level release
+  infrastructure is invisible to repository scanning), the chart excluded
+  for no in-repo reference, and the docs repository correctly scanned but
+  only for a lower-ranked notes template. Elapsed time is agent wall-clock
+  and excludes this record.
