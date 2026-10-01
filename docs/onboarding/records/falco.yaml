@@ -1,0 +1,131 @@
+product: falco
+order: 22
+wave: 3
+repository: github.com/falcosecurity/falco
+onboarding:
+  startedAt: "2026-10-01T15:56:22Z"
+  finishedAt: "2026-10-01T16:17:44Z"
+  minutes: 21                   # wall-clock, agent time
+discovery:
+  proposal: docs/onboarding/discovery/falco.proposed.yaml
+  report: docs/onboarding/discovery/falco.report.md
+# Discovery quality: its best call was the chart — it proposed the
+# falcosecurity/charts MONOREPO appVersion lookup alongside an
+# independent-version in-tree chart, and the lookup validated 5/5 by its own
+# checks (kept verbatim). It also had the right versioning (tagPattern kept),
+# both docker.io images (validated 5/5 through the anonymous token flow) and
+# the advisories. Wrong: the independent chart relation with repo-file
+# contents (failed at 0.43.x because chart/ entered the falco repo only at
+# 0.44.0), falcoctl as tag-assumed-release (correctly dropped — the image
+# exists, at its OWN product versions), and the changelog availability
+# '>= 0.45.0' inference (a commit-timing coin-flip read as an era boundary).
+# Missed: the driver/libs cmake pins, the download.falco.org packages, the
+# source archive, the mirror fallbacks.
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags'; 195 tags, 76 stable (0.3.0-0.45.0 + v0.1.0/v0.2.0 ancients), 47 prereleases, 73 agent/* tags of a DIFFERENT component, 0.6.0-test; tagPattern kept verbatim"}
+  - {id: github-releases, origin: discovered, note: "versions fallback priority 1"}
+  - {id: changelog, origin: discovered-modified, note: "proposal read CHANGELOG.md AT THE TAG and inferred availability '>= 0.45.0' from the section lag; corrected to ref master (append-only, 76 sections) + heading '^v<version>' + classify for the H3 labels; exception [0.44.1] added (section never written upstream)"}
+  - {id: release-notes-github, origin: discovered-modified, note: "kept as fallback (proposal had it primary with the changelog absent from its role set); classify skips added for the shields.io badges and the package matrix rows of the release template body"}
+  - {id: advisories, origin: discovered, note: "8 published GHSAs; the adapter works from this sandbox"}
+artifacts:
+  - {id: falco-image, origin: discovered-modified, note: "docker.io/falcosecurity/falco template {{.Tag}} kept as proposed (historically-validated 5/5 by discovery); mirror.gcr.io fallback channel added (redis/postgresql pattern)"}
+  - {id: driver-loader-image, origin: discovered-modified, note: "same: proposal kept, mirror fallback added"}
+  - {id: chart, origin: discovered-modified, note: "discovery's falco-chart-2 monorepo lookup (appVersion == {{.Tag}}, select latest) kept verbatim — its own validation was 5/5; ghcr OCI channel added; contents moved OFF the proposal's repo-file chart/falco (mid-cycle Chart.yaml at tags, 404 before 0.44.0) to the packaged chart of the index channel (no-locator contents, published-chart-tgz representation)"}
+  - {id: driver-source, origin: manual, note: "the kernel-driver dimension, representable half: pattern pin on cmake/modules/driver.cmake (set(DRIVER_VERSION \"N.N.N+driver\") — a +driver tag of falcosecurity/libs), probed at the libs tag tarball; availability >= 0.33.0; the flux pattern construct"}
+  - {id: libs-source, origin: manual, note: "same shape on cmake/modules/falcosecurity-libs.cmake (0.17.1@0.38.0 -> 0.26.0@0.45.0); availability >= 0.33.0 (before that the pin is a commit hash)"}
+  - {id: falcoctl-image, origin: discovered-modified, note: "discovery proposed image.tag-assumed-release and dropped it after its own validation failed; rebuilt as version:field on falcoctl.image.tag in chart/falco/values.yaml at the tag (kube-prometheus-stack pin shape), availability >= 0.44.0 (in-tree values only; pre-move the pin lives at the chart's own tag in the monorepo — unreachable from release context)"}
+  - {id: binary-tarball, origin: manual, note: "download.falco.org/packages/bin/x86_64/falco-{{.Tag}}-x86_64.tar.gz — URL shape from .github/release_template.md, verified 200 at 0.36.0/0.40.0/0.45.0 through the CloudFront redirect"}
+  - {id: deb-package, origin: manual, note: "packages/deb/stable/... (note the /stable/ suite component the rpm path lacks)"}
+  - {id: rpm-package, origin: manual, note: "packages/rpm/falco-{{.Tag}}-x86_64.rpm"}
+  - {id: source-archive, origin: manual, note: "github archive of the tag (cilium precedent)"}
+discoveryRejected:
+  - {id: "falco-chart as helm.independent-version (the in-tree chart/falco)", reason: "the in-tree Chart.yaml at the tag is mid-cycle (9.2.0-rc1/appVersion 0.45.0-rc2 at tag 0.45.0) and chart/ did not exist before 0.44.0 — discovery's own content checks failed at 0.43.x; every falco release has a chart in the monorepo index whose appVersion is the tag, so the lookup is the relation"}
+  - {id: "falcoctl as image.tag-assumed-release", reason: "correctly dropped by discovery, wrong reason: docker.io/falcosecurity/falcoctl exists but is tagged with falcoctl's own versions (0.13.0/0.14.2), not the falco tag — a separate product pinned by the chart (field relation)"}
+  - {id: "changelog availability '>= 0.45.0'", reason: "the at-tag section check fails for ~half of all tags by commit timing (0.40.0, 0.42.0, 0.43.0, 0.43.1, 0.44.0, 0.44.1 lag; 0.39.0, 0.41.0, 0.45.0 in sync) — not an era boundary; master is the stable read"}
+relationships:
+  # Default `ri check` (0.43.0-0.45.0, straddling the 0.44.0 in-tree-chart
+  # boundary) plus an era run over 0.33.0, 0.36.0, 0.38.0, 0.40.0, 0.41.0,
+  # 0.42.0 (the driver/libs pin era start, the chart 3.x/4.x/5.x eras, the
+  # package URL eras). There is no 1.x era to bridge (latest stable 0.45.0).
+  historicalReleasesChecked: [0.33.0, 0.36.0, 0.38.0, 0.40.0, 0.41.0, 0.42.0, 0.43.0, 0.43.1, 0.44.0, 0.44.1, 0.45.0]
+  initialFailures: 0            # first complete draft: every subject validated in both runs
+  finalFailures: 0
+  manualInterventions:
+    - {subject: changelog, change: "locator ref {{.Tag}} -> master + exceptions [0.44.1]", reason: "discovery's at-tag reads failed 4/5 (the section for X is committed after tag X about half the time); v0.44.1's section was never written at all"}
+    - {subject: falcoctl-image, change: "availability '>= 0.44.0'", reason: "chart/falco entered the falco repository at 0.44.0 (verified by ls-tree across tags); before that the pin lives only in the monorepo at the chart's own tag"}
+    - {subject: changelog, change: "classify: skip 'Released on <date>' lines; skip docs/ci/test subjects; Non user-facing/Statistics sections", reason: "reading the 0.44.1 -> 0.45.0 edge: the date line under the H2 surfaced as a heuristic/low item; tuning found by reading, not by failing checks"}
+  unverifiable:
+    - {subject: "chart/helm-values + chart/chart-metadata", reason: "0.44.0 only: the falco-9.0.0.tgz asset re-published upstream after the index entry was written — index digest 093cb7f5... != asset sha256 0224559b... (confirmed by independent curl); ri correctly refuses the digest-mismatched package, so the 0.44.0 values diff is skipped in edges crossing it"}
+constructs:
+  new: []                       # 75 used, all introduced by earlier products (0 unaccounted in ri stats)
+  considered:
+    - {name: "a kernel/driver compatibility source from download.falco.org/driver/site/<driver-version>.json", rejected: "machine-readable (per driver version: every prebuilt kmod as {kernel, distro, arch, kind, download URL}) but a MUTABLE current-state snapshot keyed by DRIVER version, not by falco release, with no history; a source locator renders from release context only, and the driver version per release is itself an artifact resolution (chicken-and-egg) — the kyverno mutable-page rejection"}
+    - {name: "prebuilt kmod probes as artifacts", rejected: "same matrix, same reason: the artifact set is kernel-release x distro x arch, none of which the release context provides"}
+    - {name: "chart/falco/BREAKING-CHANGES.md as an upgrade-guide source", rejected: "a cumulative per-chart-MAJOR distillation (9.0.0 ... 3.0.0 sections); attaching it per engine release re-reports old majors' drops with wrong attribution — the per-release 'Breaking Changes :warning:' changelog sections carry the same facts correctly attributed"}
+    - {name: "the GitHub release body's LIBS/DRIVER badges as the pin source", rejected: "api.github.com quota tax for a fact the cmake files state with stable line evidence at the tag; the body stays a fallback notes source only"}
+    - {name: "rules submodule pin (submodules/falcosecurity-rules)", rejected: "a gitlink, not a readable document; the rules file is a separate product (falcosecurity/rules) — noted as related"}
+    - {name: "plugin refs and subchart constraints in chart values as field pins", rejected: "subcharts are constraints ('0.14.*'), not pins; plugins (container:0.7.4, k8smeta:0.4.2) are separate products — declined scope, not a representation gap"}
+    - {name: "falco-no-driver image / .debug release assets / aarch64 + -debian asset families", rejected: "no longer published by the workflow / debugging aids / asset families are not expressible (the flux-kyverno gap)"}
+goChanges:
+  productSpecific: 0
+  generic: []                   # configuration only
+unreachableSources:
+  - {host: docs.falco.org, reason: "DNS resolution failure (Could not resolve host); the website sources (falcosecurity/falco-website) are reachable via git but contain no versioned upgrade/migration docs in this era"}
+ambiguousRelationships:
+  - "Chart appVersion is the unprefixed tag string; several chart patches can re-publish one appVersion (8.0.2-8.0.5 all carry 0.43.1) — select latest resolves; chart majors track engine minors loosely (9.x <-> 0.44/0.45, 8.x <-> 0.43, 4.x <-> 0.37-0.40)."
+  - "The chart's dev source moved INTO the falco repository at 0.44.0 (synced to the monorepo by sync(charts/falco) commits that still cut the falco-N.N.N tags and the index); Chart.yaml at the engine tag is mid-cycle while values.yaml is already final (byte-identical to the published package at 0.45.0)."
+  - "CHANGELOG.md at tag X lags its own section about half the time (commit-timing coin-flip, not an era); v0.44.1's section was never written."
+  - "The deb URL carries a /stable/ suite path component and the rpm does not (release template); FALCOBUCKET -dev applies only to prereleases, which the canonical (stable-only) version list never hits."
+  - "Driver/libs pins do not advance every patch (0.43.0 and 0.43.1 both pin 9.1.0+driver) and skip libs driver tags (10.0.0/10.1.0 exist upstream, never pinned)."
+  - "The agent/0.40.0-0.85.1 tag family in the same repository is a different component still advancing past the engine's 0.45.0 — excluded by the tag pattern."
+  - "GitHub release assets are only falco-{x86_64,aarch64}.debug (RELEASE.md's claim that GitHub releases carry tgz/rpm/deb is stale; the body links to download.falco.org)."
+representability: full          # versions, notes, chart, packages, images and the driver/libs/falcoctl pins are fully represented with constructs from orders 1-15; the uncovered parts are mutable current-state documents (see gaps)
+gaps:
+  - "The prebuilt-driver/kernel matrix (which kernel x distro x arch has a compiled kmod per driver version — download.falco.org/driver/site/<version>.json, 2.4 MB, dated snapshot) is not representable: keyed by an artifact-resolved version, set-valued per kernel, no per-release history. The PER-RELEASE driver version IS represented (pattern pin, verified tarball), so an edge states the driver bump; whether a given node's kernel has a prebuilt probe is not derivable from the definition."
+  - "Driver-kind support per release (kmod / legacy eBPF probe / modern_ebpf / gVisor) exists only as narrative (changelog breaking sections, chart BREAKING-CHANGES.md): 0.43.0 deprecated and 0.44.0 dropped gVisor + legacy BPF probe + gRPC output — surfaced as breaking items, not as a per-release kind set."
+  - "The modern_ebpf kernel floor (>= 5.8 or backported BTF) is a static statement in RELEASE.md — a constant, not a per-release constraint."
+  - "The rules submodule pin (falcosecurity/rules gitlink, moves every release) is not readable as a document; the rules file is a separate product."
+  - "Asset families: aarch64 package twins, the -static tarball, x86_64-/aarch64- and -debian/-suffixed image tags are not expressible (flux/kyverno recorded the same)."
+  - "Pre-0.33.0 releases pin libs by commit hash (probe-able via the /archive/<ref> URL shape in principle); the driver pin does not exist in this file before 0.33.0."
+sampleEdge:
+  from: 0.44.1
+  to: 0.45.0
+  summary: "1 breaking · 0 action required · 27 changes · 0 warnings"
+  evidenceRecords: 60
+  notes: >-
+    Path 0.45.0 (minor crossing). The one breaking change is the declared
+    0.45.0 raw-field-bytes rule-condition change with the FALCO_ENGINE_VERSION
+    0.62.0 -> 0.63.0 bump (changelog L9, declared/high). The artifact table
+    shows the whole topology verified: images 0.44.1 -> 0.45.0 at docker.io,
+    chart 9.1.0 -> 9.2.0 via the index lookup, THE DRIVER DIMENSION as
+    driver-source 10.2.0+driver -> 11.0.0+driver and libs-source 0.25.4 ->
+    0.26.0 (each with the pin line at driver.cmake L38 / falcosecurity-libs
+    .cmake L45 plus both tarballs as evidence), the falcoctl pin 0.13.0 ->
+    0.14.2 (values.yaml L530/L549 + both image manifests), and the three
+    download.falco.org packages + source archive. Helm-values diffs: the
+    plugin refs, falcoctl tag, new controller.* keys and
+    serviceAccount.labels. Second edge exercised: 0.43.1 -> 0.44.0 (4
+    breaking · 0 action required · 16 changes · 1 warning) — the four
+    breaking items ARE the documented 0.44.0 drops (gRPC output+server, gVisor
+    engine, legacy BPF probe — the driver-kind dimension — plus the -o
+    key-path parser change), the falcoctl artifact appears as 'added'
+    (not-applicable -> verified 0.12.2, the availability window), and the one
+    warning is the 0.44.0 chart-values diff skipped by the falco-9.0.0 digest
+    anomaly. Tuning iterations: 2, both found by reading the edges, not by
+    failing checks.
+notes: >-
+  The sixth zero-new-construct onboarding (grafana, strimzi, otel-collector,
+  redis, actions-runner-controller, kyverno): the engine + pinned-driver +
+  monorepo-chart + download-host topology decomposed entirely into constructs
+  earlier products introduced — pattern pins (flux), field pins
+  (kube-prometheus-stack), lookup (argo-cd), packaged-chart contents (G8),
+  availability windows, source exceptions (vault), fallback groups. 75
+  constructs used, 0 new, 0 product-specific Go. Discovery contributed the
+  versioning, both images, the chart relation (its best monorepo call yet —
+  proposed and self-validated the appVersion lookup), the advisories and the
+  changelog file; research contributed the master-read correction, the
+  driver/libs/falcoctl pins, the download.falco.org packages and the
+  source archive. 21 minutes wall-clock, ~10 of them waiting out the
+  anonymous api.github.com quota that discovery had exhausted (the flux
+  standing tax). download.falco.org verdict: REACHABLE — 307 to its CloudFront
+  distribution which answers 200 anonymously.
