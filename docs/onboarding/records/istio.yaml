@@ -1,0 +1,125 @@
+product: istio
+order: 2
+wave: 0
+repository: github.com/istio/istio
+# onboarding: minutes and timestamps were not measured (see the cert-manager record).
+discovery:
+  proposal: internal/discovery/testdata/live/istio.yaml
+  report: internal/discovery/testdata/live/istio.summary.md
+sources:
+  - {id: git-tags, origin: manual}
+  - {id: github-releases, origin: manual}
+  - {id: structured-notes, origin: manual}
+  - {id: change-notes, origin: manual}
+  - {id: patch-notes, origin: manual}
+  - {id: patch-notes-release-branch, origin: manual}
+  - {id: upgrade-notes, origin: manual}
+  - {id: support-status, origin: manual}
+  - {id: github-advisories, origin: manual}
+artifacts:
+  - {id: chart-base, origin: manual}
+  - {id: chart-istiod, origin: manual}
+  - {id: chart-gateway, origin: manual}
+  - {id: chart-cni, origin: manual}
+  - {id: chart-ztunnel, origin: manual}
+  - {id: crds, origin: manual}
+  - {id: pilot-image, origin: manual}
+  - {id: proxyv2-image, origin: manual}
+  - {id: install-cni-image, origin: manual}
+  - {id: ztunnel-image, origin: manual}
+  - {id: istioctl-image, origin: manual}
+  - {id: operator-image, origin: manual}
+  - {id: agentgateway-image, origin: manual}
+  - {id: release-archive, origin: manual}
+  - {id: istioctl-archive, origin: manual}
+relationships:
+  # from docs/onboarding/checks/istio.json (ri check istio -n 3)
+  historicalReleasesChecked: [1.29.0, 1.29.8, 1.30.0, 1.30.5, 1.31.0, 1.31.1]
+  finalFailures: 0
+  manualInterventions:
+    - {subject: versions, change: "git-tags is the first versions source, github-releases second", reason: "release-builder creates every GitHub release as draft and prerelease, so the GitHub prerelease flag cannot be trusted (ccee447)"}
+    - {subject: support-status, change: "stopped extracting the testedK8sVersions column", reason: "istio.io renders it as 'Tested, but not supported' (versions outside the support window), not as a requirement (4993687)"}
+  unverifiable: []
+constructs:
+  new:
+    - name: field:sources.locator.baseRef
+      kind: catalog-field
+      justification: >-
+        Release notes accumulate as releasenotes/notes/*.yaml in the source tree; a release's notes are the files added since the previous release in lineage order.
+        Added to the catalog contract (d326b5d) and implemented in the repo-dir adapter. No other Phase 1 product needs it; cross-product use is to be shown by later waves.
+      otherProducts: []
+    - name: locator:repo-dir
+      kind: enum-value
+      justification: >-
+        Reads a directory of note files at a ref (kind declared in the foundation f2cb060); first exercised by Istio's structured notes. Argo CD later reads its CRD directory the same way.
+      otherProducts: [argo-cd]
+    - name: extract:release-note-yaml
+      kind: enum-value
+      justification: >-
+        One note item per YAML file (Istio release-notes/v2 schema). Declared in the foundation (f2cb060), parser written for Istio (ParseReleaseNoteYAML, cf69ea9).
+      otherProducts: []
+    - name: extract:yaml-records
+      kind: enum-value
+      justification: >-
+        Compatibility matrix as a YAML list (data/compatibility/supportStatus.yml): same selection as markdown-table but over records. Added in d326b5d.
+      otherProducts: []
+    - name: field:sources.fallbackGroup
+      kind: catalog-field
+      justification: >-
+        Named sets of alternative sources, replacing the boolean fallback flag of the first cert-manager draft, because Istio needs several independent chains per role (change notes, patch notes on master versus the release branch). efc1076, ccee447.
+      otherProducts: [cert-manager, argo-cd]
+    - name: field:artifacts.contents.stripPrefix
+      kind: catalog-field
+      justification: >-
+        Helm values nested under a wrapper key (_internal_defaults_do_not_set) are normalised to the keys users set (9985abc).
+      otherProducts: []
+    - name: field:artifacts.contents.ignoreKeys
+      kind: catalog-field
+      justification: >-
+        Source-tree image hub/tag placeholders that release tooling rewrites at build time must not show up as values changes (99a1531, 1d697c2).
+      otherProducts: []
+    - artifact:binary
+    - field:sources.classify.category
+    - field:sources.locator.glob
+    - release-kind:patch
+    - template-var:PrevTag
+  considered: []
+goChanges:
+  productSpecific: 0
+  generic:
+    - file: internal/catalog/definition.go, internal/catalog/validate.go, internal/normalize/api.go
+      purpose: "repo-dir baseRef and the yaml-records extract (contract change before the definition was written; d326b5d)"
+    - file: internal/normalize
+      purpose: "ParseReleaseNoteYAML: Istio release-notes/v2 YAML note files, lenient keys (cf69ea9); a partial parse keeps the parsed items (99a1531)"
+    - file: internal/catalog/definition.go, internal/ingest/fallback.go
+      purpose: "named fallback groups replace the boolean fallback flag (efc1076, ccee447)"
+    - file: internal/catalog/definition.go, internal/ingest/contents.go
+      purpose: "helm-values stripPrefix (9985abc)"
+    - file: internal/catalog/definition.go, internal/ingest/contents.go
+      purpose: "helm-values ignoreKeys (99a1531)"
+    - file: internal/upgrade/notes.go
+      purpose: "punctuation-insensitive de-duplication and title merging of the same note published as structured YAML and as a hand-edited page (9985abc, 99a1531)"
+    - file: internal/ingest/relationships.go, internal/ingest/api.go
+      purpose: "'covered' relationship outcome: a fallback-group member that did not answer while an alternative did, e.g. patch notes on master versus the release branch (c623b20)"
+unreachableSources:
+  - {host: api.github.com, reason: "egress policy 403 (GitHub releases and advisories); git tags are the canonical versions source"}
+  - {host: blob.istio.io, reason: "egress policy 403 (current Helm repository and release artifacts since 1.31); OCI charts on ghcr.io are used instead"}
+  - {host: registry.istio.io, reason: "egress policy 403 (default image hub of some 1.30 charts)"}
+ambiguousRelationships:
+  - "The newest minor's patch notes exist only on its release branch until cherry-picked to master; both are declared as alternatives (resolved by a fallback group)"
+  - "Chart values are read from the source tree at the tag, not from the published archive (blobs are unreachable), so image hub/tag placeholders are ignored"
+representability: full
+gaps:
+  - "Security bulletins at istio.io/news/security (front matter lists CVEs and affected releases) are not ingested"
+  - "Helm values come from the source tree rather than the published chart archive; reading archives needs the published-artifact readers of workstream G8"
+sampleEdge:
+  from: 1.29.2
+  to: 1.30.1
+  summary: "1 breaking · 6 action required · 137 changes · 1 warning"
+  evidenceRecords: 363
+notes: >-
+  Phase 1, reconstructed from the version history and docs/FINDINGS.md. This product
+  drove most of the structural constructs: accumulating note files (baseRef),
+  YAML records, named fallback groups, stripPrefix and ignoreKeys. The
+  contract changes for baseRef and yaml-records were made before its
+  definition was written (d326b5d), from the research notes.

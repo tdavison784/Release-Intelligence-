@@ -1,0 +1,168 @@
+product: cert-manager
+order: 1
+wave: 0
+repository: github.com/cert-manager/cert-manager
+# onboarding: minutes and timestamps were not measured. The Phase 1 products were
+# built interactively together with the platform, before the protocol existed.
+discovery:
+  # retroactive baseline: discovery was built after the definitions were authored
+  proposal: internal/discovery/testdata/live/cert-manager.yaml
+  report: internal/discovery/testdata/live/cert-manager.summary.md
+# Authored by hand from docs/research/cert-manager.md; the discovery workflow did
+# not exist yet, so every source and artifact is manual.
+sources:
+  - {id: github-releases, origin: manual}
+  - {id: git-tags, origin: manual}
+  - {id: website-release-notes, origin: manual}
+  - {id: github-release-notes, origin: manual}
+  - {id: website-major-themes, origin: manual}
+  - {id: upgrade-guide, origin: manual}
+  - {id: supported-releases, origin: manual}
+  - {id: github-advisories, origin: manual}
+artifacts:
+  - {id: install-manifest, origin: manual}
+  - {id: crds, origin: manual}
+  - {id: helm-chart, origin: manual}
+  - {id: controller-image, origin: manual}
+  - {id: webhook-image, origin: manual}
+  - {id: cainjector-image, origin: manual}
+  - {id: acmesolver-image, origin: manual}
+  - {id: startupapicheck-image, origin: manual}
+  - {id: ctl-image, origin: manual}
+relationships:
+  # from docs/onboarding/checks/cert-manager.json (ri check cert-manager -n 3)
+  historicalReleasesChecked: [1.19.0, 1.19.6, 1.20.0, 1.20.4, 1.21.0, 1.21.2]
+  finalFailures: 0
+  manualInterventions: []
+  unverifiable:
+    - {subject: helm-chart, reason: "charts.jetstack.io and quay.io/jetstack/charts blocked by sandbox egress policy"}
+    - {subject: startupapicheck-image, reason: "quay.io blocked; the static install manifest does not reference this image, so it cannot be cross-checked"}
+constructs:
+  new:
+    - artifact:container-image
+    - artifact:crd
+    - artifact:helm-chart
+    - artifact:manifest
+    - column-kind:supported
+    - column-kind:tested
+    - content:chart-metadata
+    - content:crds
+    - content:helm-values
+    - content:image-refs
+    - extract:markdown-section
+    - extract:markdown-table
+    - field:artifacts
+    - field:artifacts.availability
+    - field:artifacts.channels
+    - field:artifacts.channels.chart
+    - field:artifacts.channels.kind
+    - field:artifacts.channels.repository
+    - field:artifacts.channels.url
+    - field:artifacts.contents
+    - field:artifacts.contents.availability
+    - field:artifacts.contents.kind
+    - field:artifacts.contents.locator
+    - field:artifacts.contents.locator.kind
+    - field:artifacts.contents.locator.path
+    - field:artifacts.contents.locator.repository
+    - field:artifacts.references
+    - field:artifacts.references.artifact
+    - field:artifacts.references.pattern
+    - field:artifacts.type
+    - field:artifacts.version.strategy
+    - field:artifacts.version.template
+    - field:sources
+    - field:sources.availability
+    - field:sources.classify
+    - field:sources.classify.actionRequired
+    - field:sources.classify.breaking
+    - field:sources.classify.section
+    - field:sources.classify.skip
+    - field:sources.classify.text
+    - field:sources.extract
+    - field:sources.extract.columns
+    - field:sources.extract.columns.headers
+    - field:sources.extract.columns.kind
+    - field:sources.extract.columns.part
+    - field:sources.extract.columns.platform
+    - field:sources.extract.columns.separator
+    - field:sources.extract.heading
+    - field:sources.extract.keyColumns
+    - field:sources.extract.keyMatch
+    - field:sources.extract.type
+    - field:sources.locator.kind
+    - field:sources.locator.path
+    - field:sources.locator.ref
+    - field:sources.locator.repository
+    - field:sources.priority
+    - field:sources.releaseKinds
+    - field:sources.roles
+    - field:versioning.lineage
+    - field:versioning.scheme
+    - field:versioning.tagPattern
+    - field:versioning.tagPrefix
+    - lineage:minor
+    - locator:git-tags
+    - locator:github-advisories
+    - locator:github-releases
+    - locator:helm-repo
+    - locator:http
+    - locator:oci
+    - locator:repo-file
+    - release-kind:major
+    - release-kind:minor
+    - role:compatibility
+    - role:release-notes
+    - role:security
+    - role:upgrade-guide
+    - role:versions
+    - scheme:semver
+    - template-func:regexQuote
+    - template-var:Line
+    - template-var:Major
+    - template-var:Minor
+    - template-var:PrevMajor
+    - template-var:PrevMinor
+    - template-var:Tag
+    - template-var:Version
+    - version:template
+  considered: []
+goChanges:
+  productSpecific: 0
+  generic:
+    - file: "internal/{domain,catalog,fetch,sources,gitsrc,github,httpsrc,oci,helm,normalize,ingest,upgrade,store,app}, cmd/ri, schemas/"
+      purpose: "platform bootstrap shared by all three Phase 1 products (f2cb060 .. 9ea2472, cf69ea9): model, catalog format and validator, fetch cache, source adapters, parsing, ingestion, upgrade engine, CLI. Designed contract-first from docs/research/ of all three products"
+    - file: internal/normalize/tables.go, internal/normalize/api.go, internal/ingest/docs.go
+      purpose: "TableSelector.ValueColumns: skip tables that share the key column but have none of the value columns; cert-manager's LTS vendor table shadowed the 1.17 compatibility row (57a7b8f)"
+    - file: internal/normalize/classify.go
+      purpose: "a strong keyword (CVE, deprecat, removed) refines a weak 'Other (Cleanup or Flake)' section category, recorded as heuristic (57a7b8f)"
+    - file: internal/normalize/classify.go
+      purpose: "CVE/GHSA ids make an item a security item; future-tense phrasing is not a removal; found reviewing the v1.17.0 to v1.18.0 edge (a40e3ad, a6b5721)"
+unreachableSources:
+  - {host: api.github.com, reason: "egress policy 403 (GitHub release bodies and advisories); the website release notes cover it"}
+  - {host: quay.io, reason: "egress policy 403 (images and OCI chart); four images are verified through the install manifest"}
+  - {host: charts.jetstack.io, reason: "egress policy 403 (Helm repository index)"}
+ambiguousRelationships:
+  - "No upgrade guide exists for 1.13: upgrading-1.12.md covers it (LTS special case); left as an uncovered release"
+  - "Release notes and the upgrade guide are read from website master, which is edited after release; evidence pins the digest of the bytes read"
+representability: full
+gaps:
+  - "Mutable documentation: notes, guides and the support matrix on master change after release, so 'what the docs said at release time' needs history that the definition cannot express"
+  - "Chart.yaml kubeVersion is a static install guard, not the support matrix; it is captured as chart-kubeVersion, separate from the compatibility table"
+sampleEdge:
+  from: v1.17.0
+  to: v1.18.0
+  summary: "5 breaking · 0 action required · 51 changes · 2 warnings"
+  evidenceRecords: 112
+notes: >-
+  Phase 1 baseline, reconstructed from the version history and docs/FINDINGS.md. The
+  platform was designed contract-first from the research of all three
+  products and built in parallel, so the constructs credited here are the base
+  set rather than additions to a working system, and goChanges includes the
+  platform bootstrap. Neither the order-1 construct count nor the Go change
+  count is comparable with later waves. Constructs are credited to the first
+  product whose final definition uses them, with one exception:
+  field:sources.fallbackGroup is credited to Istio because the named-group form
+  was introduced for it (the first cert-manager draft used a boolean
+  fallback flag that no longer exists). ri stats reports cert-manager's use of
+  it as adopted later.

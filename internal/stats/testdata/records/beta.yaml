@@ -1,0 +1,41 @@
+product: beta
+order: 2
+wave: 1
+onboarding:
+  minutes: 60
+sources:
+  - {id: tags, origin: discovered}
+  - {id: notes, origin: discovered}
+  - {id: support, origin: manual}
+artifacts:
+  - {id: image, origin: discovered}
+relationships:
+  finalFailures: 0
+constructs:
+  new:
+    - column-kind:supported
+    - extract:release-note-yaml
+    - extract:yaml-records
+    - field:sources.extract.columns
+    - field:sources.extract.columns.headers
+    - field:sources.extract.columns.kind
+    - field:sources.extract.columns.platform
+    - field:sources.extract.keyColumns
+    - field:sources.extract.keyMatch
+    - field:sources.locator.baseRef
+    - field:sources.locator.glob
+    - field:sources.locator.ref
+    - field:sources.releaseKinds
+    - field:versioning.tagPattern
+    - locator:repo-dir
+    - release-kind:major
+    - release-kind:minor
+    - role:compatibility
+    - template-var:Line
+    - template-var:PrevTag
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/normalize/records.go, purpose: yaml records}
+    - {file: internal/catalog/definition.go, purpose: baseRef}
+representability: full
