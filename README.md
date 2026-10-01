@@ -80,7 +80,9 @@ Full examples are in [`internal/app/testdata/e2e/golden/`](internal/app/testdata
   - `UpgradeEdge.Validate()` and the JSON Schema both enforce this.
 - **Honest about gaps.** An unreachable channel is reported as
   `unavailable`, and a predicted artifact as `expected`. Neither is ever
-  shown as `verified` or `missing`.
+  shown as `verified` or `missing`. The same rule drives
+  [drift detection](docs/DRIFT.md): unreachable is `unverifiable`, only a
+  channel that answered differently is drift.
 - **Reproducible.** All upstream reads go through a filesystem cache, and
   `-offline` replays a run byte for byte.
 
@@ -98,6 +100,7 @@ ri products                                     # list definitions
 ri validate                                     # static validation (Go validator)
 ri versions istio                               # canonical releases (with source fallbacks)
 ri check argo-cd                                # validate declared relationships against 6 historical releases
+ri drift istio                                  # re-validate the definition on the newest releases; drift report + proposal (never applied)
 ri ingest cert-manager v1.18.0                  # one release: sources, artifacts, notes, snapshots
 ri upgrade cert-manager v1.17.0 v1.18.0         # the upgrade edge (text)
 ri upgrade argo-cd v2.14.11 v3.0.6 -o json      # … as JSON (schemas/upgrade-edge.schema.json)

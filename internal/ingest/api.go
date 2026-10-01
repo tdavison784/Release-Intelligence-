@@ -163,5 +163,14 @@ type RelationshipReport struct {
 // consults every member of a fallback group, so that alternatives are
 // validated too.
 func (i *Ingester) CheckRelationships(ctx context.Context, def *catalog.ProductDefinition, releases []domain.Version, known *VersionList) (*RelationshipReport, error) {
+	rep, _, err := i.checkRelationships(ctx, def, releases, known)
+	return rep, err
+}
+
+// IngestChecked is CheckRelationships plus the ingested releases of the same
+// exhaustive run (in the same order as Report.Releases). Callers that need
+// both the validation matrix and the per-release payloads — snapshots, facts,
+// evidence — (for example drift) avoid ingesting every release twice.
+func (i *Ingester) IngestChecked(ctx context.Context, def *catalog.ProductDefinition, releases []domain.Version, known *VersionList) (*RelationshipReport, []*domain.Release, error) {
 	return i.checkRelationships(ctx, def, releases, known)
 }

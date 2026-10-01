@@ -6,6 +6,9 @@
 //	ri check <product> [-n N | -versions a,b,c]
 //	                                    validate declared release↔artifact
 //	                                    relationships against history
+//	ri drift <product> [-n N]           re-validate the definition against the
+//	                                    newest releases; report drift events
+//	                                    and a proposed change (never applied)
 //	ri ingest <product> <version>       ingest one release (facts + evidence)
 //	ri upgrade <product> <from> <to>    describe the upgrade edge
 //	ri discover <repository>            propose a product definition
@@ -39,6 +42,7 @@ Commands:
   validate [product|file.yaml ...]  statically validate product definitions
   versions <product>                list canonical releases and source status
   check <product>                   validate declared relationships against historical releases
+  drift <product>                   detect source drift on the newest releases; propose (never apply) changes
   ingest <product> <version>        ingest one release and print its facts
   upgrade <product> <from> <to>     describe everything relevant to upgrading from → to
   discover <repository>             inspect an upstream repository and propose a definition
@@ -120,6 +124,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return c.versions(cmdArgs)
 	case "check":
 		return c.check(cmdArgs)
+	case "drift":
+		return c.drift(cmdArgs)
 	case "ingest":
 		return c.ingest(cmdArgs)
 	case "upgrade":
