@@ -210,7 +210,7 @@ func isAdocDelimiter(s string) bool {
 }
 
 var (
-	adocAnchorRe  = regexp.MustCompile(`^\[\[[^\]\n]*\]\]$`)
+	adocAnchorRe   = regexp.MustCompile(`^\[\[[^\]\n]*\]\]$`)
 	adocAttrListRe = regexp.MustCompile(`^\[[^]\n]*\]$`)
 	// standalone macro lines: include::dir/file.asciidoc[], ifdef::attr[],
 	// image::x.png[], coming::[9.0.0], tag::name[] … (but not prose with "::")

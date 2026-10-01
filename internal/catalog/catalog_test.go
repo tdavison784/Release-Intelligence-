@@ -154,9 +154,9 @@ func TestValidateColumnKindVocabulary(t *testing.T) {
 			Sources: []Source{
 				{ID: "t", Roles: []domain.SourceRole{domain.RoleVersions}, Locator: Locator{Kind: LocatorGitTags, Repository: "example.com/a/b"}},
 				{ID: "c", Roles: []domain.SourceRole{domain.RoleCompatibility},
-				Locator: Locator{Kind: LocatorRepoFile, Repository: "example.com/a/b", Ref: "{{.Tag}}", Path: "compat.yaml"},
-				Extract: &Extract{Type: ExtractYAMLRecords, KeyColumns: []string{"appVersion"}, KeyMatch: ".",
-					Columns: []ColumnSpec{{Platform: "kubernetes", Kind: kind, Headers: []string{"minK8sVersion"}}}}}},
+					Locator: Locator{Kind: LocatorRepoFile, Repository: "example.com/a/b", Ref: "{{.Tag}}", Path: "compat.yaml"},
+					Extract: &Extract{Type: ExtractYAMLRecords, KeyColumns: []string{"appVersion"}, KeyMatch: ".",
+						Columns: []ColumnSpec{{Platform: "kubernetes", Kind: kind, Headers: []string{"minK8sVersion"}}}}}},
 		}
 	}
 	for _, kind := range []string{"", "supported", "tested", "minimum", "maximum"} {
