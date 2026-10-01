@@ -258,6 +258,9 @@ func Validate(d *ProductDefinition) ValidationReport {
 				v.errf(cp+".locator", "required when the artifact has no http/repo-file/repo-dir channel")
 			}
 			v.constraint(cp+".availability", c.Availability)
+			if c.StripPrefix != "" && c.Kind != ContentHelmValues {
+				v.errf(cp+".stripPrefix", "only supported for %s contents", ContentHelmValues)
+			}
 		}
 		v.constraint(p+".availability", a.Availability)
 		v.exceptions(p+".exceptions", a.Exceptions)

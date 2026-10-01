@@ -60,6 +60,12 @@ sources:
     classify:
       - text: '^(test|ci)(\(.+\))?:'
         skip: true
+      # dependency bumps of test/UI tooling and CI actions are not part of
+      # the shipped product
+      - text: '^(chore|build)\(deps(-dev)?\): bump .+ in /(ui-test|ui|test|hack|docs)\b'
+        skip: true
+      - text: '^(chore|build)\(deps(-dev)?\): bump (actions|github|docker|SonarSource|codecov|softprops|azure|golangci|sigstore|slsa-framework)/'
+        skip: true
       - text: '^Merge pull request from GHSA-'
         category: security
 

@@ -296,6 +296,10 @@ type Content struct {
 	Locator *Locator `yaml:"locator,omitempty" json:"locator,omitempty"`
 	// Availability narrows when this content can be captured.
 	Availability string `yaml:"availability,omitempty" json:"availability,omitempty"`
+	// StripPrefix (helm-values only) removes a wrapper key path from every
+	// values key, so keys match what users actually set (e.g. Istio nests
+	// chart defaults under "_internal_defaults_do_not_set").
+	StripPrefix string `yaml:"stripPrefix,omitempty" json:"stripPrefix,omitempty"`
 }
 
 // DefinitionProvenance documents the origin of the definition itself.

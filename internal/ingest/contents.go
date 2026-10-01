@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
@@ -88,7 +89,7 @@ func (i *Ingester) captureContents(ctx context.Context, r *run, ar *artifactRun,
 		for _, d := range f.docs {
 			evs = append(evs, domain.NewEvidence(domain.EvidenceStructured, a.ID, d.URI, d.Path, firstLine(d.Content), d.Digest, d.RetrievedAt))
 		}
-		detail, used, err := i.snapshotContent(r, ar, c.Kind, av, f.docs, evs)
+		detail, used, err := i.snapshotContent(r, ar, c, av, f.docs, evs)
 		if err != nil {
 			finish(domain.SourceError, fmt.Sprintf("retrieved, but parsing %s failed: %v", c.Kind, err))
 			continue
@@ -101,8 +102,9 @@ func (i *Ingester) captureContents(ctx context.Context, r *run, ar *artifactRun,
 // snapshotContent turns retrieved content into snapshots / constraints and
 // records them (with their evidence and facts) on ar. It returns a summary
 // and the document evidence the snapshot rests on.
-func (i *Ingester) snapshotContent(r *run, ar *artifactRun, kind, av string, docs []sources.Document, evs []domain.Evidence) (string, []domain.Evidence, error) {
+func (i *Ingester) snapshotContent(r *run, ar *artifactRun, c catalog.Content, av string, docs []sources.Document, evs []domain.Evidence) (string, []domain.Evidence, error) {
 	a := ar.art
+	kind := c.Kind
 	p := i.parser()
 	version := av
 	if version == "" {
@@ -122,6 +124,9 @@ func (i *Ingester) snapshotContent(r *run, ar *artifactRun, kind, av string, doc
 		}
 		if vs == nil {
 			return "", nil, errors.New("no values snapshot produced")
+		}
+		if c.StripPrefix != "" {
+			vs = stripValuesPrefix(vs, c.StripPrefix)
 		}
 		ar.evidence = append(ar.evidence, evs[:1]...)
 		ids = ids[:1]
@@ -219,4 +224,21 @@ func (i *Ingester) snapshotContent(r *run, ar *artifactRun, kind, av string, doc
 		return fmt.Sprintf("%d image references", len(images)), evs, nil
 	}
 	return "", nil, fmt.Errorf("unknown content kind %q", kind)
+}
+
+// stripValuesPrefix removes a wrapper key path ("a.b") from every values key
+// that starts with it; other keys are kept as they are.
+func stripValuesPrefix(vs *domain.ValuesSnapshot, prefix string) *domain.ValuesSnapshot {
+	prefix = strings.TrimSuffix(prefix, ".") + "."
+	out := &domain.ValuesSnapshot{Chart: vs.Chart, Version: vs.Version, Entries: map[string]string{}}
+	if vs.Comments != nil {
+		out.Comments = map[string]string{}
+	}
+	for k, v := range vs.Entries {
+		out.Entries[strings.TrimPrefix(k, prefix)] = v
+	}
+	for k, v := range vs.Comments {
+		out.Comments[strings.TrimPrefix(k, prefix)] = v
+	}
+	return out
 }

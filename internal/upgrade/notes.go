@@ -2,6 +2,7 @@ package upgrade
 
 import (
 	"strings"
+	"unicode"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
 )
@@ -34,6 +35,7 @@ func noteRank(it domain.NoteItem) int {
 // Changes, merging duplicates.
 func (b *builder) noteChanges() {
 	groups := map[string]*noteGroup{}
+	byTitle := map[string]*noteGroup{} // release + heading title → group
 	var order []*noteGroup
 	for _, r := range b.releases {
 		for _, it := range r.Notes {
@@ -46,11 +48,22 @@ func (b *builder) noteChanges() {
 				rel = r.Version.Semver
 			}
 			it.Release = rel
-			key := normalizeNoteText(text)
+			key := alnumKey(normalizeNoteText(text))
 			if key == "" {
 				key = text
 			}
 			g := groups[key]
+			// The same change often appears twice with different wording:
+			// e.g. a structured release-note entry {title, content} and the
+			// hand-edited upgrade-notes section under the same heading. Merge
+			// heading-style items that share their title within a release.
+			tkey := ""
+			if t := headingTitle(text); t != "" {
+				tkey = rel + "\x00" + t
+				if g == nil {
+					g = byTitle[tkey]
+				}
+			}
 			if g == nil {
 				g = &noteGroup{key: key, release: rel}
 				groups[key] = g
@@ -59,6 +72,10 @@ func (b *builder) noteChanges() {
 				g.release = rel
 			}
 			g.items = append(g.items, it)
+			groups[key] = g
+			if tkey != "" && byTitle[tkey] == nil {
+				byTitle[tkey] = g
+			}
 		}
 	}
 	invalid := 0
@@ -102,4 +119,33 @@ func (b *builder) noteChanges() {
 	if invalid > 0 {
 		b.warnf("%s skipped because their classification provenance is invalid", plural(invalid, "release-note item was", "release-note items were"))
 	}
+}
+
+// alnumKey reduces normalised text to lowercase letters and digits so that
+// punctuation and markup differences do not defeat de-duplication.
+func alnumKey(s string) string {
+	var b strings.Builder
+	for _, r := range strings.ToLower(s) {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
+// headingTitle returns the alnum key of a "Title: body" item's title when the
+// title looks like a heading (2–12 words, no sentence punctuation), else "".
+func headingTitle(text string) string {
+	i := strings.Index(text, ": ")
+	if i <= 0 || i > 140 {
+		return ""
+	}
+	title := strings.TrimSpace(text[:i])
+	if strings.ContainsAny(title, ".;!?") {
+		return ""
+	}
+	if n := len(strings.Fields(title)); n < 2 || n > 12 {
+		return ""
+	}
+	return alnumKey(normalizeNoteText(title))
 }

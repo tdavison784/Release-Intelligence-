@@ -137,6 +137,8 @@ sources:
 
 artifacts:
   # --- Helm charts (version == appVersion == release version) ---------------
+  # Chart defaults are nested under "_internal_defaults_do_not_set" (users
+  # set the keys at top level), hence stripPrefix.
   - id: chart-base
     type: helm-chart
     name: base
@@ -150,6 +152,7 @@ artifacts:
     contents:
       - kind: helm-values
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/base/values.yaml}
+        stripPrefix: _internal_defaults_do_not_set
   - id: chart-istiod
     type: helm-chart
     name: istiod
@@ -163,6 +166,7 @@ artifacts:
     contents:
       - kind: helm-values
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-control/istio-discovery/values.yaml}
+        stripPrefix: _internal_defaults_do_not_set
   - id: chart-gateway
     type: helm-chart
     name: gateway
@@ -176,6 +180,7 @@ artifacts:
     contents:
       - kind: helm-values
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/gateway/values.yaml}
+        stripPrefix: _internal_defaults_do_not_set
   - id: chart-cni
     type: helm-chart
     name: cni
@@ -189,6 +194,7 @@ artifacts:
     contents:
       - kind: helm-values
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-cni/values.yaml}
+        stripPrefix: _internal_defaults_do_not_set
   - id: chart-ztunnel
     type: helm-chart
     name: ztunnel
@@ -202,6 +208,7 @@ artifacts:
     contents:
       - kind: helm-values
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/ztunnel/values.yaml}
+        stripPrefix: _internal_defaults_do_not_set
 
   # --- CRDs (shipped inside the base chart) -------------------------------
   - id: crds
