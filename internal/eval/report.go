@@ -15,12 +15,17 @@ import (
 type Report struct {
 	Results   []EntryResult `json:"results"`
 	Aggregate Aggregate     `json:"aggregate"`
+	// Gates is the hard-gate panel (G11); nil when no gates were evaluated.
+	Gates []GateResult `json:"gates,omitempty"`
 	// Diffs against stored snapshots. Compared is true when at least one
 	// stored snapshot existed (a clean comparison prints an explicit "no
 	// regressions" line so CI logs say what was checked).
 	Diffs    []Delta `json:"diffs,omitempty"`
 	Compared bool    `json:"compared,omitempty"`
 }
+
+// HasGateFailure reports whether any hard gate failed.
+func (r Report) HasGateFailure() bool { return HasGateFailure(r.Gates) }
 
 // JSON renders the report as indented JSON.
 func (r Report) JSON() ([]byte, error) {
@@ -41,15 +46,33 @@ func RenderText(w io.Writer, rep Report) error {
 	}
 	agg := rep.Aggregate
 	fmt.Fprintf(w, "── aggregate ─────────────────────────────────────────────\n")
-	fmt.Fprintf(w, "%d entries (%d errored): expected %d, found %d, missed %d (critical %d, important %d, minor %d)\n",
-		agg.Entries, agg.Errored, agg.Expected, agg.Found, agg.Expected-agg.Found,
+	fmt.Fprintf(w, "%d entries (%d pipeline failures): expected %d, found %d, missed %d (critical %d, important %d, minor %d)\n",
+		agg.Entries, agg.PipelineFailures, agg.Expected, agg.Found, agg.Expected-agg.Found,
 		agg.MissedCritical, agg.MissedImportant, agg.MissedMinor)
-	fmt.Fprintf(w, "recall %.2f   precision %.2f   (changes %d, matched %d, false positives %d, duplicate groups %d, unsupported %d)\n",
-		agg.Recall, agg.Precision, agg.Changes, agg.MatchedChanges, agg.FalsePositives, agg.DuplicateGroups, agg.Unsupported)
+	fmt.Fprintf(w, "recall %.2f (critical %.2f, important %.2f)   raw precision %.2f   labeled precision %.2f (true %d / false %d, adjudicated)\n",
+		agg.Recall, agg.CriticalRecall, agg.ImportantRecall, agg.Precision, agg.LabeledPrecision, agg.AdjudicatedTrue, agg.AdjudicatedFalse)
+	fmt.Fprintf(w, "(changes %d, matched %d, false positives %d, duplicate rate %.2f (%d groups), unsupported %d, evidence coverage %.2f)\n",
+		agg.Changes, agg.MatchedChanges, agg.FalsePositives, agg.DuplicateRate, agg.DuplicateGroups, agg.Unsupported, agg.EvidenceCoverage)
+	fmt.Fprintf(w, "classification accuracy %.2f (%d scored)   false-action rate %.2f (%d/%d ACTION findings)   unknown rate %.2f   applicability accuracy %.2f\n",
+		agg.ClassificationAccuracy, agg.ClassificationScored, agg.FalseActionRate, agg.FalseActionFindings, agg.ActionFindings,
+		agg.UnknownRate, agg.ApplicabilityAccuracy)
+	if agg.Suggestions != nil {
+		fmt.Fprintf(w, "suggestions: %d (%d labelled: %d correct, %d wrong, %d unlabelled) precision %.2f, recall %.2f (unknown-labelled %d)\n",
+			agg.Suggestions.Suggestions, agg.Suggestions.Labelled, agg.Suggestions.LabeledCorrect, agg.Suggestions.LabeledWrong,
+			agg.Suggestions.Unlabeled, agg.SuggestionPrecision, agg.SuggestionRecall, agg.Suggestions.UnknownLabeled)
+	}
 	if agg.EnvEntries > 0 {
 		fmt.Fprintf(w, "environment (%d entries): impact links %d/%d hit (accuracy %.2f), findings %d/%d, false findings %d\n",
 			agg.EnvEntries, agg.ImpactLinksHit, agg.ImpactLinks, agg.ImpactAccuracy,
 			agg.FindingsFound, agg.FindingsExpected, agg.FindingsFP)
+	}
+	if agg.Confusion != nil && agg.Confusion.Labelled > 0 {
+		renderConfusion(w, agg.Confusion)
+	}
+	if len(rep.Gates) > 0 {
+		if err := RenderGates(w, rep.Gates); err != nil {
+			return err
+		}
 	}
 	if len(rep.Diffs) > 0 || rep.Compared {
 		fmt.Fprintf(w, "── vs stored results ─────────────────────────────────────\n")
@@ -136,6 +159,27 @@ func renderEntry(w io.Writer, r *EntryResult) error {
 		}
 	}
 	return nil
+}
+
+func renderConfusion(w io.Writer, m *ConfusionMatrix) {
+	fmt.Fprintf(w, "confusion matrix (expected rows × actual columns, %d labelled findings; severity weighting per docs/ACTION_CLASSIFICATION.md):\n", m.Labelled)
+	short := map[string]string{
+		ClassActionRequired: "ACTION", ClassReviewRequired: "REVIEW", ClassInformational: "INFO",
+		ClassNotAffected: "NOTAFF", ClassUnknown: "UNKNOWN",
+	}
+	fmt.Fprintf(w, "  %-17s", "expected\\actual")
+	for _, c := range m.Classes {
+		fmt.Fprintf(w, " %7s", short[c])
+	}
+	fmt.Fprintln(w)
+	for i, row := range m.Rows {
+		fmt.Fprintf(w, "  %-17s", short[m.Classes[i]])
+		for _, n := range row {
+			fmt.Fprintf(w, " %7d", n)
+		}
+		fmt.Fprintln(w)
+	}
+	fmt.Fprintf(w, "  weighted miss %.1f (ACTION→NOTAFF ×10, ACTION→UNKNOWN/INFO ×5, NOTAFF→ACTION ×5, ACTION→REVIEW ×1, …)\n", m.WeightedMiss)
 }
 
 func clip(s string, n int) string {

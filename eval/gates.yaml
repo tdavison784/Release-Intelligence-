@@ -1,0 +1,28 @@
+# Hard gates for `ri eval` (G11) — PRE-REGISTERED THRESHOLDS.
+#
+# These thresholds were fixed from the phase plan BEFORE the expanded dataset
+# was scored (protocol: the dataset lands first, then the gates activate on
+# the stored results of `-update`; they are never tuned after reading gate
+# outcomes). A failing gate on the honest numbers is a FINDING about the
+# pipeline, reported in eval/REPORT.md — not something the pipeline gets
+# tuned against inside this workstream.
+#
+# Semantics (`ri eval` exits non-zero when any gate fails):
+#   minimum            actual must be >= threshold
+#   maximum-exclusive  actual must be <  threshold
+#   maximum-absolute   actual must be <= threshold
+# A gate whose metric observed nothing (no environment decisions, no
+# action-required findings) is VACUOUS: it passes, and the panel says so —
+# a vacuous pass proves nothing.
+#
+# Pipeline execution failures are counted separately (pipelineFailures): an
+# entry whose pipeline errored still scores zero found, but the cause is an
+# execution error, never a reasoning miss.
+
+criticalRecall: 0.95        # >= 95% of critical expected items found
+importantRecall: 0.90       # >= 90% of important expected items found
+applicabilityAccuracy: 0.80 # >= 80% of applicability decisions correct (affected links hit + not-affected links clean, over all)
+falseActionRate: 0.05       # <  5% of action-required findings judged wrong
+actionFindingEvidence: 1.0  # 100% of ACTION findings carry fully-resolving two-chain provenance
+unsupportedMax: 0           # zero unsupported conclusions (structural evidence audit)
+pipelineFailuresMax: 0      # zero pipeline execution errors

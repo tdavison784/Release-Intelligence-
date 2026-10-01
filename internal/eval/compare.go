@@ -30,6 +30,9 @@ type Metrics struct {
 	// Expected items (ground truth) and how many were found.
 	Expected int `json:"expected"`
 	Found    int `json:"found"`
+	// Expected by importance (the recall denominators per importance).
+	ExpectedCritical  int `json:"expectedCritical"`
+	ExpectedImportant int `json:"expectedImportant"`
 	// Missed items by importance (Expected - Found distributed).
 	MissedCritical  int `json:"missedCritical"`
 	MissedImportant int `json:"missedImportant"`
@@ -43,6 +46,25 @@ type Metrics struct {
 	DuplicateGroups int `json:"duplicateGroups"`
 	// Unsupported conclusions: evidence does not resolve.
 	Unsupported int `json:"unsupported"`
+
+	// --- classification scoring (G9) --------------------------------------
+
+	// ClassificationScored counts expected items with an expected class whose
+	// actual class was observable (a joined finding class, or a change-level
+	// action flag); ClassificationMatched counts those where the classes
+	// agree. Items without an expected class, or whose actual class carries
+	// no signal, score nothing (and are visible in the audits).
+	ClassificationScored  int `json:"classificationScored"`
+	ClassificationMatched int `json:"classificationMatched"`
+	// Finding-level class accounting across the entry's env reports (zero
+	// without an environment).
+	ActionFindings            int `json:"actionFindings"`            // findings classified action-required
+	FalseActionFindings       int `json:"falseActionFindings"`       // ACTION findings judged wrong (unsupported, dataset FP, env FP, or adjudicated FP)
+	ActionFindingsUnsupported int `json:"actionFindingsUnsupported"` // ACTION findings failing the provenance audit
+	UnknownFindings           int `json:"unknownFindings"`           // UNKNOWN (insufficient evidence) findings
+	// EvidenceCovered counts matched changes whose first hit cites a
+	// resolving evidence URI (evidenceCoverage = covered / matched).
+	EvidenceCovered int `json:"evidenceCovered"`
 }
 
 // Recall is found / expected (0 when nothing expected, which cannot happen
@@ -119,6 +141,15 @@ type MatchAudit struct {
 	Kind       string `json:"kind,omitempty"`
 	Importance string `json:"importance,omitempty"`
 	Found      bool   `json:"found"`
+	// ExpectedClass (G9) is the class the case says a correct system should
+	// output for this item ("" when the case predates the field).
+	ExpectedClass string `json:"expectedClass,omitempty"`
+	// ActualClass is the strongest class the pipeline output for this item:
+	// the strongest joined finding class (environment entries), or the
+	// change-level action flag ("action-required") when only the edge is
+	// available. Empty = no class signal was observable.
+	ActualClass string   `json:"actualClass,omitempty"`
+	FindingIDs  []string `json:"findingIds,omitempty"`
 	// Hits is one entry per matching change: which change, matched by which
 	// matcher, backed by which evidence URI.
 	Hits []Hit `json:"hits,omitempty"`
@@ -135,10 +166,13 @@ type Hit struct {
 }
 
 // FPAudit records a false positive: the notExpected entry and the offending
-// changes.
+// changes. Classification, when the entry declares one, is the class such
+// output should NOT have carried — those cells feed the confusion matrix as
+// expected=that-class, actual=<class of the offending findings>.
 type FPAudit struct {
-	Title     string   `json:"title"`
-	ChangeIDs []string `json:"changeIds"`
+	Title          string   `json:"title"`
+	Classification string   `json:"classification,omitempty"`
+	ChangeIDs      []string `json:"changeIds"`
 }
 
 // DupAudit records a group of changes that restate one fact.
@@ -161,6 +195,12 @@ type FindingAudit struct {
 	Matcher    string   `json:"matcher"`
 	Found      bool     `json:"found"`
 	FindingIDs []string `json:"findingIds,omitempty"`
+	// ExpectedClass is the matcher's classification clause, when it had one
+	// ("" = the expectation does not pin a class); ActualClass is the class
+	// of the first matching finding (the confusion matrix uses labelled
+	// expectedFindings).
+	ExpectedClass string `json:"expectedClass,omitempty"`
+	ActualClass   string `json:"actualClass,omitempty"`
 }
 
 // EnvImpactAudit records how one expectedImpact link fared.
@@ -182,7 +222,9 @@ type EntryResult struct {
 	From    string `json:"from"`
 	To      string `json:"to"`
 	// Error is set when the pipeline could not run at all (the entry then
-	// scores zero found / all missed).
+	// scores zero found / all missed). A pipeline failure is an execution
+	// error, never a reasoning miss; aggregate metrics count it as
+	// pipelineFailures.
 	Error string `json:"error,omitempty"`
 
 	Metrics                Metrics            `json:"metrics"`
@@ -194,6 +236,24 @@ type EntryResult struct {
 	EnvImpact              []EnvImpactAudit   `json:"envImpact,omitempty"`
 	EnvFindings            []FindingAudit     `json:"envFindings,omitempty"`
 	EnvFalsePos            []FPAudit          `json:"envFalsePositives,omitempty"`
+	// Suggestions is the enriched-run scoring (opt-in `-enriched`; nil for
+	// deterministic runs).
+	Suggestions *SuggestionMetrics `json:"suggestions,omitempty"`
+	// Confusion is the entry's labelled expected×actual cell counts (present
+	// when at least one finding carried a label).
+	Confusion *ConfusionMatrix `json:"confusion,omitempty"`
+	// Adjudicated is the sample-based human adjudication of this entry's
+	// changes (empty without an eval/adjudications/<case>.yaml file).
+	Adjudicated AdjudicationStats `json:"adjudicated,omitempty"`
+	// FPChangeIDs lists the change ids of the entry's dataset false positives
+	// (the adjudication pass and the confusion-matrix exclusion set).
+	FPChangeIDs []string `json:"fpChangeIds,omitempty"`
+	// AllChangeIDs lists every change id of the edge (adjudication coverage
+	// audit).
+	AllChangeIDs []string `json:"allChangeIds,omitempty"`
+	// actionFindings is the per-finding wrongness audit used by the
+	// adjudication pass (not serialised; the counts are).
+	actionFindings []ActionFindingRecord
 }
 
 // ScoreEntry scores one case against its edge (and report, when present).
@@ -208,8 +268,15 @@ func ScoreEntry(c *Case, edge *domain.UpgradeEdge, report *domain.ImpactReport, 
 	}
 	res.Metrics.Expected = len(c.Expected)
 	for _, e := range c.Expected {
+		switch e.Importance {
+		case ImportanceCritical:
+			res.Metrics.ExpectedCritical++
+		case ImportanceImportant:
+			res.Metrics.ExpectedImportant++
+		}
 		res.Matches = append(res.Matches, MatchAudit{
 			ExpectedID: e.ID, Title: e.Title, Kind: e.Kind, Importance: e.Importance,
+			ExpectedClass: e.Classification,
 		})
 	}
 	if edge != nil {
@@ -224,6 +291,7 @@ func ScoreEntry(c *Case, edge *domain.UpgradeEdge, report *domain.ImpactReport, 
 		// the case declares an environment but no report was produced
 		res.Env = &EnvMetrics{}
 	}
+	finalizeClassification(&res, c)
 	// distribute misses by importance; found is what the match audits say
 	found := 0
 	for i := range res.Matches {
@@ -244,9 +312,30 @@ func ScoreEntry(c *Case, edge *domain.UpgradeEdge, report *domain.ImpactReport, 
 	return res
 }
 
+// finalizeClassification scores the expected classes against the observed
+// ones: an item scores when the case names a class AND the run showed a class
+// signal (a joined finding, or a change-level action flag). Everything else
+// stays unlabelled in the audits — silently counting unobservable classes as
+// misses would manufacture failures the fixture cannot support.
+func finalizeClassification(res *EntryResult, c *Case) {
+	for i := range res.Matches {
+		a := &res.Matches[i]
+		if a.ExpectedClass == "" || a.ActualClass == "" {
+			continue
+		}
+		res.Metrics.ClassificationScored++
+		if a.ExpectedClass == a.ActualClass {
+			res.Metrics.ClassificationMatched++
+		}
+	}
+}
+
 func scoreEdge(res *EntryResult, c *Case, edge *domain.UpgradeEdge) {
 	ev := NewEvidenceIndex(edge)
 	res.Metrics.Changes = len(edge.Changes)
+	for _, ch := range edge.Changes {
+		res.AllChangeIDs = append(res.AllChangeIDs, ch.ID)
+	}
 
 	// expected items
 	for i := range res.Matches {
@@ -267,6 +356,12 @@ func scoreEdge(res *EntryResult, c *Case, edge *domain.UpgradeEdge) {
 					MatchedBy:   exp.Match[mi].String(),
 					Evidence:    firstEvidenceURI(ch.Evidence, ev),
 				})
+				// change-level class signal: the edge vocabulary knows only
+				// the action axis (ActionRequired); a finding-level class
+				// (env entries) strengthens this in scoreReport.
+				if ch.ActionRequired {
+					audit.ActualClass = StrongestClass(audit.ActualClass, ClassActionRequired)
+				}
 			}
 		}
 	}
@@ -284,18 +379,28 @@ func scoreEdge(res *EntryResult, c *Case, edge *domain.UpgradeEdge) {
 		}
 		if len(ids) > 0 {
 			res.Metrics.FalsePositives += len(ids)
-			res.FalsePos = append(res.FalsePos, FPAudit{Title: ne.Title, ChangeIDs: ids})
+			res.FalsePos = append(res.FalsePos, FPAudit{Title: ne.Title, ChangeIDs: ids, Classification: ne.Classification})
+			res.FPChangeIDs = append(res.FPChangeIDs, ids...)
 		}
 	}
 
 	// matched changes (for precision/coverage)
 	matched := map[string]bool{}
+	withEvidence := map[string]bool{}
 	for i := range res.Matches {
 		for _, h := range res.Matches[i].Hits {
 			matched[h.ChangeID] = true
+			if h.Evidence != "" {
+				withEvidence[h.ChangeID] = true
+			}
 		}
 	}
 	res.Metrics.MatchedChanges = len(matched)
+	for id := range matched {
+		if withEvidence[id] {
+			res.Metrics.EvidenceCovered++
+		}
+	}
 
 	// duplicates
 	res.Duplicates, res.Metrics.DuplicateGroups = findDuplicates(edge.Changes)
@@ -512,6 +617,26 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 		return ids
 	}
 
+	// expected class per expected item from the environment links
+	// (relevance maps 1:1 onto the class vocabulary).
+	relevanceFor := map[string]string{}
+	for _, l := range c.Environment.ExpectedImpact {
+		relevanceFor[l.Expected] = l.Relevance
+	}
+
+	// the confusion matrix: labelled findings only. A finding is labelled by
+	// (a) an expectedFinding matcher pinning a classification, or (b) the
+	// expectedImpact relevance of the expected item its change covers. FP
+	// findings (notExpectedFindings) are labelled by the notExpectedFindings
+	// classification when present.
+	matrix := NewConfusionMatrix()
+	labelled := func(expected, actual string) {
+		if expected == "" || actual == "" {
+			return
+		}
+		matrix.Add(expected, actual)
+	}
+
 	for _, l := range c.Environment.ExpectedImpact {
 		audit := EnvImpactAudit{ExpectedID: l.Expected, Relevance: l.Relevance, Why: l.Why}
 		ids := findingsFor(l.Expected)
@@ -530,13 +655,31 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 			em.ImpactLinksHit++
 		}
 	}
+	// strengthen the per-item actual class from the joined findings (the
+	// strongest class wins: a miss that hides required action is the worst
+	// cell, so it must dominate the audit)
+	findingByID := map[string]domain.ImpactFinding{}
+	for _, f := range report.Findings {
+		findingByID[f.ID] = f
+	}
+	for i := range res.Matches {
+		audit := &res.Matches[i]
+		for _, f := range report.Findings {
+			if f.ChangeID == "" || expIDForChange[f.ChangeID] != audit.ExpectedID {
+				continue
+			}
+			audit.FindingIDs = append(audit.FindingIDs, f.ID)
+			audit.ActualClass = StrongestClass(audit.ActualClass, string(f.Classification))
+		}
+	}
 
 	// expected findings
 	for _, ef := range c.Environment.ExpectedFindings {
-		audit := FindingAudit{ID: ef.ID, Matcher: ef.Match.String()}
+		audit := FindingAudit{ID: ef.ID, Matcher: ef.Match.String(), ExpectedClass: ef.Match.Classification}
 		for _, f := range report.Findings {
 			if ef.Match.Matches(f) {
 				audit.Found = true
+				audit.ActualClass = string(f.Classification)
 				audit.FindingIDs = append(audit.FindingIDs, f.ID)
 			}
 		}
@@ -550,23 +693,90 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 	}
 
 	// finding false positives
+	envFPChange := map[string]bool{} // findings' change ids matching a notExpected entry
 	for _, nef := range c.Environment.NotExpectedFindings {
 		var ids []string
 		for _, f := range report.Findings {
 			if nef.Match.Matches(f) {
 				ids = append(ids, f.ID)
+				envFPChange[f.ChangeID] = true
+				labelled(nef.Classification, string(f.Classification))
 			}
 		}
 		if len(ids) > 0 {
 			em.FindingsFP += len(ids)
-			res.EnvFalsePos = append(res.EnvFalsePos, FPAudit{Title: nef.Title, ChangeIDs: ids})
+			res.EnvFalsePos = append(res.EnvFalsePos, FPAudit{Title: nef.Title, Classification: nef.Classification, ChangeIDs: ids})
 		}
 	}
 
-	// unsupported findings (both chains must resolve and join a real change)
-	if audits := findUnsupportedFindings(report, edge); len(audits) > 0 {
-		res.UnsupportedConclusions = append(res.UnsupportedConclusions, audits...)
-		res.Metrics.Unsupported += len(audits)
-		em.Unsupported = len(audits)
+	// per-finding class accounting + false-action detection + matrix cells
+	// over expectedImpact-labelled findings.
+	unsupported := findUnsupportedFindings(report, edge)
+	unsupportedIDs := map[string]bool{}
+	for _, u := range unsupported {
+		unsupportedIDs[u.ID] = true
 	}
+	fpChange := map[string]bool{}
+	for _, id := range res.FPChangeIDs {
+		fpChange[id] = true
+	}
+	for _, f := range report.Findings {
+		switch string(f.Classification) {
+		case ClassActionRequired:
+			res.Metrics.ActionFindings++
+			unsupported := unsupportedIDs[f.ID]
+			if unsupported {
+				res.Metrics.ActionFindingsUnsupported++
+			}
+			wrong := unsupported || envFPChange[f.ChangeID] || fpChange[f.ChangeID]
+			if !wrong {
+				if expID, ok := expIDForChange[f.ChangeID]; ok {
+					// over-classification: ground truth names a softer class
+					// for this item and the item is labelled at all
+					if cls := classForRelevance(relevanceFor[expID]); cls != "" && cls != ClassActionRequired {
+						wrong = true
+					}
+				}
+			}
+			if wrong {
+				res.Metrics.FalseActionFindings++
+			}
+			res.actionFindings = append(res.actionFindings, ActionFindingRecord{
+				FindingID: f.ID, ChangeID: f.ChangeID, Wrong: wrong,
+			})
+		case ClassUnknown:
+			res.Metrics.UnknownFindings++
+		}
+		// matrix: label by expectedImpact relevance of the covered item
+		if expID, ok := expIDForChange[f.ChangeID]; ok {
+			labelled(classForRelevance(relevanceFor[expID]), string(f.Classification))
+		}
+	}
+	if matrix.Labelled > 0 {
+		res.Confusion = matrix
+	}
+	scoreSuggestions(res, c, report, expIDForChange, relevanceFor)
+
+	// unsupported findings (both chains must resolve and join a real change)
+	if len(unsupported) > 0 {
+		res.UnsupportedConclusions = append(res.UnsupportedConclusions, unsupported...)
+		res.Metrics.Unsupported += len(unsupported)
+		em.Unsupported = len(unsupported)
+	}
+}
+
+// classForRelevance maps the dataset relevance vocabulary onto the class
+// vocabulary (1:1 except the name of review).
+func classForRelevance(rel string) string {
+	switch rel {
+	case RelevanceActionRequired:
+		return ClassActionRequired
+	case RelevanceReview:
+		return ClassReviewRequired
+	case RelevanceInformational:
+		return ClassInformational
+	case RelevanceNotAffected:
+		return ClassNotAffected
+	}
+	return ""
 }
