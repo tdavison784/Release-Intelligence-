@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 27 product definitions, 26 onboarding records, 27 saved relationship reports.
-- 156 distinct constructs are used across all definitions; the records introduce 155.
-- 12 of 26 recorded products introduced no new construct. The latest product that introduced one has order 28.
+- 28 product definitions, 27 onboarding records, 28 saved relationship reports.
+- 161 distinct constructs are used across all definitions; the records introduce 160.
+- 12 of 27 recorded products introduced no new construct. The latest product that introduced one has order 28.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -94,6 +94,7 @@ What convergence looks like:
 | 23 | 3 | linkerd | 419 (343) | 11 | 11 | 16 | 3 | 28 | 22 | 0 | 1 | 1 | 20 |
 | 24 | 3 | prometheus-operator | 346 (273) | 6 | 10 | 17 | 2 | 12 | 17 | 0 | 2 | 0 | 5 |
 | 25 | 4 | opensearch | 310 (226) | 7 | 7 | 9 | 0 | 22 | 21 | 0 | 1 | 1 | 2 |
+| 26 | 4 | loki | 519 (415) | 12 | 8 | 13 | 2 | 65 | 27 | 1 | 1 | 1 | 9 |
 | 27 | 4 | minio | 326 (228) | 7 | 5 | 6 | 2 | 11 | 16 | 8 | 1 | 0 | 7 |
 | 28 | 4 | golang | 341 (252) | 6 | 7 | 9 | 0 | 50 | 17 | 1 | 0 | 1 | 4 |
 | - | - | elasticsearch | 340 (271) | 10 | 6 | 6 | 0 | 36 | 18 | 0 | 0 | 0 | 11 |
@@ -126,9 +127,10 @@ What convergence looks like:
 | 23 | linkerd | 82 | 0 | 82 | 100% | 152 | 0 / 0 | 30 | full |
 | 24 | prometheus-operator | 78 | 0 | 78 | 100% | 152 | 0 / 0 | 25 | full |
 | 25 | opensearch | 80 | 0 | 80 | 100% | 152 | 0 / 0 | 27 | full |
-| 27 | minio | 80 | 2 | 78 | 98% | 154 | 0 / 0 | 29 | partial |
-| 28 | golang | 66 | 1 | 65 | 98% | 155 | 8 / 0 | 28 | full |
-| - | elasticsearch | 73 | n/a | n/a | n/a | 155 | n/a | n/a | n/a |
+| 26 | loki | 93 | 5 | 88 | 95% | 157 | 2 / 0 | 34 | full |
+| 27 | minio | 80 | 2 | 78 | 98% | 159 | 0 / 0 | 29 | partial |
+| 28 | golang | 66 | 1 | 65 | 98% | 160 | 8 / 0 | 28 | full |
+| - | elasticsearch | 73 | n/a | n/a | n/a | 160 | n/a | n/a | n/a |
 
 ### Discovery and relationship validation
 
@@ -158,6 +160,7 @@ What convergence looks like:
 | linkerd | 3/2/17 (23%) | 15/0/6/0 | 134/0/0/262/0 | 5 → 0 | 5 | 1 |
 | prometheus-operator | 7/2/7 (56%) | 14/0/1/0 | 81/0/0/9/0 | 0 → 0 | 4 | 0 |
 | opensearch | 4/1/9 (36%) | 11/0/0/0 | 153/0/0/31/3 | 1 → 0 | 3 | 0 |
+| loki | 2/4/14 (30%) | 13/0/6/0 | 73/0/0/39/2 | 2 → 0 | 6 | 0 |
 | minio | 1/3/8 (33%) | 9/0/2/1 | 164/0/19/26/0 | 4 → 0 | 5 | 6 |
 | golang | 1/1/11 (15%) | 10/0/1/0 | 54/0/0/12/0 | 0 → 0 | 4 | 1 |
 | elasticsearch | n/a | 10/0/3/0 | 165/0/0/95/0 | n/a | n/a | n/a |
@@ -190,9 +193,10 @@ What convergence looks like:
 | 23 | linkerd | 0 | 152 | 82 | 82 | 100% | 0 | 152 |
 | 24 | prometheus-operator | 0 | 152 | 78 | 78 | 100% | 0 | 152 |
 | 25 | opensearch | 0 | 152 | 80 | 80 | 100% | 0 | 152 |
-| 27 | minio | 2 | 154 | 80 | 78 | 98% | 2 | 154 |
-| 28 | golang | 1 | 155 | 66 | 65 | 98% | 1 | 155 |
-| - | elasticsearch | n/a | 155 | 73 | n/a | n/a | 1 | 156 |
+| 26 | loki | 5 | 157 | 93 | 88 | 95% | 5 | 157 |
+| 27 | minio | 2 | 159 | 80 | 78 | 98% | 2 | 159 |
+| 28 | golang | 1 | 160 | 66 | 65 | 98% | 1 | 160 |
+| - | elasticsearch | n/a | 160 | 73 | n/a | n/a | 1 | 161 |
 
 New constructs per product, in onboarding order (records):
 
@@ -221,6 +225,7 @@ New constructs per product, in onboarding order (records):
  23  linkerd                       0  
  24  prometheus-operator           0  
  25  opensearch                    0  
+ 26  loki                          5  ███
  27  minio                         2  █
  28  golang                        1  █
   -  elasticsearch                 0  
@@ -229,33 +234,34 @@ New constructs per product, in onboarding order (records):
 Cumulative constructs introduced:
 
 ```text
-  1  cert-manager                 87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  2  istio                        99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  3  argo-cd                     113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  4  cilium                      115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  5  postgresql                  122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  6  kube-prometheus-stack       131  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  7  vault                       138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  8  crossplane                  139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  9  external-secrets            139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 10  ingress-nginx               144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 11  grafana                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 12  strimzi                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 13  traefik                     145  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 14  karpenter                   148  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 15  flux                        152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 16  otel-collector              152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 17  redis                       152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 19  terraform-provider-aws      152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 20  actions-runner-controller   152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 21  kyverno                     152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 22  falco                       152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 23  linkerd                     152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 24  prometheus-operator         152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 25  opensearch                  152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 27  minio                       154  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 28  golang                      155  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  -  elasticsearch               155  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  1  cert-manager                 87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  2  istio                        99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  3  argo-cd                     113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  4  cilium                      115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  5  postgresql                  122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  6  kube-prometheus-stack       131  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault                       138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane                  139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets            139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 10  ingress-nginx               144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 11  grafana                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 12  strimzi                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 13  traefik                     145  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 14  karpenter                   148  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 15  flux                        152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 16  otel-collector              152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 17  redis                       152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 19  terraform-provider-aws      152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 20  actions-runner-controller   152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 21  kyverno                     152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 22  falco                       152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 23  linkerd                     152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 24  prometheus-operator         152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 25  opensearch                  152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 26  loki                        157  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 27  minio                       159  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 28  golang                      160  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  -  elasticsearch               160  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -415,6 +421,14 @@ No new constructs: the definition is configuration only.
 
 No new constructs: the definition is configuration only.
 
+### loki (order 26, wave 4): 5 new
+
+- `field:artifacts.contents.compareWith`: First definition exercise of the G8 material-difference guard: the loki chart's values are declared from the published OCI chart layer (the artifact users install) with the community repository's source tree at the chart's own tag as the alternate representation, so a divergence is a recorded fact instead of a silent preference. The construct existed since the G8 work (docs/ARTIFACTS.md credits istio's packaged-vs-source values as the motivating case) but no earlier definition declared it — ri stats listed it unaccounted until this one. (also needed by istio (retire the ignoreKeys caveat on its rewritten packaged values), kube-prometheus-stack (packaged subchart CRDs vs source tree), cilium (chart tarball release assets), ingress-nginx (packaged chart vs source tree))
+- `field:artifacts.contents.compareWith.kind`: leaf of compareWith (stats counts parent and leaf separately) (also needed by [same as field:artifacts.contents.compareWith])
+- `field:artifacts.contents.compareWith.path`: leaf of compareWith (also needed by [same])
+- `field:artifacts.contents.compareWith.ref`: leaf of compareWith (charts/loki/values.yaml at tag loki-{{.ArtifactVersion}}) (also needed by [same])
+- `field:artifacts.contents.compareWith.repository`: leaf of compareWith (github.com/grafana-community/helm-charts) (also needed by [same])
+
 ### minio (order 27, wave 4): 2 new
 
 - `lineage:linear`: MinIO is the first genuinely line-free product onboarded: 521 timestamped releases on one mainline, no branches, no backports (SECURITY.md: security fixes land in the latest release only), so upgrades must consider every intermediate release - exactly what PolicyAll traverses. Zero code change: discovery itself proposed lineage linear (from tag shape); every earlier definition used minor. (also needed by external-secrets (order 9): its record says 'history is linear and only the newest minor is supported, which does not fit lineage minor; chosen only for its path policy' - it wanted linear and worked around it (its gap names a .PrevRelease variable for linear git-log ranges), any single-train product (rolling-release servers without maintained branches))
@@ -432,7 +446,7 @@ No new constructs: the definition is configuration only.
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 31 (4.4) | 93% | 59 / 0 | 25 (n=7) | 20/24/57 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
 | 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 99% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) | 93/0/12/0 (7 of 7 reports) | 10 | full 7 |
 | 3 | terraform-provider-aws, actions-runner-controller, kyverno, falco, linkerd, prometheus-operator | 6 of 6 (terraform-provider-aws, actions-runner-controller, kyverno, falco, linkerd, prometheus-operator) | 0 (0.0) | 100% | 0 / 0 | 22.5 (n=6) | 23/23/57 (45%) | 88/0/14/2 (6 of 6 reports) | 2 | full 6 |
-| 4 | opensearch, minio, golang | 1 of 3 (opensearch) | 3 (1.0) | 99% | 8 / 0 | 28 (n=3) | 6/5/28 (28%) | 30/0/3/1 (3 of 3 reports) | 7 | full 2, partial 1 |
+| 4 | opensearch, loki, minio, golang | 1 of 4 (opensearch) | 8 (2.0) | 97% | 10 / 0 | 28.5 (n=4) | 8/9/42 (29%) | 43/0/9/1 (4 of 4 reports) | 7 | full 3, partial 1 |
 
 ## Notes from the records
 
@@ -483,6 +497,8 @@ No new constructs: the definition is configuration only.
 **prometheus-operator**: The appVersion join, from this side: kube-prometheus-stack (order 6) pins THIS operator in its Chart.yaml appVersion and already models the pin with version.strategy: field ('prometheus-operator-image'); this definition models the mirror image — a lookup artifact resolving, per operator release, the chart whose appVersion == the release tag, verified against the prometheus-community index. The cross-product query the join was designed for ('which chart versions ship operator X') therefore works TODAY, deterministically, in one direction and one product at a time: the operator's edge names the chart version ('kube-prometheus-stack 91.8.2 [verified]' for v0.94.1), and the chart's edge names the operator version it pins; nothing yet joins the two edges into one cross-product view, and each side probes the other's channel independently (both reached the same pairs from their own definitions). The pinned-operator-notes construct that may exist on the chart side by merge time does not exist in this worktree's products/kube-prometheus-stack.yaml; this record is written against what is merged here. Sixth zero-new-construct onboarding (external-secrets, grafana, strimzi, otel-collector, redis, kyverno): the operator + pinned-operands + out-of-repo-chart-joins topology decomposed into lookup (argo-cd), pattern pins (flux), availability windows, optional artifacts (argo-cd) and role mixing (kyverno's support-policy). 78 constructs used, 0 new, 0 product-specific Go, 0 check failures on the first run of both windows, no blocked hosts. 25 minutes.
 
 **opensearch**: Wave 4's first edge case: the fork-reuse measurement against elasticsearch (order 18). How much of the sibling's definition carried over in shape: 6 of its 10 sources (canonical git-tags + GitHub fallback, per-release notes read at main, a breaking-changes channel, an http lifecycle-evidence page, the advisory feed) and 4 of its 6 artifacts (image, tarball, source archive, and the Lucene pin — lucene-core-legacy is the IDENTICAL construct on the IDENTICAL file, version:pattern over buildSrc/version.properties) plus the dual-major lifecycle shape (one semver space, constraint-scoped statements: everything below 2.x end-of-life since 1.3.20/2024-12, 2.x deprecated since 3.0/2025-04) — 11 of 17 declared elements are the sibling's shapes. The headline negative: format:adoc carried over ZERO uses. The elasticsearch record justified the construct's future by 'opensearch (the fork of this very repository keeps the same migrate_N_0.asciidoc conventions)' — the fork deleted its docs tree; migration intelligence lives in a separate Jekyll-markdown repository whose breaking-changes page is the plain-markdown twin of the file that needed adoc+labelParagraphs upstream. The claim was testable and false, which is exactly what wave 4 exists to find: the construct remains justified by elasticsearch's own 7.0/8.0 guides (no markdown twin exists there), but its cross-product story now rests on the other named users (neo4j, the elastic siblings), not this fork. What the fork added that the sibling lacks: a real fallback for missing notes files (GitHub bodies with full content vs ES's stubs), a community chart joined by appVersion (argo-cd's lookup), image mirror channels, and the TOML-catalog pin era (flux's version:pattern). Numbers: 80 constructs used, 80 reused, 0 new, 0 Go changes, 0 exceptions; 17 releases checked across every era, final failures 0, nothing unverifiable — Docker Hub anonymous even answered during research (mirrors declared regardless, per the protocol's canonical-first rule). Other edges exercised: 1.3.20 -> 2.0.0 (60 breaking · 194 changes · 3 warnings, the third warning being the deprecated-target notice — the page's 2.0.0 topics + the notes' 'Breaking Changes in 2.0' section + the type-removal items), 3.8.0 -> 3.9.0 (0 breaking · 90 changes, routine) and 2.19.5 -> 2.19.6 (22 changes, notes served by the GitHub-body fallback). Discovery baseline: right versioning and the real notes file, wrong ref (its 4-release validation window sits inside the at-tag era — window placement hiding a 33/71 mismatch), zero artifacts with the real registries excluded by the docs-only/no-release-evidence rules (the elasticsearch DRA blind spot, now a pattern: org-level release infrastructure is invisible to repository scanning), the chart excluded for no in-repo reference, and the docs repository correctly scanned but only for a lower-ranked notes template. Elapsed time is agent wall-clock and excludes this record.
+
+**loki**: The OCI-chart G8 verdict karpenter's record hoped for: YES, and it works end to end on ghcr.io anonymous tokens. The loki chart is read as a published-oci-chart (config media type + content layer, digest-verified) for BOTH helm-values and chart-metadata; kubeVersion lands as the Kubernetes constraint and appVersion as the pin evidence. The lookup still needs the index (a bare OCI tag list has no appVersion), so the OCI channel serves packages/probes while the community index serves the relation — ARTIFACTS.md already records that split as deliberate. The compareWith divergence the mission asked about is real but is NOT production/helm-vs-published (those are different charts since the March 2026 fork — comparing them would be apples/oranges and the definition does not): it is published-OCI-layer vs the community repo's own source tag, and it found that the re-published pre-fork tags do not reconstruct the originally published packages (6.31.0: +360/-143/~47 keys) while current releases agree exactly (18.13.7: 2112 keys, representations agree) — exactly the silent-preference problem the construct exists to surface. Everything else was configuration over existing constructs (the 5 new constructs are the compareWith family, first exercised here after existing as G8 code): the tag-family trap cost discovery its canonical channel, the branch-read changelog is the grafana docs-at-main pattern per branch, the promtail EOL is the ingress-nginx lifecycle construct, the chart fork is an optional lookup with the old index explicitly excluded, and the 3.x-upgrade-pain (schema v13/v14, storage backends) rides the upgrade-guide role with karpenter's listItems making every topic its own item. One small generic ingest fix landed (unresolved-artifact contents are n/a, not unverifiable); zero product-specific Go. 34 minutes wall-clock.
 
 **minio**: The versioning stress test, answered. What worked without any new capability: the postgresql component-group tagPattern reads RELEASE.YYYY-MM-DD as 2024.11.7 (chronological ordering, full 508-release listing, month-granular era windows), lineage linear - until now vocabulary no definition had exercised - expresses the one-mainline no-backports topology exactly (every intermediate release traversed, which upstream's own README endorses: parallel, all-servers-at-once upgrades to any newer release), {{.Tag}} templates carry the real timestamp into every locator, and the whole retirement story (README banner, source-only section, SECURITY.md support model) is the ingress-nginx lifecycle pattern verbatim. What did not: the time-of-day (13 same-day later releases invisible), meaningful release kinds (all 'patch'), non-synthetic lines, day-precise availability, PrevTag at month boundaries, latest-only support scoping, and any verifiable image channel. Two CalVer hazard layers were found and one was defused in pure configuration (leading zeros via '0*' outside the captures; the first pattern silently matched 78/521 tags and ri check passed on that sample - the check does not notice a shrunken version space, ri versions' 'non-matching' counter is the only trace). No calver scheme construct: Linkerd's excluded edge family and Kubernetes's v-prefixed semver leave MinIO without a second product that needs date ordering, exactly the case PROTOCOL step 8 says to record as a gap. Two zero-code first exercises are credited (lineage:linear, template-func: replace) so the stats accounting stays clean. 29 minutes, 0 Go changes, 0 check failures after the deletion exceptions, tests green.
 

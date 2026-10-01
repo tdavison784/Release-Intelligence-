@@ -193,6 +193,31 @@ func TestIngestContentsPackageErrors(t *testing.T) {
 	}
 }
 
+func TestIngestContentsPackageUnresolvedVersion(t *testing.T) {
+	// an optional lookup artifact that is not published for this release
+	// (v1.2.1 is never an appVersion): its packaged contents are not
+	// applicable, never unavailable/unverifiable — the same semantic the
+	// template path gives a locator whose {{.ArtifactVersion}} is unknown.
+	w := newWorld()
+	w.packages["https://charts.acme.example#acme@0.5.1"] =
+		fixturePackage(domain.RepresentationChartTGZ, "https://charts.acme.example/acme-0.5.1.tgz", publishedValues)
+	ing := newTestIngester(w, nil)
+	def := chartOnlyDef()
+	rel, err := ing.IngestRelease(t.Context(), def, domain.MustVersion("v1.2.1", "1.2.1"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s := statusOf(t, rel, "chart"); !strings.Contains(s.Detail, "none with appVersion v1.2.1") {
+		t.Fatalf("chart status = %+v, want the none-with-appVersion detail", s)
+	}
+	for _, id := range []string{"chart/helm-values", "chart/chart-metadata", "chart/crds"} {
+		s := statusOf(t, rel, id)
+		if s.State != domain.SourceSkipped || !strings.Contains(s.Detail, "artifact version") {
+			t.Fatalf("%s status = %+v, want skipped with the artifact-version detail", id, s)
+		}
+	}
+}
+
 func TestIngestContentsCompareWithDivergence(t *testing.T) {
 	// primary: source-tree values (replicaCount 1); alternate: the published
 	// package rewrote replicaCount to 2 and dropped logLevel.

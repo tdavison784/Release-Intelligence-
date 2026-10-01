@@ -1,0 +1,182 @@
+product: loki
+order: 26
+wave: 4
+repository: github.com/grafana/loki
+onboarding:
+  startedAt: "2026-10-01T16:30:41Z"
+  finishedAt: "2026-10-01T17:04:19Z"
+  minutes: 34                    # wall-clock, agent time
+discovery:
+  proposal: docs/onboarding/discovery/loki.proposed.yaml
+  report: docs/onboarding/discovery/loki.report.md
+# Discovery (deterministic) locked onto the WRONG tag family: with 396 tags
+# in five families, version-sorting puts helm-loki-7.3.0 (the CHART's 7.x)
+# above v3.7.8 (the APP's 3.x), so every proposal described the chart's
+# releases: tagPattern ^helm-loki-, the chart changelog
+# production/helm/loki/CHANGELOG.md as release notes, the in-repo chart with
+# version == {{.Version}} — the actions-runner-controller lineage trap,
+# sharpened by the chart major being numerically larger than the app major.
+# Its individually correct finds (kept after re-anchoring): github-advisories,
+# the release-asset URL family, docker.io/grafana/loki-canary, the ghcr OCI
+# chart location, the operator CRD directory (a related product's). It
+# dropped the GitHub release body, loki-canary and the release-asset binaries
+# because their relationships were validated against helm-loki-* tags.
+sources:
+  - {id: git-tags, origin: discovered-modified, note: "git-tags as proposed; tagPattern corrected from ^helm-loki- to ^v(?P<version>\\d+\\.\\d+\\.\\d+)$ (125 app tags v0.1.0-v3.7.8; excludes 253 helm-loki- chart tags, 15 operator/v0.x, weekly kNNN, stray 2.8.3)"}
+  - {id: github-releases, origin: discovered, note: "versions fallback priority 1, kept as proposed"}
+  - {id: changelog, origin: manual, note: "release-please CHANGELOG.md read at the release BRANCH head (release-X.Y.x; sections are merged after the tag is cut, main only carries the in-flight minor); heading '^[X.Y.Z]'; availability >= 2.8.9; discovery's changelog proposal was the chart's CHANGELOG.md"}
+  - {id: changelog-main, origin: manual, note: "X.Y.0/X.Y.1 sections live on MAIN (found by the era check: 2.9.0/3.1.0 were 'covered' by the rate-limited API fallback); raw-host middle fallback of group release-notes"}
+  - {id: github-release-notes, origin: discovered-modified, note: "release-notes-github re-added at priority 2 after discovery dropped it (it validated against helm-loki tags); the body is the same release-please section"}
+  - {id: release-notes-upgrade, origin: manual, note: "docs/sources/release-notes/vX-Y.md '## Upgrade Considerations' (the curated BREAKING CHANGE list of each line, 3.0+); listItems"}
+  - {id: release-notes-deprecations, origin: manual, note: "same file, '## Deprecations' (promtail, storage backends, config options, API endpoints)"}
+  - {id: upgrade-guide, origin: manual, note: "docs/sources/setup/upgrade/_index.md section '## X.Y.0' at main, listItems (heading-led prose); exceptions 3.1.0 and 3.7.0 (no section upstream)"}
+  - {id: upgrade-guide-2x, origin: manual, note: "upgrade-2.x.md '## X.Y.0' sections for the 2.x era, same shape"}
+  - {id: chart-upgrade-community, origin: manual, note: "upgrade-to-community/_index.md, the 6.55.0 -> 18.x chart-migration guide, pinned to the 3.7.0 era that forced it"}
+  - {id: github-advisories, origin: discovered, note: "kept as proposed; the published feed is empty today (checked 2026-10-01), dependency CVEs ship as [SECURITY] bullets in the changelog"}
+  - {id: promtail-eol, origin: manual, note: "docs/sources/send-data/promtail/_index.md EOL banner, evidence of the lifecycle statement"}
+artifacts:
+  - {id: image, origin: manual, note: "docker.io/grafana/loki excluded by discovery (image.non-release-tags: only floating references in-tree); mirror.gcr.io fallback added; Docker Hub answered anonymously at onboarding time"}
+  - {id: canary-image, origin: discovered-modified, note: "loki-canary proposed then dropped (validated against helm-loki tags); re-added with version {{.Version}} + mirror"}
+  - {id: promtail-image, origin: manual, note: "availability <= 3.6.0 (404 from 3.6.1 on); promtail is end of life"}
+  - {id: binary, origin: discovered-modified, note: "the releases/download asset family as proposed; corrected from helm-loki tags to v-tags"}
+  - {id: logcli-binary, origin: manual, note: "same family; lokitool/darwin/freebsd/windows variants noted"}
+  - {id: promtail-binary, origin: manual, note: "availability <= 3.6.0"}
+  - {id: deb-package, origin: manual, note: "predictable release-asset name loki_X.Y.Z_amd64.deb (2.8.9-3.7.8 verified); rpm naming differs in the 2.x drone era, noted not declared"}
+  - {id: chart, origin: manual, note: "the March 2026 community fork was invisible to discovery: OSS chart = grafana-community/helm-charts (index + OCI + git tags), lookup appVersion == {{.Version}}, optional; discovery's template-relation chart was the in-repo GEL chart"}
+discoveryRejected:
+  - {id: "versioning ^helm-loki- (canonical channel)", reason: "the chart tag family version-sorts above the app family (7.3.0 > 3.7.8): the sharpest form of the lineage trap discovery has hit (actions-runner-controller recorded the family-visibility variant)"}
+  - {id: "artifact:loki-chart (in-repo production/helm/loki, version == {{.Version}})", reason: "that chart is the Grafana Enterprise Logs chart now (description says so; helm-loki-7.x tags; published to the old grafana.github.io index and ghcr.io/grafana/helm-charts/loki): related-product territory, the grafana-enterprise precedent"}
+  - {id: "artifact:loki-chart-2 (old-index lookup)", reason: "validated against helm-loki tags; and the old index is unusable as a lookup channel post-fork: its 7.x entries are the GEL chart while the community 7.x is a different chart with the same name and version"}
+  - {id: "artifact:loki-md-chart", reason: "k8s-monitoring-helm's loki.md is a different product's integration chart; unverifiable in discovery and out of scope"}
+  - {id: "artifact:operator-hack-addon-grafana-gateway-ocp(+oauth), artifact:crds (operator/config/crd/bases), artifact:loki-operator", reason: "the Loki Operator sub-project (operator/v0.x tags, own versioning, loki.grafana.com CRDs, loki-operator images): a related product, like grafana-operator was for grafana; neither loki chart ships CRDs"}
+  - {id: "changelog production/helm/loki/CHANGELOG.md", reason: "the GEL chart's changelog, not app release notes"}
+relationships:
+  # Default `ri check` (3 newest lines, 6 releases) plus two era runs:
+  #   2.8.9 2.8.11 2.9.0 2.9.10 3.0.0 3.1.0 3.4.0 3.6.7
+  #   and, after the changelog-main fallback was added, 2.8.9 2.9.0 2.9.10
+  #   3.0.0 3.1.0 3.6.0 3.6.10 (all green, including the 2.x era).
+  historicalReleasesChecked: [2.8.9, 2.8.11, 2.9.0, 2.9.10, 3.0.0, 3.1.0, 3.4.0, 3.5.0, 3.5.12, 3.6.0, 3.6.7, 3.6.10, 3.6.17, 3.7.0, 3.7.8]
+  initialFailures: 2            # promtail-image + promtail-binary at 3.6.17 (availability was < 3.7.0; the last promtail release is 3.6.0)
+  initialFailuresNotes: >-
+    The same first draft also marked chart/helm-values + chart/chart-metadata
+    unverifiable at the four releases with no chart appVersion: packaged-chart
+    contents of an unresolved optional artifact were reported unavailable
+    instead of not-applicable — fixed generically (see goChanges), not by
+    bending the definition.
+  finalFailures: 0
+  manualInterventions:
+    - {subject: promtail-image/promtail-binary, change: 'availability "<= 3.6.0"', reason: "first check run: promtail assets/images exist through 3.6.0 only (probed 3.6.0 200, 3.6.17/3.7.x 404)"}
+    - {subject: chart contents, change: "generic ingest fix (see goChanges)", reason: "contents of an optional lookup artifact that did not resolve must be n/a, never unverifiable"}
+    - {subject: changelog-main, change: "source added at fallback priority 1", reason: "era check showed X.Y.0/X.Y.1 sections answered by the rate-limited API fallback although main carries them on a raw host"}
+    - {subject: upgrade-guide, change: "exceptions [3.1.0, 3.7.0]", reason: "the cumulative upgrade index has no section for those minors upstream (their changes live in the curated release notes)"}
+    - {subject: release-notes-upgrade/upgrade-guide extracts, change: "listItems: true", reason: "prose-led sections folded whole minors into one note item (the whole '## 3.0.0' guide was ONE item); the structural reading makes every #### topic its own item"}
+    - {subject: classify, change: "skip the guides' boilerplate (community-Slack CTA, 'For important upgrade guidance' intro, the 3.0-cleanup retrospective) and the v3-7 BREAKING bullets that duplicate the changelog's declared section", reason: "found by reading edges: one intro paragraph was flagged breaking by the generic heuristic; duplicated items doubled the breaking count"}
+  unverifiable: []
+constructs:
+  # ri stats loki -o json: 93 used, 5 unaccounted -> all five are the
+  # compareWith family, exercised by a definition for the first time here.
+  new:
+    - name: field:artifacts.contents.compareWith
+      kind: field
+      justification: >-
+        First definition exercise of the G8 material-difference guard: the
+        loki chart's values are declared from the published OCI chart layer
+        (the artifact users install) with the community repository's source
+        tree at the chart's own tag as the alternate representation, so a
+        divergence is a recorded fact instead of a silent preference. The
+        construct existed since the G8 work (docs/ARTIFACTS.md credits
+        istio's packaged-vs-source values as the motivating case) but no
+        earlier definition declared it — ri stats listed it unaccounted
+        until this one.
+      otherProducts: [istio (retire the ignoreKeys caveat on its rewritten packaged values), kube-prometheus-stack (packaged subchart CRDs vs source tree), cilium (chart tarball release assets), ingress-nginx (packaged chart vs source tree)]
+    - {name: field:artifacts.contents.compareWith.kind, kind: field, justification: "leaf of compareWith (stats counts parent and leaf separately)", otherProducts: "[same as field:artifacts.contents.compareWith]"}
+    - {name: field:artifacts.contents.compareWith.path, kind: field, justification: "leaf of compareWith", otherProducts: "[same]"}
+    - {name: field:artifacts.contents.compareWith.ref, kind: field, justification: "leaf of compareWith (charts/loki/values.yaml at tag loki-{{.ArtifactVersion}})", otherProducts: "[same]"}
+    - {name: field:artifacts.contents.compareWith.repository, kind: field, justification: "leaf of compareWith (github.com/grafana-community/helm-charts)", otherProducts: "[same]"}
+  considered:
+    - {name: "component-scoped lifecycle statement", rejected: "the lifecycle construct states the PRODUCT (or a version range of it); promtail is a component of the loki releases — the product-scoped statement carries it with a promtail-worded summary, at the cost of the rendered title 'Grafana Loki vX is end-of-life' (recorded as a gap)"}
+    - {name: "the in-repo GEL chart as a second chart artifact", rejected: "Enterprise artifact set of the same tags (grafana-enterprise precedent); its 7.x version collision with the community chart is recorded as an ambiguity instead"}
+    - {name: "frozen sibling charts (promtail, loki-canary, loki-distributed, loki-simple-scalable, loki-stack)", rejected: "retired channels, nothing published since 2025-10-31 and none carried to the community index; loki-stack (whose loki/promtail/grafana pins kube-prometheus-stack's record asked about) lives on in-tree at production/helm/loki-stack but does not release"}
+    - {name: "schema/index-format compatibility source", rejected: "Loki publishes no machine-readable schema-version table; schema v13 (3.0 requirement) and the announced v14 are prose in the upgrade guide, which the upgrade-guide role already carries item-per-topic"}
+    - {name: "oci as the chart lookup channel", rejected: "a bare OCI tag list carries no appVersion field, so the lookup needs the index; the oci channel serves probes and the chart package layer (ARTIFACTS.md records version-relations-still-read-documents as deliberate)"}
+goChanges:
+  productSpecific: 0
+  generic:
+    - file: internal/ingest/contents.go
+      purpose: >-
+        Packaged-chart contents of an artifact whose version did not resolve
+        (an optional lookup not published for that release) now report
+        not-applicable through the existing unresolvedError path — the same
+        semantic a {{.ArtifactVersion}}-templated locator gets — instead of
+        unavailable/unverifiable. Benefits any optional lookup artifact with
+        published-package contents (grafana dodges it via templated refs,
+        loki hit it with a locator-less oci package read).
+    - file: internal/ingest/artifact_contents_test.go
+      purpose: TestIngestContentsPackageUnresolvedVersion covering that semantic.
+unreachableSources: []            # none: github/raw/releases-download, api.github.com (quota-limited, not blocked), ghcr.io (both grafana and grafana-community paths), both helm indexes, auth.docker.io + registry-1.docker.io (answered anonymously this time), mirror.gcr.io all answered; us-docker.pkg.dev is a private build-side mirror (DENIED by design, not a declared channel)
+ambiguousRelationships:
+  - "The Helm chart was forked in March 2026: the OSS chart lives in grafana-community/helm-charts (index + OCI + git tags, versions independent of the app, joined by appVersion), while the in-repo production/helm/loki chart continues as the Grafana Enterprise Logs chart under the SAME chart name with OVERLAPPING versions (two different 'loki' charts both have a 7.0.0: community 2026-03-21 vs old-index/GEL 2026-04-23). The old grafana.github.io index is therefore not a lookup channel for this product."
+  - "The chart->app join is patchy by patch release: no chart ships appVersion 3.7.0/3.6.0/3.6.17/3.5.12 while 44 chart versions ship appVersion 3.7.2 — which app release becomes an appVersion is publish-cadence luck, hence optional + insufficient verdicts, and helm-values diffs skip when the From release has no chart (a warning, not an error)."
+  - "Changelog sections are merged after the tag is cut and live in two places: X.Y.0/X.Y.1 sections on main, later patches on release-X.Y.x — a three-source fallback chain (branch, main, API body) covers both; the branch files carry duplicate [3.6.0] and [3.7.3] sections (re-cuts; a heading selector reads the first)."
+  - "The in-flight minor's upgrade guidance is the '## Main / Unreleased' section of the upgrade index until the release is cut (today: TSDB schema v14, the new head-WAL chunk format that 3.7.x and earlier cannot read, SSD mode removal) — a heading selector cannot attach it deterministically before the rename."
+  - "Promtail's paper trail disagrees slightly: deprecated in 3.0 (release notes), code removed in 3.7.3, docs page says EOL 2026-03-02, but the last promtail IMAGE and release assets are 3.6.0 — the definition uses the artifact truth (<= 3.6.0) and cites the docs page for the statement."
+  - "The community repository's re-published pre-fork tags do not reconstruct the originally published packages: chart 6.31.0's OCI layer and its own loki-6.31.0 tag differ by hundreds of values keys (compareWith found +360/-143/~47), while 18.13.7 agrees exactly."
+representability: full
+gaps:
+  - "No machine-readable schema-version/index-format source: the schema v13 requirement (3.0) and the announced v14 (3.8) are prose topics in the upgrade guide, carried as upgrade-guide note items rather than compatibility constraints the impact join could match a schema_config against."
+  - "The lifecycle statement renders as '<product> vX is end-of-life'; a component-scoped variant would word the promtail retirement better (the summary text does, the generated title does not)."
+  - "The in-flight minor's upgrade section ('## Main / Unreleased') is unreachable by the heading template until upstream renames it at release time."
+  - "Upstream publishes no per-minor support-window policy (unlike grafana), so no lifecycle-by-line statements are possible."
+  - "helm-values diffs only exist when BOTH edge endpoints have a chart appVersion; edges whose From release has none warn instead of diffing."
+sampleEdge:
+  from: 3.6.17
+  to: 3.7.8
+  summary: "5 breaking · 21 action required · 569 changes · 2 warnings"
+  evidenceRecords: 705
+  notes: >-
+    Minor edge across the chart fork (path v3.7.0 -> 3.7.8, 9 releases).
+    5 breaking = the chart-migration umbrella (12 chart majors of values
+    changes) + the four declared app breaking changes (engine scheduler
+    capacity/worker sharing, parsed labels vs structured metadata, OpenShift
+    stream-label default). Action required is dominated by the
+    upgrade-to-community guide's per-symptom migrations (deploymentMode
+    default flip, canary tenant move, cluster -> app_instance label rename,
+    minio subchart deprecation, enterprise.* removal, kubeVersion 1.25
+    floor) + the promtail end-of-life statement; 33 security items
+    ([SECURITY] dependency bumps); 104 features / 402 bug fixes; chart
+    18.13.7 [verified] from a missing From-chart; kubeVersion >=1.25 from the
+    OCI chart metadata. Major edge 2.9.10 -> 3.0.0 (second edge exercised):
+    40 breaking · 98 action required · 241 changes — the schema story is
+    fully visible: 'Structured metadata is enabled by default and requires
+    tsdb and v13 schema or Loki won't start' and 'Upgrade your index version
+    and schema version before updating to 3.0' as declared migration items,
+    next to the shared_store removals, the metrics namespace rename and the
+    label-limit/line-size default changes.
+notes: >-
+  The OCI-chart G8 verdict karpenter's record hoped for: YES, and it works
+  end to end on ghcr.io anonymous tokens. The loki chart is read as a
+  published-oci-chart (config media type + content layer, digest-verified)
+  for BOTH helm-values and chart-metadata; kubeVersion lands as the
+  Kubernetes constraint and appVersion as the pin evidence. The lookup still
+  needs the index (a bare OCI tag list has no appVersion), so the OCI channel
+  serves packages/probes while the community index serves the relation —
+  ARTIFACTS.md already records that split as deliberate. The compareWith
+  divergence the mission asked about is real but is NOT
+  production/helm-vs-published (those are different charts since the March
+  2026 fork — comparing them would be apples/oranges and the definition does
+  not): it is published-OCI-layer vs the community repo's own source tag,
+  and it found that the re-published pre-fork tags do not reconstruct the
+  originally published packages (6.31.0: +360/-143/~47 keys) while current
+  releases agree exactly (18.13.7: 2112 keys, representations agree) —
+  exactly the silent-preference problem the construct exists to surface.
+  Everything else was configuration over existing constructs (the 5 new
+  constructs are the compareWith family, first exercised here after existing
+  as G8 code): the tag-family trap cost discovery its canonical channel, the
+  branch-read changelog is the grafana docs-at-main pattern per branch, the
+  promtail EOL is the ingress-nginx lifecycle construct, the chart fork is
+  an optional lookup with the old index explicitly excluded, and the
+  3.x-upgrade-pain (schema v13/v14, storage backends) rides the
+  upgrade-guide role with karpenter's listItems making every topic its own
+  item. One small generic ingest fix landed (unresolved-artifact contents
+  are n/a, not unverifiable); zero product-specific Go. 34 minutes
+  wall-clock.
