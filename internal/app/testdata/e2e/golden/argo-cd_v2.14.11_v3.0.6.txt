@@ -41,11 +41,11 @@ Breaking changes (18):
   • [v3.0.0] chore(metrics)!: remove deprecated metrics (#21697) (4e08b8d)  (other · declared · ev-46291a5e0c01)
 
 Migration requirements / action required (7):
-  • [v3.0.0] Ignoring all status updates and high churn mutations: Argo CD manifest now contains a default configuration for `resource.customizations.ignoreResourceUpdates`…  (removal · heuristic/medium · ev-94989021db77)
   • [diff] Kubernetes tested versions narrowed: 1.28–1.31 → 1.29–1.32 (drops 1.28)  (compatibility · computed · ev-90cf881f4383, ev-1cbf6064e35e)
       ↳ Verify the cluster runs a tested Kubernetes version (1.29–1.32) before upgrading.
   • [v3.0.0] Empty Environment Variables in Plugins: In Argo CD 3.0, empty environment variables are now passed to config management plugins  (other · declared · ev-a41a36159297)
   • [v3.0.0] Health status in the Application CR: The health status of each object used to be persisted under `/status` in the Application CR by default  (other · declared · ev-5616a3c7f69a)
+  • [v3.0.0] Ignoring all status updates and high churn mutations: Argo CD manifest now contains a default configuration for `resource.customizations.ignoreResourceUpdates`…  (other · declared · ev-94989021db77)
   • [v3.0.0] Ignoring resource updates configured in `ignoreDifferences` by default: By default, the existing system-level `ignoreDifferences` customizations will be added…  (other · declared · ev-63314a5fae82)
   • [v3.0.0] Ignoring status field from differences by default: By default, the compare options to ignore the status field has been changed from `crd` to `all` resources  (other · declared · ev-c5faeec10a04)
   • [v3.0.0] Using `cluster.inClusterEnabled: "false"`: When `cluster.inClusterEnabled: "false"` is explicitly configured, Applications currently configured to sync on the…  (other · declared · ev-adf2ed32df1c)
@@ -114,8 +114,10 @@ Kubernetes compatibility:
   minimum: ≥ 1.25 (unchanged)  (computed · ev-5e6f866a325d, ev-0484f42cbd51)
   tested: 1.28–1.31 → 1.29–1.32; drops 1.28, adds 1.32  [narrowed]  (computed · ev-90cf881f4383, ev-1cbf6064e35e)
 
-Security changes (2):
+Security changes (4):
   • [v3.0.0] Merge commit from fork (6f5537b)  (security · heuristic/medium · ev-add5780c600b)
+  • [v3.0.0] fix: CVE-2024-21538 upgrading the indirect dep cross-spawn to greater than 7.0.5 (#21259) (f39b425)  (security · heuristic · ev-c29bf6c08a1c)
+  • [v3.0.0] fix: upgrade x/crypto to v0.35.0 to solve CVE-2025-22869 (#22048) (94b34f8)  (security · heuristic · ev-4e0558c7040a)
   • [v3.0.4] Merge commit from fork (040ed44)  (security · heuristic/medium · ev-d53e014231f5)
 
 Other notable changes (97):
@@ -145,12 +147,12 @@ Other notable changes (97):
   • [v3.0.0] chore: Fix data race detection failures in application tests (#21271) (12a4dab)  (other · declared · ev-ddf991211347)
   • [v3.0.0] chore: Graceful shutdown for API Server (#18642) (#21224) (45e4886)  (other · declared · ev-1d8b92c4417f)
   … and 72 more
-  (39 features and 119 bug fixes not shown; use verbose output)
+  (39 features and 117 bug fixes not shown; use verbose output)
 
 Warnings (1):
   ! Security advisories were not fully retrieved (github-advisories: unavailable — fetch https://api.github.com/repos/argoproj/argo-cd/security-advisories?per_page=100&state=published: not in cache (offline mode)); advisory matching may be incomplete
 
-Evidence (503 records, 107 cited above):
+Evidence (503 records, 109 cited above):
   ev-0b6150153730  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L93-L126 (v2.14 to 3.0 › Breaking Changes › Changes to RBAC with Dex SSO Authentication)
   ev-3437aa882db2  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L60-L75 (v2.14 to 3.0 › Breaking Changes › Default `resource.exclusions` configurations)
   ev-d0cda25040fe  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L12-L24 (v2.14 to 3.0 › Breaking Changes › Fine-Grained RBAC for application `update` and `delete` sub-resources)
@@ -169,12 +171,12 @@ Evidence (503 records, 107 cited above):
   ev-d1cb365a1a4b  https://github.com/argoproj/argo-cd/compare/v2.14.0...v3.0.0  L215-L215 (Commits v2.14.0..v3.0.0)
   ev-b3077c05bd87  https://github.com/argoproj/argo-cd/compare/v2.14.0...v3.0.0  L399-L399 (Commits v2.14.0..v3.0.0)
   ev-46291a5e0c01  https://github.com/argoproj/argo-cd/compare/v2.14.0...v3.0.0  L189-L189 (Commits v2.14.0..v3.0.0)
-  ev-94989021db77  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L299-L305 (v2.14 to 3.0 › Other changes › Ignoring all status updates and high churn mutations)
   ev-90cf881f4383  https://github.com/argoproj/argo-cd/blob/v2.14.11/docs/operator-manual/tested-kubernetes-versions.md  L3
   ev-1cbf6064e35e  https://github.com/argoproj/argo-cd/blob/v3.0.6/docs/operator-manual/tested-kubernetes-versions.md  L3
   ev-a41a36159297  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L380-L396 (v2.14 to 3.0 › Other changes › Empty Environment Variables in Plugins)
   ev-5616a3c7f69a  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L307-L378 (v2.14 to 3.0 › Other changes › Health status in the Application CR)
+  ev-94989021db77  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L299-L305 (v2.14 to 3.0 › Other changes › Ignoring all status updates and high churn mutations)
   ev-63314a5fae82  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L398-L417 (v2.14 to 3.0 › Other changes › Ignoring resource updates configured in `ignoreDifferences` by default)
   ev-c5faeec10a04  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L419-L437 (v2.14 to 3.0 › Other changes › Ignoring status field from differences by default)
-  … and 82 more
-  (396 uncited records not shown; use verbose or JSON output)
+  … and 84 more
+  (394 uncited records not shown; use verbose or JSON output)
