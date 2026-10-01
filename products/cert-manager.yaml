@@ -78,7 +78,10 @@ sources:
       type: markdown-section
       heading: '^Major Themes$'
     classify:
-      - text: '(?i)(potentially )?breaking change'
+      # anchored to the callout ("> ⚠️ Breaking change" / "> ⚠️ Potentially
+      # breaking change"); prose such as "reduced risk of breaking changes"
+      # must not match
+      - text: '(?i)⚠\S*\s*(potentially\s+)?breaking change'
         breaking: true
         actionRequired: true
 
@@ -86,6 +89,17 @@ sources:
   - id: upgrade-guide
     roles: [upgrade-guide]
     releaseKinds: [major, minor]
+    # Each guide opens with "please read the following important notes about
+    # breaking changes": the top-level numbered items under that lead-in (no
+    # heading) and "Potentially Breaking: ..." sections are breaking; advice
+    # sections ("Use the latest patch version", "Next Steps") are not.
+    classify:
+      - section: '(?i)^next steps$'
+        skip: true
+      - section: '^$'
+        breaking: true
+      - section: '(?i)breaking'
+        breaking: true
     locator:
       kind: repo-file
       repository: github.com/cert-manager/website

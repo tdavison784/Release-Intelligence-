@@ -66,8 +66,16 @@ sources:
         skip: true
       - text: '^(chore|build)\(deps(-dev)?\): bump (actions|github|docker|SonarSource|codecov|softprops|azure|golangci|sigstore|slsa-framework)/'
         skip: true
-      - text: '^Merge pull request from GHSA-'
+      # private-fork security fixes land as merge commits
+      - text: '^Merge (pull request|commit) from (GHSA-|fork)'
         category: security
+      # release mechanics and docs-only commits are not upgrade-relevant
+      - text: '^(chore(\(release\))?: )?Bump version to'
+        skip: true
+      - text: '^docs(\(.+\))?!?:'
+        skip: true
+      - text: '(?i)\bUSERS\.md\b'
+        skip: true
 
   # --- upgrade guide ------------------------------------------------------
   # docs/operator-manual/upgrading/<prev>-<cur>.md; breaking items are "###"

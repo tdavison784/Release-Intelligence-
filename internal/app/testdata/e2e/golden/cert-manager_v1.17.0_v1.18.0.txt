@@ -1,6 +1,6 @@
 cert-manager v1.17.0 → v1.18.0
 Path: v1.18.0  (policy minor-lineage; 4 backport releases skipped)
-Summary: 3 breaking · 2 action required · 51 changes · 2 warnings
+Summary: 5 breaking · 0 action required · 51 changes · 2 warnings
 
 Sources:
   ✗ github-releases              github-releases    versions       unavailable: fetch https://api.github.com/repos/cert-manager/cert-manager/releases?per_page=100: not in cache (offline mode)
@@ -25,14 +25,15 @@ Sources:
   ✗ acmesolver-image             oci                —              unavailable: oci: probe quay.io/jetstack/cert-manager-acmesolver:v1.17.0: fetch https://quay.io/v2/jetstack/cert-manager-acmesolver/manifests/v1.17.0: not in cache (offline mode)
   ✗ startupapicheck-image        oci                —              unavailable: oci: probe quay.io/jetstack/cert-manager-startupapicheck:v1.17.0: fetch https://quay.io/v2/jetstack/cert-manager-startupapicheck/manifests/v1.17.0: not in cache (offline mode)
 
-Breaking changes (3):
+Breaking changes (5):
+  • [v1.18.0] We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. > 📖 Read Release 1.18 notes for more information.  (migration · declared · ev-9a2f8d3ec5e9)
+  • [v1.18.0] We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information.  (migration · declared · ev-bbe29a5fdc19)
   • [v1.18.0] ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.…  (other · declared · ev-110340e9c914)
   • [v1.18.0] The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPo…  (other · declared · ev-c92478af13c4)
   • [v1.18.0] The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`: The default value for the `Certificate` resource's `revisionHistoryLimit` field is now…  (other · declared · ev-04b3e69b5e24)
 
-Migration requirements / action required (2):
-  • [v1.18.0] We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. > 📖 Read Release 1.18 notes for more information.  (migration · declared · ev-9a2f8d3ec5e9)
-  • [v1.18.0] We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information.  (migration · declared · ev-bbe29a5fdc19)
+Migration requirements / action required (0):
+  none found
 
 Deprecations & removals (1):
   • [v1.18.0] Remove deprecated feature gate `ValidateCAA`. Setting this feature gate is now a no-op which does nothing but print a warning log line  (deprecation · heuristic/medium · ev-853844eb542e)
@@ -82,11 +83,11 @@ Warnings (2):
   ! 2 artifacts of v1.18.0 only expected (not observed or referenced): helm-chart, startupapicheck-image
 
 Evidence (112 records, 36 cited above):
+  ev-9a2f8d3ec5e9  https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md  L8-L10
+  ev-bbe29a5fdc19  https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md  L12-L14
   ev-110340e9c914  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L28-L89 (Major Themes › ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes)
   ev-c92478af13c4  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L109-L148 (Major Themes › The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`)
   ev-04b3e69b5e24  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L151-L160 (Major Themes › The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`)
-  ev-9a2f8d3ec5e9  https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md  L8-L10
-  ev-bbe29a5fdc19  https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md  L12-L14
   ev-853844eb542e  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L367-L367 (v1.18.0 › Other (Cleanup or Flake))
   ev-fb43c5babe1a  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml
   ev-94aef2058d61  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.crds.yaml
