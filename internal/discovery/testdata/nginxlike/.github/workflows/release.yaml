@@ -1,0 +1,13 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'controller-v*'
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and push controller image
+        run: |
+          echo "building registry.k8s.io/ingress-nginx/controller:${GITHUB_REF_NAME#controller-}"

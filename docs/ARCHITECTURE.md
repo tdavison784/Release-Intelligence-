@@ -64,8 +64,12 @@ internal/drift         deterministic source-drift detection: re-validates the de
                        reports evidence-backed events + proposed changes, never mutates
                        (docs/DRIFT.md)
 internal/upgrade       pure: path selection, diffs, edge assembly, text rendering
-internal/discovery     AI-assisted source discovery: repo scanner → candidates →
-                       (optional LLM resolution) → validation against ≥3 releases → proposed definition
+internal/discovery     source discovery: repo scanner (workflows, Makefiles, charts, values,
+                       manifests, docs) → candidates → tag-train and version-relation inference →
+                       (optional LLM resolution) → validation against ≥3 historical releases →
+                       proposed definition in which every element carries a status
+                       (historically-validated / discovered / inferred / unverified / exception)
+                       and the evidence file that grounds it
 internal/app           composition root + use cases (wires adapters by locator kind; offline e2e tests)
 internal/llm           LLM port + Anthropic implementation, response cache (by prompt digest), file exchange
 internal/enrich        AI enrichment of edges: deterministic candidate groups → bounded prompts →

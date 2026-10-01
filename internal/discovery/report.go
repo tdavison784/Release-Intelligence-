@@ -55,6 +55,14 @@ func mdEscape(s string) string {
 	return s
 }
 
+// statusLabel renders a status for the markdown table.
+func statusLabel(s string) string {
+	if s == "" {
+		return StatusDiscovered
+	}
+	return s
+}
+
 func trunc(s string, n int) string {
 	if len(s) <= n {
 		return s
@@ -114,6 +122,40 @@ func (r *Report) render(full bool) string {
 	p("\n## Coverage of the discovery targets\n\n| Target | Status | Candidates | In definition |\n|---|---|---|---|\n")
 	for _, c := range r.Coverage {
 		p("| %s | %s | %d | %s |\n", c.Target, c.Status, c.Candidates, mdEscape(trunc(strings.Join(c.Findings, "; "), 220)))
+	}
+
+	p("\n## Proposed elements\n\nEvery proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least %d historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).\n\n", ingest.MinValidations)
+	p("| Element | Status | Rule | Evidence |\n|---|---|---|---|\n")
+	byStatus := map[string][]*Element{}
+	for _, e := range r.Elements {
+		byStatus[e.Status] = append(byStatus[e.Status], e)
+	}
+	elemOrder := func(e *Element) string {
+		if e.Status == StatusHistoricallyValidated {
+			return "0" + e.Key
+		}
+		return "1" + e.Key
+	}
+	sorted := append([]*Element(nil), r.Elements...)
+	sort.Slice(sorted, func(i, j int) bool { return elemOrder(sorted[i]) < elemOrder(sorted[j]) })
+	for _, e := range sorted {
+		ev := ""
+		if len(e.Evidence) > 0 {
+			ev = e.Evidence[0]
+			if len(e.Evidence) > 1 {
+				ev += fmt.Sprintf(" (+%d)", len(e.Evidence)-1)
+			}
+		}
+		p("| %s | %s | %s | %s |\n", e.Key, statusLabel(e.Status), e.Rule, mdEscape(trunc(ev, 150)))
+	}
+	var parts []string
+	for _, s := range AllStatuses {
+		if n := len(byStatus[s]); n > 0 {
+			parts = append(parts, fmt.Sprintf("%d %s", n, s))
+		}
+	}
+	if len(parts) > 0 {
+		p("\nStatuses: %s.\n", strings.Join(parts, ", "))
 	}
 
 	if full {
