@@ -345,8 +345,15 @@ func TestCRDVersionRemovedMatch(t *testing.T) {
 	eb.change("crd:version-removed", "API version example.io/v1beta1 of Foo removed", "foos.example.io/v1beta1")
 	eb.change("crd:version-deprecated", "API version example.io/v2 of Foo deprecated", "foos.example.io/v2")
 	eb.change("crd:removed", "CRD bats.other.io removed", "bats.other.io")
-	eb.change("crd:fields-removed", "Foo v1 schema: field removed: spec.oldField", "spec.oldField")
-	eb.change("crd:fields-removed", "Foo v1 schema: field removed: spec.arr[].gone", "spec.arr[].gone")
+	// The two schema changes carry the differ's real output shape: the
+	// GVK-scoped matcher parses the CRD identity (group/version/kind) from
+	// title + detail; a change without it would be unknown, not path-matched.
+	eb.schemaChange("crd:fields-removed", "Foo v1beta1 schema: 1 field removed: `spec.oldField`",
+		"Fields no longer in the example.io/v1beta1 schema of foos.example.io are pruned from stored objects and rejected or dropped in manifests. Remove them from your resources.\nRemoved paths:\nspec.oldField",
+		"spec.oldField")
+	eb.schemaChange("crd:fields-removed", "Foo v2 schema: 1 field removed: `spec.arr[].gone`",
+		"Fields no longer in the example.io/v2 schema of foos.example.io are pruned from stored objects and rejected or dropped in manifests. Remove them from your resources.\nRemoved paths:\nspec.arr[].gone",
+		"spec.arr[].gone")
 
 	dir := t.TempDir()
 	manifests := writeFile(t, dir, "manifests.yaml", `apiVersion: example.io/v1beta1
