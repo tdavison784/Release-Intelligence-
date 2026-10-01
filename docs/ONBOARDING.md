@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 3 product definitions, 3 onboarding records, 3 saved relationship reports.
-- 113 distinct constructs are used across all definitions; the records introduce 113.
-- 0 of 3 recorded products introduced no new construct. The latest product that introduced one has order 3.
+- 8 product definitions, 8 onboarding records, 8 saved relationship reports.
+- 133 distinct constructs are used across all definitions; the records introduce 117.
+- 2 of 8 recorded products introduced no new construct. The latest product that introduced one has order 10.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -73,6 +73,11 @@ What convergence looks like:
 | 1 | 0 | cert-manager | 289 (242) | 8 | 9 | 10 | 5 | 4 | 26 | 0 | 0 | 1 | 6 |
 | 2 | 0 | istio | 316 (279) | 9 | 15 | 22 | 6 | 3 | 39 | 0 | 0 | 2 | 4 |
 | 3 | 0 | argo-cd | 227 (189) | 7 | 5 | 7 | 4 | 11 | 21 | 1 | 1 | 1 | 1 |
+| 5 | 1 | postgresql | 210 (169) | 4 | 3 | 5 | 0 | 24 | 47 | 1 | 0 | 0 | 3 |
+| 7 | 1 | vault | 267 (218) | 8 | 7 | 9 | 2 | 18 | 26 | 3 | 1 | 0 | 10 |
+| 8 | 1 | crossplane | 306 (243) | 9 | 5 | 11 | 2 | 18 | 30 | 2 | 0 | 3 | 8 |
+| 9 | 1 | external-secrets | 271 (223) | 6 | 6 | 8 | 4 | 12 | 16 | 5 | 0 | 1 | 1 |
+| 10 | 1 | ingress-nginx | 342 (299) | 7 | 12 | 14 | 11 | 9 | 19 | 11 | 0 | 1 | 5 |
 
 ### Constructs and effort
 
@@ -81,6 +86,11 @@ What convergence looks like:
 | 1 | cert-manager | 88 | 87 | 0 | 0% | 87 | 4 / 0 | n/a | full |
 | 2 | istio | 81 | 12 | 69 | 85% | 99 | 7 / 0 | n/a | full |
 | 3 | argo-cd | 98 | 14 | 84 | 86% | 113 | 4 / 0 | n/a | full |
+| 5 | postgresql | 56 | 2 | 49 | 88% | 115 | 14 / 0 | 25 | partial |
+| 7 | vault | 82 | 1 | 74 | 90% | 116 | 10 / 0 | 23 | partial |
+| 8 | crossplane | 72 | 0 | 71 | 99% | 116 | 2 / 0 | 18 | partial |
+| 9 | external-secrets | 85 | 0 | 85 | 100% | 116 | 0 / 0 | 18 | full |
+| 10 | ingress-nginx | 93 | 1 | 82 | 88% | 117 | 9 / 0 | 25 | full |
 
 ### Discovery and relationship validation
 
@@ -89,6 +99,11 @@ What convergence looks like:
 | cert-manager | 0/0/17 (0%) | 14/0/4/2 | 78/0/12/18/6 | n/a → 0 | 0 | 3 |
 | istio | 0/0/24 (0%) | 24/0/3/0 | 141/0/0/18/3 | n/a → 0 | 2 | 3 |
 | argo-cd | 0/0/12 (0%) | 12/0/1/0 | 59/0/0/13/6 | n/a → 0 | 2 | 3 |
+| postgresql | 0/1/6 (14%) | 4/0/1/1 | 40/0/15/20/0 | 1 → 0 | 4 | 6 |
+| vault | 2/0/13 (13%) | 14/0/1/0 | 236/0/0/244/0 | 0 → 0 | 8 | 9 |
+| crossplane | 2/4/8 (43%) | 8/0/5/0 | 86/0/0/56/14 | 0 → 0 | 6 | 9 |
+| external-secrets | 4/4/4 (67%) | 12/0/1/0 | 212/0/0/8/19 | 5 → 0 | 3 | 6 |
+| ingress-nginx | 6/4/9 (53%) | 25/0/2/3 | 663/0/47/115/18 | 0 → 0 | 9 | 7 |
 
 ## Construct-introduction curve
 
@@ -97,21 +112,36 @@ What convergence looks like:
 | 1 | cert-manager | 87 | 87 | 88 | 0 | 0% | 88 | 88 |
 | 2 | istio | 12 | 99 | 81 | 69 | 85% | 11 | 99 |
 | 3 | argo-cd | 14 | 113 | 98 | 84 | 86% | 14 | 113 |
+| 5 | postgresql | 2 | 115 | 56 | 49 | 88% | 7 | 120 |
+| 7 | vault | 1 | 116 | 82 | 74 | 90% | 7 | 127 |
+| 8 | crossplane | 0 | 116 | 72 | 71 | 99% | 1 | 128 |
+| 9 | external-secrets | 0 | 116 | 85 | 85 | 100% | 0 | 128 |
+| 10 | ingress-nginx | 1 | 117 | 93 | 82 | 88% | 5 | 133 |
 
 New constructs per product, in onboarding order (records):
 
 ```text
-  1  cert-manager    87  ████████████████████████████████████████
-  2  istio           12  ██████
-  3  argo-cd         14  ███████
+  1  cert-manager        87  ████████████████████████████████████████
+  2  istio               12  ██████
+  3  argo-cd             14  ███████
+  5  postgresql           2  █
+  7  vault                1  █
+  8  crossplane           0  
+  9  external-secrets     0  
+ 10  ingress-nginx        1  █
 ```
 
 Cumulative constructs introduced:
 
 ```text
-  1  cert-manager    87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  2  istio           99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  3  argo-cd        113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  1  cert-manager        87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  2  istio               99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  3  argo-cd            113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  5  postgresql         115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault              116  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane         116  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets   116  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 10  ingress-nginx      117  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -157,11 +187,33 @@ Cumulative constructs introduced:
 - select (1): `latest`
 - template-var (1): `ArtifactVersion`
 
+### postgresql (order 5, wave 1): 2 new
+
+- `extract.format: docbook (+ list-item reading of the converted notes)`: PostgreSQL's release notes (and upgrade guidance and CVEs) exist only as DocBook SGML. normalize.DocBookToMarkdown renders it as line-preserving markdown (sectN+title -> headings, listitem -> bullets, code elements -> `code`, comments and commit links dropped, entities decoded, SGML shorthand '</>' and end-tag-less xref handled), so the existing markdown-section selector, parser, classify rules and evidence line ranges work on the ORIGINAL line numbers. A DocBook document is parsed with DocInput.ListItems: every <listitem> is one note item whatever prose precedes it, and sub-sections are never folded into one item (without it a major release's 200 changes collapsed into 3 items). Only for extract types whole and markdown-section. (also needed by Pgpool-II (same SGML release-notes convention as PostgreSQL; UNVERIFIED here, from memory), other PostgreSQL-community projects with DocBook docs, the 'format' field is the slot for the other non-markdown note formats of wave 1-3 products: reStructuredText (Cilium Documentation/operations/upgrade.rst) and AsciiDoc (Elasticsearch release notes); converters for those are not implemented here)
+- `versioning.tagPattern component groups (?P<major>)(?P<minor>)(?P<patch>)(?P<prerelease>)`: REL_17_2 / REL9_6_24 cannot be read by a (?P<version>) group: the numbers are underscore-separated, 17.2 has two parts and a major (17) must be a release line. Components are assembled into major.minor.patch[-prerelease] (missing minor/patch = 0), so 17.2 is 17.0.2, line 17.0, kind major/patch, and PrevTag/lineage/releaseKinds/availability work unchanged. Accepted for versioning.tagPattern and git-tags locators; validated by the Go validator and the JSON Schema. (also needed by Go (go1.22 is 1.22.0), Linux kernel (v6.7), Python (v3.13.0rc1, glued prerelease), Ruby (v3_3_0), OpenSSL 1.x (OpenSSL_1_1_1), PHP (php-8.3.0RC1), MariaDB, none of the other planned Phase-2 products tags this way (Redis, Elasticsearch, ... are three-part semver): justified by well-known projects, not by the plan)
+
+### vault (order 7, wave 1): 1 new
+
+- `extract.labelParagraphs`: HashiCorp-family changelogs group bullets under uppercase label paragraphs (SECURITY:, BUG FIXES:, BREAKING CHANGES:, ...) that are not markdown headings. Without the option every bullet loses its category (ri upgrade 2.0.3 -> 2.0.4 before: 0 bug fixes, 0 features, 2 security items, 54 other, nothing breaking; after: 29 bug fixes, 20 features, 5 security, 1 breaking). A matching standalone paragraph is promoted to a heading one level below the last real heading, so the existing section classification (declared, high confidence) applies unchanged and product rules can match the label via `section:`. (also needed by terraform-aws-provider (wave 3, ENHANCEMENTS:/BUG FIXES:/NOTES:), terraform core, consul, nomad, packer, boundary)
+
+### crossplane (order 8, wave 1): 0 new
+
+No new constructs: the definition is configuration only.
+
+### external-secrets (order 9, wave 1): 0 new
+
+No new constructs: the definition is configuration only.
+
+### ingress-nginx (order 10, wave 1): 1 new
+
+- `lifecycle`: The product's retirement is a fact about the future (no more releases or fixes) that no release artifact, note or table carries, so it cannot be ingested, only stated, with evidence. With existing constructs the README banner can only be a release-notes source: it then surfaces as three unrelated bullets attributed to the first path release ('[controller-v1.14.0] Best-effort maintenance will continue until March 2026', classified as a deprecation), including a reassurance as an action-required item, and says nothing about the target. The construct states the status once, cites the banner as evidence (its note items are removed from the per-release notes), applies it to a version range, and the edge reports an action-required deprecation when the target is end-of-life, an informational one when the upgrade leaves an end-of-life line, plus a warning. Deterministic (declared, no clock), no new domain types or schema changes of the edge. (also needed by argo-cd, cert-manager, istio, postgresql, elasticsearch, redis, linkerd)
+
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
+| 1 | postgresql, vault, crossplane, external-secrets, ingress-nginx | 2 of 5 (crossplane, external-secrets) | 4 (0.8) | 93% | 35 / 0 | 23 (n=5) | 14/13/40 (40%) | 63/0/10/4 (5 of 5 reports) | 37 | full 2, partial 3 |
 
 ## Notes from the records
 
@@ -171,8 +223,26 @@ Cumulative constructs introduced:
 
 **argo-cd**: Phase 1, reconstructed from the version history and docs/FINDINGS.md. Several of the constructs credited here (git-log, lookup) were declared in the foundation contract before any definition existed; they are credited to Argo CD as the first product that exercised them. exceptions and optional were added after ri check ran against this definition (c623b20).
 
+**postgresql**: Representable only after two small generic constructs; the rest of the topology (versions, per-release notes, upgrade guidance, CVEs, Docker image) is plain configuration. Classification quality is good because the notes are structured (one listitem per change, Migration section = incompatibilities): breaking counts match the document exactly. Sample-edge reading: 'Deprecate MD5 ...' needed a product rule (verb not in the builtin heuristics); 'Remove ... configure options' and 'Require ...' are flagged action required by the generic 'required' keyword (low value). Environment: Docker Hub rate limiting (429) made the first check run mark both images unverifiable, the mirror.gcr.io channel removed that flakiness.
+
+**vault**: Cross-major edge: path 2.0.0 -> 2.1.0 -> 2.1.1 (4 backport releases skipped). 314 changes: 255 declared (SECURITY/BUG FIXES/FEATURES/BREAKING CHANGES labels, docs headings) and 59 heuristic. Discovery (deterministic, no LLM) found only the tag scheme and the default advisory feed and mistook the shared docs repository for other HashiCorp products; useful improvements: scope docs paths to the product directory (content/vault/), read changelogs on the default branch as well as at tags, detect chart repositories named <product>-helm. Two edges were also exercised: 2.0.3 -> 2.0.4 (BREAKING CHANGES paragraph now flagged breaking + action required) and 1.17.6 -> 1.18.0 (upgrade-to-1.18.x guide). Elapsed time is agent wall-clock and excludes this record.
+
+**crossplane**: Representable as pure configuration for versions, chart, image, CRDs, docs-repo sources and the v1 -> v2 major transition; the major edge is the strongest output (10 declared removals from the upgrade guide plus CRD diffs such as the removed ControllerConfig/StoreConfig CRDs and the Composition v1 fields). Three S3 buckets (chart index, core release bundle, CLI bundle) were found behind blocked CloudFront hosts and make the chart, crank and CLI relationships verifiable without any new construct. The default `ri check` window (6 releases) found nothing wrong; the relationship errors only showed up when checking v1.0 .. v1.18 (values.yaml.tmpl, crank absent before v1.10). A recent minor edge (2.3.6 -> 2.4.2) has 0 breaking and 78 changes of which 19 are security items (Renovate [security] bumps plus one TOCTOU fix) and 22 are 'other'; real behaviour changes are only visible in those subjects.
+
+**external-secrets**: Other edges exercised: 0.15.1 -> 0.16.0 (v1alpha1 removed, v1 added, storage version change: 5 breaking, 4 action required), 0.16.2 -> 0.17.0 (v1beta1 no longer served: 7 breaking), 0.20.4 -> 1.0.0, 2.10.0 -> 2.11.0 (18 changes, 0 breaking), 2.0.0 -> 2.11.0 (11-step path, 1 breaking, 2 action required). The major bump to 2.0.0 (removal of unmaintained secret stores) is visible only through the CRD diff (spec.provider.alibaba/device42 removed) and one commit subject. The v0.x -> v1.0 and v1alpha1/v1beta1 -> v1 transitions are fully captured by the existing CRD version diff; no new construct was needed. ri check over all 77 releases v0.9.0..v2.11.0 found only the upstream anomalies recorded as exceptions. Classify rules are tuned on commit-log subjects only; the GitHub release-body source could not be exercised.
+
+**ingress-nginx**: The retired state made two things visible. (1) A product is not only its releases: the strongest upgrade-relevant fact here (do not rely on future fixes) lives outside any release. (2) Verification is weakest where it matters least: the chart (gh-pages index), manifests (git) and notes are all verifiable; only the registry is not. The definition is 7 sources, 12 artifacts, one lifecycle statement; 25 minutes, 0 product-specific Go lines.
+
 ## Data quality
 
 Observations about the inputs (missing, inconsistent or later-adopted data). The report is computed regardless.
 
 - cert-manager uses constructs introduced by a later product (the definition was migrated after they appeared): field:sources.fallbackGroup (introduced by istio)
+- postgresql: listed as a new construct but the definition does not use "versioning.tagPattern component groups (?P<major>)(?P<minor>)(?P<patch>)(?P<prerelease>)" (typo, renamed, or retired?)
+- postgresql: listed as a new construct but the definition does not use "extract.format: docbook (+ list-item reading of the converted notes)" (typo, renamed, or retired?)
+- postgresql uses 7 construct(s) that no record introduces: artifact:package, field:sources.extract.format, field:sources.locator.url, format:docbook, template-func:eq, template-func:ge, template-var:Patch
+- vault: listed as a new construct but the definition does not use "extract.labelParagraphs" (typo, renamed, or retired?)
+- vault uses 8 construct(s) that no record introduces: artifact:package, field:artifacts.channels.path, field:artifacts.channels.tagPattern, field:sources.exceptions, field:sources.exceptions.reason, field:sources.exceptions.versions, field:sources.extract.labelParagraphs, locator:helm-git
+- crossplane uses 1 construct(s) that no record introduces: field:sources.locator.tagPattern
+- ingress-nginx: listed as a new construct but the definition does not use "lifecycle" (typo, renamed, or retired?)
+- ingress-nginx uses 11 construct(s) that no record introduces: field:artifacts.channels.path, field:artifacts.channels.tagPattern, field:lifecycle, field:lifecycle.since, field:lifecycle.sources, field:lifecycle.state, field:lifecycle.summary, field:sources.exceptions, ... (3 more)
