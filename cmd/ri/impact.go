@@ -11,11 +11,14 @@ import (
 
 // impact runs `ri impact <product> <from> <to>`: the upgrade edge joined with
 // the caller's environment. Every environment input is optional, but at least
-// one must be given — the whole point of the command is the join.
+// one must be given — the whole point of the command is the join. --repo
+// enables directory mode: inputs are discovered in a repository tree by
+// convention and the explicit flags compose with what was found.
 func (c *cli) impact(args []string) error {
 	fs := c.flags("impact", "<product> <from> <to>")
 	output := fs.String("o", "text", "output format: text|json")
 	kubernetes := fs.String("kubernetes", "", "Kubernetes version of the cluster (e.g. 1.31 or 1.31.5)")
+	repo := fs.String("repo", "", "directory mode: discover values/manifests/Argo CD/Flux inputs in a repository tree by convention (explicit flags compose with, and are applied after, the discovered files)")
 	values := fs.String("values", "", "comma-separated Helm values files of the environment")
 	manifests := fs.String("manifests", "", "comma-separated manifest files or directories (multi-document YAML)")
 	crds := fs.String("crds", "", "comma-separated CustomResourceDefinition files or directories")
@@ -31,6 +34,7 @@ func (c *cli) impact(args []string) error {
 	}
 	in := app.ImpactOptions{Policy: *policy}
 	in.Environment.KubernetesVersion = *kubernetes
+	in.Environment.Repo = *repo
 	in.Environment.ValuesFiles = splitList(*values)
 	in.Environment.Manifests = splitList(*manifests)
 	in.Environment.CRDs = splitList(*crds)

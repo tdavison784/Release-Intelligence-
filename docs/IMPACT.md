@@ -12,6 +12,12 @@ ri impact <product> <from> <to> \
   --images images.txt
 ```
 
+or, pointing at a whole customer repository instead of individual files:
+
+```
+ri impact <product> <from> <to> --repo ./customer-repo --kubernetes 1.28
+```
+
 Every environment input is optional; at least one is required. The join applies
 whatever is supplied and silently skips the rules whose input is missing
 (a run with `--kubernetes` only performs the compatibility check).
@@ -66,6 +72,7 @@ Parsed from local files only, deterministically, with per-fact evidence:
 | `--manifests` (files or directories) | one fact per document (`apiVersion`/`kind`, with the document's line); flattened field paths of each resource (`spec.secretTemplate.labels`, …); every `image:` scalar |
 | `--crds` (files or directories) | installed CustomResourceDefinitions: name, group, kind, versions with served/storage/deprecated/deprecationWarning, `spec.preserveUnknownFields`; their group/version pairs also feed the apiVersion inventory |
 | `--images` (list, or a file with one reference per line, `#` comments) | explicit image references (mirror lists) |
+| `--repo` (directory) | all of the below, discovered by convention (see the repo-mode section) |
 
 Multi-document YAML streams are split on `---` separators with line tracking,
 so locators point into the original file. CRD documents inside `--manifests`
@@ -74,6 +81,64 @@ error. Unparsable documents are warnings. Digests of all parsed files are
 recorded. Caps (10 000 values keys, 2 000 documents, 8 000 field paths, 5
 cited occurrences per apiVersion) bound hostile inputs; hitting one is a
 warning in the report.
+
+Beyond the per-rule facts above, every manifest document feeds two
+cross-cutting inventories:
+
+- **GVK usage inventory** (`Environment.GVKUsage`): one entry per distinct
+  group/version/kind the manifests (or installed CRDs) touch, with the
+  apiVersion split into `Group` (`""` for the core group) and `Version`, the
+  `Names` (metadata name/namespace) of the using resources, the flattened
+  `FieldPaths` those documents set, raw `Documents` refs (file + start line,
+  so a matcher can re-inspect the original manifest) and the evidence chain.
+  This is the contract a GVK-scoped CRD matcher consumes: "does this
+  environment use *this exact* API, and where". The compact `APIVersions`
+  list the impact join matches on is kept alongside.
+- **Installed products** (`Environment.Installed`): best-effort
+  identification of *what is installed and at what version*, from Helm
+  release annotations (`meta.helm.sh/release-name`, `helm.sh/chart` — the
+  version segment is peeled off the chart annotation), the
+  `app.kubernetes.io/{name,instance,version}` labels, Argo CD Application
+  specs (`spec.source[].chart`/`path`, `targetRevision` as the version), Flux
+  HelmRelease specs (`.spec.chart.spec.chart` + `.version`, which may be a
+  range such as `1.*`) and Helmfile `releases:` entries (repo mode). Every
+  entry records the mechanism that grounded it and cites the exact fields —
+  a guess is a guess, never stated as a fact. Argo/Flux inline values
+  (`spec.source.helm.values`/`valuesObject`/`parameters`,
+  `.spec.values`) are flattened into the values inventory with the same path
+  syntax as parsed values files — they ARE the customer's values, and the
+  values rules join on them like any other file.
+
+## Repository mode (`--repo`)
+
+`--repo ./customer-repo` walks a directory tree (bounded depth 10, ≤ 5 000
+files; `.git` and other hidden directories except `.github`, `vendor`,
+`node_modules`, `.terraform`, `dist`, `target`, `tmp` are skipped, and a
+directory containing `Chart.yaml` is skipped whole — a vendored chart's
+values are chart defaults, not customer values) and classifies each file by
+convention:
+
+| Convention | Classified as | What is taken |
+|---|---|---|
+| `values.yaml`, `values-prod.yaml`, `prod-values.yaml` (by name) | `values` | Helm values file |
+| YAML whose documents have `apiVersion`+`kind` | `manifests` | loaded like `--manifests`; a file is skipped silently when no document is k8s-shaped (compose files, CI configs, chart templates) |
+| document with kind `Application` in `argoproj.io` | `argocd` | loaded as a manifest; chart identity, `targetRevision` and inline Helm values become installed-product facts and values keys |
+| document with kind `HelmRelease` in `helm.toolkit.fluxcd.io` | `flux` | loaded as a manifest; chart + version range + `.spec.values` likewise; `valuesFrom` (cluster objects) is a warning |
+| `kustomization.yaml` | `kustomization` | referenced `resources`/`bases`/patches files are inventoried as plain manifests **without applying patches or transformers** (warning); `images:` overrides become pinned image references |
+| `helmfile.yaml` | `helmfile` | `releases:` chart+version become installed-product guesses; referenced values files become values inputs; templating (go templates, environments) is not evaluated (warning) |
+| `.github/workflows/*.yaml` | `workflow` | scalar `image:` references |
+| `*.tf` | `terraform` | literal `image = "…"` assignments only; HCL structure, variables and templating are not evaluated |
+
+Every classification is recorded on `Environment.Discovered` (path, kind,
+detail, evidence at the file:line that grounded it) and every ambiguity is a
+warning in the report: two values files are both applied (with a warning),
+not silently ranked.
+
+**Precedence.** Explicit flags compose with discovery: discovered files are
+loaded first, the explicit `--values`/`--manifests`/`--crds` entries after
+them — so in an ordered application (Helm values) an explicit file wins
+per-key over a discovered one. A file reached through both routes is loaded
+once. `--kubernetes` has no repository source and remains flag-only.
 
 ## The join (`internal/impact`)
 
@@ -158,6 +223,13 @@ already-set `global.rbac.disableHTTPChallengesRole` as review, and the old
 controller/webhook image pins as review. `-o json` prints the
 `domain.ImpactReport`, validated by `schemas/impact-report.schema.json`.
 
+Repo mode is exercised the same way end to end:
+`internal/env/testdata/customer-repo` (values files per cluster, base
+manifests with Helm metadata, an Argo CD Application, a Flux HelmRelease, a
+kustomization, a helmfile, a vendored chart, a workflow and a Terraform file)
+joined with the same edge produces the same funnel plus the repo-mode
+warnings — see `TestE2EImpactRepo` and the `cert-manager_repo_*` goldens.
+
 ## Honest limitations
 
 - **Note-derived changes are not joined.** Declared breaking changes from
@@ -168,7 +240,8 @@ controller/webhook image pins as review. `-o json` prints the
 - **CRD field removal matches by path only.** The upstream change lists
   schema paths without the CRD's identity (the edge's CRD snapshots are
   per-release summaries); a removed `spec.x` matches any manifest setting
-  `spec.x`. The CRD name is visible in the change title for the human.
+  `spec.x`. The GVK usage inventory now carries the per-document identity a
+  GVK-scoped matcher needs; the join itself does not use it yet.
 - **Group-only API matches are medium confidence.** Without an installed CRD,
   a group/version match cannot distinguish kinds of the same group.
 - **Values semantics are syntactic.** The join reasons about key paths, not
@@ -177,9 +250,22 @@ controller/webhook image pins as review. `-o json` prints the
 - **No cluster access.** The cluster version comes from a flag; nothing is
   read from a live cluster (CRs actually stored, served versions of the
   apiserver). The environment is what the files say.
-- **Terraform is not parsed.** No HCL library is in go.mod; infrastructure
-  managed in Terraform is invisible to the join. Recorded gap; the inputs are
-  designed so a `tf` source can be added without changing the join.
+- **Kustomize is not built.** Repo mode inventories the files a
+  kustomization references and its `images:` overrides; strategic-merge/JSON
+  patches, configMap/secret generators and name transforms are not applied,
+  so a key that only a patch introduces is invisible (warned).
+- **Helmfile templating is not evaluated.** Releases, versions and
+  values-file references are taken from the literal `helmfile.yaml`;
+  go-template values and `environments:` state resolution would answer "what
+  does the staging environment actually set" — recorded gap.
+- **Terraform: image refs only.** Literal `image = "…"` assignments are
+  extracted; modules, variables and `templatefile` rendering stay invisible
+  (no HCL library). Anything beyond the trivially deterministic part is a
+  recorded gap.
+- **Installed-product identification is a guess.** Annotations, labels and
+  GitOps specs can disagree or lie (a stale `helm.sh/chart`); every
+  `Installed` entry therefore names the mechanism that grounded it. Nothing
+  downstream may treat it as authoritative.
 - **Digest pinning detail.** Image matches compare repositories (and tags
   when the environment states one); digests are carried through to the
   finding text but do not change the matching.

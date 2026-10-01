@@ -52,11 +52,19 @@ type Inputs struct {
 	CRDs []string
 	// Images are explicit image references (mirror lists and the like).
 	Images []string
+	// Repo enables directory mode: the tree below Repo is walked (bounded
+	// depth, VCS/vendor directories skipped) and environment inputs are
+	// discovered by convention — values files, k8s-shaped manifests, Argo CD
+	// Applications, Flux HelmReleases, kustomizations, workflow/terraform
+	// image references. Explicit flags COMPOSE with discovery: discovered
+	// files are loaded first, explicit entries after them (so an explicit
+	// values file wins per-key), and a file named by both is loaded once.
+	Repo string
 }
 
 // Empty reports whether no input was given at all.
 func (in Inputs) Empty() bool {
-	return in.KubernetesVersion == "" && len(in.ValuesFiles) == 0 && len(in.Manifests) == 0 && len(in.CRDs) == 0 && len(in.Images) == 0
+	return in.KubernetesVersion == "" && len(in.ValuesFiles) == 0 && len(in.Manifests) == 0 && len(in.CRDs) == 0 && len(in.Images) == 0 && strings.TrimSpace(in.Repo) == ""
 }
 
 // File is one parsed input file.
@@ -126,7 +134,7 @@ type ImageUse struct {
 	Repository string
 	Tag        string
 	Digest     string
-	Source     string // "manifest" | "values" | "list"
+	Source     string // "manifest" | "values" | "list" | "workflow" | "terraform" | "kustomization"
 	Line       int    // 1-based line in the file (0 for list entries)
 	Evidence   []domain.EvidenceID
 }
@@ -143,6 +151,18 @@ type Environment struct {
 	Images           []ImageUse
 	ManifestDocCount int
 
+	// GVKUsage is the per group/version/kind inventory of what manifests (and
+	// installed CRDs) use — the contract the GVK-scoped CRD matcher consumes.
+	GVKUsage []GVKUsage
+	// Installed is the best-effort identification of the installed
+	// product/chart(s), each with the mechanism that grounded it.
+	Installed []InstalledProduct
+
+	// RepoRoot is the repository directory of repo mode ("" otherwise) and
+	// Discovered lists every file the walk classified, with its evidence.
+	RepoRoot   string
+	Discovered []RepoDiscovery
+
 	Files    []File
 	Evidence []domain.Evidence
 	Warnings []string
@@ -150,11 +170,14 @@ type Environment struct {
 
 // loader accumulates state while Load runs.
 type loader struct {
-	env      *Environment
-	evidence map[domain.EvidenceID]bool
-	files    map[string]string // path → digest
-	warned   map[string]bool
-	capped   map[string]int
+	env       *Environment
+	evidence  map[domain.EvidenceID]bool
+	files     map[string]string // path → digest
+	warned    map[string]bool
+	capped    map[string]int
+	gvk       map[gvkKey]*gvkStage
+	installed []InstalledProduct
+	repoFiles int
 }
 
 func (l *loader) warnf(format string, args ...any) {
@@ -191,26 +214,48 @@ func Load(in Inputs) (*Environment, error) {
 	l := &loader{
 		env: &Environment{}, evidence: map[domain.EvidenceID]bool{},
 		files: map[string]string{}, warned: map[string]bool{}, capped: map[string]int{},
+		gvk: map[gvkKey]*gvkStage{},
 	}
 	if v := strings.TrimSpace(in.KubernetesVersion); v != "" {
 		id := l.evInput("flag:--kubernetes", v)
 		l.env.Kubernetes = &KubernetesVersion{Version: v, Evidence: []domain.EvidenceID{id}}
 	}
 
-	for _, p := range in.ValuesFiles {
-		if err := l.loadValues(p); err != nil {
+	var discVals, discMans []string
+	if strings.TrimSpace(in.Repo) != "" {
+		vals, mans, err := l.discoverRepo(in.Repo)
+		if err != nil {
 			return nil, err
+		}
+		discVals, discMans = vals, mans
+		if len(discVals) > 1 {
+			l.warnf("repo mode found %d values files; all are applied, the last one wins per key", len(discVals))
+		}
+		if len(discVals)+len(discMans) == 0 {
+			l.warnf("repo mode found no values or manifest files in %s", in.Repo)
 		}
 	}
-	for _, p := range in.CRDs {
-		if err := l.loadStream(p, true); err != nil {
-			return nil, err
-		}
+
+	vals, err := mergeFiles(discVals, in.ValuesFiles)
+	if err != nil {
+		return nil, err
 	}
-	for _, p := range in.Manifests {
-		if err := l.loadStream(p, false); err != nil {
-			return nil, err
-		}
+	if err := l.loadValuesFiles(vals); err != nil {
+		return nil, err
+	}
+	crds, err := mergeFiles(nil, in.CRDs)
+	if err != nil {
+		return nil, err
+	}
+	if err := l.loadFiles(crds, true); err != nil {
+		return nil, err
+	}
+	mans, err := mergeFiles(discMans, in.Manifests)
+	if err != nil {
+		return nil, err
+	}
+	if err := l.loadFiles(mans, false); err != nil {
+		return nil, err
 	}
 	for _, ref := range in.Images {
 		l.addImageAt(ref, "list", "", 0)
@@ -230,7 +275,36 @@ func Load(in Inputs) (*Environment, error) {
 		}
 		return l.env.Images[i].Reference < l.env.Images[j].Reference
 	})
+	l.finalizeGVK()
+	l.finalizeInstalled()
 	return l.env, nil
+}
+
+// mergeFiles combines discovered files with explicit entries. Explicit
+// entries (files or directories) are expanded and appended AFTER the
+// discovered ones — in an ordered application (values files) an explicit
+// file therefore wins per-key over a discovered one. A file reached twice is
+// loaded once, at its last position.
+func mergeFiles(discovered, explicit []string) ([]string, error) {
+	out := append([]string{}, discovered...)
+	for _, e := range explicit {
+		files, err := expand(e)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, files...)
+	}
+	last := map[string]int{}
+	for i, f := range out {
+		last[f] = i
+	}
+	final := make([]string, 0, len(last))
+	for i, f := range out {
+		if last[f] == i {
+			final = append(final, f)
+		}
+	}
+	return final, nil
 }
 
 // zeroTime keeps environment evidence timeless: it describes files, not a
@@ -282,12 +356,9 @@ func expand(path string) ([]string, error) {
 	return out, nil
 }
 
-// loadValues parses one Helm values file.
-func (l *loader) loadValues(path string) error {
-	files, err := expand(path)
-	if err != nil {
-		return err
-	}
+// loadValuesFiles parses Helm values files (already expanded and
+// deduplicated, discovered ones first and explicit ones last).
+func (l *loader) loadValuesFiles(files []string) error {
 	for _, f := range files {
 		b, err := l.readFile(f)
 		if err != nil {
@@ -302,14 +373,13 @@ func (l *loader) loadValues(path string) error {
 			continue
 		}
 		for _, kv := range flat {
-			if len(l.env.ValuesKeys) >= maxValuesKeys {
+			if !l.addValuesKey(ValuesKey{
+				Path: kv.Path, Value: kv.Value, Line: kv.Line,
+				Evidence: []domain.EvidenceID{l.ev(f, fmt.Sprintf("$.%s (L%d)", kv.Path, kv.Line), kv.Path+": "+kv.Value)},
+			}) {
 				l.warnf("more than %d values keys; the rest of %s was ignored", maxValuesKeys, f)
 				break
 			}
-			l.env.ValuesKeys = append(l.env.ValuesKeys, ValuesKey{
-				Path: kv.Path, Value: kv.Value, Line: kv.Line,
-				Evidence: []domain.EvidenceID{l.ev(f, fmt.Sprintf("$.%s (L%d)", kv.Path, kv.Line), kv.Path+": "+kv.Value)},
-			})
 		}
 		// images set through the usual chart conventions
 		byPath := make(map[string]normalize.FlattenedValue, len(flat))
@@ -344,6 +414,16 @@ func (l *loader) loadValues(path string) error {
 	return nil
 }
 
+// addValuesKey appends a values key under the global cap; false when the cap
+// is hit.
+func (l *loader) addValuesKey(vk ValuesKey) bool {
+	if len(l.env.ValuesKeys) >= maxValuesKeys {
+		return false
+	}
+	l.env.ValuesKeys = append(l.env.ValuesKeys, vk)
+	return true
+}
+
 // doc is one YAML document of a stream.
 type doc struct {
 	node      *yaml.Node // resolved root node (nil: empty document)
@@ -351,13 +431,9 @@ type doc struct {
 	startLine int // 1-based line of the document's first content in the file
 }
 
-// loadStream parses one manifest/CRD input (file or directory). Only CRD
-// documents are kept from crdOnly inputs; manifest inputs keep everything.
-func (l *loader) loadStream(path string, crdOnly bool) error {
-	files, err := expand(path)
-	if err != nil {
-		return err
-	}
+// loadFiles parses already-expanded manifest/CRD files. Only CRD documents
+// are kept from crdOnly inputs; manifest inputs keep everything.
+func (l *loader) loadFiles(files []string, crdOnly bool) error {
 	for _, f := range files {
 		b, err := l.readFile(f)
 		if err != nil {
@@ -447,6 +523,10 @@ func (l *loader) loadCRD(d doc) {
 	// A CRD document also states the group/version pairs it serves.
 	for _, v := range crd.Versions {
 		l.useAPIVersion(group+"/"+v.Name, kind, d, 1)
+		st := l.gvkStageFor(group, v.Name, kind)
+		l.gvkAddDoc(st, d)
+		l.gvkAddName(st, name, "")
+		l.gvkAddEvidence(st, ev)
 	}
 	l.env.CRDs = append(l.env.CRDs, crd)
 }
@@ -454,8 +534,15 @@ func (l *loader) loadCRD(d doc) {
 func (l *loader) loadManifest(d doc) {
 	apiVersion := scalarOf(d.node, "apiVersion")
 	kind := scalarOf(d.node, "kind")
+	var st *gvkStage
 	if apiVersion != "" && kind != "" {
 		l.useAPIVersion(apiVersion, kind, d, maxEvidencePerFact)
+		group, version := splitGroupVersion(apiVersion)
+		st = l.gvkStageFor(group, version, kind)
+		l.gvkAddDoc(st, d)
+		l.gvkAddName(st, scalarOf(d.node, "metadata", "name"), scalarOf(d.node, "metadata", "namespace"))
+		l.gvkAddEvidence(st, l.ev(d.file, fmt.Sprintf("L%d", d.startLine), "apiVersion: "+apiVersion+" / kind: "+kind))
+		l.detectInstalled(d)
 	}
 	// images: any mapping key "image" with a reference value
 	walkMappings(d.node, func(key string, val *yaml.Node, path string) {
@@ -480,6 +567,9 @@ func (l *loader) loadManifest(d doc) {
 		line := 0
 		if val != nil {
 			line = val.Line
+		}
+		if st != nil {
+			l.gvkAddPath(st, path)
 		}
 		l.env.ManifestFields = append(l.env.ManifestFields, ManifestField{
 			Path: path, APIVersion: apiVersion, Kind: kind, Line: line,

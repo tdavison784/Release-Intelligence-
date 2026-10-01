@@ -12,8 +12,8 @@
 //	ri ingest <product> <version>       ingest one release (facts + evidence)
 //	ri upgrade <product> <from> <to>    describe the upgrade edge
 //	ri impact <product> <from> <to>     join the edge with your environment
-//	                                    (--kubernetes, --values, --manifests,
-//	                                    --crds, --images)
+//	                                    (--repo DIR, or --kubernetes, --values,
+//	                                    --manifests, --crds, --images)
 //	ri discover <repository>            propose a product definition
 //	ri stats [product...]               measure onboarding scalability
 //	ri eval [entries...]                score the validation dataset
