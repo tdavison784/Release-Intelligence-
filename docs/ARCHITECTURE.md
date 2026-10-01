@@ -63,7 +63,9 @@ internal/discovery     AI-assisted source discovery: repo scanner → candidates
 internal/llm           LLM port + Anthropic implementation
 internal/store         local JSON store for ingested releases and edges
 products/              checked-in product definitions
-schemas/               JSON Schemas for product definitions and upgrade edges
+schemas/               JSON Schemas (draft 2020-12): product-definition (hand-written); upgrade-edge and
+                       release (generated from internal/domain, run `go run ./internal/domain/schemagen`;
+                       a test fails when they are stale)
 ```
 
 Dependency direction: `domain` ← `catalog` ← `sources` ← adapters; `normalize`
