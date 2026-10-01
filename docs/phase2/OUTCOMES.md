@@ -120,7 +120,13 @@ the loop: **recall 0.94 → 0.96 → 1.00** (53/53, zero misses), precision
 
 1. **Precision 0.49.** Half of a raw upgrade brief is true-but-irrelevant.
    Precision tracks whether a product has a dedicated upgrade-guide channel
-   (1.00) vs mixed channels (0.17–0.64). This is the enrichment layer's job.
+   (1.00) vs mixed channels (0.17–0.64). **Measured 2026-10-01** (first live
+   enrichment run, GLM-5.3-Flash via Z.AI): as designed, enrichment does NOT
+   move brief precision — 7% FP consolidation on the three noisiest cases
+   ([eval/REPORT.md](../eval/REPORT.md)). The candidate groups consolidate
+   duplicate statements, not routine-maintenance masses; the fix is a
+   routine-classification capability (deterministic or candidate-side), not
+   a better model.
 2. **Environment-link accuracy 0.25.** The join is exact on what files show
    (findings 7/7, false findings 0) but blind to defaults you don't set.
 3. **Discovery share plateau ~40–50%** with named failure modes (above).

@@ -107,6 +107,11 @@ type Anthropic struct {
 	MaxTokens int
 	// Effort, when set, is sent as output_config.effort ("low" … "max").
 	Effort string
+	// Thinking is sent as the thinking parameter ("enabled"/"disabled"; ""
+	// omits it). Disabling it keeps reasoning-first gateway models (GLM
+	// served as Anthropic-compatible) from spending the answer budget on
+	// thinking blocks.
+	Thinking string
 	// ServerFallback sends `"fallbacks": "default"` (beta header
 	// server-side-fallback-2026-07-01) so that a declined request is re-served
 	// by a fallback model. Only the first-party Claude API accepts it; turn it
@@ -141,6 +146,15 @@ type anthropicRequest struct {
 	Messages     []anthropicMessage `json:"messages"`
 	OutputConfig *outputConfig      `json:"output_config,omitempty"`
 	Fallbacks    string             `json:"fallbacks,omitempty"`
+	// Thinking explicitly enables/disables extended thinking ("enabled"/
+	// "disabled"; "" omits the field). Reasoning-first models served through
+	// Anthropic-compatible gateways otherwise spend the token budget on
+	// thinking before answering.
+	Thinking *anthropicThinking `json:"thinking,omitempty"`
+}
+
+type anthropicThinking struct {
+	Type string `json:"type"`
 }
 
 type anthropicMessage struct {
@@ -263,6 +277,9 @@ func (a *Anthropic) buildBody(req Request) ([]byte, error) {
 	if a.ServerFallback {
 		ar.Fallbacks = "default"
 	}
+	if a.Thinking != "" {
+		ar.Thinking = &anthropicThinking{Type: a.Thinking}
+	}
 	return json.Marshal(ar)
 }
 
@@ -338,10 +355,89 @@ func (a *Anthropic) once(ctx context.Context, body []byte, structured bool) (*Re
 	// model that answered (after any server-side fallback); it is recorded
 	// as both the model and its version.
 	out := &Response{Text: text.String(), Model: ar.Model, ModelVersion: ar.Model, Origin: OriginAPI}
-	if structured && !json.Valid([]byte(strings.TrimSpace(out.Text))) {
-		return nil, fmt.Errorf("anthropic: structured answer is not valid JSON (stop_reason %q)", ar.StopReason)
+	if structured {
+		// Models behind Anthropic-compatible gateways may ignore the
+		// structured-output config and answer with a fenced or prose-wrapped
+		// JSON document; the caller's schema validation still applies to
+		// whatever is extracted.
+		out.Text = normalizeStructuredJSON(out.Text)
+		if !json.Valid([]byte(strings.TrimSpace(out.Text))) {
+			return nil, fmt.Errorf("anthropic: structured answer is not valid JSON (stop_reason %q)", ar.StopReason)
+		}
 	}
 	return out, nil
+}
+
+// normalizeStructuredJSON returns the outermost JSON document in s (a
+// ```json fence, or the first balanced top-level object/array) when s itself
+// is not already valid JSON; otherwise it returns s unchanged, leaving the
+// caller to report the honest "not valid JSON" failure.
+func normalizeStructuredJSON(s string) string {
+	t := strings.TrimSpace(s)
+	if json.Valid([]byte(t)) {
+		return s
+	}
+	if cand := extractFencedJSON(t); json.Valid([]byte(cand)) {
+		return cand
+	}
+	if cand := extractBalancedJSON(t); json.Valid([]byte(cand)) {
+		return cand
+	}
+	return s
+}
+
+func extractFencedJSON(s string) string {
+	for _, marker := range []string{"```json", "```JSON", "```"} {
+		i := strings.Index(s, marker)
+		if i < 0 {
+			continue
+		}
+		rest := s[i+len(marker):]
+		if j := strings.Index(rest, "```"); j >= 0 {
+			return strings.TrimSpace(rest[:j])
+		}
+	}
+	return ""
+}
+
+func extractBalancedJSON(s string) string {
+	for i := 0; i < len(s); i++ {
+		if s[i] != '{' && s[i] != '[' {
+			continue
+		}
+		open, depth := s[i], 0
+		close := byte('}')
+		if open == '[' {
+			close = ']'
+		}
+		inStr, esc := false, false
+		for j := i; j < len(s); j++ {
+			c := s[j]
+			if inStr {
+				if esc {
+					esc = false
+				} else if c == '\\' {
+					esc = true
+				} else if c == '"' {
+					inStr = false
+				}
+				continue
+			}
+			switch c {
+			case '"':
+				inStr = true
+			case open:
+				depth++
+			case close:
+				depth--
+				if depth == 0 {
+					return strings.TrimSpace(s[i : j+1])
+				}
+			}
+		}
+		return ""
+	}
+	return ""
 }
 
 func parseAPIError(hresp *http.Response, raw []byte) error {

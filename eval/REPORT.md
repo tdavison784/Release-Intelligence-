@@ -227,3 +227,37 @@ positives 103 → 103 (the new source introduced none), duplicate groups 10 →
 10, unsupported 0, environment accuracy 0.25 (unchanged). The dataset now
 has no known miss; the open quality problem is precision (Vault,
 ingress-nginx, Cilium noise), not coverage.
+
+## Enrichment experiment: does AI consolidation move brief precision? (2026-10-01, GLM-5.3-Flash via Z.AI)
+
+First live-model run of `ri upgrade -enrich` (Z.AI's Anthropic-compatible
+endpoint, `glm-5.3-flash`, thinking disabled, ~40 prompts on the free quota;
+every answer schema-validated, full provenance recorded, `.ri/llm-cache`
+holds the answers for offline replay). Infrastructure: 0 failures — the
+gateway needed two generic client tolerances (fenced-JSON extraction;
+explicit `thinking: disabled`), both landed with tests.
+
+**Measurement** (the three FP-dominant cases; FP = change matching a
+`notExpected` list; "consolidated" = covered by ≥1 accepted enrichment's
+`relatesTo`):
+
+| case | FPs | consolidated | accepted enrichments |
+|---|---|---|---|
+| ingress-nginx-1.11-1.12 | 14 | 6 (43%) | 6 |
+| cilium-1.16-1.17 | 16 | 0 | 6 |
+| vault-1.21-2.0 | 55 | 0 | 7 |
+| **total** | **85** | **6 (7%)** | 19 |
+
+**Finding: as designed, enrichment does not move upgrade-brief precision.**
+The candidate generator produces duplicate-statement clusters (the same fact
+in two changelog sections — its Goal-5 job, done well), not routine-maintenance
+buckets: Vault's 12 candidate groups over 167 changes are all 2–3-item
+semantic pairs, while its 55 FPs are single per-plugin version bumps and
+UI-only items that never become candidates. Raising `-enrich-max` cannot help
+(12 << 40 cap). The precision gap is therefore a missing capability, not a
+model-quality issue: it needs (a) deterministic routine-maintenance
+classification (dependency-bump/UI-churn patterns as classify categories or
+generic heuristics), and/or (b) candidate groups over same-category masses
+with an enrichment kind that demotes them to a one-line "routine maintenance"
+conclusion. The 43% on ingress-nginx shows consolidation works where FPs are
+duplicates of each other.

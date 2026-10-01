@@ -52,6 +52,11 @@ func (c *cli) discover(args []string) error {
 			return fmt.Errorf("-llm requires ANTHROPIC_API_KEY")
 		}
 		d.LLM = llm.NewAnthropic(key)
+		if base := os.Getenv("ANTHROPIC_BASE_URL"); base != "" {
+			d.LLM.(*llm.Anthropic).BaseURL = base
+			d.LLM.(*llm.Anthropic).ServerFallback = false
+		}
+		d.LLM.(*llm.Anthropic).Thinking = os.Getenv("ANTHROPIC_THINKING")
 	}
 	res, err := d.Run(c.ctx, discovery.Request{
 		Repository: pos[0], Ref: *ref, ProductID: *id, Name: *name,

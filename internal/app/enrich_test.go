@@ -121,3 +121,28 @@ func TestEnrichRecordedCertManager(t *testing.T) {
 		t.Error("offline runs never use the API, even with a key")
 	}
 }
+
+// A non-default BaseURL must reach the client and disable server fallback
+// (gateways reject the beta header).
+func TestEnrichBackendBaseURL(t *testing.T) {
+	a, err := New(Config{ProductsDir: productsDir, StateDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	opts := EnrichOptions{APIKey: "k", BaseURL: "https://gw.example/api/anthropic"}
+	got, _ := a.enrichmentClient(opts)
+	an, ok := got.(*llm.Cache)
+	if !ok {
+		t.Fatalf("backend = %T, want *llm.Cache", got)
+	}
+	inner, ok := an.Inner.(*llm.Anthropic)
+	if !ok {
+		t.Fatalf("cache inner = %T, want *llm.Anthropic", an.Inner)
+	}
+	if inner.BaseURL != "https://gw.example/api/anthropic" {
+		t.Errorf("BaseURL = %q", inner.BaseURL)
+	}
+	if inner.ServerFallback {
+		t.Error("ServerFallback not disabled for gateway base URL")
+	}
+}

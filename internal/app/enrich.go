@@ -21,6 +21,15 @@ type EnrichOptions struct {
 	// APIKey enables the Anthropic Messages API (not used offline or with
 	// ExchangeDir).
 	APIKey string
+	// BaseURL overrides the Anthropic API endpoint (ANTHROPIC_BASE_URL),
+	// e.g. an Anthropic-compatible gateway such as Z.AI's. Server-side
+	// fallback is disabled for non-default endpoints: gateways reject the
+	// beta header.
+	BaseURL string
+	// Thinking is sent as the thinking parameter ("enabled"/"disabled"; ""
+	// omits it). ANTHROPIC_THINKING=disabled keeps reasoning-first gateway
+	// models from spending the answer budget on thinking blocks.
+	Thinking string
 	// Client overrides the backend (tests). The response cache still wraps it.
 	Client llm.Client
 	// MaxGroups bounds the prompts per edge (0 = enrich's default).
@@ -52,6 +61,11 @@ func (a *App) enrichmentClient(opts EnrichOptions) (llm.Client, string) {
 		if opts.Model != "" {
 			c.Model = opts.Model
 		}
+		if opts.BaseURL != "" {
+			c.BaseURL = opts.BaseURL
+			c.ServerFallback = false
+		}
+		c.Thinking = opts.Thinking
 		inner, desc = c, "Anthropic Messages API"
 	default:
 		desc = "no model configured: cached answers only"

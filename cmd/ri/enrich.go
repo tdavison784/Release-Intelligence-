@@ -48,7 +48,7 @@ func (c *cli) enrich(a *app.App, edge *domain.UpgradeEdge, f upgradeEnrichFlags)
 	if !*f.enrich {
 		return nil
 	}
-	opts := app.EnrichOptions{Model: *f.model, ExchangeDir: *f.exchange, APIKey: os.Getenv("ANTHROPIC_API_KEY"), MaxGroups: *f.maxGroups}
+	opts := app.EnrichOptions{Model: *f.model, ExchangeDir: *f.exchange, APIKey: os.Getenv("ANTHROPIC_API_KEY"), BaseURL: os.Getenv("ANTHROPIC_BASE_URL"), Thinking: os.Getenv("ANTHROPIC_THINKING"), MaxGroups: *f.maxGroups}
 	res, err := a.Enrich(c.ctx, edge, opts)
 	if err != nil {
 		return err
