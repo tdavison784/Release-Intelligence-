@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Go 1.20 Release Notes</title>
+	<style>
+	  main ul li { margin: 0.5em 0; }
+	</style>
+	<script>window.something = function () { return "</p>"; };</script>
+</head>
+<body>
+
+<h2 id="introduction">DRAFT RELEASE NOTES — Introduction to Go 1.20</h2>
+
+<p>
+  <strong>
+    Go 1.20 is not yet released. These are work-in-progress
+    release notes. Go 1.20 is expected to be released in February 2023.
+  </strong>
+</p>
+
+<h2 id="language">Changes to the language</h2>
+
+<p>
+  Go 1.20 includes four changes to the language.
+</p>
+
+<h2 id="tools">Tools</h2>
+
+<h3 id="cover">Cover</h3>
+
+<p>
+  The <code>go test -cover</code> command now prints the total coverage
+  before <a href="/pkg/go/...">exiting</a>. It&rsquo;s documented in
+  <em>the command documentation</em>.
+</p>
+
+<ul>
+  <li>Coverage summaries can be collected for programs that are not tests.</li>
+  <li>The <code>coverage</code> command added:
+    <ul>
+      <li>a <code>percent</code> function</li>
+      <li>a <code>func</code> output mode</li>
+    </ul>
+  </li>
+</ul>
+
+<pre class="terminal">$ go tool cover -func
+main.go:8:		main		100.0%
+</pre>
+
+<h2 id="library">Core library</h2>
+
+<dl id="archive/tar"><dt><a href="/pkg/archive/tar/">archive/tar</a></dt>
+  <dd>
+    <p><!-- https://go.dev/issue/55356, CL 449937 -->
+      When the <code>GODEBUG=tarinsecurepath=0</code> environment variable is set,
+      <a href="/pkg/archive/tar/#Reader.Next"><code>Reader.Next</code></a> method
+      will now return the error <a href="/pkg/archive/tar/#ErrInsecurePath"><code>ErrInsecurePath</code></a>
+      for an entry with a file name that is an absolute path.
+    </p>
+  </dd>
+</dl><!-- archive/tar -->
+
+<h3>New crypto/ecdh package</h3>
+
+<p>
+  Go 1.20 adds the new <a href="/pkg/crypto/ecdh/"><code>crypto/ecdh</code></a> package.
+</p>
+
+<h4 id="unsafe_add">unsafe package &amp; generics</h4>
+
+<p>The <code>unsafe</code> package defines three new functions
+<code>SliceData</code>, <code>String</code> and <code>StringData</code>.
+</p>
+
+</body>
+</html>
