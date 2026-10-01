@@ -1,0 +1,68 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: sample
+name: Sample Product
+versioning:
+  scheme: semver
+  tagPrefix: v
+  lineage: minor
+sources:
+  - id: tags
+    roles: [versions]
+    locator:
+      kind: git-tags
+      repository: github.com/example/sample
+  - id: notes
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/example/website
+      ref: main
+      path: "docs/release-notes-{{.Line}}.md"
+    extract:
+      type: markdown-section
+      heading: '^v?{{regexQuote .Version}}$'
+    classify:
+      - section: '(?i)breaking'
+        category: other
+        breaking: true
+  - id: upgrade
+    roles: [upgrade-guide]
+    releaseKinds: [minor, major]
+    locator:
+      kind: repo-file
+      repository: github.com/example/website
+      ref: main
+      path: "docs/upgrading-{{.PrevLine}}-{{.Line}}.md"
+artifacts:
+  - id: chart
+    type: helm-chart
+    name: sample
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: helm-repo
+        url: https://charts.example.com
+        chart: sample
+    contents:
+      - kind: helm-values
+        locator: {kind: repo-file, repository: github.com/example/sample, path: deploy/chart/values.yaml}
+  - id: controller
+    type: container-image
+    name: sample-controller
+    version: {strategy: template, template: "{{.Tag}}"}
+    availability: ">= 1.1.0"
+    channels:
+      - kind: oci
+        repository: registry.example.com/sample/controller
+    references:
+      - artifact: manifest
+        pattern: "registry.example.com/sample/controller:{{.Tag}}"
+  - id: manifest
+    type: manifest
+    name: install.yaml
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://example.com/releases/download/{{.Tag}}/install.yaml"
+    contents:
+      - kind: image-refs

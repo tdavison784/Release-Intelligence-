@@ -1,0 +1,119 @@
+// Package ingest is the deterministic ingestion pipeline. Driven only by a
+// catalog.ProductDefinition and a sources.Registry, it lists a product's
+// releases, retrieves the documents and artifacts of one release, normalises
+// them (via package normalize) and produces a domain.Release carrying facts,
+// evidence and per-source status. It never calls an LLM.
+//
+// CONTRACT NOTE: the exported API in this file is used by the CLI, by package
+// discovery (CheckRelationships) and by the upgrade orchestration.
+package ingest
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"github.com/tdavison784/release-intelligence/internal/catalog"
+	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/sources"
+)
+
+// ErrNotImplemented is returned by contract stubs not yet implemented.
+var ErrNotImplemented = errors.New("ingest: not implemented")
+
+// Producer identifier used as fact extractor.
+const Producer = "ingest@v1"
+
+// Ingester runs the deterministic pipeline.
+type Ingester struct {
+	Registry *sources.Registry
+	// Clock returns the current time (overridable in tests).
+	Clock func() time.Time
+}
+
+// New returns an Ingester over a registry.
+func New(reg *sources.Registry) *Ingester {
+	return &Ingester{Registry: reg, Clock: time.Now}
+}
+
+// VersionList is the canonical list of releases of a product.
+type VersionList struct {
+	Product  domain.ProductID              `json:"product"`
+	Versions []domain.Version              `json:"versions"` // ascending, stable only unless the definition includes prereleases
+	Refs     map[string]sources.ReleaseRef `json:"refs"`     // keyed by semver
+	Sources  []domain.SourceStatus         `json:"sources"`
+	Evidence []domain.Evidence             `json:"evidence,omitempty"`
+}
+
+// ListVersions queries the product's versions sources (in priority order,
+// falling back when one is unavailable), parses tags with the definition's
+// version parser and returns the sorted list.
+func (i *Ingester) ListVersions(ctx context.Context, def *catalog.ProductDefinition) (*VersionList, error) {
+	return i.listVersions(ctx, def)
+}
+
+// IngestRelease retrieves and normalises everything the definition declares
+// for release v. known is the full version list (used for template context
+// such as PrevLine). Missing or unreachable sources do not fail the call; they
+// are reported in Release.Sources.
+func (i *Ingester) IngestRelease(ctx context.Context, def *catalog.ProductDefinition, v domain.Version, known *VersionList) (*domain.Release, error) {
+	return i.ingestRelease(ctx, def, v, known)
+}
+
+// Advisories lists security advisories from the definition's security sources.
+func (i *Ingester) Advisories(ctx context.Context, def *catalog.ProductDefinition) ([]domain.Advisory, []domain.Evidence, []domain.SourceStatus, error) {
+	return i.advisories(ctx, def)
+}
+
+// RelationshipCheck is one cell of the historical validation matrix: whether
+// a source or artifact relationship declared by the definition held for one
+// release.
+type RelationshipCheck struct {
+	Subject     string              `json:"subject"`           // source or artifact id
+	SubjectKind string              `json:"subjectKind"`       // "source" | "artifact"
+	Channel     string              `json:"channel,omitempty"` // locator kind used
+	Release     string              `json:"release"`
+	Outcome     string              `json:"outcome"` // "pass", "fail", "unverifiable", "not-applicable"
+	Coordinate  string              `json:"coordinate,omitempty"`
+	Detail      string              `json:"detail,omitempty"`
+	Evidence    []domain.EvidenceID `json:"evidence,omitempty"`
+}
+
+// Relationship check outcomes.
+const (
+	OutcomePass          = "pass"
+	OutcomeFail          = "fail"
+	OutcomeUnverifiable  = "unverifiable"
+	OutcomeNotApplicable = "not-applicable"
+)
+
+// RelationshipSummary aggregates checks per subject.
+type RelationshipSummary struct {
+	Subject      string `json:"subject"`
+	SubjectKind  string `json:"subjectKind"`
+	Passed       int    `json:"passed"`
+	Failed       int    `json:"failed"`
+	Unverifiable int    `json:"unverifiable"`
+	// Verdict: "validated" (>= MinValidations passes and no failures),
+	// "failing" (any failure), "insufficient" (fewer passes than required).
+	Verdict string `json:"verdict"`
+}
+
+// MinValidations is how many historical releases must confirm a relationship.
+const MinValidations = 3
+
+// RelationshipReport is the historical validation result for a definition.
+type RelationshipReport struct {
+	Product  domain.ProductID      `json:"product"`
+	Releases []string              `json:"releases"`
+	Checks   []RelationshipCheck   `json:"checks"`
+	Summary  []RelationshipSummary `json:"summary"`
+	Evidence []domain.Evidence     `json:"evidence,omitempty"`
+}
+
+// CheckRelationships verifies, for each given release, that every declared
+// source resolves and every artifact can be located through its channels (or
+// cross-referenced), producing a validation matrix.
+func (i *Ingester) CheckRelationships(ctx context.Context, def *catalog.ProductDefinition, releases []domain.Version, known *VersionList) (*RelationshipReport, error) {
+	return i.checkRelationships(ctx, def, releases, known)
+}
