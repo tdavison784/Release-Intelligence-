@@ -250,6 +250,7 @@ upstream channel needed it.
 | `releaseKinds`, `availability` | Restrict to minor releases or version ranges | upgrade guides exist only for X.Y.0; cert-manager-ctl < 1.15 |
 | `version.strategy: lookup` | Find artifact versions by a field in an index | Argo CD chart whose `appVersion` is the app tag |
 | `version.strategy: field` + `from` | Read the artifact version out of a YAML field of a document at the release ref | kube-prometheus-stack's pinned sub-components: `appVersion` (prometheus-operator), `dependencies[name=x].version` (charts), values.yaml image tags |
+| `version.strategy: pattern` + `from` | Read the artifact version out of a named `(?P<version>…)` capture of a regular expression applied to the raw text of a document at the release ref (the text-mode twin of `field`) | Flux's pinned controllers: versions embedded in kustomize remote-resource URLs (`manifests/bases/*/kustomization.yaml`); also the go.mod require-line pins karpenter recorded as a gap |
 | `optional` | Absence is a fact, not a broken relationship | about half of Argo CD releases ship in no chart |
 | `exceptions` (with reason) | Curated releases where a relationship does not hold | Argo CD v3.4.0 has no release assets |
 | `references` | Cross-check an artifact inside another artifact | image tags in the install manifest when quay.io is unreachable |

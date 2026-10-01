@@ -302,8 +302,12 @@ const (
 	VersionTemplate    = "template"    // artifact version = render(template)
 	VersionLookup      = "lookup"      // search channel index for entries whose Field matches render(Match)
 	VersionField       = "field"       // artifact version = a YAML field of the document at From (read at the release ref)
+	VersionPattern     = "pattern"     // artifact version = the (?P<version>…) capture of Pattern in the document at From (read at the release ref)
 	VersionIndependent = "independent" // no derivable relationship
 )
+
+// VersionPatternGroup is the capture group name the pattern strategy reads.
+const VersionPatternGroup = "version"
 
 // VersionRelation describes how artifact versions relate to release versions.
 // This exists because versions across artifacts frequently do not match
@@ -318,8 +322,15 @@ type VersionRelation struct {
 	// "dependencies[name=kube-state-metrics].version").
 	// From: locator of the document the field is read from, rendered with the
 	// release context (e.g. Chart.yaml at "{{.Tag}}").
-	From   *Locator `yaml:"from,omitempty" json:"from,omitempty"`
-	Select string   `yaml:"select,omitempty" json:"select,omitempty"` // lookup: "latest" (default), "earliest", "all"
+	From *Locator `yaml:"from,omitempty" json:"from,omitempty"`
+	// Pattern: regular expression (with a release-context template) whose
+	// named capture group "version" is the artifact version, applied to the
+	// raw text of the From document. The text-mode twin of field: for pins
+	// that live inside strings of a document rather than addressable YAML
+	// fields (versions embedded in kustomize remote-resource URLs, go.mod
+	// require lines, Dockerfile FROMs).
+	Pattern string `yaml:"pattern,omitempty" json:"pattern,omitempty"`
+	Select  string `yaml:"select,omitempty" json:"select,omitempty"` // lookup: "latest" (default), "earliest", "all"
 }
 
 // ArtifactReference declares that another artifact references this one.

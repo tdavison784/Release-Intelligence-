@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 16 product definitions, 16 onboarding records, 16 saved relationship reports.
-- 147 distinct constructs are used across all definitions; the records introduce 147.
-- 5 of 16 recorded products introduced no new construct. The latest product that introduced one has order 14.
+- 16 product definitions, 17 onboarding records, 17 saved relationship reports.
+- 147 distinct constructs are used across all definitions; the records introduce 151.
+- 5 of 17 recorded products introduced no new construct. The latest product that introduced one has order 15.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -70,7 +70,7 @@ What convergence looks like:
 
 | Order | Wave | Product | YAML lines (code) | Sources | Artifacts | Channels | Contents | Classify rules | Template exprs | Exceptions | Optional artifacts | Fallback groups | Availability constraints |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 0 | cert-manager | 289 (242) | 8 | 9 | 10 | 5 | 4 | 26 | 0 | 0 | 1 | 6 |
+| 1 | 0 | cert-manager | 308 (257) | 9 | 9 | 10 | 5 | 5 | 28 | 0 | 0 | 1 | 7 |
 | 2 | 0 | istio | 316 (279) | 9 | 15 | 22 | 6 | 3 | 39 | 0 | 0 | 2 | 4 |
 | 3 | 0 | argo-cd | 227 (189) | 7 | 5 | 7 | 4 | 11 | 21 | 1 | 1 | 1 | 1 |
 | 4 | 1 | cilium | 323 (274) | 8 | 10 | 18 | 3 | 40 | 19 | 0 | 0 | 1 | 4 |
@@ -84,6 +84,7 @@ What convergence looks like:
 | 12 | 2 | strimzi | 305 (226) | 5 | 10 | 16 | 3 | 10 | 19 | 0 | 0 | 1 | 3 |
 | 13 | 2 | traefik | 339 (261) | 11 | 4 | 7 | 3 | 10 | 27 | 4 | 1 | 1 | 7 |
 | 14 | 2 | karpenter | 371 (296) | 9 | 8 | 8 | 1 | 23 | 18 | 0 | 0 | 2 | 10 |
+| 15 | 2 | flux | - | - | - | - | - | - | - | - | - | - | - |
 | 16 | 2 | otel-collector | 444 (356) | 7 | 13 | 21 | 0 | 23 | 32 | 22 | 0 | 0 | 9 |
 | 17 | 2 | redis | 238 (170) | 6 | 4 | 6 | 0 | 22 | 11 | 1 | 0 | 1 | 5 |
 
@@ -105,14 +106,15 @@ What convergence looks like:
 | 12 | strimzi | 77 | 0 | 77 | 100% | 143 | 0 / 0 | 26 | full |
 | 13 | traefik | 97 | 1 | 96 | 99% | 144 | 0 / 0 | 38 | full |
 | 14 | karpenter | 83 | 3 | 80 | 96% | 147 | 9 / 0 | 35 | full |
-| 16 | otel-collector | 57 | 0 | 57 | 100% | 147 | 0 / 0 | 28 | full |
-| 17 | redis | 61 | 0 | 61 | 100% | 147 | 2 / 0 | 43 | full |
+| 15 | flux | - | 4 | n/a | n/a | 151 | 7 / 0 | 46 | full |
+| 16 | otel-collector | 57 | 0 | 57 | 100% | 151 | 0 / 0 | 28 | full |
+| 17 | redis | 61 | 0 | 61 | 100% | 151 | 2 / 0 | 43 | full |
 
 ### Discovery and relationship validation
 
 | Product | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Checks pass/fail/unverif./n.a./covered | Failures initial → final | Manual interventions | Unreachable sources |
 | --- | --- | --- | --- | --- | --- | --- |
-| cert-manager | 0/0/17 (0%) | 14/0/4/2 | 78/0/12/18/6 | n/a → 0 | 0 | 3 |
+| cert-manager | 0/0/17 (0%) +1 unclassified | 14/0/4/2 | 78/0/12/18/6 | n/a → 0 | 0 | 3 |
 | istio | 0/0/24 (0%) | 24/0/3/0 | 141/0/0/18/3 | n/a → 0 | 2 | 3 |
 | argo-cd | 0/0/12 (0%) | 12/0/1/0 | 59/0/0/13/6 | n/a → 0 | 2 | 3 |
 | cilium | 4/5/9 (50%) | 17/0/1/0 | 336/0/0/24/0 | 0 → 0 | 2 | 0 |
@@ -126,6 +128,7 @@ What convergence looks like:
 | strimzi | 6/4/5 (67%) | 15/0/0/0 | 551/0/0/60/4 | 0 → 0 | 3 | 1 |
 | traefik | 4/3/8 (47%) | 12/0/3/0 | 181/0/0/166/8 | 0 → 0 | 5 | 3 |
 | karpenter | 4/5/8 (53%) | 11/0/4/0 | 63/0/0/24/3 | 0 → 0 | 3 | 0 |
+| flux | 4/11/13 (54%) | 19/0/1/0 | 110/0/0/10/0 | 2 → 0 | 4 | 2 |
 | otel-collector | 2/7/11 (45%) | 15/0/1/0 | 848/0/0/192/0 | 12 → 0 | 4 | 2 |
 | redis | 4/0/6 (40%) | 7/0/0/0 | 72/0/0/11/8 | 1 → 0 | 4 | 2 |
 
@@ -147,8 +150,9 @@ What convergence looks like:
 | 12 | strimzi | 0 | 143 | 77 | 77 | 100% | 0 | 143 |
 | 13 | traefik | 1 | 144 | 97 | 96 | 99% | 1 | 144 |
 | 14 | karpenter | 3 | 147 | 83 | 80 | 96% | 3 | 147 |
-| 16 | otel-collector | 0 | 147 | 57 | 57 | 100% | 0 | 147 |
-| 17 | redis | 0 | 147 | 61 | 61 | 100% | 0 | 147 |
+| 15 | flux | 4 | 151 | 0 | 0 | n/a | 0 | 147 |
+| 16 | otel-collector | 0 | 151 | 57 | 57 | 100% | 0 | 147 |
+| 17 | redis | 0 | 151 | 61 | 61 | 100% | 0 | 147 |
 
 New constructs per product, in onboarding order (records):
 
@@ -167,6 +171,7 @@ New constructs per product, in onboarding order (records):
  12  strimzi                   0  
  13  traefik                   1  █
  14  karpenter                 3  ██
+ 15  flux                      4  ██
  16  otel-collector            0  
  17  redis                     0  
 ```
@@ -176,20 +181,21 @@ Cumulative constructs introduced:
 ```text
   1  cert-manager             87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   2  istio                    99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  3  argo-cd                 113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  4  cilium                  115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  5  postgresql              122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  6  kube-prometheus-stack   130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  7  vault                   137  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  8  crossplane              138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  9  external-secrets        138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 10  ingress-nginx           143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 11  grafana                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 12  strimzi                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 13  traefik                 144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 14  karpenter               147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 16  otel-collector          147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 17  redis                   147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  3  argo-cd                 113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  4  cilium                  115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  5  postgresql              122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  6  kube-prometheus-stack   130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault                   137  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane              138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets        138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 10  ingress-nginx           143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 11  grafana                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 12  strimzi                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 13  traefik                 144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 14  karpenter               147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 15  flux                    151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 16  otel-collector          151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 17  redis                   151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -305,6 +311,13 @@ No new constructs: the definition is configuration only.
 - `column-kind:minimum`: The kind existed in the vocabulary since the Phase 1 support-matrix work (cert-manager's record accounted supported/tested only) but no earlier product used it: karpenter's minK8sVersion is its first exercise. Accounted here so the product's unaccounted-construct list is empty; no code change. (also needed by cert-manager and Istio declared minimums in their matrices but used supported/tested kinds)
 - `field:sources.extract.listItems`: Karpenter's upgrade-guide sections open with a Hugo warning shortcode ({{% alert %}}) before the bullet list; the markdown section reader treats a prose-led section as one item and folds the whole list into it, so the 1.14 guide bullets (CapacityBuffers graduation, DRA, balanced consolidation) were invisible and the folded item said breaking while containing "No breaking changes 🎉". The structural reading already existed for docbook/rst conversions (internal/ingest/docs.go structuralLists); this exposes it declaratively for markdown: catalog field + validation + schema + one condition in ingest, tests in normalize (per-bullet + callout items) and ingest (DocInput.ListItems pass-through). (also needed by Traefik (order 13, wave 2: migration guides open with warning/highlight fences before bullet lists), Grafana (order 11, wave 2: breaking-change docs use callouts above lists), any Hugo/MDX docs site with alert shortcodes ahead of change lists (HashiCorp platform docs use the same shape))
 
+### flux (order 15, wave 2): 4 new
+
+- `field:artifacts.contents.locator.url`: Content locators were repo-file in every earlier product (kube-prometheus-stack reads Chart.yaml/values.yaml from the repository). The install bundle's contents (image pins, CRD versions) must be read from the published install.yaml release asset — the generated manifests do not exist in the source tree (manifests/crds holds remote refs) and the OCI artifact denies anonymous pulls. First exercise of the url leaf on a contents locator; no code change. (also needed by ingress-nginx/karpenter-style products whose only readable representation of an artifact is a release asset (the release-asset representation already exists, G8))
+- `field:artifacts.version.pattern`: the pattern half of version:pattern; the sibling leaf of field:artifacts.version.field (also needed by same as version:pattern)
+- `field:sources.extract.tableHeading`: The field existed in the catalog since the Phase 1 table work (normalize.TableSelector carried it) but no earlier product used it: flux's release bodies are one document in which the compatibility table sits under '### Kubernetes compatibility' next to prose and PR lists, so the selector must be scoped or it would grab an unrelated table. First exercise; no code change. (also needed by cert-manager/Istio-style support pages that mix several tables in one document (their matrices are single-table documents today))
+- `version:pattern`: The text-mode twin of version:field. field reads a version out of an addressable YAML scalar; pattern reads it out of a document where the pin lives inside a string — required for the umbrella-pins-controllers topology of this product: every controller version is embedded in a kustomize remote-resource URL (manifests/bases/<controller>/kustomization.yaml carries `resources: [https://github.com/fluxcd/source-controller/releases/download/v1.9.6/…]`), there is no YAML field anywhere at the tag (go.mod pins the same versions but is not YAML, the release body lists them as markdown links). Yields probe-able artifact instances with line evidence, so the edge states "source-controller v1.8.5 → v1.9.6 [verified]" for every controller of every release. Catalog gains the strategy + CompileVersionPattern (named group enforced), ingest the resolution with the matched line as evidence, JSON Schema and unit tests in all three packages. (also needed by cluster-api and the kustomize-remote-resource style generally (CAPI's kustomization files pin component versions in releases/download/vX.Y.Z URLs of the same shape), any aggregator pinning in Dockerfile FROM lines, Makefiles or .env files (the pin-in-text problem is the norm outside Helm charts))
+
 ### otel-collector (order 16, wave 2): 0 new
 
 No new constructs: the definition is configuration only.
@@ -317,9 +330,9 @@ No new constructs: the definition is configuration only.
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
+| 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) +1 unclassified | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 30 (4.3) | 93% | 55 / 0 | 25 (n=7) | 20/24/56 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
-| 2 | grafana, strimzi, traefik, karpenter, otel-collector, redis | 4 of 6 (grafana, strimzi, otel-collector, redis) | 4 (0.7) | 99% | 11 / 0 | 31.5 (n=6) | 25/22/47 (50%) | 74/0/11/0 (6 of 6 reports) | 8 | full 6 |
+| 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 99% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) | 93/0/12/0 (7 of 7 reports) | 10 | full 7 |
 
 ## Notes from the records
 
@@ -351,6 +364,8 @@ No new constructs: the definition is configuration only.
 
 **karpenter**: First ECR Public product: public.ecr.aws answered anonymously end to end (token, tags, manifests, chart configs), so every image and chart relationship is registry-verified — the fleet-level verdict is "reachable, channel it normally; throttle bursts are transient". Onboarding was research-dominated: the two structures that dominate this product (the 0.35.0 registry-tag boundary and the one-release chart/website lag around the tag) are invisible to per-tag probing from the newest release alone and are exactly what discovery's relationship checks flagged as failures; both recovered as declarations (template relations + legacy twins, preview-at-tag + main fallbacks). Two generic constructs landed (a vocabulary slot and a boolean exposing an existing reading), both small and both with wave-2/3 beneficiaries; zero product-specific Go. Classification quality: the conventional-commit sections map 1:1 to categories, and the guide's tuning (skip '^No breaking changes', role-default action-required accepted) was found by reading edges, not by failing checks — the checks passed from the first draft (0 failures, 12 releases, 2 eras).
 
+**flux**: The umbrella-pins-controllers stress test resolved into one generic construct (pattern, the text twin of field — asked for by karpenter's record one order earlier) plus configuration: the umbrella is canonical (v2 tags), each controller is a per-release pin read out of the release's own kustomization URLs and verified at its own registry, the generated install bundle is probed and snapshotted through its release-asset twin, and the chart is an optional lookup in the community repository. Discovery proposed the right skeleton and its failure on the controllers was the topology speaking; 91 constructs used, 4 new (2 code, 2 first-exercise), 0 product-specific Go. Two definition corrections came from the era check (the v0.25.3 asset boundary, the major-kind compat table), the rest from reading edges. 46 minutes wall-clock, ~25 of them waiting out the anonymous GitHub API quota (twice), the standing tax of a notes source behind api.github.com.
+
 **otel-collector**: Third zero-new wave-2 product: onboarding was research plus configuration. The scope decision: the product is the RELEASES repository (the six distributions users deploy — binaries, deb/rpm/msi packages, images on docker.io + ghcr), not the core framework and not the contrib component repo; core and contrib are modeled as the distribution's content — their changelog sections read at the same-numbered tags (the release body itself links exactly those two), plus a core-release artifact with the honest distribution-only-patch exceptions. The k8s operator is noted as a related product. The definition is the construct-leanest big-product shape so far (57 constructs, all reused; no fallback groups needed — raw git hosts answered everything). Discovery quality was the highest yet for images (six ghcr channels historically-validated by itself) but its binary-asset proposer still cannot template per-OS/arch asset families, and it missed the multi-repository topology entirely — the one class of finding research had to supply. The upstream anomalies this product exposed (three releases that published nothing, a missing multi-arch index tag on the newest release, sections mis-headed as follow-up patches) are exactly what the exceptions construct exists for; none required Go changes.
 
 **redis**: Third wave-2 zero-new-construct product (grafana, strimzi): the whole non-Kubernetes topology — in-repo per-line release notes, GitHub advisory feed, download.redis.io tarballs, Docker official image with a mirror fallback, EOL-dated lifecycle statements — is configuration over existing constructs. The one generic change (setext headings) completes CommonMark in the shared markdown scanner rather than adding definition vocabulary; it benefits any product whose upstream documents underline titles (no catalog field, schema entry or ingest branch was added). Discovery baseline: right versioning and channels-from-tags, zero artifacts, and it mistook the website notes copy for the source; its own historical validation of the GitHub release body was correct and kept.
@@ -359,6 +374,14 @@ No new constructs: the definition is configuration only.
 
 Observations about the inputs (missing, inconsistent or later-adopted data). The report is computed regardless.
 
+- products/flux.yaml: definition not loaded: decode product definition: yaml: unmarshal errors:
+  line 290: field pattern not found in type catalog.VersionRelation
+  line 304: field pattern not found in type catalog.VersionRelation
+  line 318: field pattern not found in type catalog.VersionRelation
+  line 332: field pattern not found in type catalog.VersionRelation
+  line 346: field pattern not found in type catalog.VersionRelation
+  line 360: field pattern not found in type catalog.VersionRelation
+  line 376: field pattern not found in type catalog.VersionRelation
 - cert-manager uses constructs introduced by a later product (the definition was migrated after they appeared): field:sources.fallbackGroup (introduced by istio)
 - cilium uses constructs introduced by a later product (the definition was migrated after they appeared): artifact:package (introduced by postgresql), field:artifacts.channels.glob (introduced by kube-prometheus-stack), field:artifacts.channels.path (introduced by vault), field:sources.extract.format (introduced by postgresql), field:sources.extract.labelParagraphs (introduced by vault), field:sources.locator.tagPattern (introduced by crossplane)
 - kube-prometheus-stack uses constructs introduced by a later product (the definition was migrated after they appeared): field:artifacts.channels.path (introduced by vault), field:artifacts.channels.tagPattern (introduced by vault), locator:helm-git (introduced by vault)

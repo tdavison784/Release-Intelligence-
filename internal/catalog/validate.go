@@ -516,9 +516,26 @@ func (v *validator) versionRelation(path string, vr VersionRelation, rc RenderCo
 		if vr.Match != "" || vr.Template != "" {
 			v.errf(path, "match/template belong to other strategies, not to %s", VersionField)
 		}
+	case VersionPattern:
+		if vr.Pattern == "" {
+			v.errf(path+".pattern", "required for strategy pattern")
+		} else if _, err := CompileVersionPattern(vr.Pattern, rc); err != nil {
+			v.errf(path+".pattern", "%v", err)
+		}
+		switch {
+		case vr.From == nil:
+			v.errf(path+".from", "required for strategy pattern: the document the version is read from")
+		case vr.From.Kind != LocatorRepoFile && vr.From.Kind != LocatorHTTP:
+			v.errf(path+".from.kind", "must be %s or %s for strategy pattern (one document)", LocatorRepoFile, LocatorHTTP)
+		default:
+			v.locator(path+".from", *vr.From, rc)
+		}
+		if vr.Match != "" || vr.Template != "" || vr.Field != "" {
+			v.errf(path, "match/template/field belong to other strategies, not to %s", VersionPattern)
+		}
 	case VersionIndependent:
 	default:
-		v.errf(path+".strategy", "must be template, lookup, field or independent, got %q", vr.Strategy)
+		v.errf(path+".strategy", "must be template, lookup, field, pattern or independent, got %q", vr.Strategy)
 	}
 }
 
@@ -593,4 +610,25 @@ func sameRepresentation(a, b Locator) bool {
 		return b.Kind == a.Kind && a.Repository == b.Repository && a.Path == b.Path
 	}
 	return a.Kind == b.Kind
+}
+
+// CompileVersionPattern renders a version.pattern with the release context
+// and compiles it, requiring a named capture group "version" (the group the
+// strategy reads the artifact version from). Definitions call it through
+// validation; ingest calls it to apply the pattern.
+func CompileVersionPattern(pattern string, rc RenderContext) (*regexp.Regexp, error) {
+	rendered, err := Render(pattern, rc)
+	if err != nil {
+		return nil, err
+	}
+	re, err := regexp.Compile(rendered)
+	if err != nil {
+		return nil, err
+	}
+	for _, name := range re.SubexpNames() {
+		if name == VersionPatternGroup {
+			return re, nil
+		}
+	}
+	return nil, fmt.Errorf("version pattern %q: no named capture group (?P<%s>…)", pattern, VersionPatternGroup)
 }
