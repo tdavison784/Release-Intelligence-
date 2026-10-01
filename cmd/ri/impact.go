@@ -21,6 +21,7 @@ func (c *cli) impact(args []string) error {
 	crds := fs.String("crds", "", "comma-separated CustomResourceDefinition files or directories")
 	images := fs.String("images", "", "comma-separated image references, or one file listing them (one per line)")
 	policy := fs.String("policy", "", "path policy override: minor-lineage|all")
+	showNotAffected := fs.Bool("show-not-affected", false, "also list the not-affected verdicts with their evaluation records (the summary always counts them)")
 	pos, err := parse(fs, args)
 	if err != nil {
 		return err
@@ -49,7 +50,7 @@ func (c *cli) impact(args []string) error {
 	if *output == "json" {
 		return c.writeJSON(rep)
 	}
-	return impact.RenderText(c.out, rep, impact.RenderOptions{Color: isTerminal(c.out)})
+	return impact.RenderText(c.out, rep, impact.RenderOptions{Color: isTerminal(c.out), ShowNotAffected: *showNotAffected})
 }
 
 // imageList reads the --images flag: a comma-separated list, or the name of

@@ -55,6 +55,7 @@
         ]
       }
     },
+    "EnvironmentDimension": {"type": "string", "enum": ["values", "manifests", "crds", "images", "cluster-version"]},
     "Evidence": {
       "type": "object",
       "description": "A verifiable pointer to source material supporting a fact or conclusion. `uri` is something a human can open; `locator` narrows it down; `excerpt` and `contentDigest` pin what was read.",
@@ -109,7 +110,41 @@
         "input"
       ]
     },
-    "ImpactClass": {"type": "string", "enum": ["action-required", "review", "informational"]},
+    "ImpactCheck": {
+      "type": "object",
+      "description": "One entry of an evaluation record: what was checked against what, so a not-affected verdict is auditable without re-running anything.",
+      "required": ["dimension", "facts", "subjects"],
+      "properties": {
+        "dimension": {
+          "$ref": "#/$defs/EnvironmentDimension",
+          "description": "The environment input class consulted: values, manifests, crds, images, or cluster-version (platform names it)."
+        },
+        "platform": {
+          "type": "string",
+          "description": "Cluster platform of a cluster-version check (\"kubernetes\", \"openshift\", ...)."
+        },
+        "facts": {
+          "type": "integer",
+          "description": "How many environment facts of that dimension were compared (0 when the input was supplied but yielded none)."
+        },
+        "subjects": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1,
+          "description": "The upstream subjects compared against those facts."
+        },
+        "evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "description": "Environment evidence proving a directly-supplied input (the --kubernetes / --images flag); file-backed dimensions are audited through environment.files digests."
+        }
+      },
+      "additionalProperties": false
+    },
+    "ImpactClass": {
+      "type": "string",
+      "enum": ["action-required", "review-required", "informational", "not-affected", "unknown"]
+    },
     "ImpactEnvironment": {
       "type": "object",
       "description": "Summary of the environment inputs the join consumed.",
@@ -145,35 +180,30 @@
     },
     "ImpactFinding": {
       "type": "object",
-      "description": "One deterministic conclusion of the join: an upstream change (or compatibility constraint) met an environment fact. Explains itself via `detail` and cites both evidence chains.",
-      "required": [
-        "id",
-        "classification",
-        "rule",
-        "title",
-        "matches",
-        "upstreamEvidence",
-        "environmentEvidence",
-        "provenance"
-      ],
+      "description": "One deterministic verdict of the applicability engine: an upstream change (or compatibility constraint, or moved image artifact) met the environment — or could not be evaluated. Affected classes (action-required / review-required / informational) cite both evidence chains; not-affected carries the evaluation record (`checks`); unknown carries `neededToDetermine`. See docs/ACTION_CLASSIFICATION.md.",
+      "required": ["id", "classification", "rule", "title", "upstreamEvidence", "provenance"],
       "properties": {
         "id": {"type": "string"},
         "classification": {
           "$ref": "#/$defs/ImpactClass",
-          "description": "action-required: the environment must change or the upgrade fails / silently misbehaves. review: plausible impact, depends on intent the files cannot show. informational: confirmed overlap with no action implied."
+          "description": "What to do (docs/ACTION_CLASSIFICATION.md): action-required — the environment must change to avoid concrete failure, evidenced on both chains, high confidence only; review-required — credible overlap, applicability not deterministically provable; informational — evidenced overlap with no action implied; not-affected — checked against a supplied environment dimension and clear; unknown — applicability undeterminable, `neededToDetermine` says why."
+        },
+        "severity": {
+          "$ref": "#/$defs/ImpactSeverity",
+          "description": "How bad if it bites (independent axis): critical (upgrade fails outright), high (concrete degradation), medium (needs a look), low (confirmed no-action overlap). Absent for not-affected/unknown."
         },
         "rule": {
           "type": "string",
-          "description": "Join rule that fired, e.g. \"impact:values-removed\"."
+          "description": "Join rule that fired, e.g. \"impact:values-removed\"; verdict records use impact:values-unset / impact:not-joined / impact:insufficient-visibility / ... ."
         },
         "title": {"type": "string", "pattern": "\\S"},
         "detail": {
           "type": "string",
-          "description": "Prose explaining how the two chains meet: what upstream changed and which environment fact matched."
+          "description": "Prose explaining the verdict: what upstream changed and which environment fact matched — or what could not be checked, and why."
         },
         "changeId": {
           "type": "string",
-          "description": "Id of the upstream Change in the UpgradeEdge this report was built from; absent when the finding comes from a compatibility constraint alone (cluster-version check)."
+          "description": "Id of the upstream Change in the UpgradeEdge this report was built from; absent when the finding comes from a compatibility constraint or artifact move alone."
         },
         "changeTitle": {
           "type": "string",
@@ -185,25 +215,93 @@
         "matches": {
           "type": "array",
           "items": {"$ref": "#/$defs/ImpactMatch"},
-          "description": "The environment facts that made the finding fire, each with its own environment evidence."
+          "description": "The environment facts that made the finding fire, each with its own environment evidence (affected classes only)."
         },
         "upstreamEvidence": {
           "type": "array",
           "items": {"$ref": "#/$defs/EvidenceID"},
           "minItems": 1,
           "uniqueItems": true,
-          "description": "Chain 1: Evidence ids resolving in `evidence`."
+          "description": "Chain 1: Evidence ids resolving in `evidence` (every class)."
         },
         "environmentEvidence": {
           "type": "array",
           "items": {"$ref": "#/$defs/EvidenceID"},
-          "minItems": 1,
           "uniqueItems": true,
-          "description": "Chain 2: Evidence ids resolving in `environmentEvidence`."
+          "description": "Chain 2: Evidence ids resolving in `environmentEvidence` (affected classes; check evidence for verdict records)."
         },
-        "provenance": {"$ref": "#/$defs/DeterministicProvenance"}
+        "provenance": {"$ref": "#/$defs/DeterministicProvenance"},
+        "checks": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ImpactCheck"},
+          "description": "Evaluation record of a not-affected verdict (and the partial record of an unknown one): which environment dimension was consulted, how many facts were compared, which upstream subjects were compared."
+        },
+        "neededToDetermine": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "What evidence was missing for an unknown verdict, e.g. \"Helm values files (--values) not supplied\"; unknown-only by contract."
+        }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "classification": {"enum": ["action-required", "review-required", "informational"]}
+            },
+            "required": ["classification"]
+          },
+          "then": {
+            "required": ["matches", "environmentEvidence"],
+            "properties": {
+              "matches": {"minItems": 1},
+              "environmentEvidence": {"minItems": 1},
+              "checks": {"maxItems": 0},
+              "neededToDetermine": {"maxItems": 0}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "classification": {"enum": ["action-required"]}
+            },
+            "required": ["classification"]
+          },
+          "then": {"properties": {"provenance": {"properties": {"confidence": {"const": "high"}}}}}
+        },
+        {
+          "if": {
+            "properties": {
+              "classification": {"enum": ["not-affected"]}
+            },
+            "required": ["classification"]
+          },
+          "then": {
+            "required": ["checks"],
+            "properties": {
+              "checks": {"minItems": 1},
+              "neededToDetermine": {"maxItems": 0},
+              "matches": {"maxItems": 0}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "classification": {"enum": ["unknown"]}
+            },
+            "required": ["classification"]
+          },
+          "then": {
+            "required": ["neededToDetermine"],
+            "properties": {
+              "neededToDetermine": {"minItems": 1},
+              "matches": {"maxItems": 0}
+            }
+          }
+        }
+      ]
     },
     "ImpactMatch": {
       "type": "object",
@@ -269,12 +367,12 @@
         },
         "summary": {
           "$ref": "#/$defs/ImpactSummary",
-          "description": "The funnel: all upstream changes, those affecting this environment, and the action classification counts."
+          "description": "The funnel: all upstream changes, those with affected findings, and the explicit count of every verdict class — unknowns are counted, never folded into not-affected."
         },
         "findings": {
           "type": "array",
           "items": {"$ref": "#/$defs/ImpactFinding"},
-          "description": "One per (upstream change or constraint) × (environment fact) overlap; action-required first."
+          "description": "One verdict per analyzed unit: affected overlaps first (action-required, review-required, informational), then unknown, then the not-affected evaluation records."
         },
         "evidence": {
           "type": "array",
@@ -299,16 +397,27 @@
       },
       "additionalProperties": false
     },
+    "ImpactSeverity": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
     "ImpactSummary": {
       "type": "object",
-      "description": "Counts of the impact funnel; must equal the findings (checked by Validate).",
-      "required": ["upstreamChanges", "affectEnvironment", "actionRequired", "review", "informational"],
+      "description": "Counts of the impact funnel; must equal the findings (checked by Validate). Unknowns are counted explicitly, never folded into not-affected.",
+      "required": [
+        "upstreamChanges",
+        "affectEnvironment",
+        "actionRequired",
+        "reviewRequired",
+        "informational",
+        "notAffected",
+        "unknown"
+      ],
       "properties": {
         "upstreamChanges": {"type": "integer"},
         "affectEnvironment": {"type": "integer"},
         "actionRequired": {"type": "integer"},
-        "review": {"type": "integer"},
-        "informational": {"type": "integer"}
+        "reviewRequired": {"type": "integer"},
+        "informational": {"type": "integer"},
+        "notAffected": {"type": "integer"},
+        "unknown": {"type": "integer"}
       },
       "additionalProperties": false
     },

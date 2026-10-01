@@ -218,7 +218,7 @@ func TestEnvironmentScoring(t *testing.T) {
 				ChangeID: "chg-c", UpstreamEvidence: up, EnvironmentEvidence: loc},
 			// joins a change that does not exist; and matches the
 			// notExpectedFindings rule (crd-removed)
-			{ID: "f-3", Rule: "impact:crd-removed", Classification: domain.ImpactReview,
+			{ID: "f-3", Rule: "impact:crd-removed", Classification: domain.ImpactReviewRequired,
 				ChangeID: "chg-nope", UpstreamEvidence: up, EnvironmentEvidence: loc},
 		},
 	}

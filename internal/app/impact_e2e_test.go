@@ -117,13 +117,13 @@ func TestE2EImpact(t *testing.T) {
 	for _, f := range byRule[impact.RuleImageChanged] {
 		if strings.Contains(f.Title, "quay.io/jetstack/cert-manager-controller:v1.17.0") {
 			controllerMoves++
-			if f.Classification != domain.ImpactReview {
+			if f.Classification != domain.ImpactReviewRequired {
 				t.Errorf("controller image move = %s", f.Classification)
 			}
 		}
 		if strings.Contains(f.Title, "quay.io/jetstack/cert-manager-webhook") {
 			webhookMoves++
-			if f.Classification != domain.ImpactReview {
+			if f.Classification != domain.ImpactReviewRequired {
 				t.Errorf("webhook image finding = %+v", f)
 			}
 		}
@@ -132,7 +132,9 @@ func TestE2EImpact(t *testing.T) {
 		t.Errorf("image findings: controller = %d, webhook = %d (findings %+v)", controllerMoves, webhookMoves, byRule[impact.RuleImageChanged])
 	}
 
-	// every finding cites environment evidence pointing into the fixture
+	// every finding cites upstream evidence; affected findings additionally
+	// cite environment evidence pointing into the fixture (Validate enforces
+	// the full per-class contract of docs/ACTION_CLASSIFICATION.md)
 	up := map[domain.EvidenceID]bool{}
 	for _, e := range rep.EnvironmentEvidence {
 		up[e.ID] = true
@@ -141,14 +143,26 @@ func TestE2EImpact(t *testing.T) {
 		}
 	}
 	for _, f := range rep.Findings {
-		if len(f.UpstreamEvidence) == 0 || len(f.EnvironmentEvidence) == 0 {
-			t.Errorf("finding %s lacks a chain: %+v", f.ID, f)
+		if len(f.UpstreamEvidence) == 0 {
+			t.Errorf("finding %s lacks the upstream chain: %+v", f.ID, f)
 		}
-		for _, id := range f.EnvironmentEvidence {
-			if !up[id] {
-				t.Errorf("finding %s cites unknown environment evidence %s", f.ID, id)
+		if f.Classification.Affected() {
+			for _, id := range f.EnvironmentEvidence {
+				if !up[id] {
+					t.Errorf("finding %s cites unknown environment evidence %s", f.ID, id)
+				}
 			}
 		}
+	}
+
+	// the funnel is explicit about what the join could not decide: the
+	// recorded edge's note-derived changes are unknown, never silently
+	// "not affected"
+	if rep.Summary.Unknown == 0 {
+		t.Error("note-heavy edges must state their unknowns, got none")
+	}
+	if rep.Summary.ActionRequired+rep.Summary.ReviewRequired+rep.Summary.Informational != rep.Summary.AffectEnvironment {
+		t.Errorf("summary = %+v", rep.Summary)
 	}
 
 	var text bytes.Buffer

@@ -13,47 +13,79 @@ ri impact <product> <from> <to> \
 ```
 
 Every environment input is optional; at least one is required. The join applies
-whatever is supplied and silently skips the rules whose input is missing
-(a run with `--kubernetes` only performs the compatibility check).
+whatever is supplied — and says so when what was supplied is not enough to
+decide (a run with `--kubernetes` only reports Helm-values changes as UNKNOWN,
+never as silently unaffected).
 
 The whole path is deterministic: local file parsing plus a pure join, no
 cluster access, no network beyond what `ri upgrade` already needs, no LLM.
 Enrichment (`ri upgrade -enrich`) is a separate optional layer and is never
 part of it.
 
-## The two provenance chains
+## The action-classification contract
 
-Every finding — the atomic unit of the report, `domain.ImpactFinding` — cites
-**both** chains:
+Every verdict uses the five-class vocabulary of
+[ACTION_CLASSIFICATION.md](ACTION_CLASSIFICATION.md) — the normative contract
+the implementation enforces (`domain.ImpactReport.Validate()` and
+`schemas/impact-report.schema.json`):
+
+| Class | Meaning |
+|---|---|
+| `action-required` | the environment must change to avoid concrete failure; needs upstream + environment evidence and a deterministic relationship; confidence below `high` is prohibited here |
+| `review-required` | credible overlap, applicability not deterministically provable |
+| `informational` | evidenced overlap, no action implied (a pin that keeps winning, an in-range cluster) |
+| `not-affected` | evaluated against a **supplied** environment dimension and clear; carries the evaluation record (`checks`) |
+| `unknown` | applicability cannot safely be determined; carries `neededToDetermine` |
+
+Applicability is decided **first** (`AFFECTED` / `NOT_AFFECTED` / `UNKNOWN`),
+then — only for affected units — the action class. Severity
+(`critical`/`high`/`medium`/`low`, where determinable) and confidence
+(`provenance.confidence`) are separate axes. The engine never assumes
+`no match = not affected`: a missing match with the dimension unsupplied is
+UNKNOWN, with the missing input named.
+
+## Provenance for every verdict
 
 1. **Upstream chain**: the evidence ids of the joined change (or of the
-   compatibility constraint), copied from the edge. They resolve inside the
-   report's `evidence` pool and point at upstream sources (values.yaml of the
-   chart, the support-matrix row, the release manifest).
+   compatibility constraint / artifact move), copied from the edge. Required
+   for every class.
 2. **Environment chain**: the evidence ids of the environment facts that
-   matched, resolving inside the report's `environmentEvidence` pool. Each
-   record has kind `local-file` (URI = the path exactly as supplied, locator
-   `$.dotted.key (L12)` or `L6`, excerpt = the verbatim line) or kind `input`
-   (a directly supplied value such as `--kubernetes 1.28`), plus the sha256
-   digest of the parsed file.
+   matched, resolving inside the report's `environmentEvidence` pool. Required
+   for the affected classes; each record has kind `local-file` (URI = the path
+   exactly as supplied, locator `$.dotted.key (L12)` or `L6`, excerpt = the
+   verbatim line) or kind `input` (a directly supplied value such as
+   `--kubernetes 1.28`), plus the sha256 digest of the parsed file.
 
-`domain.ImpactReport.Validate()` enforces this: a finding without either
-chain, or citing an id that does not resolve within the document, is invalid.
-No unexplained statements survive.
+For `not-affected` verdicts the environment chain is replaced by the
+**evaluation record**: which dimension was consulted, how many facts were
+compared, which upstream subjects were compared against them — enough to
+answer "why do you think this doesn't affect me?" without a model call. For
+`unknown` verdicts the report records `neededToDetermine` (e.g. "installed
+CustomResourceDefinitions (--crds) not supplied").
 
-Findings are classified `action-required` (the environment must change or the
-upgrade fails / silently misbehaves), `review` (plausible impact that depends
-on intent the files cannot show) or `informational` (confirmed overlap, no
-action implied — e.g. a pinned value that keeps winning, a cluster inside the
-supported range). The summary line is the funnel:
+`domain.ImpactReport.Validate()` enforces all of it: class-specific chains,
+the demotion rule (`action-required` requires `high` confidence), unknown-only
+`neededToDetermine`, check-carrying `not-affected`, and summary counts that
+match the findings. No unexplained statement survives.
+
+## The funnel
+
+The text renderer opens with the five-line funnel; every verdict is counted
+explicitly and unknowns are never folded into "not affected":
 
 ```
-51 upstream changes · 5 affect this environment · 1 action required · 3 review · 1 informational
+51 upstream changes analyzed
+ACTION REQUIRED:    1
+REVIEW REQUIRED:    3
+INFORMATIONAL:    1
+NOT AFFECTED:    3
+UNKNOWN:   50
 ```
 
-A finding can exist without an upstream *change*: the cluster-version check
-joins the environment against the target's compatibility *constraints*, which
-exist even when support did not change.
+Per-finding sections print ACTION REQUIRED / REVIEW REQUIRED / INFORMATIONAL /
+UNKNOWN. NOT AFFECTED appears in the funnel always and as a findings section
+only in verbose mode (`ri impact --show-not-affected`), where every record
+shows its evaluation.
 
 ## The environment model (`internal/env`)
 
@@ -67,21 +99,28 @@ Parsed from local files only, deterministically, with per-fact evidence:
 | `--crds` (files or directories) | installed CustomResourceDefinitions: name, group, kind, versions with served/storage/deprecated/deprecationWarning, `spec.preserveUnknownFields`; their group/version pairs also feed the apiVersion inventory |
 | `--images` (list, or a file with one reference per line, `#` comments) | explicit image references (mirror lists) |
 
-Multi-document YAML streams are split on `---` separators with line tracking,
-so locators point into the original file. CRD documents inside `--manifests`
-are picked up too; a non-CRD document inside `--crds` is a warning, not an
-error. Unparsable documents are warnings. Digests of all parsed files are
-recorded. Caps (10 000 values keys, 2 000 documents, 8 000 field paths, 5
-cited occurrences per apiVersion) bound hostile inputs; hitting one is a
-warning in the report.
+Which inputs were **supplied** is recorded independently of what they yielded
+(`env.Environment.Supplied`), so the join can tell "checked and clear" from
+"never looked". Multi-document YAML streams are split on `---` separators with
+line tracking, so locators point into the original file. CRD documents inside
+`--manifests` are picked up too; a non-CRD document inside `--crds` is a
+warning, not an error. Unparsable documents are warnings. Digests of all
+parsed files are recorded. Caps (10 000 values keys, 2 000 documents, 8 000
+field paths, 5 cited occurrences per apiVersion) bound hostile inputs; hitting
+one is a warning in the report.
 
 ## The join (`internal/impact`)
 
 The join runs over the edge's computed diff rules (the `values:*`, `crd:*`,
 `images:*` rules and `CompatibilityConstraint`s), because those are the
-changes whose subjects are machine-comparable. Note-derived changes
-(declared/heuristic) are counted in `upstreamChanges` but not joined — the
-plan records this as a gap (below).
+changes whose subjects are machine-comparable. Every such change gets a
+verdict; every other change — note-derived (declared/heuristic) — gets an
+explicit UNKNOWN record ("no machine-comparable subject") instead of silence.
+
+Each join rule declares the environment dimensions that must be supplied to
+decide (values / manifests+CRDs / cluster version / images); a missing
+deciding dimension means UNKNOWN with `neededToDetermine`. The tables below
+show the affected-path behaviour once the dimension is supplied.
 
 Paths are compared **segment-wise**, never by string prefix (`a.bb` is not
 under `a.b`), using the same escaping syntax on both sides: the environment
@@ -95,10 +134,12 @@ For each upstream values change (`values:removed`, `values:section-removed`,
 
 | Overlap | Meaning | Finding |
 |---|---|---|
-| removed key, exact or adjacent | the user's value stops taking effect | `impact:values-removed` · action-required |
-| default changed, exact key set | the user's pin keeps winning | `impact:values-pinned` · informational |
-| default changed, ancestor/descendant overlap | Helm merge semantics need a look | `impact:values-adjacent` · review |
-| new key, already set (or adjacent) | a previously ignored key becomes live | `impact:values-new-key` · review |
+| removed key, exact or adjacent | the user's value stops taking effect | `impact:values-removed` · action-required · high |
+| default changed, exact key set | the user's pin keeps winning | `impact:values-pinned` · informational · low |
+| default changed, ancestor/descendant overlap | Helm merge semantics need a look | `impact:values-adjacent` · review-required · medium |
+| new key, already set (or adjacent) | a previously ignored key becomes live | `impact:values-new-key` · review-required · medium |
+| no overlap, values supplied | checked and clear | `impact:values-unset` · not-affected (evaluation record) |
+| no values supplied | nothing to compare | `impact:insufficient-visibility` · unknown (`--values` missing) |
 
 The upstream side lists subjects as flattened leaves (a removed section lists
 its removed keys), so a user key matches whether the chart removed one leaf or
@@ -108,41 +149,57 @@ a whole section.
 
 | Upstream rule | Environment fact matched | Finding |
 |---|---|---|
-| `crd:removed` | installed CRD with that name; or manifest usage of the CRD's API group (kind checked when the installed CRD is known) | `impact:crd-removed` · action-required |
+| `crd:removed` | installed CRD with that name; or manifest usage of the CRD's API group (kind checked when the installed CRD is known) | `impact:crd-removed` · action-required (name match) / review-required (group-only match: medium confidence, demoted per the contract) |
 | `crd:version-removed` / `crd:version-unserved` | manifest `apiVersion` equal to group/version; or an installed CRD declaring the version | `impact:crd-version-removed` · action-required |
-| `crd:version-deprecated` | same | `impact:crd-version-deprecated` · review |
-| `crd:fields-removed` | manifest field path equal to, or below, the removed path (`[]` array markers are stripped on the upstream side) | `impact:crd-field-removed` · action-required (exact/below) or review (the manifest sets a section above it) |
-
-Group-only matches (manifests use the group, no installed CRD confirms the
-kind) are reported with medium confidence.
+| `crd:version-deprecated` | same | `impact:crd-version-deprecated` · review-required |
+| `crd:fields-removed` | manifest field path equal to, or below, the removed path (`[]` array markers are stripped on the upstream side) | `impact:crd-field-removed` · action-required (exact/below) or review-required (the manifest sets a section above it) |
+| no overlap, deciding dimension supplied (`--crds` for the first three, `--manifests` for fields) | — | `impact:crd-unused` / `impact:crd-version-unused` / `impact:crd-field-unset` · not-affected |
 
 ### 3. Kubernetes compatibility (`--kubernetes`)
 
-The cluster version is evaluated against every `kubernetes` constraint of the
-target release with the same range semantics the edge diff uses
+The cluster version is evaluated against every constraint of the target
+release with the same range semantics the edge diff uses
 (`upgrade.EvaluatePlatformConstraint`): a bare line ("1.31") is admitted when
-any patch of the line is. In range → `impact:kubernetes-in-range`
-(informational, `supported` kind only); below/above a `supported` range or a
-`minimum` → action-required (worded as "narrowed under you" when the source
-release still admitted the cluster); outside a `chart-kubeVersion` →
-`impact:kubeversion-blocked` (Helm refuses the install); outside `tested` →
-informational. Uncomputable constraints are skipped.
+any patch of the line is.
+
+| Outcome | Finding |
+|---|---|
+| in a `supported` range | `impact:kubernetes-in-range` · informational · low |
+| below/above a `supported` range or below a `minimum` | `impact:kubernetes-below-range` / `impact:kubernetes-above-range` · action-required · high (worded as "narrowed under you" when the source release still admitted the cluster) |
+| outside `chart-kubeVersion` | `impact:kubeversion-blocked` · action-required · critical (Helm refuses the install) |
+| outside `tested` | `impact:kubernetes-untested` · informational · low |
+| constraint satisfied (minimum/kubeVersion/tested) | `impact:compatibility-satisfied` · not-affected |
+| cluster version not supplied | `impact:insufficient-visibility` · unknown (platform named) |
+| constraint not machine-readable | `impact:insufficient-visibility` · unknown |
+
+Constraints of platforms with no environment input (OpenShift today) are
+always UNKNOWN — never assumed fine.
 
 ### 4. Images (`--manifests`, `--values`, `--images`)
 
 An image the environment references matches when its **repository** equals the
 subject of an `images:removed` / `images:moved` / `images:tag-changed` change
-(`impact:image-changed` · review) or of a `container-image` artifact that
-moved between the endpoints (review when the environment pins the old tag or
-another tag; informational when it already references the target tag).
+(`impact:image-changed` · review-required · medium) or of a `container-image`
+artifact that moved between the endpoints (review-required when the
+environment pins the old tag or another tag; informational · low when it
+already references the target tag). Unreferenced repositories →
+`impact:image-not-referenced` · not-affected; no image-bearing input at all →
+unknown.
 
 ## Example (from the checked-in fixture)
 
 `internal/app/testdata/e2e/env/cert-manager` against the recorded
-cert-manager v1.17.0 → v1.18.0 edge:
+cert-manager v1.17.0 → v1.18.0 edge (phase 2 read
+"51 upstream changes · 5 affect this environment"; the same run now states
+what it could and could not decide):
 
 ```
-51 upstream changes · 5 affect this environment · 1 action required · 3 review · 1 informational
+51 upstream changes analyzed
+ACTION REQUIRED:    1
+REVIEW REQUIRED:    3
+INFORMATIONAL:    1
+NOT AFFECTED:    3
+UNKNOWN:   50
 
 Action required (1)
   1. Cluster Kubernetes 1.28 is below the supported range 1.29–1.33 of v1.18.0 [imp-7e9a11c2834d]
@@ -152,28 +209,31 @@ Action required (1)
 ```
 
 (chain 1: the support-matrix rows of both endpoints; chain 2: the
-`--kubernetes` input.) The same run reports the pinned
-`prometheus.servicemonitor.targetPort` default change as informational, the
-already-set `global.rbac.disableHTTPChallengesRole` as review, and the old
-controller/webhook image pins as review. `-o json` prints the
+`--kubernetes` input.) The 50 UNKNOWN records are the honest change from
+phase 2: 49 of the 51 edge changes are note-derived (declared release-note
+items without a machine-comparable subject) or outside the join's rule set,
+plus the OpenShift constraint no input can supply — previously they were
+silently unmentioned, which read as "not affected". `-o json` prints the
 `domain.ImpactReport`, validated by `schemas/impact-report.schema.json`.
 
 ## Honest limitations
 
-- **Note-derived changes are not joined.** Declared breaking changes from
-  release notes have no machine-comparable subjects; only the computed
-  contents diffs and compatibility constraints join. A declared removal that
-  the snapshots do not capture will not match (the edge itself may also miss
-  it — see `docs/ARCHITECTURE.md` on honest gaps).
+- **Note-derived changes are unknown, not evaluated.** Declared breaking
+  changes from release notes have no machine-comparable subjects; the join
+  counts them in the funnel as UNKNOWN (with the reason) instead of silently
+  skipping them. Turning them into real verdicts needs subjects the snapshots
+  do not carry (see `docs/ARCHITECTURE.md` on honest gaps).
 - **CRD field removal matches by path only.** The upstream change lists
   schema paths without the CRD's identity (the edge's CRD snapshots are
   per-release summaries); a removed `spec.x` matches any manifest setting
   `spec.x`. The CRD name is visible in the change title for the human.
-- **Group-only API matches are medium confidence.** Without an installed CRD,
-  a group/version match cannot distinguish kinds of the same group.
+- **Group-only API matches are demoted to review-required.** Without an
+  installed CRD, a group/version match cannot distinguish kinds of the same
+  group; medium confidence may not carry ACTION REQUIRED (the contract's
+  demotion rule).
 - **Values semantics are syntactic.** The join reasons about key paths, not
-  Helm's full merge/type-coercion behaviour; `review` is the honest outcome
-  wherever merge behaviour could surprise.
+  Helm's full merge/type-coercion behaviour; `review-required` is the honest
+  outcome wherever merge behaviour could surprise.
 - **No cluster access.** The cluster version comes from a flag; nothing is
   read from a live cluster (CRs actually stored, served versions of the
   apiserver). The environment is what the files say.

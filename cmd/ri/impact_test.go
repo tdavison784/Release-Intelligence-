@@ -31,7 +31,13 @@ func TestImpactCommand(t *testing.T) {
 	}
 	for _, want := range []string{
 		"cert-manager v1.17.0 → v1.18.0 — impact on this environment",
-		"51 upstream changes · 5 affect this environment · 1 action required · 3 review · 1 informational",
+		// the funnel states every verdict class explicitly, unknowns included
+		"51 upstream changes analyzed",
+		"ACTION REQUIRED:    1",
+		"REVIEW REQUIRED:    3",
+		"INFORMATIONAL:    1",
+		"NOT AFFECTED:    3",
+		"UNKNOWN:   50",
 		"Action required (1)",
 		"Cluster Kubernetes 1.28 is below the supported range 1.29–1.33 of v1.18.0",
 		"environment: values-key prometheus.servicemonitor.targetPort",
@@ -40,6 +46,10 @@ func TestImpactCommand(t *testing.T) {
 		if !strings.Contains(out, want) {
 			t.Errorf("missing %q in:\n%s", want, out)
 		}
+	}
+	// NOT AFFECTED is counted but not listed per finding without the flag
+	if strings.Contains(out, "Not affected (") {
+		t.Errorf("not-affected findings are verbose-only:\n%s", out)
 	}
 
 	out, _, err = runCLI(t, append(base, "-o", "json")...)
@@ -55,6 +65,20 @@ func TestImpactCommand(t *testing.T) {
 	}
 	if rep.Summary.AffectEnvironment != 5 || rep.Summary.ActionRequired != 1 {
 		t.Errorf("summary = %+v", rep.Summary)
+	}
+
+	out, _, err = runCLI(t, append(base, "--show-not-affected")...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		"Not affected (3)",
+		"checked: images, 2 fact(s)",
+		"checked: cluster-version (kubernetes), 1 fact(s)",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("--show-not-affected output missing %q:\n%s", want, out)
+		}
 	}
 }
 

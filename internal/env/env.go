@@ -59,6 +59,19 @@ func (in Inputs) Empty() bool {
 	return in.KubernetesVersion == "" && len(in.ValuesFiles) == 0 && len(in.Manifests) == 0 && len(in.CRDs) == 0 && len(in.Images) == 0
 }
 
+// SuppliedInputs records which environment inputs were given on the command
+// line, independently of whether they yielded facts. The impact join needs
+// the distinction: "checked the values you supplied and found no overlap"
+// (not-affected) is a different claim from "no values were supplied, so
+// applicability cannot be decided" (unknown).
+type SuppliedInputs struct {
+	Kubernetes bool
+	Values     bool
+	Manifests  bool
+	CRDs       bool
+	Images     bool
+}
+
 // File is one parsed input file.
 type File struct {
 	Path   string
@@ -143,6 +156,9 @@ type Environment struct {
 	Images           []ImageUse
 	ManifestDocCount int
 
+	// Supplied records which inputs were given (see SuppliedInputs).
+	Supplied SuppliedInputs
+
 	Files    []File
 	Evidence []domain.Evidence
 	Warnings []string
@@ -195,7 +211,12 @@ func Load(in Inputs) (*Environment, error) {
 	if v := strings.TrimSpace(in.KubernetesVersion); v != "" {
 		id := l.evInput("flag:--kubernetes", v)
 		l.env.Kubernetes = &KubernetesVersion{Version: v, Evidence: []domain.EvidenceID{id}}
+		l.env.Supplied.Kubernetes = true
 	}
+	l.env.Supplied.Values = len(in.ValuesFiles) > 0
+	l.env.Supplied.Manifests = len(in.Manifests) > 0
+	l.env.Supplied.CRDs = len(in.CRDs) > 0
+	l.env.Supplied.Images = len(in.Images) > 0
 
 	for _, p := range in.ValuesFiles {
 		if err := l.loadValues(p); err != nil {
