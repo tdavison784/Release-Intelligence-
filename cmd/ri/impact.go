@@ -2,11 +2,15 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
 	"github.com/tdavison784/release-intelligence/internal/app"
+	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/env"
 	"github.com/tdavison784/release-intelligence/internal/impact"
+	"github.com/tdavison784/release-intelligence/internal/impactenrich"
 )
 
 // impact runs `ri impact <product> <from> <to>`: the upgrade edge joined with
@@ -14,6 +18,12 @@ import (
 // one must be given — the whole point of the command is the join. --repo
 // enables directory mode: inputs are discovered in a repository tree by
 // convention and the explicit flags compose with what was found.
+//
+// -enrich adds the optional AI step (mirroring `ri upgrade -enrich`): the
+// deterministic report is built first, unchanged; the step then asks a
+// bounded model about the unknown note-derived findings, duplicate groups and
+// migration candidates, and attaches provenance-preserving enrichments plus
+// at most review-required suggestions on unknown findings.
 func (c *cli) impact(args []string) error {
 	fs := c.flags("impact", "<product> <from> <to>")
 	output := fs.String("o", "text", "output format: text|json")
@@ -25,6 +35,7 @@ func (c *cli) impact(args []string) error {
 	images := fs.String("images", "", "comma-separated image references, or one file listing them (one per line)")
 	policy := fs.String("policy", "", "path policy override: minor-lineage|all")
 	showNotAffected := fs.Bool("show-not-affected", false, "also list the not-affected verdicts with their evaluation records (the summary always counts them)")
+	ef := enrichFlagsFor("impact", fs)
 	pos, err := parse(fs, args)
 	if err != nil {
 		return err
@@ -32,6 +43,9 @@ func (c *cli) impact(args []string) error {
 	if len(pos) != 3 {
 		fs.Usage()
 		return fmt.Errorf("%w: expected <product> <from> <to>", app.ErrUsage)
+	}
+	if err := ef.check(); err != nil {
+		return err
 	}
 	in := app.ImpactOptions{Policy: *policy}
 	in.Environment.KubernetesVersion = *kubernetes
@@ -47,14 +61,64 @@ func (c *cli) impact(args []string) error {
 	if err != nil {
 		return err
 	}
-	rep, err := a.Impact(c.ctx, pos[0], pos[1], pos[2], in)
+	rep, edge, e, err := a.ImpactParts(c.ctx, pos[0], pos[1], pos[2], in)
 	if err != nil {
 		return err
+	}
+	if *ef.candidates {
+		printImpactCandidates(c.err, rep, edge, e, impactenrich.Candidates(rep, edge, impactenrich.CandidateOptions{}))
+	}
+	if *ef.enrich {
+		res, err := c.impactEnrich(a, rep, edge, e, ef)
+		if err != nil {
+			return err
+		}
+		run := res.Run
+		fmt.Fprintf(c.err, "impact enrich: %s; %d candidates, %d prompts, %d enrichments accepted, %d rejected, %d pending, %d failed; %d unknown(s) now carry an AI review suggestion\n",
+			a.EnrichmentBackendForImpact(app.ImpactEnrichOptions{Model: *ef.model, ExchangeDir: *ef.exchange, APIKey: os.Getenv("ANTHROPIC_API_KEY"), BaseURL: os.Getenv("ANTHROPIC_BASE_URL"), Thinking: os.Getenv("ANTHROPIC_THINKING"), Max: *ef.maxGroups}),
+			run.CandidateGroups, run.Requests, run.Accepted, len(run.Rejected), run.Pending, run.Failed, rep.Summary.SuggestedReview)
+		if run.Pending > 0 {
+			if *ef.exchange != "" {
+				fmt.Fprintf(c.err, "impact enrich: %d prompts are waiting in %s; write a <digest>.response.json next to each request (docs/ENRICHMENT.md) and run again\n", run.Pending, *ef.exchange)
+			} else {
+				fmt.Fprintf(c.err, "impact enrich: %d prompts have no cached answer; set ANTHROPIC_API_KEY or use -llm-exchange DIR\n", run.Pending)
+			}
+		}
 	}
 	if *output == "json" {
 		return c.writeJSON(rep)
 	}
 	return impact.RenderText(c.out, rep, impact.RenderOptions{Color: isTerminal(c.out), ShowNotAffected: *showNotAffected})
+}
+
+// impactEnrich runs the optional AI step over the deterministic report and
+// attaches the result in place.
+func (c *cli) impactEnrich(a *app.App, rep *domain.ImpactReport, edge *domain.UpgradeEdge, e *env.Environment, ef upgradeEnrichFlags) (*impactenrich.Result, error) {
+	opts := app.ImpactEnrichOptions{Model: *ef.model, ExchangeDir: *ef.exchange, APIKey: os.Getenv("ANTHROPIC_API_KEY"), BaseURL: os.Getenv("ANTHROPIC_BASE_URL"), Thinking: os.Getenv("ANTHROPIC_THINKING"), Max: *ef.maxGroups}
+	return a.EnrichImpact(c.ctx, rep, edge, e, opts)
+}
+
+// printImpactCandidates prints the deterministic candidates to stderr
+// (debug); they are not conclusions.
+func printImpactCandidates(w io.Writer, rep *domain.ImpactReport, edge *domain.UpgradeEdge, e *env.Environment, cs []impactenrich.Candidate) {
+	titles := map[string]string{}
+	for _, f := range rep.Findings {
+		titles[f.ID] = f.Title
+	}
+	fmt.Fprintf(w, "Impact candidates (deterministic, not conclusions): %d\n", len(cs))
+	for _, cand := range cs {
+		fmt.Fprintf(w, "  %s  type %s\n", cand.ID, cand.Type)
+		for _, id := range cand.Findings {
+			t := strings.Join(strings.Fields(titles[id]), " ")
+			if r := []rune(t); len(r) > 110 {
+				t = string(r[:110]) + "…"
+			}
+			fmt.Fprintf(w, "    %s  %s\n", id, t)
+		}
+		for _, s := range cand.Signals {
+			fmt.Fprintf(w, "      · %s\n", s)
+		}
+	}
 }
 
 // imageList reads the --images flag: a comma-separated list, or the name of

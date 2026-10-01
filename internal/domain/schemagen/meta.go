@@ -51,7 +51,8 @@ var enums = []enumSet{
 		domain.SourceUnavailable, domain.SourceSkipped, domain.SourceError,
 	),
 	enumOf(domain.ChangeAdded, domain.ChangeRemoved, domain.ChangeUpdated, domain.ChangeUnchanged),
-	enumOf(domain.EnrichmentCluster, domain.EnrichmentMigrationSummary, domain.EnrichmentDiffExplanation, domain.EnrichmentRelated),
+	enumOf(domain.EnrichmentCluster, domain.EnrichmentMigrationSummary, domain.EnrichmentDiffExplanation, domain.EnrichmentRelated,
+		domain.EnrichmentPlausiblyApplies, domain.EnrichmentNotApplicable, domain.EnrichmentUndetermined),
 	enumOf(
 		domain.EvidenceDocument, domain.EvidenceGitRef, domain.EvidenceRegistry, domain.EvidenceReleaseAsset,
 		domain.EvidenceStructured, domain.EvidenceAdvisory, domain.EvidenceRepoFile,
@@ -220,6 +221,9 @@ func enrichmentKindRules() []any {
 	return []any{
 		o("if", kindIs(domain.EnrichmentCluster, domain.EnrichmentRelated),
 			"then", o("properties", o("relatesTo", o("minItems", 2)))),
+		// the impact-only applicability kinds are about exactly one finding
+		o("if", kindIs(domain.EnrichmentPlausiblyApplies, domain.EnrichmentNotApplicable, domain.EnrichmentUndetermined),
+			"then", o("properties", o("relatesTo", o("minItems", 1, "maxItems", 1)))),
 		o("if", kindIs(domain.EnrichmentRelated),
 			"then", o("required", []string{"unverified"}, "properties", o("unverified", o("const", true))),
 			"else", o("properties", o("unverified", o("const", false)))),
@@ -285,8 +289,14 @@ var descriptions = map[string]string{
 	"ImpactReport.findings":            "One verdict per analyzed unit: affected overlaps first (action-required, review-required, informational), then unknown, then the not-affected evaluation records.",
 	"ImpactReport.evidence":            "Chain 1: upstream Evidence records cited by findings, copied from the UpgradeEdge the report was built from.",
 	"ImpactReport.environmentEvidence": "Chain 2: Evidence records of kind local-file / input pointing at the user's environment inputs.",
-	"ImpactReport.generatedAt":         "When the report was built (UTC).",
-	"ImpactReport.definitionDigest":    "Digest of the product definition revision the underlying edge was built from.",
+	"ImpactReport.enrichments": "AI-derived additions from the optional impact enrichment step " +
+		"(`ri impact … -enrich`): applicability suggestions on unknown findings, duplicate clusters and " +
+		"migration summaries. Always labelled method \"ai\" and never mixed into `findings`; the referential " +
+		"checks (finding ids resolve, citations ⊆ inputEvidence ⊆ the evidence pools) are " +
+		"domain.ImpactReport.Validate() in Go.",
+	"ImpactReport.enrichmentRun":    "Present when impact enrichment was attempted: how the AI enrichments were produced and what the validator rejected.",
+	"ImpactReport.generatedAt":      "When the report was built (UTC).",
+	"ImpactReport.definitionDigest": "Digest of the product definition revision the underlying edge was built from.",
 	"ImpactFinding": "One deterministic verdict of the applicability engine: an upstream change (or compatibility " +
 		"constraint, or moved image artifact) met the environment — or could not be evaluated. Affected classes " +
 		"(action-required / review-required / informational) cite both evidence chains; not-affected carries the " +
@@ -304,21 +314,25 @@ var descriptions = map[string]string{
 	"ImpactFinding.environmentEvidence": "Chain 2: Evidence ids resolving in `environmentEvidence` (affected classes; check evidence for verdict records).",
 	"ImpactFinding.checks":              "Evaluation record of a not-affected verdict (and the partial record of an unknown one): which environment dimension was consulted, how many facts were compared, which upstream subjects were compared.",
 	"ImpactFinding.neededToDetermine":   "What evidence was missing for an unknown verdict, e.g. \"Helm values files (--values) not supplied\"; unknown-only by contract.",
-	"ImpactCheck":                       "One entry of an evaluation record: what was checked against what, so a not-affected verdict is auditable without re-running anything.",
-	"ImpactCheck.dimension":             "The environment input class consulted: values, manifests, crds, images, or cluster-version (platform names it).",
-	"ImpactCheck.platform":              "Cluster platform of a cluster-version check (\"kubernetes\", \"openshift\", ...).",
-	"ImpactCheck.facts":                 "How many environment facts of that dimension were compared (0 when the input was supplied but yielded none).",
-	"ImpactCheck.subjects":              "The upstream subjects compared against those facts.",
-	"ImpactCheck.evidence":              "Environment evidence proving a directly-supplied input (the --kubernetes / --images flag); file-backed dimensions are audited through environment.files digests.",
-	"ImpactMatch":                       "One environment fact that matched: what it is (subject) and the local evidence that proves the environment has it.",
-	"ImpactMatch.kind":                  "What kind of environment fact: a set values key, an apiVersion in use, an installed CRD or one of its versions, a manifest field path, an image in use, or the cluster Kubernetes version.",
-	"ImpactMatch.subject":               "The fact itself: a values key path, \"group/version Kind\", a CRD name, a field path, an image reference or a version string.",
-	"ImpactMatch.evidence":              "Environment evidence ids backing this match.",
-	"ImpactSummary":                     "Counts of the impact funnel; must equal the findings (checked by Validate). Unknowns are counted explicitly, never folded into not-affected.",
-	"ImpactFile":                        "One environment input file with the digest of the bytes that were parsed.",
-	"ImpactFile.path":                   "Path exactly as supplied on the command line (evidence URIs use the same form).",
-	"ImpactEnvironment":                 "Summary of the environment inputs the join consumed.",
-	"ImpactEnvironment.kubernetes":      "Cluster Kubernetes version as supplied (e.g. \"1.31\" or \"1.31.5\").",
+	"ImpactFinding.suggestedClassification": "The AI layer's review suggestion for an unknown finding (\"review-required\" only; never " +
+		"action-required). The deterministic classification is not overwritten: the finding stays as the join " +
+		"produced it and the suggestion is carried by a plausibly-applies enrichment with full AI provenance.",
+	"ImpactCheck":                   "One entry of an evaluation record: what was checked against what, so a not-affected verdict is auditable without re-running anything.",
+	"ImpactCheck.dimension":         "The environment input class consulted: values, manifests, crds, images, or cluster-version (platform names it).",
+	"ImpactCheck.platform":          "Cluster platform of a cluster-version check (\"kubernetes\", \"openshift\", ...).",
+	"ImpactCheck.facts":             "How many environment facts of that dimension were compared (0 when the input was supplied but yielded none).",
+	"ImpactCheck.subjects":          "The upstream subjects compared against those facts.",
+	"ImpactCheck.evidence":          "Environment evidence proving a directly-supplied input (the --kubernetes / --images flag); file-backed dimensions are audited through environment.files digests.",
+	"ImpactMatch":                   "One environment fact that matched: what it is (subject) and the local evidence that proves the environment has it.",
+	"ImpactMatch.kind":              "What kind of environment fact: a set values key, an apiVersion in use, an installed CRD or one of its versions, a manifest field path, an image in use, or the cluster Kubernetes version.",
+	"ImpactMatch.subject":           "The fact itself: a values key path, \"group/version Kind\", a CRD name, a field path, an image reference or a version string.",
+	"ImpactMatch.evidence":          "Environment evidence ids backing this match.",
+	"ImpactSummary":                 "Counts of the impact funnel; must equal the findings (checked by Validate). Unknowns are counted explicitly, never folded into not-affected.",
+	"ImpactSummary.suggestedReview": "How many unknown findings carry an AI review suggestion; they still count under unknown. 0 without -enrich.",
+	"ImpactFile":                    "One environment input file with the digest of the bytes that were parsed.",
+	"ImpactFile.path":               "Path exactly as supplied on the command line (evidence URIs use the same form).",
+	"ImpactEnvironment":             "Summary of the environment inputs the join consumed.",
+	"ImpactEnvironment.kubernetes":  "Cluster Kubernetes version as supplied (e.g. \"1.31\" or \"1.31.5\").",
 
 	// --- versions ---------------------------------------------------------
 	"Version":         "A release version of a product.",

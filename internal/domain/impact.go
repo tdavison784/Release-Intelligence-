@@ -3,6 +3,7 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -180,6 +181,15 @@ type ImpactFinding struct {
 	// NeededToDetermine names the evidence missing for an unknown verdict
 	// ("Helm values files (--values) not supplied"). Unknown-only.
 	NeededToDetermine []string `json:"neededToDetermine,omitempty"`
+
+	// SuggestedClassification is the AI layer's suggestion for this finding
+	// ("review-required"), recorded when an accepted plausibly-applies
+	// enrichment relates to it. The deterministic classification is never
+	// overwritten: the finding stays exactly as the join produced it, and
+	// the suggestion is attached with full AI provenance on the enrichment.
+	// Unknown-only, and review-required only (the AI never suggests
+	// action-required). Validate enforces the 1:1 with those enrichments.
+	SuggestedClassification ImpactClass `json:"suggestedClassification,omitempty"`
 }
 
 // ImpactSummary counts the funnel: all upstream changes, how many produced
@@ -193,6 +203,10 @@ type ImpactSummary struct {
 	Informational     int `json:"informational"`
 	NotAffected       int `json:"notAffected"`
 	Unknown           int `json:"unknown"`
+	// SuggestedReview counts the unknown findings that carry an AI
+	// review-required suggestion (suggestedClassification). They still count
+	// in Unknown: the deterministic verdict is unchanged. 0 without -enrich.
+	SuggestedReview int `json:"suggestedReview,omitempty"`
 }
 
 // ImpactFile is one environment input file with the digest of the bytes that
@@ -242,6 +256,20 @@ type ImpactReport struct {
 	Warnings         []string  `json:"warnings,omitempty"`
 	GeneratedAt      time.Time `json:"generatedAt"`
 	DefinitionDigest string    `json:"definitionDigest,omitempty"`
+
+	// Enrichments are AI-derived additions produced by the optional impact
+	// enrichment step (`ri impact … -enrich`, internal/impactenrich). Like
+	// the edge's enrichments they are kept apart from the deterministic
+	// findings: they refer to findings (RelatesTo), cite evidence
+	// (Citations ⊆ Provenance.InputEvidence) and carry complete AI
+	// provenance. They never replace, edit or reclassify a finding — a
+	// review suggestion is recorded on the finding as
+	// SuggestedClassification, with the finding itself untouched.
+	// Absent without -enrich.
+	Enrichments []Enrichment `json:"enrichments,omitempty"`
+	// EnrichmentRun records how the enrichments were produced (prompts,
+	// acceptances, rejections). Present when enrichment was attempted.
+	EnrichmentRun *EnrichmentRun `json:"enrichmentRun,omitempty"`
 }
 
 // Validate enforces the invariants of an impact report and the action
@@ -288,6 +316,7 @@ func (r *ImpactReport) Validate() error {
 		dimensions[d] = true
 	}
 	counts := map[ImpactClass]int{}
+	suggested := map[string]bool{} // finding ids carrying an AI review suggestion
 	for _, f := range r.Findings {
 		f := f
 		if err := f.Provenance.Validate(); err != nil {
@@ -295,6 +324,16 @@ func (r *ImpactReport) Validate() error {
 		}
 		if !f.Provenance.Deterministic() {
 			errs = append(errs, fmt.Errorf("finding %s: AI-derived content must be an Enrichment, not a finding", f.ID))
+		}
+		if f.SuggestedClassification != "" {
+			switch {
+			case f.Classification != ImpactUnknown:
+				errs = append(errs, fmt.Errorf("finding %s: a suggested classification requires class unknown, got %q", f.ID, f.Classification))
+			case f.SuggestedClassification != ImpactReviewRequired:
+				errs = append(errs, fmt.Errorf("finding %s: the AI may only suggest %q, got %q (action-required is never suggested)", f.ID, ImpactReviewRequired, f.SuggestedClassification))
+			default:
+				suggested[f.ID] = true
+			}
 		}
 		if !classes[f.Classification] {
 			errs = append(errs, fmt.Errorf("finding %s: unknown classification %q", f.ID, f.Classification))
@@ -390,8 +429,168 @@ func (r *ImpactReport) Validate() error {
 		r.Summary.Unknown != counts[ImpactUnknown] {
 		errs = append(errs, fmt.Errorf("summary %+v does not match the %d findings (%+v)", r.Summary, len(r.Findings), counts))
 	}
+	if r.Summary.SuggestedReview != len(suggested) {
+		errs = append(errs, fmt.Errorf("summary.suggestedReview = %d, want %d (the findings with a review suggestion)", r.Summary.SuggestedReview, len(suggested)))
+	}
+	errs = append(errs, r.validateEnrichments(up, local, suggested)...)
 	if r.From.Compare(r.To) >= 0 {
 		errs = append(errs, errors.New("report 'from' must be lower than 'to'"))
 	}
 	return errors.Join(errs...)
+}
+
+// validateReportEnrichmentKinds are the enrichment kinds an ImpactReport may
+// carry: the shared group/summarise kinds plus the impact-only applicability
+// kinds. The edge-only kinds are rejected.
+var validateReportEnrichmentKinds = func() map[EnrichmentKind]bool {
+	m := map[EnrichmentKind]bool{EnrichmentCluster: true, EnrichmentMigrationSummary: true}
+	for _, k := range ImpactOnlyKinds {
+		m[k] = true
+	}
+	return m
+}()
+
+// validateEnrichments checks the report's AI enrichments against its findings
+// and evidence pools:
+//   - ids carry EnrichmentIDPrefix, are unique and never equal a finding id;
+//   - AI provenance is complete (see Provenance.Validate);
+//   - the kind is one a report may carry (edge-only kinds are rejected);
+//   - every related finding id exists (≥1, ≥2 for clusters; the applicability
+//     kinds relate to exactly one unknown finding);
+//   - citations ⊆ provenance.inputEvidence ⊆ the report's evidence pools;
+//   - nothing is marked unverified (that is the edge-only "related" kind);
+//   - every plausibly-applies enrichment backs exactly one suggestion, and
+//     every suggestion is backed by one (SuggestedClassification);
+//   - a finding belongs to at most one cluster;
+//   - the run metadata, when present, matches the enrichments.
+func (r *ImpactReport) validateEnrichments(up, local map[EvidenceID]bool, suggested map[string]bool) []error {
+	if len(r.Enrichments) == 0 && r.EnrichmentRun == nil {
+		return nil
+	}
+	var errs []error
+	ev := map[EvidenceID]bool{}
+	for _, e := range r.Evidence {
+		ev[e.ID] = true
+	}
+	for _, e := range r.EnvironmentEvidence {
+		ev[e.ID] = true
+	}
+	findings := map[string]ImpactFinding{}
+	for _, f := range r.Findings {
+		findings[f.ID] = f
+	}
+	ids := map[string]bool{}
+	inCluster := map[string]string{}
+	backed := map[string]string{} // finding id → the plausibly-applies enrichment backing its suggestion
+	for _, en := range r.Enrichments {
+		en := en
+		bad := func(format string, args ...any) {
+			errs = append(errs, fmt.Errorf("enrichment %s: %s", en.ID, fmt.Sprintf(format, args...)))
+		}
+		switch {
+		case !strings.HasPrefix(en.ID, EnrichmentIDPrefix):
+			bad("id must start with %q", EnrichmentIDPrefix)
+		case ids[en.ID]:
+			bad("duplicate id")
+		}
+		ids[en.ID] = true
+		if _, clash := findings[en.ID]; clash {
+			bad("id collides with a finding id")
+		}
+		if en.Provenance.Method != MethodAI {
+			bad("must have ai provenance")
+		}
+		if err := en.Provenance.Validate(); err != nil {
+			bad("%v", err)
+		}
+		switch {
+		case !en.Kind.Valid():
+			bad("unknown kind %q", en.Kind)
+		case !validateReportEnrichmentKinds[en.Kind]:
+			bad("kind %q is an upgrade-edge enrichment kind; an impact-report enrichment never carries it", en.Kind)
+		}
+		if strings.TrimSpace(en.Content) == "" {
+			bad("empty content")
+		}
+		if en.Unverified {
+			bad("unverified is reserved for the edge-only %q kind", EnrichmentRelated)
+		}
+		if n := en.Kind.MinChanges(); len(en.RelatesTo) < n {
+			bad("kind %s must relate to at least %d finding(s), has %d", en.Kind, n, len(en.RelatesTo))
+		}
+		seen := map[string]bool{}
+		for _, id := range en.RelatesTo {
+			if seen[id] {
+				bad("relates to finding %s twice", id)
+				continue
+			}
+			seen[id] = true
+			f, ok := findings[id]
+			if !ok {
+				bad("references unknown finding %s", id)
+				continue
+			}
+			switch en.Kind {
+			case EnrichmentCluster:
+				if other, dup := inCluster[id]; dup && other != en.ID {
+					bad("finding %s is already consolidated by cluster %s", id, other)
+				}
+				inCluster[id] = en.ID
+			case EnrichmentPlausiblyApplies:
+				if len(en.RelatesTo) != 1 {
+					bad("a plausibly-applies suggestion is about exactly one finding, lists %d", len(en.RelatesTo))
+					continue
+				}
+				if f.Classification != ImpactUnknown {
+					bad("a plausibly-applies suggestion requires an unknown finding, %s is %q", id, f.Classification)
+				} else if prev, dup := backed[id]; dup && prev != en.ID {
+					errs = append(errs, fmt.Errorf("finding %s carries a suggestion backed by two enrichments (%s, %s)", id, prev, en.ID))
+				}
+				backed[id] = en.ID
+			case EnrichmentNotApplicable, EnrichmentUndetermined:
+				if len(en.RelatesTo) != 1 {
+					bad("a %s note is about exactly one finding, lists %d", en.Kind, len(en.RelatesTo))
+				}
+			}
+		}
+		input := map[EvidenceID]bool{}
+		for _, id := range en.Provenance.InputEvidence {
+			input[id] = true
+			if !up[id] && !local[id] {
+				bad("input evidence %s is not in the report", id)
+			}
+		}
+		if len(en.Citations) == 0 {
+			bad("cites no evidence")
+		}
+		cited := map[EvidenceID]bool{}
+		for _, id := range en.Citations {
+			if cited[id] {
+				bad("cites %s twice", id)
+			}
+			cited[id] = true
+			if !input[id] {
+				bad("cites %s, which was not part of its input evidence", id)
+			}
+		}
+	}
+	// every suggestion must be backed by exactly one plausibly-applies
+	// enrichment of the same report
+	for id := range suggested {
+		if _, ok := backed[id]; !ok {
+			errs = append(errs, fmt.Errorf("finding %s carries a suggested classification but no plausibly-applies enrichment backs it", id))
+		}
+	}
+	if run := r.EnrichmentRun; run != nil {
+		clusters, clustered := ClusterMetrics(r.Enrichments)
+		if run.Accepted != len(r.Enrichments) || run.Clusters != clusters || run.ClusteredChanges != clustered ||
+			run.DuplicatesConsolidated != clustered-clusters {
+			errs = append(errs, fmt.Errorf("enrichment run metadata does not match the enrichments (accepted %d/%d, clusters %d/%d, clustered findings %d/%d, duplicates %d/%d)",
+				run.Accepted, len(r.Enrichments), run.Clusters, clusters, run.ClusteredChanges, clustered, run.DuplicatesConsolidated, clustered-clusters))
+		}
+		if run.Producer == "" || run.PromptVersion == "" {
+			errs = append(errs, errors.New("enrichment run requires producer and promptVersion"))
+		}
+	}
+	return errs
 }

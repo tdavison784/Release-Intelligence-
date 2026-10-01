@@ -7,7 +7,9 @@ schema (`schemas/impact-report.schema.json`) mirrors the same rules. Where
 this document and older prose disagree, this document wins.
 
 Everything below is deterministic: no LLM participates in this path (the AI
-layer is a separate workstream and may never write findings).
+layer is a separate workstream and may never write findings — it attaches
+suggestions and notes with AI provenance next to the findings; see
+docs/IMPACT-ENRICHMENT.md).
 
 ## 1. The three axes
 

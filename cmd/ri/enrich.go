@@ -21,12 +21,23 @@ type upgradeEnrichFlags struct {
 }
 
 func enrichFlags(fs *flag.FlagSet) upgradeEnrichFlags {
+	return enrichFlagsFor("upgrade", fs)
+}
+
+// enrichFlagsFor builds the AI enrichment flags with the descriptions of one
+// command's step (the upgrade-edge kinds vs the impact applicability
+// suggestions).
+func enrichFlagsFor(scope string, fs *flag.FlagSet) upgradeEnrichFlags {
+	what := "clusters, migration summaries, diff explanations, related changes"
+	if scope == "impact" {
+		what = "review suggestions on unknown findings, duplicate clusters, migration steps — suggestions and notes with provenance; the AI never rewrites a verdict"
+	}
 	return upgradeEnrichFlags{
-		enrich: fs.Bool("enrich", false, "add AI enrichments (clusters, migration summaries, diff explanations, related changes) with provenance; "+
+		enrich: fs.Bool("enrich", false, "add AI enrichments ("+what+"); "+
 			"needs ANTHROPIC_API_KEY or -llm-exchange, or replays cached answers (-offline)"),
 		exchange:   fs.String("llm-exchange", "", "answer enrichment prompts through files in `DIR` (<digest>.request.json → <digest>.response.json) instead of the API"),
 		model:      fs.String("model", "", "model to request for enrichment (part of the prompt digest; default: the backend's)"),
-		maxGroups:  fs.Int("enrich-max", 40, "maximum enrichment prompts per edge"),
+		maxGroups:  fs.Int("enrich-max", 40, "maximum enrichment prompts per "+scope),
 		candidates: fs.Bool("enrich-candidates", false, "print the deterministic candidate groups to stderr (debug; they are not conclusions)"),
 	}
 }
