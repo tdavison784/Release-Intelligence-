@@ -1,0 +1,136 @@
+product: prometheus-operator
+order: 24
+wave: 3
+repository: github.com/prometheus-operator/prometheus-operator
+onboarding:
+  startedAt: "2026-10-01T15:56:18Z"
+  finishedAt: "2026-10-01T16:21:23Z"
+  minutes: 25                   # wall-clock, agent time (discovery, research, authoring, checks, edges, record)
+discovery:
+  proposal: docs/onboarding/discovery/prometheus-operator.proposed.yaml
+  report: docs/onboarding/discovery/prometheus-operator.report.md
+# Discovery quality: strong on the in-repo topology — tag scheme with the
+# pkg/* junk excluded, the CHANGELOG section selector, the three quay images
+# (all historically validated 6/6 by its own checks), bundle.yaml in-tree AND
+# as a release asset, advisories — and its one `unverifiable` annotation was
+# api.github.com quota exhaustion during its own validation run (transient;
+# the anonymous quota recovered minutes later), not a channel problem. What
+# it could not see: the ghcr mirror (a second registry in the publish
+# workflow), the stripped-down-crds.yaml asset, the operand default pins in
+# pkg/operator/defaults.go, the Kubernetes compatibility page, and the whole
+# chart join (out-of-repository channels are invisible to the repo scanner).
+# Its resolver excluded the CRD directories with crd.not-dedicated ("bundled
+# in another manifest") — for this product those directories ARE the CRD
+# source — and it proposed bundle twice (in-tree + asset) where one artifact
+# with two channels is the shape.
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags'; 381 tags = 175 stable root v-tags + 3 rc + 203 pkg/apis/monitoring and pkg/client module tags; tagPattern kept (discovery keyed it to the root family)"}
+  - {id: github-releases, origin: discovered, note: "versions fallback priority 1, as proposed"}
+  - {id: changelog, origin: discovered, note: "proposal id 'changelog' (historically-validated 6/6): markdown-section over CHANGELOG.md at the tag, heading kept verbatim; classify added for the [CHANGE]/[FEATURE]/[ENHANCEMENT]/[BUGFIX] labels"}
+  - {id: compatibility, origin: manual, note: "'## Kubernetes' of Documentation/getting-started/compatibility.md at the tag (>= 0.80.0): the platform floor in prose, attached at minors; carries the release-notes role too because a compatibility-role prose source yields no note items (see manualInterventions)"}
+  - {id: compatibility-legacy, origin: manual, note: "the same section at Documentation/compatibility.md (< 0.80.0, the pre-restructure path), YAML-anchored classify"}
+  - {id: advisories, origin: discovered, note: "proposal id 'advisories'; SECURITY.md points to the prometheus.io process page, the GHSA feed is the machine-readable channel"}
+artifacts:
+  - {id: operator-image, origin: discovered, note: "proposal id 'prometheus-operator' (historically-validated): quay canonical + ghcr mirror channel added, references cross-check inside bundle.yaml kept as proposed"}
+  - {id: config-reloader-image, origin: discovered, note: "proposal id 'prometheus-config-reloader'; ghcr mirror channel added"}
+  - {id: admission-webhook-image, origin: discovered, note: "proposal id 'admission-webhook'; availability '>= 0.55.0' added (quay 404 at v0.54.1, 200 from v0.55.0; research), ghcr channel added"}
+  - {id: bundle, origin: discovered-modified, note: "discovery's two artifacts (bundle in-tree + bundle-manifest release asset) merged into one artifact with repo-file canonical + http asset channels; image-refs contents kept"}
+  - {id: crds, origin: discovered-modified, note: "the resolver found example/prometheus-operator-crd and -crd-full but excluded them (crd.not-dedicated); modeled as the crd artifact on the repo-dir (the set bundle.yaml/stripped-down/jsonnet generate from) with the stripped-down-crds.yaml release asset as second channel; contents: crds"}
+  - {id: prometheus-image, origin: manual, note: "the operator's default Prometheus, read out of pkg/operator/defaults.go at the tag with version.strategy: pattern — the last quoted entry of PrometheusCompatibilityMatrix before the slice's closing brace (matrix form verified v0.40.0-v0.94.1, one era); probed at quay.io/prometheus/prometheus"}
+  - {id: alertmanager-image, origin: manual, note: "DefaultAlertmanagerVersion literal via pattern, same document; quay.io/prometheus/alertmanager"}
+  - {id: thanos-image, origin: manual, note: "DefaultThanosVersion literal via pattern; quay.io/thanos/thanos"}
+  - {id: kube-prometheus-stack-chart, origin: manual, note: "THE JOIN, operator side: lookup by appVersion == {{.Tag}} in the prometheus-community index (v-prefixed appVersion era >= 0.62.0 = chart 44.0.0 on); optional because the chart skips operator releases (v0.64.x, v0.84.0, v0.90.0); oci ghcr channel second"}
+  - {id: prometheus-operator-crds-chart, origin: manual, note: "the CRD-only distribution chart, same lookup shape (>= 0.68.0 = chart 6.0.0 on, skips v0.69.0, optional)"}
+discoveryRejected:
+  - {id: source:release-notes-github, reason: "the GitHub release body is a byte-identical paste of the CHANGELOG section (RELEASE.md instructs the shepherd to paste it; verified for v0.94.0 and v0.80.0): a second notes source would duplicate every item and pay the api.github.com anonymous quota; kept only as the versions fallback"}
+  - {id: "artifact:bundle-manifest (separate)", reason: "same content as the in-tree bundle.yaml; one artifact, two channels (repo-file canonical + http release asset)"}
+  - {id: "crd example/prometheus-operator-crd-full", reason: "the conversion-webhook representation (adds the v1beta1 AlertmanagerConfig served version); the canonical shipped set is example/prometheus-operator-crd, which bundle.yaml, stripped-down-crds.yaml, the jsonnet lib and the chart's CRDs are all generated from"}
+  - {id: "image quay.io/prometheus-operator/prometheus-operator-dev (and -reloader/-webhook twins)", reason: "resolver excluded them itself (dev-registry): development images built from branch pushes, not release channels"}
+  - {id: "binary.version = {{.Version}} / VERSION file candidates", reason: "true relations (Makefile ldflags, VERSION file) but no published channel: operator binaries ship only inside images; po-docgen and po-rule-migration are unpublished repo tooling, and po-lint was deleted upstream (PR #6474)"}
+  - {id: "website (prometheus-operator.dev) as a source", reason: "synchronize.sh mirrors the in-repo Documentation tree and data/prometheusOperator.json is a mutable current-version pointer: nothing version-scoped exists there that the repo does not already carry"}
+relationships:
+  # Default `ri check` (0.92.0, 0.92.1, 0.93.0, 0.93.1, 0.94.0, 0.94.1) plus an
+  # era run over 0.55.0 0.60.1 0.65.0 0.70.0 0.75.0 0.80.0 0.84.0 0.85.0
+  # 0.90.0 (the webhook-image start, the compat-page path boundary, the CRD
+  # set change, the two chart-skip releases, the lookup availability windows).
+  historicalReleasesChecked: [0.55.0, 0.60.1, 0.65.0, 0.70.0, 0.75.0, 0.80.0, 0.84.0, 0.85.0, 0.90.0, 0.92.0, 0.92.1, 0.93.0, 0.93.1, 0.94.0, 0.94.1]
+  initialFailures: 0            # first complete draft: default run 0 failing, 0 unverifiable
+  initialFailuresExtended: 0    # the era run also passed first time; every availability window came from research, not from check failures
+  finalFailures: 0
+  manualInterventions:          # all found by reading edges, not by failing checks
+    - {subject: compatibility/compatibility-legacy, change: "roles [compatibility] -> [compatibility, release-notes]", reason: "a compatibility-role source with a non-table extract yields zero note items (ingest isNotesRole: release-notes/changelog/upgrade-guide only), so the Kubernetes floor never reached the edge; the release-notes role is the kyverno support-policy precedent"}
+    - {subject: compatibility/classify, change: "removed the 'Go client|best effort' and '.*' skip rules", reason: "the prose-only section folds into ONE item; any matching skip rule drops the whole item regardless of earlier category rules — the catch-all killed the K8s requirement statement it was meant to protect"}
+    - {subject: changelog/classify, change: "added the gate-promotion rule 'promoted to Beta ... enabled by default | removes the need' -> feature+breaking+actionRequired", reason: "reading the 0.91.0 -> 0.92.1 edge: the 0.92.0 Note callout ('feature gates promoted to Beta, enabled by default ... removes the need for attachMetadata') classified as removal+breaking — a gate turning on is a feature whose behaviour changes, not a removal"}
+    - {subject: changelog/classify, change: "added the 'raised from vX.Y.Z' rule -> migration+actionRequired", reason: "the operand requirement raises ('Require Thanos >= v0.42.0 ..., raised from v0.41.0') are this product's compat-facing changes and were landing as plain bugfixes"}
+  unverifiable: []              # every channel answered in both runs; quay.io (manifest probes), ghcr.io (anonymous token), the prometheus-community index and raw git hosts were all reachable
+constructs:
+  new: []                       # 78 used, all introduced by earlier products (0 unaccounted in ri stats)
+  considered:
+    - {name: "a structured Kubernetes compatibility constraint from the prose floor", rejected: "the requirement lives in prose ('requires Kubernetes >= v1.25.0'), not a table: markdown-table/yaml-records extracts cannot read it, and the compatibility role only yields constraints from those; surfaced as a migration note item instead (the validate warning records the same fact)"}
+    - {name: "example/prometheus-operator-crd-full as a second crds artifact", rejected: "two in-tree representations of one CRD set; the shipped set is -crd (see discoveryRejected) — the cilium/kyverno one-representation precedent"}
+    - {name: "contents on the joined chart artifacts (helm-values/chart-metadata of kube-prometheus-stack at the matched version)", rejected: "the chart's contents live in the OTHER product's repository and move on the chart's tag, which no release-context locator can address; the chart product owns them (order 6 already snapshots them)"}
+    - {name: "a lifecycle statement for old minor lines", rejected: "RELEASE.md says older release branches are maintained 'on a best effort basis' — no dates, no per-line statements; nothing precise to state"}
+    - {name: "the PrometheusCompatibilityMatrix (all supported operand versions) as a compatibility source", rejected: "set-valued (v2.45.0-v3.14.0 today): a point constraint diffed as a set change states falsehoods (strimzi's rejected kafka-versions, kyverno's set-valued gap); only the DEFAULTS are modeled, as pattern artifacts"}
+    - {name: "stripped-down-crds.yaml as its own manifest artifact", rejected: "the same CRDs minus description fields; a channel of the crds artifact, not a second product surface"}
+goChanges:
+  productSpecific: 0
+  generic: []                   # configuration only
+unreachableSources: []          # none. api.github.com exhausted its anonymous 60/h quota DURING discovery's validation run (the proposal's release-notes-github is annotated unverifiable for that reason) and recovered minutes later — transient quota, not an outage; every channel the final definition depends on answered without it
+ambiguousRelationships:
+  - "The GitHub release body duplicates the CHANGELOG section byte for byte (upstream's own release process pastes it); one notes channel, not two."
+  - "appVersion joins are prefix-eroded: both charts pinned the operator with an UNPREFIXED appVersion before chart 44.0.0 / 6.0.0 (operator v0.62.0 / v0.68.0); the lookups start there, the earlier era is unprobed (the mirror of kube-prometheus-stack's own 44.0.0 boundary)."
+  - "Neither chart covers every operator release: kube-prometheus-stack has no entry for v0.64.x, v0.84.0 or v0.90.0 (v0.90.1/v0.91.0 exist), prometheus-operator-crds skips v0.69.0 — modeled as optional lookups; absence is the chart cadence."
+  - "The Kubernetes floor statement was retro-corrected upstream (the v1.25.0-for->=0.84.0 sentence landed 2025-12-18, first tag v0.88.0; the v0.83/v0.84 tags still say v1.16.0): reading the page at each tag reports what was believed true then, which is the honest per-release record."
+  - "The default Prometheus is not a YAML scalar but the LAST entry of a Go slice literal; the pattern anchors on the slice's closing brace — one regex era from v0.40.0 to v0.94.1, but a Go-source formatting change would break it (a gofmt reformat that moves the closing brace)."
+  - "admission-webhook images start at v0.55.0 although the webhook itself shipped around v0.53: the availability window is the registry's, not the feature's."
+  - "quay.io's anonymous /tags/list returns only the 100 oldest tags (pagination ignored): version indexes over these repositories are truncated; per-tag manifest probes — what the checks use — are unaffected."
+representability: full          # versions, notes, compat floor, security, images, manifests, CRDs, operand pins and both chart joins are all represented with constructs from orders 1-15
+gaps:
+  - "The supported-operand MATRIX (all Prometheus/Alertmanager/Thanos versions the e2e suite verifies) is set-valued and lives in a Go slice + a generated page: only the defaults are modeled. An 'operand compatibility' join (edge x environment x operand versions) is the same G6/G7 question kube-prometheus-stack recorded for sub-component CVEs."
+  - "The Kubernetes floor is prose, so it surfaces as a migration note item, not a CompatibilityConstraint: impact-side kubernetes-version matching cannot key on it (the validate warning on both compatibility sources says the same)."
+  - "No version-to-version upgrade guide exists upstream (in-repo or website): the [CHANGE] bullets and Note callouts are the de facto guidance, and the chart-side steps live in kube-prometheus-stack's UPGRADE.md — reachable only through the join, as a note there."
+  - "example/prometheus-operator-crd-full (v1beta1 AlertmanagerConfig, conversion-webhook path) is unmodeled; users on that path see only the -crd snapshot."
+  - "The unprefixed-appVersion eras (operator < 0.62.0) and pre-0.55.0 webhook absence are cut off by availability windows rather than represented; the 203 pkg/* module tags are excluded by pattern and not modeled as module artifacts (no consumer)."
+  - "Cross-product querying itself: the join is answered per release from this side ('operator v0.94.1 -> chart 91.8.2 [verified]'), but there is no reverse query surface ('which chart versions ship operator >= v0.94') — that is a store/query concern (G6), not a definition concern."
+sampleEdge:
+  from: 0.93.1
+  to: 0.94.1
+  summary: "0 breaking · 2 action required · 21 changes · 0 warnings"
+  evidenceRecords: 122
+  notes: >-
+    Path v0.94.0 -> v0.94.1 (minor crossing). The artifact table IS the join
+    and the compatibility dimension: kube-prometheus-stack chart 90.2.0 ->
+    91.8.2 and prometheus-operator-crds 31.0.1 -> 32.0.1 (both resolved by
+    appVersion and verified), default Prometheus v3.13.1 -> v3.14.0,
+    Alertmanager v0.33.1 -> v0.34.0, Thanos v0.42.2 -> v0.42.4 (the CHANGELOG's
+    '[CHANGE] Update the default Alertmanager version to v0.34.0' corroborated
+    by the registry-verified pin), all three operator images and the bundle at
+    the release tag. The two action-required items are the Thanos >= v0.42.0
+    requirement raise and the Kubernetes >= v1.25.0 floor statement; 4 CRD
+    schema diffs (36/37/35/35 fields added). Second edge exercised: 0.91.0 ->
+    0.92.1 (1 breaking · 1 action required · 6 changes: the feature-gate Beta
+    promotion Note) and 0.87.1 -> 0.88.1 (the retro-corrected K8s floor
+    appearing). Tuning iterations: 3, all found by reading edges.
+notes: >-
+  The appVersion join, from this side: kube-prometheus-stack (order 6) pins
+  THIS operator in its Chart.yaml appVersion and already models the pin with
+  version.strategy: field ('prometheus-operator-image'); this definition
+  models the mirror image — a lookup artifact resolving, per operator
+  release, the chart whose appVersion == the release tag, verified against
+  the prometheus-community index. The cross-product query the join was
+  designed for ('which chart versions ship operator X') therefore works
+  TODAY, deterministically, in one direction and one product at a time: the
+  operator's edge names the chart version ('kube-prometheus-stack 91.8.2
+  [verified]' for v0.94.1), and the chart's edge names the operator version
+  it pins; nothing yet joins the two edges into one cross-product view, and
+  each side probes the other's channel independently (both reached the same
+  pairs from their own definitions). The pinned-operator-notes construct that
+  may exist on the chart side by merge time does not exist in this worktree's
+  products/kube-prometheus-stack.yaml; this record is written against what is
+  merged here. Sixth zero-new-construct onboarding (external-secrets, grafana,
+  strimzi, otel-collector, redis, kyverno): the operator + pinned-operands +
+  out-of-repo-chart-joins topology decomposed into lookup (argo-cd), pattern
+  pins (flux), availability windows, optional artifacts (argo-cd) and role
+  mixing (kyverno's support-policy). 78 constructs used, 0 new, 0
+  product-specific Go, 0 check failures on the first run of both windows, no
+  blocked hosts. 25 minutes.
