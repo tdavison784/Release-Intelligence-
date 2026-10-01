@@ -75,7 +75,10 @@ relationships:
     - {subject: github-advisories, reason: "api.github.com blocked; not part of ri check"}
 constructs:
   new:
-    - name: lifecycle
+    # the free-text name "lifecycle" covers the computed family: the lifecycle
+    # list field and its state/since/sources/summary sub-fields (the versions
+    # constraint is data inside the statement, not a separate construct)
+    - name: field:lifecycle
       kind: "definition field `lifecycle[]` (state deprecated|end-of-life, since, versions constraint, summary, evidence sources) + upgrade rule"
       justification: >-
         The product's retirement is a fact about the future (no more releases or fixes) that no release artifact,
@@ -89,6 +92,18 @@ constructs:
         warning. Deterministic (declared, no clock), no new domain types or schema changes of the edge.
       otherProducts: [argo-cd, cert-manager, istio, postgresql, elasticsearch, redis, linkerd]
       note: "per-line end-of-life (versions: '< 3.3.0') is needed by Argo CD (last 3 minors supported), cert-manager and Istio today, PostgreSQL / Elasticsearch / Redis (published EOL dates) in waves 1-3, Linkerd (stable channel discontinued); rolling windows are better extracted from the support tables (gap below), terminal states like this one are best declared"
+    - name: field:lifecycle.state
+      kind: lifecycle field
+      justification: "The declared state of the statement's version range (end-of-life here; deprecated is the other one): what the edge keys the action-required versus informational deprecation on."
+    - name: field:lifecycle.since
+      kind: lifecycle field
+      justification: "When the state applies: 2026-03, the README wording ('until March 2026'; last tag 2026-03-19, see ambiguousRelationships)."
+    - name: field:lifecycle.sources
+      kind: lifecycle field
+      justification: "Evidence sources cited by the statement (the README 'Retiring' banner); their note items are removed from the per-release notes."
+    - name: field:lifecycle.summary
+      kind: lifecycle field
+      justification: "The one-line statement carried into the edge: 'ingress-nginx is retired: best-effort maintenance ended in March 2026 and there will be no further releases, bug fixes or security fixes.'"
   considered:
     - {name: "release-notes source for the banner", rejected: "works without code but misattributes a product-level fact to a release, splits it per bullet, repeats per path release and cannot be scoped to the target; kept as the evidence source only"}
     - {name: "new source role `lifecycle`", rejected: "touches the role enum, schema and ingest for no gain over a notes source cited by the statement"}

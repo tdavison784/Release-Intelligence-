@@ -45,9 +45,14 @@ relationships:
     - {subject: security-page, reason: "www.postgresql.org blocked, and no advisory adapter reads http pages"}
 constructs:
   new:
-    - name: "versioning.tagPattern component groups (?P<major>)(?P<minor>)(?P<patch>)(?P<prerelease>)"
-      kind: version-scheme
-      justification: "REL_17_2 / REL9_6_24 cannot be read by a (?P<version>) group: the numbers are underscore-separated, 17.2 has two parts and a major (17) must be a release line. Components are assembled into major.minor.patch[-prerelease] (missing minor/patch = 0), so 17.2 is 17.0.2, line 17.0, kind major/patch, and PrevTag/lineage/releaseKinds/availability work unchanged. Accepted for versioning.tagPattern and git-tags locators; validated by the Go validator and the JSON Schema."
+    # versioning.tagPattern component groups (?P<major>)(?P<minor>)(?P<patch>)
+    # (?P<prerelease>) have no construct name of their own: the field itself is
+    # field:versioning.tagPattern (credited to cert-manager), and the computed
+    # trace of the component scheme is the template constructs it made the
+    # definition use (Patch, ge, eq) to render the published two-part form.
+    - name: "template-var:Patch"
+      kind: version rendering (template data for the component-group scheme)
+      justification: "REL_17_2 / REL9_6_24 cannot be read by a (?P<version>) group: the numbers are underscore-separated, 17.2 has two parts and a major (17) must be a release line. Components are assembled into major.minor.patch[-prerelease] (missing minor/patch = 0), so 17.2 is 17.0.2, line 17.0, kind major/patch, and PrevTag/lineage/releaseKinds/availability work unchanged. Accepted for versioning.tagPattern and git-tags locators; validated by the Go validator and the JSON Schema. The assembled components are rendered back to the published two-part form in templates ({{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}}, and {{if eq .Patch 0}} for the 'Release 17' heading): the first definition use of the .Patch template variable and of the eq/ge template functions (see considered: the rejected published-version variable)."
       otherProducts:
         - "Go (go1.22 is 1.22.0)"
         - "Linux kernel (v6.7)"
@@ -57,13 +62,28 @@ constructs:
         - "PHP (php-8.3.0RC1)"
         - "MariaDB"
         - "none of the other planned Phase-2 products tags this way (Redis, Elasticsearch, ... are three-part semver): justified by well-known projects, not by the plan"
-    - name: "extract.format: docbook (+ list-item reading of the converted notes)"
+    - name: "template-func:ge"
+      kind: template function
+      justification: "First definition use: '{{if ge .Major 10}}' renders the published two-part form of versions >= 10 in the tarball URL and the Docker image tags (3 artifacts + 2 headings, see considered: the rejected published-version variable)."
+    - name: "template-func:eq"
+      kind: template function
+      justification: "First definition use: '{{if eq .Patch 0}}' picks the 'Release 17' heading of a 17.0 major over 'Release 17.2' in the converted release notes (see considered: the rejected published-version variable)."
+    - name: "field:sources.extract.format"
+      kind: extraction field
+      justification: "Extract field selecting the document format of a source (markdown by default); the slot that carries format:docbook for the SGML notes and, later, the other non-markdown note formats (see format:docbook)."
+    - name: "format:docbook"
       kind: extraction
       justification: "PostgreSQL's release notes (and upgrade guidance and CVEs) exist only as DocBook SGML. normalize.DocBookToMarkdown renders it as line-preserving markdown (sectN+title -> headings, listitem -> bullets, code elements -> `code`, comments and commit links dropped, entities decoded, SGML shorthand '</>' and end-tag-less xref handled), so the existing markdown-section selector, parser, classify rules and evidence line ranges work on the ORIGINAL line numbers. A DocBook document is parsed with DocInput.ListItems: every <listitem> is one note item whatever prose precedes it, and sub-sections are never folded into one item (without it a major release's 200 changes collapsed into 3 items). Only for extract types whole and markdown-section."
       otherProducts:
         - "Pgpool-II (same SGML release-notes convention as PostgreSQL; UNVERIFIED here, from memory)"
         - "other PostgreSQL-community projects with DocBook docs"
         - "the 'format' field is the slot for the other non-markdown note formats of wave 1-3 products: reStructuredText (Cilium Documentation/operations/upgrade.rst) and AsciiDoc (Elasticsearch release notes); converters for those are not implemented here"
+    - name: "field:sources.locator.url"
+      kind: locator field
+      justification: "First use of the url field on a source locator: the security page (postgresql.org/support/security) is declared as an http source by URL; the host is blocked, so CVEs are read from the release notes instead (artifact channels already had url since cert-manager)."
+    - name: "artifact:package"
+      kind: artifact type
+      justification: "First definition use of the package artifact type: the ftp.postgresql.org source tarball (there is no source-archive type and source-release only allows git-tags/github-releases channels, see ambiguousRelationships)."
   considered:
     - "published-version variable (e.g. versioning.display -> {{.Display}}): '17.2' vs semver 17.0.2 is needed by the Docker tag, tarball URL and release headings; expressed with {{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}} (and {{if eq .Patch 0}} for the 'Release 17' heading) in 3 artifacts + 2 headings instead. Verbose, not impossible: rejected as not strictly required; candidate if Go/Linux/Python (1.22 vs 1.22.0) are onboarded."
     - "lineage: major / a two-part scheme: would change Version.Line(), release kinds and path selection everywhere; the major.0.patch mapping gets the same behaviour for free"
