@@ -1,0 +1,60 @@
+cert-manager v1.17.0 → v1.18.0 — impact on this environment
+51 upstream changes · 5 affect this environment · 1 action required · 3 review · 1 informational
+
+Environment
+  kubernetes 1.28
+  values: 4 keys set
+  manifests: 3 docs, 2 apiVersions, 14 field paths
+  installed CRDs: 1
+  images: 2
+  testdata/e2e/env/cert-manager/values.yaml  sha256:16ac8eb10094a5383e69b19e2b690030a243ee08c1ab4a091339f5353fa06d5c
+  testdata/e2e/env/cert-manager/crds/certificates.yaml  sha256:628de0ccd26087fd706795e2c47cfb495ca5baa91d694ffcb8a07c4e85203c91
+  testdata/e2e/env/cert-manager/manifests/certificate.yaml  sha256:01c981887cf8219f5cfffb3728d93dfc03aa973377c32b5ddd0377a40834dd98
+  testdata/e2e/env/cert-manager/manifests/deployment.yaml  sha256:c716fd45f3ec2d0a193b1bc47c070f561475c80980ab2951653043d11d9ea1eb
+
+Action required (1)
+  1. Cluster Kubernetes 1.28 is below the supported range 1.29–1.33 of v1.18.0 [imp-7e9a11c2834d]
+     v1.18.0 requires Kubernetes 1.29–1.33; the cluster runs 1.28. Plan the cluster upgrade at or above 1.29 before upgrading v1.18.0.
+     environment: kubernetes 1.28  (ev-7ed6c5e2142e)
+     upstream evidence: ev-94a8abc4e147, ev-904e0ae133bd
+
+Review (3)
+  1. Image you reference moves quay.io/jetstack/cert-manager-controller:v1.17.0 → quay.io/jetstack/cert-manager-controller:v1.18.0 [imp-123e6594ecd5]
+     The release publishes quay.io/jetstack/cert-manager-controller:v1.18.0 (was quay.io/jetstack/cert-manager-controller:v1.17.0). Your environment pins the old reference; update it (or your mirror) to pick up v1.18.0.
+     environment: image quay.io/jetstack/cert-manager-controller:v1.17.0  (ev-f3c0b5db4aa8)
+     upstream evidence: ev-87e79b56b7a6, ev-e3abe417763b
+  2. Image you reference moves quay.io/jetstack/cert-manager-webhook:v1.17.0 → quay.io/jetstack/cert-manager-webhook:v1.18.0 [imp-a137dded3ed6]
+     The release publishes quay.io/jetstack/cert-manager-webhook:v1.18.0 (was quay.io/jetstack/cert-manager-webhook:v1.17.0). Your environment pins the old reference; update it (or your mirror) to pick up v1.18.0.
+     environment: image quay.io/jetstack/cert-manager-webhook:v1.17.0  (ev-9f56d244272d)
+     upstream evidence: ev-6048662cc28a, ev-4ada24bd69ce
+  3. Your values already set global.rbac.disableHTTPChallengesRole, which v1.18.0 introduces [imp-0dae408f0c17]
+     upstream change: New Helm value `global.rbac.disableHTTPChallengesRole` (helm-values) [chg-0d81e035fa84]
+     A key your values file already set (previously ignored by the chart) becomes live with this release, or sits directly under/over a newly added section. Check that the value you set is what you intend the new key to have.
+     environment: values-key global.rbac.disableHTTPChallengesRole  (ev-4d93cb8918b9)
+     upstream evidence: ev-951b7c3d8936, ev-0c1eda13db98
+
+Informational (1)
+  1. You pin `prometheus.servicemonitor.targetPort`; its default change in v1.18.0 does not apply to you [imp-6cae808def98]
+     upstream change: Default of Helm value `prometheus.servicemonitor.targetPort` changed: 9402 → "http-metrics" (helm-values) [chg-917796919822]
+     You set prometheus.servicemonitor.targetPort explicitly. Helm keeps your value and discards the new default; your deployment does not change. Re-check the value against the new defaults when you next edit it.
+     environment: values-key prometheus.servicemonitor.targetPort  (ev-8d58a7c69fb5)
+     upstream evidence: ev-951b7c3d8936, ev-0c1eda13db98
+
+Warnings (2)
+  · Security advisories were not fully retrieved (github-advisories: unavailable — fetch https://api.github.com/repos/cert-manager/cert-manager/security-advisories?per_page=100&state=published: not in cache (offline mode)); advisory matching may be incomplete
+  · 2 artifacts of v1.18.0 only expected (not observed or referenced): helm-chart, startupapicheck-image
+
+Evidence
+  ev-7ed6c5e2142e  input  flag:--kubernetes  
+  ev-f3c0b5db4aa8  local-file  testdata/e2e/env/cert-manager/manifests/deployment.yaml  L12
+  ev-9f56d244272d  input  flag:--images  
+  ev-4d93cb8918b9  local-file  testdata/e2e/env/cert-manager/values.yaml  $.global.rbac.disableHTTPChallengesRole (L11)
+  ev-8d58a7c69fb5  local-file  testdata/e2e/env/cert-manager/values.yaml  $.prometheus.servicemonitor.targetPort (L8)
+  ev-94a8abc4e147  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md  L306
+  ev-904e0ae133bd  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md  L307
+  ev-87e79b56b7a6  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml  L13047
+  ev-e3abe417763b  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml  L13151
+  ev-6048662cc28a  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml  L13129
+  ev-4ada24bd69ce  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml  L13233
+  ev-951b7c3d8936  structured  https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml  deploy/charts/cert-manager/values.yaml
+  ev-0c1eda13db98  structured  https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml  deploy/charts/cert-manager/values.yaml

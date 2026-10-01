@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -60,19 +61,63 @@ func valuesSnapshot(chart, version string, valuesYAML []byte) (*domain.ValuesSna
 		return nil, errors.New("normalize: values.yaml root is not a mapping")
 	}
 	comments := map[string]string{}
-	walkValues(root, "", snap.Entries, comments)
+	walkValues(root, "", snap.Entries, comments, nil)
 	if len(comments) > 0 {
 		snap.Comments = comments
 	}
 	return snap, nil
 }
 
-func walkValues(m *yaml.Node, prefix string, entries, comments map[string]string) {
+// FlattenedValue is one flattened key of a values document (same path and
+// value syntax as ValuesSnapshot entries), with the 1-based source line of
+// the key.
+type FlattenedValue struct {
+	Path  string
+	Value string
+	Line  int
+}
+
+// FlattenValues flattens a Helm values document exactly like ValuesSnapshot
+// (dotted paths, ["quoted.key"] escaping, lists as leaves) and additionally
+// records the line of each key. The result is sorted by path. It is how the
+// environment model reads a customer's values file, so both sides of the
+// impact join use identical key-path syntax.
+func FlattenValues(valuesYAML []byte) ([]FlattenedValue, error) {
+	var doc yaml.Node
+	if err := yaml.Unmarshal(valuesYAML, &doc); err != nil {
+		return nil, fmt.Errorf("normalize: parse values: %w", err)
+	}
+	if len(doc.Content) == 0 {
+		return nil, nil
+	}
+	root := resolveAlias(doc.Content[0])
+	if root.Kind == yaml.ScalarNode && root.Tag == "!!null" {
+		return nil, nil
+	}
+	if root.Kind != yaml.MappingNode {
+		return nil, errors.New("normalize: values root is not a mapping")
+	}
+	entries, lines := map[string]string{}, map[string]int{}
+	walkValues(root, "", entries, nil, lines)
+	out := make([]FlattenedValue, 0, len(entries))
+	for p, v := range entries {
+		out = append(out, FlattenedValue{Path: p, Value: v, Line: lines[p]})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Path < out[j].Path })
+	return out, nil
+}
+
+func walkValues(m *yaml.Node, prefix string, entries, comments map[string]string, lines map[string]int) {
 	for _, kv := range mappingPairs(m) {
 		key := kv.key.Value
 		path := joinValuePath(prefix, key)
-		if c := cleanValueComment(kv.key.HeadComment); c != "" {
-			comments[path] = c
+		if comments != nil {
+			if c := cleanValueComment(kv.key.HeadComment); c != "" {
+				comments[path] = c
+			}
+		}
+		if lines != nil {
+			lines[path] = kv.key.Line
 		}
 		v := resolveAlias(kv.val)
 		if v.Kind == yaml.MappingNode {
@@ -80,7 +125,7 @@ func walkValues(m *yaml.Node, prefix string, entries, comments map[string]string
 				entries[path] = "{}"
 				continue
 			}
-			walkValues(v, path, entries, comments)
+			walkValues(v, path, entries, comments, lines)
 			continue
 		}
 		entries[path] = encodeLeaf(v)

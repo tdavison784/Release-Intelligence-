@@ -55,6 +55,7 @@ var enums = []enumSet{
 	enumOf(
 		domain.EvidenceDocument, domain.EvidenceGitRef, domain.EvidenceRegistry, domain.EvidenceReleaseAsset,
 		domain.EvidenceStructured, domain.EvidenceAdvisory, domain.EvidenceRepoFile,
+		domain.EvidenceLocalFile, domain.EvidenceInput,
 	),
 	enumOf(domain.SnapshotHelmValues, domain.SnapshotCRDs, domain.SnapshotImages),
 	enumOf(
@@ -71,6 +72,11 @@ var enums = []enumSet{
 	enumOf(
 		domain.FactReleasePublished, domain.FactArtifactPublished, domain.FactDocumentRetrieved,
 		domain.FactCompatibility, domain.FactSnapshot, domain.FactAdvisory, domain.FactRelationship,
+	),
+	enumOf(domain.ImpactActionRequired, domain.ImpactReview, domain.ImpactInformational),
+	enumOf(
+		domain.MatchValuesKey, domain.MatchAPIVersion, domain.MatchCRD, domain.MatchCRDVersion,
+		domain.MatchManifestField, domain.MatchImage, domain.MatchKubernetes,
 	),
 }
 
@@ -116,6 +122,17 @@ var fieldPatches = map[string]obj{
 	"Enrichment.content":   o("pattern", `\S`),
 	"Enrichment.relatesTo": o("minItems", 1, "uniqueItems", true),
 	"Enrichment.citations": o("minItems", 1, "uniqueItems", true),
+
+	// The impact report is a deterministic document too: its findings carry
+	// computed provenance and must cite BOTH chains (upstream evidence copied
+	// from the edge, environment evidence from the local files). That the ids
+	// resolve is referential and checked by domain.ImpactReport.Validate().
+	"ImpactReport.schemaVersion":        o("const", domain.ImpactReportSchemaVersion),
+	"ImpactFinding.provenance":          o("$ref", "#/$defs/"+defDeterminist),
+	"ImpactFinding.upstreamEvidence":    o("minItems", 1, "uniqueItems", true),
+	"ImpactFinding.environmentEvidence": o("minItems", 1, "uniqueItems", true),
+	"ImpactFinding.title":               o("pattern", `\S`),
+	"ImpactMatch.evidence":              o("minItems", 1),
 }
 
 // typePatches are appended to the schema generated for a whole struct,
@@ -201,6 +218,43 @@ var descriptions = map[string]string{
 	"Release.sources":          "Outcome of consulting each source for this release.",
 	"Release.ingestedAt":       "When the release was ingested (UTC).",
 	"Release.definitionDigest": "Digest of the product definition revision used for ingestion; a stored release is only reusable with the same digest.",
+
+	// --- impact ---------------------------------------------------------------
+	"ImpactReport": "Which of an upgrade edge's changes matter to ONE environment, produced by joining " +
+		"an UpgradeEdge with locally parsed environment inputs (values files, manifests, installed CRDs, " +
+		"image references, a cluster version). Every finding cites two provenance chains: upstream evidence " +
+		"copied from the edge and environment evidence pointing at the user's files. Deterministic only; " +
+		"referential integrity (both chains resolve within this document) is checked by " +
+		"domain.ImpactReport.Validate() in Go and cannot be expressed in JSON Schema.",
+	"ImpactReport.schemaVersion":       "Serialisation version of this document.",
+	"ImpactReport.environment":         "What the join ran against: the supplied cluster version, the parsed input files with digests, counts of extracted facts and parsing warnings.",
+	"ImpactReport.summary":             "The funnel: all upstream changes, those affecting this environment, and the action classification counts.",
+	"ImpactReport.findings":            "One per (upstream change or constraint) × (environment fact) overlap; action-required first.",
+	"ImpactReport.evidence":            "Chain 1: upstream Evidence records cited by findings, copied from the UpgradeEdge the report was built from.",
+	"ImpactReport.environmentEvidence": "Chain 2: Evidence records of kind local-file / input pointing at the user's environment inputs.",
+	"ImpactReport.generatedAt":         "When the report was built (UTC).",
+	"ImpactReport.definitionDigest":    "Digest of the product definition revision the underlying edge was built from.",
+	"ImpactFinding": "One deterministic conclusion of the join: an upstream change (or compatibility constraint) " +
+		"met an environment fact. Explains itself via `detail` and cites both evidence chains.",
+	"ImpactFinding.classification":      "action-required: the environment must change or the upgrade fails / silently misbehaves. review: plausible impact, depends on intent the files cannot show. informational: confirmed overlap with no action implied.",
+	"ImpactFinding.rule":                "Join rule that fired, e.g. \"impact:values-removed\".",
+	"ImpactFinding.detail":              "Prose explaining how the two chains meet: what upstream changed and which environment fact matched.",
+	"ImpactFinding.changeId":            "Id of the upstream Change in the UpgradeEdge this report was built from; absent when the finding comes from a compatibility constraint alone (cluster-version check).",
+	"ImpactFinding.changeTitle":         "Copy of the upstream change's title, so the report renders standalone.",
+	"ImpactFinding.changeCategory":      "Copy of the upstream change's category.",
+	"ImpactFinding.changeBreaking":      "Copy of the upstream change's breaking flag.",
+	"ImpactFinding.matches":             "The environment facts that made the finding fire, each with its own environment evidence.",
+	"ImpactFinding.upstreamEvidence":    "Chain 1: Evidence ids resolving in `evidence`.",
+	"ImpactFinding.environmentEvidence": "Chain 2: Evidence ids resolving in `environmentEvidence`.",
+	"ImpactMatch":                       "One environment fact that matched: what it is (subject) and the local evidence that proves the environment has it.",
+	"ImpactMatch.kind":                  "What kind of environment fact: a set values key, an apiVersion in use, an installed CRD or one of its versions, a manifest field path, an image in use, or the cluster Kubernetes version.",
+	"ImpactMatch.subject":               "The fact itself: a values key path, \"group/version Kind\", a CRD name, a field path, an image reference or a version string.",
+	"ImpactMatch.evidence":              "Environment evidence ids backing this match.",
+	"ImpactSummary":                     "Counts of the impact funnel; must equal the findings (checked by Validate).",
+	"ImpactFile":                        "One environment input file with the digest of the bytes that were parsed.",
+	"ImpactFile.path":                   "Path exactly as supplied on the command line (evidence URIs use the same form).",
+	"ImpactEnvironment":                 "Summary of the environment inputs the join consumed.",
+	"ImpactEnvironment.kubernetes":      "Cluster Kubernetes version as supplied (e.g. \"1.31\" or \"1.31.5\").",
 
 	// --- versions ---------------------------------------------------------
 	"Version":         "A release version of a product.",

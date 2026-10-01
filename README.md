@@ -18,6 +18,13 @@ digest of the exact bytes that were read. The first products are
 **cert-manager**, **Istio** and **Argo CD**. Nothing in the design is tied to
 one ecosystem.
 
+A second question builds on it: **which of those changes matter to YOUR
+environment?** `ri impact` joins the edge with local Helm values, manifests,
+installed CRDs, an image list and a cluster version. It is deterministic, and
+every finding cites two provenance chains — the upstream evidence of the
+change and the environment evidence (file, line, excerpt) that matched
+([docs/IMPACT.md](docs/IMPACT.md)).
+
 ```
 $ ri upgrade cert-manager v1.17.0 v1.18.0
 cert-manager v1.17.0 → v1.18.0

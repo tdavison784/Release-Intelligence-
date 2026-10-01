@@ -9,6 +9,10 @@ upgrades completely offline and compares the result with golden files:
 | istio | 1.29.2 → 1.30.1 |
 | argo-cd | v2.14.11 → v3.0.6 |
 
+The impact tests (`impact_e2e_test.go`) additionally join the recorded
+cert-manager edge with the environment under `env/cert-manager`; their run is
+a pure function of the same three inputs plus those files.
+
 The run is a pure function of three inputs, all checked in or injected:
 
 1. **The recording** (`state/cache/`): every HTTP response and every git result
@@ -26,6 +30,10 @@ state/cache/git/log/<repo>/*.json.gz             git-log documents
 state/cache/git/dir/<repo>/*.json.gz             repo-dir listings with file contents
 golden/<product>_<from>_<to>.txt                 upgrade.RenderText output (no colour)
 golden/<product>_<from>_<to>.json                the UpgradeEdge as `ri upgrade -o json`
+env/<product>/…                                  checked-in environment for `ri impact`
+                                                 (values.yaml, manifests/, crds/, images.txt)
+golden/impact/<product>_<from>_<to>.txt          impact.RenderText output of the joined report
+golden/impact/<product>_<from>_<to>.json         the ImpactReport as `ri impact -o json`
 ```
 
 Not part of the recording (see `.gitignore`): `state/store` (output of a run)

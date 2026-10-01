@@ -1,0 +1,330 @@
+{
+  "schemaVersion": "ri.dev/impact-report/v1alpha1",
+  "product": {
+    "id": "cert-manager",
+    "name": "cert-manager"
+  },
+  "from": {
+    "tag": "v1.17.0",
+    "version": "1.17.0"
+  },
+  "to": {
+    "tag": "v1.18.0",
+    "version": "1.18.0"
+  },
+  "environment": {
+    "kubernetes": "1.28",
+    "files": [
+      {
+        "path": "testdata/e2e/env/cert-manager/values.yaml",
+        "digest": "sha256:16ac8eb10094a5383e69b19e2b690030a243ee08c1ab4a091339f5353fa06d5c"
+      },
+      {
+        "path": "testdata/e2e/env/cert-manager/crds/certificates.yaml",
+        "digest": "sha256:628de0ccd26087fd706795e2c47cfb495ca5baa91d694ffcb8a07c4e85203c91"
+      },
+      {
+        "path": "testdata/e2e/env/cert-manager/manifests/certificate.yaml",
+        "digest": "sha256:01c981887cf8219f5cfffb3728d93dfc03aa973377c32b5ddd0377a40834dd98"
+      },
+      {
+        "path": "testdata/e2e/env/cert-manager/manifests/deployment.yaml",
+        "digest": "sha256:c716fd45f3ec2d0a193b1bc47c070f561475c80980ab2951653043d11d9ea1eb"
+      }
+    ],
+    "valuesKeys": 4,
+    "manifestDocs": 3,
+    "apiVersions": 2,
+    "crds": 1,
+    "manifestPaths": 14,
+    "images": 2
+  },
+  "summary": {
+    "upstreamChanges": 51,
+    "affectEnvironment": 5,
+    "actionRequired": 1,
+    "review": 3,
+    "informational": 1
+  },
+  "findings": [
+    {
+      "id": "imp-7e9a11c2834d",
+      "classification": "action-required",
+      "rule": "impact:kubernetes-below-range",
+      "title": "Cluster Kubernetes 1.28 is below the supported range 1.29–1.33 of v1.18.0",
+      "detail": "v1.18.0 requires Kubernetes 1.29–1.33; the cluster runs 1.28. Plan the cluster upgrade at or above 1.29 before upgrading v1.18.0.",
+      "matches": [
+        {
+          "kind": "kubernetes",
+          "subject": "1.28",
+          "evidence": [
+            "ev-7ed6c5e2142e"
+          ]
+        }
+      ],
+      "upstreamEvidence": [
+        "ev-94a8abc4e147",
+        "ev-904e0ae133bd"
+      ],
+      "environmentEvidence": [
+        "ev-7ed6c5e2142e"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:kubernetes-below-range",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-123e6594ecd5",
+      "classification": "review",
+      "rule": "impact:image-changed",
+      "title": "Image you reference moves quay.io/jetstack/cert-manager-controller:v1.17.0 → quay.io/jetstack/cert-manager-controller:v1.18.0",
+      "detail": "The release publishes quay.io/jetstack/cert-manager-controller:v1.18.0 (was quay.io/jetstack/cert-manager-controller:v1.17.0). Your environment pins the old reference; update it (or your mirror) to pick up v1.18.0.",
+      "matches": [
+        {
+          "kind": "image",
+          "subject": "quay.io/jetstack/cert-manager-controller:v1.17.0",
+          "evidence": [
+            "ev-f3c0b5db4aa8"
+          ]
+        }
+      ],
+      "upstreamEvidence": [
+        "ev-87e79b56b7a6",
+        "ev-e3abe417763b"
+      ],
+      "environmentEvidence": [
+        "ev-f3c0b5db4aa8"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:image-changed",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-a137dded3ed6",
+      "classification": "review",
+      "rule": "impact:image-changed",
+      "title": "Image you reference moves quay.io/jetstack/cert-manager-webhook:v1.17.0 → quay.io/jetstack/cert-manager-webhook:v1.18.0",
+      "detail": "The release publishes quay.io/jetstack/cert-manager-webhook:v1.18.0 (was quay.io/jetstack/cert-manager-webhook:v1.17.0). Your environment pins the old reference; update it (or your mirror) to pick up v1.18.0.",
+      "matches": [
+        {
+          "kind": "image",
+          "subject": "quay.io/jetstack/cert-manager-webhook:v1.17.0",
+          "evidence": [
+            "ev-9f56d244272d"
+          ]
+        }
+      ],
+      "upstreamEvidence": [
+        "ev-6048662cc28a",
+        "ev-4ada24bd69ce"
+      ],
+      "environmentEvidence": [
+        "ev-9f56d244272d"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:image-changed",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-0dae408f0c17",
+      "classification": "review",
+      "rule": "impact:values-new-key",
+      "title": "Your values already set global.rbac.disableHTTPChallengesRole, which v1.18.0 introduces",
+      "detail": "A key your values file already set (previously ignored by the chart) becomes live with this release, or sits directly under/over a newly added section. Check that the value you set is what you intend the new key to have.",
+      "changeId": "chg-0d81e035fa84",
+      "changeTitle": "New Helm value `global.rbac.disableHTTPChallengesRole`",
+      "changeCategory": "helm-values",
+      "matches": [
+        {
+          "kind": "values-key",
+          "subject": "global.rbac.disableHTTPChallengesRole",
+          "evidence": [
+            "ev-4d93cb8918b9"
+          ]
+        }
+      ],
+      "upstreamEvidence": [
+        "ev-951b7c3d8936",
+        "ev-0c1eda13db98"
+      ],
+      "environmentEvidence": [
+        "ev-4d93cb8918b9"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:values-new-key",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-6cae808def98",
+      "classification": "informational",
+      "rule": "impact:values-pinned",
+      "title": "You pin `prometheus.servicemonitor.targetPort`; its default change in v1.18.0 does not apply to you",
+      "detail": "You set prometheus.servicemonitor.targetPort explicitly. Helm keeps your value and discards the new default; your deployment does not change. Re-check the value against the new defaults when you next edit it.",
+      "changeId": "chg-917796919822",
+      "changeTitle": "Default of Helm value `prometheus.servicemonitor.targetPort` changed: 9402 → \"http-metrics\"",
+      "changeCategory": "helm-values",
+      "matches": [
+        {
+          "kind": "values-key",
+          "subject": "prometheus.servicemonitor.targetPort",
+          "evidence": [
+            "ev-8d58a7c69fb5"
+          ]
+        }
+      ],
+      "upstreamEvidence": [
+        "ev-951b7c3d8936",
+        "ev-0c1eda13db98"
+      ],
+      "environmentEvidence": [
+        "ev-8d58a7c69fb5"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:values-pinned",
+        "confidence": "high"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-904e0ae133bd",
+      "kind": "document",
+      "sourceId": "supported-releases",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md",
+      "locator": "L307",
+      "excerpt": "| Release      | Release Date | EOL          | Compatible Kubernetes versions | Compatible OpenShift versions |\n| [1.17][]     | Feb 03, 2025 | Oct 07, 2025 | 1.29 → 1.33                    | 4.16 → 4.20                   |",
+      "contentDigest": "sha256:2d1aa5f5dd48b1baadc10dd7381d9ce6f2848567f21069109b37bda5f417bf9e",
+      "retrievedAt": "2026-10-01T05:39:17Z"
+    },
+    {
+      "id": "ev-951b7c3d8936",
+      "kind": "structured",
+      "sourceId": "helm-chart",
+      "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml",
+      "locator": "deploy/charts/cert-manager/values.yaml",
+      "excerpt": "# +docs:section=Global",
+      "contentDigest": "sha256:7ec69688c8da46d802f4937e30bcbe0dd9f5b1ed5d040e013206bc2c9a7c7bfb",
+      "retrievedAt": "2026-10-01T05:39:17Z"
+    },
+    {
+      "id": "ev-87e79b56b7a6",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml",
+      "locator": "L13047",
+      "excerpt": "image: \"quay.io/jetstack/cert-manager-controller:v1.17.0\"",
+      "contentDigest": "sha256:ea3b9018be5ac6afb462570d0c0445d4a561c18d1d321cf4051d6ee134d60e67",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-6048662cc28a",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml",
+      "locator": "L13129",
+      "excerpt": "image: \"quay.io/jetstack/cert-manager-webhook:v1.17.0\"",
+      "contentDigest": "sha256:ea3b9018be5ac6afb462570d0c0445d4a561c18d1d321cf4051d6ee134d60e67",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-94a8abc4e147",
+      "kind": "document",
+      "sourceId": "supported-releases",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md",
+      "locator": "L306",
+      "excerpt": "| Release      | Release Date | EOL          | Compatible Kubernetes versions | Compatible OpenShift versions |\n| [1.18][]     | Jun 10, 2025 | Mar 10, 2026 | 1.29 → 1.33                    | 4.16 → 4.20                   |",
+      "contentDigest": "sha256:2d1aa5f5dd48b1baadc10dd7381d9ce6f2848567f21069109b37bda5f417bf9e",
+      "retrievedAt": "2026-10-01T05:39:17Z"
+    },
+    {
+      "id": "ev-0c1eda13db98",
+      "kind": "structured",
+      "sourceId": "helm-chart",
+      "uri": "https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml",
+      "locator": "deploy/charts/cert-manager/values.yaml",
+      "excerpt": "# +docs:section=Global",
+      "contentDigest": "sha256:dc315b31797c80f06c2d0302a5050307ff94e0bd83a7c681d0956fc4dc3e2224",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-e3abe417763b",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml",
+      "locator": "L13151",
+      "excerpt": "image: \"quay.io/jetstack/cert-manager-controller:v1.18.0\"",
+      "contentDigest": "sha256:b77844d683952ce529ea5f4ec249d32851a75a2819662ecc1d171ee218a51c56",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-4ada24bd69ce",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml",
+      "locator": "L13233",
+      "excerpt": "image: \"quay.io/jetstack/cert-manager-webhook:v1.18.0\"",
+      "contentDigest": "sha256:b77844d683952ce529ea5f4ec249d32851a75a2819662ecc1d171ee218a51c56",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    }
+  ],
+  "environmentEvidence": [
+    {
+      "id": "ev-7ed6c5e2142e",
+      "kind": "input",
+      "uri": "flag:--kubernetes",
+      "excerpt": "1.28",
+      "contentDigest": "sha256:630030ff9b4030db5627434a7591f5e9202d0af9acdc8bca8bff5c563c386ff5"
+    },
+    {
+      "id": "ev-4d93cb8918b9",
+      "kind": "local-file",
+      "uri": "testdata/e2e/env/cert-manager/values.yaml",
+      "locator": "$.global.rbac.disableHTTPChallengesRole (L11)",
+      "excerpt": "global.rbac.disableHTTPChallengesRole: true",
+      "contentDigest": "sha256:16ac8eb10094a5383e69b19e2b690030a243ee08c1ab4a091339f5353fa06d5c"
+    },
+    {
+      "id": "ev-8d58a7c69fb5",
+      "kind": "local-file",
+      "uri": "testdata/e2e/env/cert-manager/values.yaml",
+      "locator": "$.prometheus.servicemonitor.targetPort (L8)",
+      "excerpt": "prometheus.servicemonitor.targetPort: 9402",
+      "contentDigest": "sha256:16ac8eb10094a5383e69b19e2b690030a243ee08c1ab4a091339f5353fa06d5c"
+    },
+    {
+      "id": "ev-f3c0b5db4aa8",
+      "kind": "local-file",
+      "uri": "testdata/e2e/env/cert-manager/manifests/deployment.yaml",
+      "locator": "L12",
+      "excerpt": "image: quay.io/jetstack/cert-manager-controller:v1.17.0",
+      "contentDigest": "sha256:c716fd45f3ec2d0a193b1bc47c070f561475c80980ab2951653043d11d9ea1eb"
+    },
+    {
+      "id": "ev-9f56d244272d",
+      "kind": "input",
+      "uri": "flag:--images",
+      "excerpt": "quay.io/jetstack/cert-manager-webhook:v1.17.0",
+      "contentDigest": "sha256:e32d0d9160e347f4d7ecbb0b5f836f7e0273d985eaf14cdc020865c3c74d6313"
+    }
+  ],
+  "warnings": [
+    "Security advisories were not fully retrieved (github-advisories: unavailable — fetch https://api.github.com/repos/cert-manager/cert-manager/security-advisories?per_page=100&state=published: not in cache (offline mode)); advisory matching may be incomplete",
+    "2 artifacts of v1.18.0 only expected (not observed or referenced): helm-chart, startupapicheck-image"
+  ],
+  "generatedAt": "2026-10-01T12:00:00Z",
+  "definitionDigest": "sha256:667a2ce30a15ac95f108c16bfa0802c318d114252a9d31c639c68fc71f465690"
+}
