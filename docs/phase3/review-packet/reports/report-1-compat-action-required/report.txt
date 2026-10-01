@@ -1,0 +1,364 @@
+cert-manager v1.17.0 → v1.18.0 — impact on this environment
+51 upstream changes analyzed
+ACTION REQUIRED:    1
+REVIEW REQUIRED:    3
+INFORMATIONAL:    1
+NOT AFFECTED:    3
+UNKNOWN:   50
+
+Environment
+  kubernetes 1.28
+  values: 4 keys set
+  manifests: 3 docs, 2 apiVersions, 14 field paths
+  installed CRDs: 1
+  images: 2
+  docs/phase3/review-packet/example-env/report1-env/values.yaml  sha256:16ac8eb10094a5383e69b19e2b690030a243ee08c1ab4a091339f5353fa06d5c
+  docs/phase3/review-packet/example-env/report1-env/crds/certificates.yaml  sha256:628de0ccd26087fd706795e2c47cfb495ca5baa91d694ffcb8a07c4e85203c91
+  docs/phase3/review-packet/example-env/report1-env/manifests/certificate.yaml  sha256:01c981887cf8219f5cfffb3728d93dfc03aa973377c32b5ddd0377a40834dd98
+  docs/phase3/review-packet/example-env/report1-env/manifests/deployment.yaml  sha256:c716fd45f3ec2d0a193b1bc47c070f561475c80980ab2951653043d11d9ea1eb
+
+Action required (1)
+  1. Cluster Kubernetes 1.28 is below the supported range 1.29–1.33 of v1.18.0 [imp-7e9a11c2834d]
+     v1.18.0 requires Kubernetes 1.29–1.33; the cluster runs 1.28. Plan the cluster upgrade at or above 1.29 before upgrading v1.18.0.
+     environment: kubernetes 1.28  (ev-7ed6c5e2142e)
+     upstream evidence: ev-94a8abc4e147, ev-904e0ae133bd
+
+Review required (3)
+  1. Image you reference moves quay.io/jetstack/cert-manager-controller:v1.17.0 → quay.io/jetstack/cert-manager-controller:v1.18.0 [imp-123e6594ecd5]
+     The release publishes quay.io/jetstack/cert-manager-controller:v1.18.0 (was quay.io/jetstack/cert-manager-controller:v1.17.0). Your environment pins the old reference; update it (or your mirror) to pick up v1.18.0.
+     environment: image quay.io/jetstack/cert-manager-controller:v1.17.0  (ev-f7dba558ac03)
+     upstream evidence: ev-87e79b56b7a6, ev-e3abe417763b
+  2. Image you reference moves quay.io/jetstack/cert-manager-webhook:v1.17.0 → quay.io/jetstack/cert-manager-webhook:v1.18.0 [imp-a137dded3ed6]
+     The release publishes quay.io/jetstack/cert-manager-webhook:v1.18.0 (was quay.io/jetstack/cert-manager-webhook:v1.17.0). Your environment pins the old reference; update it (or your mirror) to pick up v1.18.0.
+     environment: image quay.io/jetstack/cert-manager-webhook:v1.17.0  (ev-9f56d244272d)
+     upstream evidence: ev-6048662cc28a, ev-4ada24bd69ce
+  3. Your values already set global.rbac.disableHTTPChallengesRole, which v1.18.0 introduces [imp-0dae408f0c17]
+     upstream change: New Helm value `global.rbac.disableHTTPChallengesRole` (helm-values) [chg-0d81e035fa84]
+     A key your values file already set (previously ignored by the chart) becomes live with this release, or sits directly under/over a newly added section. Check that the value you set is what you intend the new key to have.
+     environment: values-key global.rbac.disableHTTPChallengesRole  (ev-896b19ed16bb)
+     upstream evidence: ev-717ddb6f40cd, ev-7a67f12867b2
+
+Informational (1)
+  1. You pin `prometheus.servicemonitor.targetPort`; its default change in v1.18.0 does not apply to you [imp-6cae808def98]
+     upstream change: Default of Helm value `prometheus.servicemonitor.targetPort` changed: 9402 → "http-metrics" (helm-values) [chg-917796919822]
+     You set prometheus.servicemonitor.targetPort explicitly. Helm keeps your value and discards the new default; your deployment does not change. Re-check the value against the new defaults when you next edit it.
+     environment: values-key prometheus.servicemonitor.targetPort  (ev-4b8195e55e12)
+     upstream evidence: ev-717ddb6f40cd, ev-7a67f12867b2
+
+Unknown — insufficient evidence (50)
+  1. Cannot evaluate the openshift supported constraint without the cluster version [imp-c01afd290322]
+     missing: openshift cluster version not supplied
+     The target declares openshift supported = 4.16 → 4.20. Applicability is decided against the running cluster version; no input collects it (ri impact supports --kubernetes).
+     upstream evidence: ev-94a8abc4e147, ev-904e0ae133bd
+  2. Not evaluated for this environment: ACME Certificate Profiles: cert-manager now supports the selection of ACME certificate profiles, allowing users to request different categories of certificates… [imp-dacd1e3d112b]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: ACME Certificate Profiles: cert-manager now supports the selection of ACME certificate profiles, allowing users to request different categories of certificates… (other) [chg-2ded9f339c1b]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-50f787991f0d
+  3. Not evaluated for this environment: ACME E2E Tests: Upgraded Pebble to `v2.7.0` and modified the ACME tests to match latest Pebble behavior [imp-9bcf04959e54]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: ACME E2E Tests: Upgraded Pebble to `v2.7.0` and modified the ACME tests to match latest Pebble behavior (other) [chg-c16c394a6f4e]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-ea4a77b80f71
+  4. Not evaluated for this environment: ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.… [imp-eef2b0d0d72f]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: breaking · ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.… (other) [chg-e4f5f001ae5f]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-110340e9c914
+  5. Not evaluated for this environment: Add config to the Vault issuer to allow the server-name to be specified when validating the certificates the Vault server presents [imp-6156cd00b09b]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Add config to the Vault issuer to allow the server-name to be specified when validating the certificates the Vault server presents (feature) [chg-97f684f77202]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-30d2c387f95f
+  6. Not evaluated for this environment: Add support for `ACME profiles extension` [imp-80754ea19305]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Add support for `ACME profiles extension` (feature) [chg-52e7feadeebb]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-7be235e771a3
+  7. Not evaluated for this environment: Added `app.kubernetes.io/managed-by: cert-manager` label to the created Let's Encrypt account keys [imp-16163701185e]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Added `app.kubernetes.io/managed-by: cert-manager` label to the created Let's Encrypt account keys (feature) [chg-d9fe8c32d182]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-1d4a9d664d8c
+  8. Not evaluated for this environment: Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_se… [imp-6432f469b85a]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_se… (feature) [chg-439b545a803d]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-e8facc7cba98
+  9. Not evaluated for this environment: Added ingress-shim option `--extra-certificate-annotations`, which sets a list of annotation keys to be copied from Ingress-like to resulting Certificate object [imp-588f3cf5a260]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Added ingress-shim option `--extra-certificate-annotations`, which sets a list of annotation keys to be copied from Ingress-like to resulting Certificate object (feature) [chg-b88b2edac71d]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-dde3ce032096
+  10. Not evaluated for this environment: Added the `ciss` short name for the cert-manager `ClusterIssuer` resource [imp-2577b5434545]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Added the `ciss` short name for the cert-manager `ClusterIssuer` resource (feature) [chg-84cabfbb8fd6]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-41698084a48b
+  11. Not evaluated for this environment: Added the `iss` short name for the cert-manager `Issuer` resource [imp-3a0f812fe693]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Added the `iss` short name for the cert-manager `Issuer` resource (feature) [chg-41a3f902edaa]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-38243747b200
+  12. Not evaluated for this environment: Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges [imp-62fb5ea91b14]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges (feature) [chg-0dbf738dde76]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-861cb2d69752
+  13. Not evaluated for this environment: Allow customizing signature algorithm [imp-d09df14ed530]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Allow customizing signature algorithm (feature) [chg-d2f4ed0306f9]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-87995aee2ded
+  14. Not evaluated for this environment: Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp` [imp-fa8df652362e]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp` (security) [chg-6db1e2247a3e]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-695a6d7c7c6e
+  15. Not evaluated for this environment: Bump `go-jose` dependency to address `CVE-2025-27144` [imp-50009880b265]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Bump `go-jose` dependency to address `CVE-2025-27144` (security) [chg-4da7f0d97cf0]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-8a902cdb88e1
+  16. Not evaluated for this environment: Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77` [imp-82d81560bbc8]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77` (security) [chg-b5b5a645584a]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-8e895983c9dd
+  17. Not evaluated for this environment: Bump `golang.org/x/oauth2` to patch `CVE-2025-22868` [imp-88e0a1b18609]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Bump `golang.org/x/oauth2` to patch `CVE-2025-22868` (security) [chg-fb783ed69ea8]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-c6232bc5c8d4
+  18. Not evaluated for this environment: Cache the full DNS response and handle TTL expiration in `FindZoneByFqdn` [imp-5cbc5860638d]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Cache the full DNS response and handle TTL expiration in `FindZoneByFqdn` (feature) [chg-32628a6d20cf]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-d4918828336e
+  19. Not evaluated for this environment: Cert-manager now uses a local fork of the `golang.org/x/crypto/acme` package [imp-4abadd43d378]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Cert-manager now uses a local fork of the `golang.org/x/crypto/acme` package (feature) [chg-e47680a7d710]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-4fcf47388827
+  20. Not evaluated for this environment: Certificate v1 schema: 1 field added: `spec.signatureAlgorithm` [imp-9b9d6ebd596f]
+     missing: diff rule crd:fields-added has no join rule; whether the change applies to the environment cannot be decided deterministically
+     upstream change: Certificate v1 schema: 1 field added: `spec.signatureAlgorithm` (crd-schema) [chg-644b13d0eb78]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-60054fcf0986, ev-9b6164ce0df7
+  21. Not evaluated for this environment: Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security [imp-2512f0e1bfab]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security (bugfix) [chg-4e9435eae99e]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-4faa7ca81b54
+  22. Not evaluated for this environment: ClusterIssuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName` [imp-d47a0151a796]
+     missing: diff rule crd:fields-added has no join rule; whether the change applies to the environment cannot be decided deterministically
+     upstream change: ClusterIssuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName` (crd-schema) [chg-20e84ac6af3b]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-60054fcf0986, ev-9b6164ce0df7
+  23. Not evaluated for this environment: Copy annotations from Ingress or Gateway to the Certificate: We've added a new configuration option to the cert-manager controller: `--extra-certificate-annota… [imp-d1ff8cfc0c11]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Copy annotations from Ingress or Gateway to the Certificate: We've added a new configuration option to the cert-manager controller: `--extra-certificate-annota… (other) [chg-28807f7d13a6]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-da53ded48367
+  24. Not evaluated for this environment: Fix AWS Route53 error detection for not-found errors during deletion of DNS records [imp-cf65d5550490]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Fix AWS Route53 error detection for not-found errors during deletion of DNS records (bugfix) [chg-ead91108ed55]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-23e99dfde8d0
+  25. Not evaluated for this environment: Fix behavior when running with `--namespace=<namespace>`: limit the scope of cert-manager to a single namespace and disable cluster-scoped controllers [imp-6a432c6ae078]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Fix behavior when running with `--namespace=<namespace>`: limit the scope of cert-manager to a single namespace and disable cluster-scoped controllers (bugfix) [chg-d4b4bd898c29]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-ef5237d47ade
+  26. Not evaluated for this environment: Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are… [imp-dc9dc7badd15]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are… (bugfix) [chg-cfb8af1d193a]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-a8c04d9f0485
+  27. Not evaluated for this environment: Fix issuing of certificates via DNS01 challenges on Cloudflare after a breaking change to the Cloudflare API [imp-4ad48d81f45a]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Fix issuing of certificates via DNS01 challenges on Cloudflare after a breaking change to the Cloudflare API (bugfix) [chg-4c931993832d]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-b8d6f16e3c8c
+  28. Not evaluated for this environment: Fix some comments [imp-a5b1ba142174]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Fix some comments (other) [chg-f59541363a4f]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-19fb20ff3c32
+  29. Not evaluated for this environment: Fixed the `certmanager_certificate_renewal_timestamp_seconds` metric help text indicating that the metric is relative to expiration time, rather than Unix… [imp-876104412381]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Fixed the `certmanager_certificate_renewal_timestamp_seconds` metric help text indicating that the metric is relative to expiration time, rather than Unix… (bugfix) [chg-b4e583f378a3]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-2a805da381d1
+  30. Not evaluated for this environment: Fixing the service account template to incorporate boolean values for the annotations [imp-8a7fc92bee74]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Fixing the service account template to incorporate boolean values for the annotations (bugfix) [chg-087a5ce2a6b6]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-7a3fdefaaff7
+  31. Not evaluated for this environment: Issuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName` [imp-a1b97b044ae9]
+     missing: diff rule crd:fields-added has no join rule; whether the change applies to the environment cannot be decided deterministically
+     upstream change: Issuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName` (crd-schema) [chg-8d5050bf3851]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-60054fcf0986, ev-9b6164ce0df7
+  32. Not evaluated for this environment: OperatorHub Packages Discontinued: We no longer publish OperatorHub packages for cert-manager [imp-7b3e3b95c782]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: OperatorHub Packages Discontinued: We no longer publish OperatorHub packages for cert-manager (other) [chg-cdbe001f21d8]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-c3d5e62490c3
+  33. Not evaluated for this environment: Order v1 schema: 1 field added: `spec.profile` [imp-6cef2397667c]
+     missing: diff rule crd:fields-added has no join rule; whether the change applies to the environment cannot be decided deterministically
+     upstream change: Order v1 schema: 1 field added: `spec.profile` (crd-schema) [chg-f20b516e3351]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-60054fcf0986, ev-9b6164ce0df7
+  34. Not evaluated for this environment: Patch the `third_party/forked/acme` package with support for the ACME profiles extension [imp-011cd8669b4b]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Patch the `third_party/forked/acme` package with support for the ACME profiles extension (other) [chg-45dd175c7717]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-8ec1fdd0d15f
+  35. Not evaluated for this environment: Promote the `AdditionalCertificateOutputFormats` feature to GA, making additional formats always enabled [imp-ddbd62c6e0a7]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Promote the `AdditionalCertificateOutputFormats` feature to GA, making additional formats always enabled (other) [chg-f5081ab1602e]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-bc29bf53aa1b
+  36. Not evaluated for this environment: Promote the `UseDomainQualifiedFinalizer` feature to GA [imp-028f41821942]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Promote the `UseDomainQualifiedFinalizer` feature to GA (feature) [chg-8965c94210f9]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-8f6e397ae33c
+  37. Not evaluated for this environment: Quote nodeSelector values in Helm Chart [imp-f2783ab830b0]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Quote nodeSelector values in Helm Chart (bugfix) [chg-43064cdbc5dc]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-565f3761f656
+  38. Not evaluated for this environment: Remove deprecated feature gate `ValidateCAA`. Setting this feature gate is now a no-op which does nothing but print a warning log line [imp-2296b2feb6ec]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Remove deprecated feature gate `ValidateCAA`. Setting this feature gate is now a no-op which does nothing but print a warning log line (removal) [chg-5fb4b939f1c4]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-853844eb542e
+  39. Not evaluated for this environment: Set the default `revisionHistoryLimit` to 1 for the CertificateRequest revisions [imp-d6d05ea04a58]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Set the default `revisionHistoryLimit` to 1 for the CertificateRequest revisions (feature) [chg-10df74aec3a3]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-330bb03a882f
+  40. Not evaluated for this environment: Skip Gateway TLS listeners in `Passthrough` mode [imp-b4f8e50f42af]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Skip Gateway TLS listeners in `Passthrough` mode (bugfix) [chg-fcb00045737f]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-1861adfd42be
+  41. Not evaluated for this environment: Switched `service/servicemon` definitions to use port names instead of numbers [imp-32ee0f64dc00]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Switched `service/servicemon` definitions to use port names instead of numbers (feature) [chg-5aff8644f14a]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-0bb0d885678d
+  42. Not evaluated for this environment: The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always` [imp-19acd0659637]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always` (feature) [chg-fa4ce35f9a12]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-cf14b14073be
+  43. Not evaluated for this environment: The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPo… [imp-355ebba8a382]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: breaking · The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPo… (other) [chg-0e1cdbe373a9]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-c92478af13c4
+  44. Not evaluated for this environment: The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`: The default value for the `Certificate` resource's `revisionHistoryLimit` field is now… [imp-3acf8d10d51e]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: breaking · The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`: The default value for the `Certificate` resource's `revisionHistoryLimit` field is now… (other) [chg-a3c2e0538ac2]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-04b3e69b5e24
+  45. Not evaluated for this environment: Update kind images to include the Kubernetes 1.33 node image [imp-e7712fe0b726]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Update kind images to include the Kubernetes 1.33 node image (other) [chg-f3e38054e249]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-eb95ba454b0b
+  46. Not evaluated for this environment: Upgrade Go to `v1.24.4` [imp-0c5968c3e566]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Upgrade Go to `v1.24.4` (other) [chg-f08a6600b1b4]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-5744baed396c
+  47. Not evaluated for this environment: Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`) [imp-9eb2de7af6be]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`) (security) [chg-1b9f0e5312e3]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-bfe1f4f54646, ev-cb5102bd647d
+  48. Not evaluated for this environment: Use `slices.Contains` to simplify code [imp-b417e2c569ad]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: Use `slices.Contains` to simplify code (other) [chg-a7dfa60ad5b1]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-885e61843b3a
+  49. Not evaluated for this environment: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. > 📖 Read Release 1.18 notes for more information. [imp-1a0e1393ecc9]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: breaking · We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. > 📖 Read Release 1.18 notes for more information. (migration) [chg-a726b336f865]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-9a2f8d3ec5e9
+  50. Not evaluated for this environment: We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information. [imp-bbe863f802bd]
+     missing: no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only
+     upstream change: breaking · We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information. (migration) [chg-c2b61b098891]
+     The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.
+     upstream evidence: ev-bbe29a5fdc19
+
+Warnings (2)
+  · Security advisories were not fully retrieved (github-advisories: unavailable — fetch https://api.github.com/repos/cert-manager/cert-manager/security-advisories?per_page=100&state=published: not in cache (offline mode)); advisory matching may be incomplete
+  · 2 artifacts of v1.18.0 only expected (not observed or referenced): helm-chart, startupapicheck-image
+
+Evidence
+  ev-7ed6c5e2142e  input  flag:--kubernetes  
+  ev-f7dba558ac03  local-file  docs/phase3/review-packet/example-env/report1-env/manifests/deployment.yaml  L12
+  ev-9f56d244272d  input  flag:--images  
+  ev-896b19ed16bb  local-file  docs/phase3/review-packet/example-env/report1-env/values.yaml  $.global.rbac.disableHTTPChallengesRole (L11)
+  ev-4b8195e55e12  local-file  docs/phase3/review-packet/example-env/report1-env/values.yaml  $.prometheus.servicemonitor.targetPort (L8)
+  ev-94a8abc4e147  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md  L306
+  ev-904e0ae133bd  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md  L307
+  ev-87e79b56b7a6  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml  L13047
+  ev-e3abe417763b  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml  L13151
+  ev-6048662cc28a  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml  L13129
+  ev-4ada24bd69ce  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml  L13233
+  ev-717ddb6f40cd  structured  https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml  deploy/charts/cert-manager/values.yaml
+  ev-7a67f12867b2  structured  https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml  deploy/charts/cert-manager/values.yaml
+  ev-50f787991f0d  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L91-L107 (Major Themes › ACME Certificate Profiles)
+  ev-ea4a77b80f71  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L364-L364 (v1.18.0 › Other (Cleanup or Flake))
+  ev-110340e9c914  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L28-L89 (Major Themes › ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes)
+  ev-30d2c387f95f  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L325-L325 (v1.18.0 › Feature)
+  ev-7be235e771a3  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L335-L335 (v1.18.0 › Feature)
+  ev-1d4a9d664d8c  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L326-L326 (v1.18.0 › Feature)
+  ev-e8facc7cba98  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L327-L327 (v1.18.0 › Feature)
+  ev-dde3ce032096  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L328-L328 (v1.18.0 › Feature)
+  ev-41698084a48b  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L330-L330 (v1.18.0 › Feature)
+  ev-38243747b200  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L329-L329 (v1.18.0 › Feature)
+  ev-861cb2d69752  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L331-L331 (v1.18.0 › Feature)
+  ev-87995aee2ded  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L332-L332 (v1.18.0 › Feature)
+  ev-695a6d7c7c6e  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L350-L350 (v1.18.0 › Bug or Regression)
+  ev-8a902cdb88e1  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L347-L347 (v1.18.0 › Bug or Regression)
+  ev-8e895983c9dd  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L349-L349 (v1.18.0 › Bug or Regression)
+  ev-c6232bc5c8d4  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L348-L348 (v1.18.0 › Bug or Regression)
+  ev-d4918828336e  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L333-L333 (v1.18.0 › Feature)
+  ev-4fcf47388827  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L334-L334 (v1.18.0 › Feature)
+  ev-60054fcf0986  structured  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml  
+  ev-9b6164ce0df7  structured  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.crds.yaml  
+  ev-4faa7ca81b54  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L351-L351 (v1.18.0 › Bug or Regression)
+  ev-da53ded48367  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L162-L166 (Major Themes › Copy annotations from Ingress or Gateway to the Certificate)
+  ev-23e99dfde8d0  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L352-L352 (v1.18.0 › Bug or Regression)
+  ev-ef5237d47ade  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L353-L353 (v1.18.0 › Bug or Regression)
+  ev-a8c04d9f0485  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L354-L354 (v1.18.0 › Bug or Regression)
+  ev-b8d6f16e3c8c  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L355-L355 (v1.18.0 › Bug or Regression)
+  ev-19fb20ff3c32  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L343-L343 (v1.18.0 › Documentation)
+  ev-2a805da381d1  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L356-L356 (v1.18.0 › Bug or Regression)
+  ev-7a3fdefaaff7  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L357-L357 (v1.18.0 › Bug or Regression)
+  ev-c3d5e62490c3  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L16-L26 (Major Themes › OperatorHub Packages Discontinued)
+  ev-8ec1fdd0d15f  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L365-L365 (v1.18.0 › Other (Cleanup or Flake))
+  ev-bc29bf53aa1b  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L366-L366 (v1.18.0 › Other (Cleanup or Flake))
+  ev-8f6e397ae33c  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L336-L336 (v1.18.0 › Feature)
+  ev-565f3761f656  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L358-L358 (v1.18.0 › Bug or Regression)
+  ev-853844eb542e  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L367-L367 (v1.18.0 › Other (Cleanup or Flake))
+  ev-330bb03a882f  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L339-L339 (v1.18.0 › Feature)
+  ev-1861adfd42be  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L359-L359 (v1.18.0 › Bug or Regression)
+  ev-0bb0d885678d  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L337-L337 (v1.18.0 › Feature)
+  ev-cf14b14073be  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L338-L338 (v1.18.0 › Feature)
+  ev-c92478af13c4  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L109-L148 (Major Themes › The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`)
+  ev-04b3e69b5e24  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L151-L160 (Major Themes › The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`)
+  ev-eb95ba454b0b  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L369-L369 (v1.18.0 › Other (Cleanup or Flake))
+  ev-5744baed396c  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L370-L370 (v1.18.0 › Other (Cleanup or Flake))
+  ev-bfe1f4f54646  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L360-L360 (v1.18.0 › Bug or Regression)
+  ev-cb5102bd647d  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L368-L368 (v1.18.0 › Other (Cleanup or Flake))
+  ev-885e61843b3a  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L371-L371 (v1.18.0 › Other (Cleanup or Flake))
+  ev-9a2f8d3ec5e9  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md  L8-L10
+  ev-bbe29a5fdc19  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md  L12-L14
