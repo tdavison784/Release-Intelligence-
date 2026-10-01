@@ -1,7 +1,6 @@
 package ingest
 
 import (
-	"reflect"
 	"sort"
 
 	"github.com/tdavison784/release-intelligence/internal/catalog"
@@ -11,28 +10,7 @@ import (
 // fallbackGroup returns the fallback group of a source: sources sharing the
 // same non-empty group are alternatives, tried in Priority order until one is
 // ok; sources without a group are always consulted.
-//
-// MERGE NOTE: the contract moved from `Fallback bool` (alternatives grouped
-// by role) to `FallbackGroup string` (explicit, role-independent groups). The
-// field is read by name so this package compiles against both revisions of
-// package catalog; once the new contract is merged this can become a plain
-// `return src.FallbackGroup`. With the legacy field, the group is the
-// source's primary role.
-func fallbackGroup(src catalog.Source) string {
-	rv := reflect.ValueOf(src)
-	if f := rv.FieldByName("FallbackGroup"); f.IsValid() && f.Kind() == reflect.String {
-		return f.String()
-	}
-	if f := rv.FieldByName("Fallback"); f.IsValid() && f.Kind() == reflect.Bool && f.Bool() {
-		if role, ok := primaryRole(src); ok {
-			return string(role)
-		}
-		if len(src.Roles) > 0 {
-			return string(src.Roles[0])
-		}
-	}
-	return ""
-}
+func fallbackGroup(src catalog.Source) string { return src.FallbackGroup }
 
 // sourceGroup is a unit of per-release source processing: either a single
 // always-consulted source or the members of one fallback group.

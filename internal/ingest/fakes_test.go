@@ -3,7 +3,6 @@ package ingest
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -27,26 +26,13 @@ var (
 // ---------------------------------------------------------------------------
 // Synthetic product definition (shaped after cert-manager / Argo CD).
 
-// withFallbackGroup puts a source into a fallback group. It works against
-// both revisions of the catalog contract (FallbackGroup string, or the
-// legacy Fallback bool where groups are implied by role).
+// withFallbackGroup puts a source into a fallback group.
 func withFallbackGroup(s catalog.Source, group string) catalog.Source {
-	rv := reflect.ValueOf(&s).Elem()
-	if f := rv.FieldByName("FallbackGroup"); f.IsValid() && f.Kind() == reflect.String {
-		f.SetString(group)
-		return s
-	}
-	if f := rv.FieldByName("Fallback"); f.IsValid() && f.Kind() == reflect.Bool {
-		f.SetBool(group != "")
-		return s
-	}
-	panic("catalog.Source has neither FallbackGroup nor Fallback")
+	s.FallbackGroup = group
+	return s
 }
 
-func hasExplicitFallbackGroups() bool {
-	_, ok := reflect.TypeOf(catalog.Source{}).FieldByName("FallbackGroup")
-	return ok
-}
+func hasExplicitFallbackGroups() bool { return true }
 
 const website = "github.com/acme/website"
 

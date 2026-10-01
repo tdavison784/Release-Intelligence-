@@ -17,19 +17,20 @@ versioning:
 
 sources:
   # --- canonical versions -------------------------------------------------
-  - id: github-releases
+  # git tags are canonical: release-builder creates every GitHub release as
+  # draft+prerelease, so the GitHub prerelease flag cannot be trusted.
+  - id: git-tags
     roles: [versions]
     priority: 0
     locator:
-      kind: github-releases
-      repository: istio/istio
-    notes: release-builder marks every GitHub release draft+prerelease at creation; prerelease status is derived from the semver suffix.
-  - id: git-tags
+      kind: git-tags
+      repository: github.com/istio/istio
+  - id: github-releases
     roles: [versions]
     priority: 1
     locator:
-      kind: git-tags
-      repository: github.com/istio/istio
+      kind: github-releases
+      repository: istio/istio
 
   # --- release notes ------------------------------------------------------
   # Structured notes: releasenotes/notes/*.yaml accumulate in the source
