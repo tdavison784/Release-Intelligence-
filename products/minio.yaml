@@ -1,0 +1,326 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: minio
+name: MinIO
+description: >-
+  S3-compatible high-performance object storage server (community edition,
+  AGPLv3). Calendar-versioned: every release tag is a timestamp
+  (RELEASE.YYYY-MM-DDTHH-MM-SSZ, 521 releases 2016-2025, strictly linear
+  history, no branches or backports). The repository is no longer maintained:
+  the final release (RELEASE.2025-10-15T17-29-55Z) started source-only
+  distribution and a 2026-02 README banner declared the retirement; upstream
+  directs users to the AIStor editions. Version encoding: major = year,
+  minor = month, patch = day (RELEASE.2024-11-07T00-52-20Z = 2024.11.7); the
+  time-of-day cannot join the version (see the onboarding record for the gap
+  analysis), so the 13 same-day release pairs collapse to their earlier tag.
+homepage: https://github.com/minio/minio
+
+versioning:
+  scheme: semver
+  # CalVer tags read through the component-group construct (postgresql):
+  # RELEASE.2024-11-07T00-52-20Z -> major=2024, minor=11, patch=07 ->
+  # 2024.11.7. Ordering is chronological at day granularity. The T-HH-MM-SSZ
+  # part is deliberately NOT captured: the assembler offers only
+  # major/minor/patch[-prerelease] slots and the tag's separators cannot be
+  # stripped inside one capture, and a prerelease slot would mark every final
+  # release a prerelease (excluded from listings and upgrade paths). Cost: the
+  # 13 same-day pairs dedup to one version each (the listing reports them as
+  # duplicates and keeps the earlier tag). The 0* prefixes are load-bearing:
+  # strict semver rejects leading-zero components, so the pattern itself must
+  # normalise 01 -> 1 (regex captures cannot be transformed, but the zero can
+  # be consumed outside the group).
+  tagPattern: '^RELEASE\.(?P<major>\d{4})-0*(?P<minor>\d{1,2})-0*(?P<patch>\d{1,2})T\d{2}-\d{2}-\d{2}Z$'
+  # No release lines exist at all (one mainline, no backports; SECURITY.md:
+  # security fixes land in the latest release only): every release builds on
+  # the previous one, so upgrades traverse each intermediate release.
+  lineage: linear
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/minio/minio
+      # excludes OFFICIAL.2016-02-08T00-12-28Z and release-1434511043
+      tagPattern: '^RELEASE\.(?P<major>\d{4})-0*(?P<minor>\d{1,2})-0*(?P<patch>\d{1,2})T\d{2}-\d{2}-\d{2}Z$'
+
+  # hosted fallback when the git host is unreachable (same 521 releases)
+  - id: github-releases-versions
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: minio/minio
+
+  # --- release notes ----------------------------------------------------------
+  # The GitHub release body is the only per-release notes channel: "## What's
+  # Changed" PR bullet lists (console bumps, fixes, features) plus, for
+  # security releases, a "## Security" section naming the GHSA and urging an
+  # immediate upgrade. No in-repo changelog exists; the min.io blog is
+  # date-addressed and the community docs site is retired (soft-404).
+  - id: release-notes
+    roles: [release-notes]
+    exceptions:
+      - versions: [2025.9.6]
+        reason: >-
+          The GitHub release was deleted upstream: absent from the published
+          releases list and 404 on the API as of 2026-10-01 (the git tag
+          remains; the atom feed still carries a cached entry). Found by
+          ri check; the tag-to-release relationship is broken upstream, not
+          here.
+    locator:
+      kind: github-releases
+      repository: minio/minio
+      ref: "{{.Tag}}"
+    extract:
+      type: whole
+    classify:
+      # GitHub-generated boilerplate
+      - text: '^\*\*Full Changelog\*\*'
+        skip: true
+      - section: '(?i)^New Contributors'
+        skip: true
+      # the explicit security-release section (e.g. the 2025-10-15 CVE body)
+      - section: '^Security$'
+        category: security
+        actionRequired: true
+      - text: 'GHSA-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}|CVE-\d{4}-\d{4,}'
+        category: security
+      # conventional-commit subjects in the PR list
+      - text: '(?i)^(?:fix|bugfix|resolve|repair)\b'
+        category: bugfix
+      # MinIO PR titles are mostly plain descriptions of the failure being
+      # fixed ("LDAP TLS handshake fails with StartTLS...")
+      - text: '(?i)\b(?:fails|failed|broken|regression|panic|deadlock|leak|crash|cannot|unable to|does not work|not working)\b'
+        category: bugfix
+      - text: '(?i)^(?:feat|feature|add(?:ed|s)?|introduce|support)\b'
+        category: feature
+      - text: '(?i)^(?:docs?|ci|test|build|chore|refactor|clean(?:up)?|minor)\b'
+        skip: true
+
+  # --- upgrade guide ----------------------------------------------------------
+  # "## Upgrading MinIO" in the README at the release's own tag: zero-downtime
+  # parallel upgrades, mc admin update (binary installs) vs image upgrades,
+  # airgapped binary replacement, RPM/DEB parallel upgrades. Present
+  # continuously from >= RELEASE.2019-10-12T01-39-57Z; removed 2025-10-06
+  # (bde0d5a2), so absent at the final tag.
+  - id: upgrade-guide
+    roles: [upgrade-guide]
+    availability: ">= 2019.10.0, < 2025.10.15"
+    locator:
+      kind: repo-file
+      repository: github.com/minio/minio
+      ref: "{{.Tag}}"
+      path: README.md
+    extract:
+      type: markdown-section
+      heading: '^Upgrading MinIO$'
+    classify:
+      - text: '(?i)mc admin update is not supported'
+        category: migration
+        actionRequired: true
+      - text: '(?i)do not recommend upgrading one .* server at a time|simultaneously is the recommended'
+        category: migration
+      - text: '(?i)blind upgrades in production'
+        category: other
+        actionRequired: true
+
+  # --- lifecycle evidence (cited by the lifecycle statement; their items are
+  # not reported as per-release notes) ---------------------------------------
+  # SECURITY.md at the tag: the support model while the project lived
+  # ("We always provide security updates for the latest release... you just
+  # need to upgrade to the latest version") - no backports, one mainline.
+  - id: security-policy
+    roles: [release-notes]
+    availability: ">= 2019.10.0"
+    locator:
+      kind: repo-file
+      repository: github.com/minio/minio
+      ref: "{{.Tag}}"
+      path: SECURITY.md
+    extract:
+      type: whole
+
+  # The retirement statement at master: "The MinIO community edition is now
+  # distributed as source code only. We will no longer provide pre-compiled
+  # binary releases..." (introduced with the final release; the NO LONGER
+  # MAINTAINED banner of 2026-02-12 sits in the same README above it).
+  - id: retirement-notice
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/minio/minio
+      ref: master
+      path: README.md
+    extract:
+      type: markdown-section
+      heading: '^Source-Only Distribution$'
+
+  # --- security --------------------------------------------------------------
+  # SECURITY.md names GitHub Security Advisories as the disclosure channel;
+  # fixes for them are the "## Security" release bodies (GHSA-jjjj-jwhf-8rgr
+  # in the final release).
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: minio/minio
+
+lifecycle:
+  # README banner (master, 2026-02-12): "THIS REPOSITORY IS NO LONGER
+  # MAINTAINED." Source-only distribution began with the final release
+  # RELEASE.2025-10-15T17-29-55Z (9e49d5e7, 2025-10-15); it ships no assets
+  # and its body instructs `go install github.com/minio/minio@latest`. The
+  # binary host dl.min.io answers 410 Gone and the registries deny anonymous
+  # pulls. Existing artifacts stay downloadable "but will not receive
+  # updates"; vulnerabilities found from now on will not be patched upstream.
+  - state: end-of-life
+    since: "2026-02"
+    summary: >-
+      MinIO's open-source community edition is retired: the repository is no
+      longer maintained (README banner, 2026-02), the last release is
+      RELEASE.2025-10-15T17-29-55Z and the edition is distributed as source
+      code only - no further releases, pre-compiled binaries, images or
+      security fixes are to be expected. Legacy artifacts remain available
+      but will not receive updates; plan the migration (upstream points to
+      the AIStor editions) instead of relying on upstream fixes.
+    sources: [retirement-notice, security-policy]
+
+artifacts:
+  # --- container image -------------------------------------------------------
+  # Canonical channel first (README's Docker Hub badge; the chart values pin
+  # the quay repository). Neither verifies anonymously from this sandbox
+  # (docker.io 401, quay.io 401 repo-specific) and mirror.gcr.io carries no
+  # minio/minio tags at all, so the relationship stays unverifiable here; the
+  # chart's packaged values.yaml cross-checks the tag for chart-pinned
+  # releases.
+  - id: minio-image
+    type: container-image
+    name: minio/minio
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/minio/minio
+      - kind: oci
+        repository: quay.io/minio/minio
+
+  # --- linux-amd64 binary (release asset) --------------------------------------
+  # minio.<os>-<arch>.RELEASE.<tag> plus .sha256sum/.shasum/.asc/.minisig
+  # sidecars. Asset eras: nothing <= 2020-12-23 (binaries lived on dl.min.io,
+  # which now answers 410 Gone); from >= 2021-04-22 every release ships the
+  # full per-OS/arch set except the two curated anomalies below.
+  - id: minio-binary-linux-amd64
+    type: binary
+    name: minio.linux-amd64
+    availability: ">= 2021.1.0"
+    exceptions:
+      - versions: [2022.2.8]
+        reason: >-
+          Upstream anomaly: this release published no assets at all (every
+          per-OS/arch name variant answers 404).
+      - versions: [2025.9.6]
+        reason: >-
+          The GitHub release (and with it every asset) was deleted upstream:
+          absent from the published releases list, 404 on the API and on the
+          asset URLs as of 2026-10-01 (the git tag remains).
+      - versions: [2025.10.15]
+        reason: >-
+          Source-only era: the final release ships no assets; its body
+          instructs go install github.com/minio/minio@latest.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/minio/minio/releases/download/{{.Tag}}/minio.linux-amd64.{{.Tag}}"
+
+  # --- OS packages (release assets, upstream's own CalVer->semver render) ------
+  # minio_YYYYMMDDHHMMSS.0.0_amd64.deb / minio-YYYYMMDDHHMMSS.0.0-1.x86_64.rpm:
+  # upstream renders the release timestamp into a numeric pseudo-semver for
+  # the package managers (2025-07-23T15-54-02Z -> 20250723155402.0.0), derived
+  # here by stripping RELEASE./-T/Z from the tag (first use of the replace
+  # template function). Published from >= 2023-07-07 (404 at 2023-05-27).
+  - id: minio-deb-amd64
+    type: package
+    name: minio (amd64 deb)
+    availability: ">= 2023.7.0"
+    exceptions:
+      - versions: [2025.9.6]
+        reason: "The GitHub release and its assets were deleted upstream (404)."
+      - versions: [2025.10.15]
+        reason: "Source-only era: no assets on the final release."
+    version:
+      strategy: template
+      template: '{{replace "Z" "" (replace "T" "" (replace "-" "" (replace "RELEASE." "" .Tag)))}}.0.0'
+    channels:
+      - kind: http
+        url: 'https://github.com/minio/minio/releases/download/{{.Tag}}/minio_{{replace "Z" "" (replace "T" "" (replace "-" "" (replace "RELEASE." "" .Tag)))}}.0.0_amd64.deb'
+
+  - id: minio-rpm-x86-64
+    type: package
+    name: minio (x86_64 rpm)
+    availability: ">= 2023.7.0"
+    exceptions:
+      - versions: [2025.9.6]
+        reason: "The GitHub release and its assets were deleted upstream (404)."
+      - versions: [2025.10.15]
+        reason: "Source-only era: no assets on the final release."
+    version:
+      strategy: template
+      template: '{{replace "Z" "" (replace "T" "" (replace "-" "" (replace "RELEASE." "" .Tag)))}}.0.0'
+    channels:
+      - kind: http
+        url: 'https://github.com/minio/minio/releases/download/{{.Tag}}/minio-{{replace "Z" "" (replace "T" "" (replace "-" "" (replace "RELEASE." "" .Tag)))}}.0.0-1.x86_64.rpm'
+
+  # --- Helm chart (this repository's own community chart) ----------------------
+  # charts.min.io is served from this repository (helm/minio sources + root
+  # index.yaml via helm-reindex.sh). Chart versions are an independent
+  # 3.x-5.4.0 train whose appVersion pins a sparse subset of server releases
+  # (5.4.0 -> RELEASE.2024-12-18T13-15-44Z; the index has been frozen since
+  # 2025-01-02), so the artifact is optional and joined by appVersion.
+  - id: minio-chart
+    type: helm-chart
+    name: minio
+    optional: true
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Tag}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://charts.min.io
+        chart: minio
+    contents:
+      # the chart as it stood at the release's tag (helm/minio was added
+      # 2021-08-20); values pin the server image tag (the chart's appVersion)
+      # and the mc image (a separate product's release), chart-metadata
+      # carries the appVersion pin.
+      - kind: helm-values
+        availability: ">= 2021.9.0"
+        locator:
+          kind: repo-file
+          repository: github.com/minio/minio
+          ref: "{{.Tag}}"
+          path: helm/minio/values.yaml
+      - kind: chart-metadata
+        availability: ">= 2021.9.0"
+        locator:
+          kind: repo-file
+          repository: github.com/minio/minio
+          ref: "{{.Tag}}"
+          path: helm/minio/Chart.yaml
+
+provenance:
+  method: manual+research
+  updated: "2026-10-01"
+  validatedReleases: [2024.10.2, 2024.10.29, 2024.11.7, 2024.12.13, 2024.12.18, 2025.1.18, 2025.1.20, 2025.2.3, 2025.2.28, 2025.3.12, 2025.4.3, 2025.4.22, 2025.5.24, 2025.6.13, 2025.7.18, 2025.7.23, 2025.9.6, 2025.9.7, 2025.10.15]
+  notes: >-
+    Authored from docs/research/minio.md. Discovery (deterministic) proposed
+    the git-tags and advisories sources and the charts.min.io chart, but
+    inferred no tag scheme at all (523 tags: 0 stable, 523 junk) - CalVer is
+    invisible to it; the RELEASE component-group pattern, the release-body
+    notes, the README upgrade guide, the retirement lifecycle and all asset
+    eras are research. The mc image proposal was rejected (separate product,
+    minio/mc, its own calendar train). Version encoding: year.major-month-day
+    with the time-of-day gap recorded in docs/onboarding/records/minio.yaml.
