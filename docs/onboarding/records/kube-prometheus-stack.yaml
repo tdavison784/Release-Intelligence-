@@ -64,6 +64,10 @@ constructs:
         - loki-stack (same monorepo family: loki/promtail/grafana dependency pins; well known, not in the plan)
         - bitnami application charts (app image tag pinned in values.yaml, common dependency; well known)
         - vault-helm (appVersion is the Vault version; vault already models the reverse lookup — the chart product would use field)
+    - name: field:artifacts.version.from
+      kind: "definition field: the locator the field strategy reads (repository, ref, path; release-context templates)"
+      justification: "the document half of version:field; stats counts the parent and each leaf separately"
+      otherProducts: ["same as version:field"]
     - name: field:artifacts.version.from.kind
       kind: "definition field: locator kind of the document the field strategy reads"
       justification: "the document half of version:field; stats counts each leaf separately. from is a repo-file/http locator rendered at the release ref"
