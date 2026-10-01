@@ -1,0 +1,134 @@
+Istio 1.29.2 → 1.30.1
+Path: 1.30.0 → 1.30.1  (policy minor-lineage; 6 backport releases skipped)
+Summary: 1 breaking · 7 action required · 141 changes · 1 warning
+
+Sources:
+  ✓ git-tags                    git-tags           versions       ok
+  · github-releases             github-releases    versions       skipped: not consulted: git-tags answered
+  ✗ github-advisories           github-advisories  security       unavailable: fetch https://api.github.com/repos/istio/istio/security-advisories?per_page=100&state=published: not in cache (offline mode)
+  ✓ structured-notes            repo-dir           release-notes  ok
+  · change-notes                repo-file          release-notes  skipped: fallback group change-notes satisfied by structured-notes
+  ✓ patch-notes                 repo-file          release-notes  ok
+  · patch-notes-release-branch  repo-file          release-notes  skipped: fallback group patch-notes satisfied by patch-notes
+  ✓ upgrade-notes               repo-file          upgrade-guide  ok
+  ✓ support-status              repo-file          compatibility  ok
+  ✓ chart-base                  oci                —              ok
+  ✓ chart-base/helm-values      repo-file          —              ok
+  ✓ chart-istiod                oci                —              ok
+  ✓ chart-istiod/helm-values    repo-file          —              ok
+  ✓ chart-gateway               oci                —              ok
+  ✓ chart-gateway/helm-values   repo-file          —              ok
+  ✓ chart-cni                   oci                —              ok
+  ✓ chart-cni/helm-values       repo-file          —              ok
+  ✓ chart-ztunnel               oci                —              ok
+  ✓ chart-ztunnel/helm-values   repo-file          —              ok
+  ✓ crds                        http               —              ok
+  ✓ crds/crds                   http               —              ok
+  ✓ pilot-image                 oci                —              ok
+  ✓ proxyv2-image               oci                —              ok
+  ✓ install-cni-image           oci                —              ok
+  ✓ ztunnel-image               oci                —              ok
+  ✓ istioctl-image              oci                —              ok
+  ✓ agentgateway-image          oci                —              ok
+  ✓ release-archive             http               —              ok
+  ✓ istioctl-archive            http               —              ok
+
+Breaking changes (1):
+  • [1.30.0] Gateway API CRDs must be upgraded to `v1.5.x`: Istio 1.30 upgrades its Gateway API dependency to `v1.5.1` and reads `TLSRoute` and `ReferenceGrant` from the…  (migration · heuristic/medium · ev-fc883937720b)
+
+Migration requirements / action required (7):
+  • [1.30.0] CNI Agent respects excludeNamespaces configuration: Previously, only the CNI Plugin respected the excludeNamespaces config by skipping the processing of…  (migration · declared · ev-422554735c2d, ev-38314843847c)
+  • [1.30.0] CNI config file permissions changed to 0600: The default file permissions for CNI config files written by Istio have changed from 0644 to 0600  (migration · declared · ev-159e117af892, ev-f5df9782e0bf)
+  • [1.30.0] Sidecar proxy service namespace selection changed: When configuring sidecar proxies if a hostname exists in multiple namespaces, Istio now prefers Kubernetes…  (migration · declared · ev-f1035c3f4e9a, ev-d4fd02d1cd02)
+  • [1.30.0] Untaint controller: If you enabled untaint controller using `taint.enabled` Helm value when deploying `istiod` chart, you previously also had to set the…  (migration · declared · ev-bd41994e0937, ev-a2cc6f3de927)
+  • [1.30.0] XDS debug endpoints now require authentication: XDS debug endpoints (syncz, config_dump) on port 15010 now require authentication  (migration · declared · ev-018198b3706c, ev-205875f3da3e)
+  • [diff] Kubernetes support narrowed: 1.31–1.35 → 1.32–1.36 (drops 1.31)  (compatibility · computed · ev-70e0aeb1a3cc, ev-461e1cdb22e4)
+      ↳ Verify the cluster runs a supported Kubernetes version (1.32–1.36) before upgrading.
+  • [diff] Kubernetes tested versions narrowed: 1.26–1.30 → 1.27–1.31 (drops 1.26)  (compatibility · computed · ev-70e0aeb1a3cc, ev-461e1cdb22e4)
+      ↳ Verify the cluster runs a tested Kubernetes version (1.27–1.31) before upgrading.
+
+API & CRD schema changes (5):
+  • [diff] AuthorizationPolicy v1 schema: 2 fields added: `spec.rules[].from[].source.notTrustDomains[]`, `spec.rules[].from[].source.trustDomains[]`  (crd-schema · computed · ev-0b57de625393, ev-62a6c5922859)
+  • [diff] AuthorizationPolicy v1beta1 schema: 2 fields added: `spec.rules[].from[].source.notTrustDomains[]`, `spec.rules[].from[].source.trustDomains[]`  (crd-schema · computed · ev-0b57de625393, ev-62a6c5922859)
+  • [diff] New CRD `trafficextensions.extensions.istio.io` (TrafficExtension, v1alpha1)  (crd-schema · computed · ev-0b57de625393, ev-62a6c5922859)
+  • [diff] Telemetry v1 schema: 1 field added: `spec.tracing[].disableContextPropagation`  (crd-schema · computed · ev-0b57de625393, ev-62a6c5922859)
+  • [diff] Telemetry v1alpha1 schema: 1 field added: `spec.tracing[].disableContextPropagation`  (crd-schema · computed · ev-0b57de625393, ev-62a6c5922859)
+
+Helm value changes (8):
+  • [diff] Default of Helm value `global.hub` changed: "gcr.io/istio-testing" → "registry.istio.io/testing" (chart cni)  (helm-values · computed · ev-249d09d0325b, ev-3c5df48317bc)
+  • [diff] Default of Helm value `global.hub` changed: "gcr.io/istio-testing" → "registry.istio.io/testing" (chart istiod)  (helm-values · computed · ev-fdd41b142d46, ev-b110f5f4b981)
+  • [diff] Default of Helm value `hub` changed: "gcr.io/istio-testing" → "registry.istio.io/testing" (chart ztunnel)  (helm-values · computed · ev-920c86c20ba9, ev-dc12b894392d)
+  • [diff] New Helm value `dnsConfig` (chart ztunnel)  (helm-values · computed · ev-920c86c20ba9, ev-dc12b894392d)
+  • [diff] New Helm value `dnsPolicy` (chart ztunnel)  (helm-values · computed · ev-920c86c20ba9, ev-dc12b894392d)
+  • [diff] New Helm value `global.enableReaderRBAC` (chart base)  (helm-values · computed · ev-6b078377f2ed, ev-7cf0ce1e58dc)
+  • [diff] New Helm value `useAppArmorAnnotation` (chart cni)  (helm-values · computed · ev-249d09d0325b, ev-3c5df48317bc)
+  • [diff] New Helm values section `networkGatewayPorts.*` (8 values) (chart gateway)  (helm-values · computed · ev-20106a11d76f, ev-5305c6eaede8)
+
+Artifact changes (14 updated):
+  chart-base          ghcr.io/istio/release/charts/base  1.29.2 → 1.30.1  [verified]  (computed · ev-828262593dc0, ev-47cdbc16a4dc)
+  chart-istiod        ghcr.io/istio/release/charts/istiod  1.29.2 → 1.30.1  [verified]  (computed · ev-5bd3694981d5, ev-5d0dfe01453c)
+  chart-gateway       ghcr.io/istio/release/charts/gateway  1.29.2 → 1.30.1  [verified]  (computed · ev-5996422ec7aa, ev-ba5dada89ae5)
+  chart-cni           ghcr.io/istio/release/charts/cni  1.29.2 → 1.30.1  [verified]  (computed · ev-e4d48d13b6d8, ev-75069e8aca17)
+  chart-ztunnel       ghcr.io/istio/release/charts/ztunnel  1.29.2 → 1.30.1  [verified]  (computed · ev-0f8ac16ad476, ev-d94171d24556)
+  crds                https://raw.githubusercontent.com/istio/istio/{1.29.2 → 1.30.1}/manifests/charts/base/files/crd-all.gen.yaml  [verified]  (computed · ev-b5516286d87e, ev-668f44a289a9)
+  pilot-image         docker.io/istio/pilot  1.29.2 → 1.30.1  [verified]  (computed · ev-9efe2e0e0210, ev-80a58f42deba)
+  proxyv2-image       docker.io/istio/proxyv2  1.29.2 → 1.30.1  [verified]  (computed · ev-cc6bad938019, ev-308eb64e70a7)
+  install-cni-image   docker.io/istio/install-cni  1.29.2 → 1.30.1  [verified]  (computed · ev-4c2b1e0dbfe8, ev-21e54075c153)
+  ztunnel-image       docker.io/istio/ztunnel  1.29.2 → 1.30.1  [verified]  (computed · ev-09710e6a35b7, ev-4ded99093d56)
+  istioctl-image      docker.io/istio/istioctl  1.29.2 → 1.30.1  [verified]  (computed · ev-92a06efe2dd2, ev-287e208f1b3e)
+  agentgateway-image  docker.io/istio/agentgateway  1.29.2 → 1.30.1  [verified]  (computed · ev-4671960c2d27, ev-7a4f6f19a186)
+  release-archive     https://github.com/istio/istio/releases/download/{1.29.2/istio-1.29.2-linux-amd64.tar.gz → 1.30.1/istio-1.30.1-linux-amd64.tar.gz}  [verified]  (computed · ev-fcb3d764eb7a, ev-3fc4e714025f)
+  istioctl-archive    https://github.com/istio/istio/releases/download/{1.29.2/istioctl-1.29.2-linux-amd64.tar.gz → 1.30.1/istioctl-1.30.1-linux-amd64.tar.gz}  [verified]  (computed · ev-cdf99ed28647, ev-9139c4ec3850)
+
+Kubernetes compatibility:
+  supported: 1.31–1.35 → 1.32–1.36; drops 1.31, adds 1.36  [narrowed]  (computed · ev-70e0aeb1a3cc, ev-461e1cdb22e4)
+  tested: 1.26–1.30 → 1.27–1.31; drops 1.26, adds 1.31  [narrowed]  (computed · ev-70e0aeb1a3cc, ev-461e1cdb22e4)
+
+Security changes (9):
+  • [1.30.0] Fixed XDS debug endpoint to pass caller namespace for proper authorization checks  (security · declared · ev-183b1c6cea8d)
+  • [1.30.0] Fixed XDS debug endpoints (`istio.io/debug/syncz`, `istio.io/debug/config_dump`) served by StatusGen to enforce same-namespace authorization for non-system…  (security · declared · ev-33e199aebb0b)
+  • [1.30.0] Fixed XDS debug endpoints (syncz, config_dump) to require authentication  (security · declared · ev-7aaffc93aa8e)
+  • [1.30.0] Fixed a critical security vulnerability where Istio's JWKS fallback mechanism leaked an RSA private key, allowing attackers to forge JWT tokens and bypass…  (security · declared · ev-a0be83a11d06)
+  • [1.30.0] Fixed an authorization bypass in `AuthorizationPolicy` matching for SPIFFE identities and namespaces  (security · declared · ev-10e11e5f2933)
+  • [1.30.0] Fixed an authorization bypass in `AuthorizationPolicy` where regex metacharacters in certain identity fields were embedded in the generated Envoy `SafeRegex`…  (security · declared · ev-14f444735ff1)
+  • [1.30.0] Fixed potential SSRF in WasmPlugin image fetching by validating bearer token realm URLs  (security · declared · ev-5419528c286d)
+  • [1.30.0] ISTIO-SECURITY-TBD: Fixed JWKS private key leakage vulnerability When RequestAuthentication JWKS fetch failed (network issues, invalid URLs, rate limits)…  (security · declared · ev-ec919a712735)
+  • [1.30.1] CVE-2026-47774 (CVSS score 7.5, High): An unauthenticated remote attacker can cause denial of service by exhausting memory in the Envoy process  (security · declared · ev-3cba3ccb113a)
+
+Other notable changes (3):
+  • [1.30.0] Updated Gateway API Inference Extension documentation is now located in the architecture section  (other · declared · ev-c0e836c694ab)
+  • [1.30.0] Updated minimum supported Kubernetes version to 1.32.x  (other · declared · ev-a2f60df8e045)
+  • [1.30.1] Updated Kiali addon to version v2.26.0  (other · declared · ev-71f73df30d20, ev-0fd832f2e009)
+  (47 features and 61 bug fixes not shown; use verbose output)
+
+Warnings (1):
+  ! Security advisories were not fully retrieved (github-advisories: unavailable — fetch https://api.github.com/repos/istio/istio/security-advisories?per_page=100&state=published: not in cache (offline mode)); advisory matching may be incomplete
+
+Evidence (363 records, 66 cited above):
+  ev-fc883937720b  https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.30.x/announcing-1.30/upgrade-notes/index.md  L12-L32 (Gateway API CRDs must be upgraded to `v1.5.x`)
+  ev-422554735c2d  https://github.com/istio/istio/blob/1.30.0/releasenotes/notes/59295.yaml  59295.yaml L10-L15
+  ev-38314843847c  https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.30.x/announcing-1.30/upgrade-notes/index.md  L43-L48 (CNI Agent respects `excludeNamespaces` configuration)
+  ev-159e117af892  https://github.com/istio/istio/blob/1.30.0/releasenotes/notes/59075.yaml  59075.yaml L16-L23
+  ev-f5df9782e0bf  https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.30.x/announcing-1.30/upgrade-notes/index.md  L34-L41 (CNI config file permissions changed to 0600)
+  ev-f1035c3f4e9a  https://github.com/istio/istio/blob/1.30.0/releasenotes/notes/sidecar-pick-best-service-namespace.yaml  sidecar-pick-best-service-namespace.yaml L12-L22
+  ev-d4fd02d1cd02  https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.30.x/announcing-1.30/upgrade-notes/index.md  L54-L64 (Sidecar proxy service namespace selection changed)
+  ev-bd41994e0937  https://github.com/istio/istio/blob/1.30.0/releasenotes/notes/helm-fix-untaint-controller.yaml  helm-fix-untaint-controller.yaml L10-L12
+  ev-a2cc6f3de927  https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.30.x/announcing-1.30/upgrade-notes/index.md  L50-L52 (Untaint controller)
+  ev-018198b3706c  https://github.com/istio/istio/blob/1.30.0/releasenotes/notes/statusgen-xds-auth.yaml  statusgen-xds-auth.yaml L17-L21
+  ev-205875f3da3e  https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.30.x/announcing-1.30/upgrade-notes/index.md  L66-L70 (XDS debug endpoints now require authentication)
+  ev-70e0aeb1a3cc  https://github.com/istio/istio.io/blob/master/data/compatibility/supportStatus.yml  L22
+  ev-461e1cdb22e4  https://github.com/istio/istio.io/blob/master/data/compatibility/supportStatus.yml  L16
+  ev-0b57de625393  https://raw.githubusercontent.com/istio/istio/1.29.2/manifests/charts/base/files/crd-all.gen.yaml
+  ev-62a6c5922859  https://raw.githubusercontent.com/istio/istio/1.30.1/manifests/charts/base/files/crd-all.gen.yaml
+  ev-249d09d0325b  https://github.com/istio/istio/blob/1.29.2/manifests/charts/istio-cni/values.yaml  manifests/charts/istio-cni/values.yaml
+  ev-3c5df48317bc  https://github.com/istio/istio/blob/1.30.1/manifests/charts/istio-cni/values.yaml  manifests/charts/istio-cni/values.yaml
+  ev-fdd41b142d46  https://github.com/istio/istio/blob/1.29.2/manifests/charts/istio-control/istio-discovery/values.yaml  manifests/charts/istio-control/istio-discovery/values.yaml
+  ev-b110f5f4b981  https://github.com/istio/istio/blob/1.30.1/manifests/charts/istio-control/istio-discovery/values.yaml  manifests/charts/istio-control/istio-discovery/values.yaml
+  ev-920c86c20ba9  https://github.com/istio/istio/blob/1.29.2/manifests/charts/ztunnel/values.yaml  manifests/charts/ztunnel/values.yaml
+  ev-dc12b894392d  https://github.com/istio/istio/blob/1.30.1/manifests/charts/ztunnel/values.yaml  manifests/charts/ztunnel/values.yaml
+  ev-6b078377f2ed  https://github.com/istio/istio/blob/1.29.2/manifests/charts/base/values.yaml  manifests/charts/base/values.yaml
+  ev-7cf0ce1e58dc  https://github.com/istio/istio/blob/1.30.1/manifests/charts/base/values.yaml  manifests/charts/base/values.yaml
+  ev-20106a11d76f  https://github.com/istio/istio/blob/1.29.2/manifests/charts/gateway/values.yaml  manifests/charts/gateway/values.yaml
+  ev-5305c6eaede8  https://github.com/istio/istio/blob/1.30.1/manifests/charts/gateway/values.yaml  manifests/charts/gateway/values.yaml
+  … and 41 more
+  (297 uncited records not shown; use verbose or JSON output)

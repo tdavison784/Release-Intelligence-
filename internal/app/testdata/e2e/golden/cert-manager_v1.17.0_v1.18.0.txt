@@ -1,0 +1,111 @@
+cert-manager v1.17.0 → v1.18.0
+Path: v1.18.0  (policy minor-lineage; 4 backport releases skipped)
+Summary: 3 breaking · 2 action required · 51 changes · 2 warnings
+
+Sources:
+  ✗ github-releases              github-releases    versions       unavailable: fetch https://api.github.com/repos/cert-manager/cert-manager/releases?per_page=100: not in cache (offline mode)
+  ✓ git-tags                     git-tags           versions       ok
+  ✗ github-advisories            github-advisories  security       unavailable: fetch https://api.github.com/repos/cert-manager/cert-manager/security-advisories?per_page=100&state=published: not in cache (offline mode)
+  ✓ website-release-notes        repo-file          release-notes  ok
+  · github-release-notes         github-releases    release-notes  skipped: fallback group release-notes satisfied by website-release-notes
+  ✓ website-major-themes         repo-file          release-notes  ok
+  ✓ upgrade-guide                repo-file          upgrade-guide  ok
+  ✓ supported-releases           repo-file          compatibility  ok
+  ✓ install-manifest             http               —              ok
+  ✓ install-manifest/image-refs  http               —              ok
+  ✓ crds                         http               —              ok
+  ✓ crds/crds                    http               —              ok
+  ✗ helm-chart                   helm-repo          —              unavailable: helm-repo: fetch index: fetch https://charts.jetstack.io/index.yaml: not in cache (offline mode)
+  ✗ helm-chart                   oci                —              unavailable: oci: probe quay.io/jetstack/charts/cert-manager:v1.17.0: fetch https://quay.io/v2/jetstack/charts/cert-manager/manifests/v1.17.0: not in cache (offline mode)
+  ✓ helm-chart/helm-values       repo-file          —              ok
+  ✓ helm-chart/chart-metadata    repo-file          —              ok
+  ✗ controller-image             oci                —              unavailable: oci: probe quay.io/jetstack/cert-manager-controller:v1.17.0: fetch https://quay.io/v2/jetstack/cert-manager-controller/manifests/v1.17.0: not in cache (offline mode)
+  ✗ webhook-image                oci                —              unavailable: oci: probe quay.io/jetstack/cert-manager-webhook:v1.17.0: fetch https://quay.io/v2/jetstack/cert-manager-webhook/manifests/v1.17.0: not in cache (offline mode)
+  ✗ cainjector-image             oci                —              unavailable: oci: probe quay.io/jetstack/cert-manager-cainjector:v1.17.0: fetch https://quay.io/v2/jetstack/cert-manager-cainjector/manifests/v1.17.0: not in cache (offline mode)
+  ✗ acmesolver-image             oci                —              unavailable: oci: probe quay.io/jetstack/cert-manager-acmesolver:v1.17.0: fetch https://quay.io/v2/jetstack/cert-manager-acmesolver/manifests/v1.17.0: not in cache (offline mode)
+  ✗ startupapicheck-image        oci                —              unavailable: oci: probe quay.io/jetstack/cert-manager-startupapicheck:v1.17.0: fetch https://quay.io/v2/jetstack/cert-manager-startupapicheck/manifests/v1.17.0: not in cache (offline mode)
+
+Breaking changes (3):
+  • [v1.18.0] ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.…  (other · declared · ev-110340e9c914)
+  • [v1.18.0] The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPo…  (other · declared · ev-c92478af13c4)
+  • [v1.18.0] The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`: The default value for the `Certificate` resource's `revisionHistoryLimit` field is now…  (other · declared · ev-04b3e69b5e24)
+
+Migration requirements / action required (2):
+  • [v1.18.0] We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. > 📖 Read Release 1.18 notes for more information.  (migration · declared · ev-9a2f8d3ec5e9)
+  • [v1.18.0] We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information.  (migration · declared · ev-bbe29a5fdc19)
+
+Deprecations & removals (1):
+  • [v1.18.0] Remove deprecated feature gate `ValidateCAA`. Setting this feature gate is now a no-op which does nothing but print a warning log line  (deprecation · heuristic/medium · ev-853844eb542e)
+
+API & CRD schema changes (4):
+  • [diff] Certificate v1 schema: 1 field added: `spec.signatureAlgorithm`  (crd-schema · computed · ev-fb43c5babe1a, ev-94aef2058d61)
+  • [diff] ClusterIssuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`  (crd-schema · computed · ev-fb43c5babe1a, ev-94aef2058d61)
+  • [diff] Issuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`  (crd-schema · computed · ev-fb43c5babe1a, ev-94aef2058d61)
+  • [diff] Order v1 schema: 1 field added: `spec.profile`  (crd-schema · computed · ev-fb43c5babe1a, ev-94aef2058d61)
+
+Helm value changes (2):
+  • [diff] Default of Helm value `prometheus.servicemonitor.targetPort` changed: 9402 → "http-metrics"  (helm-values · computed · ev-951b7c3d8936, ev-0c1eda13db98)
+  • [diff] New Helm value `global.rbac.disableHTTPChallengesRole`  (helm-values · computed · ev-951b7c3d8936, ev-0c1eda13db98)
+
+Artifact changes (8 updated):
+  install-manifest       https://github.com/cert-manager/cert-manager/releases/download/{v1.17.0 → v1.18.0}/cert-manager.yaml  [verified]  (computed · ev-61f2d0cbe116, ev-fc7c633c8eb9)
+  crds                   https://github.com/cert-manager/cert-manager/releases/download/{v1.17.0 → v1.18.0}/cert-manager.crds.yaml  [verified]  (computed · ev-4742bdc41054, ev-58e3747f58d7)
+  helm-chart             https://charts.jetstack.io/cert-manager  v1.17.0 → v1.18.0  [expected]  (computed · no evidence)
+  controller-image       quay.io/jetstack/cert-manager-controller  v1.17.0 → v1.18.0  [referenced]  (computed · ev-87e79b56b7a6, ev-e3abe417763b)
+  webhook-image          quay.io/jetstack/cert-manager-webhook  v1.17.0 → v1.18.0  [referenced]  (computed · ev-6048662cc28a, ev-4ada24bd69ce)
+  cainjector-image       quay.io/jetstack/cert-manager-cainjector  v1.17.0 → v1.18.0  [referenced]  (computed · ev-9d38fd42cffc, ev-e3cf67af11a6)
+  acmesolver-image       quay.io/jetstack/cert-manager-acmesolver  v1.17.0 → v1.18.0  [referenced]  (computed · ev-439b6d009ff2, ev-89d04dc6df9c)
+  startupapicheck-image  quay.io/jetstack/cert-manager-startupapicheck  v1.17.0 → v1.18.0  [expected]  (computed · no evidence)
+
+Kubernetes compatibility:
+  supported: 1.29–1.33 (unchanged)  (computed · ev-904e0ae133bd, ev-94a8abc4e147)
+  minimum: ≥ 1.22 (unchanged)  (computed · ev-dec4237a127b, ev-d3cb14735b8e)
+
+OpenShift compatibility:
+  supported: 4.16–4.20 (unchanged)  (computed · ev-904e0ae133bd, ev-94a8abc4e147)
+
+Other notable changes (10):
+  • [v1.18.0] ACME Certificate Profiles: cert-manager now supports the selection of ACME certificate profiles, allowing users to request different categories of certificates…  (other · heuristic/low · ev-50f787991f0d)
+  • [v1.18.0] ACME E2E Tests: Upgraded Pebble to `v2.7.0` and modified the ACME tests to match latest Pebble behavior  (other · declared · ev-ea4a77b80f71)
+  • [v1.18.0] Copy annotations from Ingress or Gateway to the Certificate: We've added a new configuration option to the cert-manager controller: `--extra-certificate-annota…  (other · heuristic/low · ev-da53ded48367)
+  • [v1.18.0] Fix some comments  (other · declared · ev-19fb20ff3c32)
+  • [v1.18.0] OperatorHub Packages Discontinued: We no longer publish OperatorHub packages for cert-manager  (other · heuristic/low · ev-c3d5e62490c3)
+  • [v1.18.0] Patch the `third_party/forked/acme` package with support for the ACME profiles extension  (other · declared · ev-8ec1fdd0d15f)
+  • [v1.18.0] Promote the `AdditionalCertificateOutputFormats` feature to GA, making additional formats always enabled  (other · declared · ev-bc29bf53aa1b)
+  • [v1.18.0] Update kind images to include the Kubernetes 1.33 node image  (other · declared · ev-eb95ba454b0b)
+  • [v1.18.0] Upgrade Go to `v1.24.4`  (other · declared · ev-5744baed396c)
+  • [v1.18.0] Use `slices.Contains` to simplify code  (other · declared · ev-885e61843b3a)
+  (15 features and 14 bug fixes not shown; use verbose output)
+
+Warnings (2):
+  ! Security advisories were not fully retrieved (github-advisories: unavailable — fetch https://api.github.com/repos/cert-manager/cert-manager/security-advisories?per_page=100&state=published: not in cache (offline mode)); advisory matching may be incomplete
+  ! 2 artifacts of v1.18.0 only expected (not observed or referenced): helm-chart, startupapicheck-image
+
+Evidence (112 records, 36 cited above):
+  ev-110340e9c914  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L28-L89 (Major Themes › ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes)
+  ev-c92478af13c4  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L109-L148 (Major Themes › The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`)
+  ev-04b3e69b5e24  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L151-L160 (Major Themes › The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`)
+  ev-9a2f8d3ec5e9  https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md  L8-L10
+  ev-bbe29a5fdc19  https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md  L12-L14
+  ev-853844eb542e  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L367-L367 (v1.18.0 › Other (Cleanup or Flake))
+  ev-fb43c5babe1a  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml
+  ev-94aef2058d61  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.crds.yaml
+  ev-951b7c3d8936  https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml  deploy/charts/cert-manager/values.yaml
+  ev-0c1eda13db98  https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml  deploy/charts/cert-manager/values.yaml
+  ev-61f2d0cbe116  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml
+  ev-fc7c633c8eb9  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml
+  ev-4742bdc41054  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml
+  ev-58e3747f58d7  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.crds.yaml
+  ev-87e79b56b7a6  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml  L13047
+  ev-e3abe417763b  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml  L13151
+  ev-6048662cc28a  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml  L13129
+  ev-4ada24bd69ce  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml  L13233
+  ev-9d38fd42cffc  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml  L12984
+  ev-e3cf67af11a6  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml  L13088
+  ev-439b6d009ff2  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml  L13053
+  ev-89d04dc6df9c  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml  L13157
+  ev-904e0ae133bd  https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md  L307
+  ev-94a8abc4e147  https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md  L306
+  ev-dec4237a127b  https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/Chart.template.yaml  L23
+  … and 11 more
+  (76 uncited records not shown; use verbose or JSON output)
