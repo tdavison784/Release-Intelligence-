@@ -269,8 +269,12 @@ func checkIstio(t *testing.T, e *domain.UpgradeEdge) {
 	if !slices.Contains(sup.From.Versions, "1.31") || slices.Contains(sup.To.Versions, "1.31") || !slices.Contains(sup.To.Versions, "1.36") {
 		t.Errorf("Kubernetes support %v -> %v: want 1.31 dropped and 1.36 added", sup.From.Versions, sup.To.Versions)
 	}
-	if tested := requireCompat(t, e, "kubernetes", "tested"); !tested.Narrowed || slices.Contains(tested.To.Versions, "1.26") {
-		t.Errorf("Kubernetes tested versions %v -> %v: want a narrowed range without 1.26", tested.From.Versions, tested.To.Versions)
+	// istio.io's testedK8sVersions means "tested, but not supported" and is
+	// deliberately not extracted by the definition.
+	for _, cc := range e.Compatibility {
+		if cc.Platform == "kubernetes" && ((cc.From != nil && cc.From.Kind == "tested") || (cc.To != nil && cc.To.Kind == "tested")) {
+			t.Errorf("unexpected Kubernetes 'tested' constraint for istio: %s", cc.Summary)
+		}
 	}
 	narrowed := e.ChangesWhere(func(c domain.Change) bool {
 		return c.Category == domain.CategoryCompatibility && strings.Contains(c.Title, "Kubernetes support narrowed")
