@@ -177,3 +177,18 @@ ri eval -update         # after review: rewrite the snapshots, never case.yaml
 Offline: `go test ./internal/eval` replays the recorded cert-manager entry
 against the e2e fixture and re-checks the loader and scoring; the full
 dataset needs network.
+
+## Post-baseline fix round (2026-10-01)
+
+`cert-manager-1.15-1.16` E4 (OperatorHub discontinued) is fixed by a new
+`website-breaking-changes` source scoped to `>= 1.16.0, < 1.17.0`: only that
+minor's notes file carries a dedicated `## Breaking changes` section, and the
+item lives there — not under Themes as first reported. The section also
+repeats the Helm/Venafi breaking bullets verbatim from the upgrade guide, so
+duplicate groups rise 1 → 4; both facts are kept (different evidence URIs)
+and cross-role consolidation is the enrichment layer's job (Goal 5), not a
+reason to hide upstream redundancy. Aggregate after the fix: recall 0.96,
+precision 0.48, duplicate groups 10 (was 7), env accuracy 0.25. The remaining
+important miss is `kube-prometheus-stack-90-91` E4, which needs sources to
+follow a pinned component's version (new construct; also wanted by Flux for
+per-controller notes at their pinned tags).
