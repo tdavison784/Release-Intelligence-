@@ -333,6 +333,10 @@
           "type": "string",
           "description": "sha256 of the complete retrieved document, so the exact bytes the conclusion was drawn from can be identified later."
         },
+        "representation": {
+          "$ref": "#/$defs/Representation",
+          "description": "Which published form of the artifact these bytes came from: source-tree (a file in the source repository), published-chart-tgz (a chart tarball from a chart repository), published-oci-chart (a chart pulled as an OCI artifact), release-asset (a file attached to a release), http-document (a plain HTTP document) or registry-manifest (an OCI manifest/config). Orthogonal to Provenance.method, which states how knowledge was derived, not from which bytes."
+        },
         "retrievedAt": {
           "type": "string",
           "format": "date-time",
@@ -392,7 +396,8 @@
         "compatibility",
         "snapshot",
         "advisory",
-        "relationship"
+        "relationship",
+        "representation.divergence"
       ]
     },
     "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
@@ -483,6 +488,18 @@
         "url": {"type": "string"}
       },
       "additionalProperties": false
+    },
+    "Representation": {
+      "type": "string",
+      "description": "Which published form of an artifact a fact came from. The same content (chart defaults, CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers rewrite content at packaging time; the representation keeps the two apart. Orthogonal to Provenance.method (how knowledge was derived).",
+      "enum": [
+        "source-tree",
+        "published-chart-tgz",
+        "published-oci-chart",
+        "release-asset",
+        "http-document",
+        "registry-manifest"
+      ]
     },
     "SourceRole": {
       "type": "string",

@@ -135,6 +135,8 @@ func fkey(l catalog.Locator) string {
 		return l.URL + "#" + l.Chart
 	case catalog.LocatorOCI:
 		return "oci://" + l.Repository
+	case catalog.LocatorChartTGZ:
+		return l.URL
 	case catalog.LocatorGitHubReleases, catalog.LocatorGitHubAdvisories:
 		k := l.Kind + ":" + l.Repository
 		if l.Ref != "" {
@@ -155,6 +157,8 @@ type world struct {
 	dirs       map[string]map[string]string
 	images     map[string]string // probe key (fkey@version) → digest
 	indexes    map[string][]sources.ArtifactVersion
+	packages   map[string]*sources.ChartPackage // package key (fkey@version)
+	imgConfigs map[string]*sources.Image        // image-manifest key (fkey@version)
 	advisories map[string][]domain.Advisory
 	advEv      map[string][]domain.Evidence
 	errs       map[string]error // per key, any capability
@@ -288,6 +292,36 @@ func (w *world) ListAdvisories(_ context.Context, loc catalog.Locator) ([]domain
 	return append([]domain.Advisory(nil), advs...), w.advEv[key], nil
 }
 
+// ReadChartPackage serves the chart-package port from the fixture world.
+func (w *world) ReadChartPackage(_ context.Context, loc catalog.Locator, version string) (*sources.ChartPackage, error) {
+	key := fkey(loc) + "@" + version
+	if err := w.enter(loc.Kind, key); err != nil {
+		return nil, err
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	pkg, ok := w.packages[key]
+	if !ok {
+		return nil, notFound(key)
+	}
+	return pkg, nil
+}
+
+// ReadImage serves the image-manifest port from the fixture world.
+func (w *world) ReadImage(_ context.Context, loc catalog.Locator, version string) (*sources.Image, error) {
+	key := fkey(loc) + "@" + version
+	if err := w.enter(loc.Kind, key); err != nil {
+		return nil, err
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	img, ok := w.imgConfigs[key]
+	if !ok {
+		return nil, notFound(key)
+	}
+	return img, nil
+}
+
 // registry registers the world for every kind it serves (git-log and
 // helm-git deliberately have no adapter).
 func (w *world) registry() *sources.Registry {
@@ -305,6 +339,10 @@ func (w *world) registry() *sources.Registry {
 	for _, k := range []string{catalog.LocatorOCI, catalog.LocatorHelmRepo} {
 		reg.RegisterVersionIndex(k, w)
 	}
+	for _, k := range []string{catalog.LocatorOCI, catalog.LocatorHelmRepo, catalog.LocatorChartTGZ} {
+		reg.RegisterChartPackageReader(k, w)
+	}
+	reg.RegisterImageManifestReader(catalog.LocatorOCI, w)
 	reg.RegisterAdvisorySource(catalog.LocatorGitHubAdvisories, w)
 	return reg
 }
@@ -377,6 +415,8 @@ func newWorld() *world {
 		dirs:       map[string]map[string]string{},
 		images:     map[string]string{},
 		indexes:    map[string][]sources.ArtifactVersion{},
+		packages:   map[string]*sources.ChartPackage{},
+		imgConfigs: map[string]*sources.Image{},
 		advisories: map[string][]domain.Advisory{},
 		advEv:      map[string][]domain.Evidence{},
 		errs:       map[string]error{},

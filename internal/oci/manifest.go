@@ -29,6 +29,15 @@ type Descriptor struct {
 	Digest      string            `json:"digest"`
 	Size        int64             `json:"size"`
 	Annotations map[string]string `json:"annotations,omitempty"`
+	// Platform of an index entry (manifest list), when stated.
+	Platform *Platform `json:"platform,omitempty"`
+}
+
+// Platform is the target platform of an index entry.
+type Platform struct {
+	Architecture string `json:"architecture,omitempty"`
+	OS           string `json:"os,omitempty"`
+	Variant      string `json:"variant,omitempty"`
 }
 
 // Manifest is a fetched image/artifact manifest or index.

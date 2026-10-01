@@ -152,6 +152,11 @@ const (
 	LocatorHelmRepo         = "helm-repo"         // url, chart
 	LocatorOCI              = "oci"               // repository: registry/name
 	LocatorHelmGit          = "helm-git"          // repository, path (chart dir), tagPattern
+	// LocatorChartTGZ addresses a packaged Helm chart tarball by URL: a
+	// release asset (".../releases/download/v1/acme-1.2.3.tgz") or a plain
+	// chart-archive URL. Read as a chart package (members: Chart.yaml,
+	// values.yaml, crds/**, templates/**) and probed like an http asset.
+	LocatorChartTGZ = "chart-tgz" // url
 	// LocatorGitLog renders the commit subjects in a revision range
 	// (ref: "{{.PrevTag}}..{{.Tag}}") as a markdown bullet list, a
 	// deterministic fallback when curated release notes are unreachable.
@@ -306,8 +311,8 @@ type VersionRelation struct {
 	// "dependencies[name=kube-state-metrics].version").
 	// From: locator of the document the field is read from, rendered with the
 	// release context (e.g. Chart.yaml at "{{.Tag}}").
-	From  *Locator `yaml:"from,omitempty" json:"from,omitempty"`
-	Select string `yaml:"select,omitempty" json:"select,omitempty"` // lookup: "latest" (default), "earliest", "all"
+	From   *Locator `yaml:"from,omitempty" json:"from,omitempty"`
+	Select string   `yaml:"select,omitempty" json:"select,omitempty"` // lookup: "latest" (default), "earliest", "all"
 }
 
 // ArtifactReference declares that another artifact references this one.
@@ -330,8 +335,18 @@ const (
 type Content struct {
 	Kind string `yaml:"kind" json:"kind"`
 	// Locator to fetch the content from. When omitted the artifact's first
-	// http channel is used.
+	// http / repo-file / repo-dir channel is used; a channel of kind
+	// helm-repo, oci (a chart repository) or chart-tgz is read as a packaged
+	// chart instead (the published-artifact representation; see
+	// docs/ARTIFACTS.md).
 	Locator *Locator `yaml:"locator,omitempty" json:"locator,omitempty"`
+	// CompareWith is an alternate representation of the same content, read
+	// for comparison only: when the two representations of the same release
+	// differ (e.g. source-tree values rewritten when the chart was packaged),
+	// a representation.divergence fact records what diverged, so preferring
+	// one representation is never silent. The comparison itself is not
+	// captured as a snapshot.
+	CompareWith *Locator `yaml:"compareWith,omitempty" json:"compareWith,omitempty"`
 	// Availability narrows when this content can be captured.
 	Availability string `yaml:"availability,omitempty" json:"availability,omitempty"`
 	// StripPrefix (helm-values only) removes a wrapper key path from every

@@ -75,17 +75,20 @@ func WithMaxTags(n int) Option { return func(c *config) { c.maxTags = n } }
 func WithConcurrency(n int) Option { return func(c *config) { c.concurrency = n } }
 
 // Register registers the helm-repo adapter (version lister, version index and
-// probe) and, when both ports are given, the helm-git adapter (version index
-// and probe) in reg.
+// probe), the chart-package adapter (helm-repo and chart-tgz packages, plus
+// the chart-tgz probe) and, when both ports are given, the helm-git adapter
+// (version index and probe) in reg.
 //
-// f serves helm-repo. gitTags (a "git-tags" version lister) and repoFiles (a
-// "repo-file" document fetcher) serve helm-git; when either is nil helm-git
-// is not registered.
+// f serves helm-repo and the packages. gitTags (a "git-tags" version lister)
+// and repoFiles (a "repo-file" document fetcher) serve helm-git; when either
+// is nil helm-git is not registered.
 func Register(reg *sources.Registry, f fetch.Client, gitTags sources.VersionLister, repoFiles sources.DocumentFetcher, opts ...Option) {
 	repo := NewRepoAdapter(f, opts...)
 	reg.RegisterVersionLister(catalog.LocatorHelmRepo, repo)
 	reg.RegisterVersionIndex(catalog.LocatorHelmRepo, repo)
 	reg.RegisterProbe(catalog.LocatorHelmRepo, repo)
+
+	NewPackageAdapter(f, opts...).Register(reg)
 
 	if gitTags == nil || repoFiles == nil {
 		return

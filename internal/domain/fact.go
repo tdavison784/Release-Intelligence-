@@ -14,6 +14,11 @@ const (
 	FactSnapshot          FactKind = "snapshot"           // a structured snapshot was taken
 	FactAdvisory          FactKind = "advisory"           // a security advisory applies
 	FactRelationship      FactKind = "relationship"       // a validated release↔artifact relationship
+	// FactRepresentationDivergence: two declared representations of the same
+	// content of one release (e.g. source-tree values and the published chart
+	// archive) were compared and differ. The fact records what diverged so the
+	// choice of one representation is never silent (see docs/ARTIFACTS.md).
+	FactRepresentationDivergence FactKind = "representation.divergence"
 )
 
 // Fact is a deterministic statement extracted from sources, with evidence.

@@ -91,13 +91,14 @@ var locatorSpec = map[string][]string{
 	LocatorHelmRepo:         {"url", "chart"},
 	LocatorOCI:              {"repository"},
 	LocatorHelmGit:          {"repository", "path", "tagPattern"},
+	LocatorChartTGZ:         {"url"},
 	LocatorGitLog:           {"repository", "ref"},
 }
 
 // channel kinds allowed per artifact type.
 var channelKinds = map[domain.ArtifactType][]string{
 	domain.ArtifactContainerImage: {LocatorOCI},
-	domain.ArtifactHelmChart:      {LocatorHelmRepo, LocatorOCI, LocatorHelmGit},
+	domain.ArtifactHelmChart:      {LocatorHelmRepo, LocatorOCI, LocatorHelmGit, LocatorChartTGZ},
 	domain.ArtifactManifest:       {LocatorHTTP, LocatorRepoFile, LocatorRepoDir},
 	domain.ArtifactCRD:            {LocatorHTTP, LocatorRepoFile, LocatorRepoDir},
 	domain.ArtifactBinary:         {LocatorHTTP, LocatorOCI},
@@ -255,8 +256,22 @@ func Validate(d *ProductDefinition) ValidationReport {
 			}
 			if c.Locator != nil {
 				v.locator(cp+".locator", *c.Locator, rc)
-			} else if !hasKind(a.Channels, LocatorHTTP) && !hasKind(a.Channels, LocatorRepoFile) && !hasKind(a.Channels, LocatorRepoDir) {
-				v.errf(cp+".locator", "required when the artifact has no http/repo-file/repo-dir channel")
+			} else if !contentServable(a.Channels) {
+				v.errf(cp+".locator", "required when the artifact has no channel a content can be read from (http, repo-file, repo-dir, or a packaged-chart kind: helm-repo, oci, chart-tgz)")
+			}
+			if c.CompareWith != nil {
+				vp := cp + ".compareWith"
+				v.locator(vp, *c.CompareWith, rc)
+				primary := c.Locator
+				if primary == nil {
+					primary = channelOf(a.Channels, contentServableKinds...)
+				}
+				if primary != nil && primary.Kind == c.CompareWith.Kind && sameRepresentation(*primary, *c.CompareWith) {
+					v.warnf(vp, "compares the content with itself: locator kind %s resolves to the same representation", c.CompareWith.Kind)
+				}
+				if c.Kind != ContentHelmValues && c.Kind != ContentChartMetadata && c.Kind != ContentCRDs && c.Kind != ContentImageRefs {
+					v.errf(vp, "comparison is supported for content kinds helm-values, chart-metadata, crds and image-refs")
+				}
 			}
 			v.constraint(cp+".availability", c.Availability)
 			if c.StripPrefix != "" && c.Kind != ContentHelmValues {
@@ -529,4 +544,50 @@ func hasKind(ls []Locator, kind string) bool {
 		}
 	}
 	return false
+}
+
+// contentServableKinds are the channel kinds a content can be read from:
+// document channels and packaged-chart channels (the latter are unpacked, see
+// docs/ARTIFACTS.md).
+var contentServableKinds = []string{
+	LocatorHTTP, LocatorRepoFile, LocatorRepoDir,
+	LocatorHelmRepo, LocatorOCI, LocatorChartTGZ,
+}
+
+// contentServable reports whether any channel can serve a content.
+func contentServable(chs []Locator) bool {
+	for _, k := range contentServableKinds {
+		if hasKind(chs, k) {
+			return true
+		}
+	}
+	return false
+}
+
+// channelOf returns the first channel of one of the kinds (nil when none).
+func channelOf(chs []Locator, kinds ...string) *Locator {
+	for i := range chs {
+		for _, k := range kinds {
+			if chs[i].Kind == k {
+				return &chs[i]
+			}
+		}
+	}
+	return nil
+}
+
+// sameRepresentation reports whether two locators denote the same
+// representation of a content (same kind and same target, modulo rendering).
+func sameRepresentation(a, b Locator) bool {
+	switch a.Kind {
+	case LocatorHelmRepo:
+		return b.Kind == LocatorHelmRepo && a.URL == b.URL && a.Chart == b.Chart
+	case LocatorOCI:
+		return b.Kind == LocatorOCI && a.Repository == b.Repository
+	case LocatorChartTGZ, LocatorHTTP:
+		return b.Kind == a.Kind && a.URL == b.URL
+	case LocatorRepoFile, LocatorRepoDir:
+		return b.Kind == a.Kind && a.Repository == b.Repository && a.Path == b.Path
+	}
+	return a.Kind == b.Kind
 }

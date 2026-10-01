@@ -53,8 +53,10 @@ internal/sources       ports (VersionLister, DocumentFetcher, DirectoryFetcher, 
 internal/github        adapters: github-releases, github-advisories (GitHub REST API)
 internal/gitsrc        adapters: git-tags, repo-file, repo-dir, git-log (git + raw content hosts)
 internal/httpsrc       adapters: http (documents + release-asset probes)
-internal/oci           adapters: oci (Distribution v2 API: tags, manifests, chart config)
-internal/helm          adapters: helm-repo (index.yaml), helm-git (chart in git, tags)
+internal/oci           adapters: oci (Distribution v2 API: tags, manifests, chart config,
+                       chart layers, image configs)
+internal/helm          adapters: helm-repo (index.yaml), helm-git (chart in git, tags),
+                       chart packages (helm-repo index tarballs, chart-tgz URLs; docs/ARTIFACTS.md)
 internal/normalize     pure parsing for ONE release: markdown sections, note items +
                        classification, tables → compatibility, Chart.yaml, values, CRDs, images
 internal/ingest        deterministic pipeline: definition + registry → domain.Release;
@@ -105,7 +107,10 @@ depends only on `domain` and `llm`. Adapters never import `ingest` or `upgrade`.
      channels in order. If every channel is unreachable, it cross-checks
      `references` (for example the image tag inside the install manifest).
    - It captures `contents` snapshots (Helm values, chart metadata, CRDs,
-     image references).
+     image references) — from documents or from published chart packages
+     (locator kinds `helm-repo`, `oci`, `chart-tgz`), each fact and evidence
+     record carrying the representation it came from
+     (`docs/ARTIFACTS.md`).
 5. `ingest.Advisories` lists advisories from the `security` sources.
 6. `upgrade.Build` aggregates the path's NoteItems into Changes and diffs the
    From/To snapshots: values keys added or removed and defaults changed, CRD
@@ -147,9 +152,10 @@ depends only on `domain` and `llm`. Adapters never import `ingest` or `upgrade`.
 | `repo-dir` | repository, ref, path, glob, baseRef? (only files added since baseRef) | directories |
 | `git-log` | repository, ref `A..B` | documents (markdown list of commit subjects) |
 | `http` | url | documents, probes |
-| `helm-repo` | url, chart | versions, version-index, probes |
+| `helm-repo` | url, chart | versions, version-index, probes, chart packages |
 | `helm-git` | repository, path (chart dir), tagPattern | version-index, probes |
-| `oci` | repository `registry/path` | version-index (tags), probes |
+| `chart-tgz` | url (packaged chart tarball, e.g. a release asset) | chart packages, probes |
+| `oci` | repository `registry/path` | version-index (tags), probes, chart packages (charts), image manifests (images) |
 
 ## Conventions for contributors
 
@@ -182,6 +188,8 @@ upstream channel needed it.
 | `exceptions` (with reason) | Curated releases where a relationship does not hold | Argo CD v3.4.0 has no release assets |
 | `references` | Cross-check an artifact inside another artifact | image tags in the install manifest when quay.io is unreachable |
 | `contents.stripPrefix` / `ignoreKeys` | Normalise Helm values to user-facing keys | Istio's `_internal_defaults_do_not_set`; source-tree hub/tag placeholders |
+| packaged-chart contents (locator kind `helm-repo`/`oci`/`chart-tgz`) | Read `contents` from the published package — the artifact users install — with the representation recorded on evidence and facts (`source-tree` vs `published-chart-tgz`/`published-oci-chart`/`release-asset`/`registry-manifest`); index/layer digests verified (docs/ARTIFACTS.md) | kube-prometheus-stack's CRDs live in a packaged subchart; its and ingress-nginx's `.tgz` release assets had no channel kind |
+| `contents.compareWith` | Declare a second representation of the same content; a `representation.divergence` fact records what differs, so preferring one representation is never silent | Istio's packaged values (rewritten hub/tag) vs the source tree |
 | `classify` rules | Product-specific classification, evaluated first | cert-manager "⚠️ Breaking change" callouts; Argo CD noise filters |
 | `extract.labelParagraphs` | Treat standalone label paragraphs (`SECURITY:`, `BUG FIXES:`) as headings one level below the last real heading | Vault CHANGELOG.md (HashiCorp-style changelogs: Terraform and its providers, Consul, Nomad) |
 | `extract.format: docbook/rst` | Render non-markdown sources as line-preserving markdown (headings, bullets, tables) before extraction; converted structural markup is read in list-item mode | PostgreSQL SGML release notes (docbook); Cilium rst upgrade notes and compatibility grid tables (rst) |
