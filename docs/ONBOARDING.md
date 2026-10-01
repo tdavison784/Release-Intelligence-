@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 18 product definitions, 18 onboarding records, 18 saved relationship reports.
+- 19 product definitions, 19 onboarding records, 19 saved relationship reports.
 - 151 distinct constructs are used across all definitions; the records introduce 151.
-- 6 of 18 recorded products introduced no new construct. The latest product that introduced one has order 15.
+- 7 of 19 recorded products introduced no new construct. The latest product that introduced one has order 15.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -88,6 +88,7 @@ What convergence looks like:
 | 16 | 2 | otel-collector | 444 (356) | 7 | 13 | 21 | 0 | 23 | 32 | 22 | 0 | 0 | 9 |
 | 17 | 2 | redis | 238 (170) | 6 | 4 | 6 | 0 | 22 | 11 | 1 | 0 | 1 | 5 |
 | 20 | 3 | actions-runner-controller | 266 (208) | 5 | 6 | 6 | 6 | 11 | 9 | 0 | 0 | 0 | 7 |
+| 21 | 3 | kyverno | 432 (359) | 7 | 13 | 15 | 4 | 33 | 22 | 1 | 0 | 1 | 7 |
 
 ### Constructs and effort
 
@@ -111,6 +112,7 @@ What convergence looks like:
 | 16 | otel-collector | 57 | 0 | 57 | 100% | 151 | 0 / 0 | 28 | full |
 | 17 | redis | 61 | 0 | 61 | 100% | 151 | 2 / 0 | 43 | full |
 | 20 | actions-runner-controller | 68 | 0 | 68 | 100% | 151 | 0 / 0 | 15 | full |
+| 21 | kyverno | 96 | 0 | 96 | 100% | 151 | 0 / 0 | 17 | full |
 
 ### Discovery and relationship validation
 
@@ -134,6 +136,7 @@ What convergence looks like:
 | otel-collector | 2/7/11 (45%) | 15/0/1/0 | 848/0/0/192/0 | 12 → 0 | 4 | 2 |
 | redis | 4/0/6 (40%) | 7/0/0/0 | 72/0/0/11/8 | 1 → 0 | 4 | 2 |
 | actions-runner-controller | 3/6/2 (82%) | 14/0/0/0 | 284/0/0/4/0 | 2 → 0 | 3 | 0 |
+| kyverno | 5/6/9 (55%) | 20/0/1/0 | 117/0/0/9/0 | 1 → 0 | 4 | 0 |
 
 ## Construct-introduction curve
 
@@ -157,6 +160,7 @@ What convergence looks like:
 | 16 | otel-collector | 0 | 151 | 57 | 57 | 100% | 0 | 151 |
 | 17 | redis | 0 | 151 | 61 | 61 | 100% | 0 | 151 |
 | 20 | actions-runner-controller | 0 | 151 | 68 | 68 | 100% | 0 | 151 |
+| 21 | kyverno | 0 | 151 | 96 | 96 | 100% | 0 | 151 |
 
 New constructs per product, in onboarding order (records):
 
@@ -179,6 +183,7 @@ New constructs per product, in onboarding order (records):
  16  otel-collector                0  
  17  redis                         0  
  20  actions-runner-controller     0  
+ 21  kyverno                       0  
 ```
 
 Cumulative constructs introduced:
@@ -202,6 +207,7 @@ Cumulative constructs introduced:
  16  otel-collector              151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  17  redis                       151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  20  actions-runner-controller   151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 21  kyverno                     151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -336,6 +342,10 @@ No new constructs: the definition is configuration only.
 
 No new constructs: the definition is configuration only.
 
+### kyverno (order 21, wave 3): 0 new
+
+No new constructs: the definition is configuration only.
+
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
@@ -343,7 +353,7 @@ No new constructs: the definition is configuration only.
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) +1 unclassified | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 30 (4.3) | 93% | 55 / 0 | 25 (n=7) | 20/24/56 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
 | 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 99% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) | 93/0/12/0 (7 of 7 reports) | 10 | full 7 |
-| 3 | actions-runner-controller | 1 of 1 (actions-runner-controller) | 0 (0.0) | 100% | 0 / 0 | 15 (n=1) | 3/6/2 (82%) | 14/0/0/0 (1 of 1 reports) | 0 | full 1 |
+| 3 | actions-runner-controller, kyverno | 2 of 2 (actions-runner-controller, kyverno) | 0 (0.0) | 100% | 0 / 0 | 16 (n=2) | 8/12/11 (65%) | 34/0/1/0 (2 of 2 reports) | 0 | full 2 |
 
 ## Notes from the records
 
@@ -382,6 +392,8 @@ No new constructs: the definition is configuration only.
 **redis**: Third wave-2 zero-new-construct product (grafana, strimzi): the whole non-Kubernetes topology — in-repo per-line release notes, GitHub advisory feed, download.redis.io tarballs, Docker official image with a mirror fallback, EOL-dated lifecycle statements — is configuration over existing constructs. The one generic change (setext headings) completes CommonMark in the shared markdown scanner rather than adding definition vocabulary; it benefits any product whose upstream documents underline titles (no catalog field, schema entry or ingest branch was added). Discovery baseline: right versioning and channels-from-tags, zero artifacts, and it mistook the website notes copy for the source; its own historical validation of the GitHub release body was correct and kept.
 
 **actions-runner-controller**: Project status: ACTIVE, with the FIRST lineage dead. Releases continue on the gha-runner-scale-set family (0.13.1 2025-12-23, 0.14.0 2026-03-19, 0.14.1 2026-04-15, 0.14.2 2026-05-22, 0.15.0 2026-10-01 - cut the day of onboarding; master commits the same day), developed with the GitHub Actions team. The v-tagged controller lineage ended at v0.27.6 (2023-10-20) and the README has called the legacy autoscaling modes "legacy ... maintained by the community only" since the v0.27.5 era (wording absent at v0.27.4 2023-05-10, present at v0.27.5 2023-08-25; discussion #2775). Represented as one deprecated lifecycle statement citing the README (the modes ship inside every canonical release, so it applies to all of them; an end-of-life variant cannot scope to the dead family, see considered). Zero new constructs: the era switch is ingress-nginx's tagPrefix family selection plus the lifecycle construct, both wave-1/2 vocabulary. Discovery baseline was the lineage trap: version-sorted "latest tag" put it on the dead family's newest release, so every proposal described the legacy era while the live one (0.15.0, same repository, same day) was invisible to it - the strongest argument yet for discovery to enumerate tag families before choosing a canonical channel. Its template bug ('ghcr.io/${{/' from unmasked workflow expressions) dropped all three chart artifacts with Go template parse errors. 15 minutes wall clock, zero Go changes, checks green from the first default-window run.
+
+**kyverno**: The fifth zero-new-construct onboarding (grafana, strimzi, otel-collector, redis): the multi-image + same-repository-chart + pinned-CRD-subchart topology decomposed entirely into constructs earlier products introduced — lookup (argo-cd), version:field pins (kube-prometheus-stack), availability windows, source exceptions (vault), lifecycle statements (ingress-nginx, traefik, flux) and listItems (karpenter). 96 constructs used, 0 new, 0 product-specific Go. Discovery contributed the versioning, both notes channels, the advisories, the install manifest and the readiness-checker boundary; research contributed the six release-workflow images, the chart relation correction, the kyverno-api pin and the website's deprecation channels. Fastest onboarding so far (17 minutes): every relationship validated from the first draft except one heading assumption, and no host was blocked.
 
 ## Data quality
 

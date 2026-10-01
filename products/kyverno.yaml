@@ -1,0 +1,432 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: kyverno
+name: Kyverno
+description: >-
+  Kubernetes-native policy management (github.com/kyverno/kyverno): the admission
+  controller plus the background, reports and cleanup satellite controllers, the
+  init container, the readiness checker and the kyverno CLI — seven ghcr images
+  per release. Semver v-prefixed tags, minor lines, only the newest line
+  patched (~3 months). The Helm charts kyverno and kyverno-policies live in the
+  SAME repository under charts/, are cut on chart tags and versioned
+  independently (lookup by v-prefixed appVersion); since 1.17 the chart pins the
+  kyverno-api CRD chart. Release notes: GitHub release bodies (generated PR
+  list) for every release plus a curated website blog post per minor; the
+  per-minor upgrade guide and the deprecation/removal schedule (legacy policy
+  types removed in v1.20) live in the website repository.
+homepage: https://kyverno.io
+
+versioning:
+  scheme: semver
+  tagPrefix: v
+  # v1.X.Y stable; pre-releases v1.X.0-alpha.N/beta.N/rc.N and glued -rcN
+  # (before ~1.13). Excludes the 427 junk tags (1.6-dev, unprefixed ancient).
+  # Anomaly: v1.15.20 is an extra-looking patch of the 1.15 line.
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\.\d+|beta\.\d+|rc\.\d+|rc\d+))?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/kyverno/kyverno
+      tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\.\d+|beta\.\d+|rc\.\d+|rc\d+))?)$'
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: kyverno/kyverno
+
+  # --- release notes: curated website blog (minors) --------------------------
+  # One post per minor since 1.12 (older minors used the kyverno-1.X-released
+  # naming), on main of the website repository: TL;DR bullets, feature
+  # sections, the deprecation/removal schedule. Headings are bold-wrapped ATX
+  # ("## **TL;DR**"), hence the \*{0,2} section patterns.
+  - id: release-notes-blog
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: release-notes
+    availability: ">= 1.12.0"
+    releaseKinds: [minor, major]
+    locator:
+      kind: repo-file
+      repository: github.com/kyverno/website
+      ref: main
+      path: src/content/blog/announcing-kyverno-release-{{.Major}}.{{.Minor}}/index.md
+    extract:
+      type: whole
+      # TL;DR and feature sections are lead-in prose + bullets: split every
+      # bullet into its own item (the karpenter/troubleshooting shape).
+      listItems: true
+    classify: &blog-classify
+      # announcement prose and thanks
+      - text: 'We.re excited to announce|As always, this release|Join us on|made this release possible'
+        skip: true
+      # website-internal links and image embeds
+      - text: '^\[|^!\[|^\[.*\]:'
+        skip: true
+      # the schedule table rows and the parity tables are structural, not items
+      - text: '^\|'
+        skip: true
+      # migration pointers are action-required guidance
+      - text: '(?i)migration guide|now is the time to migrate|kyverno migrate'
+        category: migration
+        actionRequired: true
+      # the deprecation/removal schedule (the high-value statements)
+      - text: '(?i)deprecat'
+        category: deprecation
+      - text: '(?i)\bremoved?\b|\bremoval\b'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - text: '(?i)\bCVE-\d{4}-\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+        category: security
+      - text: '(?i)security'
+        category: security
+      - text: '(?i)breaking'
+        category: other
+        breaking: true
+      - section: '^\*{0,2}TL;DR\*{0,2}$'
+        category: feature
+      - section: 'Security'
+        category: security
+      - section: '.*'
+        category: feature
+
+  # --- release notes: GitHub release body (every release) --------------------
+  # A github-generated "## What's Changed" PR list — complete (patches
+  # included) but unclassified, the Argo CD git-log shape. The blog above is
+  # the curated channel for minors; this is the only channel for patches.
+  - id: release-notes-github
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: release-notes
+    locator:
+      kind: github-releases
+      repository: kyverno/kyverno
+      ref: "{{.Tag}}"
+    extract:
+      type: whole
+    classify: &github-classify
+      # repo mechanics: dependabot, workflows, bot PRs
+      - text: 'by @dependabot\[bot\]|by @kyverno-pr-updater\[bot\]|^chore\(deps\)|^chore: bump|bump .* from .* to '
+        skip: true
+      - text: '^(ci|docs?|chore|refactor|build|e2e)(\(|:)'
+        skip: true
+      - text: '(?i)^(add|enable|use|remove|fix|update|automate) .*(workflow|github|issue template|labels?|stale PR|branch protection|token|permissions for pr)'
+        skip: true
+      - text: '(?i)\b(test|tests|conformance|chainsaw|fixtures?|lint)\b'
+        skip: true
+      - section: '^New Contributors$'
+        skip: true
+      - text: '(?i)CVE-\d{4}-\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+        category: security
+      - text: '(?i)^feat(ure)?|\bfeat\('
+        category: feature
+      - text: '(?i)^fix|\bfix\(|Fix '
+        category: bugfix
+      - text: '(?i)\bdeprecat'
+        category: deprecation
+      - text: '(?i)\bremov(e|es|ed|al)\b'
+        category: removal
+        breaking: true
+      - section: '^What.s Changed$'
+        category: other
+
+  # --- upgrade guide (website, per-minor sections) ---------------------------
+  # upgrading.md on main: "## Upgrading to Kyverno v1.X" sections exist ONLY
+  # for minors that need upgrade steps (today 1.13 and 1.19); the exceptions
+  # list the minors upstream shipped without a section. The sections carry the
+  # deprecation/removal policy (legacy ClusterPolicy/Policy/CleanupPolicy and
+  # kyverno.io PolicyException deprecated in 1.19, removed in v1.20).
+  - id: upgrade-guide
+    roles: [upgrade-guide]
+    availability: ">= 1.13.0"
+    releaseKinds: [minor, major]
+    locator:
+      kind: repo-file
+      repository: github.com/kyverno/website
+      ref: main
+      path: src/content/docs/docs/installation/upgrading.md
+    extract:
+      type: markdown-section
+      heading: '^Upgrading to Kyverno v{{.Major}}\.{{.Minor}}$'
+      # the Deprecations sections are lead-in prose + numbered statements:
+      # every statement its own item
+      listItems: true
+    classify:
+      # yaml/code fence contents and the RBAC example blocks
+      - text: '^(apiVersion|kind:|  |- |verbs:|resources:|apiGroups:|helm |kyverno |kubectl )'
+        skip: true
+      # the "what is not going away" reassurance bullet (ingress-nginx lesson:
+      # a reassurance must not be an action-required item)
+      - text: '(?i)are retained and continue|not going away|^PolicyReport / ClusterPolicyReport'
+        skip: true
+      # the exact-removal statements of the deprecation policy
+      - text: '(?i)removed in v?1\.\d+'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - text: '(?i)(has been |were |are no longer )removed|drops deprecated API'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - text: '(?i)deprecat'
+        category: deprecation
+        actionRequired: true
+      - section: '^Breaking Changes$'
+        category: other
+        breaking: true
+        actionRequired: true
+      - section: '^Storage Versions$'
+        category: migration
+        actionRequired: true
+      - section: '^Helm Chart Changes$'
+        category: configuration
+        actionRequired: true
+      - section: '^CLI Changes$'
+        category: other
+      - section: '.*'
+        category: migration
+        actionRequired: true
+    exceptions:
+      - versions: [1.14.0, 1.15.0, 1.16.0, 1.17.0, 1.18.0]
+        reason: "upstream ships an 'Upgrading to Kyverno vX.Y' section only for minors that need upgrade steps (1.13, 1.19 today); absence is upstream's statement that no special steps are required (the 1.18 blog: 'There are no breaking changes in this release')"
+
+  # --- support policy (lifecycle evidence) -------------------------------------
+  # installation/releases.md on main: "approximately three (3) months of
+  # community patch support" for the newest minor only. Its items are reported
+  # through the lifecycle statement below, not as per-release notes.
+  - id: support-policy
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/kyverno/website
+      ref: main
+      path: src/content/docs/docs/installation/releases.md
+    extract:
+      type: whole
+
+  # --- security ----------------------------------------------------------------
+  - id: advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: kyverno/kyverno
+    notes: >-
+      34 published GHSA/CVEs for the Go module (including the 2026-09-10
+      critical GHSA-5qq8-67g6-4h2w batch); kyverno.io/docs/security documents
+      the process (private GitHub vulnerability reporting), the GHSA feed is
+      the machine-readable channel.
+
+# --- lifecycle -----------------------------------------------------------------
+# releases.md: only the newest minor line is the "Supported Release" and gets
+# ~3 months of patches (critical bugs + critical/high CVEs); checked 2026-10-01:
+# v1.19.0 (2026-08-20) ended patch support for the 1.18 line and older.
+lifecycle:
+  - state: end-of-life
+    since: "2026-08"
+    versions: ">= 1.0.0, < 1.19.0"
+    summary: >-
+      Kyverno patches only the newest minor line (~3 months of community patch
+      support, critical fixes and critical/high CVEs); v1.19.0 (2026-08) ended
+      patch support for the 1.18 line and every earlier line. The 1.19 line
+      reaches end-of-life at the v1.20 release (estimated 2026-11).
+    sources: [support-policy]
+
+artifacts:
+  # --- Helm charts (same repository, independent versions, lookup) -----------
+  # charts/kyverno: chart majors track app majors (chart 2.x -> app 1.5-1.9,
+  # chart 3.x -> app 1.10+); every stable release 1.10.0-1.19.1 has a chart
+  # whose v-prefixed appVersion is the release tag. Chart.yaml at the app tag
+  # already carries the matching version/appVersion/kubeVersion.
+  - id: chart
+    type: helm-chart
+    name: kyverno
+    description: The Kyverno Helm chart (charts/kyverno), the primary install path.
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Tag}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://kyverno.github.io/kyverno
+        chart: kyverno
+      - kind: oci
+        repository: ghcr.io/kyverno/charts/kyverno
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/kyverno/kyverno
+          path: charts/kyverno/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/kyverno/kyverno
+          path: charts/kyverno/Chart.yaml
+    notes: >-
+      values.yaml image tags are ~ (null) and default to the chart appVersion;
+      real default changes show up in the other keys. chart-metadata captures
+      kubeVersion (the per-release Kubernetes minimum: >=1.16.0-0 through the
+      1.10 era, >=1.25.0-0 since 1.13).
+
+  # charts/kyverno-policies: the default policy set, same lookup shape.
+  - id: policies-chart
+    type: helm-chart
+    name: kyverno-policies
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Tag}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://kyverno.github.io/kyverno
+        chart: kyverno-policies
+      - kind: oci
+        repository: ghcr.io/kyverno/charts/kyverno-policies
+
+  # The CRD chart dependency pinned per release in Chart.yaml since 1.17
+  # (0.0.1-alpha.2 in 1.17/1.18, 0.0.1-alpha.4 in 1.19); from 1.19 on this
+  # chart is how the chart installs the CRDs.
+  - id: kyverno-api-chart
+    type: helm-chart
+    name: kyverno-api
+    availability: ">= 1.17.0"
+    version:
+      strategy: field
+      field: dependencies[name=kyverno-api].version
+      from:
+        kind: repo-file
+        repository: github.com/kyverno/kyverno
+        ref: "{{.Tag}}"
+        path: charts/kyverno/Chart.yaml
+    channels:
+      - kind: helm-repo
+        url: https://kyverno.github.io/api
+        chart: kyverno-api
+
+  # --- CRDs (config/crds, recursive; group subdirs since 1.12) ----------------
+  - id: crds
+    type: crd
+    name: kyverno CRDs
+    description: >-
+      kyverno.io, policies.kyverno.io (>= 1.14), reports.kyverno.io and
+      wgpolicyk8s.io CRDs; also shipped as 22 release assets and inside the
+      chart (crds subchart / kyverno-api dependency).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-dir
+        repository: github.com/kyverno/kyverno
+        path: config/crds
+        glob: "*.yaml"
+    contents:
+      - kind: crds
+
+  # --- container images (ghcr.io/kyverno, tagged with the release) ------------
+  - id: kyverno-image
+    type: container-image
+    name: kyverno
+    description: The admission controller image.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/kyverno/kyverno
+  - id: kyvernopre-image
+    type: container-image
+    name: kyvernopre
+    description: Init container (pre-delete/cleanup hooks and CRD upgrade jobs).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/kyverno/kyvernopre
+  - id: kyverno-cli-image
+    type: container-image
+    name: kyverno-cli
+    description: The kyverno CLI as an image (cmd/cli/kubectl-kyverno).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/kyverno/kyverno-cli
+  - id: cleanup-controller-image
+    type: container-image
+    name: cleanup-controller
+    availability: ">= 1.9.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/kyverno/cleanup-controller
+  - id: background-controller-image
+    type: container-image
+    name: background-controller
+    availability: ">= 1.10.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/kyverno/background-controller
+  - id: reports-controller-image
+    type: container-image
+    name: reports-controller
+    availability: ">= 1.10.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/kyverno/reports-controller
+  - id: readiness-checker-image
+    type: container-image
+    name: readiness-checker
+    description: Helm test hook image (test.image); first tagged v1.17.2.
+    availability: ">= 1.17.2"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/kyverno/readiness-checker
+
+  # --- generated install manifest (release asset) ------------------------------
+  - id: install-manifest
+    type: manifest
+    name: install.yaml
+    description: >-
+      The all-in-one YAML install manifest generated from the chart and
+      attached to every release (the YAML install path's artifact).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/kyverno/kyverno/releases/download/{{.Tag}}/install.yaml"
+    contents:
+      - kind: image-refs
+        locator:
+          kind: http
+          url: "https://github.com/kyverno/kyverno/releases/download/{{.Tag}}/install.yaml"
+
+  # --- CLI binaries (release assets) --------------------------------------------
+  # Asset names carry the v-prefixed tag; per-OS/arch family
+  # (linux_x86_64 declared; darwin/windows/arm64/s390x exist too).
+  - id: cli-binary
+    type: binary
+    name: kyverno-cli
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/kyverno/kyverno/releases/download/{{.Tag}}/kyverno-cli_{{.Tag}}_linux_x86_64.tar.gz"
+
+provenance:
+  method: discovery+review
+  author: onboarding wave 3
+  updated: "2026-10-01"
+  validatedReleases: [1.8.5, 1.9.0, 1.10.0, 1.12.0, 1.13.0, 1.14.0, 1.16.0, 1.17.0, 1.17.2, 1.18.0, 1.18.2, 1.19.0, 1.19.1]
+  notes: >-
+    Started from the discovery proposal (git-tags + tag family, GitHub release
+    body, website blog, advisories, install.yaml, readiness-checker image) and
+    completed from docs/research/kyverno.md: the charts are lookups by
+    v-prefixed appVersion in the same repository's gh-pages index (discovery
+    proposed them but died on a template static-validation error), the five
+    missing images come from the release workflow, the kyverno-api pin from
+    Chart.yaml, the upgrade guide and support policy from the website
+    repository, and the stale in-repo CHANGELOG.md was rejected.
