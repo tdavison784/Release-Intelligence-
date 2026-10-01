@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-
 )
 
 // selectTagTrain picks the product's tag train when a repository publishes

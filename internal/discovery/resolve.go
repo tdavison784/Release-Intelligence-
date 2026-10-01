@@ -68,9 +68,9 @@ type Element struct {
 	Status string `json:"status,omitempty"`
 	// Evidence lists the URIs of the scanned files (or tag lists) that ground
 	// the proposal, bounded to a few per element.
-	Evidence   []string          `json:"evidence,omitempty"`
-	Candidates []string          `json:"candidates,omitempty"`
-	ProposalID string            `json:"proposal,omitempty"`
+	Evidence   []string `json:"evidence,omitempty"`
+	Candidates []string `json:"candidates,omitempty"`
+	ProposalID string   `json:"proposal,omitempty"`
 	// Replaces names the deterministic element an AI variant would replace.
 	Replaces string `json:"replaces,omitempty"`
 	// Targets lists the discovery targets the element serves.

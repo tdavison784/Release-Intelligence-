@@ -55,13 +55,13 @@ func TestVersionFieldStrategyValidates(t *testing.T) {
 	for name, c := range map[string]struct {
 		version, path, want string
 	}{
-		"no field":     {"      strategy: field", "artifacts[0].version.field", "required for strategy field"},
-		"no from":      {"      strategy: field\n      field: appVersion", "artifacts[0].version.from", "required for strategy field"},
-		"from kind":    {"      strategy: field\n      field: appVersion\n      from: {kind: repo-dir, repository: example.org/x/x, path: charts}", "artifacts[0].version.from.kind", "one document"},
+		"no field":          {"      strategy: field", "artifacts[0].version.field", "required for strategy field"},
+		"no from":           {"      strategy: field\n      field: appVersion", "artifacts[0].version.from", "required for strategy field"},
+		"from kind":         {"      strategy: field\n      field: appVersion\n      from: {kind: repo-dir, repository: example.org/x/x, path: charts}", "artifacts[0].version.from.kind", "one document"},
 		"from missing path": {"      strategy: field\n      field: appVersion\n      from: {kind: repo-file, repository: example.org/x/x}", "artifacts[0].version.from.path", "required for kind"},
-		"bad path":     {strings.Replace(goodFieldVersion, "dependencies[name=kube-state-metrics].version", "dependencies[name]", 1), "artifacts[0].version.field", "must be [field=value]"},
-		"lookup leftovers": {goodFieldVersion + "\n      match: \"{{.Tag}}\"", "artifacts[0].version", "belong to other strategies"},
-		"unknown strategy": {"      strategy: yaml", "artifacts[0].version.strategy", "must be template, lookup, field or independent"},
+		"bad path":          {strings.Replace(goodFieldVersion, "dependencies[name=kube-state-metrics].version", "dependencies[name]", 1), "artifacts[0].version.field", "must be [field=value]"},
+		"lookup leftovers":  {goodFieldVersion + "\n      match: \"{{.Tag}}\"", "artifacts[0].version", "belong to other strategies"},
+		"unknown strategy":  {"      strategy: yaml", "artifacts[0].version.strategy", "must be template, lookup, field or independent"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			rep := Validate(fieldDef(t, c.version))
