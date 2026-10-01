@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 24 product definitions, 24 onboarding records, 24 saved relationship reports.
-- 153 distinct constructs are used across all definitions; the records introduce 153.
-- 11 of 24 recorded products introduced no new construct. The latest product that introduced one has order 18.
+- 25 product definitions, 25 onboarding records, 25 saved relationship reports.
+- 155 distinct constructs are used across all definitions; the records introduce 155.
+- 11 of 25 recorded products introduced no new construct. The latest product that introduced one has order 27.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -94,6 +94,7 @@ What convergence looks like:
 | 22 | 3 | falco | 325 (263) | 5 | 10 | 14 | 2 | 13 | 18 | 1 | 0 | 1 | 3 |
 | 23 | 3 | linkerd | 419 (343) | 11 | 11 | 16 | 3 | 28 | 22 | 0 | 1 | 1 | 20 |
 | 24 | 3 | prometheus-operator | 346 (273) | 6 | 10 | 17 | 2 | 12 | 17 | 0 | 2 | 0 | 5 |
+| 27 | 4 | minio | 326 (228) | 7 | 5 | 6 | 2 | 11 | 16 | 8 | 1 | 0 | 7 |
 
 ### Constructs and effort
 
@@ -123,6 +124,7 @@ What convergence looks like:
 | 22 | falco | 75 | 0 | 75 | 100% | 153 | 0 / 0 | 21 | full |
 | 23 | linkerd | 82 | 0 | 82 | 100% | 153 | 0 / 0 | 30 | full |
 | 24 | prometheus-operator | 78 | 0 | 78 | 100% | 153 | 0 / 0 | 25 | full |
+| 27 | minio | 80 | 2 | 78 | 98% | 155 | 0 / 0 | 29 | partial |
 
 ### Discovery and relationship validation
 
@@ -152,6 +154,7 @@ What convergence looks like:
 | falco | 3/6/6 (60%) | 14/0/0/2 | 65/0/2/3/0 | 0 → 0 | 3 | 1 |
 | linkerd | 3/2/17 (23%) | 15/0/6/0 | 134/0/0/262/0 | 5 → 0 | 5 | 1 |
 | prometheus-operator | 7/2/7 (56%) | 14/0/1/0 | 81/0/0/9/0 | 0 → 0 | 4 | 0 |
+| minio | 1/3/8 (33%) | 9/0/2/1 | 164/0/19/26/0 | 4 → 0 | 5 | 6 |
 
 ## Construct-introduction curve
 
@@ -181,6 +184,7 @@ What convergence looks like:
 | 22 | falco | 0 | 153 | 75 | 75 | 100% | 0 | 153 |
 | 23 | linkerd | 0 | 153 | 82 | 82 | 100% | 0 | 153 |
 | 24 | prometheus-operator | 0 | 153 | 78 | 78 | 100% | 0 | 153 |
+| 27 | minio | 2 | 155 | 80 | 78 | 98% | 2 | 155 |
 
 New constructs per product, in onboarding order (records):
 
@@ -209,6 +213,7 @@ New constructs per product, in onboarding order (records):
  22  falco                         0  
  23  linkerd                       0  
  24  prometheus-operator           0  
+ 27  minio                         2  █
 ```
 
 Cumulative constructs introduced:
@@ -217,12 +222,12 @@ Cumulative constructs introduced:
   1  cert-manager                 87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   2  istio                        99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   3  argo-cd                     113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  4  cilium                      115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  4  cilium                      115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   5  postgresql                  122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  6  kube-prometheus-stack       131  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  7  vault                       138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  8  crossplane                  139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  9  external-secrets            139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  6  kube-prometheus-stack       131  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault                       138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane                  139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets            139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  10  ingress-nginx               144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  11  grafana                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  12  strimzi                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
@@ -238,6 +243,7 @@ Cumulative constructs introduced:
  22  falco                       153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  23  linkerd                     153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  24  prometheus-operator         153  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 27  minio                       155  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -397,6 +403,11 @@ No new constructs: the definition is configuration only.
 
 No new constructs: the definition is configuration only.
 
+### minio (order 27, wave 4): 2 new
+
+- `lineage:linear`: MinIO is the first genuinely line-free product onboarded: 521 timestamped releases on one mainline, no branches, no backports (SECURITY.md: security fixes land in the latest release only), so upgrades must consider every intermediate release - exactly what PolicyAll traverses. Zero code change: discovery itself proposed lineage linear (from tag shape); every earlier definition used minor. (also needed by external-secrets (order 9): its record says 'history is linear and only the newest minor is supported, which does not fit lineage minor; chosen only for its path policy' - it wanted linear and worked around it (its gap names a .PrevRelease variable for linear git-log ranges), any single-train product (rolling-release servers without maintained branches))
+- `template-func:replace`: Renders the RPM/DEB asset names, whose versions are upstream's own CalVer-to-numeric normalization (minio-20250907161309.0.0-1.x86_64.rpm), by stripping RELEASE. / - / T / Z out of {{.Tag}} (four nested replace calls, in the version template and the channel URL of two artifacts). Zero code change. (also needed by no onboarded product has needed string surgery on a tag before (versions appear verbatim in asset names); the need is generic for dated or re-separated asset names, and any future CalVer product (the same family question as the rejected calver scheme - see considered))
+
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
@@ -405,6 +416,7 @@ No new constructs: the definition is configuration only.
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 31 (4.4) | 93% | 59 / 0 | 25 (n=7) | 20/24/57 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
 | 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 99% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) | 93/0/12/0 (7 of 7 reports) | 10 | full 7 |
 | 3 | elasticsearch, terraform-provider-aws, actions-runner-controller, kyverno, falco, linkerd, prometheus-operator | 6 of 7 (terraform-provider-aws, actions-runner-controller, kyverno, falco, linkerd, prometheus-operator) | 1 (0.1) | 100% | 6 / 0 | 24 (n=7) | 25/23/71 (40%) | 98/0/17/2 (7 of 7 reports) | 2 | full 6, partial 1 |
+| 4 | minio | 0 of 1 | 2 (2.0) | 98% | 0 / 0 | 29 (n=1) | 1/3/8 (33%) | 9/0/2/1 (1 of 1 reports) | 6 | partial 1 |
 
 ## Notes from the records
 
@@ -455,6 +467,8 @@ No new constructs: the definition is configuration only.
 **linkerd**: The topology surprise: the mission brief's hypothesis (stable-2.X.N and edge tags, stable canonical, edge possibly dead) was inverted by research — the stable TAG scheme itself changed in February 2024 (stable-2.14.10 was the last OSS stable release; since 2.15 stable releases are version-2.Y designation markers on edge commits with NO open-source artifacts, upstream announcing "producing stable Linkerd releases will be in the hands of the vendor community"), while the weekly edge channel lives on. Canonical = stable lineage via one component-group pattern (postgresql construct). Highest-value edge output: the cross-era edge 2.14.10 -> 2.15.0 shows the entire stable artifact set (chart 1.16.11, five images, CLI) verified -> removed with evidence, next to the kubeVersion narrowing; 2.19.0 -> 2.20.0 shows the proxy pin v2.326.0 -> v2.359.0, cni v1.6.4 -> v1.6.8, the proxy-init pin removed (native sidecars default) and kubeVersion 1.23 -> 1.31, all registry/tag-verified. Classification tuning was two iterations found by reading edges, not checks: "circuit breaking" false-positived the breaking rule (now "breaking change|no longer|deprecat|incompatible") and the blog's boilerplate sections (Photo credit, Linkerd is for everyone) are skipped. Zero new constructs, zero Go changes: the dual tag scheme (component groups), the chart join (lookup), the three per-release pins (field/pattern), the optional artifact-less era and the announcement sources are all wave-0/1/2 vocabulary.
 
 **prometheus-operator**: The appVersion join, from this side: kube-prometheus-stack (order 6) pins THIS operator in its Chart.yaml appVersion and already models the pin with version.strategy: field ('prometheus-operator-image'); this definition models the mirror image — a lookup artifact resolving, per operator release, the chart whose appVersion == the release tag, verified against the prometheus-community index. The cross-product query the join was designed for ('which chart versions ship operator X') therefore works TODAY, deterministically, in one direction and one product at a time: the operator's edge names the chart version ('kube-prometheus-stack 91.8.2 [verified]' for v0.94.1), and the chart's edge names the operator version it pins; nothing yet joins the two edges into one cross-product view, and each side probes the other's channel independently (both reached the same pairs from their own definitions). The pinned-operator-notes construct that may exist on the chart side by merge time does not exist in this worktree's products/kube-prometheus-stack.yaml; this record is written against what is merged here. Sixth zero-new-construct onboarding (external-secrets, grafana, strimzi, otel-collector, redis, kyverno): the operator + pinned-operands + out-of-repo-chart-joins topology decomposed into lookup (argo-cd), pattern pins (flux), availability windows, optional artifacts (argo-cd) and role mixing (kyverno's support-policy). 78 constructs used, 0 new, 0 product-specific Go, 0 check failures on the first run of both windows, no blocked hosts. 25 minutes.
+
+**minio**: The versioning stress test, answered. What worked without any new capability: the postgresql component-group tagPattern reads RELEASE.YYYY-MM-DD as 2024.11.7 (chronological ordering, full 508-release listing, month-granular era windows), lineage linear - until now vocabulary no definition had exercised - expresses the one-mainline no-backports topology exactly (every intermediate release traversed, which upstream's own README endorses: parallel, all-servers-at-once upgrades to any newer release), {{.Tag}} templates carry the real timestamp into every locator, and the whole retirement story (README banner, source-only section, SECURITY.md support model) is the ingress-nginx lifecycle pattern verbatim. What did not: the time-of-day (13 same-day later releases invisible), meaningful release kinds (all 'patch'), non-synthetic lines, day-precise availability, PrevTag at month boundaries, latest-only support scoping, and any verifiable image channel. Two CalVer hazard layers were found and one was defused in pure configuration (leading zeros via '0*' outside the captures; the first pattern silently matched 78/521 tags and ri check passed on that sample - the check does not notice a shrunken version space, ri versions' 'non-matching' counter is the only trace). No calver scheme construct: Linkerd's excluded edge family and Kubernetes's v-prefixed semver leave MinIO without a second product that needs date ordering, exactly the case PROTOCOL step 8 says to record as a gap. Two zero-code first exercises are credited (lineage:linear, template-func: replace) so the stats accounting stays clean. 29 minutes, 0 Go changes, 0 check failures after the deletion exceptions, tests green.
 
 ## Data quality
 
