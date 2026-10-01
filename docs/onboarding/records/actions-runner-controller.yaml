@@ -1,0 +1,128 @@
+product: actions-runner-controller
+order: 20
+wave: 3
+repository: github.com/actions/actions-runner-controller
+onboarding:
+  startedAt: "2026-10-01T15:36:03Z"
+  finishedAt: "2026-10-01T15:51:16Z"
+  minutes: 15
+discovery:
+  proposal: docs/onboarding/discovery/actions-runner-controller.proposed.yaml
+  report: docs/onboarding/discovery/actions-runner-controller.report.md
+# Discovery scanned the repository at v0.27.6 - the newest tag by version
+# sort, which is the NEWEST TAG OF THE DEAD LINEAGE (the live family
+# gha-runner-scale-set-X.Y.Z numbers only reach 0.15.0, and 0.27.6 > 0.15.0).
+# Everything it proposed therefore described the legacy controller era: the
+# v-family tag pattern, docs/releasenotes sections, the legacy
+# actions-runner-controller chart on gh-pages, the summerwind image. Its
+# transferable skeleton was right (git-tags + github-releases versions,
+# release body as notes - historically-validated by itself 5/5, CRD repo-dir
+# config/crd/bases + contents - the same path in both eras, the
+# actions-runner-controller.yaml release asset, github-advisories), and its
+# gha-runner-scale-set chart proposals had the right repositories but (a) an
+# "independent" version relation and (b) a template bug that broke static
+# validation: the OCI channel template 'ghcr.io/${{/...' captured the
+# workflow expression ${{ github... }} mid-string, so all three chart
+# artifacts were dropped with a Go template parse error (a discovery defect
+# worth fixing: mask ${{ }} before templating).
+sources:
+  - {id: git-tags, origin: discovered-modified, note: "proposal id 'tags'; locator kept, tagPattern switched to the live family ^gha-runner-scale-set-(?P<version>...)$ with tagPrefix gha-runner-scale-set- (ingress-nginx controller-v precedent): 149 tags, 26 releases kept"}
+  - {id: github-releases, origin: discovered, note: "versions fallback priority 1, kept as proposed"}
+  - {id: release-notes, origin: discovered-modified, note: "proposal id release-notes-github; github-releases @{{.Tag}} extract whole kept verbatim (validated by discovery itself); classify added for the generated body (artifact-link bullets incl. the -experimental twins, e2e/CI/docs housekeeping, dependabot + 'Bump go' + 'Updates: runner' as dependency, sentence-case Fix/Add titles)"}
+  - {id: legacy-modes-notice, origin: manual, note: "README 'Getting Started' section on master as lifecycle evidence (ingress-nginx retirement-notice pattern): 'the existing autoscaling modes are now legacy ... maintained by the community only' (discussion #2775; wording present since the v0.27.5 era)"}
+  - {id: github-advisories, origin: discovered, note: "proposal id advisories; 0 published GHSAs today - declared as the machine-readable channel anyway"}
+artifacts:
+  - {id: controller-image, origin: discovered-modified, note: "discovery proposed image.tag-from-chart-appversion and dropped it after probing ghcr.io/actions/gha-runner-scale-set-controller with v-era versions; rebuilt as template {{.Version}} on the canonical family - all 26 tags verified at the registry (the /tags/list truncation quirk does not affect manifest probes)"}
+  - {id: controller-chart, origin: discovered-modified, note: "discovery proposed helm.independent-version + a broken ghcr template; chart version == appVersion == release version (hack/check-gh-chart-versions.sh fails the release otherwise), OCI ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller, source-tree chart-metadata + helm-values contents (>= 0.3.0; the in-tree chart was auto-scaling-runner-set at 0.2.0), availability >= 0.3.0"}
+  - {id: runner-scale-set-chart, origin: discovered-modified, note: "same corrections as controller-chart; OCI .../gha-runner-scale-set with chart-metadata + helm-values contents"}
+  - {id: crds, origin: discovered, note: "repo-dir config/crd/bases glob *.yaml at the tag, kept as proposed and validated by discovery itself; 9 CRDs at 0.15.0 (4 actions.github.com + 5 legacy actions.summerwind.dev)"}
+  - {id: install-manifest, origin: discovered-modified, note: "release asset kept from the proposal (asset.hosted-release-download); availability >= 0.4.0 added after the full-lineage check (0.2.0/0.3.0 have no assets); image-refs contents snapshot the kustomize build (its image is summerwind/actions-runner-controller:{{.Tag}})"}
+  - {id: source-archive, origin: manual, note: "github tag archive; answered 200"}
+discoveryRejected:
+  - {id: "source:release-notes-docs (docs/releasenotes/{{.Major}}.{{.Minor}}.md)", reason: "legacy-era notes only (files 0.22-0.27 of the dead v-family); wrong lineage for the canonical channel - and its headings are '# actions-runner-controller vX.Y.Z', not the '^v?X.Y.Z$' discovery assumed"}
+  - {id: "artifact:actions-runner-controller-chart (gh-pages lookup by appVersion)", reason: "the legacy chart of the dead lineage (version stream 0.1.2-0.23.7, frozen 2023-11-27); under a v-era canonical it would be a lookup, under the canonical family a 0.15.0 lookup would pair the release with chart 0.15.3 (appVersion 0.20.3) - a wrong-era pairing"}
+  - {id: "artifact:actions-runner-controller (docker.io/summerwind/actions-runner-controller)", reason: "legacy controller image; the bare 0.X.Y tags that exist for 0.2.0-0.15.0 belong to the v-family releases of those numbers - the template would verify against the wrong lineage"}
+  - {id: "helm-repo actions-runner-controller.github.io/actions-runner-controller (+ the actions.github.io copy)", reason: "reachable but serves only the frozen legacy chart index; the live charts are OCI-only"}
+relationships:
+  # Default check (6 newest: 0.13.0, 0.13.1, 0.14.0, 0.14.2, 0.15.0 - all
+  # clean) plus the full-lineage era run: all 26 releases, 21 checked.
+  historicalReleasesChecked: [0.2.0, 0.3.0, 0.4.0, 0.5.0, 0.6.0, 0.6.1, 0.7.0, 0.8.0, 0.8.3, 0.9.0, 0.9.3, 0.10.0, 0.10.1, 0.11.0, 0.12.0, 0.12.1, 0.13.0, 0.13.1, 0.14.0, 0.14.2, 0.15.0]
+  # First complete draft: the default-window run (6 newest) passed 14/14;
+  # the required earlier-era run (-n 26) failed 2 subjects - install-manifest
+  # and install-manifest/image-refs at 0.2.0/0.3.0 (releases with no assets).
+  initialFailures: 2
+  finalFailures: 0
+  manualInterventions:
+    - {subject: install-manifest, change: "availability '>= 0.4.0' on the artifact (contents inherit)", reason: "0.2.0/0.3.0 GitHub releases carry no actions-runner-controller.yaml asset (found by ri check -n 26)"}
+    - {subject: release-notes/classify, change: "artifact-link bullets skipped on the link TEXT (incl. the -experimental chart twins) - the item text does not carry the URL", reason: "the 0.12.1 -> 0.13.1 edge reported 'gha-runner-scale-set helm chart' and 'gha-runner-scale-set-controller controller image' as changes"}
+    - {subject: release-notes/classify, change: "skip rules for e2e/CI/docs housekeeping (Remove/Promote/Cover/Increase ...e2e, ^e2e:, CODEOWNERS, CodeQL, code-scanning alerts, 'Bump ... workflow', ^docs:) and dependency rules for dependabot, '^Bump (all dependencies|go|golang)' and 'Updates: runner to v'", reason: "reading the 0.14.2 -> 0.15.0 and 0.12.1 -> 0.13.1 edges: 'Remove legacy e2e tests' was a user-facing removal and 'Bump go ... deprecated Requeue' a deprecation; after tuning 92 -> 87 and 70 -> 55 changes with no signal lost"}
+  unverifiable: []            # every channel of every applicable subject answered in the final run
+constructs:
+  new: []                     # 68 constructs used, all introduced by earlier products (100% reuse)
+  considered:
+    - {name: "a second canonical version channel for the dead v-family (or a tagPattern union of both families)", rejected: "versioning has one canonical channel; the two families number from the same 0.x space (v0.9.0 and gha-runner-scale-set-0.9.0 both exist), so a union would collide versions and break ordering, and a second channel has no cross-product precedent yet (karpenter/traefik keep dead lines INSIDE one family). The lineage switch is represented by the tagPrefix family selection (ingress-nginx precedent) + the deprecated lifecycle statement + description/notes; recorded as a gap"}
+    - {name: "chart-tgz release-asset channels for the two charts", rejected: "the chart-releaser tgz assets exist only on the LEGACY actions-runner-controller-X.Y.Z chart-release tags; the live family publishes charts OCI-only and its releases carry exactly one asset"}
+    - {name: "upgrade-guide source", rejected: "no per-version upgrade guidance exists for the live family (docs.github.com is generic, the in-repo UPGRADING.md is the legacy chart's versionless CRD procedure); gap recorded, not a construct"}
+    - {name: "runner images (ghcr.io/actions/actions-runner and variants) as artifacts", rejected: "the runner images are a separate product's cadence (v2.3xx.y-ubuntu-22.04 tags, published with every runner release); ARC releases only pin them, which the 'Updates: runner to vX' dependency bullets carry"}
+    - {name: "end-of-life lifecycle statement for the v-tagged lineage", rejected: "lifecycle.versions constrains the canonical version list, and no canonical release belongs to the v-family: the statement could not scope to it (empty versions would wrongly deprecate every live release). Folded into the deprecated statement's summary"}
+goChanges:
+  productSpecific: 0
+  generic: []
+unreachableSources: []            # none: ghcr.io (anonymous token + manifests), api.github.com (anonymous, 60/h - not exhausted), raw.githubusercontent.com, github.com release assets, codeload tag archives, both legacy *.github.io Helm indexes answered; registry-1.docker.io not needed (no docker.io channel declared)
+ambiguousRelationships:
+  - "The release lineage switched families inside one repository: v0.X.Y controller releases (2020 - 2023-10-20) then gha-runner-scale-set-X.Y.Z chart releases (2023-02-23 - today), both numbered from 0.x. The canonical channel selects the live family; the dead one is a lifecycle statement, so 'upgrading from v0.27.x' has no versioned answer in ri (see gaps)."
+  - "The release unit is the CHART release: tag gha-runner-scale-set-X.Y.Z cuts both charts and the controller image at the same version (hack/check-gh-chart-versions.sh enforces binary == chart == appVersion); the tag is cut on the 'Prepare X.Y.Z release' bump commit, so the in-tree chart files at the tag ARE the release's (no karpenter-style CI lag)."
+  - "ghcr /tags/list truncates by default (gha-runner-scale-set-controller showed numeric tags only up to 0.5.0 until ?n=1000; every 0.6.0-0.15.0 manifest answers 200 to HEAD). ri probes manifests, so verification is unaffected; any future tags/list-based feature must paginate."
+  - "The one release asset, actions-runner-controller.yaml, is the LEGACY install path's kustomize build: its image is summerwind/actions-runner-controller:gha-runner-scale-set-X.Y.Z - a legacy-repo Docker Hub tag carrying the full release tag name. It exists (verified via the Hub API) but belongs to no declared artifact; the image-refs snapshot records it faithfully."
+  - "At 0.2.0 the runner chart was still named charts/auto-scaling-runner-set (renamed at 0.3.0), so chart artifacts/contents carry availability >= 0.3.0 while the OCI chart tags for 0.2.0 exist."
+  - "The deprecated lifecycle statement renders as 'Target ... is deprecated since 2023-08' although its content is the legacy-MODES deprecation (the modes ship inside every canonical release); the standing-banner semantics follow the ingress-nginx/karpenter precedents."
+  - "docs/releasenotes/app-version-mapping.md is an upstream controller<->chart mapping table for the legacy lineage (0.27.0 -> 0.22.0 ...); nothing in the canonical family corresponds to it."
+representability: full             # of the live lineage: 5 sources, 6 artifacts, every channel verified against all 21 checked releases incl. ghcr images and OCI charts; the cuts are the dead-lineage version list and the upstream-absent upgrade/compatibility documents
+gaps:
+  - "The dead v-tagged lineage (v0.1.0 - v0.27.6, the legacy modes' releases) is not a version list: one canonical channel per product cannot hold two families with colliding 0.x numbers, so 'upgrade from v0.27.6' resolves to no path. It is represented by the deprecated lifecycle statement, the description and the research doc. A cross-product 'alternate lineage' construct (also traefik's pre-3.0 tags, kubernetes's legacy naming) would need version namespaces, a model change beyond a field."
+  - "No upgrade-guide source exists for the live family: upstream publishes none (docs.github.com is generic, the in-repo UPGRADING.md is the legacy chart's versionless CRD procedure). Edges carry the generated release body and computed CRD/values diffs instead - which is where this project's real breaking changes live."
+  - "No compatibility matrix (Kubernetes or runner versions) is published in machine-readable form; runner compatibility arrives only as 'Updates: runner to vX' release-body bullets (classified dependency), k8s compatibility only as CI matrices."
+  - "Runner image pins are note items, not artifacts: the gha-runner-scale-set values default the runner image to a floating latest, so no per-release runner version can be probed from the definition."
+sampleEdge:
+  from: 0.14.2
+  to: 0.15.0
+  summary: "5 breaking · 2 action required · 87 changes · 1 warnings"
+  evidenceRecords: 163
+  notes: >-
+    The release cut the day of onboarding (0.15.0, 2026-10-01). Breaking = 5
+    computed CRD-schema removals (workloadRef across the v1alpha1 schemas,
+    status.currentRunners/currentReplicas/failedEphemeralRunners -
+    corroborated by the "Remove AutoscalingRunnerSet printer columns
+    referencing removed status fields" PR bullet). Action required = the two
+    removed Helm values flags.runnerMaxConcurrentReconciles and
+    flags.updateStrategy (PR 4670 removed the default-max-concurrent-reconciles
+    flag). 87 changes: 13 crd-schema, 5 helm-values, 5 removal, 12 dependency
+    (2 runner pins, 10 dependabot/go bumps), 11 bugfix, 4 feature, 36 other,
+    1 deprecation (the legacy-modes lifecycle statement, also the 1 warning).
+    Second edge exercised: 0.12.1 -> 0.13.1 (path 0.13.0 -> 0.13.1): 1
+    breaking · 0 action required · 55 changes · 1 warning - before classify
+    tuning it had 70 changes including artifact-link bullets and CODEOWNERS
+    churn. Artifacts verified at ghcr in both edges (image and both charts,
+    bare-semver template relation).
+notes: >-
+  Project status: ACTIVE, with the FIRST lineage dead. Releases continue on
+  the gha-runner-scale-set family (0.13.1 2025-12-23, 0.14.0 2026-03-19,
+  0.14.1 2026-04-15, 0.14.2 2026-05-22, 0.15.0 2026-10-01 - cut the day of
+  onboarding; master commits the same day), developed with the GitHub Actions
+  team. The v-tagged controller lineage ended at v0.27.6 (2023-10-20) and the
+  README has called the legacy autoscaling modes "legacy ... maintained by
+  the community only" since the v0.27.5 era (wording absent at v0.27.4
+  2023-05-10, present at v0.27.5 2023-08-25; discussion #2775). Represented
+  as one deprecated lifecycle statement citing the README (the modes ship
+  inside every canonical release, so it applies to all of them; an
+  end-of-life variant cannot scope to the dead family, see considered).
+  Zero new constructs: the era switch is ingress-nginx's tagPrefix family
+  selection plus the lifecycle construct, both wave-1/2 vocabulary.
+  Discovery baseline was the lineage trap: version-sorted "latest tag" put
+  it on the dead family's newest release, so every proposal described the
+  legacy era while the live one (0.15.0, same repository, same day) was
+  invisible to it - the strongest argument yet for discovery to enumerate
+  tag families before choosing a canonical channel. Its template bug
+  ('ghcr.io/${{/' from unmasked workflow expressions) dropped all three
+  chart artifacts with Go template parse errors. 15 minutes wall clock,
+  zero Go changes, checks green from the first default-window run.

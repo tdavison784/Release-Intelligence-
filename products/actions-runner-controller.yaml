@@ -1,0 +1,266 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: actions-runner-controller
+name: Actions Runner Controller
+description: >-
+  Kubernetes operator for self-hosted GitHub Actions runners (runner scale
+  sets: AutoscalingRunnerSet/EphemeralRunnerSet/AutoscalingListener, plus the
+  community-maintained legacy Runner/RunnerDeployment modes). One repository
+  carries two release lineages with colliding 0.x numbers: the dead
+  controller-era v0.X.Y tags (v0.1.0 2020 - v0.27.6 2023-10, legacy modes)
+  and the live runner-scale-set releases tagged gha-runner-scale-set-X.Y.Z
+  (0.2.0 2023-02 - 0.15.0 2026-10), whose release unit is the chart release:
+  chart version == appVersion == controller-image tag == release version,
+  enforced by hack/check-gh-chart-versions.sh. Images and charts are OCI-only
+  on ghcr.io; the CRDs live in the source tree; release notes are the
+  generated GitHub release bodies (no in-repo changelog or upgrade guide for
+  this era).
+homepage: https://github.com/actions/actions-runner-controller
+
+versioning:
+  scheme: semver
+  # The canonical channel is the runner-scale-set family; the legacy
+  # controller family (^v0.X.Y$, ended at v0.27.6 2023-10) and the legacy
+  # chart-release tags (actions-runner-controller-X.Y.Z) do not match. Same
+  # one-family-of-many selection as ingress-nginx's controller-v prefix.
+  tagPrefix: gha-runner-scale-set-
+  tagPattern: '^gha-runner-scale-set-(?P<version>\d+\.\d+\.\d+)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/actions/actions-runner-controller
+      tagPattern: '^gha-runner-scale-set-(?P<version>\d+\.\d+\.\d+)$'
+    notes: >-
+      149 tags in the repository: 26 gha-runner-scale-set releases (0.2.0,
+      2023-02-23 - 0.15.0, 2026-10-01), 61 legacy v-tags, 60 legacy
+      chart-release tags (actions-runner-controller-0.1.2 - 0.23.7), 0.2.0 /
+      0.3.0 unprefixed and the users tag; the pattern keeps the 26.
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: actions/actions-runner-controller
+
+  # --- release notes (GitHub release body, generated) ------------------------
+  # Body shape: 3-5 artifact-link bullets (image + charts), the experimental
+  # warning line, "## What's Changed" with one PR-title bullet per merged PR
+  # (dependabot[bot] group bumps and github-actions[bot] "Updates: runner to
+  # vX" pins included), "## New Contributors" and the Full Changelog link.
+  # There is no curated changelog and no per-version upgrade guide for this
+  # era (docs.github.com is generic); breaking changes surface as PR titles,
+  # classified by the removal/deprecation keywords plus the rules below.
+  - id: release-notes
+    roles: [release-notes]
+    locator:
+      kind: github-releases
+      repository: actions/actions-runner-controller
+      ref: "{{.Tag}}"
+    extract:
+      type: whole
+    classify:
+      # the artifact-link bullets at the top of the body: the item text is the
+      # link text only, so match what the reader sees, not the URL
+      - text: '^(?:gha-runner-scale-set|gha-runner-scale-set-controller)(?:-experimental)? (?:controller image|helm chart)$'
+        skip: true
+      - text: 'Experimental charts are not supported'
+        skip: true
+      # release mechanics
+      - text: '^Prepare [\d.]+ release'
+        skip: true
+      # repository/CI housekeeping inside the generated PR list
+      - text: '^(?:Remove|Promote|Cover|Increase) .*\be2e\b|^e2e: |^Code style changes|^Update CODEOWNERS|^Update CodeQL|^Potential fix for code scanning alert|^Bump .* workflow|^Mark generated files|^Fix deprecated calls|^Add @actions/'
+        skip: true
+      - text: '^docs: '
+        skip: true
+      # dependency bumps: dependabot groups, maintainer go bumps, and the
+      # runner-image pin per release (the runner images are a separate
+      # product's cadence; this is the release's pin of them)
+      - text: ' by @dependabot\[bot\] in '
+        category: dependency
+      - text: '^Bump (?:all dependencies|go |golang)'
+        category: dependency
+      - text: '^Updates: runner to v'
+        category: dependency
+      # sentence-case PR titles the generic heading rules do not see
+      - text: '^(?:Fix|fix)\b'
+        category: bugfix
+      - text: '^(?:Add|Introduce|Support|Enable)\b'
+        category: feature
+      - text: '\bCVE-\d{4}-\d{4,}|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+        category: security
+
+  # --- lifecycle evidence ----------------------------------------------------
+  # The README "Getting Started" section states the legacy-modes deprecation
+  # (wording present since the v0.27.5 era, 2023; discussion #2775). Cited by
+  # the lifecycle statement below; its items are not per-release notes.
+  - id: legacy-modes-notice
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/actions/actions-runner-controller
+      ref: master
+      path: README.md
+    extract:
+      type: markdown-section
+      heading: '^Getting Started$'
+
+  # --- security --------------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: actions/actions-runner-controller
+    notes: >-
+      0 published advisories as of 2026-10-01; SECURITY.md routes reports to
+      GitHub's coordinated disclosure (email), which is not a feed.
+
+# The product is active (0.15.0 was released 2026-10-01), but its FIRST
+# release lineage is dead: the v-tagged controller releases ended at v0.27.6
+# (2023-10-20) and upstream calls the modes they serve "legacy ... maintained
+# by the community only". The statement applies to every canonical release
+# because the legacy modes and CRDs ship inside them (the 5
+# actions.summerwind.dev CRDs are still in config/crd/bases at 0.15.0).
+lifecycle:
+  - state: deprecated
+    since: "2023-08"
+    summary: >-
+      The legacy autoscaling modes of Actions Runner Controller (Runner,
+      RunnerDeployment, RunnerReplicaSet, RunnerSet, HorizontalRunnerAutoscaler,
+      Kubernetes mode) are deprecated upstream and maintained by the community
+      only; the v-tagged controller releases that introduced them ended at
+      v0.27.6 (2023-10-20). Runner scale sets are the maintained mode: new
+      deployments and upgrades should use the gha-runner-scale-set lineage.
+    sources: [legacy-modes-notice]
+
+artifacts:
+  # --- controller image (ghcr OCI, bare semver) ------------------------------
+  - id: controller-image
+    type: container-image
+    name: ghcr.io/actions/gha-runner-scale-set-controller
+    description: The runner-scale-set controller manager image.
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/actions/gha-runner-scale-set-controller
+    notes: >-
+      Built from the root Dockerfile by gha-publish-chart.yaml; also tagged
+      {{.Version}}-<shortsha> and canary (not declared). ghcr /tags/list is
+      truncated by default but every release tag answers to a manifest probe.
+
+  # --- Helm charts (OCI to ghcr; version == appVersion == release) -----------
+  # The CRD/controller chart users install first (helm does not manage crds/
+  # on upgrade). Chart.yaml at the tag is the release's own (the tag is cut on
+  # the "Prepare X.Y.Z release" bump commit; no karpenter-style CI lag), so
+  # the source-tree contents snapshot is honest.
+  - id: controller-chart
+    type: helm-chart
+    name: gha-runner-scale-set-controller
+    description: >-
+      Controller chart (charts/gha-runner-scale-set-controller): deployment
+      plus the four actions.github.com CRDs.
+    availability: ">= 0.3.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller
+    contents:
+      - kind: chart-metadata
+        availability: ">= 0.3.0"
+        locator: {kind: repo-file, repository: github.com/actions/actions-runner-controller, path: charts/gha-runner-scale-set-controller/Chart.yaml}
+      - kind: helm-values
+        availability: ">= 0.3.0"
+        locator: {kind: repo-file, repository: github.com/actions/actions-runner-controller, path: charts/gha-runner-scale-set-controller/values.yaml}
+    notes: >-
+      OCI tags exist for all 26 releases including 0.2.0, but the in-tree
+      chart was named auto-scaling-runner-set before 0.3.0, hence the
+      availability window. The -experimental twin (same versions, "not
+      supported for production workloads") is not declared.
+  # The runner-scale-set chart users install per fleet.
+  - id: runner-scale-set-chart
+    type: helm-chart
+    name: gha-runner-scale-set
+    description: >-
+      Runner scale set chart (charts/gha-runner-scale-set): deploys an
+      AutoscalingRunnerSet; default runner image ghcr.io/actions/actions-runner
+      (a separate product's cadence, pinned only as "latest").
+    availability: ">= 0.3.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+    contents:
+      - kind: chart-metadata
+        availability: ">= 0.3.0"
+        locator: {kind: repo-file, repository: github.com/actions/actions-runner-controller, path: charts/gha-runner-scale-set/Chart.yaml}
+      - kind: helm-values
+        availability: ">= 0.3.0"
+        locator: {kind: repo-file, repository: github.com/actions/actions-runner-controller, path: charts/gha-runner-scale-set/values.yaml}
+
+  # --- CRDs (source tree; also rendered into the controller chart) ------------
+  - id: crds
+    type: crd
+    name: config/crd/bases
+    description: >-
+      CRDs at the release tag: actions.github.com AutoscalingListener /
+      AutoscalingRunnerSet / EphemeralRunner / EphemeralRunnerSet (the
+      scale-set mode) and the legacy actions.summerwind.dev Runner /
+      RunnerDeployment / RunnerReplicaSet / RunnerSet /
+      HorizontalRunnerAutoscaler.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-dir
+        repository: github.com/actions/actions-runner-controller
+        path: config/crd/bases
+        glob: "*.yaml"
+    contents:
+      - kind: crds
+
+  # --- install manifest (release asset) ---------------------------------------
+  # Attached from 0.4.0 on (0.2.0/0.3.0 have no assets; verified by ri check
+  # across all 26 releases): the kustomize build of the legacy install path
+  # (its image is summerwind/actions-runner-controller:{{.Tag}}, a
+  # legacy-repo tag that carries the full release tag name).
+  - id: install-manifest
+    type: manifest
+    name: actions-runner-controller.yaml
+    availability: ">= 0.4.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/actions/actions-runner-controller/releases/download/{{.Tag}}/actions-runner-controller.yaml"
+    contents:
+      - kind: image-refs
+
+  # --- source tarball ----------------------------------------------------------
+  - id: source-archive
+    type: package
+    name: actions-runner-controller-source.tar.gz
+    description: Source tarball of the release tag.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/actions/actions-runner-controller/archive/refs/tags/{{.Tag}}.tar.gz"
+
+provenance:
+  method: discovery+review
+  author: onboarding wave 3
+  updated: "2026-10-01"
+  validatedReleases: [0.2.0, 0.3.0, 0.4.0, 0.5.0, 0.6.0, 0.6.1, 0.7.0, 0.8.0, 0.8.3, 0.9.0, 0.9.3, 0.10.0, 0.10.1, 0.11.0, 0.12.0, 0.12.1, 0.13.0, 0.13.1, 0.14.0, 0.14.2, 0.15.0]
+  notes: >-
+    Started from the discovery proposal (which read the repository at v0.27.6,
+    the newest tag of the DEAD v-family, and proposed that family's channels:
+    v-tagPattern, docs/releasenotes sections, the legacy chart and the
+    summerwind image) and rebuilt around the lineage switch from
+    docs/research/actions-runner-controller.md: the canonical channel is the
+    gha-runner-scale-set tag family (ingress-nginx controller-v precedent),
+    template version relations for image and both OCI charts, source-tree
+    chart contents (no CI lag at the tag), CRDs and manifest from the
+    discovery proposal kept, and a deprecated lifecycle statement carrying
+    the legacy-modes evidence.
