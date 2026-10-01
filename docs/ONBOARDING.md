@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 8 product definitions, 8 onboarding records, 8 saved relationship reports.
-- 133 distinct constructs are used across all definitions; the records introduce 133.
-- 1 of 8 recorded products introduced no new construct. The latest product that introduced one has order 10.
+- 9 product definitions, 9 onboarding records, 9 saved relationship reports.
+- 141 distinct constructs are used across all definitions; the records introduce 135.
+- 1 of 9 recorded products introduced no new construct. The latest product that introduced one has order 10.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -74,6 +74,7 @@ What convergence looks like:
 | 2 | 0 | istio | 316 (279) | 9 | 15 | 22 | 6 | 3 | 39 | 0 | 0 | 2 | 4 |
 | 3 | 0 | argo-cd | 227 (189) | 7 | 5 | 7 | 4 | 11 | 21 | 1 | 1 | 1 | 1 |
 | 5 | 1 | postgresql | 210 (169) | 4 | 3 | 5 | 0 | 24 | 47 | 1 | 0 | 0 | 3 |
+| 6 | 1 | kube-prometheus-stack | 339 (277) | 6 | 9 | 15 | 4 | 10 | 18 | 1 | 0 | 0 | 8 |
 | 7 | 1 | vault | 267 (218) | 8 | 7 | 9 | 2 | 18 | 26 | 3 | 1 | 0 | 10 |
 | 8 | 1 | crossplane | 306 (243) | 9 | 5 | 11 | 2 | 18 | 30 | 2 | 0 | 3 | 8 |
 | 9 | 1 | external-secrets | 271 (223) | 6 | 6 | 8 | 4 | 12 | 16 | 5 | 0 | 1 | 1 |
@@ -87,10 +88,11 @@ What convergence looks like:
 | 2 | istio | 81 | 12 | 69 | 85% | 99 | 7 / 0 | n/a | full |
 | 3 | argo-cd | 98 | 14 | 84 | 86% | 113 | 4 / 0 | n/a | full |
 | 5 | postgresql | 56 | 7 | 49 | 88% | 120 | 14 / 0 | 25 | partial |
-| 7 | vault | 82 | 7 | 75 | 91% | 127 | 10 / 0 | 23 | partial |
-| 8 | crossplane | 72 | 1 | 71 | 99% | 128 | 2 / 0 | 18 | partial |
-| 9 | external-secrets | 85 | 0 | 85 | 100% | 128 | 0 / 0 | 18 | full |
-| 10 | ingress-nginx | 93 | 5 | 88 | 95% | 133 | 9 / 0 | 25 | full |
+| 6 | kube-prometheus-stack | 81 | 2 | 70 | 86% | 122 | 12 / 0 | 27 | full |
+| 7 | vault | 82 | 7 | 75 | 91% | 129 | 10 / 0 | 23 | partial |
+| 8 | crossplane | 72 | 1 | 71 | 99% | 130 | 2 / 0 | 18 | partial |
+| 9 | external-secrets | 85 | 0 | 85 | 100% | 130 | 0 / 0 | 18 | full |
+| 10 | ingress-nginx | 93 | 5 | 88 | 95% | 135 | 9 / 0 | 25 | full |
 
 ### Discovery and relationship validation
 
@@ -100,6 +102,7 @@ What convergence looks like:
 | istio | 0/0/24 (0%) | 24/0/3/0 | 141/0/0/18/3 | n/a → 0 | 2 | 3 |
 | argo-cd | 0/0/12 (0%) | 12/0/1/0 | 59/0/0/13/6 | n/a → 0 | 2 | 3 |
 | postgresql | 0/1/6 (14%) | 4/0/1/1 | 40/0/15/20/0 | 1 → 0 | 4 | 6 |
+| kube-prometheus-stack | 2/6/7 (53%) | 12/0/3/0 | 60/0/0/15/0 | 0 → 0 | 2 | 0 |
 | vault | 2/0/13 (13%) | 14/0/1/0 | 236/0/0/244/0 | 0 → 0 | 8 | 9 |
 | crossplane | 2/4/8 (43%) | 8/0/5/0 | 86/0/0/56/14 | 0 → 0 | 6 | 9 |
 | external-secrets | 4/4/4 (67%) | 12/0/1/0 | 212/0/0/8/19 | 5 → 0 | 3 | 6 |
@@ -113,35 +116,38 @@ What convergence looks like:
 | 2 | istio | 12 | 99 | 81 | 69 | 85% | 11 | 99 |
 | 3 | argo-cd | 14 | 113 | 98 | 84 | 86% | 14 | 113 |
 | 5 | postgresql | 7 | 120 | 56 | 49 | 88% | 7 | 120 |
-| 7 | vault | 7 | 127 | 82 | 75 | 91% | 7 | 127 |
-| 8 | crossplane | 1 | 128 | 72 | 71 | 99% | 1 | 128 |
-| 9 | external-secrets | 0 | 128 | 85 | 85 | 100% | 0 | 128 |
-| 10 | ingress-nginx | 5 | 133 | 93 | 88 | 95% | 5 | 133 |
+| 6 | kube-prometheus-stack | 2 | 122 | 81 | 70 | 86% | 11 | 131 |
+| 7 | vault | 7 | 129 | 82 | 75 | 91% | 4 | 135 |
+| 8 | crossplane | 1 | 130 | 72 | 71 | 99% | 1 | 136 |
+| 9 | external-secrets | 0 | 130 | 85 | 85 | 100% | 0 | 136 |
+| 10 | ingress-nginx | 5 | 135 | 93 | 88 | 95% | 5 | 141 |
 
 New constructs per product, in onboarding order (records):
 
 ```text
-  1  cert-manager        87  ████████████████████████████████████████
-  2  istio               12  ██████
-  3  argo-cd             14  ███████
-  5  postgresql           7  ████
-  7  vault                7  ████
-  8  crossplane           1  █
-  9  external-secrets     0  
- 10  ingress-nginx        5  ███
+  1  cert-manager             87  ████████████████████████████████████████
+  2  istio                    12  ██████
+  3  argo-cd                  14  ███████
+  5  postgresql                7  ████
+  6  kube-prometheus-stack     2  █
+  7  vault                     7  ████
+  8  crossplane                1  █
+  9  external-secrets          0  
+ 10  ingress-nginx             5  ███
 ```
 
 Cumulative constructs introduced:
 
 ```text
-  1  cert-manager        87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  2  istio               99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  3  argo-cd            113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  5  postgresql         120  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  7  vault              127  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  8  crossplane         128  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  9  external-secrets   128  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 10  ingress-nginx      133  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  1  cert-manager             87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  2  istio                    99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  3  argo-cd                 113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  5  postgresql              120  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  6  kube-prometheus-stack   122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault                   129  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane              130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets        130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 10  ingress-nginx           135  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -197,6 +203,11 @@ Cumulative constructs introduced:
 - `template-func:ge`: First definition use: '{{if ge .Major 10}}' renders the published two-part form of versions >= 10 in the tarball URL and the Docker image tags (3 artifacts + 2 headings, see considered: the rejected published-version variable).
 - `template-var:Patch`: REL_17_2 / REL9_6_24 cannot be read by a (?P<version>) group: the numbers are underscore-separated, 17.2 has two parts and a major (17) must be a release line. Components are assembled into major.minor.patch[-prerelease] (missing minor/patch = 0), so 17.2 is 17.0.2, line 17.0, kind major/patch, and PrevTag/lineage/releaseKinds/availability work unchanged. Accepted for versioning.tagPattern and git-tags locators; validated by the Go validator and the JSON Schema. The assembled components are rendered back to the published two-part form in templates ({{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}}, and {{if eq .Patch 0}} for the 'Release 17' heading): the first definition use of the .Patch template variable and of the eq/ge template functions (see considered: the rejected published-version variable). (also needed by Go (go1.22 is 1.22.0), Linux kernel (v6.7), Python (v3.13.0rc1, glued prerelease), Ruby (v3_3_0), OpenSSL 1.x (OpenSSL_1_1_1), PHP (php-8.3.0RC1), MariaDB, none of the other planned Phase-2 products tags this way (Redis, Elasticsearch, ... are three-part semver): justified by well-known projects, not by the plan)
 
+### kube-prometheus-stack (order 6, wave 1): 2 new
+
+- `field:artifacts.version.from`: the document half of the construct above; a separate name because stats counts it separately (also needed by same as version:field)
+- `version:field`: The mirror of lookup: lookup finds the artifact whose index field matches the release (operator products use it for "the chart whose appVersion is my version"); field reads the version FROM a file of the release — required whenever the product is an aggregator that pins sub-components per release. Here it yields probe-able artifact instances with upstream evidence (Chart.yaml L9 for a dependency pin, values.yaml for an image tag), which a content snapshot cannot: the edge then states "kube-state-metrics chart 8.4.2 → 8.6.0 [verified]" instead of diffing text. Catalog gains the strategy + path validation (catalog.SplitYAMLPath), normalize the path walker over yaml.Node (normalize.ReadYAMLPath, ErrNoMatch semantics), ingest the resolution with the document as evidence, plus JSON Schema and unit tests in all three packages. (also needed by bitnami application charts (app image tag pinned in values.yaml, common dependency; well known), vault-helm (appVersion is the Vault version; vault already models the reverse lookup — the chart product would use field))
+
 ### vault (order 7, wave 1): 7 new
 
 - `field:artifacts.channels.path`: The helm-git channel says where in the chart repository the chart lives (path '.', Chart.yaml at the vault-helm root); artifact channels had no path field before.
@@ -228,7 +239,7 @@ No new constructs: the definition is configuration only.
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
-| 1 | postgresql, vault, crossplane, external-secrets, ingress-nginx | 1 of 5 (external-secrets) | 20 (4.0) | 95% | 35 / 0 | 23 (n=5) | 14/13/40 (40%) | 63/0/10/4 (5 of 5 reports) | 37 | full 2, partial 3 |
+| 1 | postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 6 (external-secrets) | 22 (3.7) | 93% | 47 / 0 | 24 (n=6) | 16/19/47 (43%) | 75/0/13/4 (6 of 6 reports) | 37 | full 3, partial 3 |
 
 ## Notes from the records
 
@@ -239,6 +250,8 @@ No new constructs: the definition is configuration only.
 **argo-cd**: Phase 1, reconstructed from the version history and docs/FINDINGS.md. Several of the constructs credited here (git-log, lookup) were declared in the foundation contract before any definition existed; they are credited to Argo CD as the first product that exercised them. exceptions and optional were added after ri check ran against this definition (c623b20).
 
 **postgresql**: Representable only after two small generic constructs; the rest of the topology (versions, per-release notes, upgrade guidance, CVEs, Docker image) is plain configuration. Classification quality is good because the notes are structured (one listitem per change, Migration section = incompatibilities): breaking counts match the document exactly. Sample-edge reading: 'Deprecate MD5 ...' needed a product rule (verb not in the builtin heuristics); 'Remove ... configure options' and 'Require ...' are flagged action required by the generic 'required' keyword (low value). Environment: Docker Hub rate limiting (429) made the first check run mark both images unverifiable, the mirror.gcr.io channel removed that flakiness.
+
+**kube-prometheus-stack**: The stress test this product was chosen for resolved into one generic construct (field) plus configuration: the chart is the release (template relation), the sub-components are per-release pins read out of the release's own files, the CRDs are a contents snapshot behind an availability window, and the upgrade guidance is a heading-selected section of a cumulative guide. Zero check failures on the first run (research before authoring paid for itself: every availability window came from the git history of Chart.yaml), zero unverifiable subjects, and — unlike every earlier product — no blocked hosts. 27 minutes, 6 sources, 9 artifacts, 0 product-specific Go lines.
 
 **vault**: Cross-major edge: path 2.0.0 -> 2.1.0 -> 2.1.1 (4 backport releases skipped). 314 changes: 255 declared (SECURITY/BUG FIXES/FEATURES/BREAKING CHANGES labels, docs headings) and 59 heuristic. Discovery (deterministic, no LLM) found only the tag scheme and the default advisory feed and mistook the shared docs repository for other HashiCorp products; useful improvements: scope docs paths to the product directory (content/vault/), read changelogs on the default branch as well as at tags, detect chart repositories named <product>-helm. Two edges were also exercised: 2.0.3 -> 2.0.4 (BREAKING CHANGES paragraph now flagged breaking + action required) and 1.17.6 -> 1.18.0 (upgrade-to-1.18.x guide). Elapsed time is agent wall-clock and excludes this record.
 
@@ -253,3 +266,5 @@ No new constructs: the definition is configuration only.
 Observations about the inputs (missing, inconsistent or later-adopted data). The report is computed regardless.
 
 - cert-manager uses constructs introduced by a later product (the definition was migrated after they appeared): field:sources.fallbackGroup (introduced by istio)
+- kube-prometheus-stack uses constructs introduced by a later product (the definition was migrated after they appeared): field:artifacts.channels.path (introduced by vault), field:artifacts.channels.tagPattern (introduced by vault), locator:helm-git (introduced by vault)
+- kube-prometheus-stack uses 6 construct(s) that no record introduces: field:artifacts.channels.glob, field:artifacts.version.from.kind, field:artifacts.version.from.path, field:artifacts.version.from.ref, field:artifacts.version.from.repository, field:sources.locator.chart
