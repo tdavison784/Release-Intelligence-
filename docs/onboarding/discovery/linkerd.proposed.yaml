@@ -1,0 +1,52 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: linkerd
+name: linkerd2
+homepage: https://github.com/linkerd/linkerd2
+versioning:
+  scheme: semver
+  tagPrefix: edge-
+  tagPattern: ^edge-(?P<version>\d+\.\d+\.\d+)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/linkerd/linkerd2
+      tagPattern: ^edge-(?P<version>\d+\.\d+\.\d+)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: linkerd/linkerd2
+    priority: 1
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: linkerd/linkerd2
+      ref: '{{.Tag}}'
+    fallbackGroup: release-notes
+    notes: 'Unverified by discovery (unverifiable: 26.7.2 unverifiable (fetch https://api.github.com/repos/linkerd/linkerd2/releases/tags/edge-26.7.2: unavailable (HTTP 403): {"message":"API rate limit exceeded for 69.9.221.149. (But here''s the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)","documentation_url":"ht…); 26.8.4 unverifiable (fetch https://api.github.com/repos/linkerd/linkerd2/releases/tags/edge-26.8.4: unavailable (HTTP 403): {"message":"API rate limit exceeded for 69.9.221.149. (But here''s the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)","documentation_url":"ht…); 26.9.2 unverifiable (fetch https://api.github.com/repos/linkerd/linkerd2/releases/tags/edge-26.9.2: unavailable (HTTP 403): {"message":"API rate limit exceeded for 69.9.221.149. (But here''s the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)","documentation_url":"ht…); 26.9.3 unverifiable (fetch https://api.github.com/repos/linkerd/linkerd2/releases/tags/edge-26.9.3: unavailable (HTTP 403): {"message":"API rate limit exceeded for 69.9.221.149. (But here''s the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)","documentation_url":"ht…)).'
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: linkerd/linkerd2
+    notes: 'Security policy: SECURITY.md → https://docs.github.com/en/code-security/dependabot https://github.com/linkerd/linkerd2/security/advisories'
+artifacts: []
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  validatedReleases:
+    - edge-26.7.2
+    - edge-26.8.4
+    - edge-26.9.2
+    - edge-26.9.3
+  notes: Proposed by automated discovery; relationship checks run against edge-26.7.2, edge-26.8.4, edge-26.9.2, edge-26.9.3.

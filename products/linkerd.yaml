@@ -1,0 +1,419 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: linkerd
+name: Linkerd
+description: >-
+  Ultralight service mesh (Rust linkerd2-proxy data plane, Go control plane,
+  linkerd CLI). The canonical channel is the stable lineage of
+  github.com/linkerd/linkerd2: stable-2.X.N tags through 2.14.10 (2024-02,
+  the last open-source stable release with artifacts — charts on
+  helm.linkerd.io/stable, images on ghcr.io/cr.l5d.io, CLI release assets,
+  curated GitHub release bodies) and, since 2.15, version-2.Y designation
+  markers on edge commits (no open-source artifacts; upstream: "producing
+  stable Linkerd releases will be in the hands of the vendor community").
+  The weekly edge-YY.M.N CalVer family is the live open-source artifact
+  channel and is excluded here (istio-style channel discipline; one family
+  per definition). Each release pins the data-plane proxy source
+  (.proxy-version), the proxy-init image and the CNI plugin image in the
+  charts' values at the tag. Related products out of scope: linkerd2-proxy,
+  proxy-init, cni-plugin, the in-repo extensions (viz, multicluster,
+  jaeger), linkerd-smi, Buoyant Enterprise for Linkerd.
+homepage: https://linkerd.io
+
+versioning:
+  scheme: semver
+  # stable-2.14.10 -> 2.14.10; version-2.15 -> 2.15.0 (component assembly,
+  # PostgreSQL construct). Excluded: the edge-YY.M.N CalVer family (378 tags,
+  # the weekly prerelease channel), stable-2.12.0-rc2, the 2018 v18.x/vX tags
+  # and the git-* junk tags.
+  tagPattern: '^(?:stable|version)-(?P<major>\d+)\.(?P<minor>\d+)(?:\.(?P<patch>\d+))?$'
+  lineage: minor
+  # Docs "Upgrade paths" (linkerd.io 2.15-2.17): patch skipping within a 2.x
+  # line is safe; skipping minor lines is NOT supported — one line at a time,
+  # which is what lineage: minor traverses.
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/linkerd/linkerd2
+    notes: >-
+      463 tags in the repository: 56 stable-2.X.N (2018 - 2024-02-20), 6
+      version-2.Y markers (2024-02-20 - 2026-06-22), 378 edge-YY.M.N and
+      junk; the pattern keeps the stable lineage. version-2.Y tags are
+      designations of edge commits (2.15 = edge-24.2.4 ... 2.19 =
+      edge-25.10.7, verified double-tagged; the mapping is published in
+      linkerd.io/data/versions.yaml).
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: linkerd/linkerd2
+
+  # --- release notes --------------------------------------------------------
+  # <= 2.14: curated GitHub release body ("This stable release back-ports
+  # bugfixes and improvements from recent edge releases. Introduced support
+  # for ... (#11222; fixes #11175) ...").
+  - id: release-notes-github
+    roles: [release-notes]
+    fallbackGroup: release-notes
+    availability: ">= 2.12.0, < 2.15.0"
+    locator:
+      kind: github-releases
+      repository: linkerd/linkerd2
+      ref: "{{.Tag}}"
+    classify:
+      - text: '(?i)NOTE about 2\.15'
+        skip: true
+      - text: '(?i)\b(security|CVE)\b'
+        category: security
+      - text: '(?i)\b(fix(es|ed)?|bug)\b'
+        category: bugfix
+  # >= 2.15: no GitHub release exists; the curated channel is the website
+  # announcement blog per logical version. The date-prefixed path is upstream
+  # data (not derivable from the version), so each designation is its own
+  # availability-pinned source.
+  - id: announce-2-15
+    roles: [release-notes]
+    availability: ">= 2.15.0, < 2.16.0"
+    locator:
+      kind: repo-file
+      repository: github.com/linkerd/website
+      ref: main
+      path: linkerd.io/content/blog/2024/0221-announcing-linkerd-2.15/index.md
+    classify:
+      - text: '(?i)^photo credit'
+        skip: true
+      - text: '(?i)^linkerd is for everyone'
+        skip: true
+      - text: '(?i)breaking change|no longer|deprecat|incompatible'
+        breaking: true
+      - text: '(?i)native sidecar|must|requires?'
+        actionRequired: true
+  - id: announce-2-16
+    roles: [release-notes]
+    availability: ">= 2.16.0, < 2.17.0"
+    locator:
+      kind: repo-file
+      repository: github.com/linkerd/website
+      ref: main
+      path: linkerd.io/content/blog/2024/0813-announcing-linkerd-2.16/index.md
+    classify:
+      - text: '(?i)^photo credit'
+        skip: true
+      - text: '(?i)^linkerd is for everyone'
+        skip: true
+      - text: '(?i)breaking change|no longer|deprecat|incompatible'
+        breaking: true
+      - text: '(?i)must|requires?'
+        actionRequired: true
+  - id: announce-2-17
+    roles: [release-notes]
+    availability: ">= 2.17.0, < 2.18.0"
+    locator:
+      kind: repo-file
+      repository: github.com/linkerd/website
+      ref: main
+      path: linkerd.io/content/blog/2024/1205-announcing-linkerd-2.17/index.md
+    classify:
+      - text: '(?i)^photo credit'
+        skip: true
+      - text: '(?i)^linkerd is for everyone'
+        skip: true
+      - text: '(?i)breaking change|no longer|deprecat|incompatible'
+        breaking: true
+      - text: '(?i)must|requires?'
+        actionRequired: true
+  - id: announce-2-18
+    roles: [release-notes]
+    availability: ">= 2.18.0, < 2.19.0"
+    locator:
+      kind: repo-file
+      repository: github.com/linkerd/website
+      ref: main
+      path: linkerd.io/content/blog/2025/0423-announcing-linkerd-2.18/index.md
+    classify:
+      - text: '(?i)^photo credit'
+        skip: true
+      - text: '(?i)^linkerd is for everyone'
+        skip: true
+      - text: '(?i)breaking change|no longer|deprecat|incompatible'
+        breaking: true
+      - text: '(?i)must|requires?'
+        actionRequired: true
+  - id: announce-2-19
+    roles: [release-notes]
+    availability: ">= 2.19.0, < 2.20.0"
+    locator:
+      kind: repo-file
+      repository: github.com/linkerd/website
+      ref: main
+      path: linkerd.io/content/blog/2025/1031-announcing-linkerd-2.19/index.md
+    classify:
+      - text: '(?i)^photo credit'
+        skip: true
+      - text: '(?i)^linkerd is for everyone'
+        skip: true
+      - text: '(?i)breaking change|no longer|deprecat|incompatible'
+        breaking: true
+      - text: '(?i)must|requires?'
+        actionRequired: true
+  - id: announce-2-20
+    roles: [release-notes]
+    availability: ">= 2.20.0, < 2.21.0"
+    locator:
+      kind: repo-file
+      repository: github.com/linkerd/website
+      ref: main
+      path: linkerd.io/content/blog/2026/0623-announcing-linkerd-2.20/index.md
+    classify:
+      - text: '(?i)^photo credit'
+        skip: true
+      - text: '(?i)^linkerd is for everyone'
+        skip: true
+      - text: '(?i)breaking change|no longer|deprecat|incompatible'
+        breaking: true
+      - text: '(?i)must|requires?'
+        actionRequired: true
+
+  # --- upgrade guide --------------------------------------------------------
+  # One "### Upgrade notice: stable-X.Y.0" section per minor in the
+  # per-docs-version upgrade task page (notices exist for 2.9.0-2.14.0; the
+  # 2.15+ pages are generic procedures with no version-specific notices).
+  - id: upgrade-notices
+    roles: [upgrade-guide]
+    releaseKinds: [minor]
+    availability: ">= 2.10.0, < 2.15.0"
+    locator:
+      kind: repo-file
+      repository: github.com/linkerd/website
+      ref: main
+      path: linkerd.io/content/{{.Major}}.{{.Minor}}/tasks/upgrade.md
+    extract:
+      type: markdown-section
+      heading: 'Upgrade notice: stable-{{.Major}}\.{{.Minor}}\.0'
+    classify:
+      - text: '(?i)must|will not succeed|required'
+        actionRequired: true
+
+  # --- security -------------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: linkerd/linkerd2
+    notes: SECURITY.md points to GitHub security advisories on this repository.
+
+artifacts:
+  # --- Helm chart ------------------------------------------------------------
+  # Published <= 2.14 on helm.linkerd.io/stable with chart versions
+  # independent of releases (linkerd-control-plane 1.9.x-1.16.11); the join
+  # is appVersion == the release tag (Argo CD lookup construct). The index is
+  # frozen at 2024-02-20: upstream no longer produces open-source stable
+  # artifacts, so from 2.15 the lookup finds nothing and the artifact is
+  # optional (absence is the upstream-declared state, not a broken relation —
+  # Argo CD's optional charts). Contents keep flowing for every era: values
+  # from the source tree at the tag, and chart metadata from the published
+  # tarball while it exists / from the source tree (placeholder version)
+  # thereafter, so the per-release kubeVersion minimum (>=1.21.0-0 at 2.12 to
+  # >=1.31.0-0 at 2.20) becomes a chart-kubeVersion constraint everywhere.
+  - id: control-plane-chart
+    type: helm-chart
+    name: linkerd-control-plane
+    optional: true
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Tag}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://helm.linkerd.io/stable
+        chart: linkerd-control-plane
+    contents:
+      - kind: chart-metadata
+        availability: ">= 2.12.0, < 2.15.0"
+      - kind: chart-metadata
+        availability: ">= 2.15.0"
+        locator:
+          kind: repo-file
+          repository: github.com/linkerd/linkerd2
+          ref: "{{.Tag}}"
+          path: charts/linkerd-control-plane/Chart.yaml
+      - kind: helm-values
+        availability: ">= 2.12.0"
+        locator:
+          kind: repo-file
+          repository: github.com/linkerd/linkerd2
+          ref: "{{.Tag}}"
+          path: charts/linkerd-control-plane/values.yaml
+        # linkerdVersion is a placeholder rewritten at packaging; the
+        # proxyInit pin is covered by the proxy-init artifact with registry
+        # evidence, and proxy.image.version defaults to it (not twice).
+        ignoreKeys: [linkerdVersion, proxyInit.image.version, proxy.image.version]
+
+  # --- CRDs (in-tree chart, the file set at the tag) -------------------------
+  # The linkerd-crds chart exists since 2.12; the published chart cannot be
+  # related to releases (independent sparse versions 1.4-1.8, no appVersion),
+  # so the artifact is the CRD template file set of the in-tree chart at the
+  # tag. Probed as the serviceprofile.yaml file (present in every release of
+  # the chart; a repo-dir channel cannot probe). The files are Helm templates
+  # ({{ include ... }} / {{- if ... }}), so no crds CONTENTS can be captured:
+  # no rendered per-release CRD manifest is published anywhere upstream (the
+  # packaged chart tarball carries the same templates) — recorded as a gap in
+  # the onboarding record.
+  - id: crds
+    type: crd
+    name: charts/linkerd-crds/templates
+    availability: ">= 2.12.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://raw.githubusercontent.com/linkerd/linkerd2/{{.Tag}}/charts/linkerd-crds/templates/serviceprofile.yaml
+
+  # --- images (ghcr.io primary; cr.l5d.io is an alias of ghcr.io) ------------
+  - id: controller-image
+    type: container-image
+    name: controller
+    availability: ">= 2.12.0, < 2.15.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/linkerd/controller
+      - kind: oci
+        repository: cr.l5d.io/linkerd/controller
+  - id: policy-controller-image
+    type: container-image
+    name: policy-controller
+    availability: ">= 2.12.0, < 2.15.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/linkerd/policy-controller
+      - kind: oci
+        repository: cr.l5d.io/linkerd/policy-controller
+  - id: proxy-image
+    type: container-image
+    name: proxy
+    availability: ">= 2.12.0, < 2.15.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/linkerd/proxy
+      - kind: oci
+        repository: cr.l5d.io/linkerd/proxy
+    notes: >-
+      The proxy image is tagged with the CONTROL-PLANE release tag (it is
+      built from the linkerd2-proxy source pinned by .proxy-version — see the
+      linkerd2-proxy artifact; ghcr.io/linkerd/proxy carries no v2.NNN tags).
+  - id: web-image
+    type: container-image
+    name: web
+    availability: ">= 2.12.0, < 2.15.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/linkerd/web
+      - kind: oci
+        repository: cr.l5d.io/linkerd/web
+  - id: debug-image
+    type: container-image
+    name: debug
+    availability: ">= 2.12.0, < 2.15.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/linkerd/debug
+      - kind: oci
+        repository: cr.l5d.io/linkerd/debug
+
+  # --- pinned data-plane proxy source (all eras) -----------------------------
+  # .proxy-version at the tag pins the linkerd2-proxy release the proxy
+  # binary/image is built from (v2.185.0 at 2.12.0 -> v2.359.0 at 2.20). The
+  # proxy repository publishes tags release/v2.NNN.N and NO GitHub release
+  # objects, so the pin is probed as the tag's Cargo.toml (postgresql-style
+  # http package probe).
+  - id: linkerd2-proxy
+    type: package
+    name: linkerd2-proxy
+    version:
+      strategy: pattern
+      pattern: '^(?P<version>v\d+\.\d+\.\d+)\s*$'
+      from:
+        kind: repo-file
+        repository: github.com/linkerd/linkerd2
+        ref: "{{.Tag}}"
+        path: .proxy-version
+    channels:
+      - kind: http
+        url: https://raw.githubusercontent.com/linkerd/linkerd2-proxy/release/{{.ArtifactVersion}}/Cargo.toml
+
+  # --- pinned proxy-init image (2.12 - 2.19) ----------------------------------
+  # proxyInit.image.version in the control-plane chart values at the tag
+  # (v2.0.0 at 2.12.0 -> v2.4.3 at 2.19). Removed in 2.20: native sidecars
+  # became the default deployment type (announcing-linkerd-2.20).
+  - id: proxy-init-image
+    type: container-image
+    name: proxy-init
+    availability: ">= 2.12.0, < 2.20.0"
+    version:
+      strategy: field
+      field: proxyInit.image.version
+      from:
+        kind: repo-file
+        repository: github.com/linkerd/linkerd2
+        ref: "{{.Tag}}"
+        path: charts/linkerd-control-plane/values.yaml
+    channels:
+      - kind: oci
+        repository: ghcr.io/linkerd/proxy-init
+
+  # --- pinned CNI plugin image (>= 2.13) --------------------------------------
+  # image.version in the linkerd2-cni chart values at the tag (v1.1.0 at
+  # 2.13.0 -> v1.6.8 at 2.20; no pin before 2.13).
+  - id: cni-plugin-image
+    type: container-image
+    name: cni-plugin
+    availability: ">= 2.13.0"
+    version:
+      strategy: field
+      field: image.version
+      from:
+        kind: repo-file
+        repository: github.com/linkerd/linkerd2
+        ref: "{{.Tag}}"
+        path: charts/linkerd2-cni/values.yaml
+    channels:
+      - kind: oci
+        repository: ghcr.io/linkerd/cni-plugin
+
+  # --- CLI binary (<= 2.14) ----------------------------------------------------
+  # Bare per-OS/arch release assets (no archive extension; the install script
+  # downloads linkerd2-cli-${VERSION}-${OS} directly).
+  - id: cli-binary
+    type: binary
+    name: linkerd2-cli-linux-amd64
+    availability: ">= 2.12.0, < 2.15.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://github.com/linkerd/linkerd2/releases/download/{{.Tag}}/linkerd2-cli-{{.Tag}}-linux-amd64
+
+provenance:
+  method: discovery+research
+  author: onboarding wave 3
+  updated: "2026-10-01"
+  validatedReleases: [2.14.10, 2.15.0, 2.19.0, 2.20.0]
+  notes: >-
+    Authored from docs/research/linkerd.md. Discovery proposed the edge
+    CalVer family (newest-tag trap); research established the three-family
+    topology and the February 2024 stable-artifact boundary. registry.k8s.io
+    has no linkerd repositories (404); images are ghcr.io with cr.l5d.io as
+    an alias (same token realm). The stable 2.15+ designations carry no
+    open-source artifacts; their carrier is the corresponding edge release
+    (mapping published in linkerd.io/data/versions.yaml) — see the record's
+    representability notes.
