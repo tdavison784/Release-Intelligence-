@@ -1,0 +1,306 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: crossplane
+name: Crossplane
+description: >-
+  Control plane framework for Kubernetes: compositions, managed resources,
+  package manager (providers, functions, configurations) and, since v2,
+  operations. Ships one controller image (also the RBAC manager), a Helm chart
+  whose version equals the release, the CRDs inside the controller (source in
+  cluster/crds) and, until v2.2, the crank CLI from the same release; from
+  v2.3 the CLI lives in the separate crossplane/cli repository. Release notes
+  are GitHub release bodies only; docs live in the separate crossplane/docs
+  repository.
+homepage: https://crossplane.io
+
+versioning:
+  scheme: semver
+  tagPrefix: v
+  # vX.Y.Z, vX.Y.Z-rc.N and vX.Y.Z-preview.N. The apis/vX.Y.Z tags of the Go
+  # submodule, the legacy v0.N.0-rc tags and the other non-semver tags do not
+  # match. X.Y.0-rc.0 is cut from main and is never promoted to a release
+  # channel; only rc.1 is promoted (as a pre-release).
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-(?:preview\.\d+|rc\.\d+))?)$'
+  # release-X.Y branches are maintained in parallel; X.Y.0 is cut from the
+  # release branch and its GitHub notes are generated against the previous
+  # line's X.Y-1.0 (crossplane/release issue template).
+  lineage: minor
+
+sources:
+  # --- canonical versions -------------------------------------------------
+  - id: github-releases
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: github-releases
+      repository: crossplane/crossplane
+    notes: Preferred (prerelease flags, publish dates). Requires GitHub API access.
+  - id: git-tags
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: git-tags
+      repository: github.com/crossplane/crossplane
+      tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-(?:preview\.\d+|rc\.\d+))?)$'
+    notes: Fallback when the GitHub API is unreachable; tags are authoritative.
+
+  # --- release notes ------------------------------------------------------
+  # Maintainers publish hand-written GitHub release bodies (X.Y.0 with a
+  # "previous tag" of X.Y-1.0, see crossplane/release). Only reachable
+  # through the GitHub API.
+  - id: github-release-notes
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: release-notes
+    locator:
+      kind: github-releases
+      repository: crossplane/crossplane
+      ref: "{{.Tag}}"
+  # Deterministic fallback: the commit subjects between the previous release
+  # in lineage order and this one. Mostly conventional commits, but free-form
+  # subjects dominate (about half). Renovate dependency bumps carry
+  # "[security]" when they fix a published vulnerability.
+  - id: commit-log
+    roles: [changelog]
+    priority: 1
+    fallbackGroup: release-notes
+    locator:
+      kind: git-log
+      repository: github.com/crossplane/crossplane
+      ref: "{{.PrevTag}}..{{.Tag}}"
+    classify:
+      # Rules are not first-match: every matching rule is applied in order
+      # and a skip drops the item at once, so the skip patterns below must
+      # never match "chore(deps): ... [security]" lines (see deps rule).
+      - text: '(?i)\[security\]|\bsecurity (bumps?|updates?|fix(es)?)\b|\b(toctou|cves?|vulnerabilit(y|ies))\b'
+        category: security
+      # Renovate bumps of Go modules are kept (hidden unless verbose) rather
+      # than skipped; bumps of CI actions and lock files are not product
+      - text: '^(fix|feat|chore|build)\(deps\):'
+        category: dependency
+      - text: '^chore\(deps\): (update .* (actions?|digest)( to |$| \()|lock file maintenance|update vendor-hashes)'
+        skip: true
+      # CI, build, test and repository housekeeping
+      - text: '^(test|ci|style|lint)(\(.+\))?!?:'
+        skip: true
+      - text: '^build(\((nix|go|ci|docker|make|release)\))?!?:'
+        skip: true
+      - text: '^chore(\((ci|nix|renovate|e2e|build|lint|test|release|governance|adopters|docs)\))?!?:'
+        skip: true
+      - text: '^(fix|feat)\((ci|nix|build|lint|renovate|e2e|test)\)!?:'
+        skip: true
+      - text: '^(docs?|README|adopters|governance)(\(.+\))?:'
+        skip: true
+      - text: '(?i)\b(ADOPTERS|OWNERS)\.md\b'
+        skip: true
+      # review chatter and test-only subjects of free-form commits
+      - text: '(?i)\b(rabbit|nitpicks?|re-trigger|lint fixed|review (feedback|correction)|renovate|throttles?|unused|tests?|e2e|readme|todo|one-pager|old comment)\b|\bCI\b|\bTest[A-Z]'
+        skip: true
+      # free-form subjects (about half of all commits) start with a verb
+      - text: '^(Add|Introduce|Support|Implement|Allow|Enable)\b'
+        category: feature
+      - text: '^(Fix(es|ed)?|Don.t|Do not|Stop|Avoid|Prevent|Ensure|Correct)\b'
+        category: bugfix
+    validatedAgainst: [1.20.0, 1.20.13, 2.0.0, 2.0.8, 2.1.0, 2.1.8, 2.2.0, 2.2.6, 2.3.0, 2.3.6, 2.4.0, 2.4.2]
+
+  # "What's New in v2?" announces the v1 -> v2 transition. The page is copied
+  # unchanged into every v2.x docs line, so it is only used for the major
+  # release itself. Docs lines that are no longer on master live on the
+  # "vX.Y-archive" tags.
+  - id: whats-new-major
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: whats-new
+    releaseKinds: [major]
+    availability: ">= 2.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/crossplane/docs
+      ref: master
+      path: content/v{{.Major}}.{{.Minor}}/whats-new/_index.md
+    classify:
+      - section: '(?i)backward compatibility'
+        breaking: true
+        actionRequired: true
+  - id: whats-new-major-archive
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: whats-new
+    releaseKinds: [major]
+    availability: ">= 2.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/crossplane/docs
+      ref: "v{{.Major}}.{{.Minor}}-archive"
+      path: content/v{{.Major}}.{{.Minor}}/whats-new/_index.md
+    classify:
+      - section: '(?i)backward compatibility'
+        breaking: true
+        actionRequired: true
+    validatedAgainst: [2.0.0]
+
+  # --- upgrade guides -----------------------------------------------------
+  # Only the v1 -> v2 guide is release specific; guides/upgrade-crossplane.md
+  # is a generic "helm upgrade" how-to that is identical in every line.
+  - id: upgrade-to-v2
+    roles: [upgrade-guide]
+    priority: 0
+    fallbackGroup: upgrade-to-v2
+    releaseKinds: [major]
+    availability: ">= 2.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/crossplane/docs
+      ref: master
+      path: content/v{{.Major}}.{{.Minor}}/guides/upgrade-to-crossplane-v{{.Major}}.md
+    classify:
+      - section: '(?i)^(who can upgrade|start using v2 features)'
+        skip: true
+      - section: '(?i)^removed features'
+        breaking: true
+        actionRequired: true
+  - id: upgrade-to-v2-archive
+    roles: [upgrade-guide]
+    priority: 1
+    fallbackGroup: upgrade-to-v2
+    releaseKinds: [major]
+    availability: ">= 2.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/crossplane/docs
+      ref: "v{{.Major}}.{{.Minor}}-archive"
+      path: content/v{{.Major}}.{{.Minor}}/guides/upgrade-to-crossplane-v{{.Major}}.md
+    classify:
+      - section: '(?i)^(who can upgrade|start using v2 features)'
+        skip: true
+      - section: '(?i)^removed features'
+        breaking: true
+        actionRequired: true
+    validatedAgainst: [2.0.0]
+
+  # --- security -----------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: crossplane/crossplane
+    notes: Repository security advisories (GHSA); fixes are also announced on crossplane-security-announce and in release notes.
+
+artifacts:
+  # One controller image (the RBAC manager runs the same image). Registries
+  # in preference order: xpkg.crossplane.io is the chart default since 1.20,
+  # xpkg.upbound.io before that; Docker Hub and ghcr.io carry the same release
+  # tags (promote.yml pushes all of them).
+  - id: image
+    type: container-image
+    name: crossplane
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: xpkg.crossplane.io/crossplane/crossplane
+      - kind: oci
+        repository: xpkg.upbound.io/crossplane/crossplane
+      - kind: oci
+        repository: docker.io/crossplane/crossplane
+      - kind: oci
+        repository: ghcr.io/crossplane/crossplane
+    validatedAgainst: [1.20.0, 1.20.13, 2.0.0, 2.0.8, 2.1.0, 2.1.8, 2.2.0, 2.2.6, 2.3.0, 2.3.6, 2.4.0, 2.4.2]
+
+  # Chart version == appVersion == release version without "v" (all 161
+  # entries of the stable index); the in-repo Chart.yaml is a 0.0.1
+  # placeholder. The stable index is served from charts.crossplane.io
+  # (CloudFront); the S3 bucket behind it is the reachable alternative.
+  - id: helm-chart
+    type: helm-chart
+    name: crossplane
+    version: {strategy: template, template: "{{.Version}}"}
+    exceptions:
+      - versions: [1.20.2, 2.0.3]
+        reason: >-
+          Tagged on 2025-11-06 together with 1.20.3 / 2.0.4 but never
+          promoted to the stable channel (no chart, no stable/vX/ directory).
+          Found by `ri check crossplane` on 2026-10-01.
+    channels:
+      - kind: helm-repo
+        url: https://charts.crossplane.io/stable
+        chart: crossplane
+      - kind: helm-repo
+        url: https://crossplane-helm-charts.s3.amazonaws.com/stable
+        chart: crossplane
+    contents:
+      # before v1.12 the tree holds values.yaml.tmpl with build-time
+      # placeholders, which is not parseable values YAML
+      - kind: helm-values
+        availability: ">= 1.12.0"
+        locator:
+          kind: repo-file
+          repository: github.com/crossplane/crossplane
+          path: cluster/charts/crossplane/values.yaml
+    notes: >-
+      Chart.yaml in the tree is a placeholder (version/appVersion 0.0.1, no
+      kubeVersion) and is deliberately not captured as chart-metadata.
+    validatedAgainst: [1.20.0, 1.20.13, 2.0.0, 2.0.8, 2.1.0, 2.1.8, 2.2.0, 2.2.6, 2.3.0, 2.3.6, 2.4.0, 2.4.2]
+
+  # The CRDs are generated into cluster/crds and embedded in the controller;
+  # the chart does not ship them (the init container installs them).
+  - id: crds
+    type: crd
+    name: CustomResourceDefinitions
+    availability: ">= 1.2.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      # probe: one CRD of the directory at the tag (cluster/crds appears in
+      # v1.2.0; earlier charts carried their CRDs elsewhere)
+      - kind: http
+        url: https://raw.githubusercontent.com/crossplane/crossplane/{{.Tag}}/cluster/crds/apiextensions.crossplane.io_compositions.yaml
+    contents:
+      - kind: crds
+        locator:
+          kind: repo-dir
+          repository: github.com/crossplane/crossplane
+          path: cluster/crds
+          glob: '*.yaml'
+    validatedAgainst: [1.20.0, 1.20.13, 2.0.0, 2.0.8, 2.1.0, 2.1.8, 2.2.0, 2.2.6, 2.3.0, 2.3.6, 2.4.0, 2.4.2]
+
+  # CLI. Up to v2.2 "crank" was built and promoted together with the core
+  # release (same tag). From v2.3 the CLI is released from crossplane/cli
+  # with its own tags (v2.3.0 .. v2.3.4, v2.4.0, v2.4.1, ...): the minor
+  # follows the core line, the patch does not (core v2.3.6 has no v2.3.6 CLI),
+  # so the CLI of a line is represented by its X.Y.0 release.
+  - id: crank-linux-amd64
+    type: binary
+    name: crank
+    # the stable channel on S3 starts at v1.10.0
+    availability: ">= 1.10.0, < 2.3.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    exceptions:
+      - versions: [1.20.2, 2.0.3]
+        reason: Release never promoted to the stable channel (see helm-chart).
+    channels:
+      - kind: http
+        url: https://releases.crossplane.io/stable/{{.Tag}}/bin/linux_amd64/crank
+      - kind: http
+        url: https://crossplane-releases.s3.amazonaws.com/stable/{{.Tag}}/bin/linux_amd64/crank
+    validatedAgainst: [1.20.0, 1.20.13, 2.0.0, 2.0.8, 2.1.0, 2.1.8, 2.2.0, 2.2.6]
+  - id: cli-linux-amd64
+    type: binary
+    name: crossplane
+    availability: ">= 2.3.0"
+    version: {strategy: template, template: "v{{.Major}}.{{.Minor}}.0"}
+    channels:
+      - kind: http
+        url: https://cli.crossplane.io/stable/v{{.Major}}.{{.Minor}}.0/bin/linux_amd64/crossplane
+      - kind: http
+        url: https://crossplane-cli-releases.s3.amazonaws.com/stable/v{{.Major}}.{{.Minor}}.0/bin/linux_amd64/crossplane
+    validatedAgainst: [2.3.0, 2.3.6, 2.4.0, 2.4.2]
+
+provenance:
+  method: manual+research
+  updated: "2026-10-01"
+  validatedReleases: [1.20.0, 1.20.13, 2.0.0, 2.0.8, 2.1.0, 2.1.8, 2.2.0, 2.2.6, 2.3.0, 2.3.6, 2.4.0, 2.4.2]
+  notes: >-
+    Authored from docs/research/crossplane.md. charts.crossplane.io,
+    releases.crossplane.io, cli.crossplane.io, xpkg.upbound.io,
+    xpkg.crossplane.io, docs.crossplane.io and the GitHub API were
+    unreachable; the chart index, CLI binaries and chart archives are
+    checked through their S3 buckets, the image through Docker Hub and ghcr.io.

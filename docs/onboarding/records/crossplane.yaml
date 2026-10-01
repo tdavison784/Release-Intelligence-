@@ -1,0 +1,109 @@
+product: crossplane
+order: 8
+wave: 1
+repository: github.com/crossplane/crossplane
+onboarding:
+  startedAt: "2026-10-01T11:50:14Z"
+  finishedAt: "2026-10-01T12:08:32Z"
+  minutes: 18                # wall-clock, agent time
+discovery:
+  proposal: docs/onboarding/discovery/crossplane.proposed.yaml
+  report: docs/onboarding/discovery/crossplane.report.md
+# Every source and artifact of the FINAL definition, with where it came from.
+sources:
+  - {id: github-releases, origin: manual, note: "canonical versions via the GitHub API (blocked); discovery proposed only git tags"}
+  - {id: git-tags, origin: discovered, note: "proposed as `tags`; same strict tagPattern that excludes the apis/ submodule tags"}
+  - {id: github-release-notes, origin: manual, note: "hand-written GitHub release bodies (crossplane/release process); API blocked, content unverified"}
+  - {id: commit-log, origin: manual, note: "git-log PrevTag..Tag fallback (existing construct, as Argo CD); classify rules tuned on edges"}
+  - {id: whats-new-major, origin: discovered-modified, note: "proposed per minor (release-notes-line); the page is the v2 announcement copied unchanged into every v2.x docs line, so restricted to the major release"}
+  - {id: whats-new-major-archive, origin: manual, note: "fallback ref vX.Y-archive: docs lines that left master live on archive tags"}
+  - {id: upgrade-to-v2, origin: discovered-modified, note: "discovery excluded upgrade-to-crossplane-v2.md in favour of the generic upgrade-crossplane.md; the v1->v2 guide is the release specific one"}
+  - {id: upgrade-to-v2-archive, origin: manual, note: "archive-tag fallback of the same guide (v2.0 is no longer on master)"}
+  - {id: github-advisories, origin: discovered, note: "GitHub advisories (API blocked)"}
+artifacts:
+  - {id: image, origin: manual, note: "discovery found no release image (ghcr.io rejected as snapshot-only, wrongly); four registries same path: xpkg.crossplane.io, xpkg.upbound.io, docker.io, ghcr.io; verified through the last two"}
+  - {id: helm-chart, origin: discovered-modified, note: "version relation {{.Version}} was right; channels changed (master channel dropped, S3 origin added), exceptions for never-promoted 1.20.2/2.0.3, placeholder Chart.yaml content dropped, helm-values only from 1.12"}
+  - {id: crds, origin: discovered-modified, note: "repo-dir channel is not probeable (unverifiable); replaced by an http probe of one CRD at the tag; availability >= 1.2.0"}
+  - {id: crank-linux-amd64, origin: manual, note: "CLI binary of the core release bucket, v1.10.0 .. v2.2.x; verified through the S3 bucket behind releases.crossplane.io"}
+  - {id: cli-linux-amd64, origin: manual, note: "CLI from the separate crossplane/cli repository since v2.3; X.Y.0 of the line as representative; verified through the S3 bucket behind cli.crossplane.io"}
+discoveryRejected:
+  - {id: release-notes-line (per minor), reason: "whats-new/_index.md is the v2 announcement, identical in v2.1 .. v2.4 and master; would repeat the same notes for every minor"}
+  - {id: upgrade-guide (guides/upgrade-crossplane.md), reason: "generic `helm upgrade` how-to, identical in every docs line, not release specific"}
+  - {id: "crossplane-chart channel https://charts.crossplane.io/master", reason: "master channel holds unreleased main builds (2732 entries such as 2.5.0-rc.0.79.gab4371d05), not a release channel"}
+  - {id: "crossplane-chart chart-metadata content", reason: "Chart.yaml in the tree is a 0.0.1 placeholder without kubeVersion; carries no information"}
+  - {id: "image ghcr.io/crossplane/crossplane (rejected by discovery)", reason: "discovery said snapshot-only; wrong, it carries release tags and was kept as a channel"}
+relationships:
+  historicalReleasesChecked: [1.0.0, 1.1.0, 1.2.0, 1.5.0, 1.9.2, 1.10.0, 1.11.5, 1.12.0, 1.14.0, 1.16.0, 1.17.0, 1.18.0, 1.19.3, 1.20.0, 1.20.2, 1.20.13, 2.0.0, 2.0.3, 2.0.8, 2.1.0, 2.1.8, 2.2.0, 2.2.6, 2.3.0, 2.3.6, 2.4.0, 2.4.2]
+  initialFailures: 0            # first complete draft, default window (2.2.0 .. 2.4.2): 0 failing, 1 unverifiable (crds). Extending the window to v1.0 .. v1.18 found 1 more failing subject (helm-values) and 1 unverifiable (crank)
+  finalFailures: 0              # final run: 12 releases 1.20.0 .. 2.4.2; 8 subjects validated, 5 insufficient (see unverifiable)
+  manualInterventions:
+    - {subject: "crds artifact", change: "channel repo-dir -> http probe of one CRD at the tag", reason: "repo-dir channels are skipped by artifact probes (unverifiable)"}
+    - {subject: "crds artifact", change: "availability >= 1.2.0", reason: "cluster/crds appears in v1.2.0"}
+    - {subject: "helm-chart/helm-values", change: "availability >= 1.12.0", reason: "before v1.12 the tree holds values.yaml.tmpl with build-time placeholders (404 on values.yaml)"}
+    - {subject: "crank-linux-amd64", change: "availability >= 1.10.0, < 2.3.0", reason: "the stable channel on S3 starts at v1.10.0; the CLI binary moved to crossplane/cli in v2.3"}
+    - {subject: "helm-chart + crank-linux-amd64", change: "exceptions [1.20.2, 2.0.3]", reason: "tagged but never promoted: absent from the chart index and from stable/ in the release bucket"}
+    - {subject: "commit-log", change: "classify rules (security before skips, skip CI/test/review chatter, dependency category, leading-verb feature/bugfix)", reason: "edge output 2.3.0 -> 2.4.0 and 1.20.13 -> 2.0.0 was dominated by Renovate and CI noise; rules are applied in order and a skip drops the item, so [security] bumps needed their own earlier rule"}
+  unverifiable:
+    - {subject: github-release-notes, reason: "api.github.com blocked; the commit log answered instead (covered)"}
+    - {subject: github-advisories, reason: "api.github.com blocked"}
+    - {subject: github-releases, reason: "api.github.com blocked; git tags answered"}
+    - {subject: image, reason: "xpkg.crossplane.io and xpkg.upbound.io blocked; verified through docker.io and ghcr.io"}
+    - {subject: helm-chart, reason: "charts.crossplane.io blocked; verified through the S3 bucket behind it"}
+    - {subject: "crank-linux-amd64 / cli-linux-amd64", reason: "releases.crossplane.io / cli.crossplane.io blocked; verified through the S3 buckets behind them"}
+    - {subject: "whats-new-major, upgrade-to-v2 (+ archive)", reason: "only one major release (v2.0.0) exists, so fewer than 3 validations are possible"}
+constructs:
+  new: []
+  considered:
+    - {name: "line-aligned artifact version (patch independent)", reason: "the CLI of crossplane/cli follows the core minor line but not the patch (core 2.3.6 has no CLI 2.3.6); approximated with the line's X.Y.0 release; a lookup by minor needs a version index (the CLI is plain S3 paths) and no second product here needs it yet (candidates: Flux, Cilium CLI) - recorded as a gap"}
+    - {name: "support window / EOL per release line", reason: "README table and release-cycle docs; the compatibility model only holds platform version constraints; Istio (supportStatus.yml eol), cert-manager (supported releases) and Argo CD (3-minor policy) have the same unrepresented data; needs a domain type, not definition-only work, and would touch shared core code"}
+    - {name: "git-log de-duplication of cherry-picked commits", reason: "backports appear twice with different SHAs; a generic dedup by subject or patch-id would help every release-branch product but is a core adapter change; recorded as noise"}
+    - {name: "version-aligned multi-repository releases", reason: "docs/CLI/runtime live in other repositories; handled with per-source repositories and a fallback group on archive tags, no new construct needed"}
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/upgrade/build.go, purpose: "gap warnings for upgrade-guide and compatibility sources: sources of one role cover each other, so a fallback-group member that answered suppresses the not-found warning of its alternative (first definition with a fallback group on an upgrade guide: spurious 'Upgrade guide for v2.0.0 was not retrieved')"}
+    - {file: internal/upgrade/build_test.go, purpose: "TestGapWarningsAlternativeSourcesCoverEachOther"}
+unreachableSources:
+  - {host: api.github.com, reason: "egress policy 403 (releases, advisories)"}
+  - {host: xpkg.crossplane.io, reason: "egress policy 403 (chart default image registry since 1.20)"}
+  - {host: xpkg.upbound.io, reason: "egress policy 403"}
+  - {host: charts.crossplane.io, reason: "egress policy 403 (S3 origin crossplane-helm-charts.s3.amazonaws.com is reachable)"}
+  - {host: releases.crossplane.io, reason: "egress policy 403 (S3 origin crossplane-releases.s3.amazonaws.com is reachable)"}
+  - {host: cli.crossplane.io, reason: "egress policy 403 (S3 origin crossplane-cli-releases.s3.amazonaws.com is reachable)"}
+  - {host: docs.crossplane.io, reason: "egress policy 403 (docs read from github.com/crossplane/docs)"}
+  - {host: artifacthub.io, reason: "egress policy 403"}
+  - {host: "github.com (HTML)", reason: "releases and security advisory pages 403"}
+ambiguousRelationships:
+  - "CLI (>= v2.3) version vs core version: same minor line, independent patch; X.Y.0 is used as the line's representative, which says nothing about the CLI patch a given core patch pairs with"
+  - "GitHub release bodies are hand-written for X.Y.0 and generated for patches; their structure (breaking-change conventions) could not be read, so classification of the fallback commit log is heuristic"
+  - "xpkg.crossplane.io is the chart default image registry from v1.20.0 (xpkg.upbound.io before) but both are blocked; whether xpkg.crossplane.io carries every older tag is unknown"
+  - "the stable chart index and bucket promote X.Y.0-rc.1 but never X.Y.0-rc.0; irrelevant while pre-releases are excluded, would need availability by pre-release otherwise"
+  - "docs master retains v1.20 and the last three minors; older lines exist only as vX.Y-archive tags (including the typo v1.10-architve), so docs sources need an ordered fallback"
+representability: partial
+gaps:
+  - "Kubernetes compatibility: docs only say 'an actively supported Kubernetes version'; no matrix, no chart kubeVersion, so the compatibility section of an edge is empty for Crossplane"
+  - "Support window / EOL per release line (README table, release-cycle docs) cannot be expressed; same data exists, unrepresented, for cert-manager, Istio and Argo CD"
+  - "Upgrade path constraints are prose only: upgrade one minor at a time, v2 only from v1.20 (the edge path policy matches the first, nothing encodes the second)"
+  - "CLI of crossplane/cli: minor-aligned, patch-independent relation to core versions is approximated (X.Y.0 representative)"
+  - "Release notes: hand-written GitHub release bodies are unreachable; the git log fallback is about half free-form subjects, has no breaking markers, double-counts cherry-picked backports, and leaves about half (224 of 429) of the v1.20.13 -> v2.0.8 items as 'other'"
+  - "Chart archives (.tgz on S3), image digests and the CLI binaries are not read (G8); only existence is verified, the values come from the source tree at the tag"
+  - "Provider/function compatibility (spec.crossplane.version in package metadata) and the crossplane-runtime dependency are outside the definition"
+sampleEdge:
+  from: 1.20.13
+  to: 2.0.8
+  summary: "24 breaking · 20 action required · 429 changes · 1 warnings"
+  evidenceRecords: 672
+notes: >-
+  Representable as pure configuration for versions, chart, image, CRDs,
+  docs-repo sources and the v1 -> v2 major transition; the major edge is the
+  strongest output (10 declared removals from the upgrade guide plus CRD diffs
+  such as the removed ControllerConfig/StoreConfig CRDs and the
+  Composition v1 fields). Three S3 buckets (chart index, core release bundle,
+  CLI bundle) were found behind blocked CloudFront hosts and make the chart,
+  crank and CLI relationships verifiable without any new construct. The
+  default `ri check` window (6 releases) found nothing wrong; the relationship
+  errors only showed up when checking v1.0 .. v1.18 (values.yaml.tmpl, crank
+  absent before v1.10). A recent minor edge (2.3.6 -> 2.4.2) has 0 breaking
+  and 78 changes of which 19 are security items (Renovate [security] bumps plus
+  one TOCTOU fix) and 22 are 'other'; real behaviour changes are only visible
+  in those subjects.
