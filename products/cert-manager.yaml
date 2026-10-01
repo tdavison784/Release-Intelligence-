@@ -1,0 +1,280 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: cert-manager
+name: cert-manager
+description: >-
+  X.509 certificate management controller for Kubernetes and OpenShift.
+  Ships as a set of controller images, static install manifests, a CRD
+  bundle and a Helm chart, all versioned with the git tag (v-prefixed).
+homepage: https://cert-manager.io
+
+versioning:
+  scheme: semver
+  tagPrefix: v
+  # Stable and -alpha.N/-beta.N tags; cmd/ctl/* submodule tags and the legacy
+  # v0.15-alpha.3 tag do not match and are ignored.
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-(?:alpha|beta)\.\d+)?)$'
+  # release-X.Y branches are maintained in parallel; X.Y.0 notes describe the
+  # changes since the previous line.
+  lineage: minor
+
+sources:
+  # --- canonical versions -------------------------------------------------
+  - id: github-releases
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: github-releases
+      repository: cert-manager/cert-manager
+    notes: Preferred (publish dates, prerelease flags). Requires GitHub API access.
+  - id: git-tags
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: git-tags
+      repository: github.com/cert-manager/cert-manager
+    notes: Fallback when the GitHub API is unreachable; tags are authoritative.
+
+  # --- release notes ------------------------------------------------------
+  # One file per minor in the website repo; each patch release is a section
+  # headed `v1.18.0` (backticks optional). Valid since 1.5.
+  - id: website-release-notes
+    roles: [release-notes]
+    priority: 0
+    fallback: true
+    availability: ">= 1.5.0"
+    locator:
+      kind: repo-file
+      repository: github.com/cert-manager/website
+      ref: master
+      path: content/docs/releases/release-notes/release-notes-{{.Major}}.{{.Minor}}.md
+    extract:
+      type: markdown-section
+      heading: '^v?{{regexQuote .Version}}$'
+    classify:
+      - section: '(?i)^(documentation)$'
+        category: other
+      - section: '(?i)other \(cleanup or flake\)'
+        category: other
+    validatedAgainst: [1.16.0, 1.17.0, 1.18.0, 1.19.0, 1.20.0, 1.21.0]
+  - id: github-release-notes
+    roles: [release-notes]
+    priority: 1
+    fallback: true
+    locator:
+      kind: github-releases
+      repository: cert-manager/cert-manager
+      ref: "{{.Tag}}"
+    notes: Same content as the website notes; used when the website file is missing.
+
+  # Minor releases carry their headline and breaking changes in a
+  # "Major Themes" section at the top of the per-minor notes file, flagged
+  # with "⚠️ Breaking change" / "Potentially breaking change" callouts.
+  - id: website-major-themes
+    roles: [release-notes]
+    releaseKinds: [major, minor]
+    availability: ">= 1.5.0"
+    locator:
+      kind: repo-file
+      repository: github.com/cert-manager/website
+      ref: master
+      path: content/docs/releases/release-notes/release-notes-{{.Major}}.{{.Minor}}.md
+    extract:
+      type: markdown-section
+      heading: '^Major Themes$'
+    classify:
+      - text: '(?i)(potentially )?breaking change'
+        breaking: true
+        actionRequired: true
+
+  # --- upgrade guides -----------------------------------------------------
+  - id: upgrade-guide
+    roles: [upgrade-guide]
+    releaseKinds: [major, minor]
+    locator:
+      kind: repo-file
+      repository: github.com/cert-manager/website
+      ref: master
+      path: content/docs/releases/upgrading/upgrading-{{.PrevMajor}}.{{.PrevMinor}}-{{.Major}}.{{.Minor}}.md
+    notes: Exists for every minor except 1.13 (covered by upgrading-1.12.md, an LTS special case).
+    validatedAgainst: [1.14.0, 1.15.0, 1.16.0, 1.17.0, 1.18.0, 1.19.0, 1.20.0, 1.21.0]
+
+  # --- compatibility ------------------------------------------------------
+  # Two tables with different headers: "supported/upcoming" releases use a
+  # combined "Kubernetes / OpenShift" column; "old releases" use separate
+  # "Compatible ..." columns. Release cells are reference links ([1.18][]).
+  - id: supported-releases
+    roles: [compatibility]
+    locator:
+      kind: repo-file
+      repository: github.com/cert-manager/website
+      ref: master
+      path: content/docs/releases/README.md
+    extract:
+      type: markdown-table
+      keyColumns: [Release]
+      keyMatch: '^{{regexQuote .Line}}(\s|$)'
+      columns:
+        - platform: kubernetes
+          kind: supported
+          headers: [Supported Kubernetes / OpenShift Versions]
+          separator: /
+          part: 0
+        - platform: openshift
+          kind: supported
+          headers: [Supported Kubernetes / OpenShift Versions]
+          separator: /
+          part: 1
+        - platform: kubernetes
+          kind: supported
+          headers: [Compatible Kubernetes versions]
+        - platform: openshift
+          kind: supported
+          headers: [Compatible OpenShift versions]
+        - platform: kubernetes
+          kind: tested
+          headers: [Tested Kubernetes Versions]
+
+  # --- security -----------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: cert-manager/cert-manager
+    notes: Repository security advisories (GHSA). Fixes are also called out in release notes as "Security (HIGH|MODERATE)".
+
+artifacts:
+  # Static install manifest attached to every GitHub release. It references
+  # the controller, webhook, cainjector and acmesolver images by tag, which
+  # makes it the cross-reference used when quay.io cannot be reached.
+  - id: install-manifest
+    type: manifest
+    name: cert-manager.yaml
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://github.com/cert-manager/cert-manager/releases/download/{{.Tag}}/cert-manager.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst: [1.12.17, 1.13.6, 1.14.7, 1.15.5, 1.16.5, 1.17.4, 1.18.6, 1.19.6, 1.20.4, 1.21.2]
+
+  - id: crds
+    type: crd
+    name: cert-manager.crds.yaml
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://github.com/cert-manager/cert-manager/releases/download/{{.Tag}}/cert-manager.crds.yaml
+    contents:
+      - kind: crds
+    validatedAgainst: [1.12.17, 1.16.5, 1.17.4, 1.18.6, 1.19.6, 1.20.4, 1.21.2]
+
+  # Chart version == appVersion == git tag (set by make/manifests.mk at
+  # release time); the in-repo Chart file is a template with v0.0.0.
+  - id: helm-chart
+    type: helm-chart
+    name: cert-manager
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: helm-repo
+        url: https://charts.jetstack.io
+        chart: cert-manager
+      - kind: oci
+        repository: quay.io/jetstack/charts/cert-manager
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/cert-manager/cert-manager
+          path: deploy/charts/cert-manager/values.yaml
+      - kind: chart-metadata
+        availability: "< 1.21.0"
+        locator:
+          kind: repo-file
+          repository: github.com/cert-manager/cert-manager
+          path: deploy/charts/cert-manager/Chart.template.yaml
+      - kind: chart-metadata
+        availability: ">= 1.21.0"
+        locator:
+          kind: repo-file
+          repository: github.com/cert-manager/cert-manager
+          path: deploy/charts/cert-manager/Chart.yaml
+    notes: >-
+      Image value keys changed in 1.20 (per-component repository →
+      imageRegistry/imageNamespace/name). kubeVersion (">= 1.22.0-0") is a
+      static install guard, not the support matrix.
+
+  - id: controller-image
+    type: container-image
+    name: cert-manager-controller
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/cert-manager-controller
+    references:
+      - artifact: install-manifest
+        pattern: "quay.io/jetstack/cert-manager-controller:{{.Tag}}"
+
+  - id: webhook-image
+    type: container-image
+    name: cert-manager-webhook
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/cert-manager-webhook
+    references:
+      - artifact: install-manifest
+        pattern: "quay.io/jetstack/cert-manager-webhook:{{.Tag}}"
+
+  - id: cainjector-image
+    type: container-image
+    name: cert-manager-cainjector
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/cert-manager-cainjector
+    references:
+      - artifact: install-manifest
+        pattern: "quay.io/jetstack/cert-manager-cainjector:{{.Tag}}"
+
+  - id: acmesolver-image
+    type: container-image
+    name: cert-manager-acmesolver
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/cert-manager-acmesolver
+    references:
+      # passed to the controller as --acme-http01-solver-image=...
+      - artifact: install-manifest
+        pattern: "quay.io/jetstack/cert-manager-acmesolver:{{.Tag}}"
+
+  - id: startupapicheck-image
+    type: container-image
+    name: cert-manager-startupapicheck
+    availability: ">= 1.14.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/cert-manager-startupapicheck
+    notes: Not referenced by the static manifest (rendered with startupapicheck disabled).
+
+  - id: ctl-image
+    type: container-image
+    name: cert-manager-ctl
+    availability: "< 1.15.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/jetstack/cert-manager-ctl
+    notes: Replaced by startupapicheck; cmctl moved to the cert-manager/cmctl repository.
+
+provenance:
+  method: manual+research
+  updated: "2026-10-01"
+  validatedReleases: [1.16.5, 1.17.4, 1.18.6, 1.19.6, 1.20.4, 1.21.2]
+  notes: >-
+    Authored from docs/research/cert-manager.md (channels verified against
+    git tags, raw repository content and release assets). quay.io,
+    charts.jetstack.io and the GitHub API were unreachable during research;
+    image relationships were validated through the install manifest.

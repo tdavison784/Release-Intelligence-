@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.dev/schemas/product-definition/v1alpha1.json",
+  "title": "ProductDefinition",
+  "description": "Declarative description of a software product's authoritative release channels, the artifacts it publishes and how artifact versions relate to release versions. String fields marked 'template' may use Go text/template placeholders such as {{.Tag}}, {{.Version}}, {{.Major}}, {{.Minor}}, {{.Line}}, {{.PrevLine}}, {{.PrevTag}}, {{.ArtifactVersion}}.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "id", "name", "versioning", "sources", "artifacts"],
+  "properties": {
+    "apiVersion": {"const": "ri.dev/v1alpha1"},
+    "kind": {"const": "ProductDefinition"},
+    "id": {"$ref": "#/$defs/dnsLabel"},
+    "name": {"type": "string", "minLength": 1},
+    "description": {"type": "string"},
+    "homepage": {"type": "string", "format": "uri"},
+    "versioning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scheme"],
+      "properties": {
+        "scheme": {"enum": ["semver"]},
+        "tagPrefix": {"type": "string"},
+        "tagPattern": {"type": "string", "description": "Regex with a named group (?P<version>...)."},
+        "lineage": {"enum": ["minor", "linear"]},
+        "includePrereleases": {"type": "boolean"}
+      }
+    },
+    "sources": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/source"}},
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/artifact"}},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method"],
+      "properties": {
+        "method": {"type": "string"},
+        "author": {"type": "string"},
+        "updated": {"type": "string"},
+        "validatedReleases": {"$ref": "#/$defs/stringList"},
+        "notes": {"type": "string"}
+      }
+    }
+  },
+  "$defs": {
+    "dnsLabel": {"type": "string", "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"},
+    "stringList": {"type": "array", "items": {"type": "string"}},
+    "constraint": {"type": "string", "description": "Semver constraint on the release version, e.g. \">= 1.14.0\"."},
+    "role": {"enum": ["versions", "release-notes", "changelog", "upgrade-guide", "compatibility", "security"]},
+    "category": {"enum": ["feature", "bugfix", "deprecation", "removal", "migration", "configuration", "helm-values", "crd-schema", "api", "compatibility", "security", "artifact", "dependency", "other"]},
+    "locator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {"enum": ["github-releases", "github-advisories", "git-tags", "repo-file", "repo-dir", "git-log", "http", "helm-repo", "oci", "helm-git"]},
+        "repository": {"type": "string"},
+        "ref": {"type": "string"},
+        "baseRef": {"type": "string"},
+        "path": {"type": "string"},
+        "glob": {"type": "string"},
+        "url": {"type": "string"},
+        "chart": {"type": "string"},
+        "tagPattern": {"type": "string"}
+      },
+      "allOf": [
+        {"if": {"properties": {"kind": {"enum": ["github-releases", "github-advisories", "git-tags", "oci"]}}}, "then": {"required": ["repository"]}},
+        {"if": {"properties": {"kind": {"enum": ["repo-file", "repo-dir"]}}}, "then": {"required": ["repository", "path"]}},
+        {"if": {"properties": {"kind": {"const": "git-log"}}}, "then": {"required": ["repository", "ref"]}},
+        {"if": {"properties": {"kind": {"const": "http"}}}, "then": {"required": ["url"]}},
+        {"if": {"properties": {"kind": {"const": "helm-repo"}}}, "then": {"required": ["url", "chart"]}},
+        {"if": {"properties": {"kind": {"const": "helm-git"}}}, "then": {"required": ["repository", "path", "tagPattern"]}}
+      ]
+    },
+    "columnSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platform", "headers"],
+      "properties": {
+        "platform": {"type": "string"},
+        "kind": {"enum": ["supported", "tested", "minimum"]},
+        "headers": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "separator": {"type": "string"},
+        "part": {"type": "integer", "minimum": 0}
+      }
+    },
+    "extract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {"enum": ["whole", "markdown-section", "markdown-table", "yaml-records", "release-note-yaml"]},
+        "heading": {"type": "string"},
+        "keyColumns": {"$ref": "#/$defs/stringList"},
+        "keyMatch": {"type": "string"},
+        "columns": {"type": "array", "items": {"$ref": "#/$defs/columnSpec"}},
+        "tableHeading": {"type": "string"}
+      },
+      "allOf": [
+        {"if": {"properties": {"type": {"const": "markdown-section"}}}, "then": {"required": ["heading"]}},
+        {"if": {"properties": {"type": {"enum": ["markdown-table", "yaml-records"]}}}, "then": {"required": ["keyColumns", "keyMatch", "columns"]}}
+      ]
+    },
+    "classifyRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "section": {"type": "string"},
+        "text": {"type": "string"},
+        "category": {"$ref": "#/$defs/category"},
+        "breaking": {"type": "boolean"},
+        "actionRequired": {"type": "boolean"},
+        "skip": {"type": "boolean"}
+      },
+      "anyOf": [{"required": ["section"]}, {"required": ["text"]}]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "roles", "locator"],
+      "properties": {
+        "id": {"$ref": "#/$defs/dnsLabel"},
+        "roles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/role"}},
+        "locator": {"$ref": "#/$defs/locator"},
+        "extract": {"$ref": "#/$defs/extract"},
+        "classify": {"type": "array", "items": {"$ref": "#/$defs/classifyRule"}},
+        "availability": {"$ref": "#/$defs/constraint"},
+        "releaseKinds": {"type": "array", "items": {"enum": ["major", "minor", "patch"]}},
+        "priority": {"type": "integer"},
+        "fallback": {"type": "boolean"},
+        "validatedAgainst": {"$ref": "#/$defs/stringList"},
+        "notes": {"type": "string"}
+      }
+    },
+    "versionRelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strategy"],
+      "properties": {
+        "strategy": {"enum": ["template", "lookup", "independent"]},
+        "template": {"type": "string"},
+        "field": {"type": "string"},
+        "match": {"type": "string"},
+        "select": {"enum": ["latest", "earliest", "all"]}
+      },
+      "allOf": [
+        {"if": {"properties": {"strategy": {"const": "template"}}}, "then": {"required": ["template"]}},
+        {"if": {"properties": {"strategy": {"const": "lookup"}}}, "then": {"required": ["field", "match"]}}
+      ]
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "name", "version", "channels"],
+      "properties": {
+        "id": {"$ref": "#/$defs/dnsLabel"},
+        "type": {"enum": ["source-release", "helm-chart", "container-image", "operator", "binary", "package", "manifest", "crd", "documentation"]},
+        "name": {"type": "string", "minLength": 1},
+        "description": {"type": "string"},
+        "version": {"$ref": "#/$defs/versionRelation"},
+        "channels": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/locator"}},
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["artifact", "pattern"],
+            "properties": {"artifact": {"$ref": "#/$defs/dnsLabel"}, "pattern": {"type": "string"}}
+          }
+        },
+        "contents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind"],
+            "properties": {
+              "kind": {"enum": ["helm-values", "chart-metadata", "crds", "image-refs"]},
+              "locator": {"$ref": "#/$defs/locator"},
+              "availability": {"$ref": "#/$defs/constraint"}
+            }
+          }
+        },
+        "availability": {"$ref": "#/$defs/constraint"},
+        "validatedAgainst": {"$ref": "#/$defs/stringList"},
+        "notes": {"type": "string"}
+      }
+    }
+  }
+}
