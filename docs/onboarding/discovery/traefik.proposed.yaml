@@ -1,0 +1,120 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: traefik
+name: traefik
+homepage: https://github.com/traefik/traefik
+versioning:
+  scheme: semver
+  tagPrefix: v
+  tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\d+|beta\.\d+|beta\d+|rc\.\d+|rc\d+))?)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/traefik/traefik
+      tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\d+|beta\.\d+|beta\d+|rc\.\d+|rc\d+))?)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: traefik/traefik
+    priority: 1
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: traefik/traefik
+      ref: '{{.Tag}}'
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 3.5.0
+      - 3.5.6
+      - 3.6.0
+      - 3.6.25
+      - 3.7.0
+      - 3.7.13
+  - id: changelog
+    roles:
+      - changelog
+    locator:
+      kind: repo-file
+      repository: github.com/traefik/traefik
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: ^\[?v?{{regexQuote .Version}}\]?(\s|$)
+    validatedAgainst:
+      - 3.5.0
+      - 3.5.6
+      - 3.6.0
+      - 3.6.25
+      - 3.7.0
+      - 3.7.13
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: traefik/traefik
+    notes: 'Security policy: SECURITY.md → https://github.com/traefik/traefik/security/advisories https://doc.traefik.io/traefik/contributing/submitting-security-issues/'
+artifacts:
+  - id: traefik-chart
+    type: helm-chart
+    name: traefik
+    version:
+      strategy: lookup
+      field: appVersion
+      match: '{{.Tag}}'
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://traefik.github.io/charts
+        chart: traefik
+      - kind: helm-git
+        repository: github.com/traefik/traefik-helm-chart
+        path: traefik
+        tagPattern: ^traefik-(?P<version>\d+\.\d+\.\d+)$
+    optional: true
+    validatedAgainst:
+      - 3.5.0
+      - 3.6.0
+      - 3.7.0
+      - 3.7.13
+    notes: Chart maintained in github.com/traefik/traefik-helm-chart with its own version; chart releases are found by appVersion. 0 of 397 chart-repository tags match ^traefik-(?P<version>\d+\.\d+\.\d+)$. Not published for every release (3.5.6 fail (no chart version ships appVersion v3.5.6 (https://traefik.github.io/charts (chart traefik) lists 350 versions)); 3.6.25 fail (no chart version ships appVersion v3.6.25 (https://traefik.github.io/charts (chart traefik) lists 350 versions))); marked optional by validation.
+  - id: crds
+    type: crd
+    name: CustomResourceDefinitions
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-dir
+        repository: github.com/traefik/traefik
+        path: docs/content/reference/dynamic-configuration
+        glob: '*.yml'
+    contents:
+      - kind: crds
+    validatedAgainst:
+      - 3.5.0
+      - 3.5.6
+      - 3.6.0
+      - 3.6.25
+      - 3.7.0
+      - 3.7.13
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  validatedReleases:
+    - v3.5.0
+    - v3.5.6
+    - v3.6.0
+    - v3.6.25
+    - v3.7.0
+    - v3.7.13
+  notes: Proposed by automated discovery; relationship checks run against v3.5.0, v3.5.6, v3.6.0, v3.6.25, v3.7.0, v3.7.13.
