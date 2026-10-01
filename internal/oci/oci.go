@@ -135,25 +135,13 @@ func New(f fetch.Client, opts ...Option) *Adapter {
 }
 
 // tokenClient returns the client used for token endpoints: the override from
-// WithTokenClient, otherwise an uncached view of the adapter's client. It is
-// derived on every use so that it always reflects the current Mode of f.
+// WithTokenClient, otherwise the adapter's client. Token requests are always
+// sent with fetch.Request.NoStore so they are never cached or persisted.
 func (a *Adapter) tokenClient() fetch.Client {
 	if a.tokenFetch != nil {
 		return a.tokenFetch
 	}
-	return uncached(a.f)
-}
-
-// uncached returns a client equivalent to f but without a persistent cache.
-// Offline mode is preserved: an offline client never touches the network.
-// Clients that are not a *fetch.HTTPClient are returned unchanged.
-func uncached(f fetch.Client) fetch.Client {
-	if h, ok := f.(*fetch.HTTPClient); ok {
-		cp := *h
-		cp.Cache = nil
-		return &cp
-	}
-	return f
+	return a.f
 }
 
 // Register registers the adapter for the "oci" locator kind as both

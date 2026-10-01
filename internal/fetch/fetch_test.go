@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 func TestCacheReadThroughAndOffline(t *testing.T) {
@@ -58,5 +59,39 @@ func TestCacheReadThroughAndOffline(t *testing.T) {
 	}
 	if StateFor(&Error{Err: ErrOffline}) != "unavailable" {
 		t.Fatal("state mapping")
+	}
+}
+
+func TestNoStoreAndNegativeTTL(t *testing.T) {
+	var hits int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&hits, 1)
+		if r.URL.Path == "/token" {
+			w.Write([]byte(`{"token":"secret"}`))
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer srv.Close()
+	cache := NewCache(t.TempDir())
+	c := NewHTTPClient(cache, ModeOnline)
+	ctx := context.Background()
+	for i := 0; i < 2; i++ {
+		if _, err := c.Do(ctx, Request{URL: srv.URL + "/token", NoStore: true}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := atomic.LoadInt32(&hits); got != 2 {
+		t.Fatalf("NoStore requests must not be cached; hits=%d", got)
+	}
+	if _, err := NewHTTPClient(cache, ModeOffline).Do(ctx, Request{URL: srv.URL + "/token"}); !errors.Is(err, ErrOffline) {
+		t.Fatalf("token must not be persisted, got %v", err)
+	}
+	// negative cache with a tiny TTL expires immediately
+	req := Request{URL: srv.URL + "/missing", NegativeTTL: time.Nanosecond}
+	c.Do(ctx, req)
+	c.Do(ctx, req)
+	if got := atomic.LoadInt32(&hits); got != 4 {
+		t.Fatalf("expired negative entry should be refetched; hits=%d", got)
 	}
 }

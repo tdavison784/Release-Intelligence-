@@ -78,6 +78,13 @@ type Request struct {
 	Immutable bool
 	// TTL for mutable content; zero means DefaultTTL.
 	TTL time.Duration
+	// NegativeTTL bounds how long a cached 404 is honoured; zero means
+	// NegativeTTL (the package default). Probes for artifacts that may be
+	// published soon should use a short value.
+	NegativeTTL time.Duration
+	// NoStore disables both reading and writing the cache for this request
+	// (e.g. registry token exchanges, which must never be persisted).
+	NoStore bool
 }
 
 // DefaultTTL for mutable resources.
@@ -147,7 +154,8 @@ func (c *HTTPClient) Do(ctx context.Context, req Request) (*Document, error) {
 		req.Method = http.MethodGet
 	}
 	key := cacheKey(req)
-	if c.Cache != nil && c.Mode != ModeRefresh {
+	useCache := c.Cache != nil && !req.NoStore
+	if useCache && c.Mode != ModeRefresh {
 		if ent, err := c.Cache.load(key, req.URL); err == nil && ent != nil {
 			fresh := c.Mode == ModeOffline || ent.fresh(req, c.clock())
 			if fresh {
@@ -155,11 +163,14 @@ func (c *HTTPClient) Do(ctx context.Context, req Request) (*Document, error) {
 			}
 		}
 	}
-	if c.Mode == ModeOffline {
+	if c.Mode == ModeOffline && !req.NoStore {
 		return nil, &Error{URL: req.URL, Err: ErrOffline}
 	}
+	if c.Mode == ModeOffline {
+		return nil, &Error{URL: req.URL, Err: ErrOffline, Detail: "uncacheable request in offline mode"}
+	}
 	doc, status, err := c.do(ctx, req)
-	if c.Cache != nil {
+	if useCache {
 		switch {
 		case err == nil:
 			_ = c.Cache.store(key, req, doc, status)

@@ -141,7 +141,11 @@ func writeAtomic(path string, data []byte) error {
 
 func (e *entry) fresh(req Request, now time.Time) bool {
 	if e.Status == http.StatusNotFound || e.Status == http.StatusGone {
-		return now.Sub(e.RetrievedAt) < NegativeTTL
+		ttl := req.NegativeTTL
+		if ttl == 0 {
+			ttl = NegativeTTL
+		}
+		return now.Sub(e.RetrievedAt) < ttl
 	}
 	if e.Immutable || req.Immutable {
 		return true

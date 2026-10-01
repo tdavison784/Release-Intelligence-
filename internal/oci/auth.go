@@ -176,8 +176,9 @@ func (a *Adapter) acquireToken(ctx context.Context, r Repository, ch challenge) 
 	realm.RawQuery = q.Encode()
 
 	doc, err := a.tokenClient().Do(ctx, fetch.Request{
-		URL:    realm.String(),
-		Header: http.Header{"Accept": []string{"application/json"}},
+		URL:     realm.String(),
+		Header:  http.Header{"Accept": []string{"application/json"}},
+		NoStore: true, // tokens must never reach the on-disk cache
 	})
 	if err != nil {
 		return "", fmt.Errorf("oci: token for %s: %w", r.Given, asUnavailable(err))
