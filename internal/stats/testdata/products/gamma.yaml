@@ -1,0 +1,25 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: gamma
+name: Gamma
+versioning: {scheme: semver, tagPrefix: v, lineage: minor}
+sources:
+  - id: tags
+    roles: [versions]
+    locator: {kind: git-tags, repository: github.com/example/gamma}
+  - id: notes
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/example/gamma
+      path: "docs/notes-{{.Major}}.{{.Minor}}.md"
+    extract:
+      type: markdown-section
+      heading: '^v?{{regexQuote .Version}}$'
+artifacts:
+  - id: image
+    type: container-image
+    name: gamma
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - {kind: oci, repository: quay.io/example/gamma}

@@ -9,6 +9,7 @@
 //	ri ingest <product> <version>       ingest one release (facts + evidence)
 //	ri upgrade <product> <from> <to>    describe the upgrade edge
 //	ri discover <repository>            propose a product definition
+//	ri stats [product...]               measure onboarding scalability
 //
 // Global flags (before the command): -products DIR, -state DIR, -offline,
 // -refresh, -v.
@@ -41,6 +42,7 @@ Commands:
   ingest <product> <version>        ingest one release and print its facts
   upgrade <product> <from> <to>     describe everything relevant to upgrading from → to
   discover <repository>             inspect an upstream repository and propose a definition
+  stats [product ...]               measure onboarding: constructs, effort, discovery, validation
 
 Global flags:
 `
@@ -124,6 +126,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return c.upgrade(cmdArgs)
 	case "discover":
 		return c.discover(cmdArgs)
+	case "stats":
+		return c.stats(cmdArgs)
 	default:
 		fs.Usage()
 		return fmt.Errorf("%w: unknown command %q", app.ErrUsage, cmd)

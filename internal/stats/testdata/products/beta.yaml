@@ -1,0 +1,36 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: beta
+name: Beta
+versioning: {scheme: semver, lineage: minor, tagPattern: '^(?P<version>\d+\.\d+\.\d+)$'}
+sources:
+  - id: tags
+    roles: [versions]
+    locator: {kind: git-tags, repository: github.com/example/beta}
+  - id: notes
+    roles: [release-notes]
+    releaseKinds: [major, minor]
+    locator:
+      kind: repo-dir
+      repository: github.com/example/beta
+      ref: "{{.Tag}}"
+      baseRef: "{{.PrevTag}}"
+      path: notes
+      glob: "*.yaml"
+    extract: {type: release-note-yaml}
+  - id: support
+    roles: [compatibility]
+    locator: {kind: repo-file, repository: github.com/example/beta, path: data/support.yml}
+    extract:
+      type: yaml-records
+      keyColumns: [version]
+      keyMatch: '^{{regexQuote .Line}}$'
+      columns:
+        - {platform: kubernetes, kind: supported, headers: [k8s]}
+artifacts:
+  - id: image
+    type: container-image
+    name: beta
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - {kind: oci, repository: docker.io/example/beta}

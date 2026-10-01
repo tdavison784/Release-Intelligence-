@@ -1,0 +1,93 @@
+product: alpha
+order: 1
+wave: 0
+repository: github.com/example/alpha
+onboarding:
+  minutes: 120
+discovery:
+  proposal: docs/onboarding/discovery/alpha.proposed.yaml
+sources:
+  - {id: tags, origin: discovered}
+  - {id: notes, origin: discovered-modified, note: "path template corrected"}
+  - {id: notes-api, origin: manual}
+artifacts:
+  - {id: image, origin: discovered}
+  - {id: chart, origin: manual}
+relationships:
+  historicalReleasesChecked: [1.0.0, 1.1.0, 1.2.0]
+  initialFailures: 3
+  finalFailures: 0
+  manualInterventions:
+    - {subject: chart, change: "optional: true", reason: "not published for every release"}
+constructs:
+  new:
+    - name: field:sources.fallbackGroup
+      kind: catalog-field
+      justification: Alternative release-note channels.
+      otherProducts: [beta]
+    - artifact:container-image
+    - artifact:helm-chart
+    - content:helm-values
+    - extract:markdown-section
+    - field:artifacts
+    - field:artifacts.availability
+    - field:artifacts.channels
+    - field:artifacts.channels.chart
+    - field:artifacts.channels.kind
+    - field:artifacts.channels.repository
+    - field:artifacts.channels.url
+    - field:artifacts.contents
+    - field:artifacts.contents.availability
+    - field:artifacts.contents.kind
+    - field:artifacts.contents.locator
+    - field:artifacts.contents.locator.kind
+    - field:artifacts.contents.locator.path
+    - field:artifacts.contents.locator.repository
+    - field:artifacts.exceptions
+    - field:artifacts.exceptions.reason
+    - field:artifacts.exceptions.versions
+    - field:artifacts.optional
+    - field:artifacts.type
+    - field:artifacts.version.strategy
+    - field:artifacts.version.template
+    - field:sources
+    - field:sources.availability
+    - field:sources.classify
+    - field:sources.classify.breaking
+    - field:sources.classify.section
+    - field:sources.classify.skip
+    - field:sources.classify.text
+    - field:sources.extract
+    - field:sources.extract.heading
+    - field:sources.extract.type
+    - field:sources.locator.kind
+    - field:sources.locator.path
+    - field:sources.locator.repository
+    - field:sources.priority
+    - field:sources.roles
+    - field:versioning.lineage
+    - field:versioning.scheme
+    - field:versioning.tagPrefix
+    - lineage:minor
+    - locator:git-tags
+    - locator:github-releases
+    - locator:helm-repo
+    - locator:oci
+    - locator:repo-file
+    - role:release-notes
+    - role:versions
+    - scheme:semver
+    - template-func:regexQuote
+    - template-var:Major
+    - template-var:Minor
+    - template-var:Tag
+    - template-var:Version
+    - version:template
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/catalog/definition.go, purpose: base format}
+unreachableSources:
+  - {host: quay.io, reason: "egress policy 403"}
+representability: full
+notes: Fixture record.

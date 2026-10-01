@@ -1,0 +1,56 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: alpha
+name: Alpha
+description: >-
+  Free text such as {{.NotAConstruct}} in a description is not scanned.
+versioning: {scheme: semver, tagPrefix: v, lineage: minor}
+sources:
+  - id: tags
+    roles: [versions]
+    priority: 0
+    locator: {kind: git-tags, repository: github.com/example/alpha}
+  # comment lines do not count as code
+  - id: notes
+    roles: [release-notes]
+    priority: 0
+    availability: ">= 1.0.0"
+    fallbackGroup: notes
+    locator:
+      kind: repo-file
+      repository: github.com/example/alpha
+      path: "docs/notes-{{.Major}}.{{.Minor}}.md"
+    extract:
+      type: markdown-section
+      heading: '^v?{{regexQuote .Version}}$'
+    classify:
+      - {section: '(?i)breaking', breaking: true}
+      - {text: '^chore', skip: true}
+  - id: notes-api
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: notes
+    locator: {kind: github-releases, repository: example/alpha}
+
+artifacts:
+  - id: image
+    type: container-image
+    name: alpha
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - {kind: oci, repository: quay.io/example/alpha}
+  - id: chart
+    type: helm-chart
+    name: alpha
+    optional: true
+    availability: ">= 1.2.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - {kind: helm-repo, url: "https://example.org/charts", chart: alpha}
+    exceptions:
+      - versions: [1.2.1]
+        reason: pulled upstream
+    contents:
+      - kind: helm-values
+        availability: ">= 1.3.0"
+        locator: {kind: repo-file, repository: github.com/example/alpha, path: chart/values.yaml}
