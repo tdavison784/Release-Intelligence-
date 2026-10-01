@@ -178,7 +178,7 @@ func RenderLocator(l Locator, rc RenderContext) (Locator, error) {
 	if out.Ref == "" && (l.Kind == LocatorRepoFile || l.Kind == LocatorRepoDir) {
 		out.Ref = "{{.Tag}}"
 	}
-	fields := []*string{&out.Repository, &out.Ref, &out.Path, &out.Glob, &out.URL, &out.Chart}
+	fields := []*string{&out.Repository, &out.Ref, &out.BaseRef, &out.Path, &out.Glob, &out.URL, &out.Chart}
 	for _, f := range fields {
 		r, err := Render(*f, rc)
 		if err != nil {

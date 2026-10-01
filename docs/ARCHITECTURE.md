@@ -83,7 +83,7 @@ import `ingest` or `upgrade`.
 4. `ingest.IngestRelease` runs for From, every path release and To:
    - It renders source locators with a `catalog.RenderContext`, fetches
      documents, extracts the relevant part (`markdown-section`,
-     `markdown-table`, `release-note-yaml` or the whole document) and turns
+     `markdown-table`, `yaml-records`, `release-note-yaml` or the whole document) and turns
      it into `NoteItem`s and `CompatibilityConstraint`s.
    - It resolves each artifact's version (template or lookup) and probes its
      channels in order. If every channel is unreachable, it cross-checks
@@ -106,7 +106,7 @@ import `ingest` or `upgrade`.
 | `github-advisories` | repository | advisories |
 | `git-tags` | repository `host/owner/name`, tagPattern? | versions |
 | `repo-file` | repository, ref (default `{{.Tag}}`), path | documents |
-| `repo-dir` | repository, ref, path, glob | directories |
+| `repo-dir` | repository, ref, path, glob, baseRef? (only files added since baseRef) | directories |
 | `git-log` | repository, ref `A..B` | documents (markdown list of commit subjects) |
 | `http` | url | documents, probes |
 | `helm-repo` | url, chart | versions, version-index, probes |

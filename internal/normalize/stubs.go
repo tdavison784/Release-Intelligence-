@@ -24,6 +24,10 @@ func extractTableRow(md []byte, sel TableSelector) (*TableRow, error) {
 	return nil, ErrNotImplemented
 }
 
+func extractRecord(content []byte, sel TableSelector) (*TableRow, error) {
+	return nil, ErrNotImplemented
+}
+
 func compatibilityFromRow(in DocInput, row *TableRow, columns []catalog.ColumnSpec) ([]domain.CompatibilityConstraint, []domain.Evidence) {
 	return nil, nil
 }

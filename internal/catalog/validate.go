@@ -183,8 +183,8 @@ func Validate(d *ProductDefinition) ValidationReport {
 		if s.HasRole(domain.RoleVersions) && s.Locator.Kind != LocatorGitHubReleases && s.Locator.Kind != LocatorGitTags && s.Locator.Kind != LocatorHelmRepo {
 			v.errf(p+".locator.kind", "a versions source must use %s, %s or %s", LocatorGitHubReleases, LocatorGitTags, LocatorHelmRepo)
 		}
-		if s.HasRole(domain.RoleCompatibility) && (s.Extract == nil || s.Extract.Type != ExtractMarkdownTable) {
-			v.warnf(p+".extract", "compatibility sources should use a %s extract to yield structured constraints", ExtractMarkdownTable)
+		if s.HasRole(domain.RoleCompatibility) && (s.Extract == nil || (s.Extract.Type != ExtractMarkdownTable && s.Extract.Type != ExtractYAMLRecords)) {
+			v.warnf(p+".extract", "compatibility sources should use a %s or %s extract to yield structured constraints", ExtractMarkdownTable, ExtractYAMLRecords)
 		}
 	}
 	if !hasVersions {
@@ -310,6 +310,9 @@ func (v *validator) locator(path string, l Locator, rc RenderContext) {
 			v.errf(path+".tagPattern", "must contain a named group (?P<version>...)")
 		}
 	}
+	if l.BaseRef != "" && l.Kind != LocatorRepoDir {
+		v.errf(path+".baseRef", "only supported for kind %s", LocatorRepoDir)
+	}
 	if l.URL != "" && !strings.HasPrefix(l.URL, "https://") && !strings.HasPrefix(l.URL, "http://") {
 		v.errf(path+".url", "must be an http(s) URL")
 	}
@@ -327,7 +330,7 @@ func (v *validator) extract(path string, e Extract, rc RenderContext) {
 		} else {
 			v.regexTemplate(path+".heading", e.Heading, rc)
 		}
-	case ExtractMarkdownTable:
+	case ExtractMarkdownTable, ExtractYAMLRecords:
 		if len(e.KeyColumns) == 0 {
 			v.errf(path+".keyColumns", "required for %s", e.Type)
 		}

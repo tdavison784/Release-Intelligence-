@@ -134,6 +134,9 @@ type Locator struct {
 	// URL) for git-based kinds, "registry/path" for oci.
 	Repository string `yaml:"repository,omitempty" json:"repository,omitempty"`
 	Ref        string `yaml:"ref,omitempty" json:"ref,omitempty"` // default "{{.Tag}}"
+	// BaseRef (repo-dir only): when set, return only files that exist at Ref
+	// but not at BaseRef — e.g. release-note files added since "{{.PrevTag}}".
+	BaseRef    string `yaml:"baseRef,omitempty" json:"baseRef,omitempty"`
 	Path       string `yaml:"path,omitempty" json:"path,omitempty"`
 	Glob       string `yaml:"glob,omitempty" json:"glob,omitempty"`
 	URL        string `yaml:"url,omitempty" json:"url,omitempty"`
@@ -147,6 +150,7 @@ const (
 	ExtractMarkdownSection = "markdown-section"  // a section selected by heading regex
 	ExtractMarkdownTable   = "markdown-table"    // a table row selected by key column
 	ExtractReleaseNoteYAML = "release-note-yaml" // structured release-note YAML files (one item per file)
+	ExtractYAMLRecords     = "yaml-records"      // a record selected from a YAML/JSON list (same fields as markdown-table; headers are field names)
 )
 
 // Extract configures how to extract information from a fetched document.

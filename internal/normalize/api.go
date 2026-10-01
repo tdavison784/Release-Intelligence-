@@ -112,6 +112,15 @@ func ExtractTableRow(md []byte, sel TableSelector) (*TableRow, error) {
 	return extractTableRow(md, sel)
 }
 
+// ExtractRecord is the YAML/JSON counterpart of ExtractTableRow: content is
+// a list of mappings (or a mapping whose first list-valued field holds them);
+// KeyColumns are field names. Headers/Cells use field names; Line is the
+// record's line; Excerpt is the record's YAML. Scalars in list-valued fields
+// are joined with ", ".
+func ExtractRecord(content []byte, sel TableSelector) (*TableRow, error) {
+	return extractRecord(content, sel)
+}
+
 // CompatibilityFromRow converts the selected columns of a table row into
 // constraints with evidence (one Evidence for the row, shared). Cells are
 // split by ColumnSpec.Separator when set and parsed with ParseVersionRange;
