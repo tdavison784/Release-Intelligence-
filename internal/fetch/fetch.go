@@ -36,6 +36,9 @@ type Error struct {
 	Status int
 	Err    error // one of the sentinels, or a transport error
 	Detail string
+	// Header holds the response headers of an HTTP error response (e.g.
+	// WWW-Authenticate on a 401), nil for transport errors and cache hits.
+	Header http.Header
 }
 
 func (e *Error) Error() string {
@@ -205,11 +208,11 @@ func (c *HTTPClient) do(ctx context.Context, req Request) (*Document, int, error
 	}
 	switch {
 	case resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusGone:
-		return nil, resp.StatusCode, &Error{URL: req.URL, Status: resp.StatusCode, Err: ErrNotFound}
+		return nil, resp.StatusCode, &Error{URL: req.URL, Status: resp.StatusCode, Err: ErrNotFound, Header: resp.Header.Clone()}
 	case resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests:
-		return nil, resp.StatusCode, &Error{URL: req.URL, Status: resp.StatusCode, Err: ErrUnavailable, Detail: snippet(body)}
+		return nil, resp.StatusCode, &Error{URL: req.URL, Status: resp.StatusCode, Err: ErrUnavailable, Detail: snippet(body), Header: resp.Header.Clone()}
 	case resp.StatusCode >= 400:
-		return nil, resp.StatusCode, &Error{URL: req.URL, Status: resp.StatusCode, Err: fmt.Errorf("http error"), Detail: snippet(body)}
+		return nil, resp.StatusCode, &Error{URL: req.URL, Status: resp.StatusCode, Err: fmt.Errorf("http error"), Detail: snippet(body), Header: resp.Header.Clone()}
 	}
 	h := http.Header{}
 	for _, k := range persistedHeaders {

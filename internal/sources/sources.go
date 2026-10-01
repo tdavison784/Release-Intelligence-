@@ -93,9 +93,10 @@ type VersionIndex interface {
 	ListArtifactVersions(ctx context.Context, ch catalog.Locator) ([]ArtifactVersion, error)
 }
 
-// AdvisorySource lists advisories (github-advisories).
+// AdvisorySource lists advisories (github-advisories). The returned evidence
+// records are those referenced by Advisory.Evidence.
 type AdvisorySource interface {
-	ListAdvisories(ctx context.Context, loc catalog.Locator) ([]domain.Advisory, error)
+	ListAdvisories(ctx context.Context, loc catalog.Locator) ([]domain.Advisory, []domain.Evidence, error)
 }
 
 // Registry maps locator kinds to adapters.
