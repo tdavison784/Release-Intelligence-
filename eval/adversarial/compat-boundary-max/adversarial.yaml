@@ -1,0 +1,25 @@
+# Attack: the cluster sits EXACTLY on the maximum of the target's supported
+# range — the mirror of the minimum boundary case.
+id: compat-boundary-max
+attacks: cluster version exactly at maximum boundary
+expectation: >-
+  the maximum admits → informational in-range (impact:kubernetes-in-range),
+  never above-range
+edge:
+  changes:
+    - rule: note
+      title: "Kubernetes support: v2.0.0 supports Kubernetes 1.27-1.29"
+      subjects: [kubernetes/supported]
+      category: compatibility
+  compatibility:
+    - platform: kubernetes
+      kind: supported
+      versions: ["1.27", "1.28", "1.29"]
+environment:
+  kubernetes: "1.29"
+expect:
+  present:
+    - rule: impact:kubernetes-in-range
+      classification: informational
+  absent:
+    - rule: impact:kubernetes-above-range

@@ -1,0 +1,23 @@
+# Attack: the same fact restated by three sources (release notes, changelog,
+# values diff). A human must not read it three times: the evaluator's
+# duplicate detection has to group all three.
+id: dedup-three-sources
+attacks: duplicated statement from three sources
+expectation: >-
+  the evaluator groups the three restatements into one duplicate group
+  (identical normalized title); duplicateGroups must be exactly 1
+edge:
+  changes:
+    - rule: note
+      title: "The metrics endpoint flag was renamed to --metrics-address"
+      category: configuration
+    - rule: note
+      title: "The metrics endpoint flag was renamed to --metrics-address"
+      category: configuration
+    - rule: note
+      title: "The metrics endpoint flag was renamed to --metrics-address"
+      category: configuration
+environment:
+  files: [values.yaml]
+expect:
+  duplicateGroups: 1
