@@ -60,7 +60,7 @@ What convergence looks like:
 ## Summary
 
 - 19 product definitions, 19 onboarding records, 19 saved relationship reports.
-- 151 distinct constructs are used across all definitions; the records introduce 151.
+- 152 distinct constructs are used across all definitions; the records introduce 152.
 - 7 of 19 recorded products introduced no new construct. The latest product that introduced one has order 15.
 - Product-specific Go changes recorded: 0 (must be 0).
 
@@ -75,7 +75,7 @@ What convergence looks like:
 | 3 | 0 | argo-cd | 227 (189) | 7 | 5 | 7 | 4 | 11 | 21 | 1 | 1 | 1 | 1 |
 | 4 | 1 | cilium | 323 (274) | 8 | 10 | 18 | 3 | 40 | 19 | 0 | 0 | 1 | 4 |
 | 5 | 1 | postgresql | 210 (169) | 4 | 3 | 5 | 0 | 24 | 47 | 1 | 0 | 0 | 3 |
-| 6 | 1 | kube-prometheus-stack | 339 (277) | 6 | 9 | 15 | 4 | 10 | 18 | 1 | 0 | 0 | 8 |
+| 6 | 1 | kube-prometheus-stack | 374 (294) | 7 | 9 | 15 | 4 | 14 | 19 | 1 | 0 | 0 | 9 |
 | 7 | 1 | vault | 267 (218) | 8 | 7 | 9 | 2 | 18 | 26 | 3 | 1 | 0 | 10 |
 | 8 | 1 | crossplane | 306 (243) | 9 | 5 | 11 | 2 | 18 | 30 | 2 | 0 | 3 | 8 |
 | 9 | 1 | external-secrets | 271 (223) | 6 | 6 | 8 | 4 | 12 | 16 | 5 | 0 | 1 | 1 |
@@ -99,20 +99,20 @@ What convergence looks like:
 | 3 | argo-cd | 98 | 14 | 84 | 86% | 113 | 4 / 0 | n/a | full |
 | 4 | cilium | 82 | 2 | 74 | 90% | 115 | 8 / 0 | 34 | full |
 | 5 | postgresql | 56 | 7 | 49 | 88% | 122 | 14 / 0 | 25 | partial |
-| 6 | kube-prometheus-stack | 81 | 8 | 70 | 86% | 130 | 12 / 0 | 27 | full |
-| 7 | vault | 82 | 7 | 75 | 91% | 137 | 10 / 0 | 23 | partial |
-| 8 | crossplane | 72 | 1 | 71 | 99% | 138 | 2 / 0 | 18 | partial |
-| 9 | external-secrets | 85 | 0 | 85 | 100% | 138 | 0 / 0 | 18 | full |
-| 10 | ingress-nginx | 93 | 5 | 88 | 95% | 143 | 9 / 0 | 25 | full |
-| 11 | grafana | 91 | 0 | 91 | 100% | 143 | 0 / 0 | 27 | full |
-| 12 | strimzi | 77 | 0 | 77 | 100% | 143 | 0 / 0 | 26 | full |
-| 13 | traefik | 97 | 1 | 96 | 99% | 144 | 0 / 0 | 38 | full |
-| 14 | karpenter | 83 | 3 | 80 | 96% | 147 | 9 / 0 | 35 | full |
-| 15 | flux | 91 | 4 | 87 | 96% | 151 | 7 / 0 | 46 | full |
-| 16 | otel-collector | 57 | 0 | 57 | 100% | 151 | 0 / 0 | 28 | full |
-| 17 | redis | 61 | 0 | 61 | 100% | 151 | 2 / 0 | 43 | full |
-| 20 | actions-runner-controller | 68 | 0 | 68 | 100% | 151 | 0 / 0 | 15 | full |
-| 21 | kyverno | 96 | 0 | 96 | 100% | 151 | 0 / 0 | 17 | full |
+| 6 | kube-prometheus-stack | 82 | 9 | 70 | 85% | 131 | 16 / 0 | 27 | full |
+| 7 | vault | 82 | 7 | 75 | 91% | 138 | 10 / 0 | 23 | partial |
+| 8 | crossplane | 72 | 1 | 71 | 99% | 139 | 2 / 0 | 18 | partial |
+| 9 | external-secrets | 85 | 0 | 85 | 100% | 139 | 0 / 0 | 18 | full |
+| 10 | ingress-nginx | 93 | 5 | 88 | 95% | 144 | 9 / 0 | 25 | full |
+| 11 | grafana | 91 | 0 | 91 | 100% | 144 | 0 / 0 | 27 | full |
+| 12 | strimzi | 77 | 0 | 77 | 100% | 144 | 0 / 0 | 26 | full |
+| 13 | traefik | 97 | 1 | 96 | 99% | 145 | 0 / 0 | 38 | full |
+| 14 | karpenter | 83 | 3 | 80 | 96% | 148 | 9 / 0 | 35 | full |
+| 15 | flux | 91 | 4 | 87 | 96% | 152 | 7 / 0 | 46 | full |
+| 16 | otel-collector | 57 | 0 | 57 | 100% | 152 | 0 / 0 | 28 | full |
+| 17 | redis | 61 | 0 | 61 | 100% | 152 | 2 / 0 | 43 | full |
+| 20 | actions-runner-controller | 68 | 0 | 68 | 100% | 152 | 0 / 0 | 15 | full |
+| 21 | kyverno | 96 | 0 | 96 | 100% | 152 | 0 / 0 | 17 | full |
 
 ### Discovery and relationship validation
 
@@ -123,7 +123,7 @@ What convergence looks like:
 | argo-cd | 0/0/12 (0%) | 12/0/1/0 | 59/0/0/13/6 | n/a → 0 | 2 | 3 |
 | cilium | 4/5/9 (50%) | 17/0/1/0 | 336/0/0/24/0 | 0 → 0 | 2 | 0 |
 | postgresql | 0/1/6 (14%) | 4/0/1/1 | 40/0/15/20/0 | 1 → 0 | 4 | 6 |
-| kube-prometheus-stack | 2/6/7 (53%) | 12/0/3/0 | 60/0/0/15/0 | 0 → 0 | 2 | 0 |
+| kube-prometheus-stack | 2/6/8 (50%) | 12/0/3/0 | 60/0/0/15/0 | 0 → 0 | 2 | 0 |
 | vault | 2/0/13 (13%) | 14/0/1/0 | 236/0/0/244/0 | 0 → 0 | 8 | 9 |
 | crossplane | 2/4/8 (43%) | 8/0/5/0 | 86/0/0/56/14 | 0 → 0 | 6 | 9 |
 | external-secrets | 4/4/4 (67%) | 12/0/1/0 | 212/0/0/8/19 | 5 → 0 | 3 | 6 |
@@ -147,20 +147,20 @@ What convergence looks like:
 | 3 | argo-cd | 14 | 113 | 98 | 84 | 86% | 14 | 113 |
 | 4 | cilium | 2 | 115 | 82 | 74 | 90% | 8 | 121 |
 | 5 | postgresql | 7 | 122 | 56 | 49 | 88% | 5 | 126 |
-| 6 | kube-prometheus-stack | 8 | 130 | 81 | 70 | 86% | 9 | 135 |
-| 7 | vault | 7 | 137 | 82 | 75 | 91% | 3 | 138 |
-| 8 | crossplane | 1 | 138 | 72 | 71 | 99% | 0 | 138 |
-| 9 | external-secrets | 0 | 138 | 85 | 85 | 100% | 0 | 138 |
-| 10 | ingress-nginx | 5 | 143 | 93 | 88 | 95% | 5 | 143 |
-| 11 | grafana | 0 | 143 | 91 | 91 | 100% | 0 | 143 |
-| 12 | strimzi | 0 | 143 | 77 | 77 | 100% | 0 | 143 |
-| 13 | traefik | 1 | 144 | 97 | 96 | 99% | 1 | 144 |
-| 14 | karpenter | 3 | 147 | 83 | 80 | 96% | 3 | 147 |
-| 15 | flux | 4 | 151 | 91 | 87 | 96% | 4 | 151 |
-| 16 | otel-collector | 0 | 151 | 57 | 57 | 100% | 0 | 151 |
-| 17 | redis | 0 | 151 | 61 | 61 | 100% | 0 | 151 |
-| 20 | actions-runner-controller | 0 | 151 | 68 | 68 | 100% | 0 | 151 |
-| 21 | kyverno | 0 | 151 | 96 | 96 | 100% | 0 | 151 |
+| 6 | kube-prometheus-stack | 9 | 131 | 82 | 70 | 85% | 10 | 136 |
+| 7 | vault | 7 | 138 | 82 | 75 | 91% | 3 | 139 |
+| 8 | crossplane | 1 | 139 | 72 | 71 | 99% | 0 | 139 |
+| 9 | external-secrets | 0 | 139 | 85 | 85 | 100% | 0 | 139 |
+| 10 | ingress-nginx | 5 | 144 | 93 | 88 | 95% | 5 | 144 |
+| 11 | grafana | 0 | 144 | 91 | 91 | 100% | 0 | 144 |
+| 12 | strimzi | 0 | 144 | 77 | 77 | 100% | 0 | 144 |
+| 13 | traefik | 1 | 145 | 97 | 96 | 99% | 1 | 145 |
+| 14 | karpenter | 3 | 148 | 83 | 80 | 96% | 3 | 148 |
+| 15 | flux | 4 | 152 | 91 | 87 | 96% | 4 | 152 |
+| 16 | otel-collector | 0 | 152 | 57 | 57 | 100% | 0 | 152 |
+| 17 | redis | 0 | 152 | 61 | 61 | 100% | 0 | 152 |
+| 20 | actions-runner-controller | 0 | 152 | 68 | 68 | 100% | 0 | 152 |
+| 21 | kyverno | 0 | 152 | 96 | 96 | 100% | 0 | 152 |
 
 New constructs per product, in onboarding order (records):
 
@@ -170,7 +170,7 @@ New constructs per product, in onboarding order (records):
   3  argo-cd                      14  ███████
   4  cilium                        2  █
   5  postgresql                    7  ████
-  6  kube-prometheus-stack         8  ████
+  6  kube-prometheus-stack         9  █████
   7  vault                         7  ████
   8  crossplane                    1  █
   9  external-secrets              0  
@@ -189,25 +189,25 @@ New constructs per product, in onboarding order (records):
 Cumulative constructs introduced:
 
 ```text
-  1  cert-manager                 87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  1  cert-manager                 87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   2  istio                        99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   3  argo-cd                     113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   4  cilium                      115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
   5  postgresql                  122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  6  kube-prometheus-stack       130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  7  vault                       137  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  8  crossplane                  138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  9  external-secrets            138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 10  ingress-nginx               143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 11  grafana                     143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 12  strimzi                     143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 13  traefik                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 14  karpenter                   147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 15  flux                        151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 16  otel-collector              151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 17  redis                       151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 20  actions-runner-controller   151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 21  kyverno                     151  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  6  kube-prometheus-stack       131  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault                       138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane                  139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets            139  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 10  ingress-nginx               144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 11  grafana                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 12  strimzi                     144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 13  traefik                     145  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 14  karpenter                   148  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 15  flux                        152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 16  otel-collector              152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 17  redis                       152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 20  actions-runner-controller   152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 21  kyverno                     152  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -268,7 +268,7 @@ Cumulative constructs introduced:
 - `template-func:ge`: First definition use: '{{if ge .Major 10}}' renders the published two-part form of versions >= 10 in the tarball URL and the Docker image tags (3 artifacts + 2 headings, see considered: the rejected published-version variable).
 - `template-var:Patch`: REL_17_2 / REL9_6_24 cannot be read by a (?P<version>) group: the numbers are underscore-separated, 17.2 has two parts and a major (17) must be a release line. Components are assembled into major.minor.patch[-prerelease] (missing minor/patch = 0), so 17.2 is 17.0.2, line 17.0, kind major/patch, and PrevTag/lineage/releaseKinds/availability work unchanged. Accepted for versioning.tagPattern and git-tags locators; validated by the Go validator and the JSON Schema. The assembled components are rendered back to the published two-part form in templates ({{if ge .Major 10}}{{.Major}}.{{.Patch}}{{else}}{{.Version}}{{end}}, and {{if eq .Patch 0}} for the 'Release 17' heading): the first definition use of the .Patch template variable and of the eq/ge template functions (see considered: the rejected published-version variable). (also needed by Go (go1.22 is 1.22.0), Linux kernel (v6.7), Python (v3.13.0rc1, glued prerelease), Ruby (v3_3_0), OpenSSL 1.x (OpenSSL_1_1_1), PHP (php-8.3.0RC1), MariaDB, none of the other planned Phase-2 products tags this way (Redis, Elasticsearch, ... are three-part semver): justified by well-known projects, not by the plan)
 
-### kube-prometheus-stack (order 6, wave 1): 8 new
+### kube-prometheus-stack (order 6, wave 1): 9 new
 
 - `field:artifacts.channels.glob`: the gh-pages index of the monorepo lists every sibling chart; the channel needs kube-prometheus-stack-*.tgz to select its own entries (mirror of the tagPrefix idea on tags) (also needed by loki-stack and any helm monorepo product (grafana charts moved to a monorepo too))
 - `field:artifacts.version.from`: the document half of version:field; stats counts the parent and each leaf separately (also needed by same as version:field)
@@ -277,6 +277,7 @@ Cumulative constructs introduced:
 - `field:artifacts.version.from.ref`: pins move with the chart tag, so the ref is the release tag; without it the pin would be read from the default branch and drift (also needed by same as version:field)
 - `field:artifacts.version.from.repository`: the aggregator's pins live in the product repository itself, unlike lookup whose index is a registry (also needed by same as version:field)
 - `field:sources.locator.chart`: git-tags of prometheus-community/helm-charts carries every chart's tag family; the versions source needs chart=kube-prometheus-stack to keep its own tags (tagPrefix keeps the version shape, chart keeps the product) (also needed by any product whose canonical channel is a chart in a multi-chart repository)
+- `template-var:ArtifactVersionOf`: The render-side mirror of version:field/pattern: those read a component pin out of the release's own files; this renders the resolved pin into a source locator. It closes the loop an aggregator needs — the chart's own notes (What's Changed, UPGRADE.md) state THAT the operator was bumped, but its behavioural changes live only in the operator's release body at the pinned tag, which the eval dataset's standing misses (kube-prometheus-stack-90-91 E4/E5, important and minor, since its first run) measured. Catalog gains the reference scanner (double-quoted literal argument, statically checkable), validation (unknown artifact ids, unresolvable strategies lookup/independent, and any use outside source templates rejected — self-references included), ingest a pinned pre-resolution before the parallel source/artifact fan-out with the resolution cached and reused by the followed artifact (one from-document fetch, statuses and evidence recorded exactly once), plus JSON Schema wording and unit tests in catalog and ingest.
 - `version:field`: The mirror of lookup: lookup finds the artifact whose index field matches the release (operator products use it for "the chart whose appVersion is my version"); field reads the version FROM a file of the release — required whenever the product is an aggregator that pins sub-components per release. Here it yields probe-able artifact instances with upstream evidence (Chart.yaml L9 for a dependency pin, values.yaml for an image tag), which a content snapshot cannot: the edge then states "kube-state-metrics chart 8.4.2 → 8.6.0 [verified]" instead of diffing text. Catalog gains the strategy + path validation (catalog.SplitYAMLPath), normalize the path walker over yaml.Node (normalize.ReadYAMLPath, ErrNoMatch semantics), ingest the resolution with the document as evidence, plus JSON Schema and unit tests in all three packages. (also needed by bitnami application charts (app image tag pinned in values.yaml, common dependency; well known), vault-helm (appVersion is the Vault version; vault already models the reverse lookup — the chart product would use field))
 
 ### vault (order 7, wave 1): 7 new
@@ -351,7 +352,7 @@ No new constructs: the definition is configuration only.
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) +1 unclassified | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
-| 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 30 (4.3) | 93% | 55 / 0 | 25 (n=7) | 20/24/56 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
+| 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 31 (4.4) | 93% | 59 / 0 | 25 (n=7) | 20/24/57 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
 | 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 99% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) | 93/0/12/0 (7 of 7 reports) | 10 | full 7 |
 | 3 | actions-runner-controller, kyverno | 2 of 2 (actions-runner-controller, kyverno) | 0 (0.0) | 100% | 0 / 0 | 16 (n=2) | 8/12/11 (65%) | 34/0/1/0 (2 of 2 reports) | 0 | full 2 |
 
