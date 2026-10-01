@@ -30,11 +30,11 @@ func TestASCIIDocToMarkdownPrefixHeadings(t *testing.T) {
 	out := string(ASCIIDocToMarkdown([]byte(src)))
 	lines := strings.Split(out, "\n")
 	want := []string{
-		"",                                   // [[migrating-9.0]]
-		"## Migrating to 9.0",                // == Migrating to 9.0
-		"",                                   // ++++
-		"<titleabbrev>9.0</titleabbrev>",    // pass-through content
-		"",                                   // ++++
+		"",                               // [[migrating-9.0]]
+		"## Migrating to 9.0",            // == Migrating to 9.0
+		"",                               // ++++
+		"<titleabbrev>9.0</titleabbrev>", // pass-through content
+		"",                               // ++++
 		"",
 		"This section discusses the changes for {es} 9.0.",
 		"",
