@@ -1,0 +1,73 @@
+id: postgresql-17.2-17.3
+product: postgresql
+from: REL_17_2
+to: REL_17_3
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml   # Release 17.3 section
+  - https://www.postgresql.org/about/news/pg-17.3-16.8-15.12-14.17-13.20/
+expected:
+  # Change type covered: security remediation (CVE fix).
+  - id: E1
+    title: CVE-2025-1094 — libpq data-quoting functions (PQescapeString and allies) hardened against invalidly-encoded input
+    kind: security
+    importance: critical
+    actionRequired: true        # upgrade to remediate; client-side quoting paths must be revisited
+    classification: action-required
+    match:
+      - text: '(?i)CVE-2025-1094'
+      - text: '(?i)PQescapeString|data-quoting'
+    evidence:
+      - url: https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml
+        quote: "Harden PQescapeString and allied functions against invalidly-encoded input strings … The purpose of this change is to guard against SQL-injection attacks that are possible if one of these functions is used to quote crafted input. … The PostgreSQL Project thanks Stephen Fewer for reporting this problem. (CVE-2025-1094)"
+  # Change type covered: behavioural fix with operator-visible consequence.
+  - id: E2
+    title: Over-length database/user names in connection requests are auto-truncated again (a v17 change that caused trouble is reverted)
+    kind: behaviour-change
+    importance: important
+    actionRequired: false
+    classification: review-required
+    match:
+      - text: '(?i)auto-truncation|truncated.*NAMEDATALEN|over-length names'
+    evidence:
+      - url: https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml
+        quote: "Restore auto-truncation of database and user names appearing in connection requests … Over-length names should be truncated in an encoding-aware fashion, but for now just return to the former behavior of blind truncation at NAMEDATALEN-1 bytes."
+  # Change type covered: privilege-check behaviour change.
+  - id: E3
+    title: Parallel workers no longer perform connection privilege checks (datallowconn/rolcanlogin/ACL_CONNECT) — the leader's checks suffice
+    kind: behaviour-change
+    importance: important
+    actionRequired: false       # matters only to setups relying on per-worker checks
+    classification: review-required
+    match:
+      - text: '(?i)parallel workers.*connection privilege|datallowconn|ACL_CONNECT'
+    evidence:
+      - url: https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml
+        quote: "Do not check datallowconn, rolcanlogin, and ACL_CONNECT privileges when starting a parallel worker, instead assuming that it's enough for the leader process to have passed similar checks originally."
+  # Change type covered: bundled data (tzdata) bump.
+  - id: E4
+    title: Time zone data updated to tzdata release 2025a (Paraguay DST law change, Philippines historical corrections)
+    kind: dependency
+    importance: minor
+    actionRequired: false
+    classification: informational
+    match:
+      - text: '(?i)tzdata release 2025a|time zone data files'
+    evidence:
+      - url: https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml
+        quote: "Update time zone data files to tzdata release 2025a for DST law changes in Paraguay, plus historical corrections for the Philippines"
+  # Change type covered: extension fix relevant to upgrades to v17.
+  - id: E5
+    title: contrib/earthdistance functions rewritten as SQL-standard bodies — fixes v17 search-path failures that blocked pg_upgrade for some databases
+    kind: migration-step
+    importance: important
+    actionRequired: false       # only earthdistance users hitting the v17 upgrade failure
+    classification: review-required
+    match:
+      - text: '(?i)earthdistance|search-path-based failures'
+    evidence:
+      - url: https://github.com/postgres/postgres/blob/REL_17_3/doc/src/sgml/release-17.sgml
+        quote: "Use SQL-standard function bodies in the declarations of contrib/earthdistance's SQL-language functions … We have received reports of databases failing to be upgraded to v17 because of that."
+notExpected:
+  - title: routine bug fixes listed in the same Changes section
+    match: [{text: '(?i)assertion failure|memory leak|valgrind'}]

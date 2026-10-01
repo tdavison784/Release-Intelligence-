@@ -1,0 +1,136 @@
+id: strimzi-0.45-0.46
+product: strimzi
+from: 0.45.0
+to: 0.46.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md
+  - https://strimzi.io/docs/operators/0.46.0/full/deploying.html
+expected:
+  # Change type covered: architecture removal with a mandatory pre-upgrade check.
+  - id: E1
+    title: ZooKeeper-based Kafka clusters (and KRaft migration) support removed — all clusters must run KRaft before upgrading
+    kind: removal
+    importance: critical
+    actionRequired: true
+    classification: action-required   # a ZooKeeper-based cluster cannot upgrade at all until migrated
+    match:
+      - text: '(?i)ZooKeeper'
+    evidence:
+      - url: https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md
+        quote: "**Support for ZooKeeper-based clusters and for migration from ZooKeeper-based clusters to KRaft has been removed.** **Please make sure all your clusters are using KRaft before upgrading to Strimzi 0.46.0 or newer!**"
+  # Change type covered: component removal.
+  - id: E2
+    title: MirrorMaker 1 support removed — migrate to MirrorMaker 2 first
+    kind: removal
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)MirrorMaker 1|MirrorMaker1'
+    evidence:
+      - url: https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md
+        quote: "Support for MirrorMaker 1 has been removed. Please make sure to migrate to MirrorMaker 2 before upgrading to Strimzi 0.46 or newer."
+  # Change type covered: operator-level (CRD schema) feature removal.
+  - id: E3
+    title: Per-broker storage class overrides no longer supported — use multiple KafkaNodePools with different storage classes instead
+    kind: crd-schema
+    importance: important
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)storage (class )?overrides|storage overrides'
+    evidence:
+      - url: https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md
+        quote: "The storage overrides for configuring per-broker storage class are not supported anymore. If you are using the storage overrides, you should instead use multiple KafkaNodePool resources with a different storage class each."
+  # Change type covered: plugin removal from shipped images.
+  - id: E4
+    title: Strimzi EnvVar Configuration Provider and MirrorMaker 2 Extensions plugins removed from the container images
+    kind: removal
+    importance: important
+    actionRequired: true       # configurations referencing the plugins break
+    classification: action-required
+    match:
+      - text: '(?i)EnvVar Configuration Provider|mirror-maker-2-extensions|EnvVarConfigProvider'
+    evidence:
+      - url: https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md
+        quote: "[Strimzi EnvVar Configuration Provider] (deprecated in Strimzi 0.38.0) and [Strimzi MirrorMaker 2 Extensions] (deprecated in Strimzi 0.28.0) plugins were removed from Strimzi container images."
+  # Change type covered: Kafka-version support window change.
+  - id: E5
+    title: Kafka 4.0.0 supported; Kafka 3.8.x support removed
+    kind: compatibility
+    importance: important
+    actionRequired: false      # only clusters pinned to 3.8 must step their Kafka version first
+    classification: review-required
+    match:
+      - text: '(?i)Kafka 4\.0\.0|3\.8\.[01]'
+    evidence:
+      - url: https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md
+        quote: "Add support for Kafka 4.0.0. Remove support for Kafka 3.8.0 and 3.8.1."
+  # Change type covered: deprecated authorization mechanism.
+  - id: E6
+    title: "Open Policy Agent authorization (type: opa) deprecated — use type: custom"
+    kind: deprecation
+    importance: important
+    actionRequired: false
+    classification: review-required   # still works in 0.46; planning work
+    match:
+      - text: '(?i)Open Policy Agent|type: opa'
+    evidence:
+      - url: https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md
+        quote: "The Open Policy Agent authorization (`type: opa`) has been deprecated and will be removed in the future. To use the Open Policy Agent authorizer, you can use the `type: custom` authorization."
+  # Change type covered: removed pod/service label with consumer impact.
+  - id: E7
+    title: statefulset.kubernetes.io/pod-name label removed from pods and external listener services — use strimzi.io/pod-name
+    kind: removal
+    importance: minor
+    actionRequired: true       # custom setups leveraging the label must switch
+    classification: review-required
+    match:
+      - text: '(?i)statefulset\.kubernetes\.io/pod-name|strimzi\.io/pod-name'
+    evidence:
+      - url: https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md
+        quote: "Removed the `statefulset.kubernetes.io/pod-name` label from pods and external listeners Kubernetes Services. * If you have any custom setup leveraging such label, please use the `strimzi.io/pod-name` one instead."
+  # Change type covered: logging stack change on the Kafka operand.
+  - id: E8
+    title: Kafka 4.0 uses Log4j2 instead of Reload4j/Log4j1 — custom logging configurations may need updating
+    kind: behaviour-change
+    importance: minor
+    actionRequired: false
+    classification: review-required
+    match:
+      - text: '(?i)Log4j2|Reload4j'
+    evidence:
+      - url: https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md
+        quote: "Kafka 4.0 and newer is using Log4j2 for logging instead of Reload4j/Log4j1. If you have any custom logging configuration, you might need to update it during the upgrade to Kafka 4.0."
+notExpected:
+  - title: documentation and dependency-bump entries in the changelog are not operator upgrade work
+    match: [{text: '(?i)^(Update|Bump|Fixed) '}]
+environment:
+  description: >-
+    Kafka platform on Kubernetes 1.29 running Strimzi 0.45.0 with a KRaft-based
+    Kafka cluster pinned to Kafka 3.8 (metadataVersion 3.8-IV0), MirrorMaker 2
+    replication in use, and a custom logging ConfigMap carried over from the
+    Reload4j era. The installed CRDs are the 0.45 bundle; the mirror list pins
+    the operator image to 0.45.0.
+  kubernetes: "1.29"
+  expectedImpact:
+    - expected: E5
+      relevance: action-required
+      why: the fixture's Kafka CR pins metadataVersion 3.8-IV0 — Kafka 3.8.x support is removed in 0.46, so the brokers must step to 3.9/4.0 before (or with) the operator upgrade
+    - expected: E6
+      relevance: review
+      why: the fixture's authorization configuration references OPA; deprecated but still functional in 0.46
+  expectedFindings:
+    - id: F1
+      match:
+        rule: impact:kubernetes-in-range
+      why: Kubernetes 1.29 is inside Strimzi 0.46's supported range (support for 1.25/1.26 is only dropped from 0.48 on)
+    - id: F2
+      match:
+        rule: impact:image-changed
+      why: the mirror list pins the operator repository, whose image moves between 0.45.0 and 0.46.0
+  notExpectedFindings:
+    - title: no Strimzi CRD is removed by this upgrade
+      match: {rule: impact:crd-removed}
+      why: 0.46.0 still ships the same CRD set (kafka.strimzi.io etc.) as 0.45.0

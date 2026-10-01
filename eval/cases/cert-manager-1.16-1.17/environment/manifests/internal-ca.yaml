@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: internal-ca
+spec:
+  ca:
+    secretName: internal-ca-key
+---
+# 4096-bit RSA leaf certificate consumed by the strict verifier appliance:
+# rotation in 1.17 switches its signature from SHA-256 to SHA-512.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: payments-api
+  namespace: payments
+spec:
+  secretName: payments-api-tls
+  issuerRef:
+    name: internal-ca
+    kind: ClusterIssuer
+  dnsNames:
+    - payments.internal.example.com
+  privateKey:
+    algorithm: RSA
+    size: 4096

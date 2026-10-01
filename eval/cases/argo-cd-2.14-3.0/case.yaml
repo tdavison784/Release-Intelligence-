@@ -1,0 +1,149 @@
+id: argo-cd-2.14-3.0
+product: argo-cd
+from: v2.14.5
+to: v3.0.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md
+  - https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/tested-kubernetes-versions.md
+expected:
+  # Change type covered: mandatory migration guide with per-change detection/remediation.
+  - id: E1
+    title: "Fine-grained RBAC: update/delete policies no longer apply to an Application's sub-resources — new update/*, delete/* policies required"
+    kind: breaking
+    importance: critical
+    actionRequired: true
+    classification: action-required   # every operator using fine-grained policies must add policies or restore the default
+    match:
+      - text: '(?i)Fine-Grained RBAC|disableApplicationFineGrainedRBACInheritance'
+      - text: '(?i)update/\* or delete/\*'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md
+        quote: "Starting with v3, the `update` or `delete` actions only apply to the application itself. New policies must be defined to allow the `update/*` or `delete/*` actions on an Application's managed resources."
+  - id: E2
+    title: Logs RBAC enforced by default — the server.rbac.log.enforce.enable flag is removed; logs, get must be granted explicitly
+    kind: breaking
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)server\.rbac\.log\.enforce\.enable|logs RBAC is enforced'
+      - text: '(?i)logs, get'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md
+        quote: "Starting from 3.0, this flag is removed and the logs RBAC is enforced by default, meaning the `logs` tab on `pod` view will not be visible without granting explicit `logs, get` permissions"
+  # Change type covered: new default configuration (behavioural).
+  - id: E3
+    title: Default resource.exclusions now excludes controller-generated kinds (CertificateRequest, CiliumIdentity/Endpoint, EndpointSlice, …)
+    kind: behaviour-change
+    importance: important
+    actionRequired: false
+    classification: review-required   # a cluster running cert-manager or Cilium must notice its kinds are now invisible to Argo CD
+    match:
+      - text: '(?i)resource\.exclusions'
+      - text: '(?i)CertificateRequest|CiliumIdentity|EndpointSlice'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md
+        quote: "Argo CD manifest now contains a default configuration for `resource.exclusions` in the `argocd-cm` … **Cert Manager**: `CertificateRequest`. … **Cilium**: `CiliumIdentity`, `CiliumEndpoint` and `CiliumEndpointSlice`."
+  # Change type covered: removed metrics.
+  - id: E4
+    title: Legacy app metrics argocd_app_sync_status / argocd_app_health_status / argocd_app_created_time removed
+    kind: removal
+    importance: important
+    actionRequired: false       # only operators who re-enabled them via the env var
+    classification: review-required
+    match:
+      - text: '(?i)argocd_app_sync_status|argocd_app_health_status|ARGOCD_LEGACY_CONTROLLER_METRICS'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md
+        quote: "The `argocd_app_sync_status`, `argocd_app_health_status` and `argocd_app_created_time`, deprecated and disabled by default since 1.5.0, have been removed."
+  # Change type covered: SSO/RBAC identity semantics.
+  - id: E5
+    title: Dex SSO RBAC subject switches from the `sub` claim to federated_claims.user_id — policies referencing the old subject must be rewritten
+    kind: breaking
+    importance: important
+    actionRequired: false       # only Dex users
+    classification: review-required
+    match:
+      - text: '(?i)Dex|federated_claims\.user_id'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md
+        quote: "The new behavior will request the `federated:id` scope from Dex, and the new value used as the RBAC subject will be based on the `federated_claims.user_id` claim instead of the `sub` claim."
+  # Change type covered: removed legacy configuration channel.
+  - id: E6
+    title: Legacy repository configuration in argocd-cm removed — repositories must be managed as Secrets
+    kind: removal
+    importance: important
+    actionRequired: false       # only clusters still configuring repos in the ConfigMap
+    classification: review-required
+    match:
+      - text: '(?i)legacy repo config|repositories.*argocd-cm|argocd-cm.*[Rr]epositor'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md
+        quote: "Before repositories were managed as Secrets, they were configured in the argocd-cm ConfigMap. The argocd-cm option has been deprecated for some time and is no longer available in Argo CD 3.0."
+  # Change type covered: ignored (previously honoured) CRD field.
+  - id: E7
+    title: ApplicationSet spec.applyNestedSelectors is ignored — nested selectors are always applied
+    kind: breaking
+    importance: minor
+    actionRequired: false
+    classification: review-required
+    match:
+      - text: '(?i)applyNestedSelectors'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md
+        quote: "Starting in Argo CD 3.0, the field is ignored, and behavior is always the same as if `applyNestedSelectors` was set to `true`."
+  # Change type covered: bundled toolchain bump with behavioural consequence.
+  - id: E8
+    title: Bundled Helm upgraded to 3.17.1 — null values in subchart values.yaml now override rendered objects
+    kind: dependency
+    importance: important
+    actionRequired: false       # only subcharts using null-valued keys
+    classification: review-required
+    match:
+      - text: '(?i)Helm was upgraded|3\.17\.1'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md
+        quote: "Helm was upgraded to 3.17.1. This may require changing your `values.yaml` files for subcharts, if the `values.yaml` contain a section with a `null` object."
+  # Change type covered: default-mode switch.
+  - id: E9
+    title: Resource tracking defaults to annotation-based tracking (was label-based)
+    kind: behaviour-change
+    importance: important
+    actionRequired: false       # safe for most; edge cases can orphan resources
+    classification: review-required
+    match:
+      - text: '(?i)annotation-based tracking|application\.resourceTrackingMethod'
+    evidence:
+      - url: https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md
+        quote: "The default behavior for [tracking resources](../../user-guide/resource_tracking.md) has changed to use annotation-based tracking instead of label-based tracking."
+notExpected:
+  - title: feature content in the upgrade guide body is not upgrade work
+    match: [{text: '(?i)^- \*\*Added\*\*|new feature'}]
+environment:
+  description: >-
+    GitOps control plane on Kubernetes 1.29 running Argo CD 2.14 declaratively.
+    The rbac ConfigMap grants fine-grained update/delete on applications to a
+    platform team role, and no explicit logs policy exists; an ApplicationSet
+    manages tenant namespaces. cert-manager runs in the same cluster (its
+    CertificateRequest kind is now in Argo CD's default exclusions).
+  kubernetes: "1.29"
+  expectedImpact:
+    - expected: E1
+      relevance: action-required
+      why: the fixture's policy.csv uses fine-grained application update/delete grants, which v3 stops applying to sub-resources
+    - expected: E2
+      relevance: action-required
+      why: the fixture grants no logs, get policy and does not set the (now removed) enforce flag, so users lose the logs tab on upgrade
+    - expected: E3
+      relevance: review
+      why: cert-manager runs in this cluster, so CertificateRequest objects silently leave Argo CD's view under the new default exclusions
+  expectedFindings:
+    - id: F1
+      match:
+        rule: impact:kubernetes-in-range
+      why: Kubernetes 1.29 is among the versions Argo CD 3.0 tests (tested-kubernetes-versions table), which should be confirmed, not flagged
+  notExpectedFindings:
+    - title: no Argo CD CRD is removed by this upgrade
+      match: {rule: impact:crd-removed}
+      why: Argo CD 3.0 still ships the applications.argoproj.io and applicationsets.argoproj.io CRDs of 2.14
