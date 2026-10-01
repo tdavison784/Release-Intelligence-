@@ -1,0 +1,73 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: grafana
+name: grafana
+homepage: https://github.com/grafana/grafana
+versioning:
+  scheme: semver
+  tagPrefix: v
+  tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/grafana/grafana
+      tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: grafana/grafana
+    priority: 1
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: grafana/grafana
+      ref: '{{.Tag}}'
+    fallbackGroup: release-notes
+    notes: 'Failed validation for one release (13.0.0 fail (fetch https://api.github.com/repos/grafana/grafana/releases/tags/v13.0.0: not found (HTTP 404))); possibly published late or elsewhere.'
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: grafana/grafana
+artifacts:
+  - id: crds
+    type: crd
+    name: CustomResourceDefinitions
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-dir
+        repository: github.com/grafana/grafana
+        path: apps/alerting/notifications/definitions
+        glob: '*.yaml'
+    contents:
+      - kind: crds
+    validatedAgainst:
+      - 13.0.0
+      - 13.0.10
+      - 13.1.0
+      - 13.1.7
+      - 13.2.0
+      - 13.2.3
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  validatedReleases:
+    - v13.0.0
+    - v13.0.10
+    - v13.1.0
+    - v13.1.7
+    - v13.2.0
+    - v13.2.3
+  notes: Proposed by automated discovery; relationship checks run against v13.0.0, v13.0.10, v13.1.0, v13.1.7, v13.2.0, v13.2.3.
