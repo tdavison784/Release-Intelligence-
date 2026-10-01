@@ -1,5 +1,9 @@
 # Phase 2 plan: does Release Intelligence scale?
 
+> **Status: complete (2026-10-01).** 28 products onboarded across waves 0–4,
+> all nine workstreams delivered. The measured outcome and the honest
+> frontier are in [OUTCOMES.md](OUTCOMES.md).
+
 Phase 1 showed that one generic, evidence-backed model can represent
 cert-manager, Istio and Argo CD without product-specific code. Phase 2 has to
 answer the product question:

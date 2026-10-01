@@ -14,9 +14,14 @@ conclusion points back to the source it came from. It covers:
 - artifact changes
 
 Each source citation carries a URL, a line range, a verbatim excerpt and the
-digest of the exact bytes that were read. The first products are
-**cert-manager**, **Istio** and **Argo CD**. Nothing in the design is tied to
-one ecosystem.
+digest of the exact bytes that were read. The catalog holds **28 products** —
+cert-manager, Istio and Argo CD through Cilium, PostgreSQL, Vault,
+kube-prometheus-stack, Traefik, Flux, the OTel Collector, Redis, Elasticsearch,
+the Terraform AWS Provider, Falco, Linkerd, Prometheus Operator, Loki, MinIO
+and the Go toolchain — onboarded as pure configuration
+([docs/ONBOARDING.md](docs/ONBOARDING.md) measures how little code each one
+needed; [docs/phase2/OUTCOMES.md](docs/phase2/OUTCOMES.md) is the phase
+verdict). Nothing in the design is tied to one ecosystem.
 
 A second question builds on it: **which of those changes matter to YOUR
 environment?** `ri impact` joins the edge with local Helm values, manifests,
