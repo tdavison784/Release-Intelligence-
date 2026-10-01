@@ -52,7 +52,10 @@ relationships:
     - {subject: "crank-linux-amd64 / cli-linux-amd64", reason: "releases.crossplane.io / cli.crossplane.io blocked; verified through the S3 buckets behind them"}
     - {subject: "whats-new-major, upgrade-to-v2 (+ archive)", reason: "only one major release (v2.0.0) exists, so fewer than 3 validations are possible"}
 constructs:
-  new: []
+  new:
+    - name: field:sources.locator.tagPattern
+      kind: locator field (existed unused in the foundation; first exercised here, as argo-cd's git-log)
+      justification: "The git-tags fallback versions source repeats the strict tag pattern on its own locator so the apis/vX.Y.Z submodule tags and the legacy rc tags are not releases when the GitHub API is unreachable ('same strict tagPattern that excludes the apis/ submodule tags'); configuration only, no code change."
   considered:
     - {name: "line-aligned artifact version (patch independent)", reason: "the CLI of crossplane/cli follows the core minor line but not the patch (core 2.3.6 has no CLI 2.3.6); approximated with the line's X.Y.0 release; a lookup by minor needs a version index (the CLI is plain S3 paths) and no second product here needs it yet (candidates: Flux, Cilium CLI) - recorded as a gap"}
     - {name: "support window / EOL per release line", reason: "README table and release-cycle docs; the compatibility model only holds platform version constraints; Istio (supportStatus.yml eol), cert-manager (supported releases) and Argo CD (3-minor policy) have the same unrepresented data; needs a domain type, not definition-only work, and would touch shared core code"}
