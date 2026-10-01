@@ -26,8 +26,9 @@ type rawItem struct {
 }
 
 type noteParser struct {
-	d     *document
-	items []rawItem
+	d         *document
+	items     []rawItem
+	listItems bool // DocInput.ListItems
 }
 
 func parseNotes(in DocInput, rules []catalog.ClassifyRule) ([]domain.NoteItem, []domain.Evidence, error) {
@@ -37,7 +38,7 @@ func parseNotes(in DocInput, rules []catalog.ClassifyRule) ([]domain.NoteItem, [
 	}
 	d := scanDocument(in.Content)
 	root, flat := d.buildSections()
-	p := &noteParser{d: d}
+	p := &noteParser{d: d, listItems: in.ListItems}
 	p.walk(root, len(flat) == 0)
 
 	b := newNoteBuilder(in, cls)
@@ -220,6 +221,15 @@ func (p *noteParser) walk(s *section, noHeadings bool) {
 		} else if noHeadings && hasProse {
 			p.emitProse(s, false, blocks)
 		}
+	case p.listItems:
+		// structural reading (DocBook): own prose of a level >= 2 section is
+		// one item, every list item another; sub-sections are never folded in
+		if hasSubstantive && s.level >= 2 {
+			p.emitProse(s, false, withoutLists(blocks))
+		}
+		if hasList {
+			p.emitLists(s, blocks)
+		}
 	case !s.container && !listLike && hasProse:
 		p.emitProse(s, true, blocks)
 		return
@@ -334,6 +344,16 @@ func (p *noteParser) emitProse(s *section, absorb bool, blocks []block) {
 		label:    s.hraw,
 		excerpt:  d.rawLines(start, end),
 	})
+}
+
+func withoutLists(bs []block) []block {
+	out := make([]block, 0, len(bs))
+	for _, b := range bs {
+		if b.kind != bList {
+			out = append(out, b)
+		}
+	}
+	return out
 }
 
 func firstBlockLine(bs []block) int {

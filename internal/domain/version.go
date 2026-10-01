@@ -31,8 +31,35 @@ type Version struct {
 type VersionParser struct {
 	Scheme VersionScheme
 	// Pattern must contain a capture group named "version" (or a first
-	// capture group) holding the semantic version portion of the tag.
+	// capture group) holding the semantic version portion of the tag, or the
+	// component groups described at HasVersionGroups.
 	Pattern *regexp.Regexp
+}
+
+// HasVersionGroups reports whether a tag pattern says how to read a version:
+// a named group "version" (the semantic version verbatim) or a named group
+// "major". With "major" the version is assembled from the named groups
+// major (required), minor and patch (default 0) and prerelease (optional,
+// without its leading "-"), so tags whose numbers are not dot-separated or
+// not three-part still map to semver: PostgreSQL REL_17_2 (major=17,
+// patch=2), Ruby v3_3_0, Go go1.22, Linux v6.7, Python v3.13.0rc1.
+func HasVersionGroups(re *regexp.Regexp) bool {
+	return re != nil && (re.SubexpIndex("version") > 0 || re.SubexpIndex("major") > 0)
+}
+
+// componentVersion assembles a semantic version from the named groups of m.
+func componentVersion(pat *regexp.Regexp, m []string) string {
+	get := func(name string, def string) string {
+		if i := pat.SubexpIndex(name); i > 0 && m[i] != "" {
+			return m[i]
+		}
+		return def
+	}
+	raw := get("major", "") + "." + get("minor", "0") + "." + get("patch", "0")
+	if pre := get("prerelease", ""); pre != "" {
+		raw += "-" + pre
+	}
+	return raw
 }
 
 // DefaultTagPattern builds the conventional pattern for a prefix such as "v" or "".
@@ -55,6 +82,8 @@ func (p VersionParser) Parse(tag string) (Version, error) {
 	raw := ""
 	if i := pat.SubexpIndex("version"); i > 0 {
 		raw = m[i]
+	} else if pat.SubexpIndex("major") > 0 {
+		raw = componentVersion(pat, m)
 	} else if len(m) > 1 {
 		raw = m[1]
 	} else {

@@ -55,7 +55,10 @@ type Versioning struct {
 	Scheme domain.VersionScheme `yaml:"scheme" json:"scheme"`
 	// TagPrefix is prepended to the semantic version in canonical tags ("v").
 	TagPrefix string `yaml:"tagPrefix,omitempty" json:"tagPrefix,omitempty"`
-	// TagPattern overrides the tag regex; it must contain a named group "version".
+	// TagPattern overrides the tag regex; it must contain a named group
+	// "version" (the semantic version verbatim) or a named group "major",
+	// optionally with "minor", "patch" and "prerelease": the semantic version
+	// is then assembled from the components (see domain.HasVersionGroups).
 	TagPattern string `yaml:"tagPattern,omitempty" json:"tagPattern,omitempty"`
 	// Lineage describes how release lines branch: "minor" (X.Y.z lines are
 	// maintained in parallel and X.Y.0 carries the changes since the previous
@@ -179,9 +182,22 @@ const (
 	ExtractYAMLRecords     = "yaml-records"      // a record selected from a YAML/JSON list (same fields as markdown-table; headers are field names)
 )
 
+// Document formats an Extract can read (Extract.Format).
+const (
+	FormatMarkdown = "markdown" // default
+	// FormatDocBook: the document is DocBook (SGML/XML); it is rendered as
+	// line-preserving markdown before extraction (normalize.DocBookToMarkdown),
+	// so "markdown-section" selects <sectN> by title and "whole" parses it as notes.
+	FormatDocBook = "docbook"
+)
+
 // Extract configures how to extract information from a fetched document.
 type Extract struct {
-	Type string `yaml:"type" json:"type"`
+	// Format is the markup of the document ("markdown" when empty); "docbook"
+	// documents are converted to markdown first. Only for the types "whole"
+	// and "markdown-section".
+	Format string `yaml:"format,omitempty" json:"format,omitempty"`
+	Type   string `yaml:"type" json:"type"`
 	// Heading is a regex template selecting the section (markdown-section).
 	// Headings are matched after trimming '#', whitespace and backticks.
 	Heading string `yaml:"heading,omitempty" json:"heading,omitempty"`
