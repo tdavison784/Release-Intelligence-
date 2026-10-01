@@ -2,7 +2,9 @@ package catalog
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -42,16 +44,22 @@ func LoadFile(path string) (*ProductDefinition, error) {
 
 // Catalog is a set of product definitions keyed by id.
 type Catalog struct {
-	products map[string]*ProductDefinition
+	products   map[string]*ProductDefinition
+	loadErrors map[string]error // file path → why it was not loaded
 }
 
-// LoadDir loads every *.yaml / *.yml file in dir. It fails on duplicate ids.
+// LoadDir loads every *.yaml / *.yml file in dir. A file that cannot be read
+// or decoded, or whose product id is already defined by an earlier file (files
+// are visited in name order), is not loaded and recorded in LoadErrors; the
+// remaining files are loaded regardless. It returns an error only when dir
+// itself cannot be read.
 func LoadDir(dir string) (*Catalog, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
-	c := &Catalog{products: map[string]*ProductDefinition{}}
+	c := &Catalog{products: map[string]*ProductDefinition{}, loadErrors: map[string]error{}}
+	paths := map[string]string{} // product id → file that defined it
 	for _, e := range entries {
 		if e.IsDir() {
 			continue
@@ -60,16 +68,50 @@ func LoadDir(dir string) (*Catalog, error) {
 		if ext != ".yaml" && ext != ".yml" {
 			continue
 		}
-		d, err := LoadFile(filepath.Join(dir, e.Name()))
+		path := filepath.Join(dir, e.Name())
+		data, err := os.ReadFile(path)
 		if err != nil {
-			return nil, err
+			var pe *fs.PathError
+			if errors.As(err, &pe) {
+				err = pe.Err // the path is the key
+			}
+			c.loadErrors[path] = err
+			continue
 		}
-		if _, dup := c.products[d.ID]; dup {
-			return nil, fmt.Errorf("duplicate product id %q in %s", d.ID, e.Name())
+		d, err := Parse(data)
+		if err != nil {
+			c.loadErrors[path] = err
+			continue
 		}
+		d.path = path
+		if first, dup := paths[d.ID]; dup {
+			c.loadErrors[path] = fmt.Errorf("duplicate product id %q (already defined in %s)", d.ID, first)
+			continue
+		}
+		paths[d.ID] = path
 		c.products[d.ID] = d
 	}
 	return c, nil
+}
+
+// LoadErrors returns the files LoadDir could not load, keyed by file path.
+// The map is empty when every file loaded.
+func (c *Catalog) LoadErrors() map[string]error {
+	out := make(map[string]error, len(c.loadErrors))
+	for p, err := range c.loadErrors {
+		out[p] = err
+	}
+	return out
+}
+
+// LoadErrorPaths returns the keys of LoadErrors in sorted order.
+func (c *Catalog) LoadErrorPaths() []string {
+	out := make([]string, 0, len(c.loadErrors))
+	for p := range c.loadErrors {
+		out = append(out, p)
+	}
+	sort.Strings(out)
+	return out
 }
 
 // New builds a catalog from in-memory definitions.

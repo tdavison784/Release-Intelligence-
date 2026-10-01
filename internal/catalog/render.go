@@ -44,7 +44,9 @@ type RenderContext struct {
 
 // NewRenderContext builds a context for version v. known is the list of known
 // release versions (any order) used to compute the previous release line; it
-// may be nil, in which case PrevLine falls back to Minor-1 when Minor > 0.
+// may be nil, in which case PrevLine falls back to Minor-1 when Minor > 0. When
+// known is not empty but holds no lower line (the first release of a product),
+// PrevLine, PrevMajor, PrevMinor and PrevTag are left empty.
 func NewRenderContext(product string, v domain.Version, known []domain.Version) RenderContext {
 	rc := RenderContext{
 		Product:    product,
@@ -74,7 +76,11 @@ func NewRenderContext(product string, v domain.Version, known []domain.Version) 
 	case best != nil:
 		rc.PrevMajor, rc.PrevMinor = best.Major(), best.Minor()
 		rc.PrevLine = best.Line()
-	case v.Minor() > 0:
+	case v.Minor() > 0 && len(known) == 0:
+		// Without any version list the previous line can only be guessed. With
+		// one, no lower line means v is the product's first release (or its
+		// first line): the Prev* fields stay empty instead of inventing a
+		// line that never existed.
 		rc.PrevMajor, rc.PrevMinor = v.Major(), v.Minor()-1
 		rc.PrevLine = fmt.Sprintf("%d.%d", rc.PrevMajor, rc.PrevMinor)
 	}
@@ -190,7 +196,9 @@ func RenderLocator(l Locator, rc RenderContext) (Locator, error) {
 }
 
 // AppliesTo reports whether a source/artifact with the given availability
-// constraint and release kinds applies to version v.
+// constraint and release kinds applies to version v. A prerelease is judged by
+// its release version (see domain.Version.Satisfies), so 1.19.0-alpha.0
+// satisfies ">= 1.5.0".
 func AppliesTo(v domain.Version, availability string, releaseKinds []string) (bool, error) {
 	ok, err := v.Satisfies(availability)
 	if err != nil || !ok {

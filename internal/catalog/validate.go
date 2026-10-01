@@ -29,7 +29,8 @@ func (i Issue) String() string { return fmt.Sprintf("%s: %s: %s", i.Severity, i.
 
 // ValidationReport collects issues for a definition.
 type ValidationReport struct {
-	Product string  `json:"product"`
+	Product string  `json:"product"`        // "" when the file could not be loaded
+	File    string  `json:"file,omitempty"` // source file, when known
 	Issues  []Issue `json:"issues"`
 }
 
@@ -129,7 +130,7 @@ func sampleContext(d *ProductDefinition) RenderContext {
 // Validate performs static validation of a definition. It does not touch the
 // network; historical relationship checks live in package discovery/ingest.
 func Validate(d *ProductDefinition) ValidationReport {
-	v := &validator{r: ValidationReport{Product: d.ID}}
+	v := &validator{r: ValidationReport{Product: d.ID, File: d.Path()}}
 	if d.APIVersion != APIVersion {
 		v.errf("apiVersion", "must be %q, got %q", APIVersion, d.APIVersion)
 	}
@@ -260,6 +261,19 @@ func Validate(d *ProductDefinition) ValidationReport {
 			v.constraint(cp+".availability", c.Availability)
 			if c.StripPrefix != "" && c.Kind != ContentHelmValues {
 				v.errf(cp+".stripPrefix", "only supported for %s contents", ContentHelmValues)
+			}
+			if len(c.IgnoreKeys) > 0 && c.Kind != ContentHelmValues {
+				v.errf(cp+".ignoreKeys", "only supported for %s contents", ContentHelmValues)
+			}
+			for k, key := range c.IgnoreKeys {
+				kp := fmt.Sprintf("%s.ignoreKeys[%d]", cp, k)
+				base := strings.TrimSuffix(key, ".*")
+				switch {
+				case strings.TrimSpace(key) == "" || strings.TrimSpace(key) != key:
+					v.errf(kp, "must be a values key without surrounding whitespace, got %q", key)
+				case base == "" || (base == key && strings.Contains(key, "*")) || strings.Contains(base, "*"):
+					v.errf(kp, `a wildcard is only supported as a trailing ".*" after a key, got %q`, key)
+				}
 			}
 		}
 		v.constraint(p+".availability", a.Availability)

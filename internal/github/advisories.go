@@ -57,7 +57,8 @@ func NewAdvisories(c *Client) *Advisories { return &Advisories{c: c} }
 //	URL         html_url
 //	PublishedAt published_at
 //	Vulnerable  the vulnerable_version_range of every entry of "vulnerabilities",
-//	            converted by ConvertVersionRange and united with "||"
+//	            converted by ConvertVersionRange and united with "||"; empty
+//	            when any of them cannot be converted
 //	Patched     the patched_versions of those entries
 //	SourceID    left empty: the adapter does not know the source id and the
 //	            caller fills it in
@@ -66,9 +67,11 @@ func NewAdvisories(c *Client) *Advisories { return &Advisories{c: c} }
 // and one domain.EvidenceAdvisory record is returned per advisory (in the
 // same order), pointing at the advisory page, with the digest of the
 // advisory's JSON as returned by the API. Withdrawn advisories are skipped.
-// Advisories are ordered newest first (ties by ID). Ranges that cannot be
-// converted into a constraint are left out of Vulnerable; the original
-// ranges are kept in the evidence excerpt.
+// Advisories are ordered newest first (ties by ID). If any range of an
+// advisory cannot be converted into a constraint, Vulnerable is left empty
+// (a partial constraint could claim a version is unaffected while the
+// unconverted range still covers it); the original ranges are kept in the
+// evidence excerpt.
 func (a *Advisories) ListAdvisories(ctx context.Context, loc catalog.Locator) ([]domain.Advisory, []domain.Evidence, error) {
 	owner, name, err := parseRepository(loc.Repository)
 	if err != nil {
@@ -140,7 +143,15 @@ func convertAdvisory(owner, name string, ga advisory, raw []byte, retrievedAt ti
 			}
 		}
 	}
-	vulnerable, _ := CombineVersionRanges(ranges)
+	// A range that cannot be converted may still cover the target version, so
+	// a partial constraint would turn "maybe affected" into a confident "fixed"
+	// (or "not affected"). If any range fails, Vulnerable stays empty: the
+	// upgrade engine then asks for a manual check instead of making a claim.
+	// The raw ranges stay in the evidence excerpt below.
+	vulnerable, skipped := CombineVersionRanges(ranges)
+	if len(skipped) > 0 {
+		vulnerable = ""
+	}
 
 	aliasSet := map[string]bool{}
 	addAlias := func(a string) {
@@ -170,6 +181,9 @@ func convertAdvisory(owner, name string, ga advisory, raw []byte, retrievedAt ti
 	excerpt += ": " + strings.TrimSpace(ga.Summary)
 	if len(ranges) > 0 {
 		excerpt += "; vulnerable: " + strings.Join(ranges, " | ")
+		if len(skipped) > 0 {
+			excerpt += " (not machine-readable)"
+		}
 	}
 	if len(patched) > 0 {
 		excerpt += "; patched: " + strings.Join(patched, ", ")

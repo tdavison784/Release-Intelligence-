@@ -35,7 +35,7 @@ func noteRank(it domain.NoteItem) int {
 // Changes, merging duplicates.
 func (b *builder) noteChanges() {
 	groups := map[string]*noteGroup{}
-	byTitle := map[string]*noteGroup{} // release + heading title → group
+	byTitle := map[string][]*noteGroup{} // release + heading title → candidate groups
 	var order []*noteGroup
 	for _, r := range b.releases {
 		for _, it := range r.Notes {
@@ -53,15 +53,21 @@ func (b *builder) noteChanges() {
 				key = text
 			}
 			g := groups[key]
-			// The same change often appears twice with different wording:
-			// e.g. a structured release-note entry {title, content} and the
-			// hand-edited upgrade-notes section under the same heading. Merge
-			// heading-style items that share their title within a release.
+			// The same change is sometimes published by two different
+			// sources with different wording: a structured release-note entry
+			// {title, content} and the hand-edited upgrade-notes section under
+			// the same heading. Merge those by title (see titleMergeable).
+			title := headingTitle(text)
 			tkey := ""
-			if t := headingTitle(text); t != "" {
-				tkey = rel + "\x00" + t
+			if title != "" {
+				tkey = rel + "\x00" + title
 				if g == nil {
-					g = byTitle[tkey]
+					for _, cand := range byTitle[tkey] {
+						if titleMergeable(cand, it, title) {
+							g = cand
+							break
+						}
+					}
 				}
 			}
 			if g == nil {
@@ -73,8 +79,8 @@ func (b *builder) noteChanges() {
 			}
 			g.items = append(g.items, it)
 			groups[key] = g
-			if tkey != "" && byTitle[tkey] == nil {
-				byTitle[tkey] = g
+			if tkey != "" && !containsGroup(byTitle[tkey], g) {
+				byTitle[tkey] = append(byTitle[tkey], g)
 			}
 		}
 	}
@@ -131,6 +137,56 @@ func alnumKey(s string) string {
 		}
 	}
 	return b.String()
+}
+
+func containsGroup(gs []*noteGroup, g *noteGroup) bool {
+	for _, x := range gs {
+		if x == g {
+			return true
+		}
+	}
+	return false
+}
+
+// sectionSep joins heading path elements in NoteItem.Section (the separator
+// used by normalize).
+const sectionSep = " › "
+
+// sectionLeaf returns the alnum key of the last element of a Section path.
+func sectionLeaf(section string) string {
+	if i := strings.LastIndex(section, sectionSep); i >= 0 {
+		section = section[i+len(sectionSep):]
+	}
+	return alnumKey(normalizeNoteText(section))
+}
+
+// titleMergeable reports whether it, whose "Title: body" prefix has the alnum
+// key title, may join g by title instead of by identical text. A "Prefix:"
+// title is common to unrelated items ("Helm chart: fixed X", "Potentially
+// Breaking: ..."), so the merge is limited to the one legitimate case, the
+// same change published by two different sources:
+//
+//   - never within one source: g must hold no item from it.SourceID, and
+//   - the title must be the heading the change is filed under: it equals the
+//     last Section path element of it or of the item of g it is merged with
+//     (the upgrade-notes page has "## Title" while the structured release note
+//     is filed under its area).
+func titleMergeable(g *noteGroup, it domain.NoteItem, title string) bool {
+	for _, x := range g.items {
+		if x.SourceID == it.SourceID {
+			return false
+		}
+	}
+	itLeaf := sectionLeaf(it.Section)
+	for _, x := range g.items {
+		if headingTitle(strings.TrimSpace(x.Text)) != title {
+			continue
+		}
+		if title == itLeaf || title == sectionLeaf(x.Section) {
+			return true
+		}
+	}
+	return false
 }
 
 // headingTitle returns the alnum key of a "Title: body" item's title when the

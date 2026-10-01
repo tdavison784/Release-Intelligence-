@@ -292,6 +292,16 @@ func (r *renderer) sourceSymbol(es []domain.SourceStatus) (string, string) {
 	return "~", ansiYellow
 }
 
+// maxSourceDetail bounds the status detail shown per source; the full text
+// stays in the JSON output.
+const maxSourceDetail = 110
+
+// sourceDetail reduces a status detail to one line of at most maxSourceDetail
+// characters, ending in "…" when it was cut.
+func sourceDetail(d string) string {
+	return shorten(collapseSpace(d), maxSourceDetail)
+}
+
 func (r *renderer) sourceState(es []domain.SourceStatus) string {
 	type group struct {
 		state    domain.SourceState
@@ -330,7 +340,7 @@ func (r *renderer) sourceState(es []domain.SourceStatus) string {
 			g.versions = append(g.versions, v)
 		}
 		if g.detail == "" && s.State != domain.SourceOK {
-			g.detail = s.Detail
+			g.detail = sourceDetail(s.Detail)
 		}
 	}
 	if len(groups) == 1 {
@@ -394,7 +404,15 @@ func sectionOf(c domain.Change, verbose bool) int {
 		return secValues
 	case domain.CategoryConfiguration:
 		return secConfig
-	case domain.CategoryArtifact, domain.CategoryDependency:
+	case domain.CategoryArtifact:
+		return secDependencies
+	case domain.CategoryDependency:
+		// Dependency bumps announced in release notes are as routine as
+		// features and bug fixes; the diffs computed from snapshots (image
+		// changes) always stay visible.
+		if !verbose && c.Provenance.Producer != Producer {
+			return secHidden
+		}
 		return secDependencies
 	case domain.CategoryCompatibility:
 		if isCompatComparison(c) {
@@ -486,15 +504,23 @@ func (r *renderer) other(shown, hidden []domain.Change) {
 	}
 	r.more(n, len(shown))
 	if len(hidden) > 0 {
-		features, fixes := 0, 0
+		features, fixes, deps := 0, 0, 0
 		for _, c := range hidden {
-			if c.Category == domain.CategoryFeature {
+			switch c.Category {
+			case domain.CategoryFeature:
 				features++
-			} else {
+			case domain.CategoryDependency:
+				deps++
+			default:
 				fixes++
 			}
 		}
-		r.line("  (%s and %s not shown; use verbose output)", plural(features, "feature", "features"), plural(fixes, "bug fix", "bug fixes"))
+		parts := []string{plural(features, "feature", "features"), plural(fixes, "bug fix", "bug fixes")}
+		if deps > 0 {
+			parts = append(parts, plural(deps, "dependency update", "dependency updates"))
+		}
+		list := strings.Join(parts[:len(parts)-1], ", ") + " and " + parts[len(parts)-1]
+		r.line("  (%s not shown; use verbose output)", list)
 	}
 }
 
@@ -664,9 +690,14 @@ func (r *renderer) compatibility() {
 			}
 			flag := ""
 			if cc.Narrowed {
-				flag = "  " + r.paint(ansiYellow, "[narrowed]")
+				// Tested lists are informational: no warning colour.
+				code, label := ansiYellow, "[narrowed]"
+				if informationalKind(kind) {
+					code, label = ansiDim, "[narrowed, informational]"
+				}
+				flag = "  " + r.paint(code, label)
 			}
-			r.line("  %s: %s%s  %s", kind, summary, flag, r.paint(ansiDim, "(computed · "+r.cite(ev)+")"))
+			r.line("  %s: %s%s  %s", kindLabel(kind), summary, flag, r.paint(ansiDim, "(computed · "+r.cite(ev)+")"))
 			if r.opts.Verbose {
 				if cc.From != nil {
 					r.line("      %s: %s", r.tag(r.e.From.Semver), strings.TrimSpace(cc.From.Raw))

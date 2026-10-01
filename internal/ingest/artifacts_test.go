@@ -2,6 +2,7 @@ package ingest
 
 import (
 	"reflect"
+	"sort"
 	"strings"
 	"testing"
 
@@ -280,7 +281,7 @@ func TestIngestReleaseContents(t *testing.T) {
 	if kube == nil {
 		t.Fatalf("no chart constraint: %+v", rel.Compat)
 	}
-	if kube.Platform != "kubernetes" || kube.Kind != "minimum" || kube.Raw != ">= 1.25.0-0" || kube.Constraint != ">=1.25.0-0" ||
+	if kube.Platform != "kubernetes" || kube.Kind != "chart-kubeVersion" || kube.Raw != ">= 1.25.0-0" || kube.Constraint != ">=1.25.0-0" ||
 		kube.Provenance.Method != domain.MethodDeclared || kube.Provenance.Confidence != domain.ConfidenceHigh || kube.Provenance.Producer != Producer {
 		t.Fatalf("chart constraint: %+v", kube)
 	}
@@ -318,6 +319,85 @@ func TestIngestReleaseContents(t *testing.T) {
 	snapFacts := factsOf(rel, domain.FactSnapshot)
 	if len(snapFacts) != 4 { // values, chart metadata, crds, images
 		t.Fatalf("snapshot facts: %+v", snapFacts)
+	}
+}
+
+func TestIngestReleaseContentsIgnoreKeys(t *testing.T) {
+	rel, _, _ := ingestFixture(t, "1.2.0", func(w *world, def *catalog.ProductDefinition) {
+		for i := range def.Artifacts {
+			if def.Artifacts[i].ID != "chart" {
+				continue
+			}
+			for j := range def.Artifacts[i].Contents {
+				if def.Artifacts[i].Contents[j].Kind == catalog.ContentHelmValues {
+					def.Artifacts[i].Contents[j].IgnoreKeys = []string{"image", "nonexistent"}
+				}
+			}
+		}
+	})
+	values := rel.Snapshot(domain.SnapshotHelmValues, "chart")
+	if values == nil {
+		t.Fatal("no values snapshot")
+	}
+	if _, ok := values.Values.Entries["image"]; ok {
+		t.Errorf("ignored key must be excluded: %v", values.Values.Entries)
+	}
+	if values.Values.Entries["logLevel"] != `"info"` || values.Values.Entries["replicaCount"] != `"1"` {
+		t.Errorf("other keys must be kept: %v", values.Values.Entries)
+	}
+	if s := statusOf(t, rel, "chart/helm-values"); s.State != domain.SourceOK || !strings.Contains(s.Detail, "2 values keys (1 ignored)") {
+		t.Errorf("status must say how many keys were ignored: %+v", s)
+	}
+}
+
+func TestIgnoreValuesKeys(t *testing.T) {
+	vs, err := DefaultParser.ValuesSnapshot("c", "1.0.0", []byte(`
+# the image
+image:
+  # registry
+  hub: gcr.io/istio-testing
+  tag: latest
+  pullPolicy: IfNotPresent
+imageRegistry: quay.io
+global:
+  hub: gcr.io/istio-testing
+  tag: latest
+  proxy:
+    image: proxyv2
+annotations:
+  "a.b/c": x
+  plain: y
+replicas: 1
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, n := ignoreValuesKeys(vs, []string{"global.hub", "global.tag", "image.*", `annotations.*`, "missing.*", "replicas.*"})
+	var keys []string
+	for k := range got.Entries {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	if want := "global.proxy.image,imageRegistry,replicas"; strings.Join(keys, ",") != want {
+		t.Errorf("remaining keys = %v, want %s", keys, want)
+	}
+	if n != len(vs.Entries)-len(got.Entries) || n != 7 {
+		t.Errorf("removed = %d (entries %d → %d)", n, len(vs.Entries), len(got.Entries))
+	}
+	for k := range got.Comments {
+		if strings.HasPrefix(k, "image") && k != "imageRegistry" {
+			t.Errorf("comment of an ignored key survived: %q", k)
+		}
+	}
+	if len(vs.Entries) != 10 || vs.Chart != "c" || got.Chart != "c" || got.Version != "1.0.0" {
+		t.Errorf("input must not be modified and identity kept: %d entries, %+v", len(vs.Entries), got)
+	}
+	// exact entries match only the exact key; "image.*" does not match "imageRegistry"
+	if _, ok := got.Entries["imageRegistry"]; !ok {
+		t.Error("imageRegistry must not match image.*")
+	}
+	if exact, n := ignoreValuesKeys(vs, []string{"image"}); n != 0 || len(exact.Entries) != len(vs.Entries) {
+		t.Errorf("an exact entry for a section matches no leaf: removed %d", n)
 	}
 }
 

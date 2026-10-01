@@ -189,7 +189,12 @@
               "kind": {"enum": ["helm-values", "chart-metadata", "crds", "image-refs"]},
               "locator": {"$ref": "#/$defs/locator"},
               "availability": {"$ref": "#/$defs/constraint"},
-              "stripPrefix": {"type": "string"}
+              "stripPrefix": {"type": "string"},
+              "ignoreKeys": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1},
+                "description": "helm-values only: dotted values keys (after stripPrefix) excluded from the snapshot, for keys rewritten by release tooling at build time (e.g. image hub/tag placeholders in source-tree values). An entry ending in .* also matches every key below it."
+              }
             }
           }
         },

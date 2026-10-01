@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"sort"
 	"strings"
@@ -24,7 +26,11 @@ func (c *cli) products(args []string) error {
 	if err != nil {
 		return err
 	}
+	failed := cat.LoadErrorPaths()
 	if *output == "json" {
+		// stdout stays a plain JSON array; the files that did not load are
+		// reported on stderr.
+		c.reportLoadErrors(c.err, cat)
 		return c.writeJSON(cat.List())
 	}
 	tw := tabwriter.NewWriter(c.out, 0, 2, 2, ' ', 0)
@@ -37,7 +43,27 @@ func (c *cli) products(args []string) error {
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%d\t%d\t%s\n", d.ID, d.Name, len(d.Sources), len(d.Artifacts), valid)
 	}
-	return tw.Flush()
+	if err := tw.Flush(); err != nil {
+		return err
+	}
+	if len(failed) > 0 {
+		fmt.Fprintln(c.out)
+		c.reportLoadErrors(c.out, cat)
+	}
+	return nil
+}
+
+// reportLoadErrors prints one line per product file that could not be loaded.
+func (c *cli) reportLoadErrors(w io.Writer, cat *catalog.Catalog) {
+	paths := cat.LoadErrorPaths()
+	if len(paths) == 0 {
+		return
+	}
+	errs := cat.LoadErrors()
+	fmt.Fprintf(w, "%d product file(s) could not be loaded:\n", len(paths))
+	for _, p := range paths {
+		fmt.Fprintf(w, "  ✗ %s: %v\n", p, errs[p])
+	}
 }
 
 func (c *cli) validate(args []string) error {
@@ -47,39 +73,61 @@ func (c *cli) validate(args []string) error {
 	if err != nil {
 		return err
 	}
-	var defs []*catalog.ProductDefinition
-	targets := pos
-	if len(targets) == 0 {
-		cat, err := catalog.LoadDir(c.g.products)
-		if err != nil {
+	// loadFailure is a definition that could not even be loaded: reported per
+	// file next to the validation results, and failing the command.
+	loadFailure := func(path string, err error) catalog.ValidationReport {
+		return catalog.ValidationReport{File: path, Issues: []catalog.Issue{{Severity: catalog.SeverityError, Path: "file", Message: err.Error()}}}
+	}
+	var reports []catalog.ValidationReport
+	validateDef := func(d *catalog.ProductDefinition) {
+		reports = append(reports, catalog.Validate(d))
+	}
+	var cat *catalog.Catalog
+	loadCatalog := func() error {
+		if cat != nil {
+			return nil
+		}
+		var err error
+		cat, err = catalog.LoadDir(c.g.products)
+		return err
+	}
+	if len(pos) == 0 {
+		if err := loadCatalog(); err != nil {
 			return err
 		}
-		defs = cat.List()
+		for _, d := range cat.List() {
+			validateDef(d)
+		}
+		errs := cat.LoadErrors()
+		for _, p := range cat.LoadErrorPaths() {
+			reports = append(reports, loadFailure(p, errs[p]))
+		}
 	}
-	for _, t := range targets {
+	for _, t := range pos {
 		if strings.HasSuffix(t, ".yaml") || strings.HasSuffix(t, ".yml") {
 			d, err := catalog.LoadFile(t)
 			if err != nil {
-				return err
+				reports = append(reports, loadFailure(t, err))
+				continue
 			}
-			defs = append(defs, d)
+			validateDef(d)
 			continue
 		}
-		cat, err := catalog.LoadDir(c.g.products)
-		if err != nil {
+		if err := loadCatalog(); err != nil {
 			return err
 		}
 		d, ok := cat.Get(t)
 		if !ok {
-			return fmt.Errorf("unknown product %q", t)
+			msg := fmt.Sprintf("unknown product %q", t)
+			if n := len(cat.LoadErrors()); n > 0 {
+				msg += fmt.Sprintf(" (%d product file(s) failed to load; run ri validate to see them)", n)
+			}
+			return errors.New(msg)
 		}
-		defs = append(defs, d)
+		validateDef(d)
 	}
-	var reports []catalog.ValidationReport
 	failed := 0
-	for _, d := range defs {
-		rep := catalog.Validate(d)
-		reports = append(reports, rep)
+	for _, rep := range reports {
 		if !rep.OK() {
 			failed++
 		}
@@ -89,12 +137,15 @@ func (c *cli) validate(args []string) error {
 			return err
 		}
 	} else {
-		for i, rep := range reports {
-			status := "✓ valid"
+		for _, rep := range reports {
+			status, name := "✓ valid", rep.Product
 			if !rep.OK() {
 				status = "✗ invalid"
 			}
-			fmt.Fprintf(c.out, "%s  %s (%s)\n", status, rep.Product, defs[i].Path())
+			if name == "" {
+				name = "(could not be loaded)"
+			}
+			fmt.Fprintf(c.out, "%s  %s (%s)\n", status, name, rep.File)
 			for _, is := range rep.Issues {
 				fmt.Fprintf(c.out, "    %s %s: %s\n", is.Severity, is.Path, is.Message)
 			}

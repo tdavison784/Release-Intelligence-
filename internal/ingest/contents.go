@@ -128,11 +128,19 @@ func (i *Ingester) snapshotContent(r *run, ar *artifactRun, c catalog.Content, a
 		if c.StripPrefix != "" {
 			vs = stripValuesPrefix(vs, c.StripPrefix)
 		}
+		ignored := 0
+		if len(c.IgnoreKeys) > 0 {
+			vs, ignored = ignoreValuesKeys(vs, c.IgnoreKeys)
+		}
 		ar.evidence = append(ar.evidence, evs[:1]...)
 		ids = ids[:1]
 		ar.snapshots = append(ar.snapshots, domain.Snapshot{ArtifactID: a.ID, Kind: domain.SnapshotHelmValues, Values: vs, Evidence: ids})
 		ar.facts = append(ar.facts, snapshotFact(fmt.Sprintf("helm values of %s %s: %d keys", a.Name, version, len(vs.Entries))))
-		return fmt.Sprintf("%d values keys", len(vs.Entries)), evs[:1], nil
+		summary := fmt.Sprintf("%d values keys", len(vs.Entries))
+		if ignored > 0 {
+			summary += fmt.Sprintf(" (%d ignored)", ignored)
+		}
+		return summary, evs[:1], nil
 
 	case catalog.ContentChartMetadata:
 		d := docs[0]
@@ -163,7 +171,7 @@ func (i *Ingester) snapshotContent(r *run, ar *artifactRun, c catalog.Content, a
 		}
 		c := domain.CompatibilityConstraint{
 			Platform:   "kubernetes",
-			Kind:       "minimum",
+			Kind:       "chart-kubeVersion", // an install guard of the chart, not the product support matrix
 			Raw:        md.KubeVersion,
 			Constraint: cons,
 			Versions:   versions,
@@ -241,4 +249,52 @@ func stripValuesPrefix(vs *domain.ValuesSnapshot, prefix string) *domain.ValuesS
 		out.Comments[strings.TrimPrefix(k, prefix)] = v
 	}
 	return out
+}
+
+// ignoreValuesKeys removes the keys named by ignore from a values snapshot
+// (both entries and comments) and returns the number of removed entries. An
+// entry matches one key exactly; an entry ending in ".*" matches every key
+// below it ("a.b.*" matches "a.b.c", "a.b.c.d" and `a.b["x.y"]`; list "a.b"
+// as well to drop a key that is itself a leaf).
+func ignoreValuesKeys(vs *domain.ValuesSnapshot, ignore []string) (*domain.ValuesSnapshot, int) {
+	exact := map[string]bool{}
+	var below []string // prefixes without the trailing ".*"
+	for _, k := range ignore {
+		if base, ok := strings.CutSuffix(k, ".*"); ok {
+			below = append(below, base)
+			continue
+		}
+		exact[k] = true
+	}
+	// the section a ".*" entry covers has no entries of its own, but its doc
+	// comment is dropped with it
+	matches := func(key string, withSection bool) bool {
+		if exact[key] {
+			return true
+		}
+		for _, base := range below {
+			if strings.HasPrefix(key, base+".") || strings.HasPrefix(key, base+"[") || (withSection && key == base) {
+				return true
+			}
+		}
+		return false
+	}
+	out := &domain.ValuesSnapshot{Chart: vs.Chart, Version: vs.Version, Entries: map[string]string{}}
+	if vs.Comments != nil {
+		out.Comments = map[string]string{}
+	}
+	removed := 0
+	for k, v := range vs.Entries {
+		if matches(k, false) {
+			removed++
+			continue
+		}
+		out.Entries[k] = v
+	}
+	for k, v := range vs.Comments {
+		if !matches(k, true) {
+			out.Comments[k] = v
+		}
+	}
+	return out, removed
 }

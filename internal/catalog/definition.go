@@ -300,6 +300,14 @@ type Content struct {
 	// values key, so keys match what users actually set (e.g. Istio nests
 	// chart defaults under "_internal_defaults_do_not_set").
 	StripPrefix string `yaml:"stripPrefix,omitempty" json:"stripPrefix,omitempty"`
+	// IgnoreKeys (helm-values only) lists dotted values keys, as they are
+	// after StripPrefix, that are excluded from the snapshot. Intent: keys
+	// rewritten by release tooling at build time (e.g. image hub/tag
+	// placeholders in source-tree values), whose in-tree defaults differ from
+	// release to release without meaning anything to a user. An entry matches
+	// one key exactly; an entry ending in ".*" matches every key below it
+	// ("global.image.*" matches "global.image.tag").
+	IgnoreKeys []string `yaml:"ignoreKeys,omitempty" json:"ignoreKeys,omitempty"`
 }
 
 // DefinitionProvenance documents the origin of the definition itself.
