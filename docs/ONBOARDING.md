@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 9 product definitions, 9 onboarding records, 9 saved relationship reports.
-- 141 distinct constructs are used across all definitions; the records introduce 141.
-- 1 of 9 recorded products introduced no new construct. The latest product that introduced one has order 10.
+- 10 product definitions, 10 onboarding records, 10 saved relationship reports.
+- 143 distinct constructs are used across all definitions; the records introduce 143.
+- 1 of 10 recorded products introduced no new construct. The latest product that introduced one has order 10.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -73,6 +73,7 @@ What convergence looks like:
 | 1 | 0 | cert-manager | 289 (242) | 8 | 9 | 10 | 5 | 4 | 26 | 0 | 0 | 1 | 6 |
 | 2 | 0 | istio | 316 (279) | 9 | 15 | 22 | 6 | 3 | 39 | 0 | 0 | 2 | 4 |
 | 3 | 0 | argo-cd | 227 (189) | 7 | 5 | 7 | 4 | 11 | 21 | 1 | 1 | 1 | 1 |
+| 4 | 1 | cilium | 323 (274) | 8 | 10 | 18 | 3 | 40 | 19 | 0 | 0 | 1 | 4 |
 | 5 | 1 | postgresql | 210 (169) | 4 | 3 | 5 | 0 | 24 | 47 | 1 | 0 | 0 | 3 |
 | 6 | 1 | kube-prometheus-stack | 339 (277) | 6 | 9 | 15 | 4 | 10 | 18 | 1 | 0 | 0 | 8 |
 | 7 | 1 | vault | 267 (218) | 8 | 7 | 9 | 2 | 18 | 26 | 3 | 1 | 0 | 10 |
@@ -87,12 +88,13 @@ What convergence looks like:
 | 1 | cert-manager | 88 | 87 | 0 | 0% | 87 | 4 / 0 | n/a | full |
 | 2 | istio | 81 | 12 | 69 | 85% | 99 | 7 / 0 | n/a | full |
 | 3 | argo-cd | 98 | 14 | 84 | 86% | 113 | 4 / 0 | n/a | full |
-| 5 | postgresql | 56 | 7 | 49 | 88% | 120 | 14 / 0 | 25 | partial |
-| 6 | kube-prometheus-stack | 81 | 8 | 70 | 86% | 128 | 12 / 0 | 27 | full |
-| 7 | vault | 82 | 7 | 75 | 91% | 135 | 10 / 0 | 23 | partial |
-| 8 | crossplane | 72 | 1 | 71 | 99% | 136 | 2 / 0 | 18 | partial |
-| 9 | external-secrets | 85 | 0 | 85 | 100% | 136 | 0 / 0 | 18 | full |
-| 10 | ingress-nginx | 93 | 5 | 88 | 95% | 141 | 9 / 0 | 25 | full |
+| 4 | cilium | 82 | 2 | 74 | 90% | 115 | 8 / 0 | 34 | full |
+| 5 | postgresql | 56 | 7 | 49 | 88% | 122 | 14 / 0 | 25 | partial |
+| 6 | kube-prometheus-stack | 81 | 8 | 70 | 86% | 130 | 12 / 0 | 27 | full |
+| 7 | vault | 82 | 7 | 75 | 91% | 137 | 10 / 0 | 23 | partial |
+| 8 | crossplane | 72 | 1 | 71 | 99% | 138 | 2 / 0 | 18 | partial |
+| 9 | external-secrets | 85 | 0 | 85 | 100% | 138 | 0 / 0 | 18 | full |
+| 10 | ingress-nginx | 93 | 5 | 88 | 95% | 143 | 9 / 0 | 25 | full |
 
 ### Discovery and relationship validation
 
@@ -101,6 +103,7 @@ What convergence looks like:
 | cert-manager | 0/0/17 (0%) | 14/0/4/2 | 78/0/12/18/6 | n/a → 0 | 0 | 3 |
 | istio | 0/0/24 (0%) | 24/0/3/0 | 141/0/0/18/3 | n/a → 0 | 2 | 3 |
 | argo-cd | 0/0/12 (0%) | 12/0/1/0 | 59/0/0/13/6 | n/a → 0 | 2 | 3 |
+| cilium | 4/5/9 (50%) | 17/0/1/0 | 336/0/0/24/0 | 0 → 0 | 2 | 0 |
 | postgresql | 0/1/6 (14%) | 4/0/1/1 | 40/0/15/20/0 | 1 → 0 | 4 | 6 |
 | kube-prometheus-stack | 2/6/7 (53%) | 12/0/3/0 | 60/0/0/15/0 | 0 → 0 | 2 | 0 |
 | vault | 2/0/13 (13%) | 14/0/1/0 | 236/0/0/244/0 | 0 → 0 | 8 | 9 |
@@ -115,12 +118,13 @@ What convergence looks like:
 | 1 | cert-manager | 87 | 87 | 88 | 0 | 0% | 88 | 88 |
 | 2 | istio | 12 | 99 | 81 | 69 | 85% | 11 | 99 |
 | 3 | argo-cd | 14 | 113 | 98 | 84 | 86% | 14 | 113 |
-| 5 | postgresql | 7 | 120 | 56 | 49 | 88% | 7 | 120 |
-| 6 | kube-prometheus-stack | 8 | 128 | 81 | 70 | 86% | 11 | 131 |
-| 7 | vault | 7 | 135 | 82 | 75 | 91% | 4 | 135 |
-| 8 | crossplane | 1 | 136 | 72 | 71 | 99% | 1 | 136 |
-| 9 | external-secrets | 0 | 136 | 85 | 85 | 100% | 0 | 136 |
-| 10 | ingress-nginx | 5 | 141 | 93 | 88 | 95% | 5 | 141 |
+| 4 | cilium | 2 | 115 | 82 | 74 | 90% | 8 | 121 |
+| 5 | postgresql | 7 | 122 | 56 | 49 | 88% | 5 | 126 |
+| 6 | kube-prometheus-stack | 8 | 130 | 81 | 70 | 86% | 9 | 135 |
+| 7 | vault | 7 | 137 | 82 | 75 | 91% | 3 | 138 |
+| 8 | crossplane | 1 | 138 | 72 | 71 | 99% | 0 | 138 |
+| 9 | external-secrets | 0 | 138 | 85 | 85 | 100% | 0 | 138 |
+| 10 | ingress-nginx | 5 | 143 | 93 | 88 | 95% | 5 | 143 |
 
 New constructs per product, in onboarding order (records):
 
@@ -128,6 +132,7 @@ New constructs per product, in onboarding order (records):
   1  cert-manager             87  ████████████████████████████████████████
   2  istio                    12  ██████
   3  argo-cd                  14  ███████
+  4  cilium                    2  █
   5  postgresql                7  ████
   6  kube-prometheus-stack     8  ████
   7  vault                     7  ████
@@ -140,14 +145,15 @@ Cumulative constructs introduced:
 
 ```text
   1  cert-manager             87  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  2  istio                    99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  3  argo-cd                 113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  5  postgresql              120  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  6  kube-prometheus-stack   128  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  7  vault                   135  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  8  crossplane              136  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-  9  external-secrets        136  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
- 10  ingress-nginx           141  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  2  istio                    99  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  3  argo-cd                 113  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  4  cilium                  115  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  5  postgresql              122  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  6  kube-prometheus-stack   130  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  7  vault                   137  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  8  crossplane              138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  9  external-secrets        138  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 10  ingress-nginx           143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -192,6 +198,11 @@ Cumulative constructs introduced:
 - role (1): `changelog`
 - select (1): `latest`
 - template-var (1): `ArtifactVersion`
+
+### cilium (order 4, wave 1): 2 new
+
+- `extract:whole`: whole-document notes with labelParagraphs (CHANGELOG.md bold labels) and label-less whole rst (upgrade-current.inc): declared in the Phase 1 foundation, first exercised by this product (also needed by any product whose notes are one flat document or label-paragraphs file rather than sections)
+- `format:rst`: Cilium's upgrade intelligence (Action Required / Changed / Deprecated / Removed Options, Removed CRD Fields) exists only as reStructuredText (Documentation/operations/upgrade.rst before 1.20, upgrade-current.inc from 1.20 on; the README is .rst too), and its compatibility matrix is an rst grid table: markdown selectors see neither the underline headings nor the table. normalize.RSTToMarkdown renders rst as line-preserving markdown (headings by rst first-use adornment hierarchy, overline+underline titles included; ``literal``, :role:`text` and `Title <target>`_ flattened; explicit-markup lines blanked; grid tables -> pipe tables, header + separator on the original lines), after which markdown-section, markdown-table, whole and the classify rules work unchanged. Converted structural markup is parsed in list-item mode like DocBook (every bullet one item, prose intros their own items), which is what keeps a 30-bullet "Removed Options" section 30 items instead of one. Only the extract types whole, markdown-section and markdown-table. (also needed by Python (Misc/NEWS.d per-version notes and upgrade docs are rst), OpenStack components (release notes and docs are rst), towncrier changelogs (CHANGELOG.rst: Airflow, Superset, and most of the Python packaging ecosystem), none of the other planned wave 1-3 products is rst (Strimzi/Elasticsearch are AsciiDoc): justified by well-known products, not by the plan; the 'format' slot was created for exactly this by the docbook construct)
 
 ### postgresql (order 5, wave 1): 7 new
 
@@ -245,7 +256,7 @@ No new constructs: the definition is configuration only.
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
-| 1 | postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 6 (external-secrets) | 28 (4.7) | 93% | 47 / 0 | 24 (n=6) | 16/19/47 (43%) | 75/0/13/4 (6 of 6 reports) | 37 | full 3, partial 3 |
+| 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 30 (4.3) | 93% | 55 / 0 | 25 (n=7) | 20/24/56 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
 
 ## Notes from the records
 
@@ -254,6 +265,8 @@ No new constructs: the definition is configuration only.
 **istio**: Phase 1, reconstructed from the version history and docs/FINDINGS.md. This product drove most of the structural constructs: accumulating note files (baseRef), YAML records, named fallback groups, stripPrefix and ignoreKeys. The contract changes for baseRef and yaml-records were made before its definition was written (d326b5d), from the research notes.
 
 **argo-cd**: Phase 1, reconstructed from the version history and docs/FINDINGS.md. Several of the constructs credited here (git-log, lookup) were declared in the foundation contract before any definition existed; they are credited to Argo CD as the first product that exercised them. exceptions and optional were added after ri check ran against this definition (c623b20).
+
+**cilium**: First product whose first complete draft passed every relationship check (20/20 releases across lines 1.11-1.20, 0 unverifiable): discovery's proposals were correct where it looked, and every canonical host was reachable, so onboarding was configuration plus one generic construct (format:rst) for the rst upgrade notes and compatibility grid. The rst converter parallels the docbook one and completes the second non-markdown format the 'format' slot was created for. Classification quality: the changelog's bold labels map 1:1 to categories (Bugfixes: -> bugfix etc.); the upgrade notes' subsections carry the semantics (Removed Options -> breaking removals, Action Required -> action required), and the two noise sources (release-bot digest bullets, CI/Misc churn) are two skip rules. The three tuning iterations were all found by reading the edge output, not by failing checks.
 
 **postgresql**: Representable only after two small generic constructs; the rest of the topology (versions, per-release notes, upgrade guidance, CVEs, Docker image) is plain configuration. Classification quality is good because the notes are structured (one listitem per change, Migration section = incompatibilities): breaking counts match the document exactly. Sample-edge reading: 'Deprecate MD5 ...' needed a product rule (verb not in the builtin heuristics); 'Remove ... configure options' and 'Require ...' are flagged action required by the generic 'required' keyword (low value). Environment: Docker Hub rate limiting (429) made the first check run mark both images unverifiable, the mirror.gcr.io channel removed that flakiness.
 
@@ -272,4 +285,5 @@ No new constructs: the definition is configuration only.
 Observations about the inputs (missing, inconsistent or later-adopted data). The report is computed regardless.
 
 - cert-manager uses constructs introduced by a later product (the definition was migrated after they appeared): field:sources.fallbackGroup (introduced by istio)
+- cilium uses constructs introduced by a later product (the definition was migrated after they appeared): artifact:package (introduced by postgresql), field:artifacts.channels.glob (introduced by kube-prometheus-stack), field:artifacts.channels.path (introduced by vault), field:sources.extract.format (introduced by postgresql), field:sources.extract.labelParagraphs (introduced by vault), field:sources.locator.tagPattern (introduced by crossplane)
 - kube-prometheus-stack uses constructs introduced by a later product (the definition was migrated after they appeared): field:artifacts.channels.path (introduced by vault), field:artifacts.channels.tagPattern (introduced by vault), locator:helm-git (introduced by vault)
