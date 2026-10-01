@@ -87,6 +87,8 @@ relationships:
   unverifiable:
     - {subject: agent-image, reason: "quay.io blocked by sandbox egress policy"}
 constructs:
+  # names as printed by `ri stats <id> -o json` (usedConstructs /
+  # unaccountedConstructs), e.g. field:sources.fallbackGroup, extract:yaml-records
   new: []                       # [{name, kind, justification, otherProducts: [...]}]
   considered: []                # constructs considered and rejected, with reason
 goChanges:
