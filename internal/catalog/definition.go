@@ -192,13 +192,20 @@ const (
 	// line-preserving markdown before extraction (normalize.DocBookToMarkdown),
 	// so "markdown-section" selects <sectN> by title and "whole" parses it as notes.
 	FormatDocBook = "docbook"
+	// FormatRST: the document is reStructuredText; it is rendered as
+	// line-preserving markdown before extraction (normalize.RSTToMarkdown):
+	// section titles become headings and grid tables become pipe tables, so
+	// "markdown-section" selects a section by title and "markdown-table" can
+	// read converted grid tables.
+	FormatRST = "rst"
 )
 
 // Extract configures how to extract information from a fetched document.
 type Extract struct {
 	// Format is the markup of the document ("markdown" when empty); "docbook"
-	// documents are converted to markdown first. Only for the types "whole"
-	// and "markdown-section".
+	// and "rst" documents are converted to markdown first (docbook for the
+	// types "whole" and "markdown-section"; rst also for "markdown-table",
+	// because grid tables are converted to pipe tables).
 	Format string `yaml:"format,omitempty" json:"format,omitempty"`
 	Type   string `yaml:"type" json:"type"`
 	// Heading is a regex template selecting the section (markdown-section).

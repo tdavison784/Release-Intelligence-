@@ -1,0 +1,144 @@
+product: cilium
+order: 4
+wave: 1
+repository: github.com/cilium/cilium
+onboarding:
+  startedAt: "2026-10-01T13:25:32Z"
+  finishedAt: "2026-10-01T13:59:19Z"
+  minutes: 34
+discovery:
+  proposal: docs/onboarding/discovery/cilium.proposed.yaml
+  report: docs/onboarding/discovery/cilium.report.md
+# Discovery found git-tags (id "tags"), CHANGELOG.md as changelog (with the
+# right section heading), the Helm chart on quay + helm.cilium.io with
+# version = appVersion = {{.Version}}, CRDs as repo-dir, four quay images with
+# version = {{.Tag}} and github-advisories — and validated 6/6 of them itself.
+# It found no release-notes, upgrade-docs or compatibility source (all three
+# live in rst or API shapes it does not read). Research added those, the
+# docker.io mirrors, the operator cloud variants and the source archive.
+sources:
+  - {id: git-tags, origin: discovered, note: "kept as proposed (id 'tags' -> git-tags); tagPattern and lineage minor kept verbatim"}
+  - {id: github-releases, origin: manual, note: "versions fallback priority 1"}
+  - {id: changelog, origin: discovered-modified, note: "locator + heading kept; labelParagraphs and classify rules added (**Major/Minor/Bugfix/CI/Misc/Other Changes:** labels; 'Bugfixes' carries no ' Changes' suffix)"}
+  - {id: github-release-notes, origin: manual, note: "fallback of the changelog in group release-notes; body == CHANGELOG section verbatim; covers releases < 1.8 that have no CHANGELOG.md"}
+  - {id: upgrade-notes, origin: manual, note: "rst section 'X.Y Upgrade Notes' of Documentation/operations/upgrade.rst at the tag, 1.9 <= v < 1.20 (new construct extract.format rst)"}
+  - {id: upgrade-notes-current, origin: manual, note: "Documentation/operations/upgrade-current.inc at the tag (>= 1.20 the notes were split out of upgrade.rst); same classify rules via YAML anchor"}
+  - {id: k8s-compatibility, origin: manual, note: "Documentation/network/kubernetes/compatibility.rst grid table (>= 1.13), read with rst + markdown-table; 'tested' k8s minors of the line"}
+  - {id: github-advisories, origin: discovered, note: "10 published GHSAs; api.github.com anonymous reachable"}
+artifacts:
+  - {id: cilium-chart, origin: discovered, note: "quay OCI first + helm.cilium.io as proposed; helm-values + chart-metadata contents kept (chart-metadata gives kubeVersion >= 1.21.0-0)"}
+  - {id: crds, origin: discovered, note: "repo-dir pkg/k8s/apis/cilium.io/client/crds/v2 at the tag, 17 CRDs, kept"}
+  - {id: cilium-image, origin: discovered-modified, note: "docker.io/cilium/cilium mirror added as second channel (tracks the same tags)"}
+  - {id: operator-image, origin: discovered-modified, note: "docker.io mirror added"}
+  - {id: operator-aws-image, origin: manual, note: "cloud operator variants published with the same tags; chart selects via operator.image.suffix"}
+  - {id: operator-azure-image, origin: manual, note: "same"}
+  - {id: operator-alibabacloud-image, origin: manual, note: "same"}
+  - {id: clustermesh-apiserver-image, origin: discovered-modified, note: "docker.io mirror added"}
+  - {id: hubble-relay-image, origin: discovered-modified, note: "docker.io mirror added"}
+  - {id: source-archive, origin: manual, note: "github tag archive; codeload answered 200 from this sandbox (earlier onboardings recorded 403), so it is verified"}
+discoveryRejected:
+  - {id: "images certgen, cilium-envoy, hubble-ui, hubble-ui-backend, startup-script, ztunnel", reason: "discovery proposed them with assumed release tags and dropped them after validation failed; they are independently versioned companion projects (cilium-envoy v1.37.6-…, certgen v0.4.11, hubble-ui v0.13.6, ztunnel v1.0.0, startup-script timestamp tags), pinned in chart values.yaml — their changes surface as helm-values diffs"}
+relationships:
+  historicalReleasesChecked: [1.11.0, 1.11.20, 1.12.0, 1.12.19, 1.13.0, 1.13.18, 1.14.0, 1.14.19, 1.15.0, 1.15.19, 1.16.0, 1.16.19, 1.17.0, 1.17.18, 1.18.0, 1.18.14, 1.19.0, 1.19.8, 1.20.0, 1.20.2]
+  # First complete draft (`ri check cilium` on the six default releases, then
+  # `-n 10` = 20 releases across lines 1.11-1.20): every subject passed on the
+  # first run — 0 failures, 0 unverifiable. quay.io, helm.cilium.io, codeload
+  # and api.github.com were all reachable from this sandbox.
+  initialFailures: 0
+  finalFailures: 0
+  manualInterventions:
+    - {subject: changelog, change: "labelParagraphs pattern covers 'Bugfixes:' (no ' Changes' suffix)", reason: "bugfix bullets were promoted under the preceding 'Minor Changes:' label and classified feature (39 'bugfix' items were invisible); found by reading `ri ingest cilium 1.20.2`"}
+    - {subject: changelog + upgrade-notes, change: "skip rules for section-intro prose ('v1.20.2: Summary of Changes', 'Action Required: If you are using …', 'The following options have been …' with the label prefix), for 'install: Update image digests' bot bullets and '.github: ' churn", reason: "intro and bot items leaked as action-required/other items in the 1.19.8 -> 1.20.2 edge (25 -> 24 breaking, 49 -> 47 action required, 393 -> 382 changes)"}
+  unverifiable: []
+constructs:
+  new:
+    - name: "format:rst"
+      kind: extraction-format
+      justification: >-
+        Cilium's upgrade intelligence (Action Required / Changed / Deprecated /
+        Removed Options, Removed CRD Fields) exists only as reStructuredText
+        (Documentation/operations/upgrade.rst before 1.20, upgrade-current.inc
+        from 1.20 on; the README is .rst too), and its compatibility matrix is
+        an rst grid table: markdown selectors see neither the underline
+        headings nor the table. normalize.RSTToMarkdown renders rst as
+        line-preserving markdown (headings by rst first-use adornment
+        hierarchy, overline+underline titles included; ``literal``,
+        :role:`text` and `Title <target>`_ flattened; explicit-markup lines
+        blanked; grid tables -> pipe tables, header + separator on the
+        original lines), after which markdown-section, markdown-table, whole
+        and the classify rules work unchanged. Converted structural markup is
+        parsed in list-item mode like DocBook (every bullet one item, prose
+        intros their own items), which is what keeps a 30-bullet "Removed
+        Options" section 30 items instead of one. Only the extract types
+        whole, markdown-section and markdown-table.
+      otherProducts:
+        - "Python (Misc/NEWS.d per-version notes and upgrade docs are rst)"
+        - "OpenStack components (release notes and docs are rst)"
+        - "towncrier changelogs (CHANGELOG.rst: Airflow, Superset, and most of the Python packaging ecosystem)"
+        - "none of the other planned wave 1-3 products is rst (Strimzi/Elasticsearch are AsciiDoc): justified by well-known products, not by the plan; the 'format' slot was created for exactly this by the docbook construct"
+  considered:
+    - "quay.io-only image publication (a construct to verify quay-hosted images another way): NOT needed — quay.io answers 200 from this sandbox AND docker.io/cilium/* mirrors track every release tag (verified v1.9.10-v1.20.2), so the normal oci channels verify directly"
+    - "simple rst tables (=== aligned columns, Cilium's compatibility-table.rst): not converted; the only content that needs them is the Cilium-version -> CNP CRD schema-version mapping, for which the model has no compatibility slot anyway (recorded as a gap)"
+    - "a second upgrade-guide source for the special patch-level notes ('1.17.4 Upgrade Notes', '1.14.2', '1.11.15/16+/18+', '1.9.1'): would need exceptions for every non-notable patch of every line to pass checks; recorded as a gap instead"
+    - "artifacts with version.strategy independent for the companion images (cilium-envoy, certgen, hubble-ui, hubble-ui-backend, ztunnel, startup-script): unresolvable per release -> permanently unverifiable; their version changes are already reported by the chart values diff (e.g. ztunnel v1.0.0 / repository docker.io/istio/ztunnel -> quay.io/cilium/ztunnel in the sample edge)"
+    - "operator-generic as a seventh image artifact: quay keeps publishing it with release tags, but the chart default has been plain 'operator' since at least 1.11 (operator.image.suffix ''); left out to avoid a duplicate of operator-image"
+    - "k8s version sources from .github/actions/{aks,eks,gke}/k8s-versions.yaml (per-branch CI test matrices): internal test configuration, not a support statement; compatibility.rst is the published matrix"
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/normalize/rst.go, purpose: "RSTToMarkdown: line-preserving reStructuredText -> markdown renderer (headings by first-use adornment hierarchy, overline titles, inline roles/refs flattened, directives blanked, grid tables -> pipe tables)"}
+    - {file: internal/normalize/rst_test.go, purpose: "tests: line preservation, heading levels/blanking, section selection, grid-table extraction, structural note parsing (intro + bullets), non-headings (short rulers, list lines)"}
+    - {file: internal/normalize/testdata/cilium/upgrade-notes.rst, purpose: "fixture condensed from Cilium's upgrade.rst/upgrade-current.inc structure at v1.19/v1.20"}
+    - {file: internal/catalog/definition.go, purpose: "FormatRST constant + Extract.Format doc (rst also with markdown-table)"}
+    - {file: internal/catalog/validate.go, purpose: "accept extract.format rst for whole, markdown-section and markdown-table"}
+    - {file: schemas/product-definition.schema.json, purpose: "format enum + description"}
+    - {file: internal/ingest/docs.go, purpose: "render rst documents as markdown before extraction; converted structural markup (docbook, rst) parsed in list-item mode"}
+    - {file: internal/ingest/rst_test.go, purpose: "tests: rst wiring (section select + list items), rst grid table -> compatibility constraint, format validation"}
+unreachableSources: []          # none: quay.io, helm.cilium.io, api.github.com (anonymous), registry-1.docker.io, codeload and raw.githubusercontent.com all answered from this sandbox
+ambiguousRelationships:
+  - "quay.io and helm.cilium.io are listed as blocked by egress policy in docs/phase2/PLAN.md, but answered 200 throughout this onboarding (as did codeload, which postgresql/ingress-nginx recorded as 403): the standing host list is stale, definitions must verify, not assume"
+  - "the GitHub Release body is the CHANGELOG.md section verbatim, so the release-notes fallback group can never add information the changelog lacks; it exists for the pre-1.8 releases only"
+  - "the chart's compatibility.rst lists e2e-TESTED k8s versions per line (kind tested) while Chart.yaml kubeVersion is the minimum (>= 1.21.0-0 since 1.16); Cilium publishes no maximum/supported-k8s statement, so 'tested' is the strongest upstream signal"
+  - "a few lines carry extra patch-level upgrade-note sections (1.9.1, 1.11.15/16+/18+, 1.14.2, 1.17.4 — kernel regressions, an IPsec CVE, a map-in-map regression) in addition to the line's 'X.Y Upgrade Notes'; the single-section selector reads the line notes only"
+  - "three published GHSAs have no machine-readable affected-version range; the edge reports them as warnings to check manually"
+representability: full
+gaps:
+  - "patch-level upgrade notes (see ambiguousRelationships): a release's upgrade guidance may have a second section the definition cannot select without per-patch exceptions"
+  - "Cilium-version -> CNP CRD schema version (compatibility-table.rst, simple rst table): no compatibility slot for CRD-schema versions and no simple-table conversion"
+  - "independently versioned companion images are not artifacts (see constructs.considered); their upgrades are visible only as values diffs"
+  - "no support-window model: Cilium maintains roughly the last four minor lines, but nothing machine-readable states which lines are still maintained"
+  - "rst converter scope: grid tables convert their first logical row block exactly (the shape of compatibility matrices); rows after a mid-table border and simple (===-aligned) tables are not converted"
+sampleEdge:
+  from: 1.19.8
+  to: 1.20.2
+  summary: "24 breaking · 47 action required · 382 changes · 3 warnings"
+  evidenceRecords: 724
+  notes: >-
+    Path v1.20.0 -> 1.20.1 -> 1.20.2 (minor-lineage). Breaking = 16
+    Removed Options bullets + 5 Removed CRD Fields bullets + 3 computed CRD
+    schema diffs (12 kafka/l7 rule fields pruned from CiliumNetworkPolicy /
+    CiliumClusterwideNetworkPolicy, 6 CiliumNode eni/azure fields) — exactly
+    the documents' own accounting; action required includes the Gateway API
+    >= 1.6.1 / TLSRoute v1 requirement, the CNI config v1.0.0 default and 13
+    removed Helm values with their v1.19.8 defaults; the values diff also
+    surfaces the companion-image bumps (ztunnel 1.28.0-distroless ->
+    v1.0.0 on quay.io/cilium/ztunnel, spire 1.9.6 -> 1.15.3). Compatibility:
+    tested 1.32-1.35 -> 1.33-1.36 (drops 1.32, adds 1.36), kubeVersion
+    unchanged. Patch-only edge v1.18.14 -> v1.19.8 (pre-1.20 rst source):
+    11 breaking · 64 action required · 499 changes, including the
+    FromRequires/ToRequires CRD enforcement and the Cluster Mesh
+    policy-default-local-cluster change.
+notes: >-
+  First product whose first complete draft passed every relationship check
+  (20/20 releases across lines 1.11-1.20, 0 unverifiable): discovery's
+  proposals were correct where it looked, and every canonical host was
+  reachable, so onboarding was configuration plus one generic construct
+  (format:rst) for the rst upgrade notes and compatibility grid. The rst
+  converter parallels the docbook one and completes the second non-markdown
+  format the 'format' slot was created for. Classification quality: the
+  changelog's bold labels map 1:1 to categories (Bugfixes: -> bugfix etc.);
+  the upgrade notes' subsections carry the semantics (Removed Options ->
+  breaking removals, Action Required -> action required), and the two noise
+  sources (release-bot digest bullets, CI/Misc churn) are two skip rules.
+  The three tuning iterations were all found by reading the edge output, not
+  by failing checks.

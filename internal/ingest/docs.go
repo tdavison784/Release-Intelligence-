@@ -153,15 +153,23 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			ex.Type = catalog.ExtractWhole
 		}
 	}
-	if ex.Format == catalog.FormatDocBook {
-		// render DocBook as markdown (line for line) on a copy: documents
-		// are shared with other sources through the memo
+	structuralLists := false
+	if ex.Format == catalog.FormatDocBook || ex.Format == catalog.FormatRST {
+		// render DocBook / reStructuredText as markdown (line for line) on a
+		// copy: documents are shared with other sources through the memo
 		conv := make([]sources.Document, len(f.docs))
 		for k, d := range f.docs {
-			d.Content = normalize.DocBookToMarkdown(d.Content)
+			if ex.Format == catalog.FormatDocBook {
+				d.Content = normalize.DocBookToMarkdown(d.Content)
+			} else {
+				d.Content = normalize.RSTToMarkdown(d.Content)
+			}
 			conv[k] = d
 		}
 		f.docs = conv
+		// converted structural markup: every list item is one item whatever
+		// prose precedes it (an intro paragraph is an item of its own)
+		structuralLists = true
 	}
 	repo := repositoryOf(loc)
 	if repo == "" {
@@ -179,7 +187,7 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			Repository:  repo,
 
 			LabelPattern: ex.LabelParagraphs,
-			ListItems:    ex.Format == catalog.FormatDocBook,
+			ListItems:    structuralLists,
 		}
 	}
 	p := i.parser()
