@@ -1,0 +1,444 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: otel-collector
+name: OpenTelemetry Collector
+description: >-
+  The OpenTelemetry Collector distributions published by
+  open-telemetry/opentelemetry-collector-releases: what users actually deploy —
+  the otelcol-contrib flagship (all community components), otelcol (core),
+  otelcol-k8s (operator-oriented), otelcol-otlp, otelcol-ebpf-profiler and the
+  experimental otelcol-prometheus — as binaries, .deb/.rpm/.msi packages and
+  container images (otel/* on Docker Hub, mirrored on ghcr). The product IS the
+  releases repository: it versiones (v-prefixed git tags, unprefixed image and
+  asset versions) and publishes the distributions, while the *core* framework
+  (opentelemetry-collector) and the *contrib* components
+  (opentelemetry-collector-contrib) are its content, pinned per release at the
+  same version number in distributions/*/manifest.yaml and modeled here as
+  same-number-tag changelog sources and a core-release artifact. Every minor
+  ships breaking changes; patches are fix/rebuild-only, and from 0.102.1 on
+  patches are cut in the releases repository alone.
+homepage: https://opentelemetry.io/docs/collector/
+
+versioning:
+  scheme: semver
+  # Repository tags are v-prefixed (v0.162.0; 157 stable tags; the junk tag
+  # families are cmd/builder/v*, cmd/opampsupervisor/v* and nightly tags).
+  # Image tags and binary/package versions are UNPREFIXED (goreleaser's
+  # {{ .Version }} strips the v), hence template "{{.Version}}" artifacts.
+  tagPrefix: v
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+)$'
+  # Breaking changes ship in every minor (the changelogs' "🛑 Breaking
+  # changes" sections are per 0.X.0); patches (0.X.1+, 32 of 157) are
+  # fix/rebuild-only. An upgrade 0.160.0 -> 0.162.0 traverses 0.161.0.
+  lineage: minor
+
+sources:
+  # --- canonical versions ----------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/open-telemetry/opentelemetry-collector-releases
+      tagPattern: '^v(?P<version>\d+\.\d+\.\d+)$'
+    notes: >-
+      157 stable tags v0.0.1-v0.162.0. The strict pattern excludes the
+      cmd/builder/* and cmd/opampsupervisor/* subdirectory tags and the
+      v0.N.N-nightly.* builds that share the ls-remote list (233 junk refs).
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: open-telemetry/opentelemetry-collector-releases
+
+  # --- release notes: distribution level (the product's own changelog) --------
+  # One "## v0.X.Y" section per release at the release's own tag: which
+  # components enter or leave which distribution ("otelcol-contrib: Remove
+  # wavefrontreceiver from the contrib distribution"), packaging/signing
+  # changes and pinned-dependency upgrades. Distribution membership is the
+  # product's breaking unit. The file only exists since 0.116.0, and at
+  # 0.120.0 the section is mis-headed "## v0.120.1" (no such tag exists).
+  - id: changelog
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/open-telemetry/opentelemetry-collector-releases
+      ref: "{{.Tag}}"
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: '^v{{regexQuote .Version}}$'
+    availability: ">= 0.116.0"
+    exceptions:
+      - versions: [0.120.0, 0.140.0]
+        reason: >-
+          Upstream heading defect: at these tags the section is headed with
+          the FOLLOW-UP patch number ("## v0.120.1" at tag v0.120.0,
+          "## v0.140.1" at tag v0.140.0; neither patch tag existed at freeze
+          time), so the selector cannot reach the release's own changes.
+      - versions: [0.146.0, 0.150.0]
+        reason: >-
+          These minors were re-cut as their .1 patches (0.146.1, 0.150.1)
+          after broken publishes, and no 0.146.0/0.150.0 section ever existed
+          at any tag — the changes are in the .1 sections of later files.
+      - versions: [0.116.1, 0.122.1, 0.129.1, 0.132.4, 0.134.1]
+        reason: >-
+          Distribution-only patches with no distribution-level change: no
+          section at their tags (patches that did change the distributions,
+          e.g. 0.140.1 or 0.146.1, have sections).
+    classify:
+      # a component removed from a distribution means the collector no longer
+      # starts with the user's config: the strongest breaking change there is
+      - section: 'Breaking changes'
+        text: '(?i)\b(remove[ds]?|removed|removing|no longer|drop[ps]?)\b'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - section: 'Breaking changes'
+        text: '(?i)\brename[ds]?\b'
+        breaking: true
+        actionRequired: true
+      - section: 'Breaking changes'
+        breaking: true
+      # new components added to a distribution
+      - section: 'New components'
+        category: feature
+      # pinned-dependency bumps ("Upgrade go.opentelemetry.io/obi to v0.13.0")
+      - text: '(?i)^(all|[a-z-]*): .*\b(upgrade|update|bump)\b.*\bv?\d+\.\d+'
+        category: dependency
+      # packaging, signing and checksum mechanics ("Use split checksum for all
+      # binaries and distros", the Cosign v3 workflow change)
+      - text: '(?i)\b(checksum|cosign|signing|signature|sigstore|sbom)\b'
+        category: artifact
+      - section: 'Bug fixes'
+        category: bugfix
+
+  # --- core collector changelog at the same-numbered tag ----------------------
+  # The core framework (config/confmap/service/pkg) is pinned by the
+  # distribution manifest at the release version, so its changelog section
+  # lives at the same-numbered core tag. Headings are dual-versioned since
+  # 0.90.0 ("## v1.68.0/v0.162.0": the v1.NN stable-module numbering of the
+  # same release). Patch releases from 0.102.1 on have no core tag (see the
+  # core-collector artifact).
+  - id: core-changelog
+    roles: [changelog]
+    locator:
+      kind: repo-file
+      repository: github.com/open-telemetry/opentelemetry-collector
+      ref: "{{.Tag}}"
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      # headings are dual-versioned since 0.90.0 ("## v1.68.0/v0.162.0" — the
+      # v1.NN stable-module numbering of the same release), but the dual
+      # prefix is sometimes only added right after the tag freezes: at tag
+      # v0.146.0 the section is still plain "## v0.146.0", so both shapes are
+      # accepted
+      heading: '^(?:v[\d.]+/)?v{{regexQuote .Version}}$'
+    availability: ">= 0.90.0"
+    exceptions: &distribution-only-patches
+      - versions: [0.102.1, 0.103.1, 0.106.1, 0.115.1, 0.116.1, 0.122.1, 0.123.1, 0.124.1, 0.129.1, 0.130.1, 0.131.1, 0.132.1, 0.132.2, 0.132.3, 0.132.4, 0.134.1, 0.140.1, 0.143.1, 0.146.1, 0.150.1, 0.152.1]
+        reason: >-
+          Distribution-only patch: from 0.102.1 on the releases repository
+          patches without re-tagging core/contrib (verified by tag-set
+          comparison; the 0.132.2 manifest still pins core v0.132.0), so
+          there is no core changelog section at these numbers.
+    classify: &component-changelog-classify
+      # feature-gate stage moves change defaults for existing users (the
+      # project lists them as breaking); checked before the removal verbs so
+      # "Promote X to Beta ... no longer emits Y" files as configuration,
+      # not removal
+      - text: '(?i)feature gate.*(?:alpha|beta|GA|stable|permanently enabled|removed)'
+        category: configuration
+        breaking: true
+      # breaking config/behavior changes, with their migration prose folded
+      # into the item by the list parser
+      - section: 'Breaking changes'
+        text: '(?i)\b(remove[ds]?|removed|removing|no longer|drop[ps]?|require[ds]?)\b'
+        category: removal
+        breaking: true
+        actionRequired: true
+      # renames need a config edit (queuebatch -> queue_batch, awss3 ->
+      # aws_s3 with a deprecated alias)
+      - section: 'Breaking changes'
+        text: '(?i)\brename[ds]?\b'
+        category: migration
+        breaking: true
+        actionRequired: true
+      - section: 'Breaking changes'
+        breaking: true
+      - text: '(?i)\bdeprecat\w*'
+        category: deprecation
+      - section: 'New components'
+        category: feature
+      - section: 'Bug fixes'
+        category: bugfix
+      - section: 'Enhancements'
+        category: feature
+
+  # --- contrib components changelog at the same-numbered tag ------------------
+  # The ~200 community components of otelcol-contrib, pinned the same way
+  # (66-171 user-facing items per release: receiver/exporter/processor config
+  # breaking changes, new components, fixes). Headings are plain
+  # "## v0.X.Y" until 0.161.0 and dual "## v1.1.0/v0.162.0" from 0.162.0 on,
+  # when contrib started tagging stable v1.x modules — the selector accepts
+  # both shapes.
+  - id: contrib-changelog
+    roles: [changelog]
+    locator:
+      kind: repo-file
+      repository: github.com/open-telemetry/opentelemetry-collector-contrib
+      ref: "{{.Tag}}"
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: '^(?:v[\d.]+/)?v{{regexQuote .Version}}$'
+    availability: ">= 0.90.0"
+    exceptions: *distribution-only-patches
+    classify: *component-changelog-classify
+
+  # --- security ---------------------------------------------------------------
+  # Advisories live where the code is: the contrib repository (7 published
+  # GHSAs, component CVEs) and the core repository (1). The releases
+  # repository itself has none (checked 2026-10-01); there is no SECURITY.md
+  # at the repo roots — the org process is GitHub private vulnerability
+  # reporting.
+  - id: contrib-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: open-telemetry/opentelemetry-collector-contrib
+  - id: core-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: open-telemetry/opentelemetry-collector
+
+artifacts:
+  # --- otelcol-contrib (the flagship distribution) ----------------------------
+  - id: contrib-image
+    type: container-image
+    name: otel/opentelemetry-collector-contrib
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      # canonical first (the documented user channel), reachable mirrors after
+      - kind: oci
+        repository: docker.io/otel/opentelemetry-collector-contrib
+      - kind: oci
+        repository: mirror.gcr.io/otel/opentelemetry-collector-contrib
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib
+    exceptions:
+      - versions: [0.115.0]
+        reason: >-
+          The contrib distribution published nothing at 0.115.0: no release
+          assets and no image tag on any registry (otelcol did ship) — an
+          upstream publish failure.
+      - versions: [0.162.0]
+        reason: >-
+          Upstream publishing gap verified on all three registries
+          (2026-10-01): the multi-arch index tag 0.162.0 returns
+          MANIFEST_UNKNOWN on ghcr.io, mirror.gcr.io and docker.io while
+          0.162.0-amd64/-arm64 and latest exist on ghcr — the per-arch images
+          were pushed, the index tag was not.
+      - versions: [0.129.0, 0.134.0, 0.150.0]
+        reason: &broken-release-reason >-
+          Broken release: the tag and its changelog section exist but nothing
+          was published — no release assets, no image tags on any registry
+          (verified 2026-10-01); the release was re-cut as the follow-up
+          patch (0.X.1), which carries the changelog section.
+  - id: contrib-binary
+    type: binary
+    name: otelcol-contrib
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/{{.Tag}}/otelcol-contrib_{{.Version}}_linux_amd64.tar.gz
+    exceptions:
+      - versions: [0.115.0, 0.123.0]
+        reason: >-
+          No otelcol-contrib release assets at these tags (the expanded asset
+          list has none); 0.115.0 also has no image anywhere, 0.123.0's image
+          exists on ghcr — upstream contrib publish failures.
+      - versions: [0.129.0, 0.134.0, 0.150.0]
+        reason: *broken-release-reason
+    notes: >-
+      One representative platform of the per-OS/arch asset family (darwin,
+      windows, 386/armv7/ppc64le/riscv64/s390x, aix variants), each with
+      checksums/sigstore/SBOM sidecars; naming stable since at least 0.90.0.
+  - id: contrib-deb
+    type: package
+    name: otelcol-contrib-deb
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/{{.Tag}}/otelcol-contrib_{{.Version}}_linux_amd64.deb
+    exceptions:
+      - versions: [0.115.0, 0.123.0]
+        reason: no otelcol-contrib release assets at these tags (see contrib-binary).
+      - versions: [0.129.0, 0.134.0, 0.150.0]
+        reason: *broken-release-reason
+  - id: contrib-rpm
+    type: package
+    name: otelcol-contrib-rpm
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/{{.Tag}}/otelcol-contrib_{{.Version}}_linux_amd64.rpm
+    exceptions:
+      - versions: [0.115.0, 0.123.0]
+        reason: no otelcol-contrib release assets at these tags (see contrib-binary).
+      - versions: [0.129.0, 0.134.0, 0.150.0]
+        reason: *broken-release-reason
+
+  # --- otelcol (the core distribution) ---------------------------------------
+  - id: otelcol-image
+    type: container-image
+    name: otel/opentelemetry-collector
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/otel/opentelemetry-collector
+      - kind: oci
+        repository: mirror.gcr.io/otel/opentelemetry-collector
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector
+    exceptions:
+      - versions: [0.129.0, 0.134.0, 0.150.0]
+        reason: *broken-release-reason
+  - id: otelcol-binary
+    type: binary
+    name: otelcol
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/{{.Tag}}/otelcol_{{.Version}}_linux_amd64.tar.gz
+    exceptions:
+      - versions: [0.129.0, 0.134.0, 0.150.0]
+        reason: *broken-release-reason
+  - id: otelcol-deb
+    type: package
+    name: otelcol-deb
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/{{.Tag}}/otelcol_{{.Version}}_linux_amd64.deb
+    exceptions:
+      - versions: [0.129.0, 0.134.0, 0.150.0]
+        reason: *broken-release-reason
+
+  # --- otelcol-k8s (the operator-oriented distribution) -----------------------
+  - id: k8s-image
+    type: container-image
+    name: otel/opentelemetry-collector-k8s
+    # ghcr images start at 0.98.0 (404 at 0.97.0)
+    availability: ">= 0.98.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/otel/opentelemetry-collector-k8s
+      - kind: oci
+        repository: mirror.gcr.io/otel/opentelemetry-collector-k8s
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+    exceptions:
+      - versions: [0.129.0, 0.134.0, 0.150.0]
+        reason: *broken-release-reason
+  - id: k8s-binary
+    type: binary
+    name: otelcol-k8s
+    availability: ">= 0.98.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/{{.Tag}}/otelcol-k8s_{{.Version}}_linux_amd64.tar.gz
+    exceptions:
+      - versions: [0.115.1]
+        reason: >-
+          The 0.115.1 patch shipped otelcol-contrib assets only; no k8s
+          assets were produced.
+      - versions: [0.129.0, 0.134.0, 0.150.0]
+        reason: *broken-release-reason
+
+  # --- otelcol-otlp -----------------------------------------------------------
+  - id: otlp-image
+    type: container-image
+    name: otel/opentelemetry-collector-otlp
+    # ghcr images start between 0.110.0 and 0.112.0 (404 at 0.110.0)
+    availability: ">= 0.112.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/otel/opentelemetry-collector-otlp
+      - kind: oci
+        repository: mirror.gcr.io/otel/opentelemetry-collector-otlp
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-otlp
+    exceptions:
+      - versions: [0.129.0, 0.134.0]
+        reason: *broken-release-reason
+
+  # --- otelcol-ebpf-profiler --------------------------------------------------
+  - id: ebpf-profiler-image
+    type: container-image
+    name: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-ebpf-profiler
+    # first release artifacts ~0.135.0 era (404 at 0.130.0, 200 at 0.135.0);
+    # linux-only, no docker.io repository
+    availability: ">= 0.135.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-ebpf-profiler
+
+  # --- otelcol-prometheus (experimental, created at 0.162.0) ------------------
+  - id: prometheus-image
+    type: container-image
+    name: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-prometheus
+    # "Create the new otelcol-prometheus distribution" is the 0.162.0
+    # changelog entry; experimental, not recommended for production
+    availability: ">= 0.162.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-prometheus
+
+  # --- the core collector release this distribution is built from -------------
+  # The distribution manifests pin go.opentelemetry.io/collector at the
+  # release version (distributions/*/manifest.yaml gomod entries), so the
+  # core "artifact version" is the release version itself and this channel
+  # verifies the same-numbered core tag exists. version.strategy field cannot
+  # read the pin (module path and version share one gomod string and list
+  # selectors are exact-match) — see the onboarding record's gaps.
+  - id: core-collector
+    type: package
+    name: github.com/open-telemetry/opentelemetry-collector
+    availability: ">= 0.90.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: https://github.com/open-telemetry/opentelemetry-collector/archive/refs/tags/{{.Tag}}.tar.gz
+    exceptions:
+      - versions: [0.102.1, 0.103.1, 0.106.1, 0.115.1, 0.116.1, 0.122.1, 0.123.1, 0.124.1, 0.129.1, 0.130.1, 0.131.1, 0.132.1, 0.132.2, 0.132.3, 0.132.4, 0.134.1, 0.140.1, 0.143.1, 0.146.1, 0.150.1, 0.152.1]
+        reason: >-
+          Distribution-only patch: from 0.102.1 on the releases repository
+          patches without re-tagging core (the 0.132.2 manifest still pins
+          core v0.132.0), so there is no core release at these numbers.
+
+provenance:
+  method: discovery+review
+  author: onboarding wave 2
+  updated: "2026-10-01"
+  validatedReleases: [0.157.0, 0.158.0, 0.159.0, 0.160.0, 0.161.0, 0.162.0]
+  notes: >-
+    Started from the discovery proposal (git-tags with the strict v-pattern,
+    the github-releases fallback, the releases CHANGELOG.md heading, the ghcr
+    image family, github-advisories) and rebuilt around the topology in
+    docs/research/otel-collector.md: the product is the releases repository
+    (the distributions users deploy), the core/contrib repositories are
+    same-number-tag changelog sources plus a core-release artifact with
+    distribution-only-patch exceptions, discovery's excluded contrib image
+    was reinstated (its ghcr repository exists), its mangled binary asset
+    templates were corrected to otelcol[_-contrib]_<version>_<os>_<arch>,
+    and the .deb/.rpm packages and docker.io/mirror channels were added by
+    research. Verified with `ri check -n 6` plus an earlier-era run.

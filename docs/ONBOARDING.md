@@ -59,9 +59,9 @@ What convergence looks like:
 
 ## Summary
 
-- 14 product definitions, 14 onboarding records, 14 saved relationship reports.
+- 15 product definitions, 15 onboarding records, 15 saved relationship reports.
 - 147 distinct constructs are used across all definitions; the records introduce 147.
-- 3 of 14 recorded products introduced no new construct. The latest product that introduced one has order 14.
+- 4 of 15 recorded products introduced no new construct. The latest product that introduced one has order 14.
 - Product-specific Go changes recorded: 0 (must be 0).
 
 ## Per-product table
@@ -84,6 +84,7 @@ What convergence looks like:
 | 12 | 2 | strimzi | 305 (226) | 5 | 10 | 16 | 3 | 10 | 19 | 0 | 0 | 1 | 3 |
 | 13 | 2 | traefik | 339 (261) | 11 | 4 | 7 | 3 | 10 | 27 | 4 | 1 | 1 | 7 |
 | 14 | 2 | karpenter | 371 (296) | 9 | 8 | 8 | 1 | 23 | 18 | 0 | 0 | 2 | 10 |
+| 16 | 2 | otel-collector | 444 (356) | 7 | 13 | 21 | 0 | 23 | 32 | 22 | 0 | 0 | 9 |
 
 ### Constructs and effort
 
@@ -103,6 +104,7 @@ What convergence looks like:
 | 12 | strimzi | 77 | 0 | 77 | 100% | 143 | 0 / 0 | 26 | full |
 | 13 | traefik | 97 | 1 | 96 | 99% | 144 | 0 / 0 | 38 | full |
 | 14 | karpenter | 83 | 3 | 80 | 96% | 147 | 9 / 0 | 35 | full |
+| 16 | otel-collector | 57 | 0 | 57 | 100% | 147 | 0 / 0 | 28 | full |
 
 ### Discovery and relationship validation
 
@@ -122,6 +124,7 @@ What convergence looks like:
 | strimzi | 6/4/5 (67%) | 15/0/0/0 | 551/0/0/60/4 | 0 → 0 | 3 | 1 |
 | traefik | 4/3/8 (47%) | 12/0/3/0 | 181/0/0/166/8 | 0 → 0 | 5 | 3 |
 | karpenter | 4/5/8 (53%) | 11/0/4/0 | 63/0/0/24/3 | 0 → 0 | 3 | 0 |
+| otel-collector | 2/7/11 (45%) | 15/0/1/0 | 848/0/0/192/0 | 12 → 0 | 4 | 2 |
 
 ## Construct-introduction curve
 
@@ -141,6 +144,7 @@ What convergence looks like:
 | 12 | strimzi | 0 | 143 | 77 | 77 | 100% | 0 | 143 |
 | 13 | traefik | 1 | 144 | 97 | 96 | 99% | 1 | 144 |
 | 14 | karpenter | 3 | 147 | 83 | 80 | 96% | 3 | 147 |
+| 16 | otel-collector | 0 | 147 | 57 | 57 | 100% | 0 | 147 |
 
 New constructs per product, in onboarding order (records):
 
@@ -159,6 +163,7 @@ New constructs per product, in onboarding order (records):
  12  strimzi                   0  
  13  traefik                   1  █
  14  karpenter                 3  ██
+ 16  otel-collector            0  
 ```
 
 Cumulative constructs introduced:
@@ -178,6 +183,7 @@ Cumulative constructs introduced:
  12  strimzi                 143  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  13  traefik                 144  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
  14  karpenter               147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+ 16  otel-collector          147  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ```
 
 ## Constructs introduced per product
@@ -293,13 +299,17 @@ No new constructs: the definition is configuration only.
 - `column-kind:minimum`: The kind existed in the vocabulary since the Phase 1 support-matrix work (cert-manager's record accounted supported/tested only) but no earlier product used it: karpenter's minK8sVersion is its first exercise. Accounted here so the product's unaccounted-construct list is empty; no code change. (also needed by cert-manager and Istio declared minimums in their matrices but used supported/tested kinds)
 - `field:sources.extract.listItems`: Karpenter's upgrade-guide sections open with a Hugo warning shortcode ({{% alert %}}) before the bullet list; the markdown section reader treats a prose-led section as one item and folds the whole list into it, so the 1.14 guide bullets (CapacityBuffers graduation, DRA, balanced consolidation) were invisible and the folded item said breaking while containing "No breaking changes 🎉". The structural reading already existed for docbook/rst conversions (internal/ingest/docs.go structuralLists); this exposes it declaratively for markdown: catalog field + validation + schema + one condition in ingest, tests in normalize (per-bullet + callout items) and ingest (DocInput.ListItems pass-through). (also needed by Traefik (order 13, wave 2: migration guides open with warning/highlight fences before bullet lists), Grafana (order 11, wave 2: breaking-change docs use callouts above lists), any Hugo/MDX docs site with alert shortcodes ahead of change lists (HashiCorp platform docs use the same shape))
 
+### otel-collector (order 16, wave 2): 0 new
+
+No new constructs: the definition is configuration only.
+
 ## Per-wave aggregates
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
 | 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 30 (4.3) | 93% | 55 / 0 | 25 (n=7) | 20/24/56 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
-| 2 | grafana, strimzi, traefik, karpenter | 2 of 4 (grafana, strimzi) | 4 (1.0) | 99% | 9 / 0 | 31 (n=4) | 19/15/30 (53%) | 52/0/10/0 (4 of 4 reports) | 4 | full 4 |
+| 2 | grafana, strimzi, traefik, karpenter, otel-collector | 3 of 5 (grafana, strimzi, otel-collector) | 4 (0.8) | 99% | 9 / 0 | 28 (n=5) | 21/22/41 (51%) | 67/0/11/0 (5 of 5 reports) | 6 | full 5 |
 
 ## Notes from the records
 
@@ -330,6 +340,8 @@ No new constructs: the definition is configuration only.
 **traefik**: Cross-major edge through the full dual-major history: path 3.0.0 -> 3.1.0 -> ... -> 3.7.13 (21 releases traversed, 59 backports skipped). 43 breaking = the 23-topic v2-to-v3 guide (each topic breaking + action required) plus crd-schema diffs; the leaves-end-of-life lifecycle change cites the support-policy rules; the containo.us -> traefik.io CRD group change appears as the CRD diff (9 breaking crd-schema items). Second edge exercised: 3.6.25 -> 3.7.13 within v3 (0 breaking · 4 action required · 494 changes · 2 warnings; ingressClassName and retry-middleware CRD additions, Gateway API 1.5.1 pin, chart 35.x -> 41.6.1). Both edges were read critically: two classify tunings later the major edge shows exactly one deprecation item (the lifecycle statement) and no doc noise. Discovery (deterministic) correctly found the tag scheme, changelog, CRD directory, chart-by-appVersion relation and advisory feed, proposed an impossible chart tagPattern, and excluded every image: its release-infrastructure rules do not know the library-image + mirror-sync publishing model. Elapsed time is agent wall-clock and excludes this record.
 
 **karpenter**: First ECR Public product: public.ecr.aws answered anonymously end to end (token, tags, manifests, chart configs), so every image and chart relationship is registry-verified — the fleet-level verdict is "reachable, channel it normally; throttle bursts are transient". Onboarding was research-dominated: the two structures that dominate this product (the 0.35.0 registry-tag boundary and the one-release chart/website lag around the tag) are invisible to per-tag probing from the newest release alone and are exactly what discovery's relationship checks flagged as failures; both recovered as declarations (template relations + legacy twins, preview-at-tag + main fallbacks). Two generic constructs landed (a vocabulary slot and a boolean exposing an existing reading), both small and both with wave-2/3 beneficiaries; zero product-specific Go. Classification quality: the conventional-commit sections map 1:1 to categories, and the guide's tuning (skip '^No breaking changes', role-default action-required accepted) was found by reading edges, not by failing checks — the checks passed from the first draft (0 failures, 12 releases, 2 eras).
+
+**otel-collector**: Third zero-new wave-2 product: onboarding was research plus configuration. The scope decision: the product is the RELEASES repository (the six distributions users deploy — binaries, deb/rpm/msi packages, images on docker.io + ghcr), not the core framework and not the contrib component repo; core and contrib are modeled as the distribution's content — their changelog sections read at the same-numbered tags (the release body itself links exactly those two), plus a core-release artifact with the honest distribution-only-patch exceptions. The k8s operator is noted as a related product. The definition is the construct-leanest big-product shape so far (57 constructs, all reused; no fallback groups needed — raw git hosts answered everything). Discovery quality was the highest yet for images (six ghcr channels historically-validated by itself) but its binary-asset proposer still cannot template per-OS/arch asset families, and it missed the multi-repository topology entirely — the one class of finding research had to supply. The upstream anomalies this product exposed (three releases that published nothing, a missing multi-arch index tag on the newest release, sections mis-headed as follow-up patches) are exactly what the exceptions construct exists for; none required Go changes.
 
 ## Data quality
 
