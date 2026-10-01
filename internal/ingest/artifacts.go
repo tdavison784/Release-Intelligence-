@@ -10,6 +10,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/normalize"
 	"github.com/tdavison784/release-intelligence/internal/sources"
 )
 
@@ -144,6 +145,8 @@ func (i *Ingester) resolveVersions(ctx context.Context, r *run, ar *artifactRun)
 		return resolution{versions: []resolvedVersion{{version: av}}}
 	case catalog.VersionLookup:
 		return i.lookupVersions(ctx, r, ar)
+	case catalog.VersionField:
+		return i.fieldVersion(ctx, r, ar)
 	case catalog.VersionIndependent:
 		return resolution{
 			status:     domain.ArtifactExpected,
@@ -262,8 +265,65 @@ func (i *Ingester) lookupVersions(ctx context.Context, r *run, ar *artifactRun) 
 	}
 }
 
-func typeNoun(t domain.ArtifactType) string {
-	switch t {
+// fieldVersion resolves an artifact version with strategy "field": the
+// version is read out of a YAML document fetched at the release ref (the
+// pinned sub-component versions of an aggregating chart — appVersion,
+// dependencies[name=x].version, a values.yaml image tag — or any other
+// per-release pin inside a file). The evidence is the document itself, with
+// the path (and line) that carried the value.
+func (i *Ingester) fieldVersion(ctx context.Context, r *run, ar *artifactRun) resolution {
+	a := ar.art
+	from := a.Version.From
+	if from == nil {
+		return resolution{status: domain.ArtifactExpected, detail: "strategy field declares no from locator", coordinate: firstCoordinate(a, r.rc)}
+	}
+	loc, err := renderLocator(*from, r.rc)
+	if err != nil {
+		return resolution{status: domain.ArtifactExpected, detail: "field from locator: " + err.Error(), coordinate: firstCoordinate(a, r.rc)}
+	}
+	f := i.fetch(ctx, r.memo, loc, r.now)
+	st := domain.SourceStatus{SourceID: a.ID, Kind: loc.Kind, Version: r.v.Semver, URI: locatorURI(loc)}
+	if f.err != nil {
+		state, detail, _ := stateFor(f.err)
+		st.State, st.Detail = state, detail
+		ar.statuses = append(ar.statuses, st)
+		return resolution{status: domain.ArtifactExpected, detail: fmt.Sprintf("cannot read %s: %s", describeLocator(loc), detail), coordinate: firstCoordinate(a, r.rc)}
+	}
+	if len(f.docs) == 0 {
+		st.State, st.Detail = domain.SourceNotFound, "no document at "+describeLocator(loc)
+		ar.statuses = append(ar.statuses, st)
+		return resolution{status: domain.ArtifactMissing, detail: "no document at " + describeLocator(loc), coordinate: firstCoordinate(a, r.rc)}
+	}
+	d := f.docs[0]
+	st.URI = d.URI
+	value, line, err := i.parser().ReadYAMLPath(d.Content, a.Version.Field)
+	if err != nil {
+		if errors.Is(err, normalize.ErrNoMatch) {
+			st.State, st.Detail = domain.SourceNotFound, err.Error()
+			ar.statuses = append(ar.statuses, st)
+			return resolution{status: domain.ArtifactMissing, detail: fmt.Sprintf("%s does not carry %s (%s)", describeLocator(loc), a.Version.Field, err), coordinate: firstCoordinate(a, r.rc)}
+		}
+		st.State, st.Detail = domain.SourceError, err.Error()
+		ar.statuses = append(ar.statuses, st)
+		return resolution{status: domain.ArtifactExpected, detail: fmt.Sprintf("reading %s from %s: %v", a.Version.Field, describeLocator(loc), err), coordinate: firstCoordinate(a, r.rc)}
+	}
+	if strings.TrimSpace(value) == "" {
+		st.State, st.Detail = domain.SourcePartial, fmt.Sprintf("%s is empty", a.Version.Field)
+		ar.statuses = append(ar.statuses, st)
+		return resolution{status: domain.ArtifactExpected, detail: fmt.Sprintf("%s of %s is empty", a.Version.Field, describeLocator(loc)), coordinate: firstCoordinate(a, r.rc)}
+	}
+	st.State = domain.SourceOK
+	st.Detail = fmt.Sprintf("%s = %s (%s)", a.Version.Field, value, describeLocator(loc))
+	ar.statuses = append(ar.statuses, st)
+	elocator := "$." + a.Version.Field
+	if line > 0 {
+		elocator = fmt.Sprintf("L%d", line)
+	}
+	ev := domain.NewEvidence(domain.EvidenceStructured, a.ID, d.URI, elocator, fmt.Sprintf("%s: %s", a.Version.Field, value), d.Digest, d.RetrievedAt)
+	return resolution{versions: []resolvedVersion{{version: value, evidence: []domain.Evidence{ev}}}}
+}
+
+func typeNoun(t domain.ArtifactType) string {	switch t {
 	case domain.ArtifactHelmChart:
 		return "chart"
 	case domain.ArtifactContainerImage:

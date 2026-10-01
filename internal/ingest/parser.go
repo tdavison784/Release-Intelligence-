@@ -19,6 +19,7 @@ type Parser interface {
 	ExtractRecord(content []byte, sel normalize.TableSelector) (*normalize.TableRow, error)
 	CompatibilityFromRow(in normalize.DocInput, row *normalize.TableRow, columns []catalog.ColumnSpec) ([]domain.CompatibilityConstraint, []domain.Evidence)
 	ParseVersionRange(raw string) (constraint string, versions []string, err error)
+	ReadYAMLPath(content []byte, path string) (value string, line int, err error)
 	ParseChartMetadata(chartYAML []byte) (*normalize.ChartMetadata, error)
 	ValuesSnapshot(chart, version string, valuesYAML []byte) (*domain.ValuesSnapshot, error)
 	CRDSnapshot(streams ...[]byte) (*domain.CRDSnapshot, error)
@@ -56,6 +57,10 @@ func (normalizeParser) CompatibilityFromRow(in normalize.DocInput, row *normaliz
 
 func (normalizeParser) ParseVersionRange(raw string) (string, []string, error) {
 	return normalize.ParseVersionRange(raw)
+}
+
+func (normalizeParser) ReadYAMLPath(content []byte, path string) (string, int, error) {
+	return normalize.ReadYAMLPath(content, path)
 }
 
 func (normalizeParser) ParseChartMetadata(chartYAML []byte) (*normalize.ChartMetadata, error) {

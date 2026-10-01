@@ -477,9 +477,26 @@ func (v *validator) versionRelation(path string, vr VersionRelation, rc RenderCo
 		default:
 			v.errf(path+".select", "must be latest, earliest or all")
 		}
+	case VersionField:
+		if vr.Field == "" {
+			v.errf(path+".field", "required for strategy field")
+		} else if _, err := SplitYAMLPath(vr.Field); err != nil {
+			v.errf(path+".field", "%v", err)
+		}
+		switch {
+		case vr.From == nil:
+			v.errf(path+".from", "required for strategy field: the document the version is read from")
+		case vr.From.Kind != LocatorRepoFile && vr.From.Kind != LocatorHTTP:
+			v.errf(path+".from.kind", "must be %s or %s for strategy field (one document)", LocatorRepoFile, LocatorHTTP)
+		default:
+			v.locator(path+".from", *vr.From, rc)
+		}
+		if vr.Match != "" || vr.Template != "" {
+			v.errf(path, "match/template belong to other strategies, not to %s", VersionField)
+		}
 	case VersionIndependent:
 	default:
-		v.errf(path+".strategy", "must be template, lookup or independent, got %q", vr.Strategy)
+		v.errf(path+".strategy", "must be template, lookup, field or independent, got %q", vr.Strategy)
 	}
 }
 
