@@ -432,3 +432,91 @@ spec:
 		t.Errorf("the matched field must be listed once, got %d times:\n%s", n, d)
 	}
 }
+
+// --- 8. trustfix: a removed path below a set list is decided element by element.
+//
+// Regression (external-secrets-0.15-0.16): the removed path
+// spec.provider.fake.data[].valueMap sits below the list spec.provider.fake.data
+// the store sets, so the flattened (lists-are-leaves) manifest paths could only
+// say "you set a section above the removed path" → review. The resource facts
+// descend into sequences; they show whether any element sets the removed path.
+// The CRD is supplied like a real environment: its definition document stages
+// the GVK usage entry of the version it serves, and the decision must not be
+// blocked by a document that is a schema, never a resource of the kind.
+const clusterSecretStoreCRD = `apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: clustersecretstores.external.example.io
+spec:
+  group: external.example.io
+  names: {kind: ClusterSecretStore, plural: clustersecretstores}
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+`
+
+func TestCRDFieldRemovedBelowSetListIsDecidedPerElement(t *testing.T) {
+	const crdName = "clustersecretstores.external.example.io"
+	build := func(t *testing.T, crds, element string) *domain.ImpactReport {
+		eb := newEdge()
+		eb.schemaChange(upgrade.RuleCRDFieldsRemoved,
+			"ClusterSecretStore v1beta1 schema: 1 field removed: `spec.provider.fake.data[].valueMap`",
+			fieldsRemovedDetail("external.example.io", "v1beta1", crdName, "spec.provider.fake.data[].valueMap"),
+			"spec.provider.fake.data[].valueMap")
+		dir := t.TempDir()
+		manifests := writeFile(t, dir, "stores.yaml", `apiVersion: external.example.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: fake-smoke
+spec:
+  provider:
+    fake:
+      data:
+        - key: /smoke/username
+          value: smoke-user
+`+element)
+		in := env.Inputs{Manifests: []string{manifests}}
+		if crds != "" {
+			in.CRDs = []string{writeFile(t, dir, "crds.yaml", crds)}
+		}
+		return buildReport(t, eb.edge, loadEnv(t, in))
+	}
+	clear := "        - key: /smoke/password\n          value: x\n"
+	t.Run("no element sets the removed path → not-affected", func(t *testing.T) {
+		e := build(t, clusterSecretStoreCRD, clear)
+		if fs := findingsByRule(e, RuleCRDFieldRemoved); len(fs) != 0 {
+			t.Fatalf("the list's elements do not set valueMap; got %+v", fs)
+		}
+		na := findingsByRule(e, RuleCRDFieldUnset)
+		if len(na) != 1 || na[0].Classification != domain.ImpactNotAffected || len(na[0].Checks) == 0 {
+			t.Fatalf("checked element by element and clear → not-affected with checks: %+v", e.Findings)
+		}
+	})
+	t.Run("same without the CRD supplied (usage staged by the manifest alone)", func(t *testing.T) {
+		e := build(t, "", clear)
+		if na := findingsByRule(e, RuleCRDFieldUnset); len(na) != 1 || na[0].Classification != domain.ImpactNotAffected {
+			t.Fatalf("the decision does not need the CRD; got %+v", e.Findings)
+		}
+	})
+	t.Run("incomplete manifests keep the review (absence is not knowledge)", func(t *testing.T) {
+		e := build(t, clusterSecretStoreCRD, clear+"---\nkind: [unclosed\n")
+		fs := findingsByRule(e, RuleCRDFieldRemoved)
+		if len(fs) != 1 || fs[0].Classification != domain.ImpactReviewRequired {
+			t.Fatalf("partially parsed manifests cannot clear the path; want the section-above review: %+v", e.Findings)
+		}
+		if na := findingsByRule(e, RuleCRDFieldUnset); len(na) != 0 {
+			t.Errorf("no not-affected verdict from a partial inventory: %+v", na)
+		}
+	})
+	t.Run("an element sets the removed path → action-required", func(t *testing.T) {
+		e := build(t, clusterSecretStoreCRD, "        - key: /smoke/map\n          valueMap:\n            a: b\n")
+		fs := findingsByRule(e, RuleCRDFieldRemoved)
+		if len(fs) != 1 || fs[0].Classification != domain.ImpactActionRequired {
+			t.Fatalf("exact GVK + an element setting the removed path → action: %+v", e.Findings)
+		}
+		if !strings.Contains(fs[0].Detail, "valueMap") || len(fs[0].EnvironmentEvidence) == 0 {
+			t.Errorf("the finding must cite the element that sets the path: %+v", fs[0])
+		}
+	})
+}
