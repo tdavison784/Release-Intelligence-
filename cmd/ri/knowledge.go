@@ -20,9 +20,10 @@ Subcommands:
   review-fact <fact-id>          open a re-review of a fact (reject retracts, correct supersedes)
   export [-o file]               the human-feedback dataset as JSONL
   metrics [-o text|json]         agreement, per-model accuracy, review cost, fact counts
-  candidates <product> <from> <to>   restatement clusters of an edge (same as ri semantic candidates)
-  propose <product> <from> <to> ...  multi-model semantic proposals (same as ri semantic propose)
-  validate                           provided by the validate lane (not wired yet)
+	case "candidates", "propose":
+		return c.semanticCmd(append([]string{sub}, rest...))
+	case "validate":
+		return c.knowledgeValidate(rest)
 `
 
 func (c *cli) knowledge(args []string) error {
@@ -45,7 +46,7 @@ func (c *cli) knowledge(args []string) error {
 	case "candidates", "propose":
 		return c.semanticCmd(append([]string{sub}, rest...))
 	case "validate":
-		return fmt.Errorf("ri knowledge validate is provided by the validate lane and is not wired in this build")
+		return c.knowledgeValidate(rest)
 	case "help":
 		fmt.Fprint(c.err, knowledgeUsage)
 		return nil
