@@ -1022,7 +1022,6 @@ type flagUse struct {
 func (ev *evaluator) flags(component string) (uses []flagUse, examined []domain.EvidenceID) {
 	for i := range ev.env.Resources {
 		r := &ev.env.Resources[i]
-		type arg struct{ f env.FieldFact }
 		byContainer := map[string][]env.FieldFact{}
 		var order []string
 		for _, f := range r.Fields {
@@ -1448,7 +1447,11 @@ func (ev *evaluator) edgeFromVersion(c domain.Condition) ConditionResult {
 		return unknownResult(domain.UnknownEvidenceGap, "the upgrade's from-version is not known")
 	}
 	rec := FromVersionEvidence(ev.edge)
-	in, ok := versionIn(ev.edge.From.String(), c.Range)
+	from := ev.edge.From.Semver
+	if from == "" {
+		from = ev.edge.From.String()
+	}
+	in, ok := versionIn(from, c.Range)
 	if !ok {
 		return unknownResult(domain.UnknownEvidenceGap, fmt.Sprintf("from-version %s cannot be compared with %s", ev.edge.From.String(), c.Range))
 	}

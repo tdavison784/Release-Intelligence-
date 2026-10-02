@@ -316,7 +316,7 @@ func (b *inventoryBuilder) loadInventoryFile(path string) error {
 	// products: [...]} declares the inventory complete (DESIGN.md §1.3
 	// product-version: "not listed" is false only under a declared-complete,
 	// healthy inventory). The list form stays the default: never complete.
-	if seq != nil && seq.Kind == yaml.MappingNode {
+	if seq != nil && seq.Kind == yaml.MappingNode && (fieldOf(seq, "products") != nil || fieldOf(seq, "complete") != nil) {
 		complete, cl := scalarLine(seq, "complete")
 		switch complete {
 		case "true":

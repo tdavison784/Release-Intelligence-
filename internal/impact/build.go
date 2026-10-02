@@ -96,6 +96,13 @@ type builder struct {
 	edgeEv   map[domain.EvidenceID]bool
 	upCited  map[domain.EvidenceID]bool
 	locCited map[domain.EvidenceID]bool
+
+	// factEv: upstream evidence of verified facts not in the edge's pool;
+	// extraLocal: environment records created by condition evaluation.
+	factEv          map[domain.EvidenceID]domain.Evidence
+	factEvOrder     []domain.EvidenceID
+	extraLocal      map[domain.EvidenceID]domain.Evidence
+	extraLocalOrder []domain.EvidenceID
 }
 
 func build(in Input) (*domain.ImpactReport, error) {
@@ -110,6 +117,7 @@ func build(in Input) (*domain.ImpactReport, error) {
 		edge: in.Edge, env: in.Env,
 		seen: map[string]bool{}, edgeEv: map[domain.EvidenceID]bool{},
 		upCited: map[domain.EvidenceID]bool{}, locCited: map[domain.EvidenceID]bool{},
+		factEv: map[domain.EvidenceID]domain.Evidence{}, extraLocal: map[domain.EvidenceID]domain.Evidence{},
 	}
 	for _, e := range in.Edge.Evidence {
 		b.edgeEv[e.ID] = true
@@ -135,6 +143,9 @@ func build(in Input) (*domain.ImpactReport, error) {
 	b.compatibilityChecks()
 	b.imageFamily()
 	b.unjoinedChanges()
+	if len(in.Facts) > 0 {
+		b.knowledge(in.Facts, in.MinVerification, in.Render)
+	}
 
 	sortFindings(b.findings)
 	b.rep.Findings = b.findings
@@ -931,9 +942,21 @@ func (b *builder) collectEvidence() {
 			b.rep.Evidence = append(b.rep.Evidence, e)
 		}
 	}
+	for _, id := range b.factEvOrder {
+		if b.upCited[id] {
+			b.rep.Evidence = append(b.rep.Evidence, b.factEv[id])
+		}
+	}
+	inEnv := map[domain.EvidenceID]bool{}
 	for _, e := range b.env.Evidence {
+		inEnv[e.ID] = true
 		if b.locCited[e.ID] {
 			b.rep.EnvironmentEvidence = append(b.rep.EnvironmentEvidence, e)
+		}
+	}
+	for _, id := range b.extraLocalOrder {
+		if b.locCited[id] && !inEnv[id] {
+			b.rep.EnvironmentEvidence = append(b.rep.EnvironmentEvidence, b.extraLocal[id])
 		}
 	}
 }
