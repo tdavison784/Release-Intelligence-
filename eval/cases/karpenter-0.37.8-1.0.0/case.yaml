@@ -175,6 +175,10 @@ expected:
     classification: action-required
     match:
       - text: '(?i)LOGGING_CONFIG|ASSUME_ROLE|LEADER_ELECT|FEATURE_GATES\.DRIFT'
+      # added 2026-10-02, motivated by pipeline output (loop-diagnosis; eval/CHANGELOG.md): the computed
+      # removal of the logConfig values section; the item's own v0.37.8 values.yaml quote names logConfig
+      # verbatim ("Logging configuration will be dropped by v1 … logConfig:")
+      - {category: helm-values, text: '(?i)\blogConfig\b'}
     evidence:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
         quote: "LOGGING_CONFIG, ASSUME_ROLE_ARN, ASSUME_ROLE_DURATION Dropped … LEADER_ELECT renamed to DISABLE_LEADER_ELECTION … `FEATURE_GATES.DRIFT=true` was dropped and promoted to Stable, and cannot be disabled."
