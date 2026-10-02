@@ -70,13 +70,22 @@ calls on a cache-refreshing first run. Flagged for the pipeline owner.
   change that needs pre-registration; (4) installed-CRD `status.storedVersions` (flux E2,
   external-secrets E3) is in `crds/` fixtures, which the env loader reads as CRDs, not resources.
 
+## Follow-ups after the merge (groundtruth-2, 2026-10-02; branch merged with p3-learning-loop @ 823b44c)
+- (1) Done: the ten paraphrased environment-case quotes are now verbatim (eval/CHANGELOG.md
+  "2026-10-02 (b)"). Every quote of the 15 environment cases verifies. About 30 quotes in edge-only cases
+  are still unverified (observation only).
+- (2) Done, proposal only: docs/phase3/learning-loop/UNDECIDED-SCORING.md (reported, ungated
+  `unknownHonesty`). Nothing pre-registered or implemented; the product owner decides.
+- (3) Done: stored-edge fixtures for the 7 new base entries (the 4 transfers share their base edge),
+  with `missedAtRecording` for the 9 recall misses. The routine gate now covers 24 entries.
+- (4) Waiting: no TRUSTFIX.md note yet. No label changes until the commander says so.
+
 ## Open for the commander
-- Pre-register (or not) scoring of `undecidedImpact` links, and report applicabilityAccuracy split into
+- Decide on docs/phase3/learning-loop/UNDECIDED-SCORING.md (do not pre-register from this lane), and report applicabilityAccuracy split into
   affected-hit and not-affected-clean (the headline number is denominator-sensitive).
 - The CHANGELOG corrections that tighten or soften classes (D7 → review, istio E6 → action,
   cm-1.16 E1 → undecided) are upstream-grounded; veto any you disagree with.
 - Candidate new links on existing cases (strimzi E8, karpenter E5) are recorded, not added.
-- Recording stored-edge fixtures for the 11 new entries (so the routine gate covers them) is a separate step.
 
 ## Decisions
 - Transfer cases as sibling ids `<base>--<suffix>` with `transferOf` (least invasive; chosen in step 1).

@@ -96,3 +96,27 @@ cilium-1.16-1.17 E4 (1.16.0 values) and E9, istio-1.23-1.24 E2 and E6, karpenter
 (both values.yaml citations), strimzi-0.45-0.46 E4. Their substance was not re-verified in this pass; their wording
 should be made verbatim (or re-checked) in a later one. All 216 quotes of the seven new cases
 verify (after the crossplane URL fix above).
+
+## 2026-10-02 (b) — verbatim quotes in the environment cases (commander follow-up 1)
+
+The ten pre-existing paraphrased quotes listed above now carry the cited document's exact text
+(re-fetched at the cited ref). No label, matcher or URL changed; editorial insertions moved to YAML
+comments.
+
+| Case · item | Before (paraphrase) | After (verbatim source text) |
+|---|---|---|
+| argo-cd-2.14-3.0 · E5 | markdown link to the Dex scope dropped | full sentence incl. the `[scope](…)` link, upgrading/2.14-3.0.md L98–101 |
+| cert-manager-1.16-1.17 · E3 | the two gate names joined into the sentence | sentence + the two list items as written (release-notes-1.17.md L75–78) |
+| cilium-1.15-1.17 · E8, cilium-1.16-1.17 · E4 | `tls: secretsBackend: local` (YAML path flattened) | `secretsBackend: local` (values.yaml L2360 at 1.16.0, under `tls:`, noted in a comment) |
+| cilium-1.16-1.17 · E9 | RST `:ref:` role dropped | the line as written (upgrade.rst L377 at v1.17.0) |
+| istio-1.23-1.24 · E2 | editorial "[impacted]" inserted | "While Istio's control plane is not impacted by this, a popular third-party CA implementation, [`istio-csr`](…) is." … |
+| istio-1.23-1.24 · E6 | markdown link dropped, two paragraphs merged | both sentences as written, joined by "…" |
+| karpenter-0.37.8-1.0.0 · E7 (v0.37.8 values) | `logConfig: {…} / assumeRoleARN: "" / assumeRoleDuration: 15m` | the chart's own lines (incl. the "Logging configuration will be dropped by v1" comment); `settings:` nesting noted in a comment |
+| karpenter-0.37.8-1.0.0 · E7 (v1.0.0 values) | editorial "(the logConfig and assumeRole keys of 0.37.8 are gone)" inside the quote | the `logOutputPaths` lines only; the observation moved to a comment |
+| strimzi-0.45-0.46 · E4 | markdown link targets dropped | the bullet as written (CHANGELOG.md L34 at 0.46.0) |
+
+With this, every quote of the fifteen environment cases verifies against its source (automated check,
+markup-normalised; the remaining crossplane code-comment and flux HTML-list quotes were checked by
+hand). Observation: the edge-only cases (argo-cd-3.0-3.1, cert-manager-1.15-1.16,
+ingress-nginx-1.11-1.12, istio-1.28-1.29, postgresql ×2, terraform-provider-aws, vault) have about 30
+quotes the same check cannot match verbatim; not touched here.

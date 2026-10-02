@@ -179,9 +179,9 @@ expected:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
         quote: "LOGGING_CONFIG, ASSUME_ROLE_ARN, ASSUME_ROLE_DURATION Dropped … LEADER_ELECT renamed to DISABLE_LEADER_ELECTION … `FEATURE_GATES.DRIFT=true` was dropped and promoted to Stable, and cannot be disabled."
       - url: https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/charts/karpenter/values.yaml
-        quote: "logConfig: {…} / assumeRoleARN: \"\" / assumeRoleDuration: 15m"
+        quote: '# -- Log configuration (Deprecated: Logging configuration will be dropped by v1, use logLevel instead) logConfig: … assumeRoleARN: "" … assumeRoleDuration: 15m'   # verbatim since 2026-10-02 (eval/CHANGELOG.md); logConfig is top-level, assumeRoleARN/Duration sit under settings:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/charts/karpenter/values.yaml
-        quote: "logOutputPaths: - stdout … (the logConfig and assumeRole keys of 0.37.8 are gone)"
+        quote: '# -- Log outputPaths - defaults to stdout only logOutputPaths: - stdout'   # verbatim since 2026-10-02 (eval/CHANGELOG.md); the 1.0.0 values have no logConfig and no settings.assumeRole* keys
     semantics:
       - subject: {family: env-var, product: karpenter, name: LOGGING_CONFIG, component: controller}
         change: {type: removed}

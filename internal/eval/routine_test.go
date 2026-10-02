@@ -34,6 +34,10 @@ import (
 type storedEdgeFixture struct {
 	CaseID   string            `json:"caseId"`
 	Recorded string            `json:"recordedFrom"`
+	// MissedAtRecording lists expected items no recorded change matched (recall
+	// misses of the recorded run). The routine gate is vacuous for them; the
+	// list is checked both ways so it cannot go stale silently.
+	MissedAtRecording []string `json:"missedAtRecording,omitempty"`
 	Changes  []domain.Change   `json:"changes"`
 	Evidence []domain.Evidence `json:"evidence"`
 }
@@ -104,6 +108,18 @@ func TestRoutineNeverCoversExpectedItems(t *testing.T) {
 						routineHits++
 					}
 				}
+			}
+			knownMiss := false
+			for _, id := range fx.MissedAtRecording {
+				knownMiss = knownMiss || id == exp.ID
+			}
+			if knownMiss {
+				if hits > 0 {
+					t.Errorf("%s %s: listed in missedAtRecording but %d stored changes match — update the fixture", c.ID, exp.ID, hits)
+				} else {
+					t.Logf("%s %s: recall miss at recording; routine gate vacuous for it", c.ID, exp.ID)
+				}
+				continue
 			}
 			if hits == 0 {
 				// The gate is only meaningful while the stored edges still
