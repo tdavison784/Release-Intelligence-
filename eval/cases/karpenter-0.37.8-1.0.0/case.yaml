@@ -7,6 +7,7 @@ sources:
   - https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
   - https://github.com/aws/karpenter-provider-aws/releases/tag/v1.0.0
   - https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/hack/docs/compatibilitymatrix_gen/compatibility.yaml
+  - https://github.com/aws/karpenter-provider-aws/blob/main/hack/docs/compatibilitymatrix_gen/compatibility.yaml   # the 1.0.x record (minK8sVersion 1.25, maxK8sVersion 1.30) exists only on main; the v1.0.0 tag ends at 0.37.0 (products/karpenter.yaml falls back to main)
   - https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/charts/karpenter/values.yaml
   - https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/charts/karpenter/values.yaml
 expected:
@@ -202,10 +203,10 @@ expected:
       - subject: {family: helm-value, product: karpenter, path: logConfig}
         change: {type: removed}
         consequence: *karpE7
-      - subject: {family: helm-value, product: karpenter, path: assumeRoleARN}
+      - subject: {family: helm-value, product: karpenter, path: settings.assumeRoleARN}
         change: {type: removed}
         consequence: *karpE7
-      - subject: {family: helm-value, product: karpenter, path: assumeRoleDuration}
+      - subject: {family: helm-value, product: karpenter, path: settings.assumeRoleDuration}
         change: {type: removed}
         consequence: *karpE7
       - subject: {family: feature-gate, product: karpenter, name: Drift, component: controller}
@@ -315,12 +316,12 @@ environment:
         op: any
         of:
           - {op: values-key, path: logConfig.enabled, state: set}
-          - {op: values-key, path: assumeRoleARN, state: set}
-          - {op: values-key, path: assumeRoleDuration, state: set}
+          - {op: values-key, path: settings.assumeRoleARN, state: set}
+          - {op: values-key, path: settings.assumeRoleDuration, state: set}
           - {op: env-var, name: LOGGING_CONFIG, state: set}
           - {op: env-var, name: ASSUME_ROLE_ARN, state: set}
           - {op: env-var, name: LEADER_ELECT, state: set}
-      environmentEvidence: values.yaml#L5-L11
+      environmentEvidence: values.yaml#L5-L10
   expectedFindings:
     - id: F3
       match:

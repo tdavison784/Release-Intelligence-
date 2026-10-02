@@ -64,3 +64,35 @@ undecided (recorded, not scored). No matcher was changed.
   EC2NodeClass (no amiSelectorTerms) are also exposed to E5. argo-cd-2.14-3.0's ApplicationSet has
   no nested selectors (E7 does not apply). These would be new links; adding them changes denominators,
   so they are left for an explicit decision.
+
+## 2026-10-02 — groundtruth lane, review of the hand-off window
+
+| Case · item | Field | Before | After | Why |
+|---|---|---|---|---|
+| loki-2.9-3.0 · E5, E10 / E7 / E6 | `classification` | action-required / review-required / action-required | not-affected / informational / unknown | Internal consistency (eval/FORMAT.md "Expected classifications"): the case was authored before the env-class convention was fixed; the links (not-affected, informational, undecided) were already right. Generic class kept in a comment. |
+| traefik-2.11-3.0 · E3, E5, E7, E9 / E6, E10 | `classification` | review/action-required / action/review-required | not-affected / unknown | Same. |
+| crossplane-1.20-2.0 · E4 | citation `url` | cmd/crossplane/main.go at v1.20.1 | internal/xpkg/name.go at v1.20.1 | The quoted `DefaultRegistry string = "xpkg.crossplane.io"` lives in internal/xpkg/name.go (line 64); main.go does not contain it. |
+| cert-manager-1.17-1.18 · E3 | citation `quote` (PR 11819) | a paraphrase written as a quote | the PR's own words | Quotes must be verbatim. |
+
+Raised by the blind transfer authors and verified upstream:
+
+| Case · item | Field | Before | After | Why |
+|---|---|---|---|---|
+| karpenter-0.37.8-1.0.0 · E7 | `semantics` subjects, link `exposure`, `environmentEvidence` | helm-value `assumeRoleARN` / `assumeRoleDuration`; evidence values.yaml#L5-L11 | `settings.assumeRoleARN` / `settings.assumeRoleDuration`; evidence values.yaml#L5-L10 | charts/karpenter/values.yaml at v0.37.8 lines 178–182: both keys sit under `settings:`. The fixture's top-level `assumeRoleARN: ""` (L11) was never a chart key (not honoured even on 0.37.8), so it is no longer cited; the link stays action-required through `logConfig` (L5–L10). The fixture is unchanged. |
+| karpenter-0.37.8-1.0.0 · sources | added | — | compatibility.yaml on `main` | The F4 `why` relies on the 1.0.x record (min 1.25 / max 1.30), which the v1.0.0 tag does not contain (it ends at 0.37.0); the definition falls back to `main`. The finding itself is unchanged. |
+
+Not acted on: cert-manager-1.17-1.18 F1 cites the website releases README support table, which on
+`master` no longer lists 1.18 (the table rolls forward with releases); the 1.29 → 1.33 window for 1.18
+was recorded when the case was authored. A pinned source would make it reproducible.
+
+`TestDatasetLabelConsistency` now enforces the convention (and that an affected link's relevance is
+the exposed class of one of the item's consequences).
+
+Observation (pre-existing citations, not changed): an automated verbatim check of every quote in the
+eight environment cases flags ten more quotes that are paraphrases or condensed renderings of the
+cited document (YAML structure written inline, markdown link brackets dropped, ellipsis-joined
+fragments): argo-cd-2.14-3.0 E5, cert-manager-1.16-1.17 E3, cilium-1.15-1.17 E8 (1.16.0 values),
+cilium-1.16-1.17 E4 (1.16.0 values) and E9, istio-1.23-1.24 E2 and E6, karpenter-0.37.8-1.0.0 E7
+(both values.yaml citations), strimzi-0.45-0.46 E4. Their substance was not re-verified in this pass; their wording
+should be made verbatim (or re-checked) in a later one. All 216 quotes of the seven new cases
+verify (after the crossplane URL fix above).
