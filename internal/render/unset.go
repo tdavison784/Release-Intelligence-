@@ -107,6 +107,8 @@ func (u *UnsetValues) evaluate(keys []string, kind string) impact.ConditionResul
 		needed   []string
 		compared int
 		cleared  int
+		// clearRecords: environment-render state records of every cleared pair
+		clearRecords []domain.Evidence
 	)
 	for _, p := range helmPairs {
 		a, why := u.Attribute(ctx, p, keys, override)
@@ -124,6 +126,12 @@ func (u *UnsetValues) evaluate(keys []string, kind string) impact.ConditionResul
 		default:
 			cleared++
 			compared += len(p.ToResult.Objects)
+			// the render check cites both renders it compared: the target as
+			// the customer gets it, and the counterfactual
+			subject := "with " + strings.Join(keys, ", ") + " as the customer leaves it"
+			clearRecords = append(clearRecords,
+				p.stateEvidence(p.ToResult, p.To, subject, objOcc(p.ToResult.Objects)),
+				p.stateEvidence(a.Counterfactual, p.To+" (counterfactual: "+strings.Join(keys, ", ")+" pinned to the previous state)", subject, objOcc(a.Counterfactual.Objects)))
 		}
 	}
 	if len(matches) > 0 {
@@ -138,9 +146,14 @@ func (u *UnsetValues) evaluate(keys []string, kind string) impact.ConditionResul
 	if len(needed) > 0 || cleared == 0 {
 		return unavailable(needed...)
 	}
-	return impact.ConditionResult{Value: impact.False, Checks: []domain.ImpactCheck{{
-		Dimension: domain.DimensionRender, Facts: compared,
+	ids := make([]domain.EvidenceID, 0, len(clearRecords))
+	for _, e := range clearRecords {
+		ids = append(ids, e.ID)
+	}
+	return impact.ConditionResult{Value: impact.False, Records: clearRecords, Checks: []domain.ImpactCheck{{
+		Dimension: domain.DimensionRender, Facts: compared, Evidence: ids,
 		Subjects: []string{fmt.Sprintf("rendered %s with %s pinned to its previous state: nothing attributable in %d deployment(s)", u.To, strings.Join(keys, ", "), cleared)},
+		Render:   &domain.RenderCheck{Outcome: domain.RenderNoAttributableChange, Key: strings.Join(keys, ", "), Counterfactual: true},
 	}}}
 }
 

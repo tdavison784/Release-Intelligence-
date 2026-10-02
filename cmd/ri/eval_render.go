@@ -53,11 +53,11 @@ type renderCaseStat struct {
 	DecidedByRender int `json:"decidedByRender"`
 	ActionByRender  int `json:"actionWithRenderEvidence"`
 	// PO-3 (values defaults / new keys the customer leaves unset):
-	// DefaultExposed are impact:values-default-rendered findings (an
+	// DefaultExposed are impact:values-default-applies findings (an
 	// attributable rendered change), DefaultImages those whose attributed
 	// changes are all image changes (routine bumps), DefaultCleared
-	// values-unset verdicts a render confirmed, DefaultUnavailable
-	// values-unset verdicts whose render check could not run.
+	// impact:values-default-no-effect verdicts, DefaultUnavailable
+	// impact:values-default-unrendered verdicts.
 	DefaultExposed     int `json:"defaultExposed"`
 	DefaultImages      int `json:"defaultExposedImageOnly"`
 	DefaultCleared     int `json:"defaultCleared"`
@@ -150,7 +150,7 @@ func (r *renderEval) record(key string, run *app.ImpactRun) {
 			}
 		}
 		switch f.Rule {
-		case impact.RuleValuesDefaultRendered:
+		case impact.RuleValuesDefaultApplies:
 			st.DefaultExposed++
 			images := len(f.Matches) > 0
 			for _, m := range f.Matches {
@@ -160,17 +160,11 @@ func (r *renderEval) record(key string, run *app.ImpactRun) {
 				st.DefaultImages++
 			}
 			continue
-		case impact.RuleValuesUnset:
-			for _, c := range f.Checks {
-				if c.Dimension != domain.DimensionRender {
-					continue
-				}
-				if c.Facts > 0 {
-					st.DefaultCleared++
-				} else {
-					st.DefaultUnavailable++
-				}
-			}
+		case impact.RuleValuesDefaultNoEffect:
+			st.DefaultCleared++
+			continue
+		case impact.RuleValuesDefaultUnrendered:
+			st.DefaultUnavailable++
 			continue
 		}
 		byRender := false

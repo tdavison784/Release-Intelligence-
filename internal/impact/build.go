@@ -406,16 +406,12 @@ func (b *builder) valuesFamily() {
 			}
 		}
 		if len(matches) == 0 {
-			// CONTRACT-CHANGE(render): PO-3 — an unset key whose default
-			// changed (or which is new) reaches the customer; with renders the
-			// evaluator decides whether it changes their deployment.
-			var renderChecks []domain.ImpactCheck
-			renderDetail := ""
-			if b.unset != nil && (kind == "default-changed" || kind == "added") {
-				var handled bool
-				if handled, renderChecks, renderDetail = b.unsetValues(b.unset, c, kind); handled {
-					continue
-				}
+			// CONTRACT-CHANGE(render): PO-3 — a changed default or new key
+			// left unset reaches the customer; rendering decides it
+			// (values-unset stays for removed keys only).
+			if kind == "default-changed" || kind == "added" {
+				b.unsetValues(b.unset, c, kind)
+				continue
 			}
 			title := fmt.Sprintf("Your values do not touch %s", codeList(c.Subjects, 3))
 			if len(c.Subjects) == 1 {
@@ -423,8 +419,8 @@ func (b *builder) valuesFamily() {
 			}
 			detail := fmt.Sprintf("%s of %s changes these keys; your supplied values files set %d keys in total and none of them is the changed key or under it, so nothing about this change takes effect on you.",
 				"The target release", toTag, len(b.env.ValuesKeys))
-			b.verdict(RuleValuesUnset, domain.ImpactNotAffected, c.ID, title, detail+renderDetail, c, c.Evidence,
-				append([]domain.ImpactCheck{b.valuesCheck(c.Subjects)}, renderChecks...))
+			b.verdict(RuleValuesUnset, domain.ImpactNotAffected, c.ID, title, detail, c, c.Evidence,
+				[]domain.ImpactCheck{b.valuesCheck(c.Subjects)})
 			continue
 		}
 		switch kind {

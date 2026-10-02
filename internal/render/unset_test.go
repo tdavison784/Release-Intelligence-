@@ -155,37 +155,66 @@ func TestUnsetValuesInTheJoin(t *testing.T) {
 		t.Fatalf("no finding for %s", change)
 		return domain.ImpactFinding{}
 	}
-	// without the evaluator: today's not-affected for both
+	renderCheck := func(f domain.ImpactFinding) *domain.ImpactCheck {
+		for i := range f.Checks {
+			if f.Checks[i].Dimension == domain.DimensionRender {
+				return &f.Checks[i]
+			}
+		}
+		return nil
+	}
+	// without an evaluator (no --render): not-affected as before, but the
+	// missing render is visible (values-default-unrendered)
 	base := build(nil)
-	if f := find(base, "chg-rbac"); f.Classification != domain.ImpactNotAffected || f.Rule != impact.RuleValuesUnset {
-		t.Fatalf("baseline: %s %s", f.Classification, f.Rule)
+	for _, id := range []string{"chg-rbac", "chg-docs"} {
+		f := find(base, id)
+		c := renderCheck(f)
+		if f.Classification != domain.ImpactNotAffected || f.Rule != impact.RuleValuesDefaultUnrendered || c == nil ||
+			c.Render == nil || c.Render.Outcome != domain.RenderUnavailable || !strings.Contains(c.Render.Reason, "--render") {
+			t.Fatalf("baseline %s: %s %s %+v", id, f.Classification, f.Rule, c)
+		}
 	}
 	rep := build(permUnset(e, p))
-	f := find(rep, "chg-rbac")
-	if f.Classification != domain.ImpactReviewRequired || f.Rule != impact.RuleValuesDefaultRendered || len(f.EnvironmentEvidence) == 0 {
-		t.Fatalf("exposed: %s %s env=%d", f.Classification, f.Rule, len(f.EnvironmentEvidence))
-	}
 	pool := map[domain.EvidenceID]domain.Evidence{}
 	for _, x := range rep.EnvironmentEvidence {
 		pool[x.ID] = x
 	}
-	for _, id := range f.EnvironmentEvidence {
-		if x, ok := pool[id]; !ok || x.Render == nil {
-			t.Errorf("chain-2 record %s is not rendered evidence in the report pool", id)
+	envRender := func(ids []domain.EvidenceID) bool {
+		for _, id := range ids {
+			if x, ok := pool[id]; !ok || x.Render == nil || x.Render.Scope != domain.RenderEnvironment {
+				return false
+			}
 		}
+		return len(ids) > 0
 	}
+	// exposed: values-default-applies, review-required, environment-render chain 2
+	f := find(rep, "chg-rbac")
+	if f.Classification != domain.ImpactReviewRequired || f.Rule != impact.RuleValuesDefaultApplies || !envRender(f.EnvironmentEvidence) {
+		t.Fatalf("exposed: %s %s env=%d", f.Classification, f.Rule, len(f.EnvironmentEvidence))
+	}
+	// clear: values-default-no-effect with a no-attributable-change render check
+	// citing environment renders (target and counterfactual)
 	d := find(rep, "chg-docs")
-	if d.Classification != domain.ImpactNotAffected || !hasDim(d.Checks, domain.DimensionRender) {
-		t.Errorf("clear: %s checks %+v", d.Classification, d.Checks)
+	c := renderCheck(d)
+	if d.Classification != domain.ImpactNotAffected || d.Rule != impact.RuleValuesDefaultNoEffect || c == nil || c.Render == nil ||
+		c.Render.Outcome != domain.RenderNoAttributableChange || !c.Render.Counterfactual || c.Render.Key != "docs.url" || len(c.Evidence) != 2 || !envRender(c.Evidence) {
+		t.Errorf("clear: %s %s %+v", d.Classification, d.Rule, c)
 	}
-	// render unavailable: today's verdict, the check says so
+	// render unavailable: not-affected as before, the check says why
 	failed := &Pair{Status: PairFailed, Target: Target{ID: "values:f", ValuesComplete: true}, Failure: &Failure{Reason: FailChartUnavailable, Detail: "offline"}}
 	un := build(permUnset(e, failed))
 	for _, id := range []string{"chg-rbac", "chg-docs"} {
 		x := find(un, id)
-		if x.Classification != domain.ImpactNotAffected || !hasDim(x.Checks, domain.DimensionRender) || !strings.Contains(strings.Join(x.Checks[len(x.Checks)-1].Subjects, " "), "render unavailable") {
-			t.Errorf("%s unavailable: %s %+v", id, x.Classification, x.Checks)
+		c := renderCheck(x)
+		if x.Classification != domain.ImpactNotAffected || x.Rule != impact.RuleValuesDefaultUnrendered || c == nil || c.Render == nil ||
+			c.Render.Outcome != domain.RenderUnavailable || !strings.Contains(c.Render.Reason, "offline") {
+			t.Errorf("%s unavailable: %s %s %+v", id, x.Classification, x.Rule, c)
 		}
+	}
+	// a removed key the customer does not set stays values-unset
+	edge.Changes = append(edge.Changes, mk("chg-gone", "values:removed", "docs.legacy"))
+	if g := find(build(permUnset(e, p)), "chg-gone"); g.Rule != impact.RuleValuesUnset {
+		t.Errorf("removed + unset: %s", g.Rule)
 	}
 }
 
