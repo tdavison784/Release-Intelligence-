@@ -47,3 +47,8 @@
 - `ReviewItem.Context.Label` = eval case id exactly, absent when no environment was shown (docs/KNOWLEDGE.md). Set via `RouteOptions.Environment` / `ri knowledge route -env-label`; follow-ups inherit; immutable after creation.
 - Integrity test now exempts `reviewItem.context` only (a case id there is the transfer key); case ids anywhere else still fail. Flagging this as a deliberate relaxation.
 - (knowledge-5) `ri knowledge candidates|propose` route to the semantic commands; `validate` still waits for the validate lane.
+
+## loop-run-2
+- `DeriveRenderability`, `AutoApproveGeneral` (opt-in), policy routing signals on audit items (domain: six new `RoutingSignal`s, schema regenerated), `RouteResult.Policy/Signals`, superseding of moot items.
+- Real pass on knowledge/: validate incremental (1,529 existing, 0 new); route with `-auto-approve-general`: 9 facts (all weakest level consensus), 4 audit items, 19 items superseded; 1,156 pending review items remain.
+- Audit rule kept stricter than the commander's wording: an auto-approved fact with an action-eligible consequence is audited at 100% even if not consensus-action.
