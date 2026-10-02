@@ -112,6 +112,17 @@ func buildDecision(rc *knowledge.ReviewContext, in decisionInput) (domain.Review
 		}
 		d.Corrected = in.Corrected
 		wrong := in.Wrong
+		proseChanged := consequenceProse(&orig) != consequenceProse(in.Corrected)
+		if in.Corrected.Digest() == orig.Digest() {
+			// prose-only correction (contract-5): only the consequence
+			// statement/remediation changed. The typed assertion was right, so
+			// it is labelled exactly [corrected, improved-statement], never wrong-*.
+			if len(wrong) > 0 {
+				return d, errors.New("a prose-only correction (only the consequence statement/remediation changed) carries no wrong-* labels: the typed assertion was right")
+			}
+			d.Labels = []domain.FeedbackLabel{domain.LabelCorrected, domain.LabelImprovedStatement}
+			break
+		}
 		if len(wrong) == 0 { // name the aspects that actually changed
 			for _, a := range domain.Aspects {
 				if orig.Has(a) && orig.AspectDigest(a) != in.Corrected.AspectDigest(a) {
@@ -120,6 +131,9 @@ func buildDecision(rc *knowledge.ReviewContext, in decisionInput) (domain.Review
 			}
 		}
 		d.Labels = append([]domain.FeedbackLabel{domain.LabelCorrected}, wrong...)
+		if proseChanged { // the prose changed as well as a typed aspect
+			d.Labels = append(d.Labels, domain.LabelImprovedStatement)
+		}
 	case domain.ActionNeedMoreEvidence:
 		d.Labels = []domain.FeedbackLabel{domain.LabelInsufficientEvidence}
 	case domain.ActionDefer:
@@ -318,8 +332,17 @@ func parseCorrection(f url.Values, orig domain.SemanticAssertion) (*domain.Seman
 	if err := out.Validate(false); err != nil {
 		return nil, cleanErr(err)
 	}
-	if out.Digest() == orig.Digest() {
-		return nil, errors.New("a correction must change at least one aspect; nothing differs from the proposal (use accept instead)")
+	if out.Digest() == orig.Digest() && consequenceProse(&orig) == consequenceProse(&out) {
+		return nil, errors.New("a correction must change at least one aspect, or the consequence statement/remediation; nothing differs from the proposal (use accept instead)")
 	}
 	return &out, nil
+}
+
+// consequenceProse is the consequence's free text (statement + remediation),
+// which aspect digests ignore (mirrors the domain's prose-only rule).
+func consequenceProse(a *domain.SemanticAssertion) string {
+	if a == nil || a.Consequence == nil {
+		return ""
+	}
+	return a.Consequence.Statement + "\x00" + a.Consequence.Remediation
 }
