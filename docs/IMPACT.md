@@ -414,8 +414,24 @@ CRD's `names.kind`).
 | `crd:version-removed` / `crd:version-unserved` | exact GVK in manifest use (kind pinned via the installed CRD); group/version with unpinnable kind → review; installed CRD declares the version but no manifest uses the GVK → not-affected (with manifests) / review (without) | `impact:crd-version-removed` · action-required · critical |
 | `crd:version-deprecated` | same matching; every affected verdict is review (a deprecation breaks nothing today) | `impact:crd-version-deprecated` · review-required · medium |
 | `crd:fields-removed` | the removed path (array markers stripped) set at/below it **within the change's GVK**; a same-named path under another GVK never matches | `impact:crd-field-removed` · action-required · high (exact GVK) / review (kind or version unpinned, or a set section above the path) |
+| `crd:default-changed` | a resource of the GVK leaves the field unset (or sets only its parent): the new schema default applies to it; every resource that reaches the field pins it | `impact:crd-default-applies` · review-required · medium / `impact:crd-default-pinned` · informational · low |
+| `crd:enum-changed` | a resource of the GVK uses an enum value the target removes | `impact:crd-enum-value-removed` · action-required · high (rejected) |
+| `crd:field-required` | a resource of the GVK omits the field the target makes required | `impact:crd-field-now-required` · action-required · high (rejected) |
+| `crd:field-type-changed` | a resource sets the field: action when its value no longer fits the new type, review when it fits | `impact:crd-field-type-changed` · action-required · high / review-required · medium |
+| `crd:storage-changed` | the CRD whose storage version moves is installed, or manifests use its kind (stored objects stay at the old version until migrated); CRD not installed and kind unused → clear | `impact:crd-storage-migration` · review-required · medium / `impact:crd-attribute-clear` · not-affected |
+| attribute rules, no resource of the GVK touched by the change (manifests healthy) | — | `impact:crd-attribute-clear` · not-affected (evaluation record) |
+| `crd:fields-added` | a new optional field decides nothing today | `impact:not-joined` · unknown (`release-knowledge-gap`) |
 | unparseable upstream identity | — | `impact:not-joined` · unknown |
 | no overlap, deciding dimension supplied (`--crds` for the CRD/version rules, `--manifests` for fields) | — | `impact:crd-unused` / `impact:crd-version-unused` / `impact:crd-field-unset` · not-affected |
+
+The attribute rules (`crd:default-changed`, `crd:enum-changed`,
+`crd:field-required`, `crd:field-type-changed`) resolve their GVK like
+`crd:fields-removed` (identity from the change's deterministic output, an
+installed CRD of the same name completing kind/group) and are evaluated per
+resource of that GVK against the resource facts, never by bare paths. A kind
+or version the change does not pin makes the finding medium confidence, so
+action is demoted to review (another CRD of the group could serve the kind);
+negative verdicts need healthy manifests (absence is not knowledge).
 
 ### 3. Kubernetes compatibility (`--kubernetes`)
 
@@ -443,6 +459,23 @@ exactly like Helm's semver check, so line 1.25 is admitted.
 
 Constraints of platforms with no environment input (OpenShift today) are
 always UNKNOWN — never assumed fine.
+
+A compatibility constraint on a platform that is an **operand or peer
+product** (Kafka for an operator: "Kafka support narrowed: 3.8–3.9 → 3.9,
+4.0") is decided against the **product inventory** (`--inventory`) with the
+product-version semantics of the knowledge condition language: only
+application versions decide (a chart version is never read as the product's
+version), conflicting entries decide nothing, and a platform missing from
+the inventory is "not running" only when the inventory declares itself
+complete.
+
+| Outcome (platform = the constraint's platform) | Finding |
+|---|---|
+| inventory runs the platform outside the target's supported set | `impact:platform-out-of-range` · action-required · high |
+| inventory runs the platform inside the supported set | `impact:platform-in-range` · informational · low |
+| inventory, declared complete, does not run the platform | `impact:platform-absent` · not-affected |
+| platform not listed, inventory not complete / conflicting versions / chart-version-only | `impact:insufficient-visibility` · unknown (`cross-product-context-gap`) |
+| no inventory supplied | `impact:insufficient-visibility` · unknown |
 
 ### 4. Images (`--manifests`, `--values`, `--images`)
 
