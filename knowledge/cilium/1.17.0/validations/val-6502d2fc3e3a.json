@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6502d2fc3e3a",
+    "candidateId": "sc-42a411d9011e",
+    "proposalId": "sp-55408de6e4fa",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "tls.secretsBackend"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "tls.readSecretsOnlyFromSecretsNamespace"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "tls.secretsBackend",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "tls.readSecretsOnlyFromSecretsNamespace",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "tls.readSecretsOnlyFromSecretsNamespace",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "tls.secretsBackend is deprecated in favor of tls.readSecretsOnlyFromSecretsNamespace; the text does not say it stops working.",
+        "remediation": "Move to tls.readSecretsOnlyFromSecretsNamespace (false is equivalent to tls.secretsBackend: k8s) and review tls.secretSync and tls.secretsNamespace.",
+        "severity": "low"
+      },
+      "statement": "The Helm value tls.secretsBackend (local or k8s) is deprecated and replaced by tls.readSecretsOnlyFromSecretsNamespace as part of TLS Visibility moving to SDS."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

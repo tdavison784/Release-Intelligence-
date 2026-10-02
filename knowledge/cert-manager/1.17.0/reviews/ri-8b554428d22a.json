@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-8b554428d22a",
+    "candidateId": "sc-985a8fcba32d",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "questionType": "applicability",
+    "question": "For \"Potentially BREAKING: The CA and SelfSigned issuers now use SHA-512 when signing with RSA keys 4096 bits and above, and SHA-384 when signing with RSA keys 3072…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.ca",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "Issuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.ca",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "ClusterIssuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.selfSigned",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "Issuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.selfSigned",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "ClusterIssuer"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the signing RSA key is 3072 bits or larger, and whether the systems relying on the issued certificates support SHA-384/SHA-512"
+            }
+          ]
+        }
+      },
+      "statement": "In cert-manager 1.17.0, the CA and SelfSigned issuers sign with SHA-512 when the RSA key is 4096 bits or larger and with SHA-384 when it is 3072 bits or larger, so operators using larger RSA CA keys should check that their systems support these hash algorithms."
+    },
+    "proposals": [
+      "sp-bedd92d7283c",
+      "sp-c6085436afc3",
+      "sp-d5c9b5db0f20"
+    ],
+    "validations": [
+      "val-1a0d5ad838f8",
+      "val-68a616448c5b",
+      "val-6b6ddef6a062",
+      "val-6f3877e19c3c",
+      "val-8000fd4baca8",
+      "val-d640511da76b"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:11:26Z"
+  }
+}

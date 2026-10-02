@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4dcf13f3672e",
+    "candidateId": "sc-abf77fd4f44f",
+    "proposalId": "sp-999d8506622c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "argo-cd",
+        "name": "ARGOCD_APP_PROJECT_NAME",
+        "component": "build"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "ARGOCD_APP_PROJECT_NAME",
+              "component": "build",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether build environment variables are dynamically injected or statically configured in the operator's deployment"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The build environment now includes ARGOCD_APP_PROJECT_NAME, providing the application project name as an environment variable during builds."
+      },
+      "statement": "Argo CD 3.0.0 adds the ARGOCD_APP_PROJECT_NAME environment variable to the build environment, making the application project name available to build processes."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:env-var/added",
+        "detail": "no canonical exposure condition for env-var added"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

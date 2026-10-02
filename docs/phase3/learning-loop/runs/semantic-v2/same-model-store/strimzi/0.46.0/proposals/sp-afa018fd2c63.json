@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-afa018fd2c63",
+    "candidateId": "sc-3e8896f66ab7",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"the standalone User Operator did not handle the Cluster CA cert Secret being missing when TLS is not needed\"",
+        "after": "\"the missing Cluster CA cert Secret is handled when TLS is not needed\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the standalone User Operator is deployed outside the Cluster Operator, TLS is not needed, and the Cluster CA certificate Secret is absent — none of this is visible in static configuration evidence"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "In deployments where TLS is not needed and the Cluster CA certificate Secret is missing, the standalone User Operator now handles this situation instead of failing on it; the changelog does not state what the previous behavior failure was.",
+        "severity": "low"
+      },
+      "statement": "In Strimzi 0.46.0, the standalone User Operator was updated to handle the Cluster CA certificate Secret being missing when TLS is not needed."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The change is a robustness fix in the standalone User Operator's runtime handling of a missing Cluster CA cert Secret; no subject family in the taxonomy matches a component's runtime behavior (no config key, flag, CRD field or API surface is named).",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-35ea1afad43d"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2a3cf8bd9a0e8c64f7aa335701c195c5eead22acfad92c8b9c1b8523d1f70ca4",
+      "inputEvidence": [
+        "ev-35ea1afad43d"
+      ],
+      "generatedAt": "2026-10-02T06:28:58Z",
+      "callId": "cfb0cde1-82cb-4a37-8d01-cdfa746d934e"
+    }
+  }
+}

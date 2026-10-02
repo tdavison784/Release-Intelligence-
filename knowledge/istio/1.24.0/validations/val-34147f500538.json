@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-34147f500538",
+    "candidateId": "sc-c5b9ccdb0bc8",
+    "proposalId": "sp-11b8edc209bb",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "ambient-dns-capture-upgrade-order"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "cni.ambient.dnsCapture",
+          "state": "equals",
+          "values": [
+            "true"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If the upgrade steps (upgrade CNI, restart ambient workloads, upgrade Ztunnel) are not followed, DNS resolution failures occur.",
+        "remediation": "Restart the affected workloads to resolve DNS failures; follow order: upgrade Istio CNI, restart ambient-enrolled workloads, upgrade Ztunnel.",
+        "severity": "high"
+      },
+      "statement": "Upgrading to Istio 1.24.0 in ambient mode with cni.ambient.dnsCapture=true requires upgrading Istio CNI, restarting ambient-enrolled workloads, then upgrading Ztunnel, otherwise DNS resolution fails."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

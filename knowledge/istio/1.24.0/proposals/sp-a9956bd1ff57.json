@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a9956bd1ff57",
+    "candidateId": "sc-3d6c61af6db3",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "exportto-whitespace-parsing"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "VirtualService"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "DestinationRule"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "ServiceEntry"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "Gateway"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Annotations with extra white spaces between namespaces in the exportTo annotation are now accepted without failure."
+      },
+      "statement": "The networking.istio.io/exportTo annotation now accepts extra white spaces between namespaces."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-1252a2a51c0c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5b5f6e01b6477066299c315c3e15531dcae8af19762e374953d27a0d271d6fe7",
+      "inputEvidence": [
+        "ev-1252a2a51c0c"
+      ],
+      "generatedAt": "2026-10-02T05:59:01Z",
+      "callId": "8414493c-c23c-4980-a5d4-ddb258cb376e"
+    }
+  }
+}

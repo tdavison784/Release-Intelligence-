@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-47a3254843ab",
+    "candidateId": "sc-fa168da2703d",
+    "proposalId": "sp-7052f4eca573",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "endpointStatus"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "endpointStatus.enabled",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "endpointStatus.status",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Values set under endpointStatus no longer take effect; the additional endpoint statuses in the CiliumEndpoints CRD are no longer provided.",
+        "remediation": "Remove endpointStatus keys and monitor endpoints via Cilium metrics (cilium_policy, cilium_policy_endpoint_enforcement_status, cilium_controllers_failing, cilium_endpoint_state) or `cilium-dbg endpoint get`.",
+        "severity": "medium"
+      },
+      "statement": "The Helm option `endpointStatus` was removed in Cilium 1.16; use Cilium metrics (e.g. cilium_policy, cilium_endpoint_state) or `cilium-dbg endpoint get` instead of additional CiliumEndpoints CRD statuses."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

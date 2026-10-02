@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-85ee7db0886f",
+    "candidateId": "sc-a8771d6dc75d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "strimzi",
+        "name": "StableConnectIdentities"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"enabled\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.38.99"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaConnect"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaMirrorMaker2"
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "feature-gate",
+                  "name": "StableConnectIdentities",
+                  "state": "enabled"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "When upgrading from Strimzi 0.38 or older with Kafka Connect or MirrorMaker 2, the StableConnectIdentities feature gate must be enabled (and StrimziPodSets used) before upgrading."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: Text states the precondition but not what happens if it is not met.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-17b3774eb9ee"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:fc31b5e2b6ae664228382ece1a029cec551e91b47435c22ca3449524aefeea76",
+      "inputEvidence": [
+        "ev-17b3774eb9ee"
+      ],
+      "generatedAt": "2026-10-02T05:54:42Z",
+      "callId": "e8eb4c5d-a2a3-4c5d-8e22-d6c3446a571b"
+    }
+  }
+}

@@ -63,6 +63,7 @@ func (c *cli) knowledgeRoute(args []string) error {
 	product := fs.String("product", "", "only this product")
 	release := fs.String("release", "", "only this release")
 	auto := fs.Bool("auto-approve", true, "auto-approve: render-verifiable candidates (consensus on the non-rendered aspects) and consensus-action facts (PO-2)")
+	general := fs.Bool("auto-approve-general", false, "also install the MISSION Goal 16 general auto-approval policy (opt-in): all aspects consensus-or-better, ≥1 of subject/change validator-confirmed, nothing refuted")
 	audit := fs.Int("audit-every", 5, "sample one in N auto-approved facts into human review (0 = none; action-eligible ones are always audited)")
 	envLabel := fs.String("env-label", "", "eval case id of the environment the reviewer will be shown (recorded as the item's context; omit for environment-free items)")
 	envDigest := fs.String("env-digest", "", "optional digest of that environment")
@@ -77,6 +78,11 @@ func (c *cli) knowledgeRoute(args []string) error {
 	}
 	if *auto {
 		opts.Policy = knowledge.DefaultAutoApprove
+		if *general {
+			opts.Policy = knowledge.CombinePolicies(knowledge.DefaultAutoApprove, knowledge.AutoApproveGeneral)
+		}
+	} else if *general {
+		return fmt.Errorf("%w: -auto-approve-general needs -auto-approve", app.ErrUsage)
 	}
 	q := knowledge.Query{Product: domain.ProductID(*product)}
 	if *release != "" {
@@ -88,6 +94,9 @@ func (c *cli) knowledgeRoute(args []string) error {
 	}
 	fmt.Fprintf(c.out, "routed %d candidates: %d review items created, %d facts auto-verified, %d audit items, %d already stored\n",
 		sum.Candidates, sum.Items, sum.Facts, len(sum.Audits), sum.Existing)
+	for _, sk := range sum.Skipped {
+		fmt.Fprintf(c.err, "skipped: %s\n", sk)
+	}
 	return nil
 }
 

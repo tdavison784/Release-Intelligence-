@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dca1ce984fd7",
+    "candidateId": "sc-295f63b414ff",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--enable-k8s-terminating-endpoint",
+        "component": "cilium-agent"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--enable-k8s-terminating-endpoint",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "enableK8sTerminatingEndpoint",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The flag still works in 1.17 but is deprecated; the feature will be unconditionally enabled in v1.18, so the setting will no longer control it.",
+        "remediation": "Stop setting the flag/Helm value before upgrading to v1.18.",
+        "severity": "low"
+      },
+      "statement": "The cilium-agent flag --enable-k8s-terminating-endpoint (Helm enableK8sTerminatingEndpoint) is deprecated, and the feature will be unconditionally enabled in v1.18."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-9113ff586fec"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f8d3ea78a0ad570617652b2d2e2d8b338e182ca80a4f0d5e2feebd0e8a79e873",
+      "inputEvidence": [
+        "ev-9113ff586fec"
+      ],
+      "generatedAt": "2026-10-02T05:56:01Z",
+      "callId": "46b5e9a0-03c5-4b91-a1c0-79861bf59270"
+    }
+  }
+}

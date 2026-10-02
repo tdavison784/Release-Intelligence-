@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-eee274773de5",
+    "candidateId": "sc-05b7e96dd774",
+    "proposalId": "sp-5b051b1a50a2",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--enable-k8s"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"false\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--datapath-mode",
+              "component": "cilium",
+              "state": "equals",
+              "values": [
+                "\"lb-only\""
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enable-k8s",
+              "component": "cilium",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Cilium will incorrectly assume Kubernetes is present when running in --datapath-mode=lb-only for plain Docker mode without the --enable-k8s=false flag, causing operational failures.",
+        "remediation": "Add --enable-k8s=false to the Cilium command line when operating in --datapath-mode=lb-only for plain Docker mode.",
+        "severity": "high"
+      },
+      "statement": "Operating Cilium in --datapath-mode=lb-only for plain Docker mode now requires an additional --enable-k8s=false flag on the command line; without it, Kubernetes is assumed to be present."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/now-required",
+        "detail": "no canonical exposure condition for cli-flag now-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

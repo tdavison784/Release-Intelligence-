@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-18f7bab79a8e",
+    "candidateId": "sc-00f02ba8dd12",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"For Linux kernels of version 6.6 or newer, Cilium by default switches to tcx BPF links for attaching its tc BPF programs in the core datapath for better…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium attaches tc BPF programs via tcx links by default on kernels 6.6+, which may conflict with third-party old-style tc BPF users.",
+        "remediation": "Set bpf.enableTCX=false in Helm to continue with old-style tc BPF attachment."
+      },
+      "statement": "On Linux kernels 6.6 or newer, Cilium now defaults to tcx BPF links for attaching tc BPF programs (bpf.enableTCX); setups with third-party old-style tc BPF users should set bpf.enableTCX=false to keep old-style attachment."
+    },
+    "proposals": [
+      "sp-1a7e64e44626",
+      "sp-8c41659be4fa"
+    ],
+    "validations": [
+      "val-1369fb77742e",
+      "val-4e4d007bac0e",
+      "val-b55fca9018d7",
+      "val-d9994007bc80",
+      "val-e1b25ea719b9",
+      "val-f07a756ddd86",
+      "val-f09b00133cfc",
+      "val-fe4afc005b4a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:07:39Z"
+  }
+}

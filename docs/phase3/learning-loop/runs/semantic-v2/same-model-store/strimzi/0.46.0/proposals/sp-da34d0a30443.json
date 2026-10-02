@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-da34d0a30443",
+    "candidateId": "sc-b5bd8ce23049",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "kafka"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Reload4j/Log4j1\"",
+        "after": "\"Log4j2\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment carries custom Kafka logging configuration in the Reload4j/Log4j1 format, and whether it runs/upgrades to Kafka 4.0 or newer"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "If the operator does nothing, custom Kafka logging configuration written for Reload4j/Log4j1 may no longer be honoured under Kafka 4.0's Log4j2 logging; the changelog says it might need to be updated during the upgrade to Kafka 4.0.",
+        "remediation": "Update custom Kafka logging configuration to the Log4j2 format during the upgrade to Kafka 4.0.",
+        "severity": "low"
+      },
+      "statement": "Kafka 4.0 and newer uses Log4j2 for logging instead of Reload4j/Log4j1, so any custom logging configuration might need to be updated during the upgrade to Kafka 4.0."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-526028ea7180"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4d7fc7ef5e93ee24a6c1bc3afc19b1ebb2ff40b758c0c05a402f3e0d74f2ae43",
+      "inputEvidence": [
+        "ev-526028ea7180"
+      ],
+      "generatedAt": "2026-10-02T06:29:45Z",
+      "callId": "18a3a0e1-ed4d-41a5-aeb2-112d103eeec4"
+    }
+  }
+}

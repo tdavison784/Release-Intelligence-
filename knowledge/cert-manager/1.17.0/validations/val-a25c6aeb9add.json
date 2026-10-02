@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a25c6aeb9add",
+    "candidateId": "sc-8fd875d322fd",
+    "proposalId": "sp-6239fb74b018",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "acme-clusterissuer-namespace-lookup"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=1.16.0 <1.16.1"
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ACME ClusterIssuers whose issuance was looking for required resources (e.g. credential Secrets) in the wrong namespace since v1.16.0 will find the lookup corrected after upgrading to v1.17.0, so previously affected issuance works again.",
+        "remediation": "No operator action required; after upgrading, verify that ACME ClusterIssuer issuance succeeds and finds its required resources.",
+        "severity": "low"
+      },
+      "statement": "A regression introduced in v1.16.0 made cert-manager's ACME ClusterIssuers look in the wrong namespace for resources required for issuance (e.g. credential Secrets), and v1.17.0 fixes this lookup."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

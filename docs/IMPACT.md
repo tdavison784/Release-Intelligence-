@@ -403,7 +403,10 @@ For each upstream values change (`values:removed`, `values:section-removed`,
 | default changed, exact key set | the user's pin keeps winning | `impact:values-pinned` · informational · low |
 | default changed, ancestor/descendant overlap | Helm merge semantics need a look | `impact:values-adjacent` · review-required · medium |
 | new key, already set (or adjacent) | a previously ignored key becomes live | `impact:values-new-key` · review-required · medium |
-| no overlap, values supplied | checked and clear | `impact:values-unset` · not-affected (evaluation record) |
+| no overlap with a removed key, values supplied | checked and clear | `impact:values-unset` · not-affected (evaluation record) |
+| changed default / new key, **left unset**, render attributes a change to it (PO-3) | the new default reaches you | `impact:values-default-applies` · review-required (rendered-change match) |
+| changed default / new key, left unset, both renders succeed, nothing attributable changes | checked by rendering and clear | `impact:values-default-no-effect` · not-affected (render check) |
+| changed default / new key, left unset, no render possible | product-owner choice: not affected, visibly unrendered | `impact:values-default-unrendered` · not-affected (render check `unavailable` + reason) |
 | no values supplied | nothing to compare | `impact:insufficient-visibility` · unknown (`--values` missing) |
 
 The upstream side lists subjects as flattened leaves (a removed section lists

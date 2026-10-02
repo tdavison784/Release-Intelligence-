@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2ccd7e524dd3",
+    "candidateId": "sc-0f1f38e08e04",
+    "proposalId": "sp-48c2de8bb5a4",
+    "validator": "semvalidate.values@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "waypoint.affinity"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "waypoint.affinity",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "waypoint.affinity",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Waypoint pod affinity can now be configured through the waypoint.affinity Helm value; existing deployments without this value continue to work with default affinity behavior."
+      },
+      "statement": "Waypoint pod affinity configuration is now available via the `.Values.waypoint.affinity` Helm value in Istio 1.24.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "refuted",
+        "rule": "helm-values:exists",
+        "detail": "waypoint.affinity is in the values of no chart of either release (e.g. 13 keys at the source, 10 at the target)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "refuted",
+        "rule": "helm-values:added",
+        "detail": "waypoint.affinity is not in the target values"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-41d780f6ab39",
+        "kind": "structured",
+        "sourceId": "chart-base",
+        "uri": "https://github.com/istio/istio/blob/1.23.4/manifests/charts/base/values.yaml",
+        "locator": "manifests/charts/base/values.yaml",
+        "excerpt": "# \"defaults\" is a workaround for Helm limitations. Users should NOT set \".defaults\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:42c5370ac7e870722655a08a30a64e1bde0b2e4b65f2786e97dca0395fdcd3b3",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T11:33:50Z"
+      },
+      {
+        "id": "ev-ad95ec08c00b",
+        "kind": "structured",
+        "sourceId": "chart-base",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/manifests/charts/base/values.yaml",
+        "locator": "manifests/charts/base/values.yaml",
+        "excerpt": "# \"_internal_defaults_do_not_set\" is a workaround for Helm limitations. Users should NOT set \"._internal_defaults_do_not_set\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:98cdc4bb9ffa308db45d96e8a773624f18069ee56a84d72a57ba2ff32e24e6e0",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:49Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

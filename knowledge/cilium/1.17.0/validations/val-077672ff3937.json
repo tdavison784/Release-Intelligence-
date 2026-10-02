@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-077672ff3937",
+    "candidateId": "sc-6b512a53017f",
+    "proposalId": "sp-f72b8da1917c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--operator-k8s-client-qps",
+        "component": "operator"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.17.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--operator-k8s-client-qps",
+                  "component": "operator",
+                  "state": "unset"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "--operator-k8s-client-burst",
+                  "component": "operator",
+                  "state": "unset"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The Cilium Operator's Kubernetes client now uses a default rate limit of 100 QPS/200 Burst, which may differ from previous agent-level defaults; operators can now independently configure these rates using the new --operator-k8s-client-qps and --operator-k8s-client-burst flags.",
+        "severity": "medium"
+      },
+      "statement": "The Cilium Operator component introduces two new CLI flags (--operator-k8s-client-qps and --operator-k8s-client-burst) to allow separate configuration of Kubernetes client rate limits, with a new default of 100 QPS/200 Burst."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/added",
+        "detail": "no canonical exposure condition for cli-flag added"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-78a3cebbc2d2",
+    "candidateId": "sc-7ae1b93c2b58",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.commonName"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.commonName",
+              "state": "matches",
+              "pattern": "^([0-9]{1,3}\\.){3}[0-9]{1,3}$|:"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates issued for a Certificate whose spec.commonName contains an IP address will now carry that IP address in the ipAddresses field (IP SAN) instead of in the DNS subjectAlternativeName list, so newly issued certificate contents differ from before.",
+        "remediation": "Review Certificate resources whose spec.commonName holds an IP address and verify that relying clients accept the resulting IP SAN placement; the correction applies to certificates issued after the upgrade.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, an IP address specified in a Certificate's spec.commonName is no longer added to the DNS subjectAlternativeName list and is instead added to the spec.ipAddresses field as expected."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a8c04d9f0485"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:724be0afd3f7e648c0473571c69bcc9c908532830125a78312149d4941490473",
+      "inputEvidence": [
+        "ev-a8c04d9f0485"
+      ],
+      "generatedAt": "2026-10-02T11:41:43Z",
+      "callId": "5eaf07fe-774e-4aa6-96bd-1438abe2a16d"
+    }
+  }
+}

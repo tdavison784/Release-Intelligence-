@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-9d5516da8bb9",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-459086dd8857",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-1e8072e7442d"
+          ],
+          "statementKeys": [
+            "sk-ef606729bb1a"
+          ],
+          "changeIds": [
+            "chg-459086dd8857"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "Logs RBAC enforcement as a first-class RBAC citizen: 2.4 introduced `logs` as a new RBAC resource",
+    "text": "Logs RBAC enforcement as a first-class RBAC citizen: 2.4 introduced `logs` as a new RBAC resource. In 2.3 and lower, users with `applications, get` access automatically got logs access. In 2.4, it became possible to enable logs RBAC enforcement with a flag in `argocd-cm` ConfigMap: Starting from 3.0, this flag is removed and the logs RBAC is enforced by default, meaning the `logs` tab on `pod` view will not be visible without granting explicit `logs, get` permissions to the users/groups/roles requiring it. Detection: Users who have `server.rbac.log.enforce.enable: \"true\"` in their `argocd-cm` ConfigMap, are unaffected by this change. Users who have `policy.default: role:readonly` or `policy.default: role:admin` in their `argocd-rbac-cm` ConfigMap, are unaffected. Users who don't have a `policy.default` in their `argocd-rbac-cm` ConfigMap, and either have `server.rbac.log.enforce.enable` set to `false` or don't have this setting at all in their `argocd-cm` ConfigMap are affected and should perform the below remediation steps. After the upgrade, it is recommended to remove the setting `server.rbac.log.enforce.enable` from `argocd-cm` ConfigMap, if it was there before the upgrade.…",
+    "evidence": [
+      {
+        "id": "ev-19231a7aa629",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L26-L58 (v2.14 to 3.0 › Breaking Changes › Logs RBAC enforcement as a first-class RBAC citizen)",
+        "excerpt": "### Logs RBAC enforcement as a first-class RBAC citizen\n\n2.4 introduced `logs` as a new RBAC resource. In 2.3 and lower, users with `applications, get` access automatically got logs access. In 2.4, it became possible to enable logs RBAC enforcement with a flag in `argocd-cm` ConfigMap:\n\n```yaml\nserver.rbac.log.enforce.enable: 'true'\n```\n\nStarting from 3.0, this flag is removed and the logs RBAC is enforced by default, meaning the `logs` tab on `pod` view will not be visible without granting explicit `logs, get` permissions to the users/groups/roles requiring it.\n\n#### Detection\n\nUsers who have…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "hints": [
+      "code:logs",
+      "code:applications, get",
+      "code:argocd-cm",
+      "code:pod",
+      "code:logs, get",
+      "code:server.rbac.log.enforce.enable: \"true",
+      "code:policy.default: role:readonly",
+      "code:policy.default: role:admin",
+      "code:argocd-rbac-cm",
+      "code:policy.default",
+      "code:server.rbac.log.enforce.enable",
+      "code:false",
+      "path:server.rbac.log.enforce.enable",
+      "path:policy.default",
+      "version:2.4",
+      "version:2.3",
+      "version:3.0"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

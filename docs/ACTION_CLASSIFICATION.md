@@ -127,6 +127,7 @@ to decide applicability. If a deciding dimension is absent, the verdict is
 | Upstream unit | Deciding dimensions | Note |
 |---|---|---|
 | `values:*` diff rules | `values` | values are a flat mapping: absence of a key is a fact, not a blind spot |
+| `values:default-changed` / `values:added`, key **unset** (PO-3) | `values` + `render` | the new default reaches whoever does not pin the key, so "not set" is not "not affected". A render attributing a change to the key → `impact:values-default-applies` · review-required; both renders succeed and nothing attributable changes → `impact:values-default-no-effect` · not-affected (render check as evidence); no render → `impact:values-default-unrendered` · not-affected with a visible `render unavailable` check (the product owner's choice, docs/phase3/learning-loop/DECISIONS.md) |
 | `crd:removed`, `crd:version-*` | `crds` | installed CRDs are authoritative for what the cluster runs; manifests refine affected-path confidence |
 | `crd:fields-removed` | `manifests` | field paths are manifest facts |
 | `images:*`, moved image artifacts | `images` | visible when any image-bearing input was supplied (`--images`, `--values`, `--manifests` all yield image facts) |
@@ -213,6 +214,14 @@ trust ladder, which `ImpactReport.Validate()` and the schema enforce:
   confidence.
 - A change with a knowledge finding carries no other `unknown` finding: the
   knowledge finding supersedes it.
+- **Refinement (PO-4)** is the one way a fact changes a deterministic
+  finding's class. Only a `deterministic`/`human` fact may do it, and only when
+  its subject covers the finding's matches on the same change. The deterministic
+  finding is replaced by `impact:knowledge-refined`, which carries
+  `refinedFrom: {classification, rule}`, keeps both evidence chains, and stays
+  action-required, review-required or informational, never not-affected. Example:
+  a removed values key whose function was `superseded-upstream` moves from ACTION
+  to REVIEW.
 - `unknownReason` (unknown-only) names why a finding is unknown:
   `release-knowledge-gap`, `environment-visibility-gap`,
   `cross-product-context-gap`, `runtime-behavior-gap`, `evidence-gap`,

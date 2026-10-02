@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d2ffe8ffd217",
+    "candidateId": "sc-f7925b79e2e4",
+    "proposalId": "sp-5dfee081872f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "global.rbac.disableHTTPChallengesRole"
+      },
+      "change": {
+        "type": "added",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.rbac.disableHTTPChallengesRole",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new value defaults to false, so nothing changes unless the operator opts in. If set, HTTP-01 ACME challenges are disabled and cert-manager drops its permission to create pods.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 adds the opt-in Helm value `global.rbac.disableHTTPChallengesRole`, which defaults to false; setting it disables HTTP-01 ACME challenges so cert-manager no longer needs permission to create pods."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/added",
+        "detail": "helm-value subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/added",
+        "detail": "helm-value subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

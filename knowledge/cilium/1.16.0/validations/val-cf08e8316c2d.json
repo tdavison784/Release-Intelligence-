@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cf08e8316c2d",
+    "candidateId": "sc-3a1c52273250",
+    "proposalId": "sp-381c7b0aecca",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "etcd.operator.kvstore-opt"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "etcd.operator.kvstore-opt",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The etcd.operator kvstore-opt configuration value will be ignored and no longer has any effect; environments must rely on the new automatic behavior of respecting the port specified in etcd configuration.",
+        "remediation": "Remove the etcd.operator kvstore-opt setting from Helm values as it is now a no-op. Verify that etcd addresses include the correct port if non-standard ports are used, as Cilium will now respect the specified port rather than defaulting to the service port.",
+        "severity": "medium"
+      },
+      "statement": "The etcd.operator kvstore-opt Helm value option is now a no-op and has been removed; Cilium now respects the port in the etcd configuration and automatically enables Kubernetes service DNS name to ClusterIP translation for etcd."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

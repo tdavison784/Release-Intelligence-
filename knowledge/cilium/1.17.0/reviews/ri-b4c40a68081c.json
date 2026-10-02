@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-b4c40a68081c",
+    "candidateId": "sc-1115e82f20f4",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"MTU auto-detection will now use the lowest MTU of all external interfaces\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments using auto-detection will now select the lowest MTU across all external interfaces instead of only the primary interface, which may result in lower MTU values being applied.",
+        "remediation": "If the change in MTU value is not desired, configure MTU manually via the MTU helm option, --mtu agent flag, or mtu option in CNI configuration.",
+        "severity": "medium"
+      },
+      "statement": "MTU auto-detection behavior changes to use the lowest MTU of all external interfaces instead of only the primary interface, except in ENI mode."
+    },
+    "proposals": [
+      "sp-4e02ea4e9661",
+      "sp-f34e610893b1"
+    ],
+    "validations": [
+      "val-03004468a6f7",
+      "val-13688f238d0d",
+      "val-1e28f29d9d76",
+      "val-e248d44a9ed7"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:06:56Z"
+  }
+}

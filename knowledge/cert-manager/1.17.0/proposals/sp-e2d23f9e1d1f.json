@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e2d23f9e1d1f",
+    "candidateId": "sc-dd8787384dc3",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "CAInjectorMerging",
+        "component": "ca-injector"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "CAInjectorMerging",
+          "component": "ca-injector",
+          "state": "enabled"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that enable the CAInjectorMerging feature gate will see the ca-injector merge new CA certificates into the injected target instead of outright replacing the existing certificate.",
+        "remediation": "If you enable CAInjectorMerging, verify that merged CA contents are acceptable wherever the ca-injector injects certificates.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds the CAInjectorMerging feature gate to the ca-injector, which when enabled changes the ca-injector's behavior to merge in new CA certificates instead of outright replacing the existing one."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e3729e495e40"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:81e22d7a64bf468a26b3d681003215d7f353231366ae44b54c1bd199396a52f8",
+      "inputEvidence": [
+        "ev-e3729e495e40"
+      ],
+      "generatedAt": "2026-10-02T11:35:20Z",
+      "callId": "9bf0957c-3eb0-445a-838b-e3a8194e1c0e"
+    }
+  }
+}

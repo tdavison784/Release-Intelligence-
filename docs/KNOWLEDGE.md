@@ -36,6 +36,15 @@ stays the pure table). A policy counts only if, with the validator-confirmed asp
   Models may request action-required; the ladder (applicability lane) still needs exposure TRUE with both evidence chains.
   Consensus never produces NOT AFFECTED.
 
+- `AutoApproveGeneral` (MISSION Goal 16; **opt-in**, `ri knowledge route -auto-approve-general`): every aspect consensus-or-better,
+  at least one of subject/change confirmed by a validator, no validator refutation on any aspect. Minted at its weakest level
+  (consensus, so capped at review by the ladder unless PO-2 consensus-action holds). A proxy decision is never an input.
+- `DeriveRenderability` gives the policies the renderability of what the change IS (`domain.RenderabilityOf(family, change kind)`),
+  from a validator-confirmed or ≥2-separate-call consensus subject+change; never from one model alone.
+- The audit item of an auto-approved fact carries routing signals (`policy-render|policy-general`, `auto-approved`,
+  `consensus-same-model|cross-model`, `consensus-action`) so the policies can be tested against human outcomes later.
+  Open items made moot by an auto-verified fact are marked `superseded`.
+
 Such facts are `autoApproved`, level `consensus`. `RouteOptions.AuditEvery` samples one in N auto-approved facts into
 human review (a fact-review item); `ConsensusAction` facts and auto-approved facts with an action-eligible consequence are
 **always** audited (100%). The audit decision is written before the fact is touched, and the R19 agreement metrics

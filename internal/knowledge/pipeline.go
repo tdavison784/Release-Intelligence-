@@ -16,9 +16,13 @@ type RouteSummary struct {
 	Facts        int // facts minted by auto-verification
 	Items        int // review items newly created
 	Existing     int // items/facts that were already stored (left untouched)
+	Superseded   int // open items made moot by an auto-verified fact
 	ByRoute      map[domain.Route]int
 	Autoverified []string // fact ids
 	Audits       []string // review item ids sampling auto-approved facts into human review
+	// Skipped lists records the store refused (invalid), with the reason; the
+	// pass continues so one bad candidate cannot block a whole store.
+	Skipped []string
 }
 
 // RouteOptions configure RouteStore.
@@ -113,7 +117,8 @@ func RouteStore(ctx context.Context, s Store, opts RouteOptions, q Query) (*Rout
 					return nil, err
 				}
 				if err := s.Put(ctx, rec); err != nil {
-					return nil, err
+					sum.Skipped = append(sum.Skipped, c.ID+": fact: "+err.Error())
+					continue
 				}
 				facts[res.Fact.ID] = *res.Fact
 				sum.Facts++
@@ -124,11 +129,26 @@ func RouteStore(ctx context.Context, s Store, opts RouteOptions, q Query) (*Rout
 					if opts.Now != nil {
 						at = opts.Now()
 					}
-					it, err := OpenFactReview(ctx, s, res.Fact.ID, at)
+					it, err := OpenFactReviewWith(ctx, s, res.Fact.ID, at, res.Signals)
 					if err != nil {
 						return nil, err
 					}
 					sum.Audits = append(sum.Audits, it.ID)
+				}
+				// questions routed before the fact existed are moot now
+				for id, old := range candItems {
+					if old.Status == domain.ReviewPending || old.Status == domain.ReviewNeedsEvidence {
+						old.Status = domain.ReviewSuperseded
+						rec, err := domain.NewRecord(old)
+						if err != nil {
+							return nil, err
+						}
+						if err := s.Put(ctx, rec); err != nil {
+							return nil, err
+						}
+						items[id] = old
+						sum.Superseded++
+					}
 				}
 			}
 		}
@@ -146,7 +166,8 @@ func RouteStore(ctx context.Context, s Store, opts RouteOptions, q Query) (*Rout
 				return nil, err
 			}
 			if err := s.Put(ctx, rec); err != nil {
-				return nil, err
+				sum.Skipped = append(sum.Skipped, c.ID+": item: "+err.Error())
+				continue
 			}
 			items[it.ID] = it
 			sum.Items++

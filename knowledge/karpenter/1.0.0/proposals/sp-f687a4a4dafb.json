@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f687a4a4dafb",
+    "candidateId": "sc-eedb90bededa",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "kind": "NodePool",
+        "path": "spec.disruption.expireAfter"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "karpenter",
+          "group": "karpenter.sh",
+          "kind": "NodePool",
+          "path": "spec.template.spec.expireAfter"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption.expireAfter",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "statement": "ExpireAfter has moved from NodePool.Spec.Disruption to NodePool.Spec.Template.Spec and is now a drift-able field."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The evidence states the field moved but does not specify whether old configurations are rejected, ignored, or automatically migrated.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-1253ff5bd0a5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:29a74caeb568c9ab3b2393269240407c36053ceb76ecefb7e6a731d7209202c9",
+      "inputEvidence": [
+        "ev-1253ff5bd0a5"
+      ],
+      "generatedAt": "2026-10-02T06:06:54Z",
+      "callId": "b9b17288-7a64-468c-aa1e-f85d2ec10d0e"
+    }
+  }
+}

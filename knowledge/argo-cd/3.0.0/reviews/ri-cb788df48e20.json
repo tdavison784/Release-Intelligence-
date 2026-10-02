@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-cb788df48e20",
+    "candidateId": "sc-819834200127",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Ignoring status field from differences by default: By default, the compare options to ignore the status field has been changed from `crd` to `all` resources\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"resource.compareoptions\"]",
+                      "state": "unset"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"resource.compareoptions\"]",
+                      "state": "none",
+                      "pattern": "ignoreResourceStatusField"
+                    }
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "ignoreResourceStatusField.*crd"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "statement": "By default, Argo CD's compare options to ignore the status field changed from applying to 'crd' (custom resources) to 'all' resource types, meaning status field differences are no longer detected unless explicitly configured."
+    },
+    "proposals": [
+      "sp-46a3340b4677",
+      "sp-52dbf4c6222c"
+    ],
+    "validations": [
+      "val-1ed739bd2306",
+      "val-b4eb2df8906f",
+      "val-baeff066ac73",
+      "val-e75904a16ef3"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:06:12Z"
+  }
+}

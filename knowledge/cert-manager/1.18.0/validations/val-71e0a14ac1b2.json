@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-71e0a14ac1b2",
+    "candidateId": "sc-e6aeab8aaf40",
+    "proposalId": "sp-37feaf99d4fe",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cert-manager",
+        "name": "--extra-certificate-annotations",
+        "component": "ingress-shim"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--extra-certificate-annotations",
+          "component": "ingress-shim",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "When ingress-shim runs with --extra-certificate-annotations set, the listed annotation keys are copied from Ingress-like resources onto the resulting Certificate objects; environments that do not set the flag are unaffected.",
+        "severity": "low"
+      },
+      "statement": "Release 1.18.0 adds the ingress-shim option --extra-certificate-annotations, which sets a list of annotation keys to be copied from Ingress-like resources to the resulting Certificate object."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/added",
+        "detail": "cli-flag:cert-manager|name=--extra-certificate-annotations|component=ingress-shim: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/added",
+        "detail": "cli-flag:cert-manager|name=--extra-certificate-annotations|component=ingress-shim: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

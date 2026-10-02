@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-f200f8779654",
+    "candidateId": "sc-d2afc4a4ba4f",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"RSA Certificate Compliance: The United States Department of Defense published a memo: Department of Defense Transition to Stronger Public Key Infrastructure…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "RSA certificates with 3072-bit and 4096-bit keys will use SHA-384 and SHA-512 respectively for signature hashing instead of SHA-256, which may affect compatibility with systems that do not support these stronger hash algorithms, though the evidence indicates minimal impact on standard Kubernetes environments.",
+        "remediation": "Verify that systems consuming these certificates support SHA-384 and SHA-512 hashing algorithms if you are using RSA keys larger than 2048-bit.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager v1.17.0, RSA certificate signing selects the hash algorithm based on key length: SHA-384 for 3072-bit keys and SHA-512 for 4096-bit keys, replacing the previous behavior of always using SHA-256."
+    },
+    "proposals": [
+      "sp-46a95c489845",
+      "sp-7b7c665df04f",
+      "sp-814087949f6a",
+      "sp-eb57cf8dc61d"
+    ],
+    "validations": [
+      "val-23f9df8d87a8",
+      "val-448cc071e835",
+      "val-4e707eb13eed",
+      "val-620143d2ffdb",
+      "val-94d15010c5d5",
+      "val-aff595b72c03",
+      "val-be6fd451dfb7"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T11:28:52Z"
+  }
+}

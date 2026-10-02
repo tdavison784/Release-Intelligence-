@@ -82,6 +82,20 @@ families, not scope. Across all edges, structured-family subjects agree exactly 
 free-form-family subjects 8 % / 31 %. All pairs in this run are one family (scope `same-model`);
 no cross-model measurement exists yet (needs GLM/Codex). See `runs/semantic-v2/README.md` § Same-model.
 
+## Commander decisions executed (semantic-2)
+
+1. Run imported into the committed `knowledge/` tree (66f23cf): 519 candidates, 1122 Claude proposals,
+   through the store layout. The knowledge lane's eval-reference scan passes, and the store integrity
+   check finds 0 invalid. Refusals go to `runs/semantic-v2/failures/`. The SAME-MODEL experiment stays
+   a separately labelled store in `runs/semantic-v2/same-model-store/` and is never routed.
+2. GLM-5.3 via Z.AI cross-model run (provider switch in `scripts/semantic-exchange.sh`, 77a0cec).
+   It covers the 147-candidate Opus subset: 138 proposals (provider `zai`), 9 refusals, token never
+   printed, logged or passed as an argument. Results are in `runs/semantic-v2/README.md` § Cross-model.
+   Cross-model agreement (GLM↔Opus/Sonnet) matches the best same-family pair: change 73 %, subject
+   52–55 % vs 60 %, consequence up to 65 %. Free-form subject names stay low in every scope.
+   Committed tree after the GLM import: 519 candidates, 1260 proposals, 0 invalid.
+3. Free-form subject names: decision (c) stays (exact digests, human review); nothing built.
+
 ## Next
 
 - Rendered-diff addendum: **wired** now that render-2 is merged. `BuildCandidatesWith(…,

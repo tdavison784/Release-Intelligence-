@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-81612d4ab579",
+    "candidateId": "sc-3b0268ba22af",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "version": "v2",
+        "kind": "CiliumClusterwideEnvoyConfig",
+        "path": "spec.resources[]"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.resources[]",
+              "state": "unset"
+            }
+          ],
+          "group": "cilium.io",
+          "version": "v2",
+          "kind": "CiliumClusterwideEnvoyConfig"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "CiliumClusterwideEnvoyConfig objects (cilium.io/v2) that omit spec.resources[] are rejected.",
+        "remediation": "Add spec.resources[] to every CiliumClusterwideEnvoyConfig before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "In the cilium.io/v2 CiliumClusterwideEnvoyConfig schema, spec.resources[] is now required, and objects that omit it are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-27da5c1705fe",
+      "ev-60fe44edb215"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6070695c1ac95f38a9036631aeb5f7f9f4e62a213a7562709d224050725d541e",
+      "inputEvidence": [
+        "ev-27da5c1705fe",
+        "ev-b70d3bfc7054",
+        "ev-d0f55e868923",
+        "ev-d137630c8090",
+        "ev-02197aa0e1a5",
+        "ev-7bf9a7a3f51a",
+        "ev-aac45b76e688",
+        "ev-b059d552dcc2",
+        "ev-7b86c27eeeb3",
+        "ev-c4d8808f9d36",
+        "ev-60fe44edb215",
+        "ev-055553900472",
+        "ev-d67c28424e3f",
+        "ev-9c589747ef03",
+        "ev-9ba655ea5c72",
+        "ev-061ee9721e03",
+        "ev-8a88bff80696",
+        "ev-313ddc646740",
+        "ev-0f7b2c78b11f",
+        "ev-2be643334952",
+        "ev-ff2b96a700d5"
+      ],
+      "generatedAt": "2026-10-02T05:58:11Z",
+      "callId": "076d1a2f-c831-4291-b53e-9dceb331ab94"
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a0c103457ccf",
+    "candidateId": "sc-f32097415709",
+    "proposalId": "sp-5feb93379ecc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "kind": "NodePool",
+        "path": "spec.consolidationPolicy.renameFrom"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "karpenter",
+          "group": "karpenter.sh",
+          "kind": "NodePool",
+          "path": "spec.consolidationPolicy.WhenEmptyOrUnderutilized"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.consolidationPolicy",
+              "state": "equals",
+              "values": [
+                "\"WhenUnderutilized\""
+              ]
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "NodePool resources specifying ConsolidationPolicy.WhenUnderutilized will have that setting ignored as the field name is no longer recognized; the operator must update manifests to use WhenEmptyOrUnderutilized.",
+        "remediation": "Update all NodePool resources that use spec.consolidationPolicy.WhenUnderutilized to use spec.consolidationPolicy.WhenEmptyOrUnderutilized instead.",
+        "severity": "high"
+      },
+      "statement": "The NodePool ConsolidationPolicy field `WhenUnderutilized` is renamed to `WhenEmptyOrUnderutilized`."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/renamed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/renamed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

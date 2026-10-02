@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8f34d1117ae0",
+    "candidateId": "sc-c9d1c24230a6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "istio",
+        "path": "metrics",
+        "component": "citadel"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--deployment-namespaces",
+              "component": "citadel",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the environment monitors certificate expiration metrics from Citadel"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificate expiration metrics from Citadel will now accurately reflect the current certificate expiration times when new certificates are loaded, rather than stale values from previously loaded certificates.",
+        "severity": "low"
+      },
+      "statement": "The citadel_server_root_cert_expiry_timestamp, citadel_server_root_cert_expiry_seconds, citadel_server_cert_chain_expiry_timestamp, and citadel_server_cert_chain_expiry_seconds metrics now update when new certificates are loaded."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-40e9ce81a63d"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3e01ffd27cfba347b4a43c71c5bd02d605cbb5dc91dae4b3d3492b4760797630",
+      "inputEvidence": [
+        "ev-40e9ce81a63d"
+      ],
+      "generatedAt": "2026-10-02T05:56:23Z",
+      "callId": "5786d8ff-57df-4431-9e1d-9a841ed47df6"
+    }
+  }
+}

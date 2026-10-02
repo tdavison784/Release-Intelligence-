@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8bdb894e2f07",
+    "candidateId": "sc-91b91829d5ee",
+    "proposalId": "sp-a721afa493aa",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "doublewrite_identity_kvstore_only_count",
+        "component": "metrics"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "cilium",
+          "path": "doublewrite_kvstore_only_identities",
+          "component": "metrics"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "doublewrite_identity_kvstore_only_count",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--doublewrite_identity_kvstore_only_count",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Monitoring systems and dashboards that reference the old metric name doublewrite_identity_kvstore_only_count will no longer receive data; they must be updated to use the new name doublewrite_kvstore_only_identities.",
+        "severity": "medium"
+      },
+      "statement": "The metric doublewrite_identity_kvstore_only_count has been renamed to doublewrite_kvstore_only_identities."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/renamed",
+        "detail": "no canonical exposure condition for config-key renamed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

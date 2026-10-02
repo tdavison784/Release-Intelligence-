@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-58f175c48221",
+    "candidateId": "sc-f933c1ca02f0",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "crd-helm-templating"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "kind": "CustomResourceDefinition"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "runtime-behavior-gap",
+                  "needed": "whether the environment has CRDs from prior Istio installations"
+                }
+              ]
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "helm",
+                  "component": "installer",
+                  "state": "set"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "kubectl apply",
+                  "component": "installer",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The CRD upgrade procedure must change from kubectl apply -f manifests/charts/base/files/crd-all.gen.yaml to helm upgrade istio-base. CRD labels will be updated during the first helm upgrade command. Environments that previously used kubectl apply for CRD management must transition to Helm-based management.",
+        "remediation": "Change CRD upgrade procedure from kubectl apply to helm upgrade istio-base command for all Helm-based Istio installations.",
+        "severity": "high"
+      },
+      "statement": "Istio CRDs are now templated by default and managed via Helm; the recommended upgrade method changes from kubectl apply to helm upgrade istio-base, and CRD labels are updated to match Helm-installed resources."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-85eccdc718e3",
+      "ev-2941a875a468"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:65e3f54810246d3f24a15346d582d23600816e22dc85cbd0273cea5f4dd34b96",
+      "inputEvidence": [
+        "ev-85eccdc718e3",
+        "ev-2941a875a468"
+      ],
+      "generatedAt": "2026-10-02T05:58:23Z",
+      "callId": "bcb333cb-4948-4051-8898-8c74237f675b"
+    }
+  }
+}

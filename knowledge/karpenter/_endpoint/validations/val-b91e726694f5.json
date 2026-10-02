@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b91e726694f5",
+    "candidateId": "sc-95ddd86cb4d2",
+    "proposalId": "sp-0874cef6ff07",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodeClaim"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "karpenter.sh",
+          "version": "v1beta1",
+          "kind": "NodeClaim"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodeClaim objects stored as v1beta1 must be rewritten via storage version migration and status.storedVersions must be updated before a later release removes v1beta1 support.",
+        "severity": "high"
+      },
+      "statement": "The storage version of nodeclaims.karpenter.sh changes from v1beta1 to v1, and existing NodeClaim objects must be rewritten via storage version migration before v1beta1 is removed in a later release."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/value-changed",
+        "detail": "gvk value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/value-changed",
+        "detail": "gvk value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

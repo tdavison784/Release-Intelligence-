@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e3d149514df6",
+    "candidateId": "sc-3aa4cb777553",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "jmx-ipv4-preference"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.kafka.jmxOptions",
+              "state": "set"
+            }
+          ],
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Clusters with JMX enabled now start with JVM network defaults instead of the implicit IPv4 preference; the changelog states this makes the cluster boot correctly in IPv6-only environments where the previous IPv4 preference broke startup.",
+        "severity": "low"
+      },
+      "statement": "Strimzi 0.46.0 removed the implicit IPv4 preference applied when JMX is enabled, so the JVM's default network preference is used instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-6b927d45a8a3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d9df1c2fa6c6c4c7c78553ce5d8a029c4a88ddf3462efc941ade54bcf4abeb32",
+      "inputEvidence": [
+        "ev-6b927d45a8a3"
+      ],
+      "generatedAt": "2026-10-02T06:24:44Z",
+      "callId": "a4a45406-d58f-45f8-b0f8-956322d9aa8d"
+    }
+  }
+}

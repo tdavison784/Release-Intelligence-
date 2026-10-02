@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f3b013248878",
+    "candidateId": "sc-ce76287c2361",
+    "proposalId": "sp-cf334e6537d5",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For MESH_EXTERNAL services, DestinationRule certificates are now used instead of metadata certificates, so TLS origination behaviour may differ.",
+        "remediation": "Set PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES to false to revert to the previous behaviour.",
+        "severity": "low"
+      },
+      "statement": "Istio now honours DestinationRule certificates over metadata certificates for MESH_EXTERNAL services; setting env var PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES to false reverts this."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:env-var/behavior-changed",
+        "detail": "no canonical exposure condition for env-var behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

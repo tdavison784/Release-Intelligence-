@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b63b3bd59e2f",
+    "candidateId": "sc-5c3e51b15ff9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_INBOUND_RETRY_POLICY"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"true\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "ENABLE_INBOUND_RETRY_POLICY",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Inbound requests that the service has not seen/processed are automatically retried. The default behavior changes to enable retry policy; this can be reverted by setting ENABLE_INBOUND_RETRY_POLICY to false.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 adds an automatic retry policy for inbound requests that the service has not processed, enabled by default and controllable via the ENABLE_INBOUND_RETRY_POLICY environment variable."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e09c6cbd06dc"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:983ae7eb7a31e0e5c817cb930153fcb5a313b2ef67a6cf89ba21874ad4b0541e",
+      "inputEvidence": [
+        "ev-e09c6cbd06dc"
+      ],
+      "generatedAt": "2026-10-02T06:05:09Z",
+      "callId": "2a91608f-f798-4361-b2fb-63c83b0426e2"
+    }
+  }
+}

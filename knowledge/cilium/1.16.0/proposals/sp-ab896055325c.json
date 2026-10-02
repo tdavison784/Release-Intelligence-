@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ab896055325c",
+    "candidateId": "sc-39498da3961f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "nodePort.addresses"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "nodePort.addresses",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that do not configure nodePort.addresses will continue to use the default behavior of exposing NodePort services on the first suitable IPv4 and IPv6 address of each device; environments that set nodePort.addresses can now customize which IP addresses are used for NodePort load-balancing."
+      },
+      "statement": "The Helm value `nodePort.addresses` was added to configure which IP addresses expose NodePort services; previously Cilium used only the first suitable IPv4 and IPv6 address per device."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-34bab3cf1916",
+      "ev-39a22d88e2f5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9291ea3c879f280586a375fd4747d0a78e22a69a2e504cad379dc1793e042a32",
+      "inputEvidence": [
+        "ev-34bab3cf1916",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T06:05:25Z",
+      "callId": "cfbad76d-ffb4-496a-9fcf-6f01bece5aba"
+    }
+  }
+}

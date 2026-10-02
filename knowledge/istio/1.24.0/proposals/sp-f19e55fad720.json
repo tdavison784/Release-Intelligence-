@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f19e55fad720",
+    "candidateId": "sc-9c618e373261",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "global.platform"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "profile",
+              "state": "matches",
+              "pattern": ".*-openshift$"
+            },
+            {
+              "op": "values-key",
+              "path": "global.platform",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Environments using OpenShift profile variants (e.g., profile=ambient-openshift) must migrate to --set profile=ambient --set global.platform=openshift; the old profile variants are no longer supported.",
+        "severity": "high"
+      },
+      "statement": "OpenShift profile variants for Helm installs are removed and replaced with global.platform=openshift configuration; a new global.platform Helm value enables platform-specific configurations."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-d6ef50aec061"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9f81db4f074f3ee3b49b75a0131c795e262ab4c7820d17eef7f17d72412411b3",
+      "inputEvidence": [
+        "ev-d6ef50aec061"
+      ],
+      "generatedAt": "2026-10-02T06:03:45Z",
+      "callId": "d46ef637-4805-4f90-8650-875084f8d47a"
+    }
+  }
+}

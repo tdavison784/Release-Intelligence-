@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-96030686583b",
+    "candidateId": "sc-a64aedeb967c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "metadata.labels[statefulset.kubernetes.io/pod-name]",
+        "component": "strimzi-kafka-operator"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "strimzi",
+          "path": "metadata.labels[strimzi.io/pod-name]",
+          "component": "strimzi-kafka-operator"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment has custom setups that depend on reading the statefulset.kubernetes.io/pod-name label from Strimzi pods or Services"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Custom setups that depend on the statefulset.kubernetes.io/pod-name label will not find it on Strimzi-managed pods and external listeners Kubernetes Services after the upgrade.",
+        "remediation": "Identify any custom setup leveraging the statefulset.kubernetes.io/pod-name label and update it to use the strimzi.io/pod-name label instead.",
+        "severity": "high"
+      },
+      "statement": "The statefulset.kubernetes.io/pod-name label has been removed from Strimzi-managed pods and external listeners Kubernetes Services; custom setups depending on this label should use strimzi.io/pod-name instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4fdefdd841ec"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:046b99629b11614cc24cc0c6270bc76b61c31d67233421e4ccf9eb2b3e086b88",
+      "inputEvidence": [
+        "ev-4fdefdd841ec"
+      ],
+      "generatedAt": "2026-10-02T06:02:02Z",
+      "callId": "5e6613ce-2f74-4406-abb0-d07eec3fe34f"
+    }
+  }
+}

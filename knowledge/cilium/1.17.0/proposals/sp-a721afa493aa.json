@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a721afa493aa",
+    "candidateId": "sc-91b91829d5ee",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "doublewrite_identity_kvstore_only_count",
+        "component": "metrics"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "cilium",
+          "path": "doublewrite_kvstore_only_identities",
+          "component": "metrics"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "doublewrite_identity_kvstore_only_count",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--doublewrite_identity_kvstore_only_count",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Monitoring systems and dashboards that reference the old metric name doublewrite_identity_kvstore_only_count will no longer receive data; they must be updated to use the new name doublewrite_kvstore_only_identities.",
+        "severity": "medium"
+      },
+      "statement": "The metric doublewrite_identity_kvstore_only_count has been renamed to doublewrite_kvstore_only_identities."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-57fea1f2c18e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:78a985a25ba6d57d275cc1764111f45b51db3e7fa9f037056511ec2a3f7202b6",
+      "inputEvidence": [
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-02T06:07:43Z",
+      "callId": "945efd3f-2d20-4041-8ea0-8dbc09f5ed8a"
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fe8204a6f368",
+    "candidateId": "sc-c5b9ccdb0bc8",
+    "proposalId": "sp-a72571162cfc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "ambient-dns-proxy-upgrade-ordering"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.24.0"
+            },
+            {
+              "op": "values-key",
+              "path": "ambient.dnsCapture",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "DNS resolution failures occur if the required upgrade steps are not followed in order (Upgrade Istio CNI, restart workloads enrolled in ambient mode, upgrade Ztunnel). Workload restarts can resolve the issue if it occurs, but the ordered procedure must be followed during upgrade.",
+        "severity": "high"
+      },
+      "statement": "Upgrading to Istio 1.24.0 with Ambient mode and cni.ambient.dnsCapture=true configured requires following a specific ordered upgrade procedure: upgrade Istio CNI, restart ambient-enrolled workloads, then upgrade Ztunnel; failure to follow this order results in DNS resolution failures."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

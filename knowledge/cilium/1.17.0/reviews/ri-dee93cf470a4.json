@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-dee93cf470a4",
+    "candidateId": "sc-30c676d7c5e6",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"the `--cluster` behavior changed to show flows emitted from nodes outside of the provided cluster name (either coming from or going to the target cluster)\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The `--cluster` flag now returns a different set of flows, including those from nodes outside the specified cluster name (both incoming and outgoing), whereas previously it only showed flows emitted from nodes within that cluster. Existing queries using this flag will see different results.",
+        "severity": "medium"
+      },
+      "statement": "The `--cluster` flag behavior changed to show flows emitted from nodes outside of the provided cluster name (either coming from or going to the target cluster), rather than only flows within that cluster."
+    },
+    "proposals": [
+      "sp-19985232ee39",
+      "sp-d7f6bb25a1b9"
+    ],
+    "validations": [
+      "val-57216a575d31",
+      "val-d8cc5d7eb64c",
+      "val-db5d2bdd754f"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:01:40Z"
+  }
+}

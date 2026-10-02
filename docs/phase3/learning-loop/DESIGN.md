@@ -6,7 +6,7 @@
 > Types live in `internal/domain/semantic.go` (+ two additive fields in
 > `internal/domain/impact.go`); ports live in `internal/knowledge/api.go`.
 > Changes to either go through the `contract` owner (FLEET.md). Product-owner
-> decisions that amend this design are in [DECISIONS.md](DECISIONS.md) (PO-1, PO-2).
+> decisions that amend this design are in [DECISIONS.md](DECISIONS.md) (PO-1 … PO-4).
 
 ## 0. The idea in one paragraph
 
@@ -279,6 +279,7 @@ behavior"):
 | `migration-required` | a mandatory operator step must run before/after the upgrade | action-required |
 | `behavior-change` | it still works, but differently (a new default applies); the operator should verify | review-required |
 | `deprecation` | works today, scheduled to break later | review-required |
+| `superseded-upstream` (PO-4) | removed or changed, but its function is replaced by an upstream mechanism; verify the replacement covers your use | review-required |
 | `none` | no operational consequence | informational |
 
 Action-eligible kinds need a `Statement` that answers "what exactly fails if I do
@@ -643,7 +644,23 @@ that carry `ImpactFinding.Knowledge` (rule prefix `impact:knowledge-`):
   affected or not-affected finding, it is **added only if stronger** (action >
   review > informational > not-affected). It never removes or downgrades a
   deterministic finding: a knowledge not-affected never hides a computed
-  action-required.
+  action-required. **One narrow exception (PO-4): refinement.** A **trusted**
+  fact (every aspect deterministic or human) whose subject covers the
+  deterministic finding's matches (`Subject.CoversMatch`) on the same change may
+  **replace** that finding with `impact:knowledge-refined`. That finding carries
+  `refinedFrom {classification, rule, severity}` and the original matches (both
+  evidence chains). It may move the class either way among the affected classes;
+  for example, a removed key whose function is `superseded-upstream` goes from
+  ACTION to REVIEW. It never yields not-affected or unknown, and it is never
+  sourced from a consensus or proxy fact. `Validate()` and the schema enforce
+  each of these.
+- **Unset changed defaults and new keys (PO-3)** are decided by rendering, not
+  knowledge. The join rules are `impact:values-default-applies` (review-required,
+  rendered-change match), `impact:values-default-no-effect` (not-affected, render
+  check `no-attributable-change`) and `impact:values-default-unrendered`
+  (not-affected, visible render check `unavailable`); shapes are in DECISIONS.md
+  PO-3. Knowledge can lift an `applies` finding to ACTION only through a trusted
+  fact or a PO-2 consensus-action fact with an action-eligible consequence.
 - Rules: `impact:knowledge-exposed` (affected, from Exposure),
   `impact:knowledge-overlap` (informational, from Overlap),
   `impact:knowledge-clear` (not-affected), `impact:knowledge-undecided` (unknown).

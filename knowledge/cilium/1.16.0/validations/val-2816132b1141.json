@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2816132b1141",
+    "candidateId": "sc-24aa4e50837e",
+    "proposalId": "sp-3e880d3806f1",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumLoadBalancerIPPool",
+        "path": "spec.allowFirstLastIPs"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"no\"",
+        "after": "\"yes\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.allowFirstLastIPs",
+                  "state": "unset"
+                }
+              ],
+              "group": "cilium.io",
+              "kind": "CiliumLoadBalancerIPPool"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.allowFirstLastIPs",
+              "state": "set"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The first and last IP addresses of the IP pool are now available for allocation by default, changing the IP allocation behavior unless explicitly configured otherwise.",
+        "remediation": "Explicitly set `allowFirstLastIPs: no` in your CiliumLoadBalancerIPPool configuration before the upgrade if you require the previous behavior of excluding first and last IP addresses.",
+        "severity": "medium"
+      },
+      "statement": "The default value of CiliumLoadBalancerIPPool.spec.allowFirstLastIPs changed from no to yes, making the first and last IP addresses of the pool available for allocation."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

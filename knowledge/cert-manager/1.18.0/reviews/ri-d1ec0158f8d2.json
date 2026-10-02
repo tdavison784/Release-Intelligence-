@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-d1ec0158f8d2",
+    "candidateId": "sc-0564d2273368",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. > 📖 Read Release 1.18 notes for more information.\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates without an explicit rotationPolicy now generate a new private key on re-issuance (default Always instead of Never); this is feature gated and enabled by default, and the gate can no longer be turned off from release 1.19.",
+        "remediation": "Explicitly set rotationPolicy: Never on Certificate resources to keep the old behavior, or turn off the feature gate in this release and set rotationPolicy: Never before 1.19.",
+        "severity": "medium"
+      },
+      "statement": "The default of Certificate spec.privateKey.rotationPolicy changed from Never to Always, so re-issued certificates without an explicit rotationPolicy now get a new private key."
+    },
+    "proposals": [
+      "sp-09407556c851",
+      "sp-0db89403a455",
+      "sp-d562278c8028",
+      "sp-eb5b8e91a9d0"
+    ],
+    "validations": [
+      "val-0d170b3aa289",
+      "val-2a7d8a577685",
+      "val-5397076955eb",
+      "val-68492053430b",
+      "val-7525eb69cfe5",
+      "val-94bd2db4b465",
+      "val-9c6530d9fab0",
+      "val-c529d73c1438"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "superseded",
+    "createdAt": "2026-10-02T11:37:33Z"
+  }
+}

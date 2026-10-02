@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-58ae7732d312",
+    "candidateId": "sc-a8771d6dc75d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "stable-connect-identities-strimzipodsets"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.39.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaConnect"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaMirrorMaker2"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Before upgrading from Strimzi 0.38 or older, operators running Kafka Connect or Kafka MirrorMaker 2 must enable the StableConnectIdentities feature gate and use StrimziPodSets. The evidence does not say what fails if this step is skipped.",
+        "remediation": "On the current operator version, enable the StableConnectIdentities feature gate and make sure StrimziPodSets are used for Connect and MirrorMaker 2. Then upgrade.",
+        "severity": "high"
+      },
+      "statement": "If you use Kafka Connect or Kafka MirrorMaker 2 and are upgrading from Strimzi 0.38 or older, enable the StableConnectIdentities feature gate and switch to StrimziPodSets before upgrading to 0.46.0."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-17b3774eb9ee"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0fe70c86876c79f619309b12e73012a42070f26d3414f31e6b9ce3e203ed67cd",
+      "inputEvidence": [
+        "ev-17b3774eb9ee"
+      ],
+      "generatedAt": "2026-10-02T06:12:26Z",
+      "callId": "721e70c9-c4c0-4dc0-82af-321ce9863d28"
+    }
+  }
+}

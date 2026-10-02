@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a72571162cfc",
+    "candidateId": "sc-c5b9ccdb0bc8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "ambient-dns-proxy-upgrade-ordering"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.24.0"
+            },
+            {
+              "op": "values-key",
+              "path": "ambient.dnsCapture",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "DNS resolution failures occur if the required upgrade steps are not followed in order (Upgrade Istio CNI, restart workloads enrolled in ambient mode, upgrade Ztunnel). Workload restarts can resolve the issue if it occurs, but the ordered procedure must be followed during upgrade.",
+        "severity": "high"
+      },
+      "statement": "Upgrading to Istio 1.24.0 with Ambient mode and cni.ambient.dnsCapture=true configured requires following a specific ordered upgrade procedure: upgrade Istio CNI, restart ambient-enrolled workloads, then upgrade Ztunnel; failure to follow this order results in DNS resolution failures."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-1558dd759b77"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0004a62d67ac768a960770f7172e7e47fcba91c1cc58390bb3a656f966f0186b",
+      "inputEvidence": [
+        "ev-1558dd759b77"
+      ],
+      "generatedAt": "2026-10-02T05:54:46Z",
+      "callId": "6e14a9f4-d355-4cc2-9196-1f9d6aea0f4d"
+    }
+  }
+}

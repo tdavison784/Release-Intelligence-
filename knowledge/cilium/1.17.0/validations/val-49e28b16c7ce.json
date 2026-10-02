@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-49e28b16c7ce",
+    "candidateId": "sc-590664a9778c",
+    "proposalId": "sp-6987711bda3c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "lbipam_services_unsatisfied_total"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_services_unsatisfied_total\"",
+        "after": "\"lbipam_services_unsatisfied\"",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "cilium",
+          "path": "lbipam_services_unsatisfied"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any dashboards, alerts or scrapers query the old metric name lbipam_services_unsatisfied_total"
+        }
+      },
+      "statement": "The metric `lbipam_services_unsatisfied_total` has been renamed to `lbipam_services_unsatisfied`."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/renamed",
+        "detail": "no canonical exposure condition for config-key renamed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

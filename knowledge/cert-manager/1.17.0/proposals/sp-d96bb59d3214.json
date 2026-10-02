@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d96bb59d3214",
+    "candidateId": "sc-b39edc535b31",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "podDisruptionBudget.minAvailable"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "podDisruptionBudget.minAvailable",
+              "state": "matches",
+              "pattern": "^[0-9]+%$"
+            },
+            {
+              "op": "values-key",
+              "path": "podDisruptionBudget.maxAvailable",
+              "state": "matches",
+              "pattern": "^[0-9]+%$"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Helm now accepts percentage values for podDisruptionBudget.minAvailable and podDisruptionBudget.maxAvailable, which it previously did not; an environment with a percentage set will have the value honoured in the rendered PodDisruptionBudget instead of being rejected, and environments not using percentages are unaffected.",
+        "remediation": "No action required; if percentages are used, verify the rendered PodDisruptionBudget reflects them.",
+        "severity": "low"
+      },
+      "statement": "In the cert-manager 1.17.0 Helm chart, percentage values for the podDisruptionBudget.minAvailable and podDisruptionBudget.maxAvailable values are now accepted by Helm, which previously they were not."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d176cffb7417"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:c0ebfe5271bc01efa176deef609df099b444dd6b1dbbdf5e7cac232473e23311",
+      "inputEvidence": [
+        "ev-d176cffb7417"
+      ],
+      "generatedAt": "2026-10-02T11:30:02Z",
+      "callId": "c461cf26-7556-4b2c-8ba6-c3e1d32b8e50"
+    }
+  }
+}

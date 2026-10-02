@@ -23,6 +23,8 @@ type aspectState struct {
 // AutoApproval is what an AutoApprovePolicy returns: aspects it verifies
 // without a reviewer, with the level and basis records that justify them.
 type AutoApproval struct {
+	// Policy names the policy ("render-verifiable", "consensus-action", "general").
+	Policy  string
 	Aspects map[domain.Aspect]AutoApprovedAspect
 }
 
@@ -58,6 +60,7 @@ func Route(c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []domain
 func RouteWith(policy AutoApprovePolicy, c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []domain.ValidationResult) RouteResult {
 	agreement := Agreements(ps)
 	state := stateFromValidations(vs)
+	policyName := ""
 	if policy != nil {
 		// a policy auto-approves a candidate or nothing: its aspects count only
 		// when, with the confirmed validations, they cover all four
@@ -67,7 +70,7 @@ func RouteWith(policy AutoApprovePolicy, c domain.SemanticCandidate, ps []domain
 		// claim alone. Only the policy's view changes; the stored candidate
 		// is untouched.
 		pc := c
-		pc.Renderability = domain.EffectiveRenderability(c, vs)
+		pc.Renderability = DeriveRenderability(c, ps, vs)
 		if ap := policy(pc, ps, vs, agreement); ap != nil {
 			withPolicy := map[domain.Aspect]aspectState{}
 			for x, st := range state {
@@ -80,6 +83,7 @@ func RouteWith(policy AutoApprovePolicy, c domain.SemanticCandidate, ps []domain
 			}
 			if len(withPolicy) == len(domain.Aspects) {
 				state = withPolicy
+				policyName = ap.Policy
 			}
 		}
 	}
@@ -88,6 +92,8 @@ func RouteWith(policy AutoApprovePolicy, c domain.SemanticCandidate, ps []domain
 	if len(state) == len(domain.Aspects) {
 		if f, err := buildFact(c, state, ps, vs, now); err == nil {
 			res.Fact = f
+			res.Policy = policyName
+			res.Signals = policySignals(*f, policyName)
 			return res
 		}
 		// an inconsistent composition is not auto-verifiable: fall through to review
@@ -431,26 +437,7 @@ func buildItems(c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []d
 	var items []domain.ReviewItem
 	missing := false
 	for _, g := range groupsFor(open, ps) {
-		var proposed domain.SemanticAssertion
-		complete := true
-		for _, x := range g.aspects {
-			var part domain.SemanticAssertion
-			var stmt string
-			ok := false
-			if st, done := state[x]; done {
-				part, ok = st.part, true
-			} else {
-				part, stmt, ok = pluralityValue(ps, x, refuted)
-			}
-			if !ok {
-				complete = false
-				break
-			}
-			mergeAspect(&proposed, part, x)
-			if proposed.Statement == "" {
-				proposed.Statement = stmt
-			}
-		}
+		proposed, complete := proposedFor(g.aspects, ps, state, refuted)
 		if !complete {
 			missing = true
 			continue
@@ -469,6 +456,88 @@ func buildItems(c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []d
 		}, ps, vs, now))
 	}
 	return items
+}
+
+// proposedFor composes the assertion a question proposes. Aspects already
+// verified (state) are fixed; the open ones are taken COHERENTLY from one
+// proposal (the tuple of open-aspect values asserted together by the most
+// separate calls), because mixing a subject from one proposal with a change from
+// another can build an assertion that is invalid or says nothing anyone said.
+// When no proposal asserts all open aspects, or the coherent composition does
+// not validate, it falls back to the per-aspect plurality and checks validity;
+// ok is false when nothing valid can be proposed.
+func proposedFor(aspects []domain.Aspect, ps []domain.SemanticProposal, state map[domain.Aspect]aspectState, refuted map[domain.Aspect]map[string]bool) (domain.SemanticAssertion, bool) {
+	var fixed domain.SemanticAssertion
+	var open []domain.Aspect
+	for _, x := range aspects {
+		if st, done := state[x]; done {
+			mergeAspect(&fixed, st.part, x)
+		} else {
+			open = append(open, x)
+		}
+	}
+	valid := func(a domain.SemanticAssertion) bool { return a.Validate(false) == nil }
+	// coherent tuple from one proposal
+	type tuple struct {
+		calls map[string]bool
+		first domain.SemanticProposal
+	}
+	tuples := map[string]*tuple{}
+	for _, p := range ps {
+		key, ok := "", true
+		for _, x := range open {
+			if !p.Assertion.Has(x) || refuted[x][p.Assertion.AspectDigest(x)] {
+				ok = false
+				break
+			}
+			key += p.Assertion.AspectDigest(x) + "|"
+		}
+		if !ok || len(open) == 0 {
+			continue
+		}
+		if tuples[key] == nil {
+			tuples[key] = &tuple{calls: map[string]bool{}, first: p}
+		}
+		tuples[key].calls[callKey(p)] = true
+	}
+	keys := make([]string, 0, len(tuples))
+	for k := range tuples {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		a, b := tuples[keys[i]], tuples[keys[j]]
+		if len(a.calls) != len(b.calls) {
+			return len(a.calls) > len(b.calls)
+		}
+		return keys[i] < keys[j]
+	})
+	for _, k := range keys {
+		cand := fixed
+		p := tuples[k].first
+		for _, x := range open {
+			mergeAspect(&cand, partOf(p.Assertion, x), x)
+		}
+		cand.Statement = p.Assertion.Statement
+		if valid(cand) {
+			return cand, true
+		}
+	}
+	// fallback: per-aspect plurality
+	cand := fixed
+	for _, x := range open {
+		part, stmt, ok := pluralityValue(ps, x, refuted)
+		if !ok {
+			return domain.SemanticAssertion{}, false
+		}
+		mergeAspect(&cand, part, x)
+		if cand.Statement == "" {
+			cand.Statement = stmt
+		}
+	}
+	if !valid(cand) {
+		return domain.SemanticAssertion{}, false
+	}
+	return cand, true
 }
 
 func mergeAspect(dst *domain.SemanticAssertion, part domain.SemanticAssertion, x domain.Aspect) {
@@ -528,4 +597,63 @@ func statementOf(c domain.SemanticCandidate, ps []domain.SemanticProposal, a dom
 		return a.Statement
 	}
 	return strings.TrimSpace(c.Title)
+}
+
+// DeriveRenderability is the renderability the policies see for a candidate: a
+// property of what the change IS (domain.RenderabilityOf(family, change kind)),
+// not of the edge. Order: the candidate's own assessment; the assertion a render
+// confirmed; the subject+change a validator confirmed; else the subject+change
+// that ≥2 separate calls agree on (PO-1). A single model's claim alone never
+// assesses it (the render lane's rule), so a candidate nothing supports stays "".
+func DeriveRenderability(c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []domain.ValidationResult) domain.Renderability {
+	if r := domain.EffectiveRenderability(c, vs); r != "" {
+		return r
+	}
+	st := stateFromValidations(vs)
+	cons := ConsensusAspects(ps, vs)
+	var a domain.SemanticAssertion
+	for _, x := range []domain.Aspect{domain.AspectSubject, domain.AspectChange} {
+		if v, ok := st[x]; ok {
+			mergeAspect(&a, v.part, x)
+		} else if cv, ok := cons[x]; ok {
+			mergeAspect(&a, cv.Part, x)
+		}
+	}
+	return domain.AssessRenderability(a)
+}
+
+// policySignals records an auto-approval for the audit item: which policy,
+// that the fact is auto-approved, the consensus scope(s), and consensus-action.
+func policySignals(f domain.VerifiedFact, policy string) []domain.RoutingSignal {
+	var sig []domain.RoutingSignal
+	switch policy {
+	case PolicyRender:
+		sig = append(sig, domain.SignalPolicyRender)
+	case PolicyGeneral:
+		sig = append(sig, domain.SignalPolicyGeneral)
+	}
+	if f.AutoApproved {
+		sig = append(sig, domain.SignalAutoApproved)
+	}
+	for _, v := range f.Verification {
+		switch v.Consensus {
+		case domain.ConsensusSameModel:
+			sig = appendSignal(sig, domain.SignalConsensusSameModel)
+		case domain.ConsensusCrossModel:
+			sig = appendSignal(sig, domain.SignalConsensusCrossModel)
+		}
+	}
+	if f.ConsensusAction {
+		sig = append(sig, domain.SignalConsensusAction)
+	}
+	return sig
+}
+
+func appendSignal(xs []domain.RoutingSignal, s domain.RoutingSignal) []domain.RoutingSignal {
+	for _, x := range xs {
+		if x == s {
+			return xs
+		}
+	}
+	return append(xs, s)
 }

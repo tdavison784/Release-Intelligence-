@@ -116,6 +116,7 @@ var enums = []enumSet{
 	enumOf(domain.FactActive, domain.FactRetracted, domain.FactSuperseded),
 	enumOf(domain.RenderRelease, domain.RenderEnvironment),
 	enumOf(domain.ConsensusCrossModel, domain.ConsensusSameModel),
+	enumOf(domain.RenderAttributableChange, domain.RenderNoAttributableChange, domain.RenderUnavailable),
 	enumOf(domain.RenderConfirmed, domain.RenderNotVisible, domain.RenderContradicted, domain.RenderNotApplicable),
 	enumOf(domain.RenderVerifiable, domain.RenderPartiallyVerifiable, domain.RenderNotVerifiable),
 	enumOf(domain.RecordCandidate, domain.RecordProposal, domain.RecordValidation, domain.RecordReviewItem, domain.RecordDecision, domain.RecordFact),
@@ -272,6 +273,20 @@ func impactClassRules() []any {
 				o("properties", o("verification", o("const", string(domain.VerifiedConsensus)), "consensusAction", o("const", true)),
 					"required", []string{"consensusAction"}),
 			})))),
+		// PO-3: the values-default verdict rules have fixed classes
+		o("if", ruleIs(o("const", domain.RuleValuesDefaultApplies)),
+			"then", classIs(domain.ImpactReviewRequired)),
+		o("if", ruleIs(o("enum", []any{domain.RuleValuesDefaultNoEffect, domain.RuleValuesDefaultUnrendered})),
+			"then", classIs(domain.ImpactNotAffected)),
+		// PO-4: a refinement comes from a trusted fact, stays affected, and
+		// refinedFrom is carried exactly by impact:knowledge-refined
+		o("if", o("required", []string{"refinedFrom"}),
+			"then", o("allOf", all(
+				ruleIs(o("const", domain.RuleKnowledgeRefined)),
+				classIs(affected...),
+				o("required", []string{"knowledge"}, "properties", o("knowledge", o("properties", o("verification",
+					o("enum", []any{string(domain.VerifiedDeterministic), string(domain.VerifiedHuman)}))))))),
+			"else", ruleIs(o("not", o("const", domain.RuleKnowledgeRefined)))),
 		// knowledge is carried exactly by impact:knowledge-* rules
 		o("if", o("required", []string{"knowledge"}),
 			"then", ruleIs(o("pattern", "^"+domain.KnowledgeRulePrefix)),

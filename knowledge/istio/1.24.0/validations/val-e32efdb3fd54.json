@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e32efdb3fd54",
+    "candidateId": "sc-915466c133be",
+    "proposalId": "sp-d6d851e371ab",
+    "validator": "semvalidate.compat@v1",
+    "assertion": {
+      "subject": {
+        "family": "compatibility-boundary",
+        "product": "istio",
+        "name": "kubernetes-recommended-labels"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "kubernetes",
+              "state": "in-range",
+              "range": ">=1.0.0"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.24.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Istio resources now include standardized Kubernetes recommended labels; label selectors, filters, and monitoring rules that depend on these labels being absent or different may be affected.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 adds the Kubernetes recommended labels app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/part-of, app.kubernetes.io/version, app.kubernetes.io/managed-by, and helm.sh/chart to almost all resources."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "compatibility:row",
+        "detail": "no compatibility row for kubernetes-recommended-labels in either release"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "compatibility:added",
+        "detail": "only a requirement-changed change is decidable from compatibility rows"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

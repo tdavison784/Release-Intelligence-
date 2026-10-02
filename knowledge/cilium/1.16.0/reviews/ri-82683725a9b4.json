@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-82683725a9b4",
+    "candidateId": "sc-c230c4031817",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Cilium Envoy DaemonSet is now enabled by default for new installation if the helm attribute `envoy.enabled` is not specified, for existing cluster, please set…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The Envoy DaemonSet is now enabled by default, adding one Pod per Node; nodes at maximum Pod capacity will experience eviction of a single non-system critical Pod after upgrading.",
+        "remediation": "Set upgradeCompatibility to 1.15 or earlier to retain the previous behavior, or set envoy.enabled explicitly to false to disable the Envoy DaemonSet and prevent the additional Pod per Node.",
+        "severity": "medium"
+      },
+      "statement": "The default value of Helm value envoy.enabled changed from false to null (unset), causing the Envoy DaemonSet to be enabled by default for new installations and existing clusters not explicitly configured to retain the previous behavior."
+    },
+    "proposals": [
+      "sp-58b394e611c6",
+      "sp-a2b050ffd9d3"
+    ],
+    "validations": [
+      "val-537b5190b9da",
+      "val-54243d254cc8",
+      "val-60e1eda72d6e",
+      "val-7f5f6b170061",
+      "val-8c4a8321148e",
+      "val-ab9cf0b34307",
+      "val-bb1d562c28f8",
+      "val-da8d2e33aee9"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:04:50Z"
+  }
+}

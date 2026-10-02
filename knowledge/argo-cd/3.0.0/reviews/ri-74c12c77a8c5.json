@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-74c12c77a8c5",
+    "candidateId": "sc-819834200127",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Ignoring status field from differences by default: By default, the compare options to ignore the status field has been changed from `crd` to `all` resources\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Status field differences are no longer detected by default for all resources; previously only custom resources had status fields ignored by default.",
+        "remediation": "If you rely on detecting status field differences, set ignoreResourceStatusField to 'crd' in the argocd-cm ConfigMap's resource.compareoptions to preserve v2 behavior.",
+        "severity": "medium"
+      },
+      "statement": "By default, Argo CD's compare options to ignore the status field changed from applying to 'crd' (custom resources) to 'all' resource types, meaning status field differences are no longer detected unless explicitly configured."
+    },
+    "proposals": [
+      "sp-46a3340b4677",
+      "sp-52dbf4c6222c"
+    ],
+    "validations": [
+      "val-1ed739bd2306",
+      "val-b4eb2df8906f",
+      "val-baeff066ac73",
+      "val-e75904a16ef3"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:06:12Z"
+  }
+}

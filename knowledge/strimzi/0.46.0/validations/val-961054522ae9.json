@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-961054522ae9",
+    "candidateId": "sc-a64aedeb967c",
+    "proposalId": "sp-96030686583b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "metadata.labels[statefulset.kubernetes.io/pod-name]",
+        "component": "strimzi-kafka-operator"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "strimzi",
+          "path": "metadata.labels[strimzi.io/pod-name]",
+          "component": "strimzi-kafka-operator"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment has custom setups that depend on reading the statefulset.kubernetes.io/pod-name label from Strimzi pods or Services"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Custom setups that depend on the statefulset.kubernetes.io/pod-name label will not find it on Strimzi-managed pods and external listeners Kubernetes Services after the upgrade.",
+        "remediation": "Identify any custom setup leveraging the statefulset.kubernetes.io/pod-name label and update it to use the strimzi.io/pod-name label instead.",
+        "severity": "high"
+      },
+      "statement": "The statefulset.kubernetes.io/pod-name label has been removed from Strimzi-managed pods and external listeners Kubernetes Services; custom setups depending on this label should use strimzi.io/pod-name instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/strimzi-helm/strimzi-kafka-operator:0.45.0: fetch https://quay.io/v2/strimzi-helm/strimzi-kafka-operator/manifests/0.45.0: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://strimzi.io/charts/index.yaml: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/strimzi-helm/strimzi-kafka-operator:0.45.0: fetch https://quay.io/v2/strimzi-helm/strimzi-kafka-operator/manifests/0.45.0: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://strimzi.io/charts/index.yaml: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

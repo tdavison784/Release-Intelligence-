@@ -169,6 +169,31 @@ func (s Subject) Validate() error {
 	return errors.Join(errs...)
 }
 
+// CoversMatch reports whether an environment match of a deterministic join
+// finding lies within this subject — the PO-4 refinement test. Narrow by
+// design: helm-value covers values-key matches at or below Path; crd-field
+// covers manifest-field matches whose path is at or below Path; image covers
+// image matches of exactly its repository. Every other family covers nothing
+// (no deterministic join rule shares its identity).
+func (s Subject) CoversMatch(m ImpactMatch) bool {
+	under := func(p, root string) bool {
+		return p == root || strings.HasPrefix(p, root+".") || strings.HasPrefix(p, root+"[")
+	}
+	switch s.Family {
+	case SubjectHelmValue:
+		return m.Kind == MatchValuesKey && s.Path != "" && under(m.Subject, s.Path)
+	case SubjectCRDField:
+		return m.Kind == MatchManifestField && s.Path != "" && under(m.Subject, s.Path)
+	case SubjectImage:
+		if m.Kind != MatchImage || s.Name == "" {
+			return false
+		}
+		ref := m.Subject
+		return ref == s.Name || strings.HasPrefix(ref, s.Name+":") || strings.HasPrefix(ref, s.Name+"@")
+	}
+	return false
+}
+
 // --- change -------------------------------------------------------------------
 
 // ChangeKind is how a subject changed. (ChangeType is the artifact-delta
@@ -599,13 +624,17 @@ const (
 	ConsequenceWorkloadFailure   ConsequenceKind = "workload-failure"
 	ConsequenceMigrationRequired ConsequenceKind = "migration-required"
 	ConsequenceDeprecation       ConsequenceKind = "deprecation"
-	ConsequenceNone              ConsequenceKind = "none"
+	// ConsequenceSupersededUpstream: removed or changed, but its function is
+	// replaced by an upstream mechanism (PO-4) — review, not action.
+	ConsequenceSupersededUpstream ConsequenceKind = "superseded-upstream"
+	ConsequenceNone               ConsequenceKind = "none"
 )
 
 // ConsequenceKinds lists every kind.
 var ConsequenceKinds = []ConsequenceKind{
 	ConsequenceUpgradeBlocked, ConsequenceResourceRejected, ConsequenceSettingIgnored, ConsequenceBehaviorChange,
-	ConsequencePermissionLost, ConsequenceWorkloadFailure, ConsequenceMigrationRequired, ConsequenceDeprecation, ConsequenceNone,
+	ConsequencePermissionLost, ConsequenceWorkloadFailure, ConsequenceMigrationRequired, ConsequenceDeprecation,
+	ConsequenceSupersededUpstream, ConsequenceNone,
 }
 
 // Valid reports whether k is a known kind.
@@ -641,7 +670,7 @@ func (k ConsequenceKind) ExposedClass() ImpactClass {
 	switch {
 	case k.ActionEligible():
 		return ImpactActionRequired
-	case k == ConsequenceBehaviorChange, k == ConsequenceDeprecation:
+	case k == ConsequenceBehaviorChange, k == ConsequenceDeprecation, k == ConsequenceSupersededUpstream:
 		return ImpactReviewRequired
 	}
 	return ImpactInformational
@@ -1802,12 +1831,22 @@ const (
 	SignalValidationRefuted   RoutingSignal = "validation-refuted"
 	SignalAllUndetermined     RoutingSignal = "all-undetermined"
 	SignalHighImpact          RoutingSignal = "high-impact"
+	// CONTRACT-CHANGE(knowledge): signals recorded on the audit item of an
+	// auto-approved fact, so the auto-approval policies can later be tested
+	// against human outcomes (MISSION G16).
+	SignalAutoApproved        RoutingSignal = "auto-approved"
+	SignalConsensusAction     RoutingSignal = "consensus-action"
+	SignalPolicyRender        RoutingSignal = "policy-render"
+	SignalPolicyGeneral       RoutingSignal = "policy-general"
+	SignalConsensusSameModel  RoutingSignal = "consensus-same-model"
+	SignalConsensusCrossModel RoutingSignal = "consensus-cross-model"
 )
 
 // RoutingSignals lists every signal.
 var RoutingSignals = []RoutingSignal{
 	SignalModelsAgree, SignalModelsDisagree, SignalSingleModel, SignalValidationConfirmed,
 	SignalValidationRefuted, SignalAllUndetermined, SignalHighImpact,
+	SignalAutoApproved, SignalConsensusAction, SignalPolicyRender, SignalPolicyGeneral, SignalConsensusSameModel, SignalConsensusCrossModel,
 }
 
 // Routing records why an item is in the queue and how urgent it is; recorded

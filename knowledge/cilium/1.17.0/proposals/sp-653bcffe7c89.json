@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-653bcffe7c89",
+    "candidateId": "sc-afaa2eebc526",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "wireguard.userspaceFallback"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "wireguard.userspaceFallback",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The wireguard.userspaceFallback setting is no longer honoured; the userspace fallback is gone, so WireGuard encryption requires a Linux kernel with WireGuard support.",
+        "remediation": "Remove wireguard.userspaceFallback from values and ensure nodes run a Linux kernel with WireGuard support.",
+        "severity": "medium"
+      },
+      "statement": "The deprecated Helm value wireguard.userspaceFallback (built-in WireGuard userspace-mode fallback) has been removed; WireGuard transparent encryption now requires a Linux kernel with WireGuard support."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-ffd2c3200e89"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9a871fefc1129c7b68a71b378255233821efff80aa5980ef42591fd1e5b63ad3",
+      "inputEvidence": [
+        "ev-ffd2c3200e89"
+      ],
+      "generatedAt": "2026-10-02T05:54:13Z",
+      "callId": "365afd87-6e60-4686-bb1d-eef7869decd7"
+    }
+  }
+}

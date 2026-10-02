@@ -138,3 +138,43 @@ consensus-by-scope and consensus-action audit fields.
 per-level eval reporting.
 
 **Tests:** `go build`, `go vet` and `go test ./...` pass; goldens unchanged.
+
+---
+
+## contract-4 (branch `p3ll/contract-4`, from `p3-learning-loop` @ de4bf57) — done
+
+PO-3 and PO-4 are recorded in DECISIONS.md (verbatim in substance, from the commander relay).
+
+**PO-3 — unset changed defaults and new keys decided by rendering.**
+- `ImpactCheck.Render{outcome attributable-change|no-attributable-change|unavailable, key,
+  counterfactual, reason}`, set exactly on `render`-dimension checks.
+- Three rule constants in domain:
+  - `impact:values-default-applies`: review-required, needs a rendered-change match with
+    environment-render evidence;
+  - `impact:values-default-no-effect`: not-affected, needs a no-attributable-change check citing
+    environment-render evidence;
+  - `impact:values-default-unrendered`: not-affected, needs a visible unavailable check with a reason.
+- Enforced by `Validate()` and the schema. The render and applicability lanes implement the emission.
+- **Goldens:** these rules do not exist in the engine yet, so nothing changes until those lanes
+  switch `values-unset` for default-changed/added keys over to them. That switch will change goldens
+  and eval cells (TRUSTFIX §5 blast radius); it is theirs to state.
+
+**PO-4 — superseded-upstream and narrow refinement.**
+- `ConsequenceSupersededUpstream` (review-required, not action-eligible), with a semantic vocabulary
+  entry.
+- `RuleKnowledgeRefined`, `ImpactFinding.RefinedFrom`, `KnowledgeRef.Subject`, `Subject.CoversMatch`.
+- `validateRefinements` rules: trusted facts only; affected → affected and never not-affected or
+  unknown; the class must change; the original must be deterministic and must be replaced; every
+  match lies within the fact's subject.
+- Adversarial tests cover: proxy refining, consensus-action refining, refining to not-affected or
+  unknown, a sibling-key mismatch, a wrong family, the original kept, and refinedFrom without its rule
+  (and the reverse).
+
+**Edits outside ownership (marked `CONTRACT-CHANGE(contract-4)`):**
+- `internal/semantic/vocabulary.go`: one consequence entry, which the vocabulary test requires.
+- `internal/domain/impact.go` knowledge rule allow-list (added by the applicability lane): the refined
+  rule.
+
+**Docs:** DESIGN §1.4 and §4; ACTION_CLASSIFICATION §5 and §8; IMPACT.md values table.
+
+**Tests:** `go build`, `go vet` and `go test ./...` pass; goldens unchanged.
