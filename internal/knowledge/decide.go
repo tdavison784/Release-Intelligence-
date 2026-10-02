@@ -343,6 +343,7 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 		now := d.DecidedAt
 		for _, it := range buildItems(*cand, ps, vs, state, now) {
 			if prev, exists := items[it.ID]; !exists || prev.Status == domain.ReviewSuperseded {
+				it.Context = item.Context // the same reviewer session saw the same environment
 				out.FollowUps = append(out.FollowUps, it)
 			}
 		}

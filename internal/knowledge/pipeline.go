@@ -2,7 +2,9 @@ package knowledge
 
 import (
 	"context"
+	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
@@ -30,6 +32,12 @@ type RouteOptions struct {
 	// facts with an action-eligible consequence are always audited (PO-2: 100%),
 	// whatever this is set to.
 	AuditEvery int
+	// Environment, when set, is recorded as ReviewItem.Context on every review
+	// item this call CREATES: the environment illustration the reviewer will be
+	// shown. Label is the eval case id (the directory name under eval/cases)
+	// and nothing else — the eval's transfer subset compares it for equality.
+	// nil (the default) leaves Context absent: items are environment-free.
+	Environment *domain.EnvironmentContext
 	// Now stamps the audit items (zero: the fact's creation time).
 	Now func() time.Time
 }
@@ -39,6 +47,9 @@ type RouteOptions struct {
 // resulting review items and auto-verified facts. It is idempotent: records
 // that exist are never rewritten, so a decided item keeps its status.
 func RouteStore(ctx context.Context, s Store, opts RouteOptions, q Query) (*RouteSummary, error) {
+	if err := ValidateEnvironment(opts.Environment); err != nil {
+		return nil, err
+	}
 	q.Kinds = nil
 	snap, err := s.Load(ctx, q)
 	if err != nil {
@@ -122,6 +133,10 @@ func RouteStore(ctx context.Context, s Store, opts RouteOptions, q Query) (*Rout
 			}
 		}
 		for _, it := range res.ReviewItems {
+			if opts.Environment != nil {
+				env := *opts.Environment
+				it.Context = &env
+			}
 			if _, ok := items[it.ID]; ok {
 				sum.Existing++
 				continue
@@ -157,4 +172,18 @@ func SampledForAudit(factID string, every int) bool {
 // consensus (not a person) is what would stand behind mandatory work (PO-2).
 func AuditRequired(f domain.VerifiedFact) bool {
 	return f.ConsensusAction || (f.AutoApproved && f.Assertion.Consequence != nil && f.Assertion.Consequence.Kind.ActionEligible())
+}
+
+// ValidateEnvironment checks an environment illustration: nil is fine
+// (environment-free); otherwise the label is required and must be a bare eval
+// case id (no spaces or path separators), because the eval compares
+// ReviewItem.Context.Label with the case id for equality.
+func ValidateEnvironment(e *domain.EnvironmentContext) error {
+	if e == nil {
+		return nil
+	}
+	if e.Label == "" || e.Label != strings.TrimSpace(e.Label) || strings.ContainsAny(e.Label, " \t\n/\\") {
+		return fmt.Errorf("knowledge: environment label %q must be an eval case id (no spaces or path separators)", e.Label)
+	}
+	return nil
 }
