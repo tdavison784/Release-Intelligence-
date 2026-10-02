@@ -188,7 +188,7 @@ var opDocs = []opDoc{
 func renderVocabulary(b *strings.Builder, aspects []domain.Aspect) {
 	has := func(a domain.Aspect) bool { return containsAspect(aspects, a) }
 	if has(domain.AspectSubject) || has(domain.AspectChange) {
-		b.WriteString("\nSUBJECT FAMILIES (set exactly the identity fields listed; optional fields in (+…) only when the text makes them part of\nthe change's identity — two answers naming the same thing must spell it identically; the product is implied):\n")
+		b.WriteString(subjectGuide)
 		for _, d := range familyDocs {
 			fmt.Fprintf(b, "- %s: %s. Fields: %s. Example: %s", d.Family, d.Meaning, d.Fields, subjectJSON(d.Example))
 			if d.Example2 != "" {
@@ -231,6 +231,18 @@ func subjectJSON(s domain.Subject) string {
 	out, _ := jsonCompact(m)
 	return out
 }
+
+const subjectGuide = `
+SUBJECT FAMILIES. Two answers naming the same thing must spell it identically, so:
+- set exactly the identity fields a family lists; the optional ones in (+…) ONLY when the text makes them
+  part of the identity: component only when the text names a specific component/binary/chart of the product
+  that owns the subject (never the product's own name); a crd-field's version only when the change is
+  specific to one API version;
+- copy names from the text or the ARTIFACT CONTEXT exactly (case, punctuation, list markers);
+- free-form names (protocol-behavior, migration, api-endpoint): lowercase kebab-case built only from the
+  evidence's own key words, as short as stays unambiguous ("http01-ingress-pathtype");
+- the product is implied (the candidate's product); never put it in a field.
+`
 
 const applicabilityGuide = `
 APPLICABILITY: a condition tree over a customer's environment, evaluated later by a deterministic engine

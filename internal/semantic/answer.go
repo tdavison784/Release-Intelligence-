@@ -379,6 +379,11 @@ func assertAspect(as *domain.SemanticAssertion, x domain.Aspect, aa *AspectAnswe
 }
 
 func subjectOf(s SubjectIdentity, product domain.ProductID) domain.Subject {
+	// the product is implied: a component that only repeats it carries no
+	// identity (deterministic normalisation, so spelling never splits agreement)
+	if strings.EqualFold(strings.TrimSpace(s.Component), string(product)) {
+		s.Component = ""
+	}
 	return domain.Subject{
 		Family: domain.SubjectFamily(s.Family), Product: product,
 		Group: strings.TrimSpace(s.Group), Version: strings.TrimSpace(s.Version), Kind: strings.TrimSpace(s.Kind),
