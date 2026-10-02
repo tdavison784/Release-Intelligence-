@@ -26,7 +26,9 @@ type RouteOptions struct {
 	// AuditEvery samples one in N auto-approved facts into human review
 	// (a fact-review item), for the auto-approval agreement measurement
 	// (RENDER-MISSION R19). The sample is a deterministic function of the fact
-	// id. 0 disables sampling; 1 audits every auto-approved fact.
+	// id. 0 disables sampling; 1 audits every auto-approved fact. Auto-approved
+	// facts with an action-eligible consequence are always audited (PO-2: 100%),
+	// whatever this is set to.
 	AuditEvery int
 	// Now stamps the audit items (zero: the fact's creation time).
 	Now func() time.Time
@@ -106,7 +108,7 @@ func RouteStore(ctx context.Context, s Store, opts RouteOptions, q Query) (*Rout
 				sum.Facts++
 				sum.Autoverified = append(sum.Autoverified, res.Fact.ID)
 				sum.ByRoute[domain.RouteAutoVerify]++
-				if res.Fact.AutoApproved && SampledForAudit(res.Fact.ID, opts.AuditEvery) {
+				if AuditRequired(*res.Fact) || (res.Fact.AutoApproved && SampledForAudit(res.Fact.ID, opts.AuditEvery)) {
 					at := res.Fact.CreatedAt
 					if opts.Now != nil {
 						at = opts.Now()
@@ -148,4 +150,11 @@ func SampledForAudit(factID string, every int) bool {
 	h := domain.ShortHash("audit", factID)
 	n, err := strconv.ParseUint(h[:8], 16, 64)
 	return err == nil && n%uint64(every) == 0
+}
+
+// AuditRequired reports whether an auto-approved fact must go to human review
+// regardless of the sampling rate: its consequence is action-eligible, so
+// consensus (not a person) is what would stand behind mandatory work (PO-2).
+func AuditRequired(f domain.VerifiedFact) bool {
+	return f.ConsensusAction || (f.AutoApproved && f.Assertion.Consequence != nil && f.Assertion.Consequence.Kind.ActionEligible())
 }

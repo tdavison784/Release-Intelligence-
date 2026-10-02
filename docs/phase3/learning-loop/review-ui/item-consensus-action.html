@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ri-9cdea0ac1732 · Release Intelligence review</title>
+<title>ri-d1f6b449f374 · Release Intelligence review</title>
 <script>try{var t=localStorage.getItem("ri-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <style>/* Review UI — hand-written, no build step. Design tokens first. */
 :root {
@@ -182,7 +182,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
     <button class="btn ghost" type="button" id="helpbtn" aria-label="Keyboard shortcuts">?</button>
   </div>
 </header>
-<main class="page item-page" data-id="ri-9cdea0ac1732">
+<main class="page item-page" data-id="ri-d1f6b449f374">
   <p><a class="back" href="/">← Inbox</a></p>
   
   <section class="hero">
@@ -191,50 +191,36 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
       <span class="badge soft">consequence</span>
       <span class="badge prio-high">high priority</span>
       <span class="badge st-accent">pending</span>
-      <code class="id">ri-9cdea0ac1732</code>
+      <code class="id">ri-d1f6b449f374</code>
     </div>
-    <h1 class="question">If a Certificate with rotationPolicy unset does nothing during the upgrade, what happens — and is that review or action?</h1>
-    <p class="muted">The default privateKey.rotationPolicy is now Always</p>
+    <h1 class="question">Audit: two separate model calls agree this is ACTION REQUIRED. Is a Certificate with an RSA key below 2048 bits really rejected, and is that action-eligible?</h1>
+    <p class="muted">RSA keys below 2048 bits are rejected</p>
   </section>
   
-<div class="detail-body" data-id="ri-9cdea0ac1732">
+<div class="detail-body" data-id="ri-d1f6b449f374">
   
   
 
   <section class="panel">
     <h3>Upstream statement</h3>
-    <blockquote class="statement">Upgrading 1.17 → 1.18: rotationPolicy defaults to Always.</blockquote>
+    <blockquote class="statement">Webhook rejects small RSA keys.</blockquote>
     <p class="muted small">cert-manager v1.18.0 · configuration · 1 restating member · grouping single</p>
   </section>
 
   <section class="panel">
-    <h3>Evidence <span class="count">2</span></h3>
+    <h3>Evidence <span class="count">1</span></h3>
     <ul class="evidence">
     
       <li>
         <div class="ev-head">
           <span class="badge soft">document</span>
-          <a href="https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md#L21-L30" target="_blank" rel="noopener noreferrer">https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md</a>
-          <code>L21-L30</code>
+          <a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.18.0" target="_blank" rel="noopener noreferrer">https://github.com/cert-manager/cert-manager/releases/tag/v1.18.0</a>
+          <code>## Breaking changes</code>
         </div>
-        <blockquote class="excerpt">The default value of Certificate.spec.privateKey.rotationPolicy is now Always. Existing Certificates that do not set the field will have their private key rotated on every renewal.</blockquote>
+        <blockquote class="excerpt">Certificates whose private key is RSA smaller than 2048 bits are now rejected by the webhook.</blockquote>
         <div class="muted small">
-          digest sha256:upg11… · retrieved 2026-10-01 09:00 UTC
-           · cited by claude-opus-5-5, claude-sonnet-5-5, glm-5.3-flash
-          
-        </div>
-      </li>
-    
-      <li>
-        <div class="ev-head">
-          <span class="badge soft">structured</span>
-          <a href="https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/crds/cert-manager.io_certificates.yaml#L612" target="_blank" rel="noopener noreferrer">https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/crds/cert-manager.io_certificates.yaml</a>
-          <code>L612</code>
-        </div>
-        <blockquote class="excerpt">rotationPolicy: description: … Defaults to `Always`.</blockquote>
-        <div class="muted small">
-          digest sha256:crd11… · retrieved 2026-10-01 09:00 UTC
-          
+          digest sha256:rsa11… · retrieved 2026-10-01 09:00 UTC
+           · cited by claude-opus-5-5, glm-5.3-flash
           
         </div>
       </li>
@@ -246,118 +232,96 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
     <h3>Proposed assertion <span class="muted small">— what you accept or correct</span></h3>
     
     <dl class="aspects">
-      <dt>subject</dt><dd><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.rotationPolicy</pre></dd><dt>change</dt><dd><pre class="wrap">default-changed: &#34;Never&#34; → &#34;Always&#34;</pre></dd><dt>applicability</dt><dd><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.rotationPolicy` unset
-shielded (overlap) when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.rotationPolicy` set</pre></dd><dt>consequence <span class="badge accent">verifies</span></dt><dd><pre class="wrap">behavior-change → review-required · high
-Private keys are regenerated on every renewal; pinned keys (TLS pinning, HPKP-style allow lists) break.</pre></dd>
+      <dt>subject</dt><dd><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.size</pre></dd><dt>change</dt><dd><pre class="wrap">validation-tightened</pre></dd><dt>applicability</dt><dd><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
+  field `spec.privateKey.algorithm` equals &#34;RSA&#34;
+  field `spec.privateKey.size` equals 1024</pre></dd><dt>consequence <span class="badge accent">verifies</span></dt><dd><pre class="wrap">resource-rejected → action-required · high
+Applying a Certificate with an RSA key below 2048 bits is rejected by the webhook.
+remediation: Raise spec.privateKey.size to 2048 or more.</pre></dd>
     </dl>
     
-    <p class="muted small">Routing: review, high priority · signals <span class="badge soft">models-disagree</span> <span class="badge soft">high-impact</span> <span class="badge soft">validation-confirmed</span> </p>
+    <p class="muted small">Routing: review, high priority · signals <span class="badge soft">models-agree</span> <span class="badge soft">high-impact</span> </p>
   </section>
 
   
   <section class="panel">
     <h3>Proposals by call <span class="muted small">— never merged; same letter = same answer; consensus = two separate calls agree</span></h3>
-    
+    <div class="flash flash-warn consensus-action" role="note"><b>Consensus requests ACTION REQUIRED</b> · cross-model — separate calls agree on an action-eligible consequence and every agreeing call requested action-required. A fact built on this would render as <b>ACTION REQUIRED · model consensus</b> (not “verified”), and every such fact is sampled into human review: this is that review. Consensus never produces NOT AFFECTED.</div>
     <div class="scroll">
     <table class="matrix">
-      <thead><tr><th>Aspect</th><th>Proposed</th><th><b>claude-opus-5-5</b><br><span class="muted small">anthropic · medium</span><br><span class="muted small mono" title="separate stateless call">call-claude-opus-5-5-001</span><br><span class="badge req-review-required" title="the class this call suggested or requested">review-required</span></th><th><b>claude-sonnet-5-5</b><br><span class="muted small">anthropic · medium</span><br><span class="muted small mono" title="separate stateless call">call-claude-sonnet-5-5-002</span><br><span class="badge req-review-required" title="the class this call suggested or requested">review-required</span></th><th><b>glm-5.3-flash</b><br><span class="muted small">zai · low</span><br><span class="muted small mono" title="separate stateless call">call-glm-5.3-flash-003</span><br><span class="badge req-review-required" title="the class this call suggested or requested">review-required</span></th></tr></thead>
+      <thead><tr><th>Aspect</th><th>Proposed</th><th><b>claude-opus-5-5</b><br><span class="muted small">anthropic · medium</span><br><span class="muted small mono" title="separate stateless call">call-claude-opus-5-5-012</span><br><span class="badge req-action-required" title="the class this call suggested or requested">requests action-required</span></th><th><b>glm-5.3-flash</b><br><span class="muted small">zai · medium</span><br><span class="muted small mono" title="separate stateless call">call-glm-5.3-flash-013</span><br><span class="badge req-action-required" title="the class this call suggested or requested">requests action-required</span></th></tr></thead>
       <tbody>
       
         <tr class="m-agree">
-          <th scope="row">subject<div class="agree-chip agree-agree">consensus · cross-model · 3 calls</div></th>
-          <td><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.rotationPolicy</pre></td>
+          <th scope="row">subject<div class="agree-chip agree-agree">consensus · cross-model · 2 calls</div></th>
+          <td><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.size</pre></td>
           
             <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.rotationPolicy</pre>
+              <span class="grp">A</span><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.size</pre>
               
             </td>
           
             <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.rotationPolicy</pre>
-              
-            </td>
-          
-            <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.rotationPolicy</pre>
+              <span class="grp">A</span><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.size</pre>
               
             </td>
           
         </tr>
       
         <tr class="m-agree">
-          <th scope="row">change<div class="agree-chip agree-agree">consensus · cross-model · 3 calls</div></th>
-          <td><pre class="wrap">default-changed: &#34;Never&#34; → &#34;Always&#34;</pre></td>
+          <th scope="row">change<div class="agree-chip agree-agree">consensus · cross-model · 2 calls</div></th>
+          <td><pre class="wrap">validation-tightened</pre></td>
           
             <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">default-changed: &#34;Never&#34; → &#34;Always&#34;</pre>
+              <span class="grp">A</span><pre class="wrap">validation-tightened</pre>
               
             </td>
           
             <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">default-changed: &#34;Never&#34; → &#34;Always&#34;</pre>
-              
-            </td>
-          
-            <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">default-changed: &#34;Never&#34; → &#34;Always&#34;</pre>
+              <span class="grp">A</span><pre class="wrap">validation-tightened</pre>
               
             </td>
           
         </tr>
       
-        <tr class="m-disagree">
-          <th scope="row">applicability<div class="agree-chip agree-disagree">disagree · 2 variants</div><div class="legend small muted"><b>A</b> single call</div><div class="legend small muted"><b>B</b> same-model consensus · 2 calls</div></th>
+        <tr class="m-agree">
+          <th scope="row">applicability<div class="agree-chip agree-agree">consensus · cross-model · 2 calls</div></th>
           <td><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.rotationPolicy` unset
-shielded (overlap) when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.rotationPolicy` set</pre></td>
+  field `spec.privateKey.algorithm` equals &#34;RSA&#34;
+  field `spec.privateKey.size` equals 1024</pre></td>
           
-            <td class="g g-B as-proposed">
-              <span class="grp">B</span><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.rotationPolicy` unset
-shielded (overlap) when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.rotationPolicy` set</pre>
-              
-            </td>
-          
-            <td class="g g-B as-proposed">
-              <span class="grp">B</span><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.rotationPolicy` unset
-shielded (overlap) when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.rotationPolicy` set</pre>
-              
-            </td>
-          
-            <td class="g g-A">
+            <td class="g g-A as-proposed">
               <span class="grp">A</span><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.rotationPolicy` unset</pre>
+  field `spec.privateKey.algorithm` equals &#34;RSA&#34;
+  field `spec.privateKey.size` equals 1024</pre>
+              
+            </td>
+          
+            <td class="g g-A as-proposed">
+              <span class="grp">A</span><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
+  field `spec.privateKey.algorithm` equals &#34;RSA&#34;
+  field `spec.privateKey.size` equals 1024</pre>
               
             </td>
           
         </tr>
       
-        <tr class="m-disagree">
-          <th scope="row">consequence<div class="agree-chip agree-disagree">disagree · 3 variants</div><div class="legend small muted"><b>A</b> single call</div><div class="legend small muted"><b>B</b> single call</div><div class="legend small muted"><b>C</b> single call</div></th>
-          <td><pre class="wrap">behavior-change → review-required · high
-Private keys are regenerated on every renewal; pinned keys (TLS pinning, HPKP-style allow lists) break.</pre></td>
+        <tr class="m-agree">
+          <th scope="row">consequence<div class="agree-chip agree-agree">consensus · cross-model · 2 calls</div></th>
+          <td><pre class="wrap">resource-rejected → action-required · high
+Applying a Certificate with an RSA key below 2048 bits is rejected by the webhook.
+remediation: Raise spec.privateKey.size to 2048 or more.</pre></td>
           
-            <td class="g g-B as-proposed">
-              <span class="grp">B</span><pre class="wrap">behavior-change → review-required · high
-Private keys are regenerated on every renewal; pinned keys (TLS pinning, HPKP-style allow lists) break.</pre>
+            <td class="g g-A as-proposed">
+              <span class="grp">A</span><pre class="wrap">resource-rejected → action-required · high
+Applying a Certificate with an RSA key below 2048 bits is rejected by the webhook.
+remediation: Raise spec.privateKey.size to 2048 or more.</pre>
               
             </td>
           
-            <td class="g g-C">
-              <span class="grp">C</span><pre class="wrap">workload-failure → action-required · critical
-Pinned keys stop matching after renewal and clients refuse the certificate.</pre>
-              
-            </td>
-          
-            <td class="g g-A">
-              <span class="grp">A</span><pre class="wrap">behavior-change → review-required · medium
-Keys rotate on renewal.</pre>
+            <td class="g g-A as-proposed">
+              <span class="grp">A</span><pre class="wrap">resource-rejected → action-required · high
+Applying a Certificate with an RSA key below 2048 bits is rejected by the webhook.
+remediation: Raise spec.privateKey.size to 2048 or more.</pre>
               
             </td>
           
@@ -372,24 +336,11 @@ Keys rotate on renewal.</pre>
   
 
   <section class="panel">
-    <h3>Validation results <span class="count">1</span></h3>
-    
-    
-      <div class="val">
-        <div class="val-head"><code>semvalidate.crd@v1</code> <span class="muted small">checked claude-opus-5-5's assertion</span></div>
-        <table class="checks"><tbody>
-        <tr><th>subject</th><td><span class="badge out-confirmed">confirmed</span></td><td><code>crd-schema:field</code></td><td>Certificate.spec.privateKey.rotationPolicy exists in v1.18.0 CRD</td></tr><tr><th>change</th><td><span class="badge out-confirmed">confirmed</span></td><td><code>crd-schema:default</code></td><td>default Never (v1.17.4) → Always (v1.18.0)</td></tr><tr><th>applicability</th><td><span class="badge out-inconclusive">inconclusive</span></td><td><code>canonical:crd-field/default-changed</code></td><td>stated condition differs from the canonical one (overlap branch)</td></tr>
-        </tbody></table>
-      </div>
+    <h3>Validation results <span class="count">0</span></h3>
+    <p class="muted">No deterministic validator produced a result for this item.</p>
     
   </section>
 
-  
-  <section class="panel env">
-    <h3>Environment context <span class="badge warn">illustration only</span></h3>
-    <p>illustration: platform-prod (values digest 41c9) <code>sha256:41c9</code></p>
-    <p class="muted small">Recorded with your decision so transfer can be measured. Knowledge stays release-level: the fact will not name this environment.</p>
-  </section>
   
 
   <section class="panel">
@@ -401,11 +352,11 @@ Keys rotate on renewal.</pre>
     </ul>
   </section>
 
-  <section class="panel decide" id="decide-ri-9cdea0ac1732">
+  <section class="panel decide" id="decide-ri-d1f6b449f374">
     <h3>Decide <span class="muted small">— recorded as a human decision</span></h3>
     
-    <form class="actions" method="post" action="/items/ri-9cdea0ac1732/decision" data-item="ri-9cdea0ac1732">
-      <input type="hidden" name="started" value="2026-10-02T03:35:47.013651Z">
+    <form class="actions" method="post" action="/items/ri-d1f6b449f374/decision" data-item="ri-d1f6b449f374">
+      <input type="hidden" name="started" value="2026-10-02T03:35:47.015015Z">
       <input type="hidden" name="return" value="/">
       <div class="row">
         <label class="reviewer">Reviewer <input type="text" name="reviewer" value="" required placeholder="your name"></label>
@@ -432,9 +383,9 @@ Keys rotate on renewal.</pre>
     </form>
 
     
-    <form class="correct" method="post" action="/items/ri-9cdea0ac1732/decision" id="correct-ri-9cdea0ac1732" hidden>
+    <form class="correct" method="post" action="/items/ri-d1f6b449f374/decision" id="correct-ri-d1f6b449f374" hidden>
       <input type="hidden" name="action" value="correct">
-      <input type="hidden" name="started" value="2026-10-02T03:35:47.013651Z">
+      <input type="hidden" name="started" value="2026-10-02T03:35:47.015015Z">
       <input type="hidden" name="return" value="/">
       <h4>Correct the assertion <span class="muted small">— pre-filled with the proposal; the original is kept in the decision</span></h4>
       <div class="row">
@@ -447,14 +398,14 @@ Keys rotate on renewal.</pre>
         <label>Group <input name="c_subject_group" value="cert-manager.io"></label>
         <label>Version <input name="c_subject_version" value=""></label>
         <label>Kind <input name="c_subject_kind" value="Certificate"></label>
-        <label>Path <input name="c_subject_path" value="spec.privateKey.rotationPolicy"></label>
+        <label>Path <input name="c_subject_path" value="spec.privateKey.size"></label>
         <label>Name <input name="c_subject_name" value=""></label>
         <label>Component <input name="c_subject_component" value=""></label>
       </div></fieldset>
       <fieldset><legend>Change</legend><div class="grid">
-        <label>Type <select name="c_change_type"><option >added</option><option >removed</option><option >renamed</option><option selected>default-changed</option><option >value-changed</option><option >behavior-changed</option><option >deprecated</option><option >now-required</option><option >validation-tightened</option><option >requirement-changed</option><option >migration-required</option></select></label>
-        <label>Before <span class="muted small">(JSON scalar, e.g. "Never")</span> <input name="c_change_before" value="&#34;Never&#34;"></label>
-        <label>After <input name="c_change_after" value="&#34;Always&#34;"></label>
+        <label>Type <select name="c_change_type"><option >added</option><option >removed</option><option >renamed</option><option >default-changed</option><option >value-changed</option><option >behavior-changed</option><option >deprecated</option><option >now-required</option><option selected>validation-tightened</option><option >requirement-changed</option><option >migration-required</option></select></label>
+        <label>Before <span class="muted small">(JSON scalar, e.g. "Never")</span> <input name="c_change_before" value=""></label>
+        <label>After <input name="c_change_after" value=""></label>
       </div>
       <label>Replaced by <span class="muted small">(subject JSON, renamed / deprecated / removed only)</span><textarea name="c_change_replacedby" rows="3" class="mono"></textarea></label></fieldset>
       <fieldset><legend>Applicability</legend>
@@ -463,33 +414,33 @@ Keys rotate on renewal.</pre>
   &#34;of&#34;: [
     {
       &#34;op&#34;: &#34;field&#34;,
-      &#34;path&#34;: &#34;spec.privateKey.rotationPolicy&#34;,
-      &#34;state&#34;: &#34;unset&#34;
+      &#34;path&#34;: &#34;spec.privateKey.algorithm&#34;,
+      &#34;state&#34;: &#34;equals&#34;,
+      &#34;values&#34;: [
+        &#34;\&#34;RSA\&#34;&#34;
+      ]
+    },
+    {
+      &#34;op&#34;: &#34;field&#34;,
+      &#34;path&#34;: &#34;spec.privateKey.size&#34;,
+      &#34;state&#34;: &#34;equals&#34;,
+      &#34;values&#34;: [
+        &#34;1024&#34;
+      ]
     }
   ],
   &#34;group&#34;: &#34;cert-manager.io&#34;,
   &#34;kind&#34;: &#34;Certificate&#34;
 }</textarea></label>
-        <label>Overlap condition <span class="muted small">(optional; shielded state)</span><textarea name="c_app_overlap" rows="5" class="mono">{
-  &#34;op&#34;: &#34;resource&#34;,
-  &#34;of&#34;: [
-    {
-      &#34;op&#34;: &#34;field&#34;,
-      &#34;path&#34;: &#34;spec.privateKey.rotationPolicy&#34;,
-      &#34;state&#34;: &#34;set&#34;
-    }
-  ],
-  &#34;group&#34;: &#34;cert-manager.io&#34;,
-  &#34;kind&#34;: &#34;Certificate&#34;
-}</textarea></label></fieldset>
+        <label>Overlap condition <span class="muted small">(optional; shielded state)</span><textarea name="c_app_overlap" rows="5" class="mono"></textarea></label></fieldset>
       <fieldset><legend>Consequence</legend><div class="grid">
-        <label>Kind <select name="c_cons_kind" class="kind"><option value="upgrade-blocked" data-class="action-required" >upgrade-blocked</option><option value="resource-rejected" data-class="action-required" >resource-rejected</option><option value="setting-ignored" data-class="action-required" >setting-ignored</option><option value="behavior-change" data-class="review-required" selected>behavior-change</option><option value="permission-lost" data-class="action-required" >permission-lost</option><option value="workload-failure" data-class="action-required" >workload-failure</option><option value="migration-required" data-class="action-required" >migration-required</option><option value="deprecation" data-class="review-required" >deprecation</option><option value="none" data-class="informational" >none</option></select></label>
+        <label>Kind <select name="c_cons_kind" class="kind"><option value="upgrade-blocked" data-class="action-required" >upgrade-blocked</option><option value="resource-rejected" data-class="action-required" selected>resource-rejected</option><option value="setting-ignored" data-class="action-required" >setting-ignored</option><option value="behavior-change" data-class="review-required" >behavior-change</option><option value="permission-lost" data-class="action-required" >permission-lost</option><option value="workload-failure" data-class="action-required" >workload-failure</option><option value="migration-required" data-class="action-required" >migration-required</option><option value="deprecation" data-class="review-required" >deprecation</option><option value="none" data-class="informational" >none</option></select></label>
         <label>Severity <select name="c_cons_severity"><option value="">—</option><option >critical</option><option selected>high</option><option >medium</option><option >low</option></select></label>
-        <div class="classbox">Class that follows: <b class="class-out">review-required</b><div class="muted small">the class follows the kind; the trust ladder may still cap it</div></div>
+        <div class="classbox">Class that follows: <b class="class-out">action-required</b><div class="muted small">the class follows the kind; the trust ladder may still cap it</div></div>
       </div>
-      <label>Statement <span class="muted small">(what exactly fails if nothing is done)</span><textarea name="c_cons_statement" rows="2">Private keys are regenerated on every renewal; pinned keys (TLS pinning, HPKP-style allow lists) break.</textarea></label>
-      <label>Remediation <textarea name="c_cons_remediation" rows="2"></textarea></label></fieldset>
-      <label>Assertion statement <span class="muted small">(prose; never compared)</span><input name="c_statement" value="Certificate.spec.privateKey.rotationPolicy default Never → Always"></label>
+      <label>Statement <span class="muted small">(what exactly fails if nothing is done)</span><textarea name="c_cons_statement" rows="2">Applying a Certificate with an RSA key below 2048 bits is rejected by the webhook.</textarea></label>
+      <label>Remediation <textarea name="c_cons_remediation" rows="2">Raise spec.privateKey.size to 2048 or more.</textarea></label></fieldset>
+      <label>Assertion statement <span class="muted small">(prose; never compared)</span><input name="c_statement" value="Certificate.spec.privateKey.size below 2048 (RSA) is rejected"></label>
       <p class="muted small">Labels: <code>corrected</code> plus a <code>wrong-*</code> label per changed aspect (set automatically unless you tick labels in the form above).</p>
       <button class="btn ok" type="submit">Record correction</button>
     </form>

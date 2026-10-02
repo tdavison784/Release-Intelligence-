@@ -251,8 +251,13 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 	v := inboxView{
 		Filter: form, Counts: in.Counts, Tiles: tiles(in.Counts), Flashes: s.takeFlashes(ss),
 		Reviewer: reviewer, Started: s.opts.Now().UTC().Format(time.RFC3339Nano),
-		Return: r.URL.RequestURI(), Total: len(in.Items),
+		Return: r.URL.RequestURI(), Total: len(in.Items), Matches: in.Matches,
 		Enums: enums(),
+	}
+	// a Queue implementor that ignores Matches (zero) must not make the page
+	// claim truncation
+	if v.Matches < v.Total {
+		v.Matches = v.Total
 	}
 	for _, row := range in.Items {
 		v.Rows = append(v.Rows, newRowView(row, r.URL.RequestURI()))

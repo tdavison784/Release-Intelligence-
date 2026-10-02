@@ -57,7 +57,7 @@ func TestRouteTable(t *testing.T) {
 			t.Fatalf("signals = %v", it.Routing.Signals)
 		}
 	})
-	t.Run("same model twice is not two models", func(t *testing.T) {
+	t.Run("one call answering twice is not two calls", func(t *testing.T) {
 		p1 := proposal(c, "zai", "glm", behavior)
 		p2 := proposal(c, "zai", "glm", behavior)
 		p2.Provenance.PromptDigest = "sha256:other"
@@ -65,6 +65,13 @@ func TestRouteTable(t *testing.T) {
 		r := Route(c, []domain.SemanticProposal{p1, p2}, nil)
 		if hasSig(r.ReviewItems[0], domain.SignalModelsAgree) {
 			t.Fatal("one model agreeing with itself counted as agreement")
+		}
+	})
+	t.Run("two separate calls of one model agree (PO-1)", func(t *testing.T) {
+		p := proposal(c, "zai", "glm", behavior)
+		r := Route(c, []domain.SemanticProposal{call(p, "call-a", ""), call(p, "call-b", "")}, nil)
+		if !hasSig(r.ReviewItems[0], domain.SignalModelsAgree) || hasSig(r.ReviewItems[0], domain.SignalSingleModel) {
+			t.Fatalf("signals = %v", r.ReviewItems[0].Routing.Signals)
 		}
 	})
 	t.Run("everyone abstains = missing-evidence", func(t *testing.T) {

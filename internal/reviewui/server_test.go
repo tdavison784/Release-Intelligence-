@@ -3,6 +3,7 @@ package reviewui
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
@@ -157,6 +158,92 @@ func TestInboxCountsAndDefaultFilter(t *testing.T) {
 		"The default privateKey.rotationPolicy is now Always", `class="card"`, `aria-expanded="false"`, "Expand all", "Collapse all", "Select all")
 	// the default view is pending only: decided/deferred/needs-evidence items are not listed
 	lacks(t, body, "Owner-reference flag default flipped", "Default retention changed", "Ambient data plane")
+	// nothing is truncated: no "first N of M" notice, and select-all counts the filter
+	lacks(t, body, `class="truncated"`, "Select all 10 shown")
+	contains(t, body, "in this filter")
+}
+
+func TestInboxSaysWhenTheListIsTruncated(t *testing.T) {
+	q := NewDemoQueue()
+	srv := httptest.NewServer(NewServer(q, Options{Now: func() time.Time { return now }, InboxLimit: 2, Logf: t.Logf}))
+	t.Cleanup(srv.Close)
+	full, err := q.Inbox(context.Background(), knowledge.InboxFilter{Status: []domain.ReviewStatus{domain.ReviewPending}})
+	if err != nil || full.Matches < 3 {
+		t.Fatalf("fixtures: %d pending matches (%v); want ≥3 so the limit actually truncates", full.Matches, err)
+	}
+	resp, err := http.Get(srv.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(resp.Body)
+	body := string(b)
+	if resp.StatusCode != 200 {
+		t.Fatalf("status %d", resp.StatusCode)
+	}
+	// the page must not pretend to be the whole filter: it says how much was
+	// cut, and select-all covers only the two rows shown
+	contains(t, body, fmt.Sprintf("Showing the first 2 of %d matching items", full.Matches), "Select all 2 shown", `class="truncated"`)
+	lacks(t, body, "in this filter")
+	if got := strings.Count(body, `class="card"`); got != 2 {
+		t.Fatalf("cards = %d, want 2", got)
+	}
+}
+
+// bigQueue serves a synthetic inbox of n pending items (the DemoQueue stands in
+// for Item/Decide); it exists to render the inbox at scale.
+type bigQueue struct {
+	*DemoQueue
+	n int
+}
+
+func (b *bigQueue) Inbox(_ context.Context, f knowledge.InboxFilter) (*knowledge.Inbox, error) {
+	in := &knowledge.Inbox{}
+	pending := len(f.Status) == 0 // the UI always sends statuses; default like parseFilter
+	for _, st := range f.Status {
+		pending = pending || st == domain.ReviewPending
+	}
+	if !pending {
+		return in, nil
+	}
+	for i := 0; i < b.n; i++ {
+		it := domain.ReviewItem{ID: fmt.Sprintf("item-scale-%04d", i), Question: "Did the default change?", Product: "cert-manager",
+			Release: "v1.18.0", QuestionType: domain.QuestionSemanticMapping, Status: domain.ReviewPending,
+			Routing:  domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityNormal},
+			Proposed: domain.SemanticAssertion{Statement: "scale"}}
+		in.Items = append(in.Items, knowledge.InboxRow{Item: it, Title: fmt.Sprintf("Scale item %d", i),
+			Models: []string{"claude-opus-5-5"}, Calls: 1})
+		in.Counts.Pending++
+	}
+	in.Matches = len(in.Items)
+	if f.Limit > 0 && len(in.Items) > f.Limit {
+		in.Items = in.Items[:f.Limit]
+	}
+	return in, nil
+}
+
+func TestInboxHandlesHundredsOfItems(t *testing.T) {
+	srv := httptest.NewServer(NewServer(&bigQueue{DemoQueue: NewDemoQueue(), n: 400}, Options{Now: func() time.Time { return now }, Logf: t.Logf}))
+	t.Cleanup(srv.Close)
+	started := time.Now()
+	resp, err := http.Get(srv.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(resp.Body)
+	body := string(b)
+	if resp.StatusCode != 200 {
+		t.Fatalf("status %d", resp.StatusCode)
+	}
+	// the default page is the first 200 of 400 (priority order): every card
+	// renders, the page says what was cut, and the rest stay reachable
+	if got := strings.Count(body, `class="card"`); got != 200 {
+		t.Fatalf("cards = %d, want 200", got)
+	}
+	contains(t, body, "Showing the first 200 of 400 matching items", "Select all 200 shown", `data-id="item-scale-0199"`)
+	lacks(t, body, `data-id="item-scale-0200"`)
+	t.Logf("inbox of 400 rendered in %s", time.Since(started))
 }
 
 func TestInboxFilters(t *testing.T) {
@@ -193,7 +280,7 @@ func TestInboxFilters(t *testing.T) {
 	_, a := r.get("/")
 	_, b := r.get("/?product=argo-cd")
 	for _, body := range []string{a, b} {
-		contains(t, body, "<b>9</b><span>Pending</span>", "<b>1</b><span>Needs more evidence</span>", "<b>1</b><span>Deferred</span>", "<b>2</b><span>Model disagreement</span>")
+		contains(t, body, "<b>10</b><span>Pending</span>", "<b>1</b><span>Needs more evidence</span>", "<b>1</b><span>Deferred</span>", "<b>2</b><span>Model disagreement</span>")
 	}
 }
 
@@ -213,7 +300,7 @@ func TestItemPageShowsEveryG8Element(t *testing.T) {
 		`rel="noopener noreferrer"`, "The default value of Certificate.spec.privateKey.rotationPolicy is now Always",
 		"Proposed assertion", "behavior-change → review-required",
 		"claude-opus-5-5", "claude-sonnet-5-5", "glm-5.3-flash", // per-model proposals side by side
-		"agree-disagree", "disagree · 3 variants", "agree · 3 models",
+		"agree-disagree", "disagree · 3 variants", "consensus · cross-model · 3 calls", "call-claude-opus-5-5-", "single call",
 		"Validation results", "semvalidate.crd@v1", "out-confirmed", "out-inconclusive",
 		"Environment context", "illustration only",
 		"Previous related decisions",
@@ -240,7 +327,7 @@ func TestPerAspectAgreementIsHighlighted(t *testing.T) {
 	_, body := r.get("/items/" + r.id("RBAC default policy"))
 	contains(t, body, "m-disagree", "disagree · 2 variants", "g-A", "g-B", "as-proposed")
 	_, body = r.get("/items/" + r.id("Default of --max-concurrent-challenges"))
-	contains(t, body, "m-agree", "agree · 2 models")
+	contains(t, body, "m-agree", "consensus · cross-model · 2 calls")
 	lacks(t, body, "m-disagree")
 }
 
@@ -497,4 +584,67 @@ type failingQueue struct{ *DemoQueue }
 
 func (failingQueue) Decide(context.Context, []domain.ReviewDecision) ([]knowledge.DecisionOutcome, error) {
 	return nil, errors.New("store unavailable")
+}
+
+// --- PO-1 / PO-2: consensus is separate calls; models may request action-required ---------------
+
+func TestFixtureCallsAreSeparate(t *testing.T) {
+	q := NewDemoQueue()
+	calls := map[string]bool{}
+	for _, p := range q.proposals {
+		if p.Provenance.CallID == "" || calls[p.Provenance.CallID] {
+			t.Errorf("proposal %s: call id %q missing or reused", p.ID, p.Provenance.CallID)
+		}
+		calls[p.Provenance.CallID] = true
+	}
+	// the same-model example: two separate calls of one model
+	id := q.ItemIDByTitle("Default of --txt-prefix")
+	it, _ := q.ItemRecord(id)
+	a, b := q.proposals[it.Proposals[0]], q.proposals[it.Proposals[1]]
+	if a.Provenance.Model != b.Provenance.Model || !domain.SeparateCalls(a, b) {
+		t.Errorf("want two separate calls of one model, got %s/%s", a.Provenance.Model, b.Provenance.Model)
+	}
+}
+
+func TestConsensusScopeIsLabelledPerAspectAndInTheInbox(t *testing.T) {
+	r := newRig(t)
+	_, same := r.get("/items/" + r.id("Default of --txt-prefix"))
+	contains(t, same, "consensus · same-model · 2 calls", "call-claude-opus-5-5-")
+	lacks(t, same, "cross-model")
+	_, cross := r.get("/items/" + r.id("Default of --max-concurrent-challenges"))
+	contains(t, cross, "consensus · cross-model · 2 calls")
+	// disagreeing aspects: each answer group is labelled
+	_, dis := r.get("/items/" + r.id("rotationPolicy"))
+	contains(t, dis, "same-model consensus · 2 calls", "single call") // opus + sonnet share a family; glm is alone
+	// inbox badges
+	_, inbox := r.get("/")
+	contains(t, inbox, "consensus · same-model · 2 calls", "consensus · cross-model · 2 calls", "models disagree")
+	_, all := r.get("/?status=all")
+	contains(t, all, "single call") // an item with one call
+}
+
+func TestRequestedClassAndConsensusActionAreShown(t *testing.T) {
+	r := newRig(t)
+	_, body := r.get("/items/" + r.id("RSA keys below 2048"))
+	contains(t, body, "Consensus requests ACTION REQUIRED", "ACTION REQUIRED · model consensus", "requests action-required",
+		"cross-model", "Consensus never produces NOT AFFECTED", "sampled into human review")
+	// a review-required suggestion is shown, but is no ACTION banner
+	_, rot := r.get("/items/" + r.id("rotationPolicy"))
+	contains(t, rot, "review-required")
+	lacks(t, rot, "Consensus requests ACTION REQUIRED", "requests action-required")
+	_, other := r.get("/items/" + r.id("Default of --max-concurrent-challenges"))
+	lacks(t, other, "Consensus requests ACTION REQUIRED")
+}
+
+func TestConsensusActionItemNeedsAnOpenBeforeBulkAccept(t *testing.T) {
+	r := newRig(t)
+	act := r.id("RSA keys below 2048")
+	ids := append(r.routine()[:2], act)
+	_, body, _ := r.post("/bulk", bulkForm("accept", ids))
+	contains(t, body, "1 blocked", "high priority")
+	r.get("/items/" + act)
+	st, _, _ := r.post("/bulk", bulkForm("accept", ids, "confirm", "1"))
+	if st != 303 {
+		t.Fatal(st)
+	}
 }

@@ -8,7 +8,7 @@ lets a proxy pose as a human.
 ```
 ri review serve -demo                 # fixture items, in-memory (nothing persisted)
 ri review serve -addr 127.0.0.1:8484 -reviewer dana -demo
-ri review serve -knowledge knowledge/ # file-backed queue: arrives with the knowledge lane
+ri review serve -knowledge knowledge/ # the learning loop's file-backed queue (knowledge.NewQueue over NewFileStore)
 ```
 
 Stdlib only (`net/http`, `html/template`, `embed`); hand-written CSS with design tokens and about 200
@@ -29,9 +29,13 @@ Without JavaScript the inbox lists the items, each links to its page, and every 
 ## The inbox
 
 Questions are collapsible cards. Collapsed, a card shows the question, product/release, question type,
-severity, priority, a model-agreement indicator (disagree / agree · N models / single model) and the
+severity, priority, an agreement indicator (models disagree / consensus · cross-model|same-model · N calls / single call) and the
 status. Clicking (or `Enter`) expands it **inline** with the full detail, fetched on demand; *Expand all /
 Collapse all* are in the toolbar. Light and dark themes follow `prefers-color-scheme` with a toggle.
+
+A filter matching more than 200 items shows the first 200 (priority order) with a *Showing the first N of M
+matching items* notice; *Select all* then covers the items shown, so a bulk action never silently skips the
+unseen rest — narrow the filters to reach them.
 
 ## The item (G8), top to bottom
 
@@ -40,9 +44,15 @@ Collapse all* are in the toolbar. Light and dark themes follow `prefers-color-sc
    line anchors), verbatim excerpt, digest, and which models cited it.
 3. **Proposed assertion** (what you accept or correct), aspect by aspect, the ones the question verifies
    marked. Applicability conditions are rendered as a readable tree.
-4. **Proposals by model**, side by side, one row per aspect. Cells that give the same answer carry the same
-   letter; the row says *agree · N models*, *disagree · N variants*, *single model* or *no model committed*;
-   abstentions show their reason. Proposals are never merged.
+4. **Proposals by call**, side by side, one row per aspect (PO-1: a proposal is one separate stateless call; its
+   call id is in the column header). Cells that give the same answer carry the same letter. The row says
+   *consensus · cross-model · N calls* or *consensus · same-model · N calls* (≥ 2 separate calls agree; the scope only labels it, by
+   `domain.ConsensusScopeOf`), *single call*, *disagree · N variants* (with a per-group legend) or *no model committed*; abstentions
+   show their reason. Each column also shows the class the call suggested or **requested** (PO-2; `requests action-required` in red).
+   When separate calls agree on an action-eligible consequence and every agreeing call requested action-required, a banner says
+   **Consensus requests ACTION REQUIRED**: a fact built on it renders as *ACTION REQUIRED · model consensus*, never "verified", and
+   every such fact is sampled into human review — this item is that review. (The UI only reports the request; the other PO-2
+   conditions are the pipeline's.) Proposals are never merged.
 5. **Rendered delta** (only when the item has render evidence): object identity, change class, path, source
    vs target values side by side, renderer + version + chart digests, and the render relation
    (`confirmed-by-render | not-visible-in-render | contradicted-by-render | render-not-applicable`).
@@ -110,3 +120,19 @@ including the refusals (correct without change, proxy kind, missing reviewer, bl
 HTML snapshots with the CSS inlined (open in a browser, no server needed):
 `docs/phase3/learning-loop/review-ui/{inbox,item-disagreement,item-rendered-delta,bulk-confirm}.html`
 (the inbox snapshot is the collapsed list; the cards expand only with the live server's JS).
+
+## Browser verification
+
+The JS behaviour is exercised in real headless Firefox with Selenium (not part of `go test`, which needs no browser):
+
+```
+python3 -m venv /tmp/riv && /tmp/riv/bin/pip install selenium
+ri review serve -demo -addr 127.0.0.1:18485 &
+MOZ_NO_REMOTE=1 /tmp/riv/bin/python docs/phase3/learning-loop/review-ui/e2e_firefox.py http://127.0.0.1:18485 /tmp/shots
+```
+
+`e2e_firefox.py` asserts: expand/collapse (click, Enter), expand/collapse all, select, shift-click range, select-all, the bulk bar,
+the bulk confirmation → record → flash, the bulk-accept guard, inline reject arming (no submit without a reason), `j`/`k`/`Enter`/`x`/`a`/`r`/`c`/`?`
+shortcuts, the live class-follows-kind readout, theme toggle. `shots_firefox.py` captures the item sections. Screenshots (light and dark,
+inbox, expanded card, bulk bar, confirmation, guard, item page, proposals matrix, rendered delta, correct form, narrow window) are in
+`docs/phase3/learning-loop/review-ui/screenshots/`. `MOZ_NO_REMOTE=1` keeps the test Firefox from attaching to a running one.

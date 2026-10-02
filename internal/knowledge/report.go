@@ -33,6 +33,10 @@ func WriteMetricsReport(w io.Writer, m LoopMetrics) {
 	for fam, a := range m.Facts.AutoApprovalAgreementBy {
 		p("    %-24s %s", fam, pct(a))
 	}
+	p("  consensus ACTION: %d facts, %d audited, agreement %s", m.Facts.ConsensusAction, m.Facts.ConsensusActionAudited, pct(m.Facts.ConsensusActionAgreement))
+	for sc, a := range m.Facts.ConsensusAgreementByScope {
+		p("    consensus %-12s audit agreement %s", sc, pct(a))
+	}
 	p("")
 	p("Review: %d items; repeat-pattern rate %s", m.Review.Items, pct(m.Review.RepeatPatternRate))
 	p("  per question: %s", countList(m.Review.ItemsPerQuestion))

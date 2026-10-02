@@ -12,6 +12,12 @@
   <nav class="tiles" aria-label="Inbox counts">
     {{range .Tiles}}<a class="tile {{.Tone}}" href="{{.Href}}" title="{{.Hint}}"><b>{{.Count}}</b><span>{{.Label}}</span></a>{{end}}
   </nav>
+</header>
+
+<main class="page">
+  {{template "flashes" .Flashes}}
+  <details class="filterbox" id="filterbox" {{if .Filter.Active}}open{{end}}>
+    <summary>Filters{{if .Filter.Active}} <span class="badge accent">active</span>{{end}}</summary>
   <form class="filters" method="get" action="/" id="filters">
     <label>Status
       <select name="status">
@@ -39,16 +45,14 @@
     <button class="btn" type="submit">Filter</button>
     {{if .Filter.Active}}<a class="btn ghost" href="/">Reset</a>{{end}}
   </form>
-</header>
-
-<main class="page">
-  {{template "flashes" .Flashes}}
+  </details>
   <div class="toolbar">
-    <label class="check"><input type="checkbox" id="selectall"> Select all {{.Total}} in this filter</label>
+    <label class="check"><input type="checkbox" id="selectall"> Select all {{.Total}}{{if gt .Matches .Total}} shown{{else}} in this filter{{end}}</label>
     <div class="spacer"></div>
     <button class="btn ghost" type="button" id="expandall">Expand all</button>
     <button class="btn ghost" type="button" id="collapseall">Collapse all</button>
   </div>
+  {{if gt .Matches .Total}}<div class="truncated" role="note">Showing the first {{.Total}} of {{.Matches}} matching items, highest priority first — narrow the filters to reach the rest. Bulk actions cover the items shown above.</div>{{end}}
 
   {{if not .Rows}}<div class="empty"><h2>Nothing here</h2><p>No review items match this filter.</p></div>{{end}}
   <ol class="cards" id="cards">
@@ -60,7 +64,7 @@
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
             <span class="title">{{.Row.Title}}</span>
-            <span class="question">{{.Row.Item.Question}}</span>
+            <span class="qtext">{{.Row.Item.Question}}</span>
           </span>
         </button>
         <div class="meta">
@@ -68,7 +72,7 @@
           <span class="badge soft">{{label .Row.Item.QuestionType}}</span>
           {{if .Severity}}<span class="badge sev-{{.Severity}}">{{.Severity}}</span>{{end}}
           <span class="badge prio-{{.Row.Item.Routing.Priority}}">{{.Row.Item.Routing.Priority}} priority</span>
-          <span class="badge agree-{{.Agreement}}" title="{{join ", " .Row.Models}}">{{if eq .Agreement "disagree"}}models disagree{{else if eq .Agreement "agree"}}models agree · {{len .Row.Models}}{{else}}single model{{end}}</span>
+          <span class="badge agree-{{.Agreement}}" title="{{join ", " .Row.Models}} · {{.Row.Calls}} separate call(s)">{{.AgreeText}}</span>
           <span class="badge st-{{statusTone .Row.Item.Status}}">{{label .Row.Item.Status}}</span>
           <a class="open" href="{{.Href}}" title="Open as a page (deep link)">open ↗</a>
         </div>

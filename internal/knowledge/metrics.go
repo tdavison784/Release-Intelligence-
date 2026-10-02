@@ -478,8 +478,12 @@ func auditAutoApproved(s *Snapshot, fm *FactMetrics) {
 		}
 	}
 	famTotal, famAgree := map[domain.SubjectFamily]int{}, map[domain.SubjectFamily]int{}
-	agree := 0
+	scopeTotal, scopeAgree := map[domain.ConsensusScope]int{}, map[domain.ConsensusScope]int{}
+	agree, caAgree := 0, 0
 	for _, f := range s.Facts {
+		if f.ConsensusAction {
+			fm.ConsensusAction++
+		}
 		if !f.AutoApproved {
 			continue
 		}
@@ -487,6 +491,24 @@ func auditAutoApproved(s *Snapshot, fm *FactMetrics) {
 		v, ok := verdict[f.ID]
 		if !ok {
 			continue
+		}
+		if f.ConsensusAction {
+			fm.ConsensusActionAudited++
+			if v == domain.ActionAccept {
+				caAgree++
+			}
+		}
+		scopes := map[domain.ConsensusScope]bool{}
+		for _, av := range f.Verification {
+			if av.Level == domain.VerifiedConsensus && av.Consensus != "" {
+				scopes[av.Consensus] = true
+			}
+		}
+		for sc := range scopes {
+			scopeTotal[sc]++
+			if v == domain.ActionAccept {
+				scopeAgree[sc]++
+			}
 		}
 		fm.AutoApprovedAudited++
 		fam := domain.SubjectFamily("")
@@ -497,6 +519,15 @@ func auditAutoApproved(s *Snapshot, fm *FactMetrics) {
 		if v == domain.ActionAccept {
 			agree++
 			famAgree[fam]++
+		}
+	}
+	if fm.ConsensusActionAudited > 0 {
+		fm.ConsensusActionAgreement = float64(caAgree) / float64(fm.ConsensusActionAudited)
+	}
+	if len(scopeTotal) > 0 {
+		fm.ConsensusAgreementByScope = map[domain.ConsensusScope]float64{}
+		for sc, n := range scopeTotal {
+			fm.ConsensusAgreementByScope[sc] = float64(scopeAgree[sc]) / float64(n)
 		}
 	}
 	if fm.AutoApprovedAudited > 0 {

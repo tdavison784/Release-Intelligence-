@@ -212,6 +212,11 @@ type InboxFilter struct {
 type Inbox struct {
 	Counts InboxCounts
 	Items  []InboxRow
+	// Matches is how many items matched the filter before Limit truncated
+	// Items (== len(Items) when nothing was cut). CONTRACT-CHANGE(dashboard):
+	// the review UI shows "first N of M" so a large inbox is never silently
+	// partial, and select-all is honest about covering only what is shown.
+	Matches int
 }
 
 // InboxCounts are the G7 counters.
@@ -230,6 +235,10 @@ type InboxRow struct {
 	Title        string // candidate title
 	Disagreement bool
 	Models       []string
+	// Calls is the number of separate model calls (distinct provenance call
+	// ids) behind the item's proposals (PO-1: consensus = separate calls).
+	// CONTRACT-CHANGE(dashboard): additive; the review UI labels agreement by it.
+	Calls int
 }
 
 // ReviewContext is everything one review decision needs (G8).

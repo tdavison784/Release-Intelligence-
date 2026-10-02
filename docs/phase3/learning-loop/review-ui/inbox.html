@@ -30,6 +30,7 @@
   --g-A: #7c93ff; --g-B: #fb923c; --g-C: #b794f6; --g-D: #2dd4bf; color-scheme: dark;
 }
 * { box-sizing: border-box; }
+input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
 html { font-size: 15px; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; }
 a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
@@ -43,18 +44,21 @@ h4 { margin: .2rem 0 .8rem; font-size: 1rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
 
-.bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: .6rem 1.25rem; }
+.bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: .55rem max(1.25rem, calc((100vw - 1180px) / 2 + 1.25rem)); }
 .sticky { position: sticky; top: 0; z-index: 20; box-shadow: var(--shadow); }
 .bar-row { display: flex; align-items: center; gap: .75rem; }
 .brand { font-weight: 700; color: var(--text); letter-spacing: -.01em; } .brand span { color: var(--accent); font-weight: 600; }
 .reviewer { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: var(--muted); }
 .reviewer input { width: 12rem; }
-.tiles { display: flex; gap: .6rem; margin: .6rem 0; overflow-x: auto; padding-bottom: 2px; }
-.tile { display: flex; flex-direction: column; min-width: 8.5rem; padding: .45rem .8rem; border: 1px solid var(--border); border-radius: var(--r);
+.tiles { display: flex; gap: .5rem; margin: .5rem 0 .1rem; overflow-x: auto; padding-bottom: 2px; }
+.tile { display: flex; flex-direction: row; align-items: baseline; gap: .5rem; padding: .3rem .75rem; border: 1px solid var(--border); border-radius: var(--r);
   background: var(--surface); color: var(--text); text-decoration: none !important; transition: transform .1s, border-color .1s; }
 .tile:hover { border-color: var(--accent); transform: translateY(-1px); }
-.tile b { font-size: 1.35rem; line-height: 1.1; } .tile span { font-size: .75rem; color: var(--muted); white-space: nowrap; }
+.tile b { font-size: 1.2rem; line-height: 1.1; } .tile span { font-size: .78rem; color: var(--muted); white-space: nowrap; }
 .tile.accent b { color: var(--accent); } .tile.warn b { color: var(--warn); }
+.filterbox { margin: 0 0 .8rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: .5rem .9rem; }
+.filterbox summary { cursor: pointer; font-weight: 600; font-size: .85rem; color: var(--muted); }
+.filterbox .filters { margin-top: .7rem; }
 .filters { display: flex; flex-wrap: wrap; gap: .5rem .75rem; align-items: end; font-size: .78rem; color: var(--muted); }
 .filters label { display: flex; flex-direction: column; gap: .15rem; }
 
@@ -87,7 +91,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .toggle:focus-visible { outline: 2px solid var(--focus); border-radius: 6px; }
 .chev { display: inline-block; transition: transform .18s; color: var(--muted); font-size: 1.2rem; width: 1rem; }
 .card.open .chev { transform: rotate(90deg); }
-.q { display: flex; flex-direction: column; min-width: 0; } .title { font-weight: 650; } .question { color: var(--muted); font-size: .88rem; }
+.q { display: flex; flex-direction: column; min-width: 0; } .title { font-weight: 650; font-size: 1.02rem; } .qtext { color: var(--muted); font-size: .88rem; }
 .meta { grid-column: 2; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
 .open { font-size: .8rem; margin-left: auto; }
 .detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
@@ -105,7 +109,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .badge.rel-contradicted-by-render { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
 .badge.rel-not-visible-in-render { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 
-.hero { margin: .2rem 0 1rem; } .id { font-size: .75rem; }
+.hero { margin: .2rem 0 1rem; } .hero h1.question { font-size: 1.5rem; font-weight: 700; margin: .5rem 0 .3rem; } .id { font-size: .75rem; }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: .9rem 1rem; margin: .7rem 0; }
 .card .panel { box-shadow: none; }
 .detail-body { padding: .3rem 0 .6rem; }
@@ -161,6 +165,11 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
 .loading { padding: 1rem; color: var(--muted); }
 @media (max-width: 760px) { .page { padding: .8rem; } .sbs { grid-template-columns: 1fr; } .aspects { grid-template-columns: 1fr; } .reviewer input { width: 8rem; } .card-head { grid-template-columns: auto 1fr; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+.badge.req-action-required { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.badge.req-review-required { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.legend { text-transform: none; font-weight: 400; } .legend b { color: var(--text); }
+.consensus-action { margin: 0 0 .8rem; }
 </style>
 </head>
 <body>
@@ -176,8 +185,14 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
     <button class="btn ghost" type="button" id="helpbtn" aria-label="Keyboard shortcuts">?</button>
   </div>
   <nav class="tiles" aria-label="Inbox counts">
-    <a class="tile accent" href="/?status=pending" title="open questions"><b>9</b><span>Pending</span></a><a class="tile warn" href="/?disagreement=yes&amp;status=pending" title="proposals disagree on an aspect"><b>2</b><span>Model disagreement</span></a><a class="tile " href="/?question=semantic-mapping&amp;status=pending" title="what changed, exactly?"><b>7</b><span>Needs semantic mapping</span></a><a class="tile " href="/?question=applicability&amp;status=pending" title="who is exposed?"><b>0</b><span>Applicability</span></a><a class="tile " href="/?status=needs-evidence" title="waiting for evidence"><b>1</b><span>Needs more evidence</span></a><a class="tile " href="/?status=deferred" title="parked"><b>1</b><span>Deferred</span></a>
+    <a class="tile accent" href="/?status=pending" title="open questions"><b>10</b><span>Pending</span></a><a class="tile warn" href="/?disagreement=yes&amp;status=pending" title="proposals disagree on an aspect"><b>2</b><span>Model disagreement</span></a><a class="tile " href="/?question=semantic-mapping&amp;status=pending" title="what changed, exactly?"><b>7</b><span>Needs semantic mapping</span></a><a class="tile " href="/?question=applicability&amp;status=pending" title="who is exposed?"><b>0</b><span>Applicability</span></a><a class="tile " href="/?status=needs-evidence" title="waiting for evidence"><b>1</b><span>Needs more evidence</span></a><a class="tile " href="/?status=deferred" title="parked"><b>1</b><span>Deferred</span></a>
   </nav>
+</header>
+
+<main class="page">
+  
+  <details class="filterbox" id="filterbox" >
+    <summary>Filters</summary>
   <form class="filters" method="get" action="/" id="filters">
     <label>Status
       <select name="status">
@@ -205,12 +220,9 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
     <button class="btn" type="submit">Filter</button>
     
   </form>
-</header>
-
-<main class="page">
-  
+  </details>
   <div class="toolbar">
-    <label class="check"><input type="checkbox" id="selectall"> Select all 9 in this filter</label>
+    <label class="check"><input type="checkbox" id="selectall"> Select all 10 in this filter</label>
     <div class="spacer"></div>
     <button class="btn ghost" type="button" id="expandall">Expand all</button>
     <button class="btn ghost" type="button" id="collapseall">Collapse all</button>
@@ -226,7 +238,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
             <span class="title">The default privateKey.rotationPolicy is now Always</span>
-            <span class="question">If a Certificate with rotationPolicy unset does nothing during the upgrade, what happens — and is that review or action?</span>
+            <span class="qtext">If a Certificate with rotationPolicy unset does nothing during the upgrade, what happens — and is that review or action?</span>
           </span>
         </button>
         <div class="meta">
@@ -234,12 +246,35 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">consequence</span>
           <span class="badge sev-high">high</span>
           <span class="badge prio-high">high priority</span>
-          <span class="badge agree-disagree" title="claude-opus-5-5, claude-sonnet-5-5, glm-5.3-flash">models disagree</span>
+          <span class="badge agree-disagree" title="claude-opus-5-5, claude-sonnet-5-5, glm-5.3-flash · 3 separate call(s)">models disagree</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-9cdea0ac1732?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
       </div>
       <div class="detail" id="d-ri-9cdea0ac1732" role="region"><div class="detail-inner"></div></div>
+    </li>
+  
+    <li class="card" data-id="ri-d1f6b449f374" tabindex="-1">
+      <div class="card-head">
+        <input type="checkbox" class="sel" name="item" value="ri-d1f6b449f374" form="bulkform" aria-label="Select ri-d1f6b449f374" >
+        <button type="button" class="toggle" aria-expanded="false" aria-controls="d-ri-d1f6b449f374" data-detail="/items/ri-d1f6b449f374/detail?return=%2F">
+          <span class="chev" aria-hidden="true">›</span>
+          <span class="q">
+            <span class="title">RSA keys below 2048 bits are rejected</span>
+            <span class="qtext">Audit: two separate model calls agree this is ACTION REQUIRED. Is a Certificate with an RSA key below 2048 bits really rejected, and is that action-eligible?</span>
+          </span>
+        </button>
+        <div class="meta">
+          <span class="badge">cert-manager v1.18.0</span>
+          <span class="badge soft">consequence</span>
+          <span class="badge sev-high">high</span>
+          <span class="badge prio-high">high priority</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, glm-5.3-flash · 2 separate call(s)">consensus · cross-model · 2 calls</span>
+          <span class="badge st-accent">pending</span>
+          <a class="open" href="/items/ri-d1f6b449f374?return=%2F" title="Open as a page (deep link)">open ↗</a>
+        </div>
+      </div>
+      <div class="detail" id="d-ri-d1f6b449f374" role="region"><div class="detail-inner"></div></div>
     </li>
   
     <li class="card" data-id="ri-bbf01d9230ed" tabindex="-1">
@@ -249,7 +284,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
             <span class="title">HTTP01 solver needs ingress-nginx &gt;= 1.12</span>
-            <span class="question">Does cert-manager v1.18 require ingress-nginx ≥ 1.12 for HTTP01 — and which environments are exposed?</span>
+            <span class="qtext">Does cert-manager v1.18 require ingress-nginx ≥ 1.12 for HTTP01 — and which environments are exposed?</span>
           </span>
         </button>
         <div class="meta">
@@ -257,7 +292,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">relationship</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5 · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-bbf01d9230ed?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -272,7 +307,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
             <span class="title">RBAC default policy setting moved</span>
-            <span class="question">Is `server.rbac.policy.default` a Helm value, or a key inside the argocd-rbac-cm ConfigMap — and was it renamed?</span>
+            <span class="qtext">Is `server.rbac.policy.default` a Helm value, or a key inside the argocd-rbac-cm ConfigMap — and was it renamed?</span>
           </span>
         </button>
         <div class="meta">
@@ -280,7 +315,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-disagree" title="claude-opus-5-5, claude-sonnet-5-5, glm-5.3-flash">models disagree</span>
+          <span class="badge agree-disagree" title="claude-opus-5-5, claude-sonnet-5-5, glm-5.3-flash · 3 separate call(s)">models disagree</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-a1825d704299?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -295,7 +330,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
             <span class="title">Default of --dns01-recursive-nameservers-only changed</span>
-            <span class="question">Did the default of --dns01-recursive-nameservers-only change from false to true?</span>
+            <span class="qtext">Did the default of --dns01-recursive-nameservers-only change from false to true?</span>
           </span>
         </button>
         <div class="meta">
@@ -303,7 +338,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5 · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-8791ac038acb?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -318,7 +353,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
             <span class="title">Default of --acme-http01-solver-nameservers changed</span>
-            <span class="question">Did the default of --acme-http01-solver-nameservers change from &#34;&#34; to &#34;8.8.8.8:53&#34;?</span>
+            <span class="qtext">Did the default of --acme-http01-solver-nameservers change from &#34;&#34; to &#34;8.8.8.8:53&#34;?</span>
           </span>
         </button>
         <div class="meta">
@@ -326,7 +361,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, glm-5.3-flash · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-e29e3988e040?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -341,7 +376,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
             <span class="title">Default of --max-concurrent-challenges changed</span>
-            <span class="question">Did the default of --max-concurrent-challenges change from 60 to 30?</span>
+            <span class="qtext">Did the default of --max-concurrent-challenges change from 60 to 30?</span>
           </span>
         </button>
         <div class="meta">
@@ -349,7 +384,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, glm-5.3-flash · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-9aba206b43e2?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -364,7 +399,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
             <span class="title">Default of --enable-ssl-passthrough changed</span>
-            <span class="question">Did the default of --enable-ssl-passthrough change from false to true?</span>
+            <span class="qtext">Did the default of --enable-ssl-passthrough change from false to true?</span>
           </span>
         </button>
         <div class="meta">
@@ -372,7 +407,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5 · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-7f40ce1000e1?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -387,7 +422,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
             <span class="title">Default of --default-ssl-certificate changed</span>
-            <span class="question">Did the default of --default-ssl-certificate change from &#34;&#34; to &#34;kube-system/default-tls&#34;?</span>
+            <span class="qtext">Did the default of --default-ssl-certificate change from &#34;&#34; to &#34;kube-system/default-tls&#34;?</span>
           </span>
         </button>
         <div class="meta">
@@ -395,7 +430,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, glm-5.3-flash · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-25372eecd80f?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -410,7 +445,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
             <span class="title">Default of --txt-prefix changed</span>
-            <span class="question">Did the default of --txt-prefix change from &#34;&#34; to &#34;edns-&#34;?</span>
+            <span class="qtext">Did the default of --txt-prefix change from &#34;&#34; to &#34;edns-&#34;?</span>
           </span>
         </button>
         <div class="meta">
@@ -418,7 +453,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5 · 2 separate call(s)">consensus · same-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-ea853dfe5b45?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -430,7 +465,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
 </main>
 
 <form id="bulkform" class="bulkbar" method="post" action="/bulk" hidden>
-  <input type="hidden" name="started" value="2026-10-02T03:22:53.641793Z">
+  <input type="hidden" name="started" value="2026-10-02T03:35:47.011985Z">
   <input type="hidden" name="return" value="/">
   <input type="hidden" name="reviewer" value="" id="bulk-reviewer">
   <div class="bulk-count"><b id="bulkcount">0</b> selected</div>
