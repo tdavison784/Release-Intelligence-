@@ -1,10 +1,13 @@
 package impactenrich
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/env"
 )
 
 func firstApplicability(t *testing.T, f *fixture) Candidate {
@@ -190,5 +193,53 @@ func TestPromptMigrationAndClusterLayout(t *testing.T) {
 	}
 	if !strings.Contains(string(mp.req.JSONSchema), `"steps"`) {
 		t.Error("migration schema lacks the steps array")
+	}
+}
+
+// TestPromptNeverSendsManifestValues: manifest resource facts keep scalar
+// values and embedded text lines for the deterministic engine; none of it —
+// values, ConfigMap lines, secrets, list elements — may reach a prompt.
+func TestPromptNeverSendsManifestValues(t *testing.T) {
+	f := newFixture(t)
+	cand := firstApplicability(t, f)
+	dir := t.TempDir()
+	path := filepath.Join(dir, "m.yaml")
+	if err := os.WriteFile(path, []byte(`apiVersion: v1
+kind: ConfigMap
+metadata: {name: cm}
+data:
+  rbac.csv: |
+    p, role:ops, applications, update, */*, allow
+    g, hunter2-line, role:ops
+---
+apiVersion: v1
+kind: Secret
+metadata: {name: s}
+stringData:
+  password: hunter2-secret-value
+---
+apiVersion: example.io/v1
+kind: Thing
+metadata: {name: t}
+spec:
+  mode: distinctive-mode-value
+  items:
+    - host: distinctive-list-element
+`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	e, err := env.Load(env.Inputs{Manifests: []string{path}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(e.Resources) != 3 {
+		t.Fatalf("resource facts missing: %d", len(e.Resources))
+	}
+	p := buildPrompt(f.report, cand, "", newInputs(f.edge, f.report), e)
+	user := p.req.Messages[0].Content
+	for _, leak := range []string{"hunter2", "distinctive-mode-value", "distinctive-list-element", "role:ops", "applications, update"} {
+		if strings.Contains(user, leak) {
+			t.Errorf("manifest value %q leaked into the prompt", leak)
+		}
 	}
 }
