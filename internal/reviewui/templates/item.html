@@ -1,0 +1,26 @@
+{{template "top" .Item.ID}}
+<header class="bar sticky">
+  <div class="bar-row">
+    <a class="brand" href="/">Release Intelligence <span>review</span></a>
+    <div class="spacer"></div>
+    <button class="btn ghost" type="button" id="theme" aria-label="Toggle light/dark theme">◐</button>
+    <button class="btn ghost" type="button" id="helpbtn" aria-label="Keyboard shortcuts">?</button>
+  </div>
+</header>
+<main class="page item-page" data-id="{{.Item.ID}}">
+  <p><a class="back" href="{{.Return}}">← Inbox</a></p>
+  {{template "flashes" .Flashes}}
+  <section class="hero">
+    <div class="meta">
+      <span class="badge">{{.Item.Product}}{{if .Item.Release}} {{.Item.Release}}{{end}}</span>
+      <span class="badge soft">{{label .Item.QuestionType}}</span>
+      <span class="badge prio-{{.Item.Routing.Priority}}">{{.Item.Routing.Priority}} priority</span>
+      <span class="badge st-{{statusTone .Item.Status}}">{{label .Item.Status}}</span>
+      <code class="id">{{.Item.ID}}</code>
+    </div>
+    <h1 class="question">{{.Item.Question}}</h1>
+    <p class="muted">{{.Candidate.Title}}</p>
+  </section>
+  {{template "detail" .}}
+</main>
+{{template "bottom"}}

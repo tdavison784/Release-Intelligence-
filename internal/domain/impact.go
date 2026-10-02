@@ -218,8 +218,9 @@ type ImpactFinding struct {
 	// Knowledge is set exactly on findings produced by evaluating a
 	// VerifiedFact against the environment (rules impact:knowledge-*): which
 	// fact, and how trusted it is. The trust ladder is enforced by Validate:
-	// action-required and not-affected require a trusted (deterministic or
-	// human) fact; a consensus- or proxy-verified fact never yields either.
+	// not-affected requires a trusted (deterministic or human) fact;
+	// action-required a trusted fact or a consensus-action fact (PO-2,
+	// labelled "model consensus"); a proxy-verified fact yields neither.
 	Knowledge *KnowledgeRef `json:"knowledge,omitempty"`
 }
 
@@ -234,7 +235,21 @@ type KnowledgeRef struct {
 	// Verification is the fact's level (its weakest aspect): deterministic,
 	// human, consensus or proxy.
 	Verification VerificationLevel `json:"verification"`
-	Statement    string            `json:"statement,omitempty"`
+	// Consensus labels a consensus-level fact cross-model or same-model.
+	Consensus ConsensusScope `json:"consensus,omitempty"`
+	// ConsensusAction is copied from the fact: it may yield ACTION REQUIRED
+	// through model consensus (PO-2).
+	ConsensusAction bool   `json:"consensusAction,omitempty"`
+	Statement       string `json:"statement,omitempty"`
+}
+
+// ActionLabel is how an ACTION REQUIRED finding from this fact is labelled
+// for humans: "verified" (deterministic/human) or "model consensus" (PO-2).
+func (k KnowledgeRef) ActionLabel() string {
+	if k.Verification == VerifiedConsensus {
+		return "model consensus"
+	}
+	return "verified"
 }
 
 // ImpactSummary counts the funnel: all upstream changes, how many produced
@@ -585,18 +600,29 @@ func (f ImpactFinding) validateKnowledge() []error {
 	if f.ChangeID == "" {
 		bad("a knowledge finding joins an upstream change (changeId required)")
 	}
+	if (k.Verification == VerifiedConsensus) != (k.Consensus != "") {
+		bad("knowledge.consensus (cross-model | same-model) is set exactly for consensus-verified facts")
+	}
+	if k.Consensus != "" && k.Consensus != ConsensusCrossModel && k.Consensus != ConsensusSameModel {
+		bad("unknown knowledge.consensus %q", k.Consensus)
+	}
+	if k.ConsensusAction && k.Verification != VerifiedConsensus {
+		bad("knowledge.consensusAction is for consensus-verified facts only")
+	}
+	consensusAction := k.Verification == VerifiedConsensus && k.ConsensusAction
 	switch f.Classification {
 	case ImpactActionRequired:
-		if !k.Verification.Trusted() {
-			bad("ACTION REQUIRED from knowledge requires a deterministic- or human-verified fact, got %q (cap at review-required)", k.Verification)
+		if !k.Verification.Trusted() && !consensusAction {
+			bad("ACTION REQUIRED from knowledge requires a deterministic- or human-verified fact, or a consensus-action fact (PO-2); got %q (cap at review-required)", k.Verification)
 		}
 	case ImpactNotAffected:
 		if !k.Verification.Trusted() {
 			bad("NOT AFFECTED from knowledge requires a deterministic- or human-verified fact, got %q (consensus and proxy never clear)", k.Verification)
 		}
 	}
-	if k.Verification.Valid() && !k.Verification.Trusted() && f.Provenance.Confidence == ConfidenceHigh {
-		bad("a %s-verified fact cannot carry high confidence (untrusted levels: confidence at most medium)", k.Verification)
+	if k.Verification.Valid() && !k.Verification.Trusted() && f.Provenance.Confidence == ConfidenceHigh &&
+		!(consensusAction && f.Classification == ImpactActionRequired) {
+		bad("a %s-verified fact cannot carry high confidence (only a consensus-action ACTION REQUIRED may, labelled model consensus)", k.Verification)
 	}
 	return errs
 }
