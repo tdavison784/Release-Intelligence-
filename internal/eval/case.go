@@ -13,6 +13,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/tdavison784/release-intelligence/internal/domain"
 )
 
 // Case is one dataset entry.
@@ -32,6 +34,15 @@ type Case struct {
 	Expected    []Expected    `json:"expected"`
 	NotExpected []NotExpected `json:"notExpected,omitempty" yaml:"notExpected,omitempty"`
 	Environment *Environment  `json:"environment,omitempty"`
+
+	// TransferOf (G12) names a sibling case of the same release transition
+	// whose expected items this case reuses: a transfer case declares only
+	// its own environment (a second, independently authored cluster), so a
+	// verified release-level fact can be shown to carry over. Product,
+	// from/to, expected and notExpected are inherited at load time and must
+	// not be restated; the runner scores only the environment of a transfer
+	// case (its edge is the base case's, already scored there).
+	TransferOf string `json:"transferOf,omitempty" yaml:"transferOf,omitempty"`
 }
 
 // Expected is one item of ground truth: upgrade work a competent operator
@@ -51,6 +62,11 @@ type Expected struct {
 	Match          []Matcher  `json:"match"`
 	Evidence       []Citation `json:"evidence,omitempty"`
 	References     []string   `json:"references,omitempty"`
+	// Semantics (G22) is the expected semantic reading of the item —
+	// subject, change, consequence — authored blind from upstream sources
+	// (labels.go, eval/FORMAT.md). Optional; never read by knowledge
+	// authoring.
+	Semantics SemanticsLabels `json:"semantics,omitempty" yaml:"semantics,omitempty"`
 }
 
 // Citation is an authoritative upstream statement backing an expectation.
@@ -85,6 +101,10 @@ type Environment struct {
 	ExpectedFindings []ExpectedFinding `json:"expectedFindings,omitempty" yaml:"expectedFindings,omitempty"`
 	// NotExpectedFindings name findings that must NOT appear.
 	NotExpectedFindings []NotExpectedFinding `json:"notExpectedFindings,omitempty" yaml:"notExpectedFindings,omitempty"`
+	// UndecidedImpact (G22) records links whose correct answer is UNKNOWN:
+	// the fixture lacks the input that decides them (labels.go). Recorded,
+	// not yet scored.
+	UndecidedImpact []UndecidedLink `json:"undecidedImpact,omitempty" yaml:"undecidedImpact,omitempty"`
 }
 
 // ImpactLink ties an expected item to this environment.
@@ -93,6 +113,14 @@ type ImpactLink struct {
 	Expected  string `json:"expected"`
 	Relevance string `json:"relevance"` // action-required | review | informational | not-affected (the dataset's ground-truth vocabulary)
 	Why       string `json:"why,omitempty"`
+	// Exposure / Overlap (G22) are the applicability conditions of the
+	// item's semantics for THIS environment, in the domain condition
+	// language verbatim (DESIGN.md §1.3); EnvironmentEvidence names the
+	// fixture files/lines that decide them ("manifests/rbac.yaml#L8-L10").
+	// Optional; decoded by ImpactLink.UnmarshalYAML (labels.go).
+	Exposure            *domain.Condition `json:"exposure,omitempty"`
+	Overlap             *domain.Condition `json:"overlap,omitempty"`
+	EnvironmentEvidence []string          `json:"environmentEvidence,omitempty"`
 }
 
 // ExpectedFinding is one expected impact finding: the matcher plus context.
@@ -230,6 +258,11 @@ func LoadCase(dir string) (*Case, error) {
 		return nil, fmt.Errorf("%s: %w", dir, err)
 	}
 	c.Dir = dir
+	if c.TransferOf != "" {
+		if err := c.inheritTransfer(); err != nil {
+			return nil, fmt.Errorf("%s: %w", dir, err)
+		}
+	}
 	if err := c.Validate(); err != nil {
 		return nil, fmt.Errorf("%s: %w", dir, err)
 	}
@@ -330,7 +363,35 @@ func (c *Case) Validate() error {
 			errs = append(errs, errors.New("environment declared but environment/ holds no input files (values.yaml, manifests/, crds/, images.txt)"))
 		}
 	}
+	if c.TransferOf != "" && c.Environment == nil {
+		errs = append(errs, errors.New("transferOf: a transfer case exists for its environment; environment: is required"))
+	}
+	errs = append(errs, c.validateLabels()...)
 	return errors.Join(errs...)
+}
+
+// inheritTransfer loads the base case named by TransferOf (a sibling
+// directory) and copies the release-level parts into this case. A transfer
+// case must not restate them, so there is exactly one copy of each expected
+// item; its own sources (fixture grounding) are added to the base's.
+func (c *Case) inheritTransfer() error {
+	if c.Product != "" || c.From != "" || c.To != "" || len(c.Expected) > 0 || len(c.NotExpected) > 0 {
+		return fmt.Errorf("transferOf %s: product/from/to/expected/notExpected are inherited from the base case and must not be restated", c.TransferOf)
+	}
+	if c.TransferOf == c.ID || strings.ContainsAny(c.TransferOf, `/\`) {
+		return fmt.Errorf("transferOf %q: must name a sibling case id", c.TransferOf)
+	}
+	base, err := LoadCase(filepath.Join(filepath.Dir(c.Dir), c.TransferOf))
+	if err != nil {
+		return fmt.Errorf("transferOf: %w", err)
+	}
+	if base.TransferOf != "" {
+		return fmt.Errorf("transferOf %s: the base case is itself a transfer case", c.TransferOf)
+	}
+	c.Product, c.From, c.To = base.Product, base.From, base.To
+	c.Expected, c.NotExpected = base.Expected, base.NotExpected
+	c.Sources = append(append([]string{}, base.Sources...), c.Sources...)
+	return nil
 }
 
 // EnvironmentDir is the subdirectory of a case that holds environment input
