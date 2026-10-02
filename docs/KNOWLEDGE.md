@@ -73,7 +73,9 @@ metric non-trivial.
 ## CLI
 
 `ri knowledge route|decide|review-fact|export|metrics`. `decide --reviewer-kind proxy` is the only way proxy
-decisions enter and requires the AI provenance flags. `ri knowledge candidates|propose` are aliases of
+decisions enter and requires the AI provenance flags. The blind proxy reviewer (`ri knowledge proxy-prompt` → `scripts/proxy-review.sh` →
+`decide -reviewer-kind proxy -proxy-response …`, `ri knowledge proxy-report`) is described in
+[docs/phase3/learning-loop/proxy/README.md](phase3/learning-loop/proxy/README.md). `ri knowledge candidates|propose` are aliases of
 `ri semantic candidates|propose` (same flags, same code); `validate` belongs to the validate lane (not wired yet).
 
 ## Environment context and the transfer subset
