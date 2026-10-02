@@ -1105,6 +1105,12 @@ func (ev *evaluator) cliFlag(c domain.Condition) ConditionResult {
 	if len(examined) > 0 {
 		absence = []domain.ImpactMatch{{Kind: domain.MatchAbsence, Subject: "no workload container passes --" + want, Evidence: examined}}
 	}
+	if len(examined) == 0 && c.Component == "" {
+		// No workload arguments at all: absence claims need examined evidence
+		// (a named component absent from the manifests still decides false,
+		// like an absent resource kind).
+		return unknownResult(domain.UnknownEnvironmentVisibilityGap, fmt.Sprintf("no environment record to read %s from", describe(c)))
+	}
 	return ev.valueLeaf(c, domain.DimensionManifests, facts, absence, len(examined))
 }
 
@@ -1142,6 +1148,12 @@ func (ev *evaluator) envVar(c domain.Condition) ConditionResult {
 	var absence []domain.ImpactMatch
 	if len(examined) > 0 {
 		absence = []domain.ImpactMatch{{Kind: domain.MatchAbsence, Subject: "no workload container sets " + c.Name, Evidence: examined}}
+	}
+	if len(examined) == 0 && c.Component == "" {
+		// No workload environment at all: absence claims need examined
+		// evidence (a named component absent from the manifests still decides
+		// false, like an absent resource kind).
+		return unknownResult(domain.UnknownEnvironmentVisibilityGap, fmt.Sprintf("no environment record to read %s from", describe(c)))
 	}
 	return ev.valueLeaf(c, domain.DimensionManifests, facts, absence, len(examined))
 }
@@ -1278,6 +1290,18 @@ func (ev *evaluator) featureGate(c domain.Condition) ConditionResult {
 			return undecided()
 		case len(no) > 0:
 			return decideFalse(evidenceOf(no))
+		}
+		for _, d := range dims {
+			if ok, needed := ev.dimOK(d); !ok {
+				r := unknownResult(domain.UnknownEnvironmentVisibilityGap, needed)
+				r.deps = []domain.EnvironmentDimension{d}
+				return r
+			}
+		}
+		if len(examined) == 0 && c.Component == "" {
+			// No argument or values key was ever read; the chart default may
+			// still set the gate. Silence is not absence.
+			return unknownResult(domain.UnknownEnvironmentVisibilityGap, "no workload container arguments (or values key) to read the feature gate from")
 		}
 		return decideFalse(examined)
 	case domain.StateUnset:

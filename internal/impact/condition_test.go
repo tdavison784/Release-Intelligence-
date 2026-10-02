@@ -265,6 +265,45 @@ func TestEvaluateConditionAbsenceIsNotKnowledge(t *testing.T) {
 	}
 }
 
+// An environment whose workloads expose no container arguments and no
+// environment variables (and whose values carry no featureGates key) must not
+// turn that silence into a false: absence needs examined evidence, exactly as
+// the dimension-absent case does (TestEvaluateConditionAbsenceIsNotKnowledge).
+func TestEvaluateConditionArglessWorkloads(t *testing.T) {
+	edge := newEdge().edge
+	dir := t.TempDir()
+	writeFile(t, dir, "manifests/deploy.yaml", `apiVersion: apps/v1
+kind: Deployment
+metadata: {name: ctrl, namespace: cm}
+spec:
+  template:
+    spec:
+      containers:
+      - name: controller
+        image: quay.io/jetstack/cert-manager-controller:v1.17.2
+`)
+	e := loadEnv(t, env.Inputs{
+		KubernetesVersion: "1.30.4",
+		ValuesFiles:       []string{writeFile(t, dir, "values.yaml", "tls:\n  secretsBackend: k8s\n")},
+		Manifests:         []string{dir + "/manifests"},
+	})
+	for _, c := range []domain.Condition{
+		{Op: domain.OpCLIFlag, Name: "--feature-gates", State: domain.StateSet},
+		{Op: domain.OpCLIFlag, Name: "--feature-gates", State: domain.StateEquals, Values: []string{`"A=true"`}},
+		{Op: domain.OpEnvVar, Name: "LEADER_ELECT", State: domain.StateSet},
+		{Op: domain.OpFeatureGate, Name: "ValidateCAA", State: domain.StateEnabled},
+		{Op: domain.OpFeatureGate, Name: "ValidateCAA", State: domain.StateDisabled},
+		// the values path is examined, but the fixture sets no such key
+		{Op: domain.OpFeatureGate, Name: "ValidateCAA", Path: "featureGates", State: domain.StateEnabled},
+	} {
+		r := EvaluateCondition(c, e, edge)
+		if r.Value != Unknown || r.Reason != domain.UnknownEnvironmentVisibilityGap {
+			t.Errorf("%s from an argless workload = %s (reason %s), want unknown environment-visibility-gap", describe(c), r.Value, r.Reason)
+		}
+		assertResultShape(t, r, e)
+	}
+}
+
 func TestEvaluateConditionPartialManifests(t *testing.T) {
 	edge := newEdge().edge
 	e := condEnv(t, "", map[string]string{"broken.yaml": "apiVersion: v1\nkind: ConfigMap\nmetadata: {name: x\n"})
