@@ -1,0 +1,125 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: kyverno
+name: kyverno
+homepage: https://github.com/kyverno/kyverno
+versioning:
+  scheme: semver
+  tagPrefix: v
+  tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\.\d+|beta\.\d+|rc\.\d+|rc\d+))?)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/kyverno/kyverno
+      tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\.\d+|beta\.\d+|rc\.\d+|rc\d+))?)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: kyverno/kyverno
+    priority: 1
+  - id: release-notes-line
+    roles:
+      - release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/kyverno/website
+      ref: main
+      path: src/content/blog/announcing-kyverno-release-{{.Major}}.{{.Minor}}/index.md
+    releaseKinds:
+      - minor
+      - major
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 1.17.0
+      - 1.18.0
+      - 1.19.0
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: kyverno/kyverno
+      ref: '{{.Tag}}'
+    priority: 1
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 1.17.0
+      - 1.17.2
+      - 1.18.0
+      - 1.18.2
+      - 1.19.0
+      - 1.19.1
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: kyverno/kyverno
+    notes: 'Security policy: SECURITY.md → https://github.com/kyverno/community/blob/…/SECURITY.md. https://kyverno.io/docs/guides/security/'
+artifacts:
+  - id: install-manifest
+    type: manifest
+    name: install.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: http
+        url: https://github.com/kyverno/kyverno/releases/download/{{.Tag}}/install.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 1.17.0
+      - 1.17.2
+      - 1.18.0
+      - 1.18.2
+      - 1.19.0
+      - 1.19.1
+  - id: crds
+    type: crd
+    name: CustomResourceDefinitions
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-dir
+        repository: github.com/kyverno/kyverno
+        path: cmd/cli/kubectl-kyverno/data/crds
+        glob: '*.yaml'
+    contents:
+      - kind: crds
+    validatedAgainst:
+      - 1.17.0
+      - 1.17.2
+      - 1.18.0
+      - 1.18.2
+      - 1.19.0
+      - 1.19.1
+  - id: readiness-checker
+    type: container-image
+    name: readiness-checker
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: ghcr.io/kyverno/readiness-checker
+    notes: Failed validation for one release (1.17.0 fail (absent from ghcr.io/kyverno/readiness-checker:v1.17.0)); possibly published late or elsewhere.
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  validatedReleases:
+    - v1.17.0
+    - v1.17.2
+    - v1.18.0
+    - v1.18.2
+    - v1.19.0
+    - v1.19.1
+  notes: Proposed by automated discovery; relationship checks run against v1.17.0, v1.17.2, v1.18.0, v1.18.2, v1.19.0, v1.19.1.

@@ -1,0 +1,114 @@
+# Discovery report: actions-runner-controller
+
+- Repository: `github.com/actions/actions-runner-controller` at `v0.27.6` (commit `b511953df7a8…`)
+- Generated: 2026-10-02T12:32:37Z
+- LLM: not used (deterministic resolver only)
+- Tags: 149 tags: prefix "v", 61 stable, 0 prereleases (), 88 junk; latest stable v0.27.6; lineage minor
+- Strict tag pattern: `^v(?P<version>\d+\.\d+\.\d+)$` (junk sample: 0.2.0, 0.3.0, actions-runner-controller-0.1.2, actions-runner-controller-0.10.0, actions-runner-controller-0.10.1, actions-runner-controller-0.10.2)
+- Scanned `github.com/actions/actions-runner-controller@v0.27.6` (source profile): 480 files listed, 199 read
+- Validation: done against v0.25.0, v0.25.2, v0.26.0, v0.27.0, v0.27.6
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 4 | git-tags github.com/actions/actions-runner-controller; github-releases actions/actions-runner-controller |
+| release-notes | found | 1 | repo-file github.com/actions/actions-runner-controller docs/releasenotes/{{.Major}}.{{.Minor}}.md; github-releases actions/actions-runner-controller  @{{.Tag}} |
+| changelog | not-found | 0 |  |
+| helm-charts | candidates-only | 11 |  |
+| registries | candidates-only | 1 |  |
+| images | candidates-only | 19 |  |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 1 | github-advisories actions/actions-runner-controller |
+| version-relations | found | 1 | actions-runner-controller-manifest: version = {{.Tag}}; crds: version = {{.Tag}} |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:actions-runner-controller-chart | historically-validated | helm.appversion-lookup | https://github.com/actions/actions-runner-controller/blob/v0.27.6/charts/actions-runner-controller/Chart.yaml#L2 (+2) |
+| artifact:actions-runner-controller-manifest | historically-validated | asset.hosted-release-download | https://github.com/actions/actions-runner-controller/blob/v0.27.6/docs/installing-arc.md#L15 |
+| artifact:crds | historically-validated | crd.in-repo | https://github.com/actions/actions-runner-controller/blob/v0.27.6/config/crd/bases/actions.github.com_autoscalinglisteners.yaml#L3 (+2) |
+| source:release-notes-github | historically-validated | notes.hosted-release-body | https://github.com/actions/actions-runner-controller/blob/v0.27.6/docs/installing-arc.md#L15 (+1) |
+| artifact:actions-runner-controller | unverified | image.tag-from-chart-appversion | https://github.com/actions/actions-runner-controller/blob/v0.27.6/charts/actions-runner-controller/values.yaml#L53 |
+| artifact:gha-runner-scale-set-chart | unverified | helm.independent-version | https://github.com/actions/actions-runner-controller/blob/v0.27.6/charts/gha-runner-scale-set/Chart.yaml#L2 (+2) |
+| artifact:gha-runner-scale-set-controller | unverified | image.tag-from-chart-appversion | https://github.com/actions/actions-runner-controller/blob/v0.27.6/charts/gha-runner-scale-set-controller/values.yaml#L12 |
+| artifact:gha-runner-scale-set-controller-chart | unverified | helm.independent-version | https://github.com/actions/actions-runner-controller/blob/v0.27.6/charts/gha-runner-scale-set-controller/Chart.yaml#L2 (+2) |
+| source:advisories | discovered | security.github-hosted-default | https://github.com/actions/actions-runner-controller/blob/v0.27.6/SECURITY.md#L1 |
+| source:github-releases | discovered | versions.github-releases-fallback | https://github.com/actions/actions-runner-controller/blob/v0.27.6/docs/installing-arc.md#L15 (+1) |
+| source:release-notes-docs | unverified | notes.per-line-file-with-release-sections | https://github.com/actions/actions-runner-controller/blob/v0.27.6/docs/releasenotes/0.27.md# |
+| source:tags | discovered | versions.git-tags | https://github.com/actions/actions-runner-controller/releases/tag/v0.27.6#refs/tags/v0.27.6 |
+| versioning | discovered | tags.scheme | https://github.com/actions/actions-runner-controller/releases/tag/v0.27.6#refs/tags/v0.27.6 |
+
+Statuses: 4 historically-validated, 4 discovered, 5 unverified.
+
+## Open questions for the reviewer
+
+- Ambiguity (registry-roles): 3 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (main-chart): 3 charts are published; which one installs the product?
+- Ambiguity (chart-version): How do the versions of chart(s) gha-runner-scale-set-controller, gha-runner-scale-set relate to the release version?
+
+## Validation matrix
+
+| Element | Verdict | v0.25.0 | v0.25.2 | v0.26.0 | v0.27.0 | v0.27.6 |
+|---|---|---|---|---|---|---|
+| artifact:actions-runner-controller | failing |  |  |  |  |  |
+| artifact:actions-runner-controller-chart | validated |  |  |  |  |  |
+| artifact:actions-runner-controller-manifest | validated |  |  |  |  |  |
+| artifact:crds | validated |  |  |  |  |  |
+| artifact:gha-runner-scale-set-chart | unverifiable |  |  |  |  |  |
+| artifact:gha-runner-scale-set-controller | failing |  |  |  |  |  |
+| artifact:gha-runner-scale-set-controller-chart | unverifiable |  |  |  |  |  |
+| content:actions-runner-controller-chart/chart-metadata | validated |  |  |  |  |  |
+| content:actions-runner-controller-chart/helm-values | validated |  |  |  |  |  |
+| content:actions-runner-controller-manifest/image-refs | validated |  |  |  |  |  |
+| content:crds/crds | validated |  |  |  |  |  |
+| content:gha-runner-scale-set-chart/chart-metadata | failing |  |  |  |  |  |
+| content:gha-runner-scale-set-chart/helm-values | failing |  |  |  |  |  |
+| content:gha-runner-scale-set-controller-chart/chart-metadata | failing |  |  |  |  |  |
+| content:gha-runner-scale-set-controller-chart/helm-values | failing |  |  |  |  |  |
+| source:release-notes-docs | insufficient |  |  |  |  |  |
+| source:release-notes-github | validated |  |  |  |  |  |
+
+## Dropped elements
+
+- `artifact:actions-runner-controller` (deterministic): failed validation: 0.25.0 fail (absent from docker.io/summerwind/actions-runner-controller:0.25.0); 0.25.2 fail (absent from docker.io/summerwind/actions-runner-controller:0.25.2); 0.26.0 fail (absent from docker.io/summerwind/actions-runner-controller:0.26.0); 0.27.0 fail (absent from docker.io/summerwind/actions-runner-controller:0.27.0); …
+- `artifact:gha-runner-scale-set-controller` (deterministic): failed validation: 0.25.0 fail (absent from ghcr.io/actions/gha-runner-scale-set-controller:0.25.0); 0.25.2 fail (absent from ghcr.io/actions/gha-runner-scale-set-controller:0.25.2); 0.26.0 fail (absent from ghcr.io/actions/gha-runner-scale-set-controller:0.26.0); 0.27.0 fail (absent from ghcr.io/actions/gha-runner-scale-set-controller:0.27.0); …
+- `artifact:actions-runner-controller-chart` (deterministic): static validation: error: artifacts[0].channels[0]: template "ghcr.io/${{/actions-runner-controller": template: :1: unexpected "/" in command
+- `artifact:gha-runner-scale-set-controller-chart` (deterministic): static validation: error: artifacts[0].channels[1]: template "ghcr.io/${{/gha-runner-scale-set-controller": template: :1: unexpected "/" in command
+- `artifact:gha-runner-scale-set-chart` (deterministic): static validation: error: artifacts[0].channels[1]: template "ghcr.io/${{/gha-runner-scale-set": template: :1: unexpected "/" in command
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 149 tags: prefix "v", 61 stable, 0 prereleases (), 88 junk; latest stable v0.27.6; lineage minor; strict tagPattern excludes junk tags such as 0.2.0, 0.3.0, actions-runner-controller-0.1.2, actions-runner-controller-0.10… |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (149 tags: prefix "v", 61 stable, 0 prereleases (), 88 junk; latest stable v0.27.6; lineage minor). |
+| source:github-releases | include | versions.github-releases-fallback | heuristic | Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list. |
+| source:release-notes-docs | include | notes.per-line-file-with-release-sections | heuristic | One notes file per release line (6 instances) with one section per release (e.g. "# actions-runner-controller v0.27.0"). |
+| source:release-notes-github | include | notes.hosted-release-body | heuristic | Hosted GitHub releases exist (assets are downloaded from them); their body may carry notes. |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+| artifact:actions-runner-controller-chart | include | helm.appversion-lookup | heuristic | Chart.yaml at the scanned release still packages the previous chart (appVersion "0.27.5", 1 release(s) behind): chart releases are cut after the product tag; the chart for a release is looked up by appVersion == {{.Versi… |
+| artifact:gha-runner-scale-set-controller-chart | include | helm.independent-version | heuristic | Chart has its own version "0.6.1" unrelated to the release. Published via 4 channel(s); OCI locations first. |
+| artifact:gha-runner-scale-set-chart | include | helm.independent-version | heuristic | Chart has its own version "0.6.1" unrelated to the release. Published via 5 channel(s); OCI locations first. |
+| candidate:cand-6ff6ab5a5daa | annotate | asset.integrity-file | heuristic | Checksum/signature/provenance asset; recorded but not modelled as an artifact. |
+| artifact:actions-runner-controller-manifest | include | asset.hosted-release-download | heuristic | Downloaded from the hosted release of the tag (1 reference(s)). |
+| artifact:crds | include | crd.in-repo | heuristic | 9 CRDs of the product's API groups in config/crd/bases at the release tag. |
+| artifact:actions-runner-controller | include | image.tag-from-chart-appversion | heuristic | The chart leaves the image tag empty so it defaults to the chart appVersion, which equals the release tag. |
+| artifact:gha-runner-scale-set-controller | include | image.tag-from-chart-appversion | heuristic | The chart leaves the image tag empty so it defaults to the chart appVersion, which equals the release tag. |
+| source:release-notes-docs | annotate | validate.insufficient | computed | Kept unverified: 0.25.0 covered (covered by release-notes-github (fallback group release-notes): no section matching "^v?0\\.25\\.0$" in https://github.com/actions/actions-runner-controller/blob/v0.25.0/docs/releasenotes… |
+| artifact:gha-runner-scale-set-controller-chart | annotate | validate.unverifiable | computed | Kept unverified: 0.25.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 0.25.2 unverifiable (artifact version is independent of the release version (strategy … |
+| artifact:gha-runner-scale-set-chart | annotate | validate.unverifiable | computed | Kept unverified: 0.25.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 0.25.2 unverifiable (artifact version is independent of the release version (strategy … |
+| artifact:actions-runner-controller | drop | validate.failed | computed | Relationship check failed: 0.25.0 fail (absent from docker.io/summerwind/actions-runner-controller:0.25.0); 0.25.2 fail (absent from docker.io/summerwind/actions-runner-controller:0.25.2); 0.26.0 fail (absent from docker… |
+| artifact:gha-runner-scale-set-controller | drop | validate.failed | computed | Relationship check failed: 0.25.0 fail (absent from ghcr.io/actions/gha-runner-scale-set-controller:0.25.0); 0.25.2 fail (absent from ghcr.io/actions/gha-runner-scale-set-controller:0.25.2); 0.26.0 fail (absent from ghcr… |
+| artifact:actions-runner-controller-chart | drop | proposer.static-validation | computed | error: artifacts[0].channels[0]: template "ghcr.io/${{/actions-runner-controller": template: :1: unexpected "/" in command |
+| artifact:gha-runner-scale-set-controller-chart | drop | proposer.static-validation | computed | error: artifacts[0].channels[1]: template "ghcr.io/${{/gha-runner-scale-set-controller": template: :1: unexpected "/" in command |
+| artifact:gha-runner-scale-set-chart | drop | proposer.static-validation | computed | error: artifacts[0].channels[1]: template "ghcr.io/${{/gha-runner-scale-set": template: :1: unexpected "/" in command |
+
+63 candidates were found; 22 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/actions-runner-controller.report.md
+proposed definition written to docs/rerun/discovery/actions-runner-controller.proposed.yaml

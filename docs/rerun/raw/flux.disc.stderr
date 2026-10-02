@@ -1,0 +1,119 @@
+# Discovery report: flux2
+
+- Repository: `github.com/fluxcd/flux2` at `v2.9.6` (commit `b9c17924adb5…`)
+- Generated: 2026-10-02T12:34:43Z
+- LLM: not used (deterministic resolver only)
+- Tags: 216 tags: prefix "v", 206 stable, 10 prereleases (alpha.N×1, beta.N×4, rc.N×5), 0 junk; latest stable v2.9.6; lineage minor
+- Scanned `github.com/fluxcd/flux2@v2.9.6` (source profile): 748 files listed, 263 read
+- Scanned `github.com/fluxcd/website@main` (docs profile): 837 files listed, 68 read
+- Validation: done against v2.7.0, v2.7.5, v2.8.0, v2.8.8, v2.9.0, v2.9.6
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 15 | git-tags github.com/fluxcd/flux2; github-releases fluxcd/flux2 |
+| release-notes | found | 1 | github-releases fluxcd/flux2  @{{.Tag}} |
+| changelog | not-found | 0 |  |
+| helm-charts | candidates-only | 24 |  |
+| registries | found | 10 | docker.io/flux-system; docker.io/fluxcd; ghcr.io/flux-system; ghcr.io/fluxcd |
+| images | found | 32 | ghcr.io/fluxcd/flux-manifests:{{.Tag}}; ghcr.io/flux-system/gotk-components.yaml:{{.Tag}} |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 0 | github-advisories fluxcd/flux2 |
+| version-relations | found | 0 | flux-sbom-spdx-manifest: version = {{.Tag}}; flux-manifests: version = {{.Tag}}; gotk-components-yaml: version = {{.Tag}} |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:flux-manifests | historically-validated | image.tag-assumed-release | https://github.com/fluxcd/flux2/blob/v2.9.6/.github/workflows/release.yaml#L160 (+1) |
+| artifact:flux-sbom-spdx-manifest | historically-validated | asset.hosted-release-download | https://github.com/fluxcd/website/blob/643963b610d8285885b5cd01991489b32bfff834/content/en/blog/2022-02-09-security-the-value-of-sboms/index.md#L77 |
+| source:release-notes | historically-validated | notes.generated-release-body | https://github.com/fluxcd/flux2/blob/v2.9.6/.goreleaser.yml#L2 |
+| artifact:binary | unverified | asset.hosted-release-download | https://github.com/fluxcd/flux2/blob/v2.9.6/.goreleaser.yml#L33 |
+| artifact:gotk-components-yaml | unverified | image.tag-assumed-release | https://github.com/fluxcd/flux2/blob/v2.9.6/.github/workflows/release.yaml#L134 (+1) |
+| artifact:helm-controller | unverified | image.tag-assumed-release | https://github.com/fluxcd/flux2/blob/v2.9.6/manifests/install/kustomization.yaml#L23 |
+| artifact:image-automation-controller | unverified | image.tag-assumed-release | https://github.com/fluxcd/flux2/blob/v2.9.6/manifests/install/kustomization.yaml#L29 |
+| artifact:image-reflector-controller | unverified | image.tag-assumed-release | https://github.com/fluxcd/flux2/blob/v2.9.6/manifests/install/kustomization.yaml#L27 |
+| artifact:kustomize-controller | unverified | image.tag-assumed-release | https://github.com/fluxcd/flux2/blob/v2.9.6/manifests/install/kustomization.yaml#L21 |
+| artifact:notification-controller | unverified | image.tag-assumed-release | https://github.com/fluxcd/flux2/blob/v2.9.6/manifests/install/kustomization.yaml#L25 |
+| artifact:source-controller | unverified | image.tag-assumed-release | https://github.com/fluxcd/flux2/blob/v2.9.6/manifests/install/kustomization.yaml#L19 |
+| artifact:source-watcher | unverified | image.tag-assumed-release | https://github.com/fluxcd/flux2/blob/v2.9.6/manifests/install/kustomization.yaml#L31 |
+| source:advisories | discovered | security.github-hosted-default |  |
+| source:github-releases | discovered | versions.github-releases-fallback | https://github.com/fluxcd/flux2/blob/v2.9.6/.github/workflows/release.yaml#L75 (+2) |
+| source:tags | discovered | versions.git-tags | https://github.com/fluxcd/flux2/releases/tag/v2.9.6#refs/tags/v2.9.6 |
+| versioning | discovered | tags.scheme | https://github.com/fluxcd/flux2/releases/tag/v2.9.6#refs/tags/v2.9.6 (+1) |
+
+Statuses: 3 historically-validated, 4 discovered, 9 unverified.
+
+## Open questions for the reviewer
+
+- Ambiguity (registry-roles): 11 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (docs-sources): Documentation lives in another repository; no upgrade-guide, compatibility source was derived from it.
+
+## Validation matrix
+
+| Element | Verdict | v2.7.0 | v2.7.5 | v2.8.0 | v2.8.8 | v2.9.0 | v2.9.6 |
+|---|---|---|---|---|---|---|---|
+| artifact:binary | unverifiable |  |  |  |  |  |  |
+| artifact:flux-manifests | validated |  |  |  |  |  |  |
+| artifact:flux-sbom-spdx-manifest | validated |  |  |  |  |  |  |
+| artifact:gotk-components-yaml | unverifiable |  |  |  |  |  |  |
+| artifact:helm-controller | failing |  |  |  |  |  |  |
+| artifact:image-automation-controller | failing |  |  |  |  |  |  |
+| artifact:image-reflector-controller | failing |  |  |  |  |  |  |
+| artifact:kustomize-controller | failing |  |  |  |  |  |  |
+| artifact:notification-controller | failing |  |  |  |  |  |  |
+| artifact:source-controller | failing |  |  |  |  |  |  |
+| artifact:source-watcher | failing |  |  |  |  |  |  |
+| content:flux-sbom-spdx-manifest/image-refs | validated |  |  |  |  |  |  |
+| source:release-notes | validated |  |  |  |  |  |  |
+
+## Dropped elements
+
+- `artifact:helm-controller` (deterministic): failed validation: 2.7.0 fail (absent from ghcr.io/fluxcd/helm-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/helm-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/helm-controller:v2.8.0); 2.8.8 fail (absent from ghcr.io/fluxcd/helm-controller:v2.8.8); …
+- `artifact:image-automation-controller` (deterministic): failed validation: 2.7.0 fail (absent from ghcr.io/fluxcd/image-automation-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/image-automation-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/image-automation-controller:v2.8.0); 2.8.8 fail (absent from ghcr.io/fluxcd/image-automation-controller:v2.8.8); …
+- `artifact:image-reflector-controller` (deterministic): failed validation: 2.7.0 fail (absent from ghcr.io/fluxcd/image-reflector-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/image-reflector-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/image-reflector-controller:v2.8.0); 2.8.8 fail (absent from ghcr.io/fluxcd/image-reflector-controller:v2.8.8); …
+- `artifact:kustomize-controller` (deterministic): failed validation: 2.7.0 fail (absent from ghcr.io/fluxcd/kustomize-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/kustomize-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/kustomize-controller:v2.8.0); 2.8.8 fail (absent from ghcr.io/fluxcd/kustomize-controller:v2.8.8); …
+- `artifact:notification-controller` (deterministic): failed validation: 2.7.0 fail (absent from ghcr.io/fluxcd/notification-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/notification-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/notification-controller:v2.8.0); 2.8.8 fail (absent from ghcr.io/fluxcd/notification-controller:v2.8.8); …
+- `artifact:source-controller` (deterministic): failed validation: 2.7.0 fail (absent from ghcr.io/fluxcd/source-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/source-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/source-controller:v2.8.0); 2.8.8 fail (absent from ghcr.io/fluxcd/source-controller:v2.8.8); …
+- `artifact:source-watcher` (deterministic): failed validation: 2.7.0 fail (absent from ghcr.io/fluxcd/source-watcher:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/source-watcher:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/source-watcher:v2.8.0); 2.8.8 fail (absent from ghcr.io/fluxcd/source-watcher:v2.8.8); …
+- `artifact:binary` (deterministic): static validation: error: artifacts[1].channels[0]: template "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/{{ .Binary }}_{{.Version}}_linux_amd64.tar.gz": template: :1:62: executing "" at <.Binary>: can't evaluate field Binary in type catalog.RenderContext
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 216 tags: prefix "v", 206 stable, 10 prereleases (alpha.N×1, beta.N×4, rc.N×5), 0 junk; latest stable v2.9.6; lineage minor |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (216 tags: prefix "v", 206 stable, 10 prereleases (alpha.N×1, beta.N×4, rc.N×5), 0 junk; latest stable v2.9.6; lineage minor). |
+| source:github-releases | include | versions.github-releases-fallback | heuristic | Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list. |
+| source:release-notes | include | notes.generated-release-body | heuristic | The release pipeline generates the hosted release body from commit/PR titles. |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+| artifact:flux-sbom-spdx-manifest | include | asset.hosted-release-download | heuristic | Downloaded from the hosted release of the tag (1 reference(s)). |
+| artifact:binary | include | asset.hosted-release-download | heuristic | Downloaded from the hosted release of the tag (7 reference(s)). |
+| artifact:flux-manifests | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. Published to 2 registries; ordered by evidence strength. |
+| artifact:gotk-components-yaml | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. Published to 2 registries; ordered by evidence strength. |
+| artifact:helm-controller | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:image-automation-controller | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:image-reflector-controller | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:kustomize-controller | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:notification-controller | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:source-controller | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:source-watcher | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:binary | annotate | validate.unverifiable | computed | Kept unverified: 2.7.0 unverifiable (not verifiable: http channel (http: error)); 2.7.5 unverifiable (not verifiable: http channel (http: error)); 2.8.0 unverifiable (not verifiable: http channel (http: error)); 2.8.8 un… |
+| artifact:gotk-components-yaml | annotate | validate.unverifiable | computed | Kept unverified: 2.7.0 unverifiable (not verifiable: ghcr.io/flux-system/gotk-components.yaml:v2.7.0 (oci: unavailable), docker.io/flux-system/gotk-components.yaml:v2.7.0 (oci: unavailable)); 2.7.5 unverifiable (not veri… |
+| artifact:helm-controller | drop | validate.failed | computed | Relationship check failed: 2.7.0 fail (absent from ghcr.io/fluxcd/helm-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/helm-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/helm-controller:v2.8.0); 2… |
+| artifact:image-automation-controller | drop | validate.failed | computed | Relationship check failed: 2.7.0 fail (absent from ghcr.io/fluxcd/image-automation-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/image-automation-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/im… |
+| artifact:image-reflector-controller | drop | validate.failed | computed | Relationship check failed: 2.7.0 fail (absent from ghcr.io/fluxcd/image-reflector-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/image-reflector-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/imag… |
+| artifact:kustomize-controller | drop | validate.failed | computed | Relationship check failed: 2.7.0 fail (absent from ghcr.io/fluxcd/kustomize-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/kustomize-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/kustomize-contro… |
+| artifact:notification-controller | drop | validate.failed | computed | Relationship check failed: 2.7.0 fail (absent from ghcr.io/fluxcd/notification-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/notification-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/notificati… |
+| artifact:source-controller | drop | validate.failed | computed | Relationship check failed: 2.7.0 fail (absent from ghcr.io/fluxcd/source-controller:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/source-controller:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/source-controller:v2.8… |
+| artifact:source-watcher | drop | validate.failed | computed | Relationship check failed: 2.7.0 fail (absent from ghcr.io/fluxcd/source-watcher:v2.7.0); 2.7.5 fail (absent from ghcr.io/fluxcd/source-watcher:v2.7.5); 2.8.0 fail (absent from ghcr.io/fluxcd/source-watcher:v2.8.0); 2.8.… |
+| artifact:binary | drop | proposer.static-validation | computed | error: artifacts[1].channels[0]: template "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/{{ .Binary }}_{{.Version}}_linux_amd64.tar.gz": template: :1:62: executing "" at <.Binary>: can't evaluate field Binar… |
+
+88 candidates were found; 26 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/flux.report.md
+proposed definition written to docs/rerun/discovery/flux.proposed.yaml

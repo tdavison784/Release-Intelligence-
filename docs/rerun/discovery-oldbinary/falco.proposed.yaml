@@ -1,0 +1,142 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: falco
+name: falco
+homepage: https://github.com/falcosecurity/falco
+versioning:
+  scheme: semver
+  tagPattern: ^(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\d+|rc\d+))?)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/falcosecurity/falco
+      tagPattern: ^(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\d+|rc\d+))?)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: falcosecurity/falco
+    priority: 1
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: falcosecurity/falco
+      ref: '{{.Tag}}'
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 0.43.0
+      - 0.43.1
+      - 0.44.0
+      - 0.44.1
+      - 0.45.0
+  - id: changelog
+    roles:
+      - changelog
+    locator:
+      kind: repo-file
+      repository: github.com/falcosecurity/falco
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: ^\[?v?{{regexQuote .Version}}\]?(\s|$)
+    availability: '>= 0.45.0'
+    notes: Availability inferred from validation (0.43.0 fail (no section matching "^\\[?v?0\\.43\\.0\\]?(\\s|$)" in https://github.com/falcosecurity/falco/blob/0.43.0/CHANGELOG.md); 0.43.1 fail (no section matching "^\\[?v?0\\.43\\.1\\]?(\\s|$)" in https://github.com/falcosecurity/falco/blob/0.43.1/CHANGELOG.md); 0.44.0 fail (no section matching "^\\[?v?0\\.44\\.0\\]?(\\s|$)" in https://github.com/falcosecurity/falco/blob/0.44.0/CHANGELOG.md); 0.44.1 fail (no section matching "^\\[?v?0\\.44\\.1\\]?(\\s|$)" in https://github.com/falcosecurity/falco/blob/0.44.1/CHANGELOG.md)).
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: falcosecurity/falco
+artifacts:
+  - id: falco-chart
+    type: helm-chart
+    name: falco
+    version:
+      strategy: independent
+    channels:
+      - kind: helm-repo
+        url: https://falcosecurity.github.io/charts
+        chart: falco
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/falcosecurity/falco
+          path: chart/falco/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/falcosecurity/falco
+          path: chart/falco/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 0.43.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 0.43.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 0.44.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 0.44.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: falco-chart-2
+    type: helm-chart
+    name: falco
+    version:
+      strategy: lookup
+      field: appVersion
+      match: '{{.Tag}}'
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://falcosecurity.github.io/charts
+        chart: falco
+      - kind: helm-git
+        repository: github.com/falcosecurity/charts
+        path: falco
+        tagPattern: ^falco-(?P<version>\d+\.\d+\.\d+)$
+    validatedAgainst:
+      - 0.43.0
+      - 0.43.1
+      - 0.44.0
+      - 0.44.1
+      - 0.45.0
+    notes: Chart maintained in github.com/falcosecurity/charts with its own version; chart releases are found by appVersion. 235 of 448 chart-repository tags match ^falco-(?P<version>\d+\.\d+\.\d+)$.
+  - id: falco
+    type: container-image
+    name: falco
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: docker.io/falcosecurity/falco
+    validatedAgainst:
+      - 0.43.0
+      - 0.43.1
+      - 0.44.0
+      - 0.44.1
+      - 0.45.0
+  - id: falco-driver-loader
+    type: container-image
+    name: falco-driver-loader
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: docker.io/falcosecurity/falco-driver-loader
+    validatedAgainst:
+      - 0.43.0
+      - 0.43.1
+      - 0.44.0
+      - 0.44.1
+      - 0.45.0
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  validatedReleases:
+    - 0.43.0
+    - 0.43.1
+    - 0.44.0
+    - 0.44.1
+    - 0.45.0
+  notes: Proposed by automated discovery; relationship checks run against 0.43.0, 0.43.1, 0.44.0, 0.44.1, 0.45.0.

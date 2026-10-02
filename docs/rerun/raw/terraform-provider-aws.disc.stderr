@@ -1,0 +1,60 @@
+# Discovery report: terraform-provider-aws
+
+- Repository: `github.com/hashicorp/terraform-provider-aws` at `v6.67.0` (commit `e449e05eb24b…`)
+- Generated: 2026-10-02T12:38:11Z
+- LLM: not used (deterministic resolver only)
+- Tags: 521 tags: prefix "v", 518 stable, 3 prereleases (betaN×3), 0 junk; latest stable v6.67.0; lineage linear
+- Scanned `github.com/hashicorp/terraform-provider-aws@v6.67.0` (source profile): 21055 files listed, 3581 read
+- Validation: done against v6.64.0, v6.65.0, v6.66.0, v6.67.0
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 2 | git-tags github.com/hashicorp/terraform-provider-aws |
+| release-notes | not-found | 0 |  |
+| changelog | found | 1 | repo-file github.com/hashicorp/terraform-provider-aws CHANGELOG.md |
+| helm-charts | not-found | 0 |  |
+| registries | candidates-only | 218 |  |
+| images | candidates-only | 3 |  |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 0 | github-advisories hashicorp/terraform-provider-aws |
+| version-relations | not-found | 0 |  |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| source:changelog | historically-validated | changelog.file | https://github.com/hashicorp/terraform-provider-aws/blob/v6.67.0/CHANGELOG.md#L1 |
+| source:advisories | discovered | security.github-hosted-default |  |
+| source:tags | discovered | versions.git-tags | https://github.com/hashicorp/terraform-provider-aws/releases/tag/v6.67.0#refs/tags/v6.67.0 |
+| versioning | discovered | tags.scheme | https://github.com/hashicorp/terraform-provider-aws/releases/tag/v6.67.0#refs/tags/v6.67.0 (+1) |
+
+Statuses: 1 historically-validated, 3 discovered.
+
+## Open questions for the reviewer
+
+- Ambiguity (registry-roles): 218 registry hosts/namespaces are referenced for product images; which are release channels?
+
+## Validation matrix
+
+| Element | Verdict | v6.64.0 | v6.65.0 | v6.66.0 | v6.67.0 |
+|---|---|---|---|---|---|
+| source:changelog | validated |  |  |  |  |
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 521 tags: prefix "v", 518 stable, 3 prereleases (betaN×3), 0 junk; latest stable v6.67.0; lineage linear |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (521 tags: prefix "v", 518 stable, 3 prereleases (betaN×3), 0 junk; latest stable v6.67.0; lineage linear). |
+| source:changelog | include | changelog.file | heuristic | Changelog with 41 version sections, newest 6.67.0 (heading "## 6.67.0 (September 30, 2026)"). |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+
+224 candidates were found; 3 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/terraform-provider-aws.report.md
+proposed definition written to docs/rerun/discovery/terraform-provider-aws.proposed.yaml

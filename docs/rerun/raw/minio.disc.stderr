@@ -1,0 +1,62 @@
+# Discovery report: minio
+
+- Repository: `github.com/minio/minio` at `master` (commit `7aac2a2c5b7c…`)
+- Generated: 2026-10-02T12:37:06Z
+- LLM: not used (deterministic resolver only)
+- Tags: 523 tags: prefix "", 0 stable, 0 prereleases (), 523 junk; latest stable ; lineage linear
+- Scanned `github.com/minio/minio@master` (source profile): 1364 files listed, 189 read
+- Scanned `github.com/minio/docs@main` (docs profile): 765 files listed, 45 read
+- Validation: skipped (only 0 stable releases available, 3 required)
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 1 | git-tags github.com/minio/minio |
+| release-notes | not-found | 0 |  |
+| changelog | not-found | 0 |  |
+| helm-charts | found | 3 | minio via helm-repo:https://charts.min.io |
+| registries | found | 1 | quay.io/minio |
+| images | found | 12 | quay.io/minio/mc:{{.Tag}}; quay.io/minio/minio:{{.Tag}} |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 3 | github-advisories minio/minio |
+| version-relations | found | 1 | minio-chart: independent; mc: version = {{.Tag}}; minio: version = {{.Tag}} |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:mc | inferred | image.tag-assumed-release | https://github.com/minio/minio/blob/7aac2a2c5b7c882e68c1ce017d8256be2feea27f/helm/minio/values.yaml#L27 |
+| artifact:minio | discovered | image.tag-from-release | https://github.com/minio/minio/blob/7aac2a2c5b7c882e68c1ce017d8256be2feea27f/.github/workflows/mint.yml#L40 |
+| artifact:minio-chart | inferred | helm.independent-version | https://github.com/minio/minio/blob/7aac2a2c5b7c882e68c1ce017d8256be2feea27f/helm/minio/Chart.yaml#L3 (+1) |
+| source:advisories | discovered | security.advisories-referenced | https://github.com/minio/minio/blob/7aac2a2c5b7c882e68c1ce017d8256be2feea27f/SECURITY.md#L36 (+2) |
+| source:tags | discovered | versions.git-tags | https://github.com/minio/minio/releases/tag/OFFICIAL.2016-02-08T00-12-28Z#refs/tags/OFFICIAL.2016-02-08T00-12-28Z |
+| versioning | discovered | tags.scheme | https://github.com/minio/minio/releases/tag/OFFICIAL.2016-02-08T00-12-28Z#refs/tags/OFFICIAL.2016-02-08T00-12-28Z |
+
+Statuses: 4 discovered, 2 inferred.
+
+## Open questions for the reviewer
+
+- No stable release tags were found; the tag scheme could not be inferred.
+- Run the relationship checks (validation) before adopting this definition.
+- Ambiguity (docs-sources): Documentation lives in another repository; no release-notes, upgrade-guide, compatibility source was derived from it.
+- Ambiguity (chart-version): How do the versions of chart(s) minio relate to the release version?
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 523 tags: prefix "", 0 stable, 0 prereleases (), 523 junk; latest stable ; lineage linear |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (523 tags: prefix "", 0 stable, 0 prereleases (), 523 junk; latest stable ; lineage linear). |
+| source:advisories | include | security.advisories-referenced | heuristic | The security policy states that advisories are published as GitHub Security Advisories. |
+| artifact:minio-chart | include | helm.independent-version | heuristic | Chart has its own version "5.4.0" unrelated to the release. Published via 1 channel(s); OCI locations first. |
+| artifact:mc | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:minio | include | image.tag-from-release | heuristic | Image tags equal the release tag in the build/publish configuration. |
+
+22 candidates were found; 10 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/minio.report.md
+proposed definition written to docs/rerun/discovery/minio.proposed.yaml

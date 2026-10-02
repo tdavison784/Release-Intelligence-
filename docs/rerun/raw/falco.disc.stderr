@@ -1,0 +1,95 @@
+# Discovery report: falco
+
+- Repository: `github.com/falcosecurity/falco` at `0.45.0` (commit `05d5b3e363d5…`)
+- Generated: 2026-10-02T12:34:37Z
+- LLM: not used (deterministic resolver only)
+- Tags: 195 tags: prefix "", 76 stable, 47 prereleases (alphaN×5, rcN×42), 72 junk; latest stable 0.45.0; lineage minor
+- Strict tag pattern: `^(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\d+|rc\d+))?)$` (junk sample: 0.6.0-test, agent/0.40.0, agent/0.41.0, agent/0.42.0, agent/0.43.0, agent/0.44.0)
+- Scanned `github.com/falcosecurity/falco@0.45.0` (source profile): 384 files listed, 115 read
+- Scanned `github.com/falcosecurity/falco-website@master` (docs profile): 1062 files listed, 36 read
+- Validation: done against 0.43.0, 0.43.1, 0.44.0, 0.44.1, 0.45.0
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 2 | git-tags github.com/falcosecurity/falco; github-releases falcosecurity/falco |
+| release-notes | found | 0 | github-releases falcosecurity/falco  @{{.Tag}} |
+| changelog | found | 2 | repo-file github.com/falcosecurity/falco CHANGELOG.md |
+| helm-charts | found | 5 | falco via helm-repo:https://falcosecurity.github.io/charts; falco via helm-repo:https://falcosecurity.github.io/charts, helm-git:github.com/falcosecurity/charts |
+| registries | found | 3 | docker.io/falcosecurity |
+| images | found | 18 | docker.io/falcosecurity/falco:{{.Tag}}; docker.io/falcosecurity/falco-driver-loader:{{.Tag}} |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 0 | github-advisories falcosecurity/falco |
+| version-relations | found | 0 | falco-chart: independent; falco-chart-2: lookup appVersion == {{.Tag}}; falco: version = {{.Tag}}; falco-driver-loader: version = {{.Tag}} |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:falco | historically-validated | image.tag-assumed-release | https://github.com/falcosecurity/falco/blob/0.45.0/.github/release_template.md#L16 |
+| artifact:falco-chart-2 | historically-validated | chart.external-lookup-appversion | https://github.com/falcosecurity/falco/blob/0.45.0/ADOPTERS.md#L75 (+1) |
+| artifact:falco-driver-loader | historically-validated | image.tag-assumed-release | https://github.com/falcosecurity/falco/blob/0.45.0/.github/release_template.md#L18 |
+| source:release-notes-github | historically-validated | notes.hosted-release-body | https://github.com/falcosecurity/falco/blob/0.45.0/.github/workflows/release.yaml#L211 |
+| artifact:falco-chart | unverified | helm.independent-version | https://github.com/falcosecurity/falco/blob/0.45.0/chart/falco/Chart.yaml#L2 (+1) |
+| artifact:falcoctl | unverified | image.tag-assumed-release | https://github.com/falcosecurity/falco/blob/0.45.0/chart/falco/values.yaml#L547 |
+| source:advisories | discovered | security.github-hosted-default |  |
+| source:changelog | exception | changelog.file | https://github.com/falcosecurity/falco/blob/0.45.0/CHANGELOG.md#L3 |
+| source:github-releases | discovered | versions.github-releases-fallback | https://github.com/falcosecurity/falco/blob/0.45.0/.github/workflows/release.yaml#L211 |
+| source:tags | discovered | versions.git-tags | https://github.com/falcosecurity/falco/releases/tag/0.45.0#refs/tags/0.45.0 |
+| versioning | discovered | tags.scheme | https://github.com/falcosecurity/falco/releases/tag/0.45.0#refs/tags/0.45.0 |
+
+Statuses: 4 historically-validated, 4 discovered, 2 unverified, 1 exception.
+
+## Open questions for the reviewer
+
+- Ambiguity (registry-roles): 4 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (docs-sources): Documentation lives in another repository; no release-notes, upgrade-guide, compatibility source was derived from it.
+- Ambiguity (main-chart): 2 charts are published; which one installs the product?
+- Ambiguity (chart-version): How do the versions of chart(s) falco relate to the release version?
+- Ambiguity (chart-version): How do the versions of chart(s) falco relate to the release version?
+
+## Validation matrix
+
+| Element | Verdict | 0.43.0 | 0.43.1 | 0.44.0 | 0.44.1 | 0.45.0 |
+|---|---|---|---|---|---|---|
+| artifact:falco | validated | pass | pass | pass | pass | pass |
+| artifact:falco-chart | unverifiable | unverifiable: artifact version is independent of the release version (stra… | unverifiable: artifact version is independent of the release version (stra… | unverifiable: artifact version is independent of the release version (stra… | unverifiable: artifact version is independent of the release version (stra… | unverifiable: artifact version is independent of the release version (stra… |
+| artifact:falco-chart-2 | validated | pass | pass | pass | pass | pass |
+| artifact:falco-driver-loader | validated | pass | pass | pass | pass | pass |
+| artifact:falcoctl | failing | fail: absent from docker.io/falcosecurity/falcoctl:0.43.0 | fail: absent from docker.io/falcosecurity/falcoctl:0.43.1 | fail: absent from docker.io/falcosecurity/falcoctl:0.44.0 | fail: absent from docker.io/falcosecurity/falcoctl:0.44.1 | fail: absent from docker.io/falcosecurity/falcoctl:0.45.0 |
+| content:falco-chart/chart-metadata | failing | fail: fetch https://raw.githubusercontent.com/falcosecurity/falco/… | fail: fetch https://raw.githubusercontent.com/falcosecurity/falco/… | pass | pass | pass |
+| content:falco-chart/helm-values | failing | fail: fetch https://raw.githubusercontent.com/falcosecurity/falco/… | fail: fetch https://raw.githubusercontent.com/falcosecurity/falco/… | pass | pass | pass |
+| source:changelog | failing | fail: no section matching "^\\[?v?0\\.43\\.0\\]?(\\s\|$)" in https:… | fail: no section matching "^\\[?v?0\\.43\\.1\\]?(\\s\|$)" in https:… | fail: no section matching "^\\[?v?0\\.44\\.0\\]?(\\s\|$)" in https:… | fail: no section matching "^\\[?v?0\\.44\\.1\\]?(\\s\|$)" in https:… | pass |
+| source:release-notes-github | validated | pass | pass | pass | pass | pass |
+
+## Dropped elements
+
+- `artifact:falcoctl` (deterministic): failed validation: 0.43.0 fail (absent from docker.io/falcosecurity/falcoctl:0.43.0); 0.43.1 fail (absent from docker.io/falcosecurity/falcoctl:0.43.1); 0.44.0 fail (absent from docker.io/falcosecurity/falcoctl:0.44.0); 0.44.1 fail (absent from docker.io/falcosecurity/falcoctl:0.44.1); …
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 195 tags: prefix "", 76 stable, 47 prereleases (alphaN×5, rcN×42), 72 junk; latest stable 0.45.0; lineage minor; strict tagPattern excludes junk tags such as 0.6.0-test, agent/0.40.0, agent/0.41.0, agent/0.42.0 |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (195 tags: prefix "", 76 stable, 47 prereleases (alphaN×5, rcN×42), 72 junk; latest stable 0.45.0; lineage minor). |
+| source:github-releases | include | versions.github-releases-fallback | heuristic | Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list. |
+| source:release-notes-github | include | notes.hosted-release-body | heuristic | Hosted GitHub releases exist (assets are downloaded from them); their body may carry notes. |
+| source:changelog | include | changelog.file | heuristic | Changelog with 41 version sections, newest 0.45.0 (heading "## v0.45.0"). |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+| artifact:falco-chart | include | helm.independent-version | heuristic | Chart has its own version "9.2.0-rc1" unrelated to the release. Published via 1 channel(s); OCI locations first. |
+| artifact:falco-chart-2 | include | chart.external-lookup-appversion | heuristic | The chart lives in a separate repository with independent versions; the chart release for a product release is looked up by appVersion == release tag (GitHub Pages URL by the chart-releaser convention). |
+| artifact:falco | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:falco-driver-loader | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:falcoctl | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| source:changelog | annotate | validate.availability-inferred | computed | Fails only for releases older than every passing one; availability >= 0.45.0. |
+| artifact:falco-chart | annotate | validate.unverifiable | computed | Kept unverified: 0.43.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 0.43.1 unverifiable (artifact version is independent of the release version (strategy … |
+| artifact:falcoctl | drop | validate.failed | computed | Relationship check failed: 0.43.0 fail (absent from docker.io/falcosecurity/falcoctl:0.43.0); 0.43.1 fail (absent from docker.io/falcosecurity/falcoctl:0.43.1); 0.44.0 fail (absent from docker.io/falcosecurity/falcoctl:0… |
+
+32 candidates were found; 16 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/falco.report.md
+proposed definition written to docs/rerun/discovery/falco.proposed.yaml
