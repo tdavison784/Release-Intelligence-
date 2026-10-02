@@ -63,6 +63,13 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
   if open, resumes `scripts/proxy-review.sh` (same arguments) after deleting the 7 session-limit
   `.failed` markers and the `STOP` file. If the probe still fails, it reschedules ~30 min later. After
   the run: step-6 REPORT.md via `ri knowledge proxy-report`, package requests/responses, commit.
+- 08:20 CDT: prompt v2 (`internal/proxyreview/prompt.go`): the decision rules now state the correction's hard
+  limits (statement ≤400 chars, consequence statement/remediation ≤600, aspect reason ≤400, ≤12 citations),
+  the exact checks `semantic.ProposalFromAnswer` refuses on; `PromptVersion` is `proxy-review/v2`. Run-1 is
+  unaffected: its requests are v1 files on disk, and `Decision` re-hashes the request file's own prompt, not
+  current code, so the remaining v1 responses still record. The shadow pass will build v2 prompts.
+  Deliberately NOT added: any text about no-op corrections — that is the open contract question below, and
+  embedding current recorder behaviour in the prompt would bias it before the commander decides.
 - Uncertain: nothing new. The two open contract questions (prose-only corrections; Provenance.Provider)
   remain with the commander. Step 5 (shadow) still waits for the commander.
 
@@ -79,6 +86,6 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
     invented `--log-format` flag) but kept the kind. The aspect digests exclude prose, so `ReviewDecision.Validate`
     refuses them as no-op corrections. A human on the dashboard would hit the same wall. **Contract question
     for the commander:** should a prose-only correction be allowed?
-  - 1 statement longer than 400 characters: the v1 prompt does not state the length limits. Fix in a v2 prompt.
+  - 1 statement longer than 400 characters: the v1 prompt did not state the length limits — fixed in v2 (see the handoff log).
 - Still to do: finish step 4, write the step 6 REPORT.md (`ri knowledge proxy-report`), commit
   responses/requests. Step 5 waits for the commander.

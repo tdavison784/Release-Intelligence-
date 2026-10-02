@@ -106,6 +106,31 @@ func TestBuildIsBlindAndSelfContained(t *testing.T) {
 	}
 }
 
+// v2: the decision prompt states the correction's hard length limits (a v1
+// correction was refused for a >400-character statement the model could not
+// know was too long); the gate prompt has no correction and no limits.
+func TestPromptStatesCorrectionLimits(t *testing.T) {
+	req, err := Build(fixture(domain.QuestionConsequence), Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if req.PromptVersion != "proxy-review/v2" {
+		t.Errorf("prompt version %s", req.PromptVersion)
+	}
+	for _, want := range []string{"at most 400 characters", "at most 600 characters", "at most 12 citations"} {
+		if !strings.Contains(req.Request.System, want) {
+			t.Errorf("system prompt lacks %q", want)
+		}
+	}
+	gate, err := Build(fixture(domain.QuestionEvidenceSufficiency), Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(gate.Request.System, "at most 400 characters") {
+		t.Error("gate prompt states correction limits it cannot use")
+	}
+}
+
 func TestDecisionAcceptRejectCorrect(t *testing.T) {
 	rc := fixture(domain.QuestionConsequence)
 	req, err := Build(rc, Options{})
