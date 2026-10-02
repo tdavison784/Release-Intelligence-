@@ -67,16 +67,26 @@ importing it into the committed `knowledge/` tree is left to the commander (know
 ownership). The run also fixed d5387fd (proposals built on another candidate variant are
 now refused) and completed 2 initially-failed haiku calls (1 recovered, 1 recorded refusal).
 
+PO-1 same-model consensus measurement (second GLM handoff): two independent sonnet
+call-sets on strimzi (62 calls, $2.46, 0 shared call ids, 0 proposal-id overlap).
+Same-model self-agreement is *low* — subject 2/11, change 9/16, applicability 1/11,
+consequence 7/13 (both-asserted, strict digests) — below sonnet↔haiku cross-model
+agreement, while `action-required` requests are stable across calls (5 common of 6/5).
+Two calls of one model are checkably separate measurements that do not converge on typed
+detail; consensus signal is cross-model + deterministic validation, as the contract's
+consensus-scope rules encode. Full record: `runs/semantic-v2/README.md` § Same-model.
+
 ## Next
 
-- Same-model consensus measurement (PO-1) in progress during the second GLM handoff: two independent
-  sonnet call-sets on strimzi 0.45.0→0.46.0 (separate exchanges/caches → distinct call ids, one
-  store); result lands in `docs/phase3/learning-loop/runs/semantic-v2/` when the calls finish.
 - Rendered-diff addendum: plumbing ready (render evidence enters through the candidate's evidence;
-  prompt version `+rendered`); waits for the render lane.
+  prompt version `+rendered`); waits for the render lane (its work sits unmerged on `p3ll/render`).
 - Commander decision requested: import `.ri/semantic-run-v2/knowledge` into the committed
   `knowledge/` tree (or keep per-run scratch stores), and route `ri knowledge candidates|propose`
   through the semantic subcommands (stub drop listed above).
+- Possible follow-up the real run suggests (needs product-owner judgement, not done): the 58 haiku
+  refusals are dominated by typed-constraint violations (empty `all` conditions, missing
+  gvk/crd-field identity fields, `before`/`after` on value-changed) — prompt-vocabulary examples for
+  exactly those shapes would likely cut the refusal rate; refusing is correct behaviour meanwhile.
 
 ## Decisions
 
@@ -104,8 +114,9 @@ none proposed (PO-1/PO-2 implementations follow contract-3 as merged).
 
 ## Test status
 
-`go build ./... && go vet ./... && go test ./...` green on the branch at the last GLM-handoff
-commit (incl. the reviewui repair; see handoff log).
+`go build ./... && go vet ./... && go test ./...` green on the branch at 86ec7de (verified again
+after the second handoff's commits; the new `TestStoreIntegrity` skips offline and passes against
+both real-run stores: 519 candidates / 1122 proposals / 0 invalid, and 31/50/0 same-model).
 
 ## GLM handoff log
 
@@ -130,3 +141,43 @@ Uncertainties / for the commander:
   follow-up; my hunk is one line inside their builder.
 - I did not retune the clustering on the two observed possible missed joins — that should follow
   the real run's measurements, and changing it before would move the ground the run measures.
+
+## GLM handoff log (second handoff)
+
+GLM-5.3 again, while the Claude agent sits out the usage-limit window. The real run had
+finished on disk (run-v2 + opus in the paused session's scratchpad) but was unreported;
+nothing of it was lost — I found it, completed it, measured, and recorded it. Commits
+(all `[glm-handoff] `):
+
+1. `22aa879` env-gated `TestStoreIntegrity` (polished from the paused agent's uncommitted
+   zz scratch test): validates any `propose -out` store — candidates, every proposal against
+   its stored candidate, citations ⊆ shown evidence. Skips offline.
+2. `4e15ca1` real-run record `docs/phase3/learning-loop/runs/semantic-v2/` + this file's
+   missing "Real run" section. Completed the 2 haiku calls that had failed with
+   `error_max_structured_output_retries` (1050/1050 answered; 1 recovered, 1 refused+recorded),
+   re-ingested all 8 edges from the answered exchange (0 pending), regenerated the opus
+   reports, and copied every artifact to `.ri/semantic-run-v2/` (gitignored, path recorded)
+   because the scratchpad dies with the paused session.
+3. `86ec7de` analyze.py agreement tail crashed once opus (4 of 8 edges) joined the store;
+   fixed (agreement → analyze2.py, pairwise action-required cross-listing added), outputs
+   regenerated on the final 1122-proposal store.
+4. same-model measurement (PO-1) + final record (this commit): `samerun2.sh`, two independent
+   sonnet call-sets on strimzi (62 calls, $2.46), `analyze_same.py`, results in the run
+   README § Same-model and summarised above.
+
+Live `claude -p` spend this handoff: $2.46 (same-model) + ~$0.10 (2 retried haiku calls +
+1 probe). Everything else replayed from the answered exchange.
+
+Uncertainties / for the commander:
+- Importing `.ri/semantic-run-v2/knowledge` (1 704 records) into the committed `knowledge/`
+  tree is your call (knowledge-lane ownership; it is release-level content, env-independent).
+  The full audit trail (requests, responses, CLI envelopes with cost) is in the same dir.
+- The same-model numbers are one edge (strimzi) with small both-asserted denominators; treat
+  them as a floor measurement, not precise rates. Extending to a second edge is mechanical
+  (`samerun2.sh` pattern) if wanted.
+- One zsh footgun cost nothing but time: an unquoted `$EDGES` loop collapsed to one iteration
+  and a junk report filename (deleted; the risky cleanup glob also hit 3 report files, restored
+  from the scratchpad copies and then regenerated — final reports in the run dir are complete).
+- The 58 haiku refusals cluster on a few typed-constraint shapes (noted under Next); fixing
+  them via vocabulary examples is a prompt-version change I did not make unilaterally — it
+  would move the ground the just-finished run measured.

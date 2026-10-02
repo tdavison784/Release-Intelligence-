@@ -81,8 +81,33 @@ a commander decision (knowledge-lane ownership); everything needed to audit or i
 
 ## Same-model measurement (PO-1)
 
-`samerun.sh` (in this dir; run record added below when complete): two independent sonnet
-call-sets over strimzi 0.45.0→0.46.0, separate exchange dirs and caches so every request is
-its own `claude -p` session — checkably separate calls (distinct session ids / `callId`s),
-both ingested into one store. Measures same-model self-agreement, the floor that
-cross-model consensus must beat for `VerifiedConsensus` to mean anything.
+`samerun.sh` / `samerun2.sh` (in this dir): two independent sonnet call-sets over
+strimzi 0.45.0→0.46.0, separate exchange dirs and caches so every request is its own
+`claude -p` session — checkably separate calls (distinct session ids / `callId`s), both
+ingested into one store. 62 calls, $2.46; 25 proposals per call-set, 6 refusals each,
+0 pending; 0 shared call ids; proposal-id overlap between call-sets 0 (every proposal is
+its own call); store integrity 31 candidates / 50 proposals / 0 invalid.
+
+Same-model self-agreement over the 21 candidates both calls proposed on
+(strict per-field digests, both-asserted only):
+
+| aspect | agree |
+|---|---|
+| subject | 2/11 (18 %) |
+| change | 9/16 (56 %) |
+| applicability | 1/11 (9 %) |
+| consequence | 7/13 (54 %) |
+
+Both calls fully abstain on 2; `action-required` requests are much more stable than the
+typed aspects (call-1 6, call-2 5, both 5 — the ZooKeeper/KRaft-removal class). Caveats:
+one edge, small both-asserted denominators, digests compare every field.
+
+Reading: the same-model self-consistency floor is **low** — lower than sonnet↔haiku
+cross-model agreement on the same aspects (44/68/29/34 %). Two calls of one model are
+genuinely separate measurements (PO-1 mechanics hold: distinct call ids, distinct
+proposals), but they do not converge on typed detail by themselves; the consensus signal
+that matters is cross-model (opus↔sonnet 59–73 %) plus deterministic validation, exactly
+the shape the contract's consensus-scope rules and `VerifiedConsensus` level encode.
+
+Artifacts: `same-model/reports/report{1,2}.txt`, `same-model/ex-{1,2}/exchange.log` (in
+`.ri/semantic-run-v2/`), `analysis-same-model.txt`, `analyze_same.py` (in this dir).
