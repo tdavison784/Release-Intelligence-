@@ -48,13 +48,35 @@ Branch `p3ll/semantic` (base `p3-learning-loop` @ 1174492, knowledge-3 merged).
   message). Recommendation for the commander/knowledge lane: route them with
   `case "candidates": return c.semanticCandidates(rest)` / `case "propose": return c.semanticPropose(rest)`
   and drop the stub assertion in `knowledge_test.go`.
-- Real run in progress (see "Real run" below).
+- Real run complete (see "Real run" below; full record in `docs/phase3/learning-loop/runs/semantic-v2/`).
+
+## Real run
+
+Brief scope: the 8 environment-case edges, sonnet + haiku everywhere, opus on 4
+(cert-manager ×2, karpenter, strimzi) — 519 unique candidates, 1 197 stateless
+`claude -p` calls ($50.08), 1 122 proposals + 63 recorded failures in a
+knowledge-layout store, 0 invalid records (env-gated integrity test). Full numbers,
+agreement tables and reproduction steps: `docs/phase3/learning-loop/runs/semantic-v2/README.md`.
+Headlines: cross-model aspect agreement (both asserted) sonnet↔haiku 44/68/29/34 %,
+opus↔sonnet 59/73/46/62 % (subject/change/applicability/consequence); full abstention
+sonnet 159 / haiku 113 / opus 33; `action-required` requests haiku 47 / sonnet 5 / opus 6
+(both S+H on 5 candidates); confidence only low/medium; mean citations per asserting
+proposal 1.06–1.15. The store, exchanges, envelopes and reports live in
+`/Users/tommydavison/repos/Release-Intelligence-/.ri/semantic-run-v2/` (gitignored);
+importing it into the committed `knowledge/` tree is left to the commander (knowledge-lane
+ownership). The run also fixed d5387fd (proposals built on another candidate variant are
+now refused) and completed 2 initially-failed haiku calls (1 recovered, 1 recorded refusal).
 
 ## Next
 
+- Same-model consensus measurement (PO-1) in progress during the second GLM handoff: two independent
+  sonnet call-sets on strimzi 0.45.0→0.46.0 (separate exchanges/caches → distinct call ids, one
+  store); result lands in `docs/phase3/learning-loop/runs/semantic-v2/` when the calls finish.
 - Rendered-diff addendum: plumbing ready (render evidence enters through the candidate's evidence;
   prompt version `+rendered`); waits for the render lane.
-- Opus and repeated same-model calls (PO-1 same-model consensus measurement) after the Sonnet+Haiku run.
+- Commander decision requested: import `.ri/semantic-run-v2/knowledge` into the committed
+  `knowledge/` tree (or keep per-run scratch stores), and route `ri knowledge candidates|propose`
+  through the semantic subcommands (stub drop listed above).
 
 ## Decisions
 
