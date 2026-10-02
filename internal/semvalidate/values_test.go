@@ -1,6 +1,7 @@
 package semvalidate
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
@@ -126,5 +127,72 @@ func TestValuesEvidenceCitesBothSides(t *testing.T) {
 	}
 	if !uris["https://x/v1.0.0/chart"] || !uris["https://x/v1.1.0/chart"] {
 		t.Errorf("both releases' snapshots must be cited: %v", uris)
+	}
+}
+
+// Audit regressions (docs/phase3/learning-loop/VALIDATOR-AUDIT.md).
+
+// Istio 1.23 snapshots its chart values under a `defaults.` wrapper, 1.24 does
+// not: a key that merely changed root must not read as removed or added.
+func TestValuesRootedDifferentlyAtTheTwoReleasesNeverConfirmsOrRefutes(t *testing.T) {
+	wrapped := []string{"defaults.global.platform", `""`, "defaults.seLinuxOptions", "{}", "defaults.a", "1", "defaults.b", "2", "defaults.c", "3", "defaults.d", "4"}
+	plain := []string{"global.platform", `""`, "seLinuxOptions", "{}", "a", "1", "b", "2", "c", "3", "d", "4"}
+	from := newRel("v1.23.4").values("chart-base", "base", wrapped...)
+	to := newRel("v1.24.0").values("chart-base", "base", plain...)
+	for _, c := range []*domain.ChangeSpec{
+		change(domain.ChangeKindAdded, "", ""),
+		change(domain.ChangeKindRemoved, "", ""),
+		change(domain.ChangeKindDefaultChanged, `"x"`, `"y"`),
+	} {
+		for _, path := range []string{"global.platform", "seLinuxOptions", "defaults.a", "nowhere"} {
+			got := run(t, valuesValidator{}, input(from, to, assertion(helmSubject(path), c)))
+			if got[domain.AspectSubject] != domain.OutcomeInconclusive || got[domain.AspectChange] != domain.OutcomeInconclusive {
+				t.Errorf("%s %s: %v", c.Type, path, got)
+			}
+		}
+	}
+	// the same chart rooted alike on both sides is compared normally
+	to2 := newRel("v1.24.0").values("chart-base", "base", wrapped...)
+	if got := run(t, valuesValidator{}, input(from, to2, assertion(helmSubject("defaults.a"), change(domain.ChangeKindRemoved, "", "")))); got[domain.AspectChange] != domain.OutcomeRefuted {
+		t.Errorf("alike-rooted: %v", got)
+	}
+}
+
+// A key present in several charts is only confirmed when the charts agree,
+// unless the subject names the chart.
+func TestValuesMultiChartKeyNeedsAgreement(t *testing.T) {
+	from := newRel("v1.0.0").values("cni", "cni", "env", "1").values("ztunnel", "ztunnel", "k", "1")
+	to := newRel("v1.1.0").values("cni", "cni", "env", "1", "seLinuxOptions", "{}").values("ztunnel", "ztunnel", "k", "1", "env", "1", "seLinuxOptions", "{}")
+	added := change(domain.ChangeKindAdded, "", "")
+	// seLinuxOptions is new in both charts: agreement confirms
+	if got := run(t, valuesValidator{}, input(from, to, assertion(helmSubject("seLinuxOptions"), added))); got[domain.AspectChange] != domain.OutcomeConfirmed {
+		t.Errorf("both charts add it: %v", got)
+	}
+	// env existed in cni, is new in ztunnel
+	if got := run(t, valuesValidator{}, input(from, to, assertion(helmSubject("env"), added))); got[domain.AspectChange] != domain.OutcomeInconclusive {
+		t.Errorf("charts disagree: %v", got)
+	}
+	named := helmSubject("env")
+	named.Name = "ztunnel"
+	if got := run(t, valuesValidator{}, input(from, to, assertion(named, added))); got[domain.AspectChange] != domain.OutcomeConfirmed {
+		t.Errorf("named chart: %v", got)
+	}
+	named.Name = "cni"
+	if got := run(t, valuesValidator{}, input(from, to, assertion(named, added))); got[domain.AspectChange] != domain.OutcomeRefuted {
+		t.Errorf("named chart that had it: %v", got)
+	}
+}
+
+func TestValuesDefaultAsStringEncodedList(t *testing.T) {
+	from := newRel("v1.0.0").values("chart", "demo", "tolerations", `[{"key":"a"}]`)
+	to := newRel("v1.1.0").values("chart", "demo", "tolerations", `[{"key":"b"}]`)
+	enc := func(s string) string { b, _ := json.Marshal(s); return string(b) }
+	got := run(t, valuesValidator{}, input(from, to, assertion(helmSubject("tolerations"), change(domain.ChangeKindDefaultChanged, enc(`[{"key":"a"}]`), enc(`[{"key":"b"}]`)))))
+	if got[domain.AspectChange] != domain.OutcomeConfirmed {
+		t.Errorf("string-encoded object: %v", got)
+	}
+	got = run(t, valuesValidator{}, input(from, to, assertion(helmSubject("tolerations"), change(domain.ChangeKindDefaultChanged, enc(`[{"key":"z"}]`), enc(`[{"key":"b"}]`)))))
+	if got[domain.AspectChange] != domain.OutcomeRefuted {
+		t.Errorf("wrong object: %v", got)
 	}
 }

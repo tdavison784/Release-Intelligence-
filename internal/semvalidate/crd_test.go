@@ -1,6 +1,7 @@
 package semvalidate
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
@@ -68,7 +69,9 @@ func TestCRDFieldValidator(t *testing.T) {
 		{"plausible but nonexistent path", "cert-manager.io", "Certificate", "spec.privateKey.rotationPolicyMode", change(domain.ChangeKindDefaultChanged, `"Never"`, `"Always"`), R, R},
 		{"same path, different kind", "cert-manager.io", "Issuer", "spec.privateKey.rotationPolicy", change(domain.ChangeKindDefaultChanged, `"Never"`, `"Always"`), R, R},
 		{"path of another kind's schema", "cert-manager.io", "Certificate", "spec.ca", change(domain.ChangeKindAdded, "", ""), R, R},
-		{"kind that does not exist in the group", "cert-manager.io", "Widget", "spec.a", change(domain.ChangeKindAdded, "", ""), R, R},
+		// a CRD snapshot is not known to hold every kind of a group (cilium generates
+		// some CRDs at runtime): a kind it lacks is a gap, never a refutation
+		{"kind missing from the snapshot", "cert-manager.io", "Widget", "spec.a", change(domain.ChangeKindAdded, "", ""), I, I},
 		{"group outside the snapshots", "other.io", "Certificate", "spec.a", change(domain.ChangeKindAdded, "", ""), I, I},
 	}
 	for _, tc := range cases {
@@ -141,7 +144,7 @@ func TestGVKValidator(t *testing.T) {
 		{"storage not moved like that", gvk("v1"), change(domain.ChangeKindValueChanged, `"v1alpha5"`, `"v1"`), O, R},
 		{"version that never existed", gvk("v2"), change(domain.ChangeKindRemoved, "", ""), R, R},
 		{"behavior", gvk("v1"), change(domain.ChangeKindBehaviorChanged, "", ""), O, I},
-		{"unknown group is not the product's", &domain.Subject{Family: domain.SubjectGVK, Product: "karpenter", Group: "elsewhere.io", Version: "v1", Kind: "NodePool"}, change(domain.ChangeKindRemoved, "", ""), I, R},
+		{"unknown group is not the product's", &domain.Subject{Family: domain.SubjectGVK, Product: "karpenter", Group: "elsewhere.io", Version: "v1", Kind: "NodePool"}, change(domain.ChangeKindRemoved, "", ""), I, I},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -159,5 +162,97 @@ func TestGVKValidator(t *testing.T) {
 	plain := newRel("v1.0.0").crds("crds", crd("nodepools.karpenter.sh", "karpenter.sh", "NodePool", crdVer("v1", true, true)))
 	if got := run(t, crdValidator{}, input(plain, dep, assertion(gvk("v1"), change(domain.ChangeKindDeprecated, "", "")))); got[domain.AspectChange] != domain.OutcomeConfirmed {
 		t.Errorf("deprecation: %v", got)
+	}
+}
+
+// Audit regressions (docs/phase3/learning-loop/VALIDATOR-AUDIT.md).
+
+func TestCRDDefaultEncodedAsStringAndRemovedDefault(t *testing.T) {
+	obj := func(hop string) string { return `{"httpEndpoint":"enabled","httpPutResponseHopLimit":` + hop + `}` }
+	from := newRel("v0.37.8").crds("crds", crd("nodepools.karpenter.sh", "karpenter.sh", "NodePool",
+		crdVer("v1", true, true, fld("spec.metadataOptions", "object", obj("2")), fld("spec.disruption", "object", `{"consolidateAfter":"0s"}`))))
+	to := newRel("v1.0.0").crds("crds", crd("nodepools.karpenter.sh", "karpenter.sh", "NodePool",
+		crdVer("v1", true, true, fld("spec.metadataOptions", "object", obj("1")), fld("spec.disruption", "object", ""))))
+	enc := func(s string) string { b, _ := json.Marshal(s); return string(b) } // the object wrapped as a JSON string
+	sub := func(p string) *domain.Subject { return crdSubject("karpenter.sh", "NodePool", p) }
+	// a model that sends an object default as a JSON string is understood
+	got := run(t, crdValidator{}, input(from, to, assertion(sub("spec.metadataOptions"), change(domain.ChangeKindDefaultChanged, enc(obj("2")), enc(obj("1"))))))
+	if got[domain.AspectChange] != domain.OutcomeConfirmed {
+		t.Errorf("string-encoded object default: %v", got)
+	}
+	// ...but a wrong value inside is still refuted
+	got = run(t, crdValidator{}, input(from, to, assertion(sub("spec.metadataOptions"), change(domain.ChangeKindDefaultChanged, enc(obj("3")), enc(obj("1"))))))
+	if got[domain.AspectChange] != domain.OutcomeRefuted {
+		t.Errorf("wrong encoded default: %v", got)
+	}
+	// default → null: the target schema no longer states one
+	got = run(t, crdValidator{}, input(from, to, assertion(sub("spec.disruption"), change(domain.ChangeKindDefaultChanged, enc(`{"consolidateAfter":"0s"}`), "null"))))
+	if got[domain.AspectChange] != domain.OutcomeConfirmed {
+		t.Errorf("removed schema default: %v", got)
+	}
+	// null → default is not provable (the source may have had a code default)
+	got = run(t, crdValidator{}, input(to, from, assertion(sub("spec.disruption"), change(domain.ChangeKindDefaultChanged, "null", enc(`{"consolidateAfter":"0s"}`)))))
+	if got[domain.AspectChange] != domain.OutcomeInconclusive {
+		t.Errorf("default introduced: %v", got)
+	}
+	// a child property whose own default did not change
+	both := newRel("v1.0.0").crds("crds", crd("nodepools.karpenter.sh", "karpenter.sh", "NodePool",
+		crdVer("v1", true, true, fld("spec.metadataOptions.httpPutResponseHopLimit", "integer", "2"))))
+	got = run(t, crdValidator{}, input(both, both, assertion(sub("spec.metadataOptions.httpPutResponseHopLimit"), change(domain.ChangeKindDefaultChanged, "2", "1"))))
+	if got[domain.AspectChange] != domain.OutcomeRefuted {
+		t.Errorf("child default unchanged: %v", got)
+	}
+}
+
+// v1beta1 → v1 moves are real but happen BETWEEN versions: neither schema's
+// enum or field set changes, so a per-schema refutation would be wrong and a
+// confirmation impossible.
+func TestCRDCrossVersionMovesAreInconclusive(t *testing.T) {
+	enum := func(path string, vals ...string) domain.CRDFieldSchema {
+		f := fld(path, "string", "")
+		f.Enum = vals
+		return f
+	}
+	mk := func(tag string) *rel {
+		return newRel(tag).crds("crds", crd("nodepools.karpenter.sh", "karpenter.sh", "NodePool",
+			crdVer("v1", true, true, enum("spec.disruption.consolidationPolicy", `"WhenEmpty"`, `"WhenEmptyOrUnderutilized"`), fld("spec.template.spec.expireAfter", "string", "")),
+			crdVer("v1beta1", true, false, enum("spec.disruption.consolidationPolicy", `"WhenEmpty"`, `"WhenUnderutilized"`), fld("spec.disruption.expireAfter", "string", ""))))
+	}
+	from, to := mk("v0.37.8"), mk("v1.0.0")
+	enumRename := assertion(crdSubject("karpenter.sh", "NodePool", "spec.disruption.consolidationPolicy"),
+		change(domain.ChangeKindValueChanged, `"WhenUnderutilized"`, `"WhenEmptyOrUnderutilized"`))
+	if got := run(t, crdValidator{}, input(from, to, enumRename)); got[domain.AspectChange] != domain.OutcomeInconclusive {
+		t.Errorf("enum renamed between versions: %v", got)
+	}
+	c := change(domain.ChangeKindRenamed, "", "")
+	c.ReplacedBy = crdSubject("karpenter.sh", "NodePool", "spec.template.spec.expireAfter")
+	if got := run(t, crdValidator{}, input(from, to, assertion(crdSubject("karpenter.sh", "NodePool", "spec.disruption.expireAfter"), c))); got[domain.AspectChange] != domain.OutcomeInconclusive {
+		t.Errorf("field moved between versions: %v", got)
+	}
+	// a value that was never allowed anywhere is still refuted
+	bogus := assertion(crdSubject("karpenter.sh", "NodePool", "spec.disruption.consolidationPolicy"), change(domain.ChangeKindValueChanged, `"Nope"`, `"WhenEmptyOrUnderutilized"`))
+	if got := run(t, crdValidator{}, input(from, to, bogus)); got[domain.AspectChange] != domain.OutcomeRefuted {
+		t.Errorf("never-allowed value: %v", got)
+	}
+}
+
+func TestCRDUnversionedClaimsNeedEveryVersionToAgree(t *testing.T) {
+	from := newRel("v1.0.0").crds("crds", crd("a.x.io", "x.io", "A",
+		crdVer("v1", true, true, fld("spec.a", "string", "")), crdVer("v1beta1", true, false, fld("spec.a", "string", ""))))
+	to := newRel("v1.1.0").crds("crds", crd("a.x.io", "x.io", "A",
+		crdVer("v1", true, true, fld("spec.a", "string", "")), crdVer("v1beta1", true, false)))
+	// dropped from v1beta1 only: "removed" without a version would mint a wrong fact
+	got := run(t, crdValidator{}, input(from, to, assertion(crdSubject("x.io", "A", "spec.a"), change(domain.ChangeKindRemoved, "", ""))))
+	if got[domain.AspectChange] != domain.OutcomeInconclusive {
+		t.Errorf("removed from one version of two: %v", got)
+	}
+	// a brand-new API version brings every field with it: that is not "field added"
+	withV2 := newRel("v1.1.0").crds("crds", crd("a.x.io", "x.io", "A",
+		crdVer("v1", true, true, fld("spec.a", "string", "")), crdVer("v2", true, false, fld("spec.a", "string", ""))))
+	s := crdSubject("x.io", "A", "spec.a")
+	s.Version = "v2"
+	got = run(t, crdValidator{}, input(from, withV2, assertion(s, change(domain.ChangeKindAdded, "", ""))))
+	if got[domain.AspectChange] != domain.OutcomeInconclusive {
+		t.Errorf("field of a new version: %v", got)
 	}
 }
