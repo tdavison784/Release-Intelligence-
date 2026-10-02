@@ -79,6 +79,10 @@ var unimplementedDiffRules = map[string]bool{
 	upgrade.RuleCRDAdded: true, upgrade.RuleCRDVersionAdded: true,
 	upgrade.RuleCRDStorageChanged: true, upgrade.RuleCRDFieldsAdded: true,
 	upgrade.RuleImageAdded: true,
+	// schema-attribute diffs: provable upstream facts, joined by the
+	// applicability lane; until then unknown with a specific reason
+	upgrade.RuleCRDDefaultChanged: true, upgrade.RuleCRDEnumChanged: true,
+	upgrade.RuleCRDFieldRequired: true, upgrade.RuleCRDFieldTypeChange: true,
 }
 
 // builder accumulates the report while Build runs.

@@ -913,3 +913,61 @@ func TestFactsAreLinkedAndResolvable(t *testing.T) {
 		t.Error("expected facts linked to changes")
 	}
 }
+
+func TestCRDSchemaAttributeDiff(t *testing.T) {
+	mk := func(fields ...domain.CRDFieldSchema) domain.CRDSummary {
+		v := crdVer("v1", true, true)
+		for _, f := range fields {
+			v.SchemaPaths = append(v.SchemaPaths, f.Path)
+		}
+		v.Fields = fields
+		return crd("knobs.example.io", "example.io", "Knob", v)
+	}
+	f := func(path, typ, def string, req bool, enum ...string) domain.CRDFieldSchema {
+		return domain.CRDFieldSchema{Path: path, Type: typ, Default: def, Required: req, Enum: enum}
+	}
+	from := bare("v1.0.0").crds("crds", "https://x/v1.0.0/crds.yaml", mk(
+		f("spec.a", "string", `"Never"`, false),
+		f("spec.b", "string", "", false, `"x"`, `"y"`),
+		f("spec.c", "string", "", false),
+		f("spec.d", "string", "", false),
+		f("spec.same", "string", `"k"`, true, `"k"`),
+	))
+	to := bare("v1.1.0").crds("crds", "https://x/v1.1.0/crds.yaml", mk(
+		f("spec.a", "string", `"Always"`, false),
+		f("spec.b", "string", "", false, `"x"`, `"z"`),
+		f("spec.c", "string", "", true),
+		f("spec.d", "integer", "", false),
+		f("spec.same", "string", `"k"`, true, `"k"`),
+		f("spec.new", "string", `"n"`, true),
+	))
+	e := mustBuild(t, simpleInput(from, to))
+	for rule, subj := range map[string]string{
+		RuleCRDDefaultChanged:  "spec.a",
+		RuleCRDEnumChanged:     "spec.b",
+		RuleCRDFieldRequired:   "spec.c",
+		RuleCRDFieldTypeChange: "spec.d",
+	} {
+		cs := findChanges(e, rule)
+		if len(cs) != 1 || !reflect.DeepEqual(cs[0].Subjects, []string{subj}) {
+			t.Errorf("%s: %+v", rule, cs)
+			continue
+		}
+		c := cs[0]
+		if c.Category != domain.CategoryCRDSchema || c.ActionRequired || len(c.Evidence) != 2 || c.Provenance.Method != domain.MethodComputed {
+			t.Errorf("%s: %+v", rule, c)
+		}
+	}
+	if c := findChanges(e, RuleCRDDefaultChanged)[0]; !strings.Contains(c.Detail, `"Never" → "Always"`) || c.Breaking {
+		t.Errorf("default change: %+v", c)
+	}
+	if c := findChanges(e, RuleCRDEnumChanged)[0]; !strings.Contains(c.Detail, `removed ["y"], added ["z"]`) || !c.Breaking {
+		t.Errorf("enum change: %+v", c)
+	}
+	// a snapshot captured before Fields existed must not produce diffs
+	old := bare("v1.0.0").crds("crds", "https://x/v1.0.0/crds.yaml", crd("knobs.example.io", "example.io", "Knob", crdVer("v1", true, true, "spec.a")))
+	e = mustBuild(t, simpleInput(old, to))
+	if n := len(findChanges(e, RuleCRDDefaultChanged)); n != 0 {
+		t.Errorf("one-sided fields produced %d default changes", n)
+	}
+}

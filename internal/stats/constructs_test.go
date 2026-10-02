@@ -114,6 +114,13 @@ func fill(v reflect.Value) {
 		el := reflect.New(v.Type().Elem()).Elem()
 		fill(el)
 		v.Set(reflect.Append(reflect.MakeSlice(v.Type(), 0, 1), el))
+	case reflect.Map:
+		m := reflect.MakeMap(v.Type())
+		k, e := reflect.New(v.Type().Key()).Elem(), reflect.New(v.Type().Elem()).Elem()
+		fill(k)
+		fill(e)
+		m.SetMapIndex(k, e)
+		v.Set(m)
 	case reflect.String:
 		v.SetString("x")
 	case reflect.Bool:

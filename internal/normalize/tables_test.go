@@ -3,6 +3,7 @@ package normalize
 import (
 	"errors"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -320,5 +321,67 @@ func TestExtractRecordShapes(t *testing.T) {
 	}
 	if _, err := ExtractRecord([]byte("a: [unclosed"), sel); err == nil || errors.Is(err, ErrNoMatch) {
 		t.Errorf("invalid yaml should be a parse error: %v", err)
+	}
+}
+
+const kafkaVersionsYAML = `# comment
+- version: 3.8.0
+  supported: false
+  checksum: AAAA
+- version: 3.8.1
+  supported: true
+  checksum: BBBB
+- version: 3.9.0
+  supported: true
+- version: 3.9.1
+  supported: true
+- version: 4.0.0
+  supported: true
+  default: true
+`
+
+func TestExtractRecordCollectWhere(t *testing.T) {
+	sel := TableSelector{
+		Collect:      true,
+		Where:        map[string]*regexp.Regexp{"Supported": regexp.MustCompile(`^true$`)},
+		ValueColumns: []string{"version"},
+	}
+	row, err := ExtractRecord([]byte(kafkaVersionsYAML), sel)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := row.Cells["version"]; got != "3.8.1, 3.9.0, 3.9.1, 4.0.0" {
+		t.Errorf("version cell = %q", got)
+	}
+	if strings.Contains(row.Excerpt, "checksum") || !strings.Contains(row.Excerpt, "4 records") {
+		t.Errorf("excerpt = %q", row.Excerpt)
+	}
+	if row.Line != 5 {
+		t.Errorf("line = %d, want the first passing record (5)", row.Line)
+	}
+	sel.Where = map[string]*regexp.Regexp{"supported": regexp.MustCompile(`^maybe$`)}
+	if _, err := ExtractRecord([]byte(kafkaVersionsYAML), sel); !errors.Is(err, ErrNoMatch) {
+		t.Errorf("no passing record: err = %v", err)
+	}
+	// where also filters the key-selected mode
+	keyed := TableSelector{KeyColumns: []string{"version"}, KeyRe: regexp.MustCompile(`^3\.8`),
+		Where: map[string]*regexp.Regexp{"supported": regexp.MustCompile(`^true$`)}}
+	row, err = ExtractRecord([]byte(kafkaVersionsYAML), keyed)
+	if err != nil || row.Cells["version"] != "3.8.1" {
+		t.Errorf("keyed+where: %+v %v", row, err)
+	}
+}
+
+func TestCompatibilityColumnReduce(t *testing.T) {
+	row := &TableRow{Headers: []string{"version"}, Cells: map[string]string{"version": "3.8.1, 3.9.0, 3.9.1, 4.0.0"}, Line: 1, Excerpt: "version: ..."}
+	cs, _ := CompatibilityFromRow(DocInput{SourceID: "s"}, row, []catalog.ColumnSpec{
+		{Platform: "kafka", Headers: []string{"version"}, Reduce: "minor"},
+		{Platform: "kafka", Kind: "tested", Headers: []string{"version"}, Reduce: "major"},
+	})
+	if len(cs) != 2 || cs[0].Raw != "3.8, 3.9, 4.0" || cs[1].Raw != "3, 4" {
+		t.Fatalf("%+v", cs)
+	}
+	if !reflect.DeepEqual(cs[0].Versions, []string{"3.8", "3.9", "4.0"}) {
+		t.Errorf("versions = %v", cs[0].Versions)
 	}
 }

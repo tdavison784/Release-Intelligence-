@@ -168,3 +168,36 @@ func TestValidateColumnKindVocabulary(t *testing.T) {
 		t.Errorf("kind \"at-most\": expected an error")
 	}
 }
+
+// collect/where select operand-version sets from yaml-records (Strimzi's
+// kafka-versions.yaml); collect needs no key, other modes still do.
+func TestValidateCollectAndReduce(t *testing.T) {
+	mk := func(ex Extract) *ProductDefinition {
+		return &ProductDefinition{
+			APIVersion: APIVersion, Kind: Kind, ID: "x", Name: "x",
+			Versioning: Versioning{Scheme: "semver"},
+			Sources: []Source{
+				{ID: "t", Roles: []domain.SourceRole{domain.RoleVersions}, Locator: Locator{Kind: LocatorGitTags, Repository: "example.com/a/b"}},
+				{ID: "c", Roles: []domain.SourceRole{domain.RoleCompatibility},
+					Locator: Locator{Kind: LocatorRepoFile, Repository: "example.com/a/b", Ref: "{{.Tag}}", Path: "v.yaml"},
+					Extract: &ex}},
+		}
+	}
+	cols := func(reduce string) []ColumnSpec {
+		return []ColumnSpec{{Platform: "kafka", Headers: []string{"version"}, Reduce: reduce}}
+	}
+	ok := Extract{Type: ExtractYAMLRecords, Collect: true, Where: map[string]string{"supported": "^true$"}, Columns: cols("minor")}
+	if rep := Validate(mk(ok)); len(rep.Errors()) != 0 {
+		t.Errorf("collect: unexpected errors %v", rep.Errors())
+	}
+	for name, ex := range map[string]Extract{
+		"no key without collect": {Type: ExtractYAMLRecords, Columns: cols("")},
+		"bad reduce":             {Type: ExtractYAMLRecords, Collect: true, Columns: cols("patch")},
+		"bad where regex":        {Type: ExtractYAMLRecords, Collect: true, Where: map[string]string{"a": "("}, Columns: cols("")},
+		"collect on a table":     {Type: ExtractMarkdownTable, Collect: true, Columns: cols("")},
+	} {
+		if rep := Validate(mk(ex)); len(rep.Errors()) == 0 {
+			t.Errorf("%s: expected an error", name)
+		}
+	}
+}

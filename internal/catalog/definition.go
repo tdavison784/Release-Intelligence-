@@ -259,6 +259,15 @@ type Extract struct {
 	// item. For documents like Karpenter's upgrade guide, whose per-version
 	// sections open with a warning callout before the bullet list.
 	ListItems bool `yaml:"listItems,omitempty" json:"listItems,omitempty"`
+	// Where (yaml-records) keeps only records whose field matches the regex
+	// (field name, case-insensitive → regex, e.g. {supported: '^true$'}).
+	Where map[string]string `yaml:"where,omitempty" json:"where,omitempty"`
+	// Collect (yaml-records) turns the selection around: instead of one record
+	// picked by keyColumns/keyMatch, every record passing Where contributes,
+	// and each column cell becomes the distinct field values joined with ", ".
+	// For tables that list one record per operand version with a supported
+	// flag. keyColumns/keyMatch are then not used.
+	Collect bool `yaml:"collect,omitempty" json:"collect,omitempty"`
 }
 
 // ColumnSpec maps a table column to a platform constraint.
@@ -272,6 +281,10 @@ type ColumnSpec struct {
 	// Part selects the 0-based piece.
 	Separator string `yaml:"separator,omitempty" json:"separator,omitempty"`
 	Part      int    `yaml:"part,omitempty" json:"part,omitempty"`
+	// Reduce coarsens every version of a ", "-joined cell to its "major" or
+	// "minor" line (3.9.1 → 3.9) and drops duplicates, so a patch-level
+	// version list compares as the set of supported lines.
+	Reduce string `yaml:"reduce,omitempty" json:"reduce,omitempty"`
 }
 
 // ClassifyRule maps a note item to a category. Section and Text are regexes;

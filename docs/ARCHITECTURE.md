@@ -145,7 +145,10 @@ edges of the stored run. Adapters never import `ingest` or `upgrade`.
 5. `ingest.Advisories` lists advisories from the `security` sources.
 6. `upgrade.Build` aggregates the path's NoteItems into Changes and diffs the
    From/To snapshots: values keys added or removed and defaults changed, CRD
-   versions or schema fields removed, images added or removed. It also
+   versions or schema fields removed, and per-path CRD schema attributes
+   (`default`, `enum`, `required`, `type`: `crd:default-changed`,
+   `crd:enum-changed`, `crd:field-required`, `crd:field-type-changed`, one
+   aggregated change per rule and CRD version), images added or removed. It also
    compares compatibility constraints, matches advisories (fixed by the
    upgrade, or still affecting To) and validates the edge.
    - Every note-derived Change also gets the deterministic routine-maintenance
@@ -280,6 +283,8 @@ upstream channel needed it.
 |---|---|---|
 | `extract: markdown-section` + `heading` | Pick one release's section from a cumulative document | cert-manager per-minor notes with one section per patch |
 | `extract: markdown-table` / `yaml-records` | Pick a row from a support matrix | cert-manager README tables; Istio `supportStatus.yml` |
+| `extract.collect` + `where` (yaml-records) | Merge every record that passes `where` (field → regex) into one row whose cells are the distinct field values joined with ", ": the SET of supported operand versions instead of one record | Strimzi `kafka-versions.yaml` (one record per Kafka version with `supported: true/false`); a single-record selector could only diff one version and rendered half-true "drops 4.2" statements |
+| `columns[].reduce` (`major`/`minor`) | Coarsen every version of a joined cell to its line (3.9.1 → 3.9) and de-duplicate, so patch-level lists compare as supported lines | Strimzi: Kafka 3.8 dropped / 4.0 added at minor granularity |
 | `columns[].separator/part` | Split a combined cell | "1.33 → 1.36 / 4.20 → 4.22" (Kubernetes / OpenShift) |
 | `columns[].kind: maximum` | A support-matrix column that bounds the platform from above | Karpenter's `maxK8sVersion` (compatibility.yaml: `minK8sVersion`/`maxK8sVersion` per app version) |
 | `locator.baseRef` (repo-dir) | Only the files added since another ref | Istio's accumulating `releasenotes/notes/*.yaml` |

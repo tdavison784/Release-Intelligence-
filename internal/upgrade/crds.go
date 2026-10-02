@@ -19,6 +19,12 @@ const (
 	RuleCRDVersionDeprecated = "crd:version-deprecated"
 	RuleCRDFieldsRemoved     = "crd:fields-removed"
 	RuleCRDFieldsAdded       = "crd:fields-added"
+	// schema-attribute diffs of paths present on both sides (aggregated per
+	// CRD version, like the field add/remove rules)
+	RuleCRDDefaultChanged  = "crd:default-changed"
+	RuleCRDEnumChanged     = "crd:enum-changed"
+	RuleCRDFieldRequired   = "crd:field-required"
+	RuleCRDFieldTypeChange = "crd:field-type-changed"
 )
 
 func crdLabel(c domain.CRDSummary) string {
@@ -256,6 +262,7 @@ func (b *builder) diffSchemaPaths(add func(domain.Change, string, ...string), na
 		b.warnf("Schema of %s %s was not captured for %s; field diff skipped", name, fv.Name, b.to.Version)
 		return
 	}
+	defer b.diffSchemaAttributes(add, name, label, gv, fv, tv)
 	removed, added := diffStrings(fv.SchemaPaths, tv.SchemaPaths)
 	if len(removed) > 0 {
 		roots := pathRoots(removed)
@@ -277,4 +284,89 @@ func (b *builder) diffSchemaPaths(add func(domain.Change, string, ...string), na
 			Subjects: added,
 		}, RuleCRDFieldsAdded, name, fv.Name)
 	}
+}
+
+// diffSchemaAttributes diffs the per-path schema facts (default, enum,
+// required, type) of paths present in both versions. One aggregated change per
+// rule and CRD version, with the changed paths as subjects, so a CRD with many
+// adjusted defaults is one line, not many. Identity wording mirrors the
+// field-removed change ("<label> <version> schema: …", "in the <gv> schema of
+// <name>") so consumers recover the GVK the same way.
+func (b *builder) diffSchemaAttributes(add func(domain.Change, string, ...string), name, label, gv string, fv, tv domain.CRDVersionInfo) {
+	if len(fv.Fields) == 0 || len(tv.Fields) == 0 {
+		return
+	}
+	old := make(map[string]domain.CRDFieldSchema, len(fv.Fields))
+	for _, f := range fv.Fields {
+		old[f.Path] = f
+	}
+	var defaults, enums, required, types []string
+	var defaultLines, enumLines, typeLines []string
+	for _, n := range tv.Fields {
+		o, ok := old[n.Path]
+		if !ok {
+			continue
+		}
+		if o.Default != n.Default {
+			defaults = append(defaults, n.Path)
+			defaultLines = append(defaultLines, fmt.Sprintf("%s: %s → %s", n.Path, orNone(o.Default), orNone(n.Default)))
+		}
+		if gone, added := diffStrings(o.Enum, n.Enum); len(gone)+len(added) > 0 && len(o.Enum)+len(n.Enum) > 0 {
+			enums = append(enums, n.Path)
+			enumLines = append(enumLines, fmt.Sprintf("%s: removed [%s], added [%s]", n.Path, strings.Join(gone, ", "), strings.Join(added, ", ")))
+		}
+		if n.Required && !o.Required {
+			required = append(required, n.Path)
+		}
+		if o.Type != "" && n.Type != "" && o.Type != n.Type {
+			types = append(types, n.Path)
+			typeLines = append(typeLines, fmt.Sprintf("%s: %s → %s", n.Path, o.Type, n.Type))
+		}
+	}
+	if len(defaults) > 0 {
+		add(domain.Change{
+			Category: domain.CategoryCRDSchema,
+			Title:    fmt.Sprintf("%s %s schema: %s changed: %s", label, fv.Name, plural(len(defaults), "default", "defaults"), codeList(defaults, 3)),
+			Detail: fmt.Sprintf("Schema defaults changed in the %s schema of %s (old → new; defaults apply to objects that leave the field unset):\n%s",
+				gv, name, strings.Join(defaultLines, "\n")),
+			Subjects: defaults,
+		}, RuleCRDDefaultChanged, name, fv.Name)
+	}
+	if len(enums) > 0 {
+		add(domain.Change{
+			Category: domain.CategoryCRDSchema,
+			Breaking: true,
+			Title:    fmt.Sprintf("%s %s schema: allowed values changed: %s", label, fv.Name, codeList(enums, 3)),
+			Detail: fmt.Sprintf("Enum values changed in the %s schema of %s; a removed value is rejected by the API server:\n%s",
+				gv, name, strings.Join(enumLines, "\n")),
+			Subjects: enums,
+		}, RuleCRDEnumChanged, name, fv.Name)
+	}
+	if len(required) > 0 {
+		add(domain.Change{
+			Category: domain.CategoryCRDSchema,
+			Breaking: true,
+			Title:    fmt.Sprintf("%s %s schema: %s now required: %s", label, fv.Name, plural(len(required), "field", "fields"), codeList(required, 3)),
+			Detail: fmt.Sprintf("Fields newly required in the %s schema of %s; objects that omit them are rejected:\n%s",
+				gv, name, strings.Join(required, "\n")),
+			Subjects: required,
+		}, RuleCRDFieldRequired, name, fv.Name)
+	}
+	if len(types) > 0 {
+		add(domain.Change{
+			Category: domain.CategoryCRDSchema,
+			Breaking: true,
+			Title:    fmt.Sprintf("%s %s schema: %s changed type: %s", label, fv.Name, plural(len(types), "field", "fields"), codeList(types, 3)),
+			Detail: fmt.Sprintf("Field types changed in the %s schema of %s:\n%s",
+				gv, name, strings.Join(typeLines, "\n")),
+			Subjects: types,
+		}, RuleCRDFieldTypeChange, name, fv.Name)
+	}
+}
+
+func orNone(s string) string {
+	if s == "" {
+		return "(none)"
+	}
+	return s
 }

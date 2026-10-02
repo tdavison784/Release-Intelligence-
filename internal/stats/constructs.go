@@ -194,6 +194,11 @@ func (w *walker) field(fv reflect.Value, path, owner, name string) {
 				w.value(el.String(), owner, name, ft.Elem())
 			}
 		}
+	case ft.Kind() == reflect.Map:
+		// a set map (e.g. extract.where) is one construct
+		if fv.Len() > 0 {
+			w.add(prefixField + path)
+		}
 	case ft.Kind() == reflect.String:
 		if fv.String() == "" {
 			return
