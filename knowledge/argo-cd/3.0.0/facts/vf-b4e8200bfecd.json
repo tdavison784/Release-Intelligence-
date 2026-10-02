@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-b4e8200bfecd",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-1ccc3bb605c5"
+        ],
+        "statementKeys": [
+          "sk-03f59706d51d"
+        ],
+        "changeIds": [
+          "chg-d402014945e4"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-9f8a80378b1b"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions.ignoreDifferencesOnResourceUpdates",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"resource.compareoptions\"]",
+                  "state": "none",
+                  "pattern": "ignoreDifferencesOnResourceUpdates\\s*:"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether argocd-cm defines system-level ignoreDifferences customizations (the evidence excerpt does not name the keys that carry them)"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "ignoreDifferencesOnResourceUpdates\\s*:"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "System-level ignoreDifferences customizations are now applied to resource updates by default, which may reduce the number of diffs generated for applications. Fields configured to be ignored will no longer trigger diffs when changed.",
+        "severity": "medium"
+      },
+      "statement": "Ignoring resource updates configured in `ignoreDifferences` by default: By default, the existing system-level `ignoreDifferences` customizations will be added…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-8e10ffeafc62"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-8e10ffeafc62"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-a1390a6e03f5"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-53e439196da8"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-63314a5fae82",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L398-L417 (v2.14 to 3.0 › Other changes › Ignoring resource updates configured in `ignoreDifferences` by default)",
+        "excerpt": "### Ignoring resource updates configured in `ignoreDifferences` by default\n\nBy default, the existing system-level `ignoreDifferences` customizations will be added to ignore resource updates as well.\n\nLogically, if differences to a field are configured to be ignored, there is no reason to generate the diff for the application\nwhen that field changes.\n\nTo disable this behavior and preserve the v2 default, the `ignoreDifferencesOnResourceUpdates` can be set to false:\n\n```yaml\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: argocd-cm\ndata:\n  resource.compareoptions: |\n    ignoreDifferencesOnResou…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T23:20:19.868Z"
+  }
+}

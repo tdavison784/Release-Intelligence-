@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f8191c82b091",
+    "reviewItemId": "ri-7c4e4f6301c8",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "storage.tsdb_shipper"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "Loki now generates tsdb_shipper storage configuration even when using_boltdb_shipper is set to false."
+    },
+    "corrected": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "storage_config.tsdb_shipper"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "Loki now generates the storage_config.tsdb_shipper configuration even when using_boltdb_shipper is false."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:1ae29c1c102f9cde537f3c01d15ef2be1cc9cee29ca924902777d7ffbf20bf77",
+      "inputEvidence": [
+        "ev-cc5436d99c53"
+      ],
+      "generatedAt": "2026-10-02T23:19:28.161Z",
+      "callId": "e92ece1b-8da5-4a1a-8dce-53465f699583"
+    },
+    "reason": "[ev-cc5436d99c53] says the tsdb_shipper storage_config is now generated even when using_boltdb_shipper is false. So the generated key is tsdb_shipper under storage_config, not the path \"storage.tsdb_shipper\", which the evidence never uses. The change type, behavior-changed, fits: the same setting now produces a different generated configuration.",
+    "startedAt": "2026-10-02T23:19:18.496Z",
+    "decidedAt": "2026-10-02T23:19:28.161Z"
+  }
+}

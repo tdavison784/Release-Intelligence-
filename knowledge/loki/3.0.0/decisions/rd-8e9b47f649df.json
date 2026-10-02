@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8e9b47f649df",
+    "reviewItemId": "ri-359b86df782f",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--target=ingester",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--target=all",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The /ingester/shutdown endpoint now supports GET requests in addition to any previously supported methods."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:1461a55b7112db755c966e4165dee87228ca15261d760f10b6db477622f8284e",
+      "inputEvidence": [
+        "ev-c9996d6ffec2"
+      ],
+      "generatedAt": "2026-10-02T23:10:31.86Z",
+      "callId": "b270ae71-3dab-4111-a88b-3a096346e89f"
+    },
+    "reason": "[ev-c9996d6ffec2] only states that Loki 3.0.0 adds support for GET on /ingester/shutdown, an additive feature with no stated failure or required action and no environment state named. The proposed exposure (any of cli-flag \"--target=ingester\"/\"--target=all\" set) is not grounded in the evidence: it relies on outside knowledge of Loki deployment targets, may miss other modes, and is malformed (flag value embedded in the flag name with state \"set\" instead of a name plus equals/values). No exposure predicate follows from the evidence for a consequence of kind \"none\".",
+    "startedAt": "2026-10-02T23:10:16.723Z",
+    "decidedAt": "2026-10-02T23:10:31.86Z"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e3bca2e58abc",
+    "reviewItemId": "ri-039d6ebfa0d8",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "version": "v2",
+        "kind": "CompositeResourceDefinition",
+        "path": "spec.scope"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"Namespaced\""
+      },
+      "statement": "Crossplane v2 makes composite resources (XRs) namespaced by default, with a new `scope` field on CompositeResourceDefinition (XRD) that defaults to `Namespaced` in v2 API and XR machinery moved under `spec.crossplane`; v1-style XRDs in `LegacyCluster` mode remain backward compatible without claims support in v2."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:c1b3bd07973cb455b6e597e64cb462adf9bb091c19f19c12fb6c2017350a93a2",
+      "inputEvidence": [
+        "ev-4b260bcbe57b",
+        "ev-024ae1616362",
+        "ev-067b435b635b",
+        "ev-0d3738246a50",
+        "ev-13bb08e10750",
+        "ev-13f94d4596b3",
+        "ev-147c26b74d68",
+        "ev-1f38a21f6bdd",
+        "ev-270c9e3fe130",
+        "ev-28c27515399d",
+        "ev-2cf0a7dd0095",
+        "ev-30934c6c9b63",
+        "ev-3b5cfc1e9589",
+        "ev-497295c94a3d",
+        "ev-4cb106f172c6",
+        "ev-4fbe071b2844",
+        "ev-5957f2297008",
+        "ev-6e79b5dc61ae",
+        "ev-754e8c2767c7",
+        "ev-7b1bee6d2352",
+        "ev-81b24803c1c9",
+        "ev-8b680076ce65",
+        "ev-9422233ca172",
+        "ev-95c4d9181c78",
+        "ev-9734c97600b9",
+        "ev-9b2aa10ff338",
+        "ev-9b42493c58c4",
+        "ev-a3bca45d2477",
+        "ev-a51a53aa04ee",
+        "ev-ac8a7bba9777",
+        "ev-b12db1ba30d3",
+        "ev-b44a4511845b",
+        "ev-d5a5794a9446",
+        "ev-d8a9fd80558b",
+        "ev-dfd597f842c9",
+        "ev-e2735e756cbf",
+        "ev-ef56bb524889",
+        "ev-f83c864e3d52"
+      ],
+      "generatedAt": "2026-10-02T23:04:43.493Z",
+      "callId": "24b1b32a-ed44-4489-a4ce-e811fc50391a"
+    },
+    "reason": "[ev-4b260bcbe57b] says XRDs now have a `scope` field that defaults to `Namespaced` in the new v2 version of the XRD API, while v1 defaults to `LegacyCluster`. That makes the subject apiextensions.crossplane.io CompositeResourceDefinition spec.scope, and setting version v2 is justified because the Namespaced default only applies to v2. The CRD validator confirmed spec.scope is only in the v2.0.0 schema [ev-8b680076ce65], not in v1.20.1 [ev-95c4d9181c78], and that it comes with the new v2 API version. So \"added\" with after Namespaced fits the evidence.",
+    "startedAt": "2026-10-02T23:04:27.675Z",
+    "decidedAt": "2026-10-02T23:04:43.493Z"
+  }
+}
