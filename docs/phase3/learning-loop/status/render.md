@@ -48,6 +48,19 @@ user-facing doc: `docs/RENDER.md`.
   - Second live product: ingress-nginx 1.11.5 → 1.12.0 (docs/RENDER.md). 8 changes, 7 correlated.
     Undocumented: the controller ConfigMap loses `allow-snippet-annotations: "false"`; the certgen
     image moves v1.5.2 → v1.5.0.
+- **(f) pipeline-level R17 metrics** — `ri eval -render`: every environment case renders with its own
+  configuration before the join (`renderEval` over `app.ImpactRun`), an R17 rendering section follows
+  the report, `-render-json` writes per-case stats, `-update` refuses `-render` (stored results stay
+  the render-free baseline). Chart-authored `fail`/`required` rejections are `invalid-values`
+  (`Pair.TargetRejects`, shown as "TARGET CHART REJECTS THIS CONFIGURATION"); `mentions` no longer
+  counts wildcards/punctuation as documented. Results `eval/render/results/2026-10-02-pipeline.md`
+  (join tool `eval/render/tools/r17_join.py`): before/after identical on all 47 aggregate fields —
+  false-ACTION delta 0, UNKNOWN→decided 0 (honest: no verified facts exist yet, the semantic lane is
+  unmerged; rendering added no false certainty); render success 11/12 across the environment cases
+  (the one failure is a real finding: cilium 1.15→1.17 refuses `containerRuntime.integration`,
+  corroborating the deterministic values-removed ACTION); ACTION corroborated by render 4/15; 8
+  missed expected links restated by a complete render vs 4 not-affected links also restated — the
+  seam render-backed facts must decide.
 
 ## Review of the GLM handoff (12 `[glm-handoff]` commits)
 
@@ -93,9 +106,9 @@ demonstration, not a scored case.
 
 ## Open / honest gaps
 
-- Pipeline-level R17 metrics (UNKNOWN → decided due to render, ACTION strengthened, false ACTION delta,
-  applicability before/after on the Phase 3 corpus) need the applicability wiring and render-backed
-  facts; not measured yet.
+- Pipeline-level R17 (before/after on the corpus) is **measured** (see (f)); the follow-on — re-run
+  `ri eval -knowledge <dir> -render` once candidates/proposals exist for the 8 restated links, per
+  verification level — needs the semantic lane's facts; not possible yet.
 - R12 diff-model gap: permissions of a Role/ClusterRole that is new under its name are not emitted
   per permission. Possible follow-up: emit per-permission records for added/removed roles. The
   trade-off is noisier output.
@@ -121,10 +134,42 @@ demonstration, not a scored case.
   `schemas/*.json`.
 - `internal/sources/artifacts.go` `ChartPackage.Archive`, set in `internal/helm/package.go` and
   `internal/oci/chartlayer.go` (one line each).
-- `internal/app/render.go`, `internal/app/render_eval_test.go`, `cmd/ri/{main,impact,render}.go`,
-  `README.md` usage lines.
+- `internal/app/render.go`, `internal/app/render_eval_test.go` (also: the case loader skips
+  `eval/render/tools/` beside `results/`), `cmd/ri/{main,impact,render,eval}.go` (eval: `-render`,
+  `-render-json`), `README.md` usage lines.
 
 ## Tests
 
-`go build ./... && go vet ./... && go test ./...` green (2026-10-02). Live tests skip without
-helm/kubectl; the eval runner needs network and helm.
+`go build ./... && go vet ./... && go test ./...` green (2026-10-02, re-verified after the handoff
+commits below). Live tests skip without helm/kubectl; the eval runner needs network and helm.
+
+## GLM handoff log (2026-10-02, second GLM window)
+
+The Claude lead paused mid-item with the pipeline-level R17 measurement uncommitted on the tree. I
+reviewed, verified, finished and committed it (4 commits, `d8728b8`…`7ceb245`):
+
+1. Chart-authored `fail`/`required` checks (`execution error at (` on stderr) classify
+   `invalid-values` — distinct from genuine template bugs (`template: …` prefix), pinned by two new
+   failure-test cases. `Pair.TargetRejects()` + a `ri render diff` line surface "the upgrade with
+   these values fails at render time". Display path is nil-safe (`Pair.Failure` is assigned from
+   the failing result, pair.go:107).
+2. `mentions` requires an alphanumeric rune in the needle, so `"*"` permissions and `"-"` args are
+   never "documented" by markdown bullets (new `correlate_test.go`).
+3. `ri eval -render` / `-render-json` (`cmd/ri/eval_render.go`): per-case render stats, R17
+   rendering section, `-update` refuses `-render`.
+4. `eval/render/tools/r17_join.py` + `eval/render/results/2026-10-02-pipeline.md`; the eval case
+   loader skips the new `tools/` directory (a broken `case.yaml` elsewhere still fails loudly).
+
+Fixes I made to the inherited tree: gofmt on `cmd/ri/eval_render.go` and `internal/render/helm.go`
+(the first GLM window had left unformatted files too); the loader skip above (the new tools dir
+broke `TestEvalRenderCases`). Everything else was committed as reviewed, unchanged.
+
+Uncertainties / not done (deliberate):
+
+- The R12 per-permission follow-up and an env-var/API-version upstream case stay open (trade-offs
+  already recorded above); I did not start them — they change output noise and scored-case
+  surface, which felt like the paused lead's / commander's call, not a local default.
+- The results file's numbers (47 identical fields, 8 restated links) are the Claude lead's run; I
+  verified the code paths and the join tool's logic, but did not re-run the 28-entry live eval
+  (needs the warm state and network; the stored JSONs were not checked in).
+- Reran the full `go build/vet/test` — green — and smoke-tested the new flags in the built binary.
