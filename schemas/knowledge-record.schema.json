@@ -415,7 +415,20 @@
       },
       "additionalProperties": false
     },
+    "RenderRelation": {
+      "type": "string",
+      "enum": [
+        "confirmed-by-render",
+        "not-visible-in-render",
+        "contradicted-by-render",
+        "render-not-applicable"
+      ]
+    },
     "RenderScope": {"type": "string", "enum": ["release", "environment"]},
+    "Renderability": {
+      "type": "string",
+      "enum": ["render-verifiable", "partially-render-verifiable", "not-render-verifiable"]
+    },
     "Representation": {
       "type": "string",
       "description": "Which published form of an artifact a fact came from. The same content (chart defaults, CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers rewrite content at packaging time; the representation keeps the two apart. Orthogonal to Provenance.method (how knowledge was derived).",
@@ -540,6 +553,7 @@
         "release": {"type": "string"},
         "members": {"type": "array", "items": {"$ref": "#/$defs/CandidateMember"}},
         "grouping": {"type": "string"},
+        "renderability": {"$ref": "#/$defs/Renderability"},
         "category": {"$ref": "#/$defs/Category"},
         "title": {"type": "string"},
         "text": {"type": "string"},
@@ -626,11 +640,12 @@
         "assertion": {"$ref": "#/$defs/SemanticAssertion"},
         "checks": {"type": "array", "items": {"$ref": "#/$defs/AspectCheck"}},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "renderRelation": {"$ref": "#/$defs/RenderRelation"},
         "checkedAt": {"type": "string", "format": "date-time"}
       },
       "additionalProperties": false
     },
-    "VerificationLevel": {"type": "string", "enum": ["deterministic", "human", "proxy"]},
+    "VerificationLevel": {"type": "string", "enum": ["deterministic", "human", "consensus", "proxy"]},
     "VerifiedFact": {
       "type": "object",
       "required": [
@@ -654,6 +669,7 @@
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
         "status": {"$ref": "#/$defs/FactStatus"},
         "supersedes": {"type": "array", "items": {"type": "string"}},
+        "autoApproved": {"type": "boolean"},
         "createdAt": {"type": "string", "format": "date-time"}
       },
       "additionalProperties": false

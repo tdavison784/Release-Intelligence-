@@ -196,8 +196,9 @@ trust ladder, which `ImpactReport.Validate()` and the schema enforce:
 
 - They carry `knowledge: {fact, verification}`, and only they do.
 - `action-required` and `not-affected` require a fact verified at
-  `deterministic` or `human` level. A `proxy`-verified fact (an AI acting as
-  reviewer) yields at most `review-required`, never at `high` confidence.
+  `deterministic` or `human` level. A `consensus`-verified fact (independent
+  models agreeing) or a `proxy`-verified fact (an AI acting as reviewer) yields
+  at most `review-required`, never at `high` confidence.
 - A change with a knowledge finding carries no other `unknown` finding: the
   knowledge finding supersedes it.
 - `unknownReason` (unknown-only) names why a finding is unknown:
