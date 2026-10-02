@@ -135,3 +135,11 @@ deprecates `tls.secretsBackend: ~` in favour of
   `userspaceFallback`), even though the upgrade note spells the Helm value
   as `wireguard.userspaceFallback`; the label is chart-accurate and I kept
   the same path in my exposure. No other base label looked wrong to me.
+
+## 2026-10-02 relabel (groundtruth-4, motivated by pipeline output: render-4)
+
+- E4 not-affected → review: the cluster sets neither tls.secretSync.enabled nor upgradeCompatibility, so it
+  gets the v1.17 new-cluster SDS + secret-sync defaults for its kube-system-backed TLS policy. The old fixture
+  comment about `local` reading from kube-system contradicted tls-visibility.rst v1.17.0 and was corrected.
+- E3 stands (not-affected): the rendered cilium-config key comes from the new BGPv2 statusReport default,
+  which is not the metallb-bgp removal. See eval/CHANGELOG.md "2026-10-02 (d)".

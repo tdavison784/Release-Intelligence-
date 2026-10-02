@@ -208,3 +208,48 @@ Live run (offline, warm cache), `duplicateGroups` per case (unlisted cases uncha
 No other aggregate metric moved (only `duplicateGroups`, `duplicateRate`, `duplicatedChanges`); no gate reads
 these. `ri eval` reports flux and kyverno as "worse" against `eval/results` until the stored snapshots are
 accepted with `-update` (commander).
+
+## 2026-10-02 (d) — three rendered effects on not-affected links — **motivated by pipeline output (render-4)**
+
+Disclosure: triggered by the render lane's finding (status/render.md; eval/render/results/2026-10-02-po3.md)
+that `ri eval -render` attributes real rendered changes to three links labelled not-affected. Each
+was judged from upstream sources only. Two links are relabelled and one stands.
+
+| Case · item | Field | Before | After | Upstream judgement |
+|---|---|---|---|---|
+| cilium-1.16-1.17--plant-edge · link E4 | `relevance`, `why`, `exposure` | not-affected ("the new tls.secretSync default … is a new-feature default, not this deprecation item") | **review**; exposure: `tls.secretSync.enabled` unset ∧ `upgradeCompatibility` unset ∧ a CiliumNetworkPolicy with `terminatingTLS`/`originatingTLS` | The item (title "… replaced by tls.readSecretsOnlyFromSecretsNamespace (+ tls.secretSync)") is one upstream bullet. upgrade.rst v1.17.0: "The defaults for **new** clusters enable SDS via `tls.readSecretsOnlyFromSecretsNamespace: true` and `tls.secretSync.enabled: true`. The defaults for **upgraded** clusters (where `upgradeCompatibility` is `v1.16`) do not enable SDS." tls-visibility.rst v1.17.0: with SDS, Secrets referenced in Network Policy "are copied into a configured namespace (`cilium-secrets` by default) by the Cilium Operator". This cluster sets no `upgradeCompatibility` and runs a TLS-intercepting policy whose secret lives in kube-system. Its key material will be copied into a new namespace and served via SDS, which an operator should verify. |
+| cilium-1.16-1.17--plant-edge · `environment/values.yaml` L52–55 | fixture comment | "the 1.16 chart default `local` backend reads them from kube-system" | states only which keys are unset | tls-visibility.rst v1.17.0: `local` meant "only read from the Secrets namespace". The comment contradicted upstream. No value changed. |
+| cilium-1.16-1.17 · E4, cilium-1.15-1.17 · E8 | `semantics` (added a subject) | `tls.secretsBackend` deprecated only | + helm-value `tls.secretSync.enabled` added (default on unless `upgradeCompatibility` <= 1.16), consequence behavior-change → review | Same upstream bullet; release-level, so both cases that carry the item get it. Their links' relevance (review) is unchanged. |
+| kyverno-1.12-1.13 · E7 | `classification`, link `relevance`, `why`, + `overlap` | not-affected | **informational** | kyverno website upgrading.md: "Kyverno 1.13 drops deprecated API versions for its managed CustomResourceDefinitions. The migration is handled automatically through Helm hook." The fixture stores two PolicyExceptions as `kyverno.io/v2beta1` (policyexceptions.yaml L4, L26), and the v1.13.0 chart's `crds.migration.resources` lists `policyexceptions.kyverno.io`. The cluster touches the subject and is shielded by the hook: DESIGN.md §1.3 overlap → INFORMATIONAL ("applies to you, you appear safe"). The exposure (hook disabled) is unchanged and still false. |
+| cilium-1.16-1.17--plant-edge · link E3 | — | not-affected | **unchanged (stands)** | The rendered effect comes from the new key `bgpControlPlane.statusReport.enabled` (v1.17.0 values: "Status reporting settings (BGPv2 only) … if you have any issue such as high API server load, you can disable it"). It is not in the upgrade notes and not part of E3's subject: E3 is the metallb-bgp removal ("The metallb-bgp integration Helm options bgp.enabled, bgp.announce.podCIDR, and bgp.announce.loadbalancerIP have been removed"), and this cluster sets none of those keys. The effect is real but belongs to another change (BGPv2 status reporting, at most an informational API-load note). It reaches E3 only through the base case's broad matcher `(?i)bgpControlPlane` (D12 / TRUSTFIX §5). Narrowing that matcher is a separate product-owner decision and was not done here. |
+
+**Gate panel BEFORE** (branch p3ll/groundtruth-4 = p3-learning-loop @ 6eb9cd4; state = primary
+checkout's warm cache):
+
+| Gate | plain `ri eval` | `ri eval -render` |
+|---|---|---|
+| criticalRecall | 0.98 ✓ | 0.98 ✓ |
+| importantRecall | 0.95 ✓ | 0.95 ✓ |
+| applicabilityAccuracy | 0.495 ✗ (affected 20/73 hit; not-affected 32, 0 violations) | 0.495 ✗ (affected 23/73; not-affected 32, **3 violations**: plant-edge E3, E4, kyverno E7) |
+| falseActionRate | 0.059 ✗ (17 ACTION, 1 wrong) | 0.059 ✗ (17, 1) |
+| actionFindingEvidence | 1.00 ✓ | 1.00 ✓ |
+| unsupported | 0 ✓ | 0 ✓ |
+| pipelineFailures | 0 ✓ | 0 ✓ |
+
+**Gate panel AFTER** (same conditions, only these label changes):
+
+| Gate | plain `ri eval` | `ri eval -render` |
+|---|---|---|
+| criticalRecall | 0.98 ✓ | 0.98 ✓ |
+| importantRecall | 0.95 ✓ | 0.95 ✓ |
+| applicabilityAccuracy | 0.476 ✗ (affected 20/75 hit; not-affected 30, 0 violations) | 0.514 ✗ (affected 25/75; not-affected 30, **1 violation**: plant-edge E3) |
+| falseActionRate | 0.059 ✗ (17, 1) | 0.059 ✗ (17, 1) |
+| actionFindingEvidence | 1.00 ✓ | 1.00 ✓ |
+| unsupported | 0 ✓ | 0 ✓ |
+| pipelineFailures | 0 ✓ | 0 ✓ |
+
+Reading: in the render-free run the two relabelled links move from "clean not-affected" to "affected,
+not hit", so plain applicabilityAccuracy drops (0.495 → 0.476). That is the honest cost of the
+correction. With rendering both are hit (plant-edge E4 review, kyverno E7 informational).
+classificationAccuracy is unchanged (0.438 over 112); recall is unchanged.
+
