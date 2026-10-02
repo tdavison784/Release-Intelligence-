@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-efc21e5655c1",
+    "candidateId": "sc-3012458cf09f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "cilium",
+        "name": "cilium-status-kvstore-state"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"OK\"",
+        "after": "\"Disabled\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The KVStore subsystem in the Cilium status API shows state `Disabled` instead of state `OK` with message `Disabled` when the KVStore is disabled; consumers that check the state may see different results.",
+        "severity": "low"
+      },
+      "statement": "The Cilium status API now reports the KVStore subsystem with state `Disabled` when disabled, instead of state `OK` with message `Disabled`."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether consumers parse the status API KVStore state; no static input shows this.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-e6b268264713"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:7e7221f53fe2c03dbf5e4a23b5a9629dbc3dc326661df2008402fd18cec8f9cf",
+      "inputEvidence": [
+        "ev-e6b268264713"
+      ],
+      "generatedAt": "2026-10-02T06:06:39Z",
+      "callId": "ce62e005-3f27-4be2-bcf1-607b78885ec9"
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e4c71a528580",
+    "candidateId": "sc-1dc9088fb8f9",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "v1-manifest-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "version": "v1beta1",
+              "kind": "NodePool"
+            },
+            {
+              "op": "gvk-in-use",
+              "version": "v1beta1",
+              "kind": "EC2NodeClass"
+            },
+            {
+              "op": "gvk-in-use",
+              "version": "v1beta1",
+              "kind": "NodeClaim"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators who do nothing leave their stored manifests on v1beta1; Karpenter will stop serving the v1beta1 API version and drop the conversion webhooks at v1.1.0, so all stored manifests must be migrated to v1 API versions on Karpenter v1.0+ following the v1 Migration Upgrade Procedure.",
+        "remediation": "Reference the v1 Migration Upgrade Procedure before upgrading to Karpenter 1.0.0+ and migrate all stored v1beta1 NodePool, EC2NodeClass, and NodeClaim manifests to v1 API versions while on Karpenter v1.0+, before the v1.1.0 release.",
+        "severity": "medium"
+      },
+      "statement": "Karpenter 1.0.0 introduces v1 APIs and conversion webhooks that serve the v1 version of previously applied v1beta1 NodePools, EC2NodeClasses, and NodeClaims, and requires operators to migrate all stored manifests to v1 API versions on Karpenter v1.0+ because Karpenter will stop serving the v1beta1 API version and drop the conversion webhooks at v1.1.0."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-bfb089d90d84"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:fefeaa795b8e3fe963f777abdc31905b8e0aa58978d3e1f418a7d6e6eab20b43",
+      "inputEvidence": [
+        "ev-bfb089d90d84"
+      ],
+      "generatedAt": "2026-10-02T11:46:58Z",
+      "callId": "af3bb8de-a5a4-413a-a942-7514bc2b116a"
+    }
+  }
+}

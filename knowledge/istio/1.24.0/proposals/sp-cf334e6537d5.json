@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-cf334e6537d5",
+    "candidateId": "sc-ce76287c2361",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For MESH_EXTERNAL services, DestinationRule certificates are now used instead of metadata certificates, so TLS origination behaviour may differ.",
+        "remediation": "Set PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES to false to revert to the previous behaviour.",
+        "severity": "low"
+      },
+      "statement": "Istio now honours DestinationRule certificates over metadata certificates for MESH_EXTERNAL services; setting env var PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES to false reverts this."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-790b038b82b7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d6bf764803587b1e518f4d017a37a769b5c18abd30d30e3bf61ab1d669f6e128",
+      "inputEvidence": [
+        "ev-790b038b82b7"
+      ],
+      "generatedAt": "2026-10-02T06:07:29Z",
+      "callId": "493619f1-9e81-49af-9bcd-56d210a1b4d6"
+    }
+  }
+}

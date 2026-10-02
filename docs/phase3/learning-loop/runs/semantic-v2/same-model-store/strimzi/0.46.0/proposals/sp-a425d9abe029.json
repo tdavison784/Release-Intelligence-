@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a425d9abe029",
+    "candidateId": "sc-37a323ca3c11",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Kafka Connect configuration stored elsewhere\"",
+        "after": "\"Kafka Connect configuration stored in the ConfigMap created by the operator\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kafka.strimzi.io",
+          "kind": "KafkaConnect"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments using Kafka Connect continue to work, but the Connect configuration now lives in the ConfigMap created by the operator rather than its previous location; operators should verify their configuration setup.",
+        "severity": "low"
+      },
+      "statement": "In Strimzi 0.46.0, the Kafka Connect configuration was moved to the ConfigMap created by the operator; environments using Kafka Connect are affected and should review where their Connect configuration lives."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The evidence names 'Kafka Connect configuration' generically but states no concrete field, values key, config key path, or resource identity that could spell the subject exactly.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-12b17c85ab22"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:c53ec684637af7acf6aa1220a1e73cfdac15ebc9b180669e7a9da9e05696495c",
+      "inputEvidence": [
+        "ev-12b17c85ab22"
+      ],
+      "generatedAt": "2026-10-02T06:33:58Z",
+      "callId": "951ecec0-14f8-4a00-a777-9589d31fffcd"
+    }
+  }
+}

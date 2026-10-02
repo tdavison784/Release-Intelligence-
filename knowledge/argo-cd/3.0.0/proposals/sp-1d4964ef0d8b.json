@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1d4964ef0d8b",
+    "candidateId": "sc-17607957b9fd",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.exclusions",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "\"list of excluded resource kinds (Endpoints, EndpointSlice, Lease, SelfSubjectReview, TokenReview, LocalSubjectAccessReview, SelfSubjectAccessReview, SelfSubjectRulesReview, SubjectAccessReview, CertificateSigningRequest, PolicyReport, ClusterPolicyReport, CertificateRequest, EphemeralReport, ClusterEphemeralReport, AdmissionReport, ClusterAdmissionReport, BackgroundScanReport, ClusterBackgroundScanReport, UpdateRequest, CiliumIdentity, CiliumEndpoint, CiliumEndpointSlice)\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "resource.exclusions",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "resource.exclusions",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Argo CD will now exclude the specified high-churn resource kinds by default from synchronization and tracking, reducing API server load and connection overhead. Existing configurations that explicitly set `resource.exclusions` remain unchanged; this default can be overridden or removed to preserve v2 behavior.",
+        "remediation": "Review the list of excluded resource kinds to ensure they do not interfere with your GitOps workflows. Override or remove the default `resource.exclusions` configuration in the argocd-cm ConfigMap if you need to manage any of the excluded resource types through Argo CD.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 manifest adds a default configuration for `resource.exclusions` in the `argocd-cm` ConfigMap that excludes high-churn resources from various categories (Kubernetes core, Cert Manager, Kyverno, Cilium) for performance reasons."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-3437aa882db2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2f9d81e9ab527beec5c713e0ccd0e07509a17de05d4d2c6d8828040bf0a190d3",
+      "inputEvidence": [
+        "ev-3437aa882db2"
+      ],
+      "generatedAt": "2026-10-02T06:07:01Z",
+      "callId": "cf739205-53e1-48f9-9cb9-2f217b89c03d"
+    }
+  }
+}

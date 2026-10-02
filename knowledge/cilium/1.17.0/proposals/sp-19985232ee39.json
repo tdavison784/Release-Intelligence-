@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-19985232ee39",
+    "candidateId": "sc-30c676d7c5e6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--cluster",
+        "component": "hubble"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--cluster",
+          "component": "hubble",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The `--cluster` flag now returns a different set of flows, including those from nodes outside the specified cluster name (both incoming and outgoing), whereas previously it only showed flows emitted from nodes within that cluster. Existing queries using this flag will see different results.",
+        "severity": "medium"
+      },
+      "statement": "The `--cluster` flag behavior changed to show flows emitted from nodes outside of the provided cluster name (either coming from or going to the target cluster), rather than only flows within that cluster."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-868456a7673f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b2dbd4677eb2066bfb3b7ec173d0e3333cc33a77ace821bf9a62c200dbe22dd3",
+      "inputEvidence": [
+        "ev-868456a7673f"
+      ],
+      "generatedAt": "2026-10-02T06:01:40Z",
+      "callId": "4cb5cf37-15ab-47f6-a660-988261f3f8ce"
+    }
+  }
+}

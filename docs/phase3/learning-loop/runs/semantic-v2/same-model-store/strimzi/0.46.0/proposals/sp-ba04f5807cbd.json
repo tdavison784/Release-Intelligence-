@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ba04f5807cbd",
+    "candidateId": "sc-5fc2da42c29c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-events-regardingobject"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any tooling, scripts, or controllers in the customer's environment list Kubernetes events using regardingObject as a field-selector"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Event-listing selectors that use regardingObject pointing at the Pod no longer match the Pod-restart events; the operator must update such selectors to specify the Kafka resource instead.",
+        "remediation": "Update any field-selectors that use regardingObject to specify the Kafka resource instead of the Pod.",
+        "severity": "low"
+      },
+      "statement": "Kubernetes events for Pod restarts no longer have the Pod as their `regardingObject`, so anyone using `regardingObject` as a `field-selector` when listing these events must update the selector to specify the Kafka resource instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2dffc916b09a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4e151c83b21b18c54ac18ce0b89b8fdd1feb7b0c7d43e1183dbe86b982b70897",
+      "inputEvidence": [
+        "ev-2dffc916b09a"
+      ],
+      "generatedAt": "2026-10-02T06:33:24Z",
+      "callId": "b9f70a11-2b2c-4a86-941b-75693019ac66"
+    }
+  }
+}

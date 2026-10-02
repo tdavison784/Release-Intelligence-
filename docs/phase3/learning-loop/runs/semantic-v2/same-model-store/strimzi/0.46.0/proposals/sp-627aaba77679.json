@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-627aaba77679",
+    "candidateId": "sc-91bdc6129fc9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "use-strimzipodsets-before-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.34.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "feature-gate",
+                      "name": "UseStrimziPodSets",
+                      "state": "enabled"
+                    }
+                  ]
+                },
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "gvk-in-use",
+                      "group": "core.strimzi.io",
+                      "version": "v1beta2",
+                      "kind": "StrimziPodSet"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.34.0"
+            },
+            {
+              "op": "feature-gate",
+              "name": "UseStrimziPodSets",
+              "state": "enabled"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "core.strimzi.io",
+              "version": "v1beta2",
+              "kind": "StrimziPodSet"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "An environment upgrading from Strimzi 0.34 or older must, before upgrading, enable the UseStrimziPodSets feature gate and ensure StrimziPodSet resources are used; the operator must perform this step as part of the upgrade.",
+        "remediation": "Enable the UseStrimziPodSets feature gate and make sure StrimziPodSet resources are used (instead of StatefulSets) before upgrading.",
+        "severity": "high"
+      },
+      "statement": "When using the Kafka operand and upgrading from Strimzi 0.34 or older, the UseStrimziPodSets feature gate must be enabled and StrimziPodSet resources must be used before upgrading."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-0fe6816db4bb"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:7aa2f70fee9c86dd0e59dccc3aa7aeb4b86736881da6cc511e56973361042953",
+      "inputEvidence": [
+        "ev-0fe6816db4bb"
+      ],
+      "generatedAt": "2026-10-02T06:27:02Z",
+      "callId": "5be78cd1-00a3-42d2-b5fd-225c78837a8b"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-926b4f2f6e52",
+    "candidateId": "sc-5fc2da42c29c",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-regarding-object"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Pod\"",
+        "after": "\"Kafka resource\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any scripts or tooling list Kubernetes events using a regardingObject field-selector that targets the Pod"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Event listings that filter by a regardingObject field-selector pointing at the Pod will no longer return the Pod-restart events until the selector is updated to specify the Kafka resource instead.",
+        "remediation": "Update any event-listing field-selector that uses regardingObject to target the Pod so that it specifies the Kafka resource instead.",
+        "severity": "medium"
+      },
+      "statement": "Kubernetes events for Pod restarts no longer have the Pod as the regardingObject, so anyone using regardingObject as a field-selector for listing events must update the selector to specify the Kafka resource instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2dffc916b09a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d4d5cf8389834f7cdb444a246e753aa7e0d72372164a9efa3d5d704e1c12ee14",
+      "inputEvidence": [
+        "ev-2dffc916b09a"
+      ],
+      "generatedAt": "2026-10-02T11:19:26Z",
+      "callId": "b8251766-e351-47fe-bfa4-27f743932ddc"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-04864cdf3b27",
+    "candidateId": "sc-975c09b99b18",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "ssl.principal.mapping.rules",
+        "component": "kafka-broker"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.kafka.listeners[].authentication.type",
+              "state": "equals",
+              "values": [
+                "\"custom\""
+              ]
+            }
+          ],
+          "group": "kafka.strimzi.io",
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence: existing clusters keep working unchanged; Kafka brokers whose listener authentication is `type: custom` merely gain the ability to configure `ssl.principal.mapping.rules`.",
+        "remediation": "No action required; operators who need custom principal mapping rules with `type: custom` authentication can now set them.",
+        "severity": "low"
+      },
+      "statement": "Strimzi 0.46.0 adds the ability to configure the Kafka broker configuration key `ssl.principal.mapping.rules` in Kafka brokers whose listener authentication is `type: custom` (the same entry also mentions allowing custom trusted CAs, which is not separately asserted here)."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-580b3720cb97"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f68fa5c6063d0dec73b189686748cbc1b78cf7f2975128254251a324d88baf15",
+      "inputEvidence": [
+        "ev-580b3720cb97"
+      ],
+      "generatedAt": "2026-10-02T11:51:02Z",
+      "callId": "c1752177-68a9-4262-afae-c2b4d23fce1c"
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-55408de6e4fa",
+    "candidateId": "sc-42a411d9011e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "tls.secretsBackend"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "tls.readSecretsOnlyFromSecretsNamespace"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "tls.secretsBackend",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "tls.readSecretsOnlyFromSecretsNamespace",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "tls.readSecretsOnlyFromSecretsNamespace",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "tls.secretsBackend is deprecated in favor of tls.readSecretsOnlyFromSecretsNamespace; the text does not say it stops working.",
+        "remediation": "Move to tls.readSecretsOnlyFromSecretsNamespace (false is equivalent to tls.secretsBackend: k8s) and review tls.secretSync and tls.secretsNamespace.",
+        "severity": "low"
+      },
+      "statement": "The Helm value tls.secretsBackend (local or k8s) is deprecated and replaced by tls.readSecretsOnlyFromSecretsNamespace as part of TLS Visibility moving to SDS."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-ed86f8eb85bf"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0afea0233565ffc141bd0840ab806983f64d475e53e8d3b4a5e8a53c9d7dbcb6",
+      "inputEvidence": [
+        "ev-ed86f8eb85bf"
+      ],
+      "generatedAt": "2026-10-02T05:56:51Z",
+      "callId": "1eb8e3db-5703-4f3a-b08b-ffbd1345a612"
+    }
+  }
+}

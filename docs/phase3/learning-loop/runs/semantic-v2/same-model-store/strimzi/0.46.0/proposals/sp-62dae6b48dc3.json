@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-62dae6b48dc3",
+    "candidateId": "sc-a64aedeb967c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "statefulset.kubernetes.io/pod-name",
+        "component": "pods-and-external-listener-services"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "strimzi",
+          "path": "strimzi.io/pod-name"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "which custom manifests or automation (e.g. label selectors, monitoring rules) select pods or external-listener Services by the statefulset.kubernetes.io/pod-name label"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Custom setups that rely on the statefulset.kubernetes.io/pod-name label stop matching pods and external-listener Services because that label is no longer set; the environment must switch to strimzi.io/pod-name.",
+        "remediation": "Replace uses of the statefulset.kubernetes.io/pod-name label in custom setups with the strimzi.io/pod-name label.",
+        "severity": "medium"
+      },
+      "statement": "Strimzi 0.46.0 removes the `statefulset.kubernetes.io/pod-name` label from pods and external-listener Kubernetes Services, and custom setups leveraging that label should switch to the `strimzi.io/pod-name` label instead."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-4fdefdd841ec"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:cb40a17dc2fee2660b883f230279a734ac6473386b79118d3df7646a0ae5098a",
+      "inputEvidence": [
+        "ev-4fdefdd841ec"
+      ],
+      "generatedAt": "2026-10-02T06:34:03Z",
+      "callId": "2a757174-8d2a-434e-86a9-0126f12d5581"
+    }
+  }
+}

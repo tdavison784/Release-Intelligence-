@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5feb93379ecc",
+    "candidateId": "sc-f32097415709",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "kind": "NodePool",
+        "path": "spec.consolidationPolicy.renameFrom"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "karpenter",
+          "group": "karpenter.sh",
+          "kind": "NodePool",
+          "path": "spec.consolidationPolicy.WhenEmptyOrUnderutilized"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.consolidationPolicy",
+              "state": "equals",
+              "values": [
+                "\"WhenUnderutilized\""
+              ]
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "NodePool resources specifying ConsolidationPolicy.WhenUnderutilized will have that setting ignored as the field name is no longer recognized; the operator must update manifests to use WhenEmptyOrUnderutilized.",
+        "remediation": "Update all NodePool resources that use spec.consolidationPolicy.WhenUnderutilized to use spec.consolidationPolicy.WhenEmptyOrUnderutilized instead.",
+        "severity": "high"
+      },
+      "statement": "The NodePool ConsolidationPolicy field `WhenUnderutilized` is renamed to `WhenEmptyOrUnderutilized`."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-80331c11381f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:59b5b88d4cc3a954d43b95e7a231060bad730886bcc44a8362c93832a4a4c4fb",
+      "inputEvidence": [
+        "ev-80331c11381f"
+      ],
+      "generatedAt": "2026-10-02T05:53:37Z",
+      "callId": "3c7ba09e-3dd1-466d-90c6-4ee9347a858e"
+    }
+  }
+}

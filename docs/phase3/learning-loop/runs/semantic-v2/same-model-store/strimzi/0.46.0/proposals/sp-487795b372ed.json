@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-487795b372ed",
+    "candidateId": "sc-c6c2d0c1e4f2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "compatibility-boundary",
+        "product": "strimzi",
+        "name": "zookeeper"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If the operator does nothing, upgrading to Strimzi 0.46.0 or newer is not supported: the mandatory pre-upgrade step is to make sure all Kafka clusters are using KRaft, because ZooKeeper-based clusters and the ZooKeeper-to-KRaft migration are no longer supported in 0.46.0.",
+        "remediation": "Before upgrading to Strimzi 0.46.0 or newer, migrate all Kafka clusters from ZooKeeper-based operation to KRaft.",
+        "severity": "critical"
+      },
+      "statement": "Strimzi 0.46.0 removes support for ZooKeeper-based Kafka clusters and for migrating ZooKeeper-based clusters to KRaft; the changelog instructs operators to make sure all their clusters are using KRaft before upgrading to 0.46.0 or newer."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: No evidence or artifact context identifies a static input (values key, resource field, or flag) that distinguishes a ZooKeeper-based Kafka cluster from a KRaft one, so the exposed environment state cannot be expressed as a safe predicate.",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-4c2676e4665a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e491c8a41a478d4e03cbc46e0131310c557ff002c2a380a6aa35f7e2e0b655a1",
+      "inputEvidence": [
+        "ev-4c2676e4665a"
+      ],
+      "generatedAt": "2026-10-02T06:32:56Z",
+      "callId": "030584ce-0256-463f-982a-d43841f4b1f2"
+    }
+  }
+}

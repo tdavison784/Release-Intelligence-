@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-47d5a927246c",
+    "candidateId": "sc-2a33dcd96146",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "tofqdns-policy-implementation"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"IPs observed for toFQDNs selectors were each assigned separate cidr identities\"",
+        "after": "\"IPs observed in DNS lookups are labeled with the selectors toFQDNs matching them\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cilium.io",
+              "version": "v2",
+              "kind": "CiliumNetworkPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "cilium.io",
+              "version": "v2",
+              "kind": "CiliumClusterwideNetworkPolicy"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.egress[].toFQDNs",
+                  "state": "unset"
+                }
+              ],
+              "group": "cilium.io",
+              "kind": "CiliumNetworkPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.egress[].toFQDNs",
+                  "state": "unset"
+                }
+              ],
+              "group": "cilium.io",
+              "kind": "CiliumClusterwideNetworkPolicy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Cilium automatically migrates internal state for toFQDNs policy entries; upgrading from Cilium versions older than v1.15.6 to v1.16 may cause temporary packet drops for connections allowed by toFQDNs policies during initial endpoint regeneration, and similarly when downgrading from v1.16 to v1.15 or older",
+        "remediation": "To avoid drops during upgrades in clusters with toFQDNs policies, run Cilium v1.15.6 or newer before upgrading to Cilium v1.16",
+        "severity": "high"
+      },
+      "statement": "The implementation of toFQDNs selectors in policies has been overhauled to label IPs with matching selectors instead of creating separate cidr identities, requiring automatic state migration and potentially causing temporary packet drops during upgrade/downgrade unless upgrading from v1.15.6 or newer."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-25984c3785d4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4c8661fda32bfbe42c888000bf986f4e50c6b31b3547cc17bf814c4465efa4af",
+      "inputEvidence": [
+        "ev-25984c3785d4"
+      ],
+      "generatedAt": "2026-10-02T06:03:53Z",
+      "callId": "1a84c4b2-d998-4129-963a-51d28eaa2ca4"
+    }
+  }
+}

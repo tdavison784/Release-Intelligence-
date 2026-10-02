@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7aa8d857a490",
+    "candidateId": "sc-d2d1162bac6e",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "ValidateCAA"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "ValidateCAA",
+              "state": "enabled"
+            },
+            {
+              "op": "feature-gate",
+              "name": "ValidateCAA",
+              "state": "disabled"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "An environment that still sets the ValidateCAA feature gate will have that setting ignored after upgrading to 1.18.0: it does nothing except print a warning log line.",
+        "remediation": "Remove the ValidateCAA feature gate setting; it has no effect in 1.18.0.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 removes the deprecated `ValidateCAA` feature gate, so setting the gate is now a no-op that only prints a warning log line."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-853844eb542e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:78e1fe39abf1a99ea7cc85bff24f7bb185f63e1bb057712fce0ded9d8bbb456d",
+      "inputEvidence": [
+        "ev-853844eb542e"
+      ],
+      "generatedAt": "2026-10-02T11:23:19Z",
+      "callId": "27e0e088-59b8-403c-9622-3302da46c730"
+    }
+  }
+}

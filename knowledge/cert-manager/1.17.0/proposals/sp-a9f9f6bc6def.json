@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a9f9f6bc6def",
+    "candidateId": "sc-3b0fee67078d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "applicability": {
+        "exposure": {
+          "op": "rendered-change",
+          "kind": "Deployment",
+          "path": "spec.template.spec.imagePullSecrets",
+          "state": "added"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "When service accounts are not created, the rendered Deployments now carry the configured image pull secrets. Nothing is described as failing.",
+        "severity": "low"
+      },
+      "statement": "When service accounts are not created, the cert-manager chart's Deployments now include image pull secrets."
+    },
+    "undetermined": [
+      "subject",
+      "change"
+    ],
+    "undeterminedReason": "subject: The evidence names no Helm values key, field path or component; it only says 'image pull secrets' are added to 'deployments' when service accounts aren't created.; change: The likely type is a rendering behaviour change, but without a named subject it cannot be typed reliably.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-772ebf21cd9f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:fbb65b35a95dfcf4e8b2e0b907d83f6fccd9fce5254d2c55487eb88f082b40ea",
+      "inputEvidence": [
+        "ev-772ebf21cd9f"
+      ],
+      "generatedAt": "2026-10-02T06:13:04Z",
+      "callId": "d2970bae-6cb5-429e-8888-a764be424ec3"
+    }
+  }
+}

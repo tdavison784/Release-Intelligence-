@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e530fdf8c9a1",
+    "candidateId": "sc-87d161c59ee8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "acme-http01-ingress-pathtype"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"ImplementationSpecific\"",
+        "after": "\"Exact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Ingress"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "product-version",
+                  "name": "ingress-nginx",
+                  "state": "in-range",
+                  "range": ">=1.12.0"
+                },
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "product-version",
+                      "name": "ingress-nginx",
+                      "state": "in-range",
+                      "range": ">=1.8.0"
+                    },
+                    {
+                      "op": "undecidable",
+                      "reason": "runtime-behavior-gap",
+                      "needed": "whether strict-validate-path-type configuration option is explicitly enabled in ingress-nginx"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "ACME HTTP01 challenges will fail with admission webhook validation errors when using ingress-nginx >= 1.12.0 with the default strict-validate-path-type configuration, or ingress-nginx >= 1.8.0 with strict-validate-path-type explicitly enabled, because the ingress controller rejects the `/.well-known/acme-challenge/<TOKEN>` path containing dots.",
+        "remediation": "Upgrade ingress-nginx to a version that fixes the strict-validate-path-type validation bug, or disable the strict-validate-path-type configuration option in ingress-nginx. Alternatively, use a standards-compliant Ingress controller such as Cilium that properly handles the `Exact` PathType.",
+        "severity": "high"
+      },
+      "statement": "cert-manager 1.18.0 changes ACME HTTP01 Ingress challenge routes to use PathType `Exact` instead of `ImplementationSpecific`, which is incompatible with ingress-nginx versions that have the buggy `strict-validate-path-type` validation enabled by default (>= 1.12.0)."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-110340e9c914"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:43faf1025382bbb8ee5be0ed62ea60912df2d60db4befc52cdb1b3797c6219fd",
+      "inputEvidence": [
+        "ev-110340e9c914"
+      ],
+      "generatedAt": "2026-10-02T06:06:11Z",
+      "callId": "1153ca55-8658-47a9-a497-425d09603d3b"
+    }
+  }
+}

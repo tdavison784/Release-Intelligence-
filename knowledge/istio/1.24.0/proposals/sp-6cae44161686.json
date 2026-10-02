@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6cae44161686",
+    "candidateId": "sc-21bf63323d13",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "networking.istio.io",
+        "kind": "DestinationRule",
+        "path": "spec.trafficPolicy.portLevelSettings[]"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"portLevelSettings ignored for waypoints\"",
+        "after": "\"portLevelSettings honoured for waypoints\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.trafficPolicy.portLevelSettings",
+              "state": "set"
+            }
+          ],
+          "group": "networking.istio.io",
+          "kind": "DestinationRule"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "portLevelSettings in DestinationRules that were previously ignored for waypoints are now applied, so traffic handled by waypoints may behave differently.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 fixes a bug where portLevelSettings in DestinationRules were ignored for waypoints, so they are now honoured."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a3e90b78f6fa"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:13949bc8ebee7ca0eeb000f1c64404618ca3a3fd8ec283e24e050b8bb894fb04",
+      "inputEvidence": [
+        "ev-a3e90b78f6fa"
+      ],
+      "generatedAt": "2026-10-02T05:55:58Z",
+      "callId": "70d31e55-e254-4949-8f10-18c128e4949d"
+    }
+  }
+}

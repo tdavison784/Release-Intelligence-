@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c35238d850b9",
+    "candidateId": "sc-8b1362ab9589",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--ces-write-qps-limit",
+        "component": "cilium-operator"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "cilium",
+          "name": "--ces-rate-limits",
+          "component": "cilium-operator"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--ces-write-qps-limit",
+          "component": "cilium-operator",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The ces-write-qps-limit flag value is ignored; the operator uses dynamic rate limiting instead.",
+        "severity": "high"
+      },
+      "statement": "The Cilium Operator's six CiliumEndpointSlice rate limit flags (ces-write-qps-limit, ces-write-qps-burst, ces-enable-dynamic-rate-limit, ces-dynamic-rate-limit-nodes, ces-dynamic-rate-limit-qps-limit, ces-dynamic-rate-limit-qps-burst) are deprecated and their usage is now ignored; the ces-rate-limits flag or ciliumEndpointSlice.rateLimits Helm value replaces them."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-7994b2163342"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3b9d2e73f74d8add9d2521903329b26b5d078c9a95a168816939eecd7f3fa3bb",
+      "inputEvidence": [
+        "ev-7994b2163342"
+      ],
+      "generatedAt": "2026-10-02T05:54:01Z",
+      "callId": "407eb914-35d5-412e-b362-95b1463cf955"
+    }
+  }
+}

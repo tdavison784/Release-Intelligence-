@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7c9072452dde",
+    "candidateId": "sc-ff2f759fe1fb",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment's Karpenter scheduling ever hit the intermittent nodepool-readiness flake (intermittent runtime behavior, not visible in any static configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to v1.0.0, Karpenter scheduling no longer intermittently flakes due to nodepool readiness; environments that experienced the flake see it resolved.",
+        "remediation": "None required; the fix ships with the upgrade.",
+        "severity": "low"
+      },
+      "statement": "Karpenter v1.0.0 fixes an intermittent scheduling flake caused by nodepool readiness handling (PR #6491), changing scheduling behavior with no configuration change on the operator side."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the release note names only the bug ('scheduling flake due to nodepool readiness'); it identifies no field, Helm value, flag, image, or other addressable subject that was changed",
+    "citations": [
+      "ev-518a56c0e2c1"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2dfc067fa35697fbe50553936015d1fe910d3b92918c39a2c5531e54698e09d0",
+      "inputEvidence": [
+        "ev-518a56c0e2c1"
+      ],
+      "generatedAt": "2026-10-02T11:19:19Z",
+      "callId": "7e87737f-8c7e-496e-bcff-3a2f0de3aae0"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2f3d4994687c",
+    "candidateId": "sc-ecb389afb721",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.keystores.jks.passwordSecretRef",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "Certificate"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.keystores.pkcs12.passwordSecretRef",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "Certificate"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence for an operator who does nothing: the literal-password option is additive and coexists with the still-existing passwordSecretRef field; only a Certificate that sets both the literal password and passwordSecretRef for the same keystore would fall foul of the mutual exclusivity.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds the ability to set JKS/PKCS12 keystore passwords in Certificate resources as literal values, an option mutually exclusive with the existing passwordSecretRef field."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the release note does not name the schema path of the new literal-password field (ARTIFACT CONTEXT lists only the existing spec.keystores.jks.passwordSecretRef and spec.keystores.pkcs12.passwordSecretRef paths), and the feature spans both the JKS and PKCS12 keystores, so no single field identity can be asserted without inventing a path",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-d308231cd8ab"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:300bfc32826166bb50ba510b39714afb3f8a84f7038b8b2c97de40d3bf7733fc",
+      "inputEvidence": [
+        "ev-d308231cd8ab"
+      ],
+      "generatedAt": "2026-10-02T11:27:20Z",
+      "callId": "094da5b0-9306-462f-900c-5d2d22ccd8ad"
+    }
+  }
+}
