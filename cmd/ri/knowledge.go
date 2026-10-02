@@ -58,14 +58,14 @@ func (c *cli) knowledgeRoute(args []string) error {
 	dir := fs.String("dir", knowledge.DefaultDir, "knowledge directory")
 	product := fs.String("product", "", "only this product")
 	release := fs.String("release", "", "only this release")
-	auto := fs.Bool("auto-approve", true, "auto-approve render-verifiable candidates whose open aspects have independent-family consensus")
-	audit := fs.Int("audit-every", 5, "sample one in N auto-approved facts into human review (0 = none)")
+	auto := fs.Bool("auto-approve", true, "auto-approve: render-verifiable candidates (consensus on the non-rendered aspects) and consensus-action facts (PO-2)")
+	audit := fs.Int("audit-every", 5, "sample one in N auto-approved facts into human review (0 = none; action-eligible ones are always audited)")
 	if _, err := parse(fs, args); err != nil {
 		return err
 	}
 	opts := knowledge.RouteOptions{AuditEvery: *audit, Now: time.Now}
 	if *auto {
-		opts.Policy = knowledge.AutoApproveRenderVerifiable
+		opts.Policy = knowledge.DefaultAutoApprove
 	}
 	q := knowledge.Query{Product: domain.ProductID(*product)}
 	if *release != "" {

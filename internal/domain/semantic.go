@@ -2337,8 +2337,11 @@ func (f VerifiedFact) Validate() error {
 	for _, v := range f.Verification {
 		auto = auto && (v.Level == VerifiedDeterministic || v.Level == VerifiedConsensus)
 	}
-	if f.AutoApproved != auto {
-		bad("autoApproved must be set exactly when no aspect rests on a human or proxy decision (all deterministic or consensus)")
+	// CONTRACT-CHANGE(knowledge): the marker is history. A fact with no human or
+	// proxy decision must carry it; a fact may keep it after a human audit
+	// upgraded aspects (the R19 agreement metric reads the audit decisions, not the marker's absence).
+	if auto && !f.AutoApproved {
+		bad("autoApproved must be set when no aspect rests on a human or proxy decision (all deterministic or consensus); it may stay set as history after a human audit")
 	}
 	for _, v := range f.Verification {
 		switch {
