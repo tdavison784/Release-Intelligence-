@@ -83,10 +83,28 @@ cert-manager v1.17.0 → v1.18.0, `--kubernetes 1.31`:
     (`{...impact report..., "render": …}`). Offline every target fails explicitly (R13).
   - tests: `evaluate_test.go`, `cmd/ri/impact_render_test.go`.
 
+- **(e) `eval/render/` cases + comparison runner (R16, R17 render-scoped)** —
+  `eval/render/README.md` (format, metrics, the knownGap convention);
+  `cert-manager-1.17-1.18` (16 expectations from the git diff of chart templates/values/
+  CRDs between the tags + the 1.18 release notes: RBAC split, probe ports, targetPort
+  default, images, acmesolver arg, CRD field as knownGap, rotationPolicy as
+  not-render-verifiable; a values-driven ServiceMonitor variant) and
+  `kustomize-customer-overlay` (explicit `kustomize-dependency` failure, R13).
+  Runner `go test ./internal/app -run TestEvalRenderCases` (skips without helm/network).
+  First live comparison (`eval/render/results/2026-10-11-glm-handoff.md`): release
+  precision 14/14, recall 15/16 (R16 gap open: no CRD in the rendered delta despite
+  `--include-crds`), variant 2/2, kustomize 2/2. Honest gaps: no env-var/api-version
+  case (no such change between these tags), pipeline-level R17 metrics wait on the
+  applicability lane, one more live product than cert-manager not run. NOTES.md files
+  record the blind-authoring caveats (lane status prose + one live run seen before
+  authoring) and every correction the comparison forced.
+
 ## Next
 
-(e) `eval/render/` cases (authored from upstream sources before running the renderer, R16); docs/RENDER.md
-(path syntax, `ri render diff`, `ri impact --render`, evidence policy).
+Nothing buildable is left on this lane's brief. Open items handed to the commander /
+next agent: the `SemanticCandidate.Renderability` join (see "(d)"), the R16 CRD gap
+(are CRD objects meant to reach the rendered stream?), the applicability seam signature,
+and the honest (e) gaps above.
 
 ## (d) auto-approval — verified, one join missing (commander decision)
 
@@ -134,7 +152,8 @@ See "Files touched outside ownership" — all additive, marked `CONTRACT-CHANGE(
 ## GLM handoff log
 
  glm-render (GLM-5.3) continued the lane while its Claude agent was paused. Commits ab5b31c, 118c068,
-638055a, 5140da0 (`[glm-handoff]` prefix):
+638055a, 5140da0, 7060480, 5cab7a8, 4473d4e, ad7e984, c2cd538, e0a2df7, f2d770b (`[glm-handoff]`
+prefix):
 
 - Banked the paused agent's WIP as ab5b31c before touching anything.
 - (b) tests: `inventory_test.go`, `validator_test.go` (golden streams; environment-render rejection;
@@ -143,21 +162,33 @@ See "Files touched outside ownership" — all additive, marked `CONTRACT-CHANGE(
   (`app.RenderDiffEdge`, `cmd/ri/impact.go` `--render`, JSON wrap) + `impact_render_test.go`.
   **RENDER EVALUATOR READY** — the applicability lane can adapt
   `render.EvaluateRenderedChange(cond, pairs) RenderedChangeResult` (tri-state + evidence + targets).
+- (d) verified `AutoApproveRenderVerifiable` against R10 (see its section); flagged the missing
+  `SemanticCandidate.Renderability` join for the commander.
+- docs/RENDER.md written (path syntax, scopes, failure classes, validator, evaluator, CLI, evaluation).
+- (e) `eval/render/` cases authored from upstream (template/CRD git diff + release notes), the
+  comparison runner, and the first results (see the (e) bullet under Done).
 - Cleaned `internal/app/testdata/e2e/state/store` (gitignored) that an earlier manual run wrote into
   the recording; `TestE2EFixtureHygiene` enforces its absence.
+- Fixed the last failing `ri impact --render` test assertion: `recordedState(t)` scrubs PATH (hermetic
+  offline replays), so the kustomize pair fails `renderer-unavailable` in tests and
+  `kustomize-dependency` with kubectl on PATH — the test accepts either (R13 wants an explicit
+  failure, not a specific reason).
 
 Uncertainties for the returning agent:
 
 - The applicability lane's condition evaluator has not landed; the seam is unilaterally chosen (a
   standalone tri-state in `internal/render`, not a `ConditionResult`). Confirm the signature with that
   lane before building on it.
-- (d): knowledge lane's `AutoApproveRenderVerifiable` exists — check whether it requires a
-  confirmed-by-render relation (and a complete-values render) before auto-approving; `RenderedClasses`
-  in `renderability.go` is the data source it should consult. **Verified:** it implements R10 as
-  specified (no per-fact render confirmation required; refutations veto), but
-  `SemanticCandidate.Renderability` is populated by nothing outside fixtures — see "(d)" section; the
-  join is a commander decision between lanes.
+- **R16 CRD gap (open):** the packaged cert-manager chart's CRD changes (e.g. the new
+  `signatureAlgorithm` field) did not appear in the rendered delta although the renderer passes
+  `--include-crds` (46 → 48 objects, no CustomResourceDefinition among them). Decide whether CRD
+  objects are meant to reach the rendered stream, and if so why helm's output drops them.
+- The eval/render authoring was not fully blind (the lane status prose and one live run were seen
+  before the case files were written) — the caveats and mitigations are in each case's NOTES.md; a
+  reviewer should weigh them before treating the results as a clean baseline.
+- The eval runner lives in `internal/app/render_eval_test.go` (it needs the app's chart resolution);
+  if the eval tooling should expose the metrics beyond `go test -v` (like `ri eval`), that is new
+  CLI surface for the commander to route.
 - `recordedState(t)` in `cmd/ri` scrubs PATH (hermetic offline replays), so the impact-render test
   sees `renderer-unavailable` for kustomize; a machine with kubectl on PATH sees `kustomize-dependency`
   instead. The test accepts either (R13 wants an explicit failure, not a specific reason).
-- (e) and docs/RENDER.md are untouched — the remaining work.
