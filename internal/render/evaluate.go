@@ -33,12 +33,26 @@ const (
 // The leaf says nothing about consequences: a render difference alone never
 // produces ACTION REQUIRED (RENDER-MISSION R11) — that is the trust ladder's
 // job, above this predicate.
+//
+// The fields mirror impact.ConditionResult (applicability lane) one to one,
+// so the impact.RenderedChangeEvaluator adapter is a field copy: a true
+// carries Matches (kind rendered-change, with environment evidence), a false
+// carries Checks (dimension render) and Examined, an unknown carries Reason
+// and Needed; Records are the evidence records the cited ids resolve to.
 type RenderedChangeResult struct {
 	Value  RenderedChangeValue `json:"value"`
 	Detail string              `json:"detail,omitempty"`
-	// Reason is set when Value is unknown (DESIGN.md unknownReason).
+	// Matches back a true: the rendered change, citing environment evidence.
+	Matches []domain.ImpactMatch `json:"matches,omitempty"`
+	// Checks are the evaluation record of a false.
+	Checks []domain.ImpactCheck `json:"checks,omitempty"`
+	// Examined are the records a false examined (state records per pair).
+	Examined []domain.EvidenceID `json:"examined,omitempty"`
+	// Reason and Needed explain an unknown (DESIGN.md unknownReason).
 	Reason domain.UnknownReason `json:"reason,omitempty"`
-	// Evidence cites the rendered-diff records a true/false rests on.
+	Needed []string             `json:"needed,omitempty"`
+	// Evidence are the rendered-diff records the Matches/Examined ids cite
+	// (impact.ConditionResult.Records).
 	Evidence []domain.Evidence `json:"evidence,omitempty"`
 	// Targets names the render targets the condition was evaluated against.
 	Targets []string `json:"targets,omitempty"`
@@ -74,16 +88,26 @@ func EvaluateRenderedChange(cond domain.Condition, pairs []*Pair) RenderedChange
 	}
 	var unknowns []string
 	decidedFalse := false
+	var falseEv []domain.Evidence
+	compared := 0
 	for _, p := range pairs {
 		v, detail, ev := evaluatePair(cond, segs, p)
 		switch v {
 		case RenderedTrue:
-			return RenderedChangeResult{Value: RenderedTrue,
+			r := RenderedChangeResult{Value: RenderedTrue,
 				Detail:   fmt.Sprintf("%s (%s): %s", p.Target.ID, p.Target.Origin, detail),
 				Targets:  res.Targets,
 				Evidence: ev}
+			ids := make([]domain.EvidenceID, 0, len(ev))
+			for _, e := range ev {
+				ids = append(ids, e.ID)
+			}
+			r.Matches = []domain.ImpactMatch{{Kind: domain.MatchRenderedChange, Subject: describeCond(cond), Evidence: ids}}
+			return r
 		case RenderedFalse:
 			decidedFalse = true
+			falseEv = append(falseEv, ev...)
+			compared += len(objectStates(cond, segs, p))
 		default:
 			what := "render unavailable"
 			if p.Status == PairOK && !p.Target.ValuesComplete {
@@ -94,15 +118,42 @@ func EvaluateRenderedChange(cond domain.Condition, pairs []*Pair) RenderedChange
 	}
 	if len(pairs) == 0 {
 		res.Detail = "render unavailable: no environment renders (--render)"
+		res.Needed = []string{"render unavailable: the environment's From/To renders (customer values, ri impact --render) are needed to decide " + describeCond(cond)}
 		return res
 	}
 	if decidedFalse && len(unknowns) == 0 {
-		return RenderedChangeResult{Value: RenderedFalse, Targets: res.Targets, Detail: fmt.Sprintf(
-			"every complete render of %s %s shows %s, not %s", cond.Kind, cond.Path,
-			strings.Join(pairStates(pairs, cond, segs), ", "), cond.State)}
+		states := pairStates(pairs, cond, segs)
+		shows := "no such object/field"
+		if len(states) > 0 {
+			shows = strings.Join(states, ", ")
+		}
+		r := RenderedChangeResult{Value: RenderedFalse, Targets: res.Targets, Evidence: falseEv, Detail: fmt.Sprintf(
+			"every complete render of %s %s shows %s, not %s", cond.Kind, cond.Path, shows, cond.State)}
+		for _, e := range falseEv {
+			r.Examined = append(r.Examined, e.ID)
+		}
+		r.Checks = []domain.ImpactCheck{{Dimension: domain.DimensionRender, Facts: compared, Subjects: []string{describeCond(cond)}, Evidence: r.Examined}}
+		return r
 	}
 	res.Detail = "not decidable from the renders: " + strings.Join(unknowns, "; ")
+	res.Needed = append([]string(nil), unknowns...)
 	return res
+}
+
+// describeCond renders a rendered-change condition for checks and matches.
+func describeCond(c domain.Condition) string {
+	obj := c.Kind
+	if c.Group != "" {
+		obj = c.Group + "/" + obj
+	}
+	if c.Name != "" {
+		obj += "/" + c.Name
+	}
+	s := fmt.Sprintf("rendered %s %s %s", obj, c.Path, c.State)
+	if len(c.Values) > 0 {
+		s += " to " + strings.Join(c.Values, "|")
+	}
+	return s
 }
 
 // pairStates names what each deciding pair actually shows at the path (the
@@ -146,26 +197,51 @@ func evaluatePair(cond domain.Condition, segs []pathSeg, p *Pair) (RenderedChang
 		return RenderedUnknown, why, nil
 	}
 	states := objectStates(cond, segs, p)
-	if len(states) == 0 {
-		return RenderedUnknown, fmt.Sprintf("no %s object in either render", cond.Kind), nil
-	}
-	decisive := false
 	for _, st := range states {
-		if st.state == "" {
-			continue // the path is absent in both renders: decides nothing
-		}
-		decisive = true
-		if st.state == string(cond.State) && valuesOK(cond, st.toVals) {
+		if st.state != "" && st.state == string(cond.State) && valuesOK(cond, st.toVals) {
+			// a true backed by rendered evidence stands even with incomplete values
 			return RenderedTrue, st.detail(cond.Path), st.evidence(p, cond.Path)
 		}
 	}
-	if !decisive {
-		return RenderedUnknown, fmt.Sprintf("%s has no %s in either render", cond.Kind, cond.Path), nil
-	}
+	// From here on the answer is "not in this state". That is evidence only
+	// when both renders succeeded with complete values (DESIGN.md §1.3), and —
+	// for a condition naming one object — only when the release name was
+	// stated, since object names derive from it.
 	if !p.Target.ValuesComplete {
 		return RenderedUnknown, "values incomplete — an absence of change here decides nothing", nil
 	}
-	return RenderedFalse, "", nil
+	if cond.Name != "" && p.Target.NamesAssumed && len(states) == 0 {
+		return RenderedUnknown, fmt.Sprintf("no %s named %s in either render, but the release name was assumed (object names derive from it)", cond.Kind, cond.Name), nil
+	}
+	subject := "field " + cond.Path
+	if len(states) == 0 {
+		subject = fmt.Sprintf("%s objects", cond.Kind)
+	}
+	var objs []Object
+	for _, st := range states {
+		objs = append(objs, st.from...)
+	}
+	var toObjs []Object
+	for _, st := range states {
+		toObjs = append(toObjs, st.to...)
+	}
+	ev := []domain.Evidence{
+		p.stateEvidence(p.FromResult, p.From, subject, objOcc(objs)),
+		p.stateEvidence(p.ToResult, p.To, subject, objOcc(toObjs)),
+	}
+	return RenderedFalse, "", ev
+}
+
+func objOcc(objs []Object) []Occurrence {
+	var out []Occurrence
+	for _, o := range objs {
+		out = append(out, Occurrence{Object: o.ID})
+	}
+	out = sortOcc(out)
+	if len(out) > 8 {
+		out = out[:8]
+	}
+	return out
 }
 
 // valuesOK applies the optional Values filter: the To value must be one of

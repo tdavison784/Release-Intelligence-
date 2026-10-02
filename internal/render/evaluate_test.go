@@ -32,6 +32,52 @@ func incompletePair(t *testing.T) *Pair {
 	return p
 }
 
+func assumedNamesPair(t *testing.T) *Pair {
+	t.Helper()
+	p := envGoldenPair(t)
+	p.Target.NamesAssumed = true
+	return p
+}
+
+// TestEvaluateRenderedChangeAbsenceIsFalse: in complete renders, an object or
+// path absent from both renders is not in the asked state — a false with an
+// evaluation record (check + examined state records), never a bare false.
+func TestEvaluateRenderedChangeAbsenceIsFalse(t *testing.T) {
+	p := envGoldenPair(t)
+	for _, c := range []domain.Condition{
+		rcond("Gateway", "spec.listeners", domain.StateChanged),
+		rcond("Deployment", "spec.template.spec.containers[].env[name=NOPE]", domain.StateAdded),
+		rcond("Deployment", "spec.template.spec.containers[].image", domain.StateUnchanged),
+	} {
+		res := EvaluateRenderedChange(c, []*Pair{p})
+		if res.Value != RenderedFalse {
+			t.Fatalf("%s %s: %s (%s), want false", c.Kind, c.Path, res.Value, res.Detail)
+		}
+		if len(res.Checks) != 1 || res.Checks[0].Dimension != domain.DimensionRender || len(res.Examined) == 0 || len(res.Evidence) != len(res.Examined) {
+			t.Errorf("%s %s: a false must carry a render check and examined records: %+v", c.Kind, c.Path, res)
+		}
+		for _, e := range res.Evidence {
+			if e.Render == nil || e.Render.Scope != domain.RenderEnvironment {
+				t.Errorf("examined record %s is not environment-scope render evidence", e.ID)
+			}
+		}
+	}
+	// a true carries one rendered-change match citing environment evidence
+	res := EvaluateRenderedChange(rcond("Deployment", "spec.template.spec.containers[].image", domain.StateChanged), []*Pair{p})
+	if res.Value != RenderedTrue || len(res.Matches) != 1 || res.Matches[0].Kind != domain.MatchRenderedChange || len(res.Matches[0].Evidence) == 0 {
+		t.Fatalf("true without a rendered-change match: %+v", res)
+	}
+	have := map[domain.EvidenceID]bool{}
+	for _, e := range res.Evidence {
+		have[e.ID] = true
+	}
+	for _, id := range res.Matches[0].Evidence {
+		if !have[id] {
+			t.Errorf("match cites %s, which the result's records do not hold", id)
+		}
+	}
+}
+
 func failedPair() *Pair {
 	return &Pair{Product: "demo", From: "1.0.0", To: "1.1.0", Status: PairFailed,
 		Target: Target{ID: "helmfile:demo", ValuesComplete: true},
@@ -164,16 +210,10 @@ func TestEvaluateRenderedChangeUnknown(t *testing.T) {
 			want:  "values incomplete",
 		},
 		{
-			name:  "object absent from both renders",
-			pairs: []*Pair{p},
-			cond:  rcond("Gateway", "spec.listeners", domain.StateChanged),
-			want:  "no Gateway object",
-		},
-		{
-			name:  "path absent from both renders",
-			pairs: []*Pair{p},
-			cond:  rcond("Deployment", "spec.template.spec.containers[].env[name=NOPE]", domain.StateAdded),
-			want:  "no spec.template.spec.containers[].env[name=NOPE] in either render",
+			name:  "named object absent under an assumed release name",
+			pairs: []*Pair{assumedNamesPair(t)},
+			cond:  domain.Condition{Op: domain.OpRenderedChange, Kind: "Deployment", Name: "cert-manager", Path: "spec.replicas", State: domain.StateChanged},
+			want:  "release name was assumed",
 		},
 		{
 			name:  "one undecidable pair keeps the leaf unknown",
