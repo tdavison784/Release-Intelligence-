@@ -37,7 +37,8 @@ for f in fails:
         if key in r: rej[(f["Model"], key)] += 1; break
     else: rej[(f["Model"], "other: " + r[:120])] += 1
 for k, v in sorted(rej.items()): print("  ", k, v)
-# agreement per aspect between models on the same candidate
+# Pairwise aspect agreement lives in analyze2.py (any number of models, any coverage:
+# opus ran only 4 of the 8 edges, so a fixed models[:2] pair over all candidates crashes).
 def digest(p, a):
     v = p["assertion"].get(a)
     if v is None: return None
@@ -46,22 +47,12 @@ def digest(p, a):
     return json.dumps(v, sort_keys=True)
 byc = collections.defaultdict(dict)
 for p in props: byc[p["candidateId"]][p["provenance"]["model"]] = p
-models = sorted(by)
-print("\nagreement (both models asserted the aspect):")
-for a in A:
-    both = agree = 0
-    for c, d in byc.items():
-        if len(d) < 2: continue
-        x, y = [digest(d[m], a) for m in models[:2]]
-        if x and y:
-            both += 1; agree += x == y
-    print(f"  {a:13s} {agree}/{both}")
-# abstention agreement
-ab = sum(1 for c, d in byc.items() if len(d) == 2 and all(not any(d[m]["assertion"].get(a) for a in A) for m in models[:2]))
-print("  both fully abstained:", ab, "of", sum(1 for d in byc.values() if len(d) == 2))
 # action requests
 ar = [(p["provenance"]["model"], cands[p["candidateId"]]["title"][:100]) for p in props if p.get("suggestedClass") == "action-required"]
 print(f"\naction-required requests: {len(ar)}")
-both_ar = [c for c, d in byc.items() if len(d) == 2 and all(d[m].get("suggestedClass") == "action-required" for m in models[:2])]
-print("  candidates where both models requested action-required:", len(both_ar))
-for c in both_ar[:40]: print("   -", cands[c]["product"], cands[c]["title"][:110])
+pairs = list(itertools.combinations(sorted(by), 2))
+for m1, m2 in pairs:
+    shared = [d for d in byc.values() if m1 in d and m2 in d]
+    both_ar = [c for c, d in byc.items() if m1 in d and m2 in d and d[m1].get("suggestedClass") == "action-required" and d[m2].get("suggestedClass") == "action-required"]
+    print(f"  {m1} + {m2}: both request action-required on {len(both_ar)} of {len(shared)} shared candidates")
+    for c in both_ar[:40]: print("   -", cands[c]["product"], cands[c]["title"][:110])

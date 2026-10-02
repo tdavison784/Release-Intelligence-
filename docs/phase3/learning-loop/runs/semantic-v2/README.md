@@ -47,12 +47,12 @@ the aspect on the same candidate; digests compare every field, product excluded 
 
 | pair | shared cands | subject | change | applicability | consequence |
 |---|---|---|---|---|---|
-| sonnet↔haiku | 457 | 44 % | 68 % | 29 % | 34 % |
+| sonnet↔haiku | 458 | 44 % | 68 % | 29 % | 34 % |
 | opus↔sonnet | 145 | 59 % | 73 % | 46 % | 62 % |
 | opus↔haiku | 129 | 39 % | 60 % | 18 % | 26 % |
 
 Full abstention (all four aspects `undetermined`): sonnet 159, haiku 113, opus 33 of their
-proposals; sonnet and haiku both fully abstain on 85 of 457 shared candidates.
+proposals; sonnet and haiku both fully abstain on 85 of 458 shared candidates.
 `action-required` **requests** (PO-2: suggestable, never model-decided): haiku 47, sonnet 5,
 opus 6; sonnet+haiku agree on the request for 5 candidates.
 
