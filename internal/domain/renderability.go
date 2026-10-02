@@ -44,8 +44,19 @@ func structuralChange(k ChangeKind) bool {
 	return false
 }
 
+// valuelessFamilies have structural changes a render shows (an API version
+// appears, disappears, an object moves to it) but no rendered VALUE: a GVK's
+// value-changed / default-changed is its storage (or preferred) version, a
+// CRD flag the API server applies to stored objects. Rendered objects carry
+// only served versions, so a render can neither confirm nor refute it
+// (VALIDATOR-AUDIT.md: NodePool/NodeClaim v1beta1 → v1 were refuted).
+var valuelessFamilies = map[SubjectFamily]bool{SubjectGVK: true}
+
 // RenderabilityOf classifies a (family, change kind) pair.
 func RenderabilityOf(f SubjectFamily, k ChangeKind) Renderability {
+	if valuelessFamilies[f] && (k == ChangeKindValueChanged || k == ChangeKindDefaultChanged) {
+		return RenderNotVerifiable
+	}
 	if r, ok := renderabilityTable[f]; ok && structuralChange(k) {
 		return r
 	}
