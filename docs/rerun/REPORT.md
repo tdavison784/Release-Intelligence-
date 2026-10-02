@@ -47,9 +47,9 @@ checks were all committed 2026-10-01 (`df5072c` Phase 1 records/checks for cert-
 | Artifact class | Contaminated content (examples, file:line in inventory) |
 |---|---|
 | `docs/onboarding/checks/*.json` | 12 products carry `unverifiable` (cert-manager 12, ingress-nginx 47, postgresql 15, minio 19, falco 2) and `covered` (github-release-notes etc.) = API blocked |
-| `docs/onboarding/records/*.yaml` | `relationships.unverifiable` + `unreachableSources` for 20 products (vault 17 hits, crossplane 22, postgresql 14, ingress-nginx 12) |
+| `docs/onboarding/records/*.yaml` | `relationships.unverifiable` and/or `unreachableSources` for 28 products (all records mention one) (vault 17 hits, crossplane 22, postgresql 14, ingress-nginx 12) |
 | `docs/onboarding/discovery/*.proposed.yaml` / `.report.md` | 7 products embed "Unverified by discovery (... HTTP 403 / unavailable)" notes: crossplane, external-secrets, falco, flux, ingress-nginx, linkerd, prometheus-operator |
-| `docs/research/*.md` | 24 `UNVERIFIED`/blocked-list sections (cert-manager 24 hits, postgresql 12, cilium 11, vault 8, istio 9, argo-cd 9) |
+| `docs/research/*.md` | `UNVERIFIED`/blocked statements in 26 of 28 docs (cert-manager 24 hits, postgresql 12, cilium 11, vault 8, istio 9, argo-cd 9) |
 | `docs/FINDINGS.md`, `docs/ONBOARDING.md`, `docs/phase2/*`, README | blocked-host statements (FINDINGS:28,53,59,99; ONBOARDING:18,53,319,345; PLAN:61-67) |
 
 ## 3. `ri check`: baseline vs live (28 products, same release sets)
