@@ -1,0 +1,43 @@
+id: knowledge-unresolved-reference
+attacks: >-
+  trusted fact whose exposure follows a cross-resource reference
+  (Certificate.spec.issuerRef → ClusterIssuer) to an object that is not among
+  the cleanly parsed but undeclared manifests — the ClusterIssuer is installed by
+  a chart the customer did not commit
+expectation: >-
+  unknown (impact:knowledge-undecided, environment-visibility-gap, needed: the
+  referenced ClusterIssuer's manifest); never impact:knowledge-clear — clean
+  parsing is not completeness (docs/IMPACT.md)
+knowledge:
+  facts:
+    - level: human
+      subject: {family: product-relationship, name: ingress-nginx}
+      change: {type: requirement-changed, after: ">=1.12.0"}
+      exposure:
+        op: resource
+        group: cert-manager.io
+        kind: Certificate
+        of:
+          - op: ref
+            path: spec.issuerRef
+            kind: ClusterIssuer
+            of:
+              - {op: field, path: "spec.acme.solvers[].http01.ingress", state: set}
+      consequence: {kind: workload-failure, statement: "HTTP01 challenges fail: ingress-nginx rejects the Exact-path Ingress the solver creates."}
+      statement: "HTTP01 solver paths are now PathType Exact; ingress-nginx >= 1.12 rejects them under strict path validation."
+      anchors: ["HTTP01 solver paths are now PathType Exact"]
+edge:
+  changes:
+    - rule: note
+      title: "HTTP01 solver paths are now PathType Exact"
+      subjects: [ingress-nginx]
+      category: compatibility
+environment:
+  files: [manifests/certificate.yaml]
+expect:
+  present:
+    - rule: impact:knowledge-undecided
+      classification: unknown
+  absent:
+    - rule: impact:knowledge-clear
+    - classification: not-affected

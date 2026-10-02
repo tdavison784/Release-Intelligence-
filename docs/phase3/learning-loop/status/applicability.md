@@ -3,6 +3,29 @@
 **State: done** (branch `p3ll/applicability`; contract, contract-2 and contract-3 merged).
 `go build ./... && go vet ./... && go test ./...` green. Schemas regenerated (`go run ./internal/domain/schemagen`).
 
+## applicability-4 (branch `p3ll/applicability-4`, from p3-learning-loop @ 94ffa5e) — done
+
+Same principle for cross-resource references. `env.RefResolution.ManifestsComplete` meant "manifests parsed
+healthily", so on cleanly parsed manifests an unresolved `ref` (e.g. `Certificate.spec.issuerRef` → a
+chart-installed ClusterIssuer) decided FALSE and a trusted fact could clear the change.
+
+- `ResolveRef` now sets `ManifestsComplete` only when the manifests are **declared** complete
+  (`--manifests-complete`) **and** healthy (envparse-owned file, two-line change + comment; its test updated).
+- `ref` leaf: unresolved → unknown · environment-visibility-gap, needed: "the manifest of the referenced
+  <Kind> <name> (<referrer> <path> points at it …)"; declared → false, and the check cites the declaration. The
+  `resource` scope's collapsed check now keeps the evidence its inner checks cite (so the declaration reaches
+  the finding). `not(ref …)` cannot turn an unresolved reference into evidence (tested).
+- `--manifests-complete` help/evidence wording broadened from "every workload" to "every object".
+- Test `TestEvaluateConditionUnresolvedReference`; adversarial `eval/adversarial/knowledge-unresolved-reference`
+  (human fact through issuerRef → ClusterIssuer; the old code produces `impact:knowledge-clear`, verified; the
+  fix produces `impact:knowledge-undecided`). docs/IMPACT.md: query-API line + "Decision reversed
+  (applicability-4)".
+- Full eval, base vs fix, same cache: `ri eval` JSON byte-identical without knowledge and with
+  `-knowledge knowledge -min-verification proxy`; per-level panel identical (applicability 0.486/0.505, ACTION 17
+  with 1 false — pre-existing kyverno E9 — at every level). Per-finding impact diff over all 19 environments: **no
+  finding changed**. Reason: none of the 105 committed facts uses a `ref` leaf (only 5 non-fact records mention one),
+  and no deterministic join rule calls `ResolveRef`. No new false ACTION.
+
 ## applicability-3 (branch `p3ll/applicability-3`, from p3-learning-loop @ 62afad6) — done
 
 Safety fix from LOOP-DIAGNOSIS.md §7.8. A `cli-flag` / `env-var` / `feature-gate` leaf naming a component

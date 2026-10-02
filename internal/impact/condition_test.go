@@ -446,3 +446,51 @@ func TestEvaluateConditionNamedComponentAbsent(t *testing.T) {
 		t.Error("a completeness declaration without manifests must not be recorded")
 	}
 }
+
+// An unresolved reference is "not shown", not "not there": unknown unless the
+// manifests are declared complete (clean parsing is not completeness).
+func TestEvaluateConditionUnresolvedReference(t *testing.T) {
+	edge := newEdge().edge
+	orphan := `apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata: {name: orphan, namespace: ns}
+spec:
+  secretName: orphan-tls
+  issuerRef: {name: chart-installed-ca, kind: ClusterIssuer, group: cert-manager.io}
+`
+	cond := domain.Condition{Op: domain.OpResource, Group: "cert-manager.io", Kind: "Certificate", Name: "orphan",
+		Of: []domain.Condition{{Op: domain.OpRef, Path: "spec.issuerRef", Kind: "ClusterIssuer", Of: []domain.Condition{field("spec.ca", domain.StateSet)}}}}
+
+	undeclared := condEnv(t, "", map[string]string{"orphan.yaml": orphan})
+	if undeclared.Health(env.DimManifests) != env.HealthOK {
+		t.Fatalf("fixture must parse cleanly: %s", undeclared.Health(env.DimManifests))
+	}
+	r := EvaluateCondition(cond, undeclared, edge)
+	if r.Value != Unknown || r.Reason != domain.UnknownEnvironmentVisibilityGap || !strings.Contains(strings.Join(r.Needed, " "), "ClusterIssuer chart-installed-ca") {
+		t.Errorf("unresolved reference, cleanly parsed but undeclared manifests: %s/%s %v, want unknown naming the referenced object", r.Value, r.Reason, r.Needed)
+	}
+	// not(unresolved ref) cannot become evidence either
+	if r := EvaluateCondition(domain.Condition{Op: domain.OpResource, Group: "cert-manager.io", Kind: "Certificate", Name: "orphan",
+		Of: []domain.Condition{{Op: domain.OpNot, Of: cond.Of}}}, undeclared, edge); r.Value != Unknown {
+		t.Errorf("not(unresolved ref) = %s, want unknown", r.Value)
+	}
+
+	dir := t.TempDir()
+	writeFile(t, dir, "m/orphan.yaml", orphan)
+	declared := loadEnv(t, env.Inputs{Manifests: []string{dir + "/m"}, ManifestsComplete: true})
+	r = EvaluateCondition(cond, declared, edge)
+	if r.Value != False {
+		t.Fatalf("declared complete: %s %v, want false", r.Value, r.Needed)
+	}
+	cited := false
+	for _, c := range r.Checks {
+		for _, id := range c.Evidence {
+			for _, d := range declared.ManifestsCompleteEvidence {
+				cited = cited || id == d
+			}
+		}
+	}
+	if !cited {
+		t.Errorf("a false from a declared-complete environment must cite the declaration: %+v", r.Checks)
+	}
+}

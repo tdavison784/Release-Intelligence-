@@ -244,9 +244,11 @@ type RefResolution struct {
 	Status     RefStatus
 	Target     *Resource   // set when Resolved
 	Candidates []*Resource // set when Ambiguous
-	// ManifestsComplete: the manifests dimension is healthy, so an unresolved
-	// reference means the target is not among everything that was supplied;
-	// otherwise the target may be in a file that was not parsed.
+	// ManifestsComplete: the manifests are DECLARED complete
+	// (Inputs.ManifestsComplete / --manifests-complete) and parsed healthily,
+	// so an unresolved reference means the target does not exist. Clean
+	// parsing alone is not completeness: the target may live in a file that
+	// was never supplied (a chart-installed Issuer, a Secret kept elsewhere).
 	ManifestsComplete bool
 	Reason            string
 }
@@ -256,7 +258,7 @@ type RefResolution struct {
 // reference without a namespace matches the referring resource's namespace
 // (or a resource declaring none).
 func (e *Environment) ResolveRef(from *Resource, ref Ref) RefResolution {
-	out := RefResolution{Status: RefUnresolved, ManifestsComplete: e != nil && e.Health(DimManifests) == HealthOK}
+	out := RefResolution{Status: RefUnresolved, ManifestsComplete: e != nil && e.ManifestsDeclaredComplete && e.Health(DimManifests) == HealthOK}
 	if e == nil || ref.Name == "" {
 		out.Reason = "reference states no name"
 		return out

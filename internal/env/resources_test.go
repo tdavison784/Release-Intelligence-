@@ -374,8 +374,17 @@ spec:
 		t.Errorf("ref = %+v", ok.Ref)
 	}
 	miss := by["without-policy"]
-	if miss.Resolution.Status != RefUnresolved || !miss.Resolution.ManifestsComplete || !strings.Contains(miss.Resolution.Reason, "missing-issuer") {
-		t.Errorf("unresolved must be explicit, not absent: %+v", miss.Resolution)
+	// healthy but undeclared manifests: unresolved is not "does not exist"
+	if miss.Resolution.Status != RefUnresolved || miss.Resolution.ManifestsComplete || !strings.Contains(miss.Resolution.Reason, "missing-issuer") {
+		t.Errorf("unresolved must be explicit, not absent, and clean parsing is not completeness: %+v", miss.Resolution)
+	}
+	declaredFile := filepath.Join(t.TempDir(), "certs.yaml")
+	_ = os.WriteFile(declaredFile, []byte(certs), 0o644)
+	declared, _ := Load(Inputs{Manifests: []string{declaredFile}, ManifestsComplete: true})
+	for _, x := range declared.References(GVKSelector{Group: "cert-manager.io", Kind: "Certificate"}, "spec.issuerRef") {
+		if x.Resolution.Status == RefUnresolved && !x.Resolution.ManifestsComplete {
+			t.Error("declared-complete, healthy manifests: an unresolved reference may claim completeness")
+		}
 	}
 	// kind-qualified: an Issuer named like a ClusterIssuer does not satisfy it, and a
 	// namespace mismatch (shadow lives in "other") does not resolve for "prod"
@@ -400,7 +409,7 @@ spec:
 	_ = os.WriteFile(bad, []byte("kind: [unterminated\n"), 0o644)
 	good := filepath.Join(t.TempDir(), "good.yaml")
 	_ = os.WriteFile(good, []byte(certs), 0o644)
-	e2, _ := Load(Inputs{Manifests: []string{good, bad}})
+	e2, _ := Load(Inputs{Manifests: []string{good, bad}, ManifestsComplete: true})
 	if e2.Health(DimManifests) != HealthPartial {
 		t.Fatalf("health = %s", e2.Health(DimManifests))
 	}
