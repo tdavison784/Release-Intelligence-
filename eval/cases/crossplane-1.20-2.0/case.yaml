@@ -45,6 +45,11 @@ expected:
       - text: '(?i)native patch.and.transform'
       - text: '(?i)mode: ?Resources'
       - text: '(?i)convert pipeline-composition'
+      # added 2026-10-02, motivated by pipeline output (trustfix; eval/CHANGELOG.md): E1's own
+      # semantic subjects — the Composition fields the v2 schema drops or restricts (CRD quotes below)
+      - {subject: spec.mode, text: '(?i)\bComposition\b'}
+      - {subject: 'spec.resources[]', text: '(?i)\bComposition\b'}
+      - {subject: 'spec.patchSets[]', text: '(?i)\bComposition\b'}
     evidence:
       - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/guides/upgrade-to-crossplane-v2.md
         quote: "If you're using `spec.mode: Resources` in your Compositions, migrate to composition functions before upgrading."
@@ -56,6 +61,8 @@ expected:
         quote: "All Compositions should use Pipeline mode. Resources mode is deprecated."
       - url: https://github.com/crossplane/crossplane/blob/v2.0.0/cluster/crds/apiextensions.crossplane.io_compositions.yaml
         quote: "default: Pipeline"
+      - url: https://github.com/crossplane/crossplane/blob/v1.20.1/cluster/crds/apiextensions.crossplane.io_compositions.yaml
+        quote: "Resources is a list of resource templates that will be used when a composite resource referring to this composition is created."   # spec.resources (and spec.patchSets, "PatchSets define a named set of patches") exist at v1.20.1 and are absent from the v2.0.0 Composition schema
     semantics:
       - subject: {family: crd-field, product: crossplane, group: apiextensions.crossplane.io, kind: Composition, path: spec.mode}
         change: {type: validation-tightened, before: '"Resources"'}
@@ -124,7 +131,7 @@ expected:
     match:
       - text: '(?i)external secret stores?'
       - text: '(?i)enable-external-secret-stores'
-      - text: '(?i)StoreConfig'
+      - text: '(?i)\bStoreConfigs?\b'   # narrowed 2026-10-02, motivated by pipeline output (trustfix; eval/CHANGELOG.md): the StoreConfig kind, not the substring inside Composition spec.publishConnectionDetailsWithStoreConfigRef
     evidence:
       - url: https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/whats-new/_index.md
         quote: "Crossplane added external secret stores in v1.7. External secret stores have remained in alpha for over two years and are now unmaintained."
@@ -132,6 +139,8 @@ expected:
         quote: "If you're using external secret stores, migrate to native Kubernetes secrets or [External Secrets Operator](https://external-secrets.io/latest/) before upgrading."
       - url: https://github.com/crossplane/crossplane/blob/v2.0.0/cmd/crossplane/core/core.go
         quote: "Crossplane removed support for external secret stores. The --enable-external-secret-stores flag will be removed in a future release."
+      - url: https://github.com/crossplane/crossplane/tree/v1.20.1/cluster/crds
+        quote: "secrets.crossplane.io_storeconfigs.yaml"   # listed at v1.20.1, absent from cluster/crds at v2.0.0: the StoreConfig API the title names
     semantics:
       - subject: {family: cli-flag, product: crossplane, name: --enable-external-secret-stores, component: crossplane}
         change: {type: removed}

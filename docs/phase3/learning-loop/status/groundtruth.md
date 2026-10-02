@@ -78,7 +78,11 @@ calls on a cache-refreshing first run. Flagged for the pipeline owner.
   `unknownHonesty`). Nothing pre-registered or implemented; the product owner decides.
 - (3) Done: stored-edge fixtures for the 7 new base entries (the 4 transfers share their base edge),
   with `missedAtRecording` for the 9 recall misses. The routine gate now covers 24 entries.
-- (4) Waiting: no TRUSTFIX.md note yet. No label changes until the commander says so.
+- (4) Done per the product-owner decision (groundtruth-3): crossplane E3 matcher narrowed to
+  `\bStoreConfigs?\b`, E1 given subject matchers for spec.mode/spec.resources[]/spec.patchSets[].
+  Disclosed as motivated by pipeline output (trustfix), with the gate panel before/after in
+  eval/CHANGELOG.md "2026-10-02 (c)": falseActionRate 0.133 → 0.067, applicabilityAccuracy 0.467 →
+  0.486, not-affected violations 1 → 0. kyverno E9 untouched (pending decision).
 
 ## Open for the commander
 - Decide on docs/phase3/learning-loop/UNDECIDED-SCORING.md (do not pre-register from this lane), and report applicabilityAccuracy split into

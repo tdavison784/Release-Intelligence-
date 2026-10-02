@@ -120,3 +120,58 @@ markup-normalised; the remaining crossplane code-comment and flux HTML-list quot
 hand). Observation: the edge-only cases (argo-cd-3.0-3.1, cert-manager-1.15-1.16,
 ingress-nginx-1.11-1.12, istio-1.28-1.29, postgresql ×2, terraform-provider-aws, vault) have about 30
 quotes the same check cannot match verbatim; not touched here.
+
+## 2026-10-02 (c) — crossplane-1.20-2.0 E1/E3 matchers — **motivated by pipeline output (trustfix)**
+
+Disclosure: unlike every correction above, this one was motivated by reading pipeline output. The
+trigger is docs/phase3/learning-loop/TRUSTFIX.md §1a: a correct ACTION on the computed Composition
+schema change was attributed to E3 (not-affected) through a substring match. The product owner
+decided to fix the matchers, disclosed. Each matcher below is justified from an upstream source (the
+quotes added to the items). No relevance, classification, semantics or fixture changed. kyverno E9
+(TRUSTFIX §1b) is deliberately untouched, pending a decision.
+
+| Case · item | Field | Before | After | Upstream justification |
+|---|---|---|---|---|
+| crossplane-1.20-2.0 · E3 | matcher | `text: (?i)StoreConfig` (any substring, so it caught Composition `spec.publishConnectionDetailsWithStoreConfigRef`) | `text: (?i)\bStoreConfigs?\b` (the kind / its CRD plural only) | E3's title names "the StoreConfig API": `cluster/crds/secrets.crossplane.io_storeconfigs.yaml` exists at v1.20.1 and is absent at v2.0.0 (citation added). |
+| crossplane-1.20-2.0 · E1 | matchers added | three text matchers (prose only) | `{subject: spec.mode, text: \bComposition\b}`, `{subject: spec.resources[], …}`, `{subject: spec.patchSets[], …}` | E1's own semantic subjects. The Composition CRD at v1.20.1: "Resources is a list of resource templates …" (citation added), and "All Compositions should use Pipeline mode. Resources mode is deprecated."; at v2.0.0 `default: Pipeline`, with no `resources`/`patchSets`. |
+
+Note: `spec.publishConnectionDetailsWithStoreConfigRef` is itself an external-secret-store field
+(E3's area). The computed change is an umbrella over three removed Composition fields, and the
+evaluator attributes a change to the last matching item (D13). After the fix only E1 selects it, which
+matches the dominant subjects (`spec.resources[]`, `spec.patchSets[]`). The environment sets neither
+the store-config field nor a StoreConfig, so E3 stays not-affected.
+
+What the narrowed / added matchers now select (fresh edge): E3 additionally matches
+"CRD `storeconfigs.secrets.crossplane.io` (StoreConfig) removed" (its own subject). E1 additionally
+matches the Composition schema changes "3 fields removed: `spec.patchSets[]`, `spec.publish…`,
+`spec.resources[]`", "allowed values changed: `spec.mode`" and "1 default changed: `spec.mode`".
+
+**Gate panel BEFORE** (full `ri eval`, 2026-10-02, branch p3ll/groundtruth after merging
+p3-learning-loop with trustfix; state = primary checkout's warm cache):
+
+| Gate | Actual | Pass | Detail |
+|---|---|---|---|
+| criticalRecall | 0.98 | ✓ | 50 critical items, 1 missed |
+| importantRecall | 0.95 | ✓ | 100 important items, 5 missed |
+| applicabilityAccuracy | 0.467 | ✗ | 105 decisions (affected 73: 18 hit; not-affected 32: 1 violation) |
+| falseActionRate | 0.133 | ✗ | 15 ACTION findings, 2 wrong |
+| actionFindingEvidence | 1.00 | ✓ | 0 unresolving |
+| unsupported | 0 | ✓ | |
+| pipelineFailures | 0 | ✓ | |
+
+**Gate panel AFTER** (same run conditions, only this matcher change):
+
+| Gate | Actual | Pass | Detail |
+|---|---|---|---|
+| criticalRecall | 0.98 | ✓ | 50 critical items, 1 missed |
+| importantRecall | 0.95 | ✓ | 100 important items, 5 missed |
+| applicabilityAccuracy | 0.486 | ✗ | 105 decisions (affected 73: 19 hit; not-affected 32: 0 violations) |
+| falseActionRate | 0.067 | ✗ | 15 ACTION findings, 1 wrong (kyverno E9, pending) |
+| actionFindingEvidence | 1.00 | ✓ | 0 unresolving |
+| unsupported | 0 | ✓ | |
+| pipelineFailures | 0 | ✓ | |
+
+crossplane-1.20-2.0 alone: links 0/5 → 1/5 (E1 hit by the two ACTIONs plus the default-change
+finding), not-affected violations 1 → 0 (E3), recall 9/10 unchanged (E8 still missed),
+classificationAccuracy unchanged overall (0.438 over 112). No stored-result regressions in either run.
+
