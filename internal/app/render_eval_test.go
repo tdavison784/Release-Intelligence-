@@ -23,14 +23,14 @@ import (
 
 // evalRenderCase is one case.yaml (the fields the runner matches on).
 type evalRenderCase struct {
-	ID          string `yaml:"id"`
-	Product     string `yaml:"product"`
-	From        string `yaml:"from"`
-	To          string `yaml:"to"`
-	Level       string `yaml:"level"` // release | environment
-	Repo        string `yaml:"repo"`
-	Expected    []evalExpectation `yaml:"expected"`
-	Variants    []evalVariant    `yaml:"variants"`
+	ID       string            `yaml:"id"`
+	Product  string            `yaml:"product"`
+	From     string            `yaml:"from"`
+	To       string            `yaml:"to"`
+	Level    string            `yaml:"level"` // release | environment
+	Repo     string            `yaml:"repo"`
+	Expected []evalExpectation `yaml:"expected"`
+	Variants []evalVariant     `yaml:"variants"`
 }
 
 type evalExpectation struct {

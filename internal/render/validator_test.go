@@ -20,8 +20,8 @@ func goldenReleasePair(t *testing.T) *Pair {
 	res := func(version string, objs []Object) *Result {
 		return &Result{Status: StatusSucceeded, Objects: objs, Provenance: Provenance{
 			Scope: domain.RenderRelease, Tool: ToolHelm, ToolVersion: "v3.16.4",
-			Command:       []string{"helm", "template", "demo", "chart.tgz"},
-			Chart:         "demo", ChartVersion: version, ChartURI: "testdata/charts/demo-" + version,
+			Command: []string{"helm", "template", "demo", "chart.tgz"},
+			Chart:   "demo", ChartVersion: version, ChartURI: "testdata/charts/demo-" + version,
 			ArtifactDigest: "sha256:chart-" + version, OutputDigest: "sha256:out-" + version, RenderedAt: fixedNow,
 		}}
 	}
@@ -43,7 +43,7 @@ func (f *fixedPairs) ReleasePair(context.Context, string, string, string) *Pair 
 
 func vInput(a domain.SemanticAssertion) knowledge.ValidationInput {
 	return knowledge.ValidationInput{
-		Candidate: domain.SemanticCandidate{ID: domain.CandidateIDPrefix + "test", Product: "demo"},
+		Candidate:  domain.SemanticCandidate{ID: domain.CandidateIDPrefix + "test", Product: "demo"},
 		ProposalID: domain.ProposalIDPrefix + "p1", Assertion: a,
 		From: &domain.Release{Product: "demo", Version: domain.MustVersion("1.0.0", "1.0.0")},
 		To:   &domain.Release{Product: "demo", Version: domain.MustVersion("1.1.0", "1.1.0")},
@@ -77,12 +77,12 @@ func runValidate(t *testing.T, pairs ReleasePairs, in knowledge.ValidationInput)
 func TestRenderedDiffValidatorConfirms(t *testing.T) {
 	pairs := &fixedPairs{p: goldenReleasePair(t)}
 	cases := []struct {
-		name       string
-		assertion  domain.SemanticAssertion
-		relation   domain.RenderRelation
-		subject    domain.ValidationOutcome
-		change     domain.ValidationOutcome
-		detailHas  string
+		name      string
+		assertion domain.SemanticAssertion
+		relation  domain.RenderRelation
+		subject   domain.ValidationOutcome
+		change    domain.ValidationOutcome
+		detailHas string
 	}{
 		{
 			name: "image value changed",

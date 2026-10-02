@@ -11,6 +11,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/env"
+	"github.com/tdavison784/release-intelligence/internal/knowledge"
 	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
@@ -230,4 +231,20 @@ func (r *chartResolver) ResolveChart(ctx context.Context, productID, version str
 		return nil, fail("%s defines no helm-chart artifact with a chart package channel", productID)
 	}
 	return nil, fail("%s", strings.Join(problems, "; "))
+}
+
+// RenderValidator returns the `rendered-diff` knowledge.Validator over this
+// app's release-level (chart-default) renders; register it beside the
+// validate lane's validators (DESIGN.md §2.3).
+func (a *App) RenderValidator(kubeVersion string) knowledge.Validator {
+	return render.NewValidator(a.RenderEngine().ReleasePairs(kubeVersion))
+}
+
+// EnvironmentPairs returns the environment render pairs of a RenderDiff
+// result: what the rendered-change evaluator decides against.
+func (r *RenderDiffResult) EnvironmentPairs() []*render.Pair {
+	if r == nil {
+		return nil
+	}
+	return r.Pairs
 }

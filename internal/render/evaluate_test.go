@@ -80,7 +80,7 @@ func TestEvaluateRenderedChangeAbsenceIsFalse(t *testing.T) {
 
 func failedPair() *Pair {
 	return &Pair{Product: "demo", From: "1.0.0", To: "1.1.0", Status: PairFailed,
-		Target: Target{ID: "helmfile:demo", ValuesComplete: true},
+		Target:  Target{ID: "helmfile:demo", ValuesComplete: true},
 		Failure: &Failure{Reason: FailTemplateError, Detail: "values do not satisfy the schema"}}
 }
 

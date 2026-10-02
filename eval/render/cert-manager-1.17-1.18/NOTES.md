@@ -90,3 +90,28 @@ classes — without copying any renderer path spelling (e.g. no
 `spec.ports[name=tcp-prometheus-servicemonitor]`, no change-class wording from the
 tool). R16's purpose (measure the tool, not mirror it) is served by that discipline,
 and the caveat is here so a reviewer can weigh it.
+
+## Reviewer corrections (render lane, 2026-10-02, after the GLM handoff)
+
+Made by the lane's returning agent on review of the handoff; each is a correction
+of the *encoding* of an upstream fact, recorded with what was seen:
+
+1. **R12 restored** (as `knownGap`). Dropping it after the comparison run hid a real
+   tool limitation: the upstream template does grant `challenges/finalizers update`
+   to the http01 role, but the diff emits one `resource-added` record for a role
+   that is new under its name, so no per-permission change exists. It now counts
+   as a recall miss (14/15), which is the honest number.
+2. **R16 moved into a `crds` variant.** The handoff's premise ("the chart packages
+   CRDs under `crds/`") was wrong: the packaged chart ships them as
+   `templates/crds.yaml`, gated by `crds.enabled` (default `false` in the chart's
+   values.yaml). Chart-default renders therefore contain no CRD, and
+   `--include-crds` has nothing to add. That is an upstream fact read from the
+   package, not a renderer gap. With `crds.enabled: true` on both sides
+   (`environment/values-crds.yaml`) R16 matches as a `field-added`.
+3. **R17 moved into the same variant, its matcher narrowed** from `path: default`
+   to `path: rotationPolicy.default`. At release level the CRD is not rendered, so
+   R17 was vacuous there. In the variant, the loose substring `default` also
+   matched description prose ("enabled by default"), which R17's own text calls
+   noise. The run that showed this was seen before the narrowing. The upstream
+   intent (no schema `default:` for rotationPolicy) is unchanged and now encoded
+   exactly.

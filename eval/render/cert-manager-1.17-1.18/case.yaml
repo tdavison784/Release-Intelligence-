@@ -108,6 +108,20 @@ expected:
     class: resource-added
     detail: binding for the dns01 role
     source: templates/rbac.yaml (dns01 ClusterRoleBinding)
+  - id: R12
+    category: rbac
+    expect: present
+    kind: ClusterRole
+    name: cert-manager-http01-controller-challenges
+    class: rbac-permission-added
+    path: ""
+    knownGap: true
+    detail: the http01 challenges role additionally grants challenges/finalizers update
+    source: >-
+      templates/rbac.yaml: the http01 role's rules gain
+      apiGroups [acme.cert-manager.io] resources [challenges/finalizers] verbs [update].
+      knownGap = a TOOL limitation recorded honestly (NOTES.md): the renamed role is
+      one resource-added record, so no per-permission change is emitted for it.
   - id: R13
     category: port
     expect: present
@@ -136,34 +150,6 @@ expected:
     source: >-
       values.yaml: prometheus.servicemonitor.targetPort 9402 → http-metrics
       (values.schema.json default follows); the Service template renders it.
-  - id: R16
-    category: crd
-    expect: present
-    kind: CustomResourceDefinition
-    name: certificates.cert-manager.io
-    path: signatureAlgorithm
-    knownGap: true
-    detail: the Certificate CRD gains the signatureAlgorithm field (enum) — visible only if CRDs are rendered
-    source: >-
-      deploy/crds/crd-certificates.yaml: new signatureAlgorithm property with
-      enum [SHA256WithRSA, …, PureEd25519].
-  - id: R17
-    category: not-render-verifiable
-    expect: absent
-    kind: CustomResourceDefinition
-    name: certificates.cert-manager.io
-    path: default
-    detail: >-
-      the rotationPolicy default change (Never → Always) is a controller
-      feature gate, not a schema default; the renderer must not present a
-      rendered change asserting the new default (description prose changes are
-      noise, not the semantic default)
-    source: >-
-      deploy/crds/crd-certificates.yaml keeps no schema default for
-      rotationPolicy (only description text); release notes 1.18: default
-      changed "from Never to Always", disable with
-      DefaultPrivateKeyRotationPolicyAlways=false feature gate.
-
 variants:
   - id: servicemonitor
     values: environment/values-servicemonitor.yaml
@@ -194,3 +180,39 @@ variants:
         class: resource-added
         detail: the ServiceMonitor exists on BOTH sides (not an added resource)
         source: the variant enables it for both renders.
+  - id: crds
+    values: environment/values-crds.yaml
+    note: >-
+      values-driven behaviour: the chart ships its CRDs as templates/crds.yaml,
+      gated by crds.enabled (default false in values.yaml), not under crds/ — so
+      chart-default renders contain no CRD and --include-crds has nothing to add.
+      Enabling the gate on both sides renders the CRDs.
+    expected:
+      - id: R16
+        category: crd
+        expect: present
+        kind: CustomResourceDefinition
+        name: certificates.cert-manager.io
+        class: field-added
+        path: signatureAlgorithm
+        detail: the Certificate CRD gains the signatureAlgorithm field (enum) — rendered because the variant enables crds.enabled
+        source: >-
+          deploy/crds/crd-certificates.yaml: new signatureAlgorithm property with
+          enum [SHA256WithRSA, …, PureEd25519].
+      - id: R17
+        category: not-render-verifiable
+        expect: absent
+        kind: CustomResourceDefinition
+        name: certificates.cert-manager.io
+        path: rotationPolicy.default
+        detail: >-
+          the rotationPolicy default change (Never → Always) is a controller
+          feature gate, not a schema default; the renderer must not present a
+          rendered change asserting the new default (description prose changes are
+          noise, not the semantic default)
+        source: >-
+          deploy/crds/crd-certificates.yaml keeps no schema default for
+          rotationPolicy (only description text); release notes 1.18: default
+          changed "from Never to Always", disable with
+          DefaultPrivateKeyRotationPolicyAlways=false feature gate.
+

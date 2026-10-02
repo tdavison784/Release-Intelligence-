@@ -1,4 +1,4 @@
-# Render evaluation results — 2026-10-11 (GLM handoff)
+# Render evaluation results — 2026-10-01 (GLM handoff; superseded by 2026-10-02)
 
 One live run of `go test ./internal/app -run TestEvalRenderCases -v`
 (helm v3.16.1, kubectl v1.34.1 on PATH, network on; charts fetched through the
