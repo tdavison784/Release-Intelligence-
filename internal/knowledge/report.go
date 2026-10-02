@@ -47,8 +47,8 @@ func WriteMetricsReport(w io.Writer, m LoopMetrics) {
 		s    DecisionStats
 	}{{"individual", m.Review.Individual}, {"batch", m.Review.Batch}} {
 		s := row.s
-		p("  %-10s %3d decisions: accept %d, correct %d, reject %d, need-evidence %d, defer %d; median %s, p90 %s%s",
-			row.name, s.Decisions, s.Accept, s.Correct, s.Reject, s.NeedMoreEvidence, s.Defer, dur(s.MedianDuration), dur(s.P90Duration),
+		p("  %-10s %3d decisions: accept %d, correct %d (+%d prose edits), reject %d, need-evidence %d, defer %d; median %s, p90 %s%s",
+			row.name, s.Decisions, s.Accept, s.Correct, s.ProseEdits, s.Reject, s.NeedMoreEvidence, s.Defer, dur(s.MedianDuration), dur(s.P90Duration),
 			map[bool]string{true: fmt.Sprintf(", %d batches", s.Batches), false: ""}[row.name == "batch"])
 	}
 	p("")

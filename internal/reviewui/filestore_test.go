@@ -95,3 +95,26 @@ func TestAgainstTheFileStoreQueue(t *testing.T) {
 		t.Fatalf("%d %s", st, body)
 	}
 }
+
+// A prose-only correction through the real queue (contract-5).
+func TestProseOnlyCorrectionAgainstTheFileStoreQueue(t *testing.T) {
+	demo := NewDemoQueue()
+	store := knowledge.NewFileStore(t.TempDir())
+	seedStore(t, store, demo)
+	q := knowledge.NewQueue(store, func() time.Time { return now })
+	srv := httptest.NewServer(NewServer(q, Options{Now: func() time.Time { return now }, Logf: t.Logf}))
+	defer srv.Close()
+	r := &rig{t: t, q: demo, srv: srv, c: newRig(t).c}
+	id := r.id("rotationPolicy")
+	it, _ := demo.ItemRecord(id)
+	c := it.Proposed.Consequence
+	f := decisionForm("correct", "reason", "better words", "c_cons_kind", string(c.Kind), "c_cons_severity", string(c.Severity),
+		"c_cons_statement", "Keys rotate on every renewal; update pinned clients first.", "c_cons_remediation", c.Remediation)
+	if st, body, _ := r.post("/items/"+id+"/decision", f); st != 303 {
+		t.Fatalf("%d %s", st, body)
+	}
+	snap, _ := store.Load(context.Background(), knowledge.Query{})
+	if len(snap.Decisions) != 1 || len(snap.Decisions[0].Labels) != 2 || snap.Decisions[0].Labels[1] != domain.LabelImprovedStatement {
+		t.Fatalf("%+v", snap.Decisions)
+	}
+}

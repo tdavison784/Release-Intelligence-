@@ -94,6 +94,15 @@ calls on a cache-refreshing first run. Flagged for the pipeline owner.
   before/after panels in eval/CHANGELOG.md "2026-10-02 (d)": plain applicability 0.495 → 0.476, render
   0.495 → 0.514, render not-affected violations 3 → 1.
 
+## groundtruth-5 (2026-10-02, branch p3ll/groundtruth-5 from p3-learning-loop @ 62afad6)
+- LOOP-DIAGNOSIS stage f, under the verbatim-quote policy: only karpenter E7 qualifies (its own v0.37.8
+  values.yaml quote names `logConfig`), and a matcher was added (applicability 0.476 → 0.486, no new false
+  action). Left unchanged, with reasons, in eval/CHANGELOG.md "2026-10-02 (e)": cilium-1.15 E6 /
+  cilium-1.16 E3 (the quote names metallb-bgp, not `bgp.*`; the cited doc names the keys elsewhere, which is
+  a PO decision), karpenter-ci E7 (the quote names the env var FEATURE_GATES.DRIFT, not
+  `settings.featureGates.drift`; the link is review vs an ACTION finding), strimzi edge-retail E2 (the quote
+  says "MirrorMaker 1", not KafkaMirrorMaker).
+
 ## Open for the commander
 - Decide on docs/phase3/learning-loop/UNDECIDED-SCORING.md (do not pre-register from this lane), and report applicabilityAccuracy split into
   affected-hit and not-affected-clean (the headline number is denominator-sensitive).

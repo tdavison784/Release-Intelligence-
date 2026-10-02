@@ -52,3 +52,7 @@
 - `DeriveRenderability`, `AutoApproveGeneral` (opt-in), policy routing signals on audit items (domain: six new `RoutingSignal`s, schema regenerated), `RouteResult.Policy/Signals`, superseding of moot items.
 - Real pass on knowledge/: validate incremental (1,529 existing, 0 new); route with `-auto-approve-general`: 9 facts (all weakest level consensus), 4 audit items, 19 items superseded; 1,156 pending review items remain.
 - Audit rule kept stricter than the commander's wording: an auto-approved fact with an action-eligible consequence is audited at 100% even if not consensus-action.
+
+## knowledge-6
+- Prose-only (improved-statement) corrections: `IsProseOnlyCorrection`, `FactFromDecision`/`candidateState` apply the corrected consequence prose under the same fact id (mint or update; proxy never overrides human prose), FileStore allows consequence statement/remediation as a mutable fact field, metrics count `ProseEdits` separately (additive fields, CONTRACT-CHANGE).
+- `Provenance.Provider` set in the proxy decide path (`-proxy-provider`, default anthropic) and in test fixtures; the knowledge lane has no other provenance writers.

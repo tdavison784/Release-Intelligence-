@@ -153,7 +153,9 @@ func TestEvaluateConditionLeaves(t *testing.T) {
 		{"image-in-use out-of-range", domain.Condition{Op: domain.OpImageInUse, Name: "quay.io/jetstack/cert-manager-controller", State: domain.StateOutOfRange, Range: ">=1.18.0"}, True, ""},
 		{"cli-flag equals", domain.Condition{Op: domain.OpCLIFlag, Name: "--enable-certificate-owner-ref", State: domain.StateEquals, Values: []string{`"true"`}}, True, ""},
 		{"cli-flag value in next arg", domain.Condition{Op: domain.OpCLIFlag, Name: "--v", State: domain.StateEquals, Values: []string{`"2"`}}, True, ""},
-		{"cli-flag of another container", domain.Condition{Op: domain.OpCLIFlag, Name: "--enable-certificate-owner-ref", Component: "webhook", State: domain.StateSet}, False, ""},
+		// a named component whose workload is not among the (undeclared) manifests: not shown ≠ not running
+		{"cli-flag of a component not in the manifests", domain.Condition{Op: domain.OpCLIFlag, Name: "--enable-certificate-owner-ref", Component: "webhook", State: domain.StateSet}, Unknown, domain.UnknownEnvironmentVisibilityGap},
+		{"cli-flag of a present component that does not pass it", domain.Condition{Op: domain.OpCLIFlag, Name: "--nope", Component: "controller", State: domain.StateSet}, False, ""},
 		{"env-var equals", domain.Condition{Op: domain.OpEnvVar, Name: "LEADER_ELECT", State: domain.StateEquals, Values: []string{`"false"`}}, True, ""},
 		{"env-var via valueFrom is not decidable", domain.Condition{Op: domain.OpEnvVar, Name: "API_TOKEN", State: domain.StateEquals, Values: []string{`"x"`}}, Unknown, domain.UnknownEnvironmentVisibilityGap},
 		{"feature-gate enabled", domain.Condition{Op: domain.OpFeatureGate, Name: "ValidateCAA", State: domain.StateEnabled}, True, ""},
@@ -265,6 +267,45 @@ func TestEvaluateConditionAbsenceIsNotKnowledge(t *testing.T) {
 	}
 }
 
+// An environment whose workloads expose no container arguments and no
+// environment variables (and whose values carry no featureGates key) must not
+// turn that silence into a false: absence needs examined evidence, exactly as
+// the dimension-absent case does (TestEvaluateConditionAbsenceIsNotKnowledge).
+func TestEvaluateConditionArglessWorkloads(t *testing.T) {
+	edge := newEdge().edge
+	dir := t.TempDir()
+	writeFile(t, dir, "manifests/deploy.yaml", `apiVersion: apps/v1
+kind: Deployment
+metadata: {name: ctrl, namespace: cm}
+spec:
+  template:
+    spec:
+      containers:
+      - name: controller
+        image: quay.io/jetstack/cert-manager-controller:v1.17.2
+`)
+	e := loadEnv(t, env.Inputs{
+		KubernetesVersion: "1.30.4",
+		ValuesFiles:       []string{writeFile(t, dir, "values.yaml", "tls:\n  secretsBackend: k8s\n")},
+		Manifests:         []string{dir + "/manifests"},
+	})
+	for _, c := range []domain.Condition{
+		{Op: domain.OpCLIFlag, Name: "--feature-gates", State: domain.StateSet},
+		{Op: domain.OpCLIFlag, Name: "--feature-gates", State: domain.StateEquals, Values: []string{`"A=true"`}},
+		{Op: domain.OpEnvVar, Name: "LEADER_ELECT", State: domain.StateSet},
+		{Op: domain.OpFeatureGate, Name: "ValidateCAA", State: domain.StateEnabled},
+		{Op: domain.OpFeatureGate, Name: "ValidateCAA", State: domain.StateDisabled},
+		// the values path is examined, but the fixture sets no such key
+		{Op: domain.OpFeatureGate, Name: "ValidateCAA", Path: "featureGates", State: domain.StateEnabled},
+	} {
+		r := EvaluateCondition(c, e, edge)
+		if r.Value != Unknown || r.Reason != domain.UnknownEnvironmentVisibilityGap {
+			t.Errorf("%s from an argless workload = %s (reason %s), want unknown environment-visibility-gap", describe(c), r.Value, r.Reason)
+		}
+		assertResultShape(t, r, e)
+	}
+}
+
 func TestEvaluateConditionPartialManifests(t *testing.T) {
 	edge := newEdge().edge
 	e := condEnv(t, "", map[string]string{"broken.yaml": "apiVersion: v1\nkind: ConfigMap\nmetadata: {name: x\n"})
@@ -355,5 +396,53 @@ func TestEvaluateConditionNeverPanicsOnInvalid(t *testing.T) {
 	}
 	if !strings.Contains(strings.Join(r.Needed, " "), "not well-formed") {
 		t.Errorf("needed = %v", r.Needed)
+	}
+}
+
+// A fact scoped to a named component must not clear an environment whose
+// manifests simply do not include that workload (LOOP-DIAGNOSIS.md §7.8):
+// unknown, unless the manifests are declared complete.
+func TestEvaluateConditionNamedComponentAbsent(t *testing.T) {
+	edge := newEdge().edge
+	conds := []domain.Condition{
+		{Op: domain.OpCLIFlag, Name: "--enable-certificate-owner-ref", Component: "webhook", State: domain.StateEquals, Values: []string{`"true"`}},
+		{Op: domain.OpCLIFlag, Name: "--enable-certificate-owner-ref", Component: "webhook", State: domain.StateUnset},
+		{Op: domain.OpEnvVar, Name: "LEADER_ELECT", Component: "webhook", State: domain.StateSet},
+		{Op: domain.OpFeatureGate, Name: "ValidateCAA", Component: "webhook", State: domain.StateEnabled},
+		{Op: domain.OpFeatureGate, Name: "ValidateCAA", Component: "webhook", State: domain.StateDisabled},
+	}
+	undeclared := condEnv(t, "", nil)
+	dir := t.TempDir()
+	writeFile(t, dir, "m/deploy.yaml", condDeploy)
+	declared := loadEnv(t, env.Inputs{Manifests: []string{dir + "/m"}, ManifestsComplete: true})
+	if !declared.ManifestsDeclaredComplete || len(declared.ManifestsCompleteEvidence) != 1 {
+		t.Fatalf("declaration not recorded")
+	}
+	for _, c := range conds {
+		r := EvaluateCondition(c, undeclared, edge)
+		if r.Value != Unknown || r.Reason != domain.UnknownEnvironmentVisibilityGap || !strings.Contains(strings.Join(r.Needed, " "), "webhook workload") {
+			t.Errorf("%s, workload not supplied: %s/%s %v, want unknown/environment-visibility-gap naming the workload", describe(c), r.Value, r.Reason, r.Needed)
+		}
+		r = EvaluateCondition(c, declared, edge)
+		if r.Value != False || len(r.Checks) == 0 || len(r.Checks[0].Evidence) == 0 {
+			t.Errorf("%s, manifests declared complete: %s, want false citing the declaration", describe(c), r.Value)
+		}
+	}
+	// the declaration needs healthy manifests: partial ones stay unknown
+	dir = t.TempDir()
+	writeFile(t, dir, "m/deploy.yaml", condDeploy)
+	writeFile(t, dir, "m/broken.yaml", "apiVersion: v1\nkind: ConfigMap\nmetadata: {name: x\n")
+	partial := loadEnv(t, env.Inputs{Manifests: []string{dir + "/m"}, ManifestsComplete: true})
+	if r := EvaluateCondition(conds[0], partial, edge); r.Value != Unknown {
+		t.Errorf("declared complete but partially parsed: %s, want unknown", r.Value)
+	}
+	// a values key stating the gate still decides, workload or not
+	fg := domain.Condition{Op: domain.OpFeatureGate, Name: "B", Path: "featureGates", Component: "webhook", State: domain.StateDisabled}
+	if r := EvaluateCondition(fg, undeclared, edge); r.Value != True {
+		t.Errorf("gate stated in values for an unsupplied workload: %s, want true", r.Value)
+	}
+	// without manifests at all the declaration means nothing
+	if e := loadEnv(t, env.Inputs{KubernetesVersion: "1.30", ManifestsComplete: true}); e.ManifestsDeclaredComplete {
+		t.Error("a completeness declaration without manifests must not be recorded")
 	}
 }

@@ -106,6 +106,11 @@ type Inputs struct {
 	// version, note?}). In repo mode <Repo>/inventory.yaml is picked up when
 	// Inventory is empty.
 	Inventory string
+	// ManifestsComplete declares that Manifests (and repo-discovered
+	// manifests) are every workload the environment runs, so a workload
+	// missing from them is genuinely absent (--manifests-complete). Without
+	// it a missing workload is "not shown", never "not running".
+	ManifestsComplete bool
 	// ProductHints let images be recognised as catalog products (see
 	// HintsFromCatalog); without them only declared and Helm/Argo/Flux
 	// detections populate the inventory.
@@ -231,6 +236,12 @@ type Environment struct {
 	// CONTRACT-CHANGE(applicability): requested by DESIGN.md §1.3 (envinv follow-up).
 	InventoryComplete         bool
 	InventoryCompleteEvidence []domain.EvidenceID
+	// ManifestsDeclaredComplete: the caller declared the supplied manifests
+	// complete (Inputs.ManifestsComplete, with manifests supplied);
+	// ManifestsCompleteEvidence cites the declaration. Distinct from parse
+	// health: healthy manifests are fully parsed, not necessarily everything.
+	ManifestsDeclaredComplete bool
+	ManifestsCompleteEvidence []domain.EvidenceID
 	// Resources are the per-document resource facts (field values with "[]"
 	// sequence paths, embedded text lines, references); see resources.go and
 	// the query API (ResourcesOfKind, FieldValues, TextBlocks, ResolveRef).
@@ -432,6 +443,10 @@ func Load(in Inputs) (*Environment, error) {
 	l.env.Supplied.Manifests = len(in.Manifests) > 0 || len(discMans) > 0
 	l.env.Supplied.CRDs = len(in.CRDs) > 0
 	l.env.Supplied.Images = len(in.Images) > 0 || len(l.env.Images) > 0
+	if in.ManifestsComplete && l.env.Supplied.Manifests {
+		l.env.ManifestsDeclaredComplete = true
+		l.env.ManifestsCompleteEvidence = []domain.EvidenceID{l.evInput("flag:--manifests-complete", "the supplied manifests are every workload this environment runs")}
+	}
 
 	// A dimension is "supplied" when anything reached the loader for it —
 	// explicit inputs or repo-discovered files (vals/mans already merged).

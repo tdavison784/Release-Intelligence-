@@ -253,3 +253,45 @@ not hit", so plain applicabilityAccuracy drops (0.495 → 0.476). That is the ho
 correction. With rendering both are hit (plant-edge E4 review, kyverno E7 informational).
 classificationAccuracy is unchanged (0.438 over 112); recall is unchanged.
 
+## 2026-10-02 (e) — stage-f links (LOOP-DIAGNOSIS.md) — **motivated by pipeline output (loop-diagnosis)**
+
+Disclosure: triggered by LOOP-DIAGNOSIS.md stage f, which lists five links answered by a deterministic
+finding on a computed change the item's matchers do not select. Product-owner policy: add a matcher
+for the computed change **only where the item's own upstream quote names that subject verbatim**. Each
+item's evidence quotes were checked against the computed change's subject. One qualifies; four do not
+and were left unchanged.
+
+| Case · item (link) | Computed change (subject) | Item's own quote names it? | Action |
+|---|---|---|---|
+| karpenter-0.37.8-1.0.0 · E7 | "Helm values section `logConfig.*` removed (7 keys)" (`logConfig.*`) | **Yes**: the v0.37.8 charts/karpenter/values.yaml quote, "# -- Log configuration (Deprecated: Logging configuration will be dropped by v1, use logLevel instead) logConfig: …" | matcher added: `{category: helm-values, text: (?i)\blogConfig\b}`. On the fresh edge it selects only that change. |
+| cilium-1.15-1.17 · E6, cilium-1.16-1.17 · E3 | "Helm values section `bgp.*` removed (3 keys)" (`bgp.enabled`, `bgp.announce.*`) | **No**: the quote is "Support for ``metallb-bgp``, deprecated since 1.14, has been removed." | **left unchanged** (D1 stands). Note for the PO: the same cited document (upgrade.rst v1.17.0, "Helm Options") says verbatim "The metallb-bgp integration Helm options ``bgp.enabled``, ``bgp.announce.podCIDR``, and ``bgp.announce.loadbalancerIP`` have been removed". That sentence is recorded in these items' `semantics`/NOTES since 2026-10-01, but it is not one of their evidence quotes. Adding it as a quote and then a matcher would need a separate decision. |
+| karpenter-0.37.8-1.0.0--ci-buildfarm · E7 (base item karpenter E7) | "Helm value `settings.featureGates.drift` removed" | **No**: the quote names the environment variable "`FEATURE_GATES.DRIFT=true` was dropped and promoted to Stable", not the Helm value `settings.featureGates.drift`. | **left unchanged**. Also note: the transfer link is `review` while the computed finding is ACTION, so a matcher here would count that finding as a false action unless the link were re-judged first. Both are decisions for the PO. |
+| strimzi-0.45-0.46--edge-retail · E2 (base item strimzi E2) | "CRD `kafkamirrormakers.kafka.strimzi.io` (KafkaMirrorMaker) removed" | **No**: the quote is "Support for MirrorMaker 1 has been removed. Please make sure to migrate to MirrorMaker 2 …" and names neither the `KafkaMirrorMaker` kind nor its CRD. | **left unchanged**. (The base case's F3 `why`, authored blind, cites the CRD file removal, but that is not this item's quote.) |
+
+**Gate panel BEFORE** (plain `ri eval`; branch p3ll/groundtruth-5 = p3-learning-loop @ 62afad6; state =
+primary checkout's warm cache):
+
+| Gate | Actual | Pass | Detail |
+|---|---|---|---|
+| criticalRecall | 0.98 | ✓ | 50 critical items, 1 missed |
+| importantRecall | 0.95 | ✓ | 100 important items, 5 missed |
+| applicabilityAccuracy | 0.476 | ✗ | affected 20/75 hit; not-affected 30, 0 violations |
+| falseActionRate | 0.059 | ✗ | 17 ACTION findings, 1 wrong |
+| actionFindingEvidence | 1.00 | ✓ | |
+| unsupported | 0 | ✓ | |
+| pipelineFailures | 0 | ✓ | |
+
+**Gate panel AFTER** (same conditions, only the karpenter E7 matcher):
+
+| Gate | Actual | Pass | Detail |
+|---|---|---|---|
+| criticalRecall | 0.98 | ✓ | 50 critical items, 1 missed |
+| importantRecall | 0.95 | ✓ | 100 important items, 5 missed |
+| applicabilityAccuracy | 0.486 | ✗ | affected 21/75 hit (+ karpenter E7); not-affected 30, 0 violations |
+| falseActionRate | 0.059 | ✗ | 17 ACTION findings, 1 wrong (unchanged) |
+| actionFindingEvidence | 1.00 | ✓ | |
+| unsupported | 0 | ✓ | |
+| pipelineFailures | 0 | ✓ | |
+
+classificationAccuracy (0.438 over 112) and recall are unchanged. There are no stored-result regressions.
+

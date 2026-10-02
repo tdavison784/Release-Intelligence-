@@ -235,6 +235,13 @@ func mutableChange(old, next domain.KnowledgeRecord) error {
 				return fmt.Errorf("%w: fact %s: %s verification may not be weakened (%s → %s)", ErrConflict, a.ID, x, a.AspectLevel(x), b.AspectLevel(x))
 			}
 		}
+		// consequence prose (statement/remediation) may be corrected under the same
+		// id: aspect digests ignore it (a prose-only correction, DESIGN §2.5)
+		if a.Assertion.Consequence != nil && b.Assertion.Consequence != nil {
+			ac, bc := *a.Assertion.Consequence, *b.Assertion.Consequence
+			ac.Statement, ac.Remediation, bc.Statement, bc.Remediation = "", "", "", ""
+			a.Assertion.Consequence, b.Assertion.Consequence = &ac, &bc
+		}
 		a.Status, b.Status = "", ""
 		a.Anchors, b.Anchors = nil, nil
 		a.Candidates, b.Candidates = nil, nil
@@ -252,7 +259,7 @@ func mutableFields(k domain.RecordKind) string {
 	case domain.RecordReviewItem:
 		return "status"
 	case domain.RecordFact:
-		return "status, anchors, candidates and verification upgrades"
+		return "status, anchors, candidates, verification upgrades and consequence prose"
 	}
 	return "nothing: the kind is immutable"
 }
