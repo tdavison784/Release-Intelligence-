@@ -62,7 +62,8 @@ func aiProv(model string) domain.Provenance {
 	at := t0.Add(time.Minute)
 	return domain.Provenance{Method: domain.MethodAI, Producer: "semantic.propose@v1", Confidence: domain.ConfidenceMedium,
 		Model: model, ModelVersion: model + "-1", PromptVersion: "semantic/v1", PromptDigest: "sha256:" + model,
-		InputEvidence: []domain.EvidenceID{upEvidence().ID, crdEvidence().ID}, GeneratedAt: &at}
+		InputEvidence: []domain.EvidenceID{upEvidence().ID, crdEvidence().ID}, GeneratedAt: &at,
+		CallID: "call-" + model} // CONTRACT-CHANGE(contract-3): proposals carry a call id (PO-1)
 }
 
 // proposal builds a full-task proposal by model asserting a (nil aspects in

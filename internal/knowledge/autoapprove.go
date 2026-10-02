@@ -7,8 +7,8 @@ import (
 )
 
 // ConsensusAspects finds, per aspect, a value that at least two proposals from
-// INDEPENDENT model families agree on (domain.IndependentModels: Opus and
-// Sonnet are one family and do not count) and that no validator refuted. The
+// SEPARATE model calls agree on (domain.SeparateCalls; any models, the same
+// model twice included — PO-1) and that no validator refuted. The
 // basis is the agreeing proposal ids. An aspect with two such competing values
 // is not consensus.
 func ConsensusAspects(ps []domain.SemanticProposal, vs []domain.ValidationResult) map[domain.Aspect]AutoApprovedAspect {
@@ -26,7 +26,7 @@ func ConsensusAspects(ps []domain.SemanticProposal, vs []domain.ValidationResult
 		}
 		var winners []string
 		for d, g := range groups {
-			if hasIndependentPair(g) {
+			if hasSeparatePair(g) {
 				winners = append(winners, d)
 			}
 		}
@@ -44,10 +44,12 @@ func ConsensusAspects(ps []domain.SemanticProposal, vs []domain.ValidationResult
 	return out
 }
 
-func hasIndependentPair(ps []domain.SemanticProposal) bool {
+// CONTRACT-CHANGE(contract-3): PO-1 replaced IndependentModels (distinct
+// model families) with SeparateCalls (distinct stateless calls).
+func hasSeparatePair(ps []domain.SemanticProposal) bool {
 	for i := range ps {
 		for j := i + 1; j < len(ps); j++ {
-			if domain.IndependentModels(ps[i], ps[j]) {
+			if domain.SeparateCalls(ps[i], ps[j]) {
 				return true
 			}
 		}
@@ -57,10 +59,10 @@ func hasIndependentPair(ps []domain.SemanticProposal) bool {
 
 // AutoApproveRenderVerifiable is the auto-approval policy of RENDER-MISSION
 // Goal 10: for a candidate whose class is render-verifiable, aspects no
-// validator confirmed may still be verified by consensus of independent model
-// families; routing then mints the fact (marked auto-approved) once all four
+// validator confirmed may still be verified by consensus of separate model
+// calls; routing then mints the fact (marked auto-approved) once all four
 // aspects are deterministic or consensus. Any other candidate, any aspect
-// without independent agreement, and any aspect a validator refuted (e.g.
+// without separate-call agreement, and any aspect a validator refuted (e.g.
 // contradicted by the render) is left to review.
 func AutoApproveRenderVerifiable(c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []domain.ValidationResult, _ []AspectAgreement) *AutoApproval {
 	if c.Renderability != domain.RenderVerifiable {
