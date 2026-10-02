@@ -1134,6 +1134,24 @@ type RenderProvenance struct {
 	ChartDigest  string      `json:"chartDigest"`
 	ValuesDigest string      `json:"valuesDigest,omitempty"` // digest of the values used (none for chart defaults)
 	Flags        []string    `json:"flags,omitempty"`        // e.g. ["--kube-version=1.31"]
+	// CONTRACT-CHANGE(render): rendered-diff evidence (R5) names both
+	// endpoints of the diff and the object/path/class it cites. ChartDigest
+	// is the target artifact's digest (a chart archive, or a Kustomize input
+	// tree).
+	FromArtifact *RenderArtifact `json:"fromArtifact,omitempty"`
+	ToArtifact   *RenderArtifact `json:"toArtifact,omitempty"`
+	Object       string          `json:"object,omitempty"` // <group>/<version>/<kind>/<namespace>/<name>
+	Path         string          `json:"path,omitempty"`   // field path inside the object ("" = the whole object)
+	Change       string          `json:"change,omitempty"` // rendered change class, e.g. "rbac-permission-removed"
+}
+
+// RenderArtifact identifies one rendered endpoint of a rendered diff.
+// CONTRACT-CHANGE(render): see RenderProvenance.
+type RenderArtifact struct {
+	Name         string `json:"name"`
+	Version      string `json:"version"`
+	Digest       string `json:"digest"`
+	OutputDigest string `json:"outputDigest,omitempty"` // digest of the rendered stream
 }
 
 // Validate checks the provenance is complete.

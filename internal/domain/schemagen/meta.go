@@ -56,7 +56,7 @@ var enums = []enumSet{
 	enumOf(
 		domain.EvidenceDocument, domain.EvidenceGitRef, domain.EvidenceRegistry, domain.EvidenceReleaseAsset,
 		domain.EvidenceStructured, domain.EvidenceAdvisory, domain.EvidenceRepoFile,
-		domain.EvidenceLocalFile, domain.EvidenceInput,
+		domain.EvidenceLocalFile, domain.EvidenceInput, domain.EvidenceRenderedDiff,
 	),
 	enumOf(domain.SnapshotHelmValues, domain.SnapshotCRDs, domain.SnapshotImages),
 	enumOf(
@@ -86,11 +86,11 @@ var enums = []enumSet{
 	enumOf(domain.SeverityCritical, domain.SeverityHigh, domain.SeverityMedium, domain.SeverityLow),
 	enumOf(
 		domain.DimensionValues, domain.DimensionManifests, domain.DimensionCRDs,
-		domain.DimensionImages, domain.DimensionCluster, domain.DimensionProducts,
+		domain.DimensionImages, domain.DimensionCluster, domain.DimensionProducts, domain.DimensionRender,
 	),
 	enumOf(
 		domain.MatchValuesKey, domain.MatchAPIVersion, domain.MatchCRD, domain.MatchCRDVersion,
-		domain.MatchManifestField, domain.MatchImage, domain.MatchKubernetes,
+		domain.MatchManifestField, domain.MatchImage, domain.MatchKubernetes, domain.MatchRenderedChange,
 	),
 	// --- semantic knowledge (internal/domain/semantic.go) ---
 	enumOf(domain.SubjectFamilies...),

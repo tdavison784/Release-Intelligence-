@@ -53,6 +53,10 @@ type ChartPackage struct {
 	CRDs []PackageFile
 	// Templates are the templates/** members, sorted by path (possibly empty).
 	Templates []PackageFile
+	// Archive is the packaged chart (.tgz) exactly as retrieved (Digest is
+	// its sha256), for consumers that need the whole package — e.g.
+	// `helm template` in internal/render (subcharts, helpers, schema).
+	Archive []byte
 }
 
 // Member returns the member addressed by a content kind, for callers that

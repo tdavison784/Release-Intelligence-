@@ -101,10 +101,14 @@ const (
 	// from the environment), consulted by product-version conditions of
 	// verified knowledge.
 	DimensionProducts EnvironmentDimension = "products"
+	// DimensionRender: the environment's From/To renders with the customer's
+	// configuration (--render), consulted by rendered-change conditions.
+	// CONTRACT-CHANGE(render).
+	DimensionRender EnvironmentDimension = "render"
 )
 
 // AllEnvironmentDimensions lists every dimension in display order.
-var AllEnvironmentDimensions = []EnvironmentDimension{DimensionValues, DimensionManifests, DimensionCRDs, DimensionImages, DimensionCluster, DimensionProducts}
+var AllEnvironmentDimensions = []EnvironmentDimension{DimensionValues, DimensionManifests, DimensionCRDs, DimensionImages, DimensionCluster, DimensionProducts, DimensionRender}
 
 // ImpactCheck is one entry of a NOT AFFECTED (or partially-evaluated UNKNOWN)
 // evaluation record: which environment dimension was consulted, how many
@@ -136,6 +140,9 @@ const (
 	MatchManifestField ImpactMatchKind = "manifest-field" // a field path set in a manifest
 	MatchImage         ImpactMatchKind = "image"          // a container image reference in use
 	MatchKubernetes    ImpactMatchKind = "kubernetes"     // the cluster Kubernetes version
+	// MatchRenderedChange: a difference between the environment's From and
+	// To renders (customer configuration). CONTRACT-CHANGE(render).
+	MatchRenderedChange ImpactMatchKind = "rendered-change"
 )
 
 // ImpactMatch is one environment fact that made a finding fire: what matched

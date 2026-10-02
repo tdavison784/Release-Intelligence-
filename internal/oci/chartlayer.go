@@ -77,6 +77,7 @@ func (a *Adapter) ReadChartPackage(ctx context.Context, loc catalog.Locator, ver
 		ChartDir:       arc.ChartDir,
 		ChartYAML:      arc.ChartYAML,
 		Values:         arc.Values,
+		Archive:        doc.Body,
 	}
 	for _, f := range arc.CRDs {
 		pkg.CRDs = append(pkg.CRDs, sources.PackageFile{Path: f.Path, Content: f.Content})

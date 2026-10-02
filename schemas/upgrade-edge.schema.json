@@ -389,7 +389,8 @@
         "advisory",
         "repo-file",
         "local-file",
-        "input"
+        "input",
+        "rendered-diff"
       ]
     },
     "Fact": {
@@ -520,6 +521,17 @@
       },
       "additionalProperties": false
     },
+    "RenderArtifact": {
+      "type": "object",
+      "required": ["name", "version", "digest"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "digest": {"type": "string"},
+        "outputDigest": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "RenderProvenance": {
       "type": "object",
       "required": ["scope", "tool", "toolVersion", "chartDigest"],
@@ -529,7 +541,12 @@
         "toolVersion": {"type": "string"},
         "chartDigest": {"type": "string"},
         "valuesDigest": {"type": "string"},
-        "flags": {"type": "array", "items": {"type": "string"}}
+        "flags": {"type": "array", "items": {"type": "string"}},
+        "fromArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "toArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "object": {"type": "string"},
+        "path": {"type": "string"},
+        "change": {"type": "string"}
       },
       "additionalProperties": false
     },
