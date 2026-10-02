@@ -169,7 +169,7 @@ func (h *Helm) Render(ctx context.Context, req Request) *Result {
 	if f != nil {
 		return &Result{Status: StatusFailed, Failure: f, Provenance: prov}
 	}
-	if h.DetectNondeterminism {
+	if h.DetectNondeterminism && !req.NoProbe {
 		out2, _, err := h.Runner.Run(ctx, dir, h.bin(), args...)
 		if err == nil && string(out2) != string(out) {
 			if objs2, err := ParseObjects(out2); err == nil {

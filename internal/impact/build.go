@@ -103,6 +103,8 @@ type builder struct {
 	factEvOrder     []domain.EvidenceID
 	extraLocal      map[domain.EvidenceID]domain.Evidence
 	extraLocalOrder []domain.EvidenceID
+
+	unset UnsetValuesEvaluator // CONTRACT-CHANGE(render): PO-3, nil without --render
 }
 
 func build(in Input) (*domain.ImpactReport, error) {
@@ -118,6 +120,7 @@ func build(in Input) (*domain.ImpactReport, error) {
 		seen: map[string]bool{}, edgeEv: map[domain.EvidenceID]bool{},
 		upCited: map[domain.EvidenceID]bool{}, locCited: map[domain.EvidenceID]bool{},
 		factEv: map[domain.EvidenceID]domain.Evidence{}, extraLocal: map[domain.EvidenceID]domain.Evidence{},
+		unset: in.Unset,
 	}
 	for _, e := range in.Edge.Evidence {
 		b.edgeEv[e.ID] = true
@@ -403,14 +406,25 @@ func (b *builder) valuesFamily() {
 			}
 		}
 		if len(matches) == 0 {
+			// CONTRACT-CHANGE(render): PO-3 — an unset key whose default
+			// changed (or which is new) reaches the customer; with renders the
+			// evaluator decides whether it changes their deployment.
+			var renderChecks []domain.ImpactCheck
+			renderDetail := ""
+			if b.unset != nil && (kind == "default-changed" || kind == "added") {
+				var handled bool
+				if handled, renderChecks, renderDetail = b.unsetValues(b.unset, c, kind); handled {
+					continue
+				}
+			}
 			title := fmt.Sprintf("Your values do not touch %s", codeList(c.Subjects, 3))
 			if len(c.Subjects) == 1 {
 				title = fmt.Sprintf("Your values do not set %s", code(c.Subjects[0]))
 			}
 			detail := fmt.Sprintf("%s of %s changes these keys; your supplied values files set %d keys in total and none of them is the changed key or under it, so nothing about this change takes effect on you.",
 				"The target release", toTag, len(b.env.ValuesKeys))
-			b.verdict(RuleValuesUnset, domain.ImpactNotAffected, c.ID, title, detail, c, c.Evidence,
-				[]domain.ImpactCheck{b.valuesCheck(c.Subjects)})
+			b.verdict(RuleValuesUnset, domain.ImpactNotAffected, c.ID, title, detail+renderDetail, c, c.Evidence,
+				append([]domain.ImpactCheck{b.valuesCheck(c.Subjects)}, renderChecks...))
 			continue
 		}
 		switch kind {

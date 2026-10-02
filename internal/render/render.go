@@ -119,6 +119,9 @@ type Request struct {
 
 	// Variant is set on bounded counterfactual renders (R8).
 	Variant *Variant `json:"variant,omitempty"`
+	// NoProbe skips the nondeterminism probe (counterfactual renders reuse
+	// the probe of the render they are compared with).
+	NoProbe bool `json:"-"`
 }
 
 // SetValue is one --set override.

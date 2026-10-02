@@ -120,6 +120,10 @@ type Input struct {
 	// Render evaluates rendered-change conditions (nil: render unavailable,
 	// such leaves are unknown).
 	Render RenderedChangeEvaluator
+	// Unset decides values default-changed / added changes whose keys the
+	// customer leaves unset by rendering (PO-3; nil: today's values-unset
+	// verdict). CONTRACT-CHANGE(render).
+	Unset UnsetValuesEvaluator
 }
 
 // Build assembles the ImpactReport. The result must pass
