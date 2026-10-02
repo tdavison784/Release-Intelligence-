@@ -6,7 +6,8 @@ The UI shows the evidence first, records the decision with full attribution and 
 lets a proxy pose as a human.
 
 ```
-ri review serve -demo                 # fixture items, in-memory (nothing persisted)
+ri review serve -demo                 # fixture items, in-memory (nothing persisted); every page carries a DEMO DATA banner
+ri review serve -demo -limit 3        # cap the inbox rows, to see the "first N of M" notice
 ri review serve -addr 127.0.0.1:8484 -reviewer dana -demo
 ri review serve -knowledge knowledge/ # the learning loop's file-backed queue (knowledge.NewQueue over NewFileStore)
 ```
@@ -136,3 +137,9 @@ the bulk confirmation → record → flash, the bulk-accept guard, inline reject
 shortcuts, the live class-follows-kind readout, theme toggle. `shots_firefox.py` captures the item sections. Screenshots (light and dark,
 inbox, expanded card, bulk bar, confirmation, guard, item page, proposals matrix, rendered delta, correct form, narrow window) are in
 `docs/phase3/learning-loop/review-ui/screenshots/`. `MOZ_NO_REMOTE=1` keeps the test Firefox from attaching to a running one.
+
+## Demo mode is unmistakable
+
+The fixtures pair invented excerpts with real-looking GitHub URLs, so with `-demo` (`Options.Demo`) every page — inbox, item, bulk confirmation, error, in
+both themes, and below the sticky header — carries a red **DEMO DATA — fixtures, not real upstream evidence** banner, and the upstream statement, each
+evidence record and each excerpt is tagged **fixture**. Without `-demo` (the knowledge store) none of it renders. `TestDemoModeBannerAndFixtureTags`.

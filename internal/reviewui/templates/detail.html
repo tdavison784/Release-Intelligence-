@@ -5,7 +5,7 @@
 
   <section class="panel">
     <h3>Upstream statement</h3>
-    <blockquote class="statement">{{if .Candidate.Text}}{{.Candidate.Text}}{{else}}{{.Candidate.Title}}{{end}}</blockquote>
+    {{if demo}}<span class="badge fixture" title="invented fixture text">fixture</span>{{end}}<blockquote class="statement">{{if .Candidate.Text}}{{.Candidate.Text}}{{else}}{{.Candidate.Title}}{{end}}</blockquote>
     <p class="muted small">{{.Candidate.Product}} {{.Candidate.Release}} · {{.Candidate.Category}} · {{len .Candidate.Members}} restating member{{if ne (len .Candidate.Members) 1}}s{{end}} · grouping {{.Candidate.Grouping}}</p>
   </section>
 
@@ -15,11 +15,11 @@
     {{range .Evidence}}
       <li>
         <div class="ev-head">
-          <span class="badge soft">{{.E.Kind}}</span>
+          <span class="badge soft">{{.E.Kind}}</span>{{if demo}} <span class="badge fixture" title="invented fixture text; the URL is not a real citation">fixture</span>{{end}}
           {{if .Link}}<a href="{{.Link}}" target="_blank" rel="noopener noreferrer">{{.E.URI}}</a>{{else}}<span class="uri">{{.E.URI}}</span>{{end}}
           {{if .E.Locator}}<code>{{.E.Locator}}</code>{{end}}
         </div>
-        {{if .E.Excerpt}}<blockquote class="excerpt">{{.E.Excerpt}}</blockquote>{{end}}
+        {{if .E.Excerpt}}{{if demo}}<span class="badge fixture">fixture excerpt</span>{{end}}<blockquote class="excerpt">{{.E.Excerpt}}</blockquote>{{end}}
         <div class="muted small">
           {{if .E.ContentDigest}}digest {{short .E.ContentDigest}} · {{end}}retrieved {{ts .E.RetrievedAt}}
           {{if .CitedBy}} · cited by {{join ", " .CitedBy}}{{end}}

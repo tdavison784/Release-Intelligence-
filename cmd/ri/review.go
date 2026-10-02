@@ -30,6 +30,7 @@ func (c *cli) reviewServe(args []string) error {
 	addr := fs.String("addr", "127.0.0.1:8484", "listen address")
 	demo := fs.Bool("demo", false, "serve built-in fixture items (an in-memory queue; nothing is persisted)")
 	dir := fs.String("knowledge", "", "knowledge store directory (the learning-loop store)")
+	limit := fs.Int("limit", 0, "cap the inbox rows (default 200; try -limit 3 with -demo to see the truncation notice)")
 	reviewer := fs.String("reviewer", "", "pre-fill the reviewer name")
 	pos, err := parse(fs, args)
 	if err != nil {
@@ -52,7 +53,7 @@ func (c *cli) reviewServe(args []string) error {
 	} else {
 		q = reviewui.NewDemoQueue()
 	}
-	h := reviewui.NewServer(q, reviewui.Options{DefaultReviewer: *reviewer})
+	h := reviewui.NewServer(q, reviewui.Options{DefaultReviewer: *reviewer, Demo: *demo, InboxLimit: *limit})
 	ln, err := net.Listen("tcp", *addr)
 	if err != nil {
 		return err
