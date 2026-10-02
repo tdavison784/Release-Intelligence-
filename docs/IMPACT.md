@@ -29,6 +29,26 @@ cluster access, no network beyond what `ri upgrade` already needs, no LLM.
 Enrichment (`ri upgrade -enrich`) is a separate optional layer and is never
 part of it.
 
+## Why an UNKNOWN is unknown (`unknownReason`)
+
+Every UNKNOWN finding states a reason (MISSION G18; required by
+`ImpactReport.Validate()` and the schema), so it can be routed:
+
+| Reason | Assigned when | Routes to |
+|---|---|---|
+| `release-knowledge-gap` | a note-derived change (no machine-comparable subject), a computed diff rule without a join rule (`crd:fields-added`, `crd:added`, …), a subject-less computed change; an untrusted (consensus/proxy) fact whose exposure is false — it may not clear | candidate generation / review |
+| `environment-visibility-gap` | the deciding dimension was not supplied or is partial, a compared value is withheld, a reference does not resolve in incomplete manifests | the user (`--values`, `--manifests`, …) |
+| `cross-product-context-gap` | the verdict depends on another product's presence or version and the inventory cannot decide it (not supplied, product not listed in a non-complete inventory, chart version only, conflicting entries) | the user (`--inventory`) |
+| `runtime-behavior-gap` | only runtime state decides (objects converted between served versions, an explicit `undecidable` leaf) | stays UNKNOWN, documented |
+| `evidence-gap` | the upstream constraint or change is not machine-readable | upstream research |
+| `semantic-ambiguity` | the CRD identity cannot be parsed, a reference matches several resources | review |
+
+The text output groups the collapsed UNKNOWN view by family and names the
+reason (`· 40 × note-derived changes … (release-knowledge-gap)`).
+`impact:knowledge-undecided` carries the reason of the deciding unknown leaf
+(precedence: cross-product → environment-visibility → runtime-behavior →
+evidence → semantic-ambiguity).
+
 ## Verified knowledge in the join (`--knowledge`)
 
 `ri impact … --knowledge knowledge/` evaluates the verified, release-level
@@ -41,6 +61,28 @@ deterministic|human|consensus|proxy` (default `human`) keeps facts at or above
 the level; facts whose verification their own records do not prove are refused
 with a warning, never evaluated. Without `--knowledge` the report is
 byte-identical to the knowledge-free join.
+
+How a fact's applicability condition is evaluated — three-valued, each leaf
+bound to the environment model (`field`/`text-line`/`ref` to the resource
+facts, `values-key`, `gvk-in-use`, `image-in-use`, `cli-flag`/`env-var`/
+`feature-gate` to workload container args and env, `product-version` to the
+inventory, `cluster-version`, `edge-from-version`, `rendered-change` through
+the render lane's evaluator, unknown without renders) — is specified in
+DESIGN.md §1.3 and implemented in `internal/impact/condition.go`. Rules it
+keeps: a leaf is false only against a supplied, healthy dimension; a withheld
+value decides nothing (a credential-named ConfigMap key's text lines are
+treated as withheld even when line-level redaction let them through);
+`not(false)` is true only when the operand examined at least one record.
+Matches use the kinds `product`, `text-line`, `reference`, `from-version` and
+`absence` (an examined record proving something is not stated) besides the
+join's own. A product missing from the inventory is "not installed" only when
+the inventory file declares it:
+
+```yaml
+complete: true        # every product running here is listed
+products:
+  - {product: ingress-nginx, version: v1.12.1}
+```
 
 `ri eval --knowledge knowledge/` runs the dataset once per verification level
 (`none`, `deterministic`, `human`, `consensus`, `proxy`) and reports each
@@ -418,7 +460,7 @@ CRD's `names.kind`).
 | `crd:enum-changed` | a resource of the GVK uses an enum value the target removes | `impact:crd-enum-value-removed` · action-required · high (rejected) |
 | `crd:field-required` | a resource of the GVK omits the field the target makes required | `impact:crd-field-now-required` · action-required · high (rejected) |
 | `crd:field-type-changed` | a resource sets the field: action when its value no longer fits the new type, review when it fits | `impact:crd-field-type-changed` · action-required · high / review-required · medium |
-| `crd:storage-changed` | the CRD whose storage version moves is installed, or manifests use its kind (stored objects stay at the old version until migrated); CRD not installed and kind unused → clear | `impact:crd-storage-migration` · review-required · medium / `impact:crd-attribute-clear` · not-affected |
+| `crd:storage-changed` | the CRD whose storage version moves is installed, or manifests use its kind (stored objects stay at the old version until migrated); installed CRDs supplied (healthy) without it and the kind unused → clear; installed CRDs not supplied → unknown (`environment-visibility-gap`: stored objects are only visible through them) | `impact:crd-storage-migration` · review-required · medium / `impact:crd-unused` · not-affected |
 | attribute rules, no resource of the GVK touched by the change (manifests healthy) | — | `impact:crd-attribute-clear` · not-affected (evaluation record) |
 | `crd:fields-added` | a new optional field decides nothing today | `impact:not-joined` · unknown (`release-knowledge-gap`) |
 | unparseable upstream identity | — | `impact:not-joined` · unknown |
@@ -431,7 +473,13 @@ installed CRD of the same name completing kind/group) and are evaluated per
 resource of that GVK against the resource facts, never by bare paths. A kind
 or version the change does not pin makes the finding medium confidence, so
 action is demoted to review (another CRD of the group could serve the kind);
-negative verdicts need healthy manifests (absence is not knowledge).
+negative verdicts need healthy manifests (absence is not knowledge). Nothing
+matched is **unknown** instead of clear when a compared value is withheld
+(`environment-visibility-gap`), when the change does not state its values
+machine-readably (`evidence-gap`), when manifests were only partially parsed
+(`environment-visibility-gap`), or when resources of the same kind exist at
+another API version — the API server converts them to the changed version, so
+the attribute may still reach them (`runtime-behavior-gap`).
 
 ### 3. Kubernetes compatibility (`--kubernetes`)
 
