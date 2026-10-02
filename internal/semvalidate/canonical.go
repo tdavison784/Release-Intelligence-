@@ -78,9 +78,12 @@ func (c canonicalValidator) Validate(ctx context.Context, in knowledge.Validatio
 		}
 	}
 	if k := a.Consequence; k != nil && k.Kind == domain.ConsequenceNone && a.Change.Type == domain.ChangeKindAdded {
-		if proven {
+		switch {
+		case proven && newlyRequired(in, a.Subject):
+			vs[domain.AspectConsequence] = inconclusive("canonical:added/none", "the new field is required in the target schema: existing resources that omit it are rejected")
+		case proven:
 			vs[domain.AspectConsequence] = confirmed("canonical:added/none", "a newly added subject has no consequence for existing environments")
-		} else {
+		default:
 			vs[domain.AspectConsequence] = inconclusive("canonical:added/none", "%s", why)
 		}
 	}
@@ -180,4 +183,29 @@ func canonicalFor(s *domain.Subject, c *domain.ChangeSpec) []domain.Applicabilit
 		}
 	}
 	return nil
+}
+
+// newlyRequired reports whether a crd-field subject is required in the target
+// schema of any version: a new REQUIRED field is not consequence-free.
+func newlyRequired(in knowledge.ValidationInput, s *domain.Subject) bool {
+	if s.Family != domain.SubjectCRDField {
+		return false
+	}
+	to := crdsOf(in.To)
+	c := to.find(s.Group, s.Kind)
+	if c == nil {
+		return false
+	}
+	for i := range c.Versions {
+		v := &c.Versions[i]
+		if s.Version != "" && v.Name != s.Version {
+			continue
+		}
+		if p, ok := resolvePath(v, s.Path); ok {
+			if f, ok := fieldOf(v, p); ok && f.Required {
+				return true
+			}
+		}
+	}
+	return false
 }

@@ -215,3 +215,22 @@ func TestResultsAreDeterministic(t *testing.T) {
 		t.Errorf("ids differ: %s %s", r1[0].ID, r2[0].ID)
 	}
 }
+
+// A new REQUIRED field is not consequence-free: existing resources that omit
+// it are rejected.
+func TestCanonicalNoneIsNotConfirmedForANewRequiredField(t *testing.T) {
+	from := newRel("v1.0.0").crds("crds", crd("a.x.io", "x.io", "A", crdVer("v1", true, true, fld("spec.old", "string", ""))))
+	to := newRel("v1.1.0").crds("crds", crd("a.x.io", "x.io", "A", crdVer("v1", true, true,
+		fld("spec.old", "string", ""), fld("spec.optional", "string", ""), withRequired(fld("spec.mustSet", "string", "")))))
+	none := &domain.Consequence{Kind: domain.ConsequenceNone, ExposedClass: domain.ImpactInformational}
+	for path, want := range map[string]domain.ValidationOutcome{
+		"spec.optional": domain.OutcomeConfirmed,
+		"spec.mustSet":  domain.OutcomeInconclusive,
+	} {
+		a := assertion(crdSubject("x.io", "A", path), change(domain.ChangeKindAdded, "", ""))
+		a.Consequence = none
+		if got := canon(t, a, from, to); got[domain.AspectConsequence] != want {
+			t.Errorf("%s: %v, want %s", path, got, want)
+		}
+	}
+}

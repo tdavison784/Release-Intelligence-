@@ -2,6 +2,7 @@ package semvalidate
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
@@ -76,27 +77,139 @@ func (valuesValidator) Validate(_ context.Context, in knowledge.ValidationInput)
 			domain.AspectChange:  inconclusive("helm-values:snapshot", "%s", why),
 		}, evidenceSet{}), nil
 	}
-	// the first chart that knows the key decides; none knows it: the first
-	// chart speaks for "the path is in no values file"
-	pair := pairs[0]
+	// A chart whose keys are rooted differently at the two releases (a wrapper
+	// segment such as `defaults.` at one release only) is compared with the
+	// wrapper removed, but only when that makes the two key sets largely
+	// coincide; otherwise it never confirms or refutes — a key that merely
+	// changed root would read as removed and added.
+	var usable, drifted []valuesPair
+	var rerooted []string
 	for _, p := range pairs {
-		if hasPath(p.from.Entries, subj.Path) || hasPath(p.to.Entries, subj.Path) {
-			pair = p
-			break
+		if seg := rootDrift(p.from.Entries, p.to.Entries); seg != "" {
+			n, ok := reroot(p, seg)
+			if !ok {
+				drifted = append(drifted, p)
+				continue
+			}
+			rerooted = append(rerooted, seg)
+			p = n
+		}
+		usable = append(usable, p)
+	}
+	for _, seg := range rerooted {
+		if strings.HasPrefix(subj.Path, seg+".") {
+			v := inconclusive("helm-values:key-root", "%s names the packaging wrapper %q of a chart whose keys are compared without it", subj.Path, seg)
+			return build(in, ProducerValues, map[domain.Aspect]verdict{domain.AspectSubject: v, domain.AspectChange: v}, evidenceSet{}), nil
 		}
 	}
-	var ev evidenceSet
-	ev.add(pair.evidence...)
-
-	fHas, tHas := hasPath(pair.from.Entries, subj.Path), hasPath(pair.to.Entries, subj.Path)
-	vs := map[domain.Aspect]verdict{}
-	if fHas || tHas {
-		vs[domain.AspectSubject] = confirmed("helm-values:exists", "%s is a values key in %s", subj.Path, sides(fHas, tHas))
-	} else {
-		vs[domain.AspectSubject] = refuted("helm-values:exists", "%s is in the values of neither release (%d keys at the source, %d at the target)", subj.Path, len(pair.from.Entries), len(pair.to.Entries))
+	var holders []valuesPair
+	for _, p := range usable {
+		if hasPath(p.from.Entries, subj.Path) || hasPath(p.to.Entries, subj.Path) {
+			holders = append(holders, p)
+		}
 	}
+	if len(holders) == 0 && len(drifted) > 0 {
+		why := fmt.Sprintf("the values of chart %s are rooted differently at the two releases (%s…): keys cannot be compared across them", drifted[0].chart, rootDrift(drifted[0].from.Entries, drifted[0].to.Entries)+".")
+		v := inconclusive("helm-values:key-root", "%s", why)
+		return build(in, ProducerValues, map[domain.Aspect]verdict{domain.AspectSubject: v, domain.AspectChange: v}, evidenceSet{}), nil
+	}
+	if len(holders) == 0 { // the key is in no chart's values
+		pair := usable[0]
+		var ev evidenceSet
+		ev.add(pair.evidence...)
+		if optionalKey(usable, subj.Path) {
+			// The defaults file omits optional keys (commented-out examples),
+			// so a key missing from both releases next to its siblings may
+			// still be a real, unset-by-default key.
+			v := inconclusive("helm-values:exists", "%s is in no chart's values, but its parent section is: optional keys that default to unset are often not in the defaults file", subj.Path)
+			return build(in, ProducerValues, map[domain.Aspect]verdict{domain.AspectSubject: v, domain.AspectChange: v}, ev), nil
+		}
+		vs := map[domain.Aspect]verdict{
+			domain.AspectSubject: refuted("helm-values:exists", "%s is in the values of no chart of either release (e.g. %d keys at the source, %d at the target)", subj.Path, len(pair.from.Entries), len(pair.to.Entries)),
+			domain.AspectChange:  valuesChange(pair, subj, chg),
+		}
+		return build(in, ProducerValues, vs, ev), nil
+	}
+	// the change must hold in every chart that has the key unless the
+	// subject names its chart; a chart that could not be compared at all
+	// might hold it too
+	unreadable := len(drifted) > 0 && subj.Name == ""
+	var ev evidenceSet
+	vs := map[domain.Aspect]verdict{}
+	pair := holders[0]
+	ev.add(pair.evidence...)
+	fHas, tHas := hasPath(pair.from.Entries, subj.Path), hasPath(pair.to.Entries, subj.Path)
+	vs[domain.AspectSubject] = confirmed("helm-values:exists", "%s is a values key in %s of chart %s", subj.Path, sides(fHas, tHas), pair.chart)
 	vs[domain.AspectChange] = valuesChange(pair, subj, chg)
+	if unreadable {
+		vs[domain.AspectChange] = inconclusive("helm-values:chart-ambiguous", "chart %s of the product has keys rooted differently at the two releases and cannot be compared, so the change may differ there; name the chart in the subject", drifted[0].chart)
+	}
+	for _, other := range holders[1:] {
+		if unreadable {
+			ev.add(other.evidence...)
+			continue
+		}
+		o := valuesChange(other, subj, chg)
+		if o.outcome != vs[domain.AspectChange].outcome {
+			vs[domain.AspectChange] = inconclusive("helm-values:chart-ambiguous", "the change is %s in chart %s but %s in chart %s; name the chart in the subject", vs[domain.AspectChange].outcome, pair.chart, o.outcome, other.chart)
+			ev = evidenceSet{}
+			ev.add(pair.evidence...)
+			ev.add(other.evidence...)
+			break
+		}
+		ev.add(other.evidence...)
+	}
 	return build(in, ProducerValues, vs, ev), nil
+}
+
+// rootDrift returns the leading key segment that (nearly) all keys of one
+// side share and the other side lacks — a packaging wrapper such as
+// `defaults.` — or "" when the two sides are rooted alike.
+func rootDrift(from, to map[string]string) string {
+	if seg := dominantRoot(from); seg != "" && share(to, seg) < 0.2 {
+		return seg
+	}
+	if seg := dominantRoot(to); seg != "" && share(from, seg) < 0.2 {
+		return seg
+	}
+	return ""
+}
+
+func firstSegment(k string) string {
+	if i := strings.IndexAny(k, ".["); i >= 0 {
+		return k[:i]
+	}
+	return k
+}
+
+func share(e map[string]string, seg string) float64 {
+	if len(e) == 0 {
+		return 0
+	}
+	n := 0
+	for k := range e {
+		if firstSegment(k) == seg {
+			n++
+		}
+	}
+	return float64(n) / float64(len(e))
+}
+
+// dominantRoot is the first segment shared by at least 80% of at least five keys.
+func dominantRoot(e map[string]string) string {
+	if len(e) < 5 {
+		return ""
+	}
+	count := map[string]int{}
+	for k := range e {
+		count[firstSegment(k)]++
+	}
+	for seg, n := range count {
+		if float64(n) >= 0.8*float64(len(e)) {
+			return seg
+		}
+	}
+	return ""
 }
 
 func sides(from, to bool) string {
@@ -138,10 +251,10 @@ func valuesChange(p valuesPair, subj *domain.Subject, chg *domain.ChangeSpec) ve
 		case !fok || !tok:
 			return inconclusive("helm-values:default", "%s is a section, not a single value", path)
 		}
-		if b := canonJSON(ptr(chg.Before)); b != canonJSON(fv) {
+		if !sameValue(ptr(chg.Before), fv) {
 			return refuted("helm-values:default", "the source default of %s is %s, not %s", path, fv, ptr(chg.Before))
 		}
-		if a := canonJSON(ptr(chg.After)); a != canonJSON(tv) {
+		if !sameValue(ptr(chg.After), tv) {
 			return refuted("helm-values:default", "the target default of %s is %s, not %s", path, tv, ptr(chg.After))
 		}
 		return confirmed("helm-values:default", "default of %s is %s at the source and %s at the target", path, fv, tv)
@@ -175,4 +288,62 @@ func addedOrRemoved(inFrom bool) string {
 		return "removed"
 	}
 	return "added"
+}
+
+// reroot removes the wrapper segment from the side that has it and reports
+// whether the two key sets then coincide enough (at least half of the
+// smaller set) for a key-by-key comparison to mean anything.
+func reroot(p valuesPair, seg string) (valuesPair, bool) {
+	strip := func(e map[string]string) map[string]string {
+		if share(e, seg) < 0.8 {
+			return e
+		}
+		out := make(map[string]string, len(e))
+		for k, v := range e {
+			if firstSegment(k) == seg {
+				k = strings.TrimPrefix(strings.TrimPrefix(k, seg), ".")
+				if k == "" {
+					continue
+				}
+			}
+			out[k] = v
+		}
+		return out
+	}
+	from, to := strip(p.from.Entries), strip(p.to.Entries)
+	common := 0
+	for k := range from {
+		if _, ok := to[k]; ok {
+			common++
+		}
+	}
+	small := len(from)
+	if len(to) < small {
+		small = len(to)
+	}
+	if small == 0 || float64(common) < 0.5*float64(small) {
+		return p, false
+	}
+	n := p
+	f, t := *p.from, *p.to
+	f.Entries, t.Entries = from, to
+	n.from, n.to = &f, &t
+	return n, true
+}
+
+// optionalKey reports whether the key's parent section exists in the values of
+// a chart (so the key itself, absent from both releases, may be an optional
+// one the defaults file leaves out).
+func optionalKey(pairs []valuesPair, path string) bool {
+	i := strings.LastIndex(path, ".")
+	if i < 0 {
+		return false
+	}
+	parent := path[:i]
+	for _, p := range pairs {
+		if hasPath(p.from.Entries, parent) || hasPath(p.to.Entries, parent) {
+			return true
+		}
+	}
+	return false
 }

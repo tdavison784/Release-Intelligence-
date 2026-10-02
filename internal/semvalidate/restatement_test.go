@@ -1,6 +1,7 @@
 package semvalidate
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
@@ -95,5 +96,83 @@ func TestRestatementIgnoresNoteDerivedChanges(t *testing.T) {
 	rs, _ := restatementValidator{}.Validate(nil, in)
 	if rs != nil {
 		t.Errorf("without an edge the validator is not applicable")
+	}
+}
+
+// Audit regressions (docs/phase3/learning-loop/VALIDATOR-AUDIT.md).
+
+func TestRestatementDoesNotWidenBelowAKeyIntoItsParent(t *testing.T) {
+	from := newRel("v1.0.0").
+		values("chart", "demo", "a.b", "1", "a.c", "2", "gone.x", "1", "gone.y", "2").
+		values("other", "other", "k", "1")
+	to := newRel("v1.1.0").
+		values("chart", "demo", "a.c", "2", "a.new", "1", "a.new2", "1").
+		values("other", "other", "k", "1")
+	edge := edgeOf(t, from, to)
+	O, I := domain.OutcomeConfirmed, domain.OutcomeInconclusive
+	for _, tc := range []struct {
+		name   string
+		path   string
+		chg    domain.ChangeKind
+		change domain.ValidationOutcome
+	}{
+		// a.b was removed, a itself still exists
+		{"parent of a removed key is not removed", "a", domain.ChangeKindRemoved, I},
+		{"the removed key", "a.b", domain.ChangeKindRemoved, O},
+		{"a section that vanished as a whole", "gone", domain.ChangeKindRemoved, O},
+		// keys added under an existing section do not add the section
+		{"parent of added keys is not added", "a", domain.ChangeKindAdded, I},
+		{"an added key", "a.new", domain.ChangeKindAdded, O},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			in := input(from, to, assertion(helmSubject(tc.path), change(tc.chg, "", "")))
+			in.Edge = edge
+			got := run(t, restatementValidator{}, in)
+			if got[domain.AspectChange] != tc.change {
+				t.Errorf("%s %s: %v, want %s", tc.chg, tc.path, got, tc.change)
+			}
+		})
+	}
+}
+
+func TestRestatementDefaultAsStringEncodedList(t *testing.T) {
+	from := newRel("v1.0.0").values("chart", "demo", "tolerations", `[{"key":"a"}]`)
+	to := newRel("v1.1.0").values("chart", "demo", "tolerations", `[{"key":"b"}]`)
+	enc := func(s string) string { b, _ := json.Marshal(s); return string(b) }
+	in := input(from, to, assertion(helmSubject("tolerations"), change(domain.ChangeKindDefaultChanged, enc(`[{"key":"a"}]`), enc(`[{"key":"b"}]`))))
+	in.Edge = edgeOf(t, from, to)
+	if got := run(t, restatementValidator{}, in); got[domain.AspectChange] != domain.OutcomeConfirmed {
+		t.Errorf("string-encoded object default: %v", got)
+	}
+}
+
+// a computed key diff of a chart whose keys changed root is not a restatement
+func TestRestatementIgnoresReRootedCharts(t *testing.T) {
+	wrapped := []string{"defaults.global.platform", `""`, "defaults.a", "1", "defaults.b", "2", "defaults.c", "3", "defaults.d", "4"}
+	plain := []string{"global.platform", `""`, "a", "1", "b", "2", "c", "3", "d", "4"}
+	from := newRel("v1.23.4").values("chart-base", "base", wrapped...)
+	to := newRel("v1.24.0").values("chart-base", "base", plain...)
+	in := input(from, to, assertion(helmSubject("global.platform"), change(domain.ChangeKindAdded, "", "")))
+	in.Edge = edgeOf(t, from, to)
+	if got := run(t, restatementValidator{}, in); got[domain.AspectChange] != domain.OutcomeInconclusive || got[domain.AspectSubject] != domain.OutcomeConfirmed {
+		t.Errorf("re-rooted chart (the key exists, the diff is unreliable): %v", got)
+	}
+}
+
+// the differ renders "no default" as "(none)": that is the asserted null
+func TestRestatementDefaultRemovedIsNull(t *testing.T) {
+	obj := `{"consolidateAfter":"0s"}`
+	from := newRel("v0.37.8").crds("crds", crd("nodepools.karpenter.sh", "karpenter.sh", "NodePool", crdVer("v1", true, true, fld("spec.disruption", "object", obj))))
+	to := newRel("v1.0.0").crds("crds", crd("nodepools.karpenter.sh", "karpenter.sh", "NodePool", crdVer("v1", true, true, fld("spec.disruption", "object", ""))))
+	s := crdSubject("karpenter.sh", "NodePool", "spec.disruption")
+	in := input(from, to, assertion(s, change(domain.ChangeKindDefaultChanged, obj, "null")))
+	in.Edge = edgeOf(t, from, to)
+	if got := run(t, restatementValidator{}, in); got[domain.AspectChange] != domain.OutcomeConfirmed {
+		t.Errorf("default removed: %v", got)
+	}
+	in = input(from, to, assertion(s, change(domain.ChangeKindDefaultChanged, obj, `"5s"`)))
+	in.Edge = edgeOf(t, from, to)
+	if got := run(t, restatementValidator{}, in); got[domain.AspectChange] != domain.OutcomeRefuted {
+		t.Errorf("wrong after: %v", got)
 	}
 }

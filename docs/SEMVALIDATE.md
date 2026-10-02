@@ -62,3 +62,18 @@ time, so a second run writes nothing. A result is a function of (candidate, vali
 assert the same thing share one result. A validator that errors is recorded as an explicit inconclusive result with
 rule `<validator>:unavailable`; a validator with no opinion on a family stores nothing and is counted as not
 applicable. The report tallies confirmed / refuted / inconclusive per validator and aspect.
+
+## Limits found by the audit (docs/phase3/learning-loop/VALIDATOR-AUDIT.md)
+
+- **Re-rooted values.** A chart whose keys are rooted differently at the two releases (Istio 1.23 snapshots everything
+  under `defaults.`) is compared with the wrapper removed when the key sets then largely coincide, and otherwise
+  never confirmed or refuted. The restatement validator cannot restate a change from such a chart's computed diff.
+- **Several charts.** A key present in several charts is confirmed only when every chart agrees, unless the subject
+  names its chart (`Subject.Name`); an unreadable chart makes an unnamed change ambiguous.
+- **Optional keys.** A key absent from both releases next to its parent section is inconclusive, not refuted: defaults
+  files omit optional (commented-out) keys.
+- **CRD snapshots are not complete kind lists** (runtime-generated CRDs): a missing kind is inconclusive; a missing
+  path of a *present* kind is a refutation. Moves between API versions are inconclusive. Unversioned claims must hold
+  for every version; attribute claims use the target storage version. A new required field withholds the canonical
+  `none`. Object/array defaults sent as JSON strings are understood; `null` after a schema default is proven by its
+  removal.

@@ -192,10 +192,13 @@ func gvkVerdicts(from, to crdSide, fc, tc *domain.CRDSummary, subj *domain.Subje
 		sub = confirmed("crd-schema:gvk", "%s is an API version in %s", id, sides(fv != nil, tv != nil))
 	case fc != nil || tc != nil:
 		sub = refuted("crd-schema:gvk", "%s %s has no version %s in either release", subj.Group, subj.Kind, subj.Version)
-	case subj.Group != "" && (from.hasGroup(subj.Group) || to.hasGroup(subj.Group)):
-		sub = refuted("crd-schema:gvk", "group %s ships no kind %s in either release", subj.Group, subj.Kind)
 	default:
-		sub = inconclusive("crd-schema:gvk", "%s is not defined by any CRD of the snapshots", id)
+		// a CRD snapshot is not known to be the group's complete set of kinds
+		// (some products generate CRDs at runtime), so a kind it lacks is a gap
+		sub = inconclusive("crd-schema:gvk", "%s is not defined by any CRD of the snapshots (the snapshot may not hold every kind of the group)", id)
+	}
+	if sub.outcome == domain.OutcomeInconclusive {
+		return sub, inconclusive("crd-schema:"+string(chg.Type), "the API version is not in the snapshots")
 	}
 	servedF, servedT := fv != nil && fv.Served, tv != nil && tv.Served
 	var chv verdict
@@ -284,50 +287,74 @@ func fieldVerdicts(from, to crdSide, fc, tc *domain.CRDSummary, subj *domain.Sub
 		sub = confirmed("crd-schema:field", "%s is in the schema of %s", id, sides(anyF, anyT))
 	case fc != nil || tc != nil:
 		sub = refuted("crd-schema:field", "%s %s has no schema path %s in any version of either release", subj.Group, subj.Kind, subj.Path)
-	case from.hasGroup(subj.Group) || to.hasGroup(subj.Group):
-		sub = refuted("crd-schema:field", "group %s ships no kind %s in either release", subj.Group, subj.Kind)
 	default:
-		sub = inconclusive("crd-schema:field", "%s %s is not defined by any CRD of the snapshots", subj.Group, subj.Kind)
+		// a CRD snapshot is not known to be the group's complete set of kinds
+		// (some products generate CRDs at runtime), so a kind it lacks is a gap
+		sub = inconclusive("crd-schema:field", "%s %s is not defined by any CRD of the snapshots (the snapshot may not hold every kind of the group)", subj.Group, subj.Kind)
 	}
 	if sub.outcome == domain.OutcomeInconclusive {
 		return sub, inconclusive("crd-schema:"+string(chg.Type), "the subject is not in the snapshots")
 	}
-	return sub, fieldChange(views, id, subj, chg, anyF, anyT)
+	return sub, fieldChange(views, id, subj, chg, anyF, anyT, fc, tc)
 }
 
-func fieldChange(views []fieldView, id string, subj *domain.Subject, chg *domain.ChangeSpec, anyF, anyT bool) verdict {
-	// a view in which the field exists on both sides, storage version first
+func fieldChange(views []fieldView, id string, subj *domain.Subject, chg *domain.ChangeSpec, anyF, anyT bool, fc, tc *domain.CRDSummary) verdict {
+	// Attribute claims are about one schema: the subject's version, else the
+	// target's storage version (the one stored objects and `kubectl` default to).
 	var both *fieldView
 	for i := range views {
 		if views[i].fOK && views[i].tOK {
+			if subj.Version == "" && views[i].name != storage(tc) {
+				continue
+			}
 			both = &views[i]
 			break
 		}
 	}
 	switch chg.Type {
 	case domain.ChangeKindRemoved:
+		var dropped, kept []string
 		for _, v := range views {
-			if v.fOK && v.fv != nil && v.tv != nil && !v.tOK {
-				return confirmed("crd-schema:field-removed", "%s is in the %s schema at the source and gone at the target", id, v.name)
+			switch {
+			case v.fOK && v.tv != nil && !v.tOK:
+				dropped = append(dropped, v.name)
+			case v.fOK && v.tv == nil:
+				dropped = append(dropped, v.name)
+			case v.tOK:
+				kept = append(kept, v.name)
 			}
 		}
-		for _, v := range views {
-			if v.fOK && v.tv == nil {
-				return confirmed("crd-schema:field-removed", "%s is in the %s schema at the source; that version is gone at the target", id, v.name)
-			}
-		}
-		if !anyF {
+		switch {
+		case len(dropped) > 0 && len(kept) == 0:
+			return confirmed("crd-schema:field-removed", "%s is in the %s schema at the source and gone at the target", id, strings.Join(dropped, ", "))
+		case len(dropped) > 0:
+			return inconclusive("crd-schema:field-removed", "%s is dropped from %s but still in the target schema of %s; name the version", id, strings.Join(dropped, ", "), strings.Join(kept, ", "))
+		case !anyF:
 			return refuted("crd-schema:field-removed", "%s was not in the source schema", id)
 		}
 		return refuted("crd-schema:field-removed", "%s is still in the target schema", id)
 	case domain.ChangeKindAdded:
+		var born []string
 		for _, v := range views {
 			if v.tOK && !v.fOK {
-				return confirmed("crd-schema:field-added", "%s is new in the %s schema", id, v.name)
+				if v.fv == nil {
+					continue // the whole version is new: that is a new API version, not a new field
+				}
+				born = append(born, v.name)
 			}
 		}
-		if !anyT {
+		switch {
+		case len(born) > 0 && subj.Version == "" && anyF:
+			return inconclusive("crd-schema:field-added", "%s is new in %s but already in the source schema of another version; name the version", id, strings.Join(born, ", "))
+		case len(born) > 0:
+			return confirmed("crd-schema:field-added", "%s is new in the %s schema", id, strings.Join(born, ", "))
+		case !anyT:
 			return refuted("crd-schema:field-added", "%s is not in the target schema", id)
+		}
+		for _, v := range views {
+			if v.tOK && v.fv == nil {
+				return inconclusive("crd-schema:field-added", "%s appears with the new API version %s, not as a new field of an existing version", id, v.name)
+			}
 		}
 		return refuted("crd-schema:field-added", "%s was already in the source schema", id)
 	case domain.ChangeKindRenamed:
@@ -343,9 +370,31 @@ func fieldChange(views []fieldView, id string, subj *domain.Subject, chg *domain
 				return confirmed("crd-schema:field-renamed", "%s disappears from %s and %s appears", subj.Path, v.name, newPath)
 			}
 		}
+		// a move between API versions (the old path stays in the old version,
+		// the new path exists in the new one) is real but not a per-schema rename
+		oldKept, newOnly := "", ""
+		if tc != nil {
+			for i := range tc.Versions {
+				v := &tc.Versions[i]
+				_, hasOld := resolvePath(v, subj.Path)
+				_, hasNew := resolvePath(v, newPath)
+				if hasOld && oldKept == "" {
+					oldKept = v.Name
+				}
+				if hasNew && !hasOld {
+					newOnly = v.Name
+				}
+			}
+		}
+		if oldKept != "" && newOnly != "" && oldKept != newOnly {
+			return inconclusive("crd-schema:field-renamed", "%s stays in %s while %s appears in %s: a move between API versions, not a rename inside one schema", subj.Path, oldKept, newPath, newOnly)
+		}
 		return refuted("crd-schema:field-renamed", "no version drops %s while gaining %s", subj.Path, newPath)
 	case domain.ChangeKindDefaultChanged, domain.ChangeKindNowRequired, domain.ChangeKindValidationTightened, domain.ChangeKindValueChanged:
 		if both == nil {
+			if subj.Version == "" && (anyF && anyT) {
+				return inconclusive("crd-schema:"+string(chg.Type), "%s is not in the target storage version on both sides; name the version", id)
+			}
 			return refuted("crd-schema:"+string(chg.Type), "%s must exist on both sides for a %s change", id, chg.Type)
 		}
 		ff, fok := fieldOf(both.fv, both.fp)
@@ -353,26 +402,15 @@ func fieldChange(views []fieldView, id string, subj *domain.Subject, chg *domain
 		if !fok || !tok {
 			return inconclusive("crd-schema:"+string(chg.Type), "a CRD snapshot carries no per-field schema facts (captured before the capture lane)")
 		}
-		return attributeChange(chg, id, both.name, ff, tf)
+		return attributeChange(chg, id, both.name, ff, tf, fc)
 	}
 	return inconclusive("crd-schema:"+string(chg.Type), "a %s change is not decidable from CRD snapshots", chg.Type)
 }
 
-func attributeChange(chg *domain.ChangeSpec, id, ver string, ff, tf domain.CRDFieldSchema) verdict {
+func attributeChange(chg *domain.ChangeSpec, id, ver string, ff, tf domain.CRDFieldSchema, fc *domain.CRDSummary) verdict {
 	switch chg.Type {
 	case domain.ChangeKindDefaultChanged:
-		before, after := canonJSON(ptr(chg.Before)), canonJSON(ptr(chg.After))
-		switch {
-		case ff.Default != "" && ff.Default != before:
-			return refuted("crd-schema:default", "the %s source default of %s is %s, not %s", ver, id, ff.Default, ptr(chg.Before))
-		case tf.Default != "" && tf.Default != after:
-			return refuted("crd-schema:default", "the %s target default of %s is %s, not %s", ver, id, tf.Default, ptr(chg.After))
-		case ff.Default == "" && tf.Default == "":
-			return inconclusive("crd-schema:default", "the %s schema states no default at either release (it may be applied in code)", ver)
-		case ff.Default == "" || tf.Default == "":
-			return inconclusive("crd-schema:default", "only one release's %s schema states a default of %s (%s → %s)", ver, id, orUnset(ff.Default), orUnset(tf.Default))
-		}
-		return confirmed("crd-schema:default", "the %s schema default of %s is %s at the source and %s at the target", ver, id, ff.Default, tf.Default)
+		return defaultChange(chg, id, ver, ff, tf)
 	case domain.ChangeKindNowRequired:
 		switch {
 		case ff.Required:
@@ -403,15 +441,55 @@ func attributeChange(chg *domain.ChangeSpec, id, ver string, ff, tf domain.CRDFi
 			return inconclusive("crd-schema:enum", "%s has no enum in %s", id, ver)
 		}
 		before, after := canonJSON(ptr(chg.Before)), canonJSON(ptr(chg.After))
-		if !contains(ff.Enum, before) {
-			return refuted("crd-schema:enum", "%s is not an allowed value of %s at the source", ptr(chg.Before), id)
-		}
 		if !contains(gone, before) || !contains(added, after) {
+			if enumElsewhere(fc, before) {
+				return inconclusive("crd-schema:enum", "%s is an allowed value of %s in another API version, but the %s enum does not change: a rename between versions, not inside one schema", ptr(chg.Before), id, ver)
+			}
+			if !contains(ff.Enum, before) {
+				return refuted("crd-schema:enum", "%s is not an allowed value of %s at the source", ptr(chg.Before), id)
+			}
 			return refuted("crd-schema:enum", "the enum of %s does not drop %s and gain %s", id, ptr(chg.Before), ptr(chg.After))
 		}
 		return confirmed("crd-schema:enum", "enum of %s in %s: %s replaced by %s", id, ver, before, after)
 	}
 	return inconclusive("crd-schema:"+string(chg.Type), "not decidable")
+}
+
+// enumElsewhere reports whether any version of the source CRD allows the value.
+func enumElsewhere(c *domain.CRDSummary, val string) bool {
+	if c == nil {
+		return false
+	}
+	for _, v := range c.Versions {
+		for _, f := range v.Fields {
+			if contains(f.Enum, val) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// defaultChange compares the asserted default before→after with the schema
+// defaults. An asserted `null` means "no default": at the target that is
+// proven by a schema that no longer states one (the schema default was
+// removed); at the source it is not provable (a default may live in code).
+func defaultChange(chg *domain.ChangeSpec, id, ver string, ff, tf domain.CRDFieldSchema) verdict {
+	switch {
+	case ff.Default != "" && !isNull(chg.Before) && !sameValue(ptr(chg.Before), ff.Default):
+		return refuted("crd-schema:default", "the %s source default of %s is %s, not %s", ver, id, ff.Default, ptr(chg.Before))
+	case tf.Default != "" && !isNull(chg.After) && !sameValue(ptr(chg.After), tf.Default):
+		return refuted("crd-schema:default", "the %s target default of %s is %s, not %s", ver, id, tf.Default, ptr(chg.After))
+	case ff.Default != "" && isNull(chg.Before):
+		return refuted("crd-schema:default", "the %s source schema of %s states the default %s, not none", ver, id, ff.Default)
+	case tf.Default != "" && isNull(chg.After):
+		return refuted("crd-schema:default", "the %s target schema of %s states the default %s, not none", ver, id, tf.Default)
+	case ff.Default == "" && tf.Default == "":
+		return inconclusive("crd-schema:default", "the %s schema states no default at either release (it may be applied in code)", ver)
+	case ff.Default == "" || (tf.Default == "" && !isNull(chg.After)):
+		return inconclusive("crd-schema:default", "only one release's %s schema states a default of %s (%s → %s)", ver, id, orUnset(ff.Default), orUnset(tf.Default))
+	}
+	return confirmed("crd-schema:default", "the %s schema default of %s is %s at the source and %s at the target", ver, id, orUnset(ff.Default), orUnset(tf.Default))
 }
 
 func orUnset(s string) string {

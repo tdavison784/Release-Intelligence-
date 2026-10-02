@@ -48,6 +48,7 @@ func (restatementValidator) Validate(_ context.Context, in knowledge.ValidationI
 		return nil, nil
 	}
 	subj, chg := in.Assertion.Subject, in.Assertion.Change
+	rerooted := subj.Family == domain.SubjectHelmValue && valuesDriftMentions(in, subj)
 	var mentions []stated
 	for _, c := range in.Edge.Changes {
 		if c.Provenance.Method != domain.MethodComputed {
@@ -73,6 +74,21 @@ func (restatementValidator) Validate(_ context.Context, in knowledge.ValidationI
 		}
 	}
 	first := mentions[0]
+	if rerooted {
+		// The key is named by the diff, so it exists; but a chart whose keys
+		// changed root makes the diff read a move as a removal plus an addition.
+		ev.add(resolve(first.change.Evidence, in.Edge.Evidence)...)
+		rule := "restatement:" + first.change.Provenance.Rule
+		return build(in, ProducerRestatement, map[domain.Aspect]verdict{
+			domain.AspectSubject: confirmed(rule, "computed change %s names %s", first.change.ID, subj.Key()),
+			domain.AspectChange:  inconclusive("restatement:key-root", "the values of a chart holding %s are rooted differently at the two releases, so the computed key diff is not reliable", subj.Path),
+		}, ev), nil
+	}
+	if match != nil && len(contra) > 0 && subj.Name == "" {
+		ev.add(resolve(match.change.Evidence, in.Edge.Evidence)...)
+		v := inconclusive("restatement:ambiguous", "computed diffs disagree about this subject (%s); name the chart in the subject", strings.Join(first3(contra), "; "))
+		return build(in, ProducerRestatement, map[domain.Aspect]verdict{domain.AspectSubject: confirmed("restatement:"+match.change.Provenance.Rule, "computed change %s names %s", match.change.ID, subj.Key()), domain.AspectChange: v}, ev), nil
+	}
 	if match != nil {
 		ev.add(resolve(match.change.Evidence, in.Edge.Evidence)...)
 		rule := "restatement:" + match.change.Provenance.Rule
@@ -117,10 +133,10 @@ func agrees(chg *domain.ChangeSpec, m stated) (agree bool, why string) {
 		return false, ""
 	}
 	if m.kind == domain.ChangeKindDefaultChanged || (m.kind == domain.ChangeKindValueChanged && m.before != nil) {
-		if chg.Before != nil && m.before != nil && canonJSON(*chg.Before) != canonJSON(*m.before) {
+		if chg.Before != nil && m.before != nil && !sameDefault(*chg.Before, *m.before) {
 			return false, "the computed before is " + *m.before + ", not " + *chg.Before
 		}
-		if chg.After != nil && m.after != nil && canonJSON(*chg.After) != canonJSON(*m.after) {
+		if chg.After != nil && m.after != nil && !sameDefault(*chg.After, *m.after) {
 			return false, "the computed after is " + *m.after + ", not " + *chg.After
 		}
 	}
@@ -155,9 +171,19 @@ func restated(subj *domain.Subject, c domain.Change) []stated {
 	return nil
 }
 
-func under(subjects []string, path string) bool {
+// valuesGroupRe finds the section a values change names: "Helm values section
+// `a.*` removed", "New Helm values section `a.*` (5 values)". Changes that
+// only add keys UNDER an existing section ("3 new Helm values under `a.*`")
+// are deliberately not matched by it.
+var (
+	removedGroupRe = regexp.MustCompile("^Helm values?(?: section)? `([^`]+?)(?:\\.\\*)?` removed")
+	addedGroupRe   = regexp.MustCompile("^New Helm values section `([^`]+?)\\.\\*`")
+	chartSuffixRe  = regexp.MustCompile(`\(chart ([^)]+)\)$`)
+)
+
+func exact(subjects []string, path string) bool {
 	for _, s := range subjects {
-		if s == path || strings.HasPrefix(s, path+".") || strings.HasPrefix(s, path+"[") {
+		if s == path {
 			return true
 		}
 	}
@@ -165,14 +191,26 @@ func under(subjects []string, path string) bool {
 }
 
 func restatedValues(subj *domain.Subject, c domain.Change) []stated {
-	if !under(c.Subjects, subj.Path) {
-		return nil
+	if m := chartSuffixRe.FindStringSubmatch(strings.TrimSpace(c.Title)); m != nil && subj.Name != "" && m[1] != subj.Name {
+		return nil // another chart's change
 	}
 	switch c.Provenance.Rule {
 	case upgrade.RuleValuesRemoved, upgrade.RuleValuesSectionRemoved:
-		return []stated{{change: c, kind: domain.ChangeKindRemoved}}
+		// the key itself, or a section that vanished as a whole; a computed
+		// removal of keys BELOW the path leaves the path itself present
+		if exact(c.Subjects, subj.Path) {
+			return []stated{{change: c, kind: domain.ChangeKindRemoved}}
+		}
+		if m := removedGroupRe.FindStringSubmatch(c.Title); m != nil && m[1] == subj.Path {
+			return []stated{{change: c, kind: domain.ChangeKindRemoved}}
+		}
 	case upgrade.RuleValuesAdded:
-		return []stated{{change: c, kind: domain.ChangeKindAdded}}
+		if exact(c.Subjects, subj.Path) {
+			return []stated{{change: c, kind: domain.ChangeKindAdded}}
+		}
+		if m := addedGroupRe.FindStringSubmatch(c.Title); m != nil && m[1] == subj.Path {
+			return []stated{{change: c, kind: domain.ChangeKindAdded}}
+		}
 	case upgrade.RuleValuesDefaultChanged:
 		if len(c.Subjects) != 1 || c.Subjects[0] != subj.Path {
 			return nil
@@ -286,4 +324,32 @@ func restatedImage(subj *domain.Subject, c domain.Change) []stated {
 		}
 	}
 	return nil
+}
+
+// valuesDriftMentions reports whether a chart whose values are rooted
+// differently at the two releases mentions the subject path (as is, or with
+// the wrapper added/removed): the computed key diff of such a chart would
+// read a mere re-rooting as a removal and an addition.
+func valuesDriftMentions(in knowledge.ValidationInput, subj *domain.Subject) bool {
+	for _, p := range valuesPairs(in, subj.Name) {
+		seg := rootDrift(p.from.Entries, p.to.Entries)
+		if seg == "" {
+			continue
+		}
+		for _, e := range []map[string]string{p.from.Entries, p.to.Entries} {
+			if hasPath(e, subj.Path) || hasPath(e, seg+"."+subj.Path) || (strings.HasPrefix(subj.Path, seg+".") && hasPath(e, strings.TrimPrefix(subj.Path, seg+"."))) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// sameDefault compares an asserted default with a computed one; the differ
+// renders "no default" as "(none)", which is the asserted null.
+func sameDefault(asserted, computed string) bool {
+	if strings.TrimSpace(computed) == "(none)" {
+		return canonJSON(asserted) == "null"
+	}
+	return sameValue(asserted, computed)
 }

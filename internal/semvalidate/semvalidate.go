@@ -178,6 +178,35 @@ func canonJSON(s string) string {
 	return string(b)
 }
 
+// sameValue reports whether two JSON-encoded values are equal, tolerating the
+// one encoding slip models make with object and array defaults: the value
+// wrapped once more as a JSON string ("{\"a\":1}" for {"a":1}).
+func sameValue(a, b string) bool {
+	return unwrap(canonJSON(a)) == unwrap(canonJSON(b))
+}
+
+// unwrap decodes a JSON string whose content is itself a JSON object or array.
+func unwrap(c string) string {
+	var s string
+	if err := json.Unmarshal([]byte(c), &s); err != nil {
+		return c
+	}
+	var v any
+	if err := json.Unmarshal([]byte(s), &v); err != nil {
+		return c
+	}
+	switch v.(type) {
+	case map[string]any, []any:
+		b, err := json.Marshal(v)
+		if err == nil {
+			return string(b)
+		}
+	}
+	return c
+}
+
+func isNull(s *string) bool { return s != nil && canonJSON(*s) == "null" }
+
 func ptr(s *string) string {
 	if s == nil {
 		return ""
