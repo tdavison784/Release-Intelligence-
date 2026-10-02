@@ -30,6 +30,7 @@
   --g-A: #7c93ff; --g-B: #fb923c; --g-C: #b794f6; --g-D: #2dd4bf; color-scheme: dark;
 }
 * { box-sizing: border-box; }
+input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
 html { font-size: 15px; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; }
 a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
@@ -43,18 +44,21 @@ h4 { margin: .2rem 0 .8rem; font-size: 1rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
 
-.bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: .6rem 1.25rem; }
+.bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: .55rem max(1.25rem, calc((100vw - 1180px) / 2 + 1.25rem)); }
 .sticky { position: sticky; top: 0; z-index: 20; box-shadow: var(--shadow); }
 .bar-row { display: flex; align-items: center; gap: .75rem; }
 .brand { font-weight: 700; color: var(--text); letter-spacing: -.01em; } .brand span { color: var(--accent); font-weight: 600; }
 .reviewer { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: var(--muted); }
 .reviewer input { width: 12rem; }
-.tiles { display: flex; gap: .6rem; margin: .6rem 0; overflow-x: auto; padding-bottom: 2px; }
-.tile { display: flex; flex-direction: column; min-width: 8.5rem; padding: .45rem .8rem; border: 1px solid var(--border); border-radius: var(--r);
+.tiles { display: flex; gap: .5rem; margin: .5rem 0 .1rem; overflow-x: auto; padding-bottom: 2px; }
+.tile { display: flex; flex-direction: row; align-items: baseline; gap: .5rem; padding: .3rem .75rem; border: 1px solid var(--border); border-radius: var(--r);
   background: var(--surface); color: var(--text); text-decoration: none !important; transition: transform .1s, border-color .1s; }
 .tile:hover { border-color: var(--accent); transform: translateY(-1px); }
-.tile b { font-size: 1.35rem; line-height: 1.1; } .tile span { font-size: .75rem; color: var(--muted); white-space: nowrap; }
+.tile b { font-size: 1.2rem; line-height: 1.1; } .tile span { font-size: .78rem; color: var(--muted); white-space: nowrap; }
 .tile.accent b { color: var(--accent); } .tile.warn b { color: var(--warn); }
+.filterbox { margin: 0 0 .8rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: .5rem .9rem; }
+.filterbox summary { cursor: pointer; font-weight: 600; font-size: .85rem; color: var(--muted); }
+.filterbox .filters { margin-top: .7rem; }
 .filters { display: flex; flex-wrap: wrap; gap: .5rem .75rem; align-items: end; font-size: .78rem; color: var(--muted); }
 .filters label { display: flex; flex-direction: column; gap: .15rem; }
 
@@ -87,7 +91,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .toggle:focus-visible { outline: 2px solid var(--focus); border-radius: 6px; }
 .chev { display: inline-block; transition: transform .18s; color: var(--muted); font-size: 1.2rem; width: 1rem; }
 .card.open .chev { transform: rotate(90deg); }
-.q { display: flex; flex-direction: column; min-width: 0; } .title { font-weight: 650; } .question { color: var(--muted); font-size: .88rem; }
+.q { display: flex; flex-direction: column; min-width: 0; } .title { font-weight: 650; font-size: 1.02rem; } .qtext { color: var(--muted); font-size: .88rem; }
 .meta { grid-column: 2; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
 .open { font-size: .8rem; margin-left: auto; }
 .detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
@@ -105,7 +109,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .badge.rel-contradicted-by-render { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
 .badge.rel-not-visible-in-render { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 
-.hero { margin: .2rem 0 1rem; } .id { font-size: .75rem; }
+.hero { margin: .2rem 0 1rem; } .hero h1.question { font-size: 1.5rem; font-weight: 700; margin: .5rem 0 .3rem; } .id { font-size: .75rem; }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: .9rem 1rem; margin: .7rem 0; }
 .card .panel { box-shadow: none; }
 .detail-body { padding: .3rem 0 .6rem; }
@@ -161,6 +165,11 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
 .loading { padding: 1rem; color: var(--muted); }
 @media (max-width: 760px) { .page { padding: .8rem; } .sbs { grid-template-columns: 1fr; } .aspects { grid-template-columns: 1fr; } .reviewer input { width: 8rem; } .card-head { grid-template-columns: auto 1fr; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+.badge.req-action-required { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.badge.req-review-required { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.legend { text-transform: none; font-weight: 400; } .legend b { color: var(--text); }
+.consensus-action { margin: 0 0 .8rem; }
 </style>
 </head>
 <body>
@@ -233,14 +242,15 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
 
   
   <section class="panel">
-    <h3>Proposals by model <span class="muted small">— never merged; same letter = same answer</span></h3>
+    <h3>Proposals by call <span class="muted small">— never merged; same letter = same answer; consensus = two separate calls agree</span></h3>
+    
     <div class="scroll">
     <table class="matrix">
-      <thead><tr><th>Aspect</th><th>Proposed</th><th><b>claude-opus-5-5</b><br><span class="muted small">anthropic · medium</span></th><th><b>claude-sonnet-5-5</b><br><span class="muted small">anthropic · medium</span></th></tr></thead>
+      <thead><tr><th>Aspect</th><th>Proposed</th><th><b>claude-opus-5-5</b><br><span class="muted small">anthropic · medium</span><br><span class="muted small mono" title="separate stateless call">call-claude-opus-5-5-004</span></th><th><b>claude-sonnet-5-5</b><br><span class="muted small">anthropic · medium</span><br><span class="muted small mono" title="separate stateless call">call-claude-sonnet-5-5-005</span></th></tr></thead>
       <tbody>
       
         <tr class="m-agree">
-          <th scope="row">subject<div class="agree-chip agree-agree">agree · 2 models</div></th>
+          <th scope="row">subject<div class="agree-chip agree-agree">consensus · same-model · 2 calls</div></th>
           <td><pre class="wrap">product-relationship · cert-manager · ingress-nginx</pre></td>
           
             <td class="g g-A as-proposed">
@@ -256,7 +266,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
         </tr>
       
         <tr class="m-agree">
-          <th scope="row">change<div class="agree-chip agree-agree">agree · 2 models</div></th>
+          <th scope="row">change<div class="agree-chip agree-agree">consensus · same-model · 2 calls</div></th>
           <td><pre class="wrap">requirement-changed: → &gt;=1.12.0</pre></td>
           
             <td class="g g-A as-proposed">
@@ -272,7 +282,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
         </tr>
       
         <tr class="m-agree">
-          <th scope="row">applicability<div class="agree-chip agree-agree">agree · 2 models</div></th>
+          <th scope="row">applicability<div class="agree-chip agree-agree">consensus · same-model · 2 calls</div></th>
           <td><pre class="wrap">exposed when all of:
   product-version `ingress-nginx` out-of-range &gt;=1.12.0
   values-key `ingressShim.defaultIssuerKind` set</pre></td>
@@ -342,10 +352,10 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
   </section>
 
   <section class="panel decide" id="decide-ri-bbf01d9230ed">
-    <h3>Decide <span class="muted small">— human decision · started 2026-10-02T03:22:53.64466Z</span></h3>
+    <h3>Decide <span class="muted small">— recorded as a human decision</span></h3>
     
     <form class="actions" method="post" action="/items/ri-bbf01d9230ed/decision" data-item="ri-bbf01d9230ed">
-      <input type="hidden" name="started" value="2026-10-02T03:22:53.64466Z">
+      <input type="hidden" name="started" value="2026-10-02T03:35:47.015722Z">
       <input type="hidden" name="return" value="/">
       <div class="row">
         <label class="reviewer">Reviewer <input type="text" name="reviewer" value="" required placeholder="your name"></label>
@@ -374,7 +384,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
     
     <form class="correct" method="post" action="/items/ri-bbf01d9230ed/decision" id="correct-ri-bbf01d9230ed" hidden>
       <input type="hidden" name="action" value="correct">
-      <input type="hidden" name="started" value="2026-10-02T03:22:53.64466Z">
+      <input type="hidden" name="started" value="2026-10-02T03:35:47.015722Z">
       <input type="hidden" name="return" value="/">
       <h4>Correct the assertion <span class="muted small">— pre-filled with the proposal; the original is kept in the decision</span></h4>
       <div class="row">

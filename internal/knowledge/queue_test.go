@@ -312,6 +312,41 @@ func TestInboxCountsAndFilters(t *testing.T) {
 	}
 }
 
+func TestInboxReportsMatchesBeyondTheLimit(t *testing.T) {
+	s, q, c, _ := seeded(t)
+	ctx := context.Background()
+	// a second pending item, in a later release
+	c2 := c
+	c2.Release = "v1.19.0"
+	a := *c.Members[0].Anchor
+	a.Release = "v1.19.0"
+	c2.Members = []domain.CandidateMember{{ChangeID: "chg-later", Anchor: &a}}
+	c2.ID = domain.CandidateID(c2.Product, c2.Release, c2.Members)
+	mustPut(t, s, c2)
+	p := proposal(c2, "zai", "glm-5.3-flash", rotationAssertion(domain.ConsequenceBehaviorChange))
+	mustPut(t, s, p)
+	it2 := newItem(c2, domain.QuestionConsequence, partOf(rotationAssertion(domain.ConsequenceBehaviorChange), domain.AspectConsequence),
+		domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityNormal}, []domain.SemanticProposal{p}, nil, t0)
+	mustPut(t, s, it2)
+
+	in, err := q.Inbox(ctx, InboxFilter{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if in.Matches != 2 || len(in.Items) != 2 {
+		t.Fatalf("no limit: matches %d, items %d; want 2, 2", in.Matches, len(in.Items))
+	}
+	in, err = q.Inbox(ctx, InboxFilter{Limit: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Items is the truncated first page; Matches still counts every match, so
+	// the UI can say "first N of M" instead of silently dropping the rest.
+	if in.Matches != 2 || len(in.Items) != 1 {
+		t.Fatalf("limit 1: matches %d, items %d; want 2, 1", in.Matches, len(in.Items))
+	}
+}
+
 func TestReviewContextIncludesPreviousRelatedDecisions(t *testing.T) {
 	s, q, c, item := seeded(t)
 	ctx := context.Background()

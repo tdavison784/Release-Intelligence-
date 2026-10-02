@@ -42,14 +42,15 @@
 
   {{if .Cols}}
   <section class="panel">
-    <h3>Proposals by model <span class="muted small">— never merged; same letter = same answer</span></h3>
+    <h3>Proposals by call <span class="muted small">— never merged; same letter = same answer; consensus = two separate calls agree</span></h3>
+    {{if .ConsensusAction}}<div class="flash flash-warn consensus-action" role="note"><b>Consensus requests ACTION REQUIRED</b> · {{.ConsensusScope}} — separate calls agree on an action-eligible consequence and every agreeing call requested action-required. A fact built on this would render as <b>ACTION REQUIRED · model consensus</b> (not “verified”), and every such fact is sampled into human review: this is that review. Consensus never produces NOT AFFECTED.</div>{{end}}
     <div class="scroll">
     <table class="matrix">
-      <thead><tr><th>Aspect</th><th>Proposed</th>{{range .Cols}}<th><b>{{.Model}}</b><br><span class="muted small">{{.Provider}} · {{.Confidence}}</span></th>{{end}}</tr></thead>
+      <thead><tr><th>Aspect</th><th>Proposed</th>{{range .Cols}}<th><b>{{.Model}}</b><br><span class="muted small">{{.Provider}} · {{.Confidence}}</span><br><span class="muted small mono" title="separate stateless call">{{.CallID}}</span>{{if .Requested}}<br><span class="badge req-{{.Requested}}" title="the class this call suggested or requested">{{if eq .Requested "action-required"}}requests {{end}}{{.Requested}}</span>{{end}}</th>{{end}}</tr></thead>
       <tbody>
       {{range .Matrix}}
         <tr class="m-{{.Status}}">
-          <th scope="row">{{.Aspect}}<div class="agree-chip agree-{{.Status}}">{{.StatusText}}</div></th>
+          <th scope="row">{{.Aspect}}<div class="agree-chip agree-{{.Status}}">{{.StatusText}}</div>{{if eq .Status "disagree"}}{{range .Legend}}<div class="legend small muted"><b>{{.Letter}}</b> {{.Text}}</div>{{end}}{{end}}</th>
           <td>{{if .Proposed}}<pre class="wrap">{{.Proposed}}</pre>{{else}}<span class="muted">—</span>{{end}}</td>
           {{range .Cells}}
             <td class="{{if .Group}}g g-{{.Group}}{{end}}{{if .AsProposed}} as-proposed{{end}}">
@@ -115,7 +116,7 @@
   </section>
 
   <section class="panel decide" id="decide-{{.Item.ID}}">
-    <h3>Decide <span class="muted small">— human decision · started {{.Started}}</span></h3>
+    <h3>Decide <span class="muted small">— recorded as a human decision</span></h3>
     {{if not .Editable}}
       <p class="flash flash-warn">This item is {{label .Item.Status}}; no further decision can be added.</p>
     {{else}}
@@ -123,7 +124,7 @@
       <input type="hidden" name="started" value="{{.Started}}">
       <input type="hidden" name="return" value="{{.Return}}">
       <div class="row">
-        <label class="reviewer">Reviewer <input type="text" name="reviewer" value="{{.Reviewer}}" required placeholder="your name"></label>
+        {{if .Inline}}<input type="hidden" name="reviewer" value="{{.Reviewer}}">{{else}}<label class="reviewer">Reviewer <input type="text" name="reviewer" value="{{.Reviewer}}" required placeholder="your name"></label>{{end}}
         <label class="grow">Reason <span class="muted small">(required for reject, need more evidence)</span>
           <textarea name="reason" rows="2" placeholder="Why? Cite the evidence.">{{formVal .Form "reason"}}</textarea></label>
       </div>
@@ -153,7 +154,7 @@
       <input type="hidden" name="return" value="{{$.Return}}">
       <h4>Correct the assertion <span class="muted small">— pre-filled with the proposal; the original is kept in the decision</span></h4>
       <div class="row">
-        <label class="reviewer">Reviewer <input type="text" name="reviewer" value="{{$.Reviewer}}" required></label>
+        {{if $.Inline}}<input type="hidden" name="reviewer" value="{{$.Reviewer}}">{{else}}<label class="reviewer">Reviewer <input type="text" name="reviewer" value="{{$.Reviewer}}" required></label>{{end}}
         <label class="grow">Reason (required) <textarea name="reason" rows="2">{{formVal $.Form "reason"}}</textarea></label>
       </div>
       {{if .HasSubject}}<fieldset><legend>Subject</legend><div class="grid">

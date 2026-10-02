@@ -104,6 +104,16 @@
     if (hint) hint.textContent = "Armed: " + btn.textContent.trim() + " — " + (btn.dataset.needsReason === "1" ? "type the reason, then Ctrl+Enter." : "press Enter to confirm.");
     if (btn.dataset.needsReason === "1") $("textarea", form).focus(); else btn.focus();
   }
+  // inline forms carry the header's reviewer name; refuse early when it is empty
+  document.addEventListener("submit", function (e) {
+    var f = e.target; if (!f.matches || !f.matches("form.actions, form.correct")) return;
+    var r = $('input[name="reviewer"]', f);
+    if (r && r.type === "hidden" && !r.value.trim()) {
+      var v = rev && rev.value.trim();
+      if (v) { r.value = v; return; }
+      e.preventDefault(); if (rev) { rev.focus(); rev.placeholder = "enter your name to decide"; }
+    }
+  });
   document.addEventListener("click", function (e) {
     var b = e.target.closest("button[data-key]"); if (!b) return;
     var form = b.closest("form.actions"); if (!form) return;
@@ -145,7 +155,7 @@
     var c = focused() || (cards.length === 1 ? cards[0] : null), body = null, form = null;
     switch (e.key) {
       case "?": toggleHelp(); return;
-      case "/": var f = $("#filters input, #filters select"); if (f) { e.preventDefault(); f.focus(); } return;
+      case "/": var fb = $("#filterbox"); if (fb) fb.open = true; var f = $("#filters input, #filters select"); if (f) { e.preventDefault(); f.focus(); } return;
       case "j": case "k":
         if (!cards.length) return;
         var i = cards.indexOf(focused()); i = e.key === "j" ? Math.min(cards.length - 1, i + 1) : Math.max(0, i < 0 ? 0 : i - 1);

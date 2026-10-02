@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/tdavison784/release-intelligence/internal/app"
+	"github.com/tdavison784/release-intelligence/internal/knowledge"
 	"github.com/tdavison784/release-intelligence/internal/reviewui"
 )
 
@@ -39,15 +41,23 @@ func (c *cli) reviewServe(args []string) error {
 	if *demo == (*dir != "") {
 		return fmt.Errorf("%w: choose exactly one of -demo or -knowledge DIR", app.ErrUsage)
 	}
+	var q knowledge.Queue
+	source := "demo fixtures; nothing is persisted"
 	if *dir != "" {
-		return errors.New("-knowledge: the file-backed queue is not part of this build yet (knowledge lane); use -demo")
+		if st, err := os.Stat(*dir); err == nil && !st.IsDir() { // a missing directory is an empty store
+			return fmt.Errorf("-knowledge %s: not a directory", *dir)
+		}
+		q = knowledge.NewQueue(knowledge.NewFileStore(*dir), nil)
+		source = "knowledge store " + *dir
+	} else {
+		q = reviewui.NewDemoQueue()
 	}
-	h := reviewui.NewServer(reviewui.NewDemoQueue(), reviewui.Options{DefaultReviewer: *reviewer})
+	h := reviewui.NewServer(q, reviewui.Options{DefaultReviewer: *reviewer})
 	ln, err := net.Listen("tcp", *addr)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(c.out, "review UI on http://%s (demo fixtures; Ctrl-C to stop)\n", ln.Addr())
+	fmt.Fprintf(c.out, "review UI on http://%s (%s; Ctrl-C to stop)\n", ln.Addr(), source)
 	srv := &http.Server{Handler: h, ReadHeaderTimeout: 10 * time.Second}
 	go func() {
 		<-c.ctx.Done()
