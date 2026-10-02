@@ -46,7 +46,9 @@ func Hints(max int, texts ...string) []string {
 	}
 	for _, t := range texts {
 		for _, m := range codeSpanRe.FindAllStringSubmatch(t, -1) {
-			add("code", m[1])
+			if v := strings.TrimSpace(m[1]); v != "" && v[0] != '#' && v[0] != '@' { // PR numbers, handles
+				add("code", v)
+			}
 		}
 		for _, m := range dottedPathRe.FindAllStringSubmatch(t, -1) {
 			if isKeyPath(m[1]) {
@@ -71,6 +73,24 @@ func Hints(max int, texts ...string) []string {
 			}
 		}
 	}
+	// a path that is a strict prefix of another path hint is a truncation
+	// ("a.b.RotationPo" of "a.b.RotationPolicy"), not a subject of its own
+	kept := out[:0]
+	for _, h := range out {
+		trunc := false
+		if v, ok := strings.CutPrefix(h, "path:"); ok {
+			for _, o := range out {
+				if ov, ok := strings.CutPrefix(o, "path:"); ok && len(ov) > len(v) && strings.HasPrefix(ov, v) && ov[len(v)] != '.' && ov[len(v)] != '[' {
+					trunc = true
+					break
+				}
+			}
+		}
+		if !trunc {
+			kept = append(kept, h)
+		}
+	}
+	out = kept
 	sort.SliceStable(out, func(i, j int) bool { return hintRank(out[i]) < hintRank(out[j]) })
 	if max > 0 && len(out) > max {
 		out = out[:max]

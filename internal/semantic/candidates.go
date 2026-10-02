@@ -19,11 +19,11 @@ const CandidateProducer = "semantic.candidates@v1"
 // formed by several rules lists them joined with "+", sorted.
 const (
 	GroupSingle           = "single"
-	GroupSameStatement    = "same-statement"     // members quote the same statement (shared StatementKey)
-	GroupSameTitle        = "same-title"         // identical normalised title
-	GroupTitleJaccard     = "title-jaccard"      // same named subject + ≥ minJaccard title-token overlap
-	GroupSubjectNamed     = "subject-named"      // a computed diff whose subjects a prose member names verbatim
-	minJaccard            = 0.5                  // with an identical, non-empty subject signature
+	GroupSameStatement    = "same-statement" // members quote the same statement (shared StatementKey)
+	GroupSameTitle        = "same-title"     // identical normalised title
+	GroupTitleJaccard     = "title-jaccard"  // same named subject + ≥ minJaccard title-token overlap
+	GroupSubjectNamed     = "subject-named"  // a computed diff whose subjects a prose member names verbatim
+	minJaccard            = 0.5              // with an identical, non-empty subject signature
 	maxHints              = 24
 	maxSubjectsPerCompute = 1 // distinct subject roots a computed member may span
 )
@@ -95,6 +95,7 @@ type unit struct {
 	prose    bool
 	sig      map[string]bool
 	tokens   map[string]bool
+	lead     map[string]bool // tokens of the lead sentence
 	stmtKeys map[string]bool
 	anchor   *domain.ChangeAnchor
 	roots    []string // computed: subject roots
@@ -137,7 +138,7 @@ func BuildCandidates(edge *domain.UpgradeEdge, now time.Time) CandidateReport {
 				rep.Skipped = append(rep.Skipped, Skip{ChangeID: c.ID, Reason: SkipNoEvidence, Detail: "no evidence record resolves in the edge"})
 				continue
 			}
-			u := &unit{idx: i, c: c, prose: true, sig: subjectSignature(c.Title), tokens: tokens(c.Title), anchor: &a, stmtKeys: map[string]bool{}}
+			u := &unit{idx: i, c: c, prose: true, sig: subjectSignature(leadSentence(c.Title)), tokens: tokens(c.Title), lead: tokens(leadSentence(c.Title)), anchor: &a, stmtKeys: map[string]bool{}}
 			for _, k := range a.StatementKeys {
 				u.stmtKeys[k] = true
 			}
@@ -195,7 +196,7 @@ func BuildCandidates(edge *domain.UpgradeEdge, now time.Time) CandidateReport {
 				continue // never across distinct subjects
 			case normalizeTitle(a.c.Title) == normalizeTitle(b.c.Title):
 				rule = GroupSameTitle
-			case len(a.sig) > 0 && jaccard(a.tokens, b.tokens) >= minJaccard:
+			case len(a.sig) > 0 && overlap(a, b) >= minJaccard:
 				rule = GroupTitleJaccard
 			default:
 				continue
@@ -354,6 +355,45 @@ func buildCandidate(edge *domain.UpgradeEdge, us []*unit, rules map[string]bool,
 		Producer:  CandidateProducer,
 		CreatedAt: now.UTC().Truncate(time.Second),
 	}
+}
+
+// leadSentence is the statement a title leads with: release-note titles
+// often continue with the body after "Heading: " or "Sentence. More…", which
+// would dilute the token overlap of two restatements of one change. A short
+// label prefix ("DEPRECATION: …") is skipped: the lead is the first segment
+// with at least three content tokens.
+func leadSentence(title string) string {
+	rest := title
+	for rest != "" {
+		cut, sepLen := len(rest), 0
+		for _, sep := range []string{": ", ". ", " > "} {
+			if i := strings.Index(rest, sep); i >= 0 && i < cut {
+				cut, sepLen = i, len(sep)
+			}
+		}
+		if seg := rest[:cut]; len(tokens(seg)) >= 3 {
+			return seg
+		}
+		if sepLen == 0 {
+			break
+		}
+		rest = rest[cut+sepLen:]
+	}
+	return title
+}
+
+// overlap is the best title-token Jaccard of two members over their full
+// titles and their lead sentences.
+func overlap(a, b *unit) float64 {
+	best := 0.0
+	for _, x := range []map[string]bool{a.tokens, a.lead} {
+		for _, y := range []map[string]bool{b.tokens, b.lead} {
+			if j := jaccard(x, y); j > best {
+				best = j
+			}
+		}
+	}
+	return best
 }
 
 // candidateText makes the candidate self-contained (a proposer sees only

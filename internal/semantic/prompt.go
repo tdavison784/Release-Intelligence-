@@ -296,10 +296,16 @@ func ArtifactContext(to *domain.Release, c domain.SemanticCandidate) knowledge.P
 					if !v.Served {
 						continue
 					}
-					add(&ctx.GVKs, sg, crd.Group+"/"+v.Name+" "+crd.Kind)
+					gvk := crd.Group + "/" + v.Name + " " + crd.Kind
+					add(&ctx.GVKs, sg, gvk)
 					for _, p := range v.SchemaPaths {
 						if relevant(p) {
-							add(&ctx.SchemaPaths, ss, crd.Kind+": "+p)
+							// the identity of a crd-field subject: group, version, kind, path
+							add(&ctx.SchemaPaths, ss, gvk+": "+p)
+							if !sg[gvk] {
+								sg[gvk] = true
+								ctx.GVKs = append(ctx.GVKs, gvk)
+							}
 						}
 					}
 				}

@@ -41,9 +41,11 @@ type AspectAnswer struct {
 	// subject identity (also replacedBy)
 	SubjectIdentity
 	// change
-	Type       string           `json:"type,omitempty"`
-	Before     *json.RawMessage `json:"before,omitempty"`
-	After      *json.RawMessage `json:"after,omitempty"`
+	Type string `json:"type,omitempty"`
+	// Before/After keep the raw literal: an explicit null ("from nil") is a
+	// value, an absent field is not stated.
+	Before     json.RawMessage  `json:"before,omitempty"`
+	After      json.RawMessage  `json:"after,omitempty"`
 	ReplacedBy *SubjectIdentity `json:"replacedBy,omitempty"`
 	// applicability
 	Exposure *ConditionAnswer `json:"exposure,omitempty"`
@@ -387,18 +389,18 @@ func subjectOf(s SubjectIdentity, product domain.ProductID) domain.Subject {
 // encodeValue turns a literal answer value into the domain's encoding:
 // canonical JSON for values, the raw string for a requirement range.
 // Deterministic: "Never" → "\"Never\"", 30 → "30", null → "null".
-func encodeValue(v *json.RawMessage, raw bool) (*string, error) {
-	if v == nil {
+func encodeValue(v json.RawMessage, raw bool) (*string, error) {
+	if len(v) == 0 {
 		return nil, nil
 	}
 	var x any
-	if err := json.Unmarshal(*v, &x); err != nil {
+	if err := json.Unmarshal(v, &x); err != nil {
 		return nil, err
 	}
 	if raw {
 		s, ok := x.(string)
 		if !ok {
-			return nil, fmt.Errorf("a requirement is a version constraint string, got %s", string(*v))
+			return nil, fmt.Errorf("a requirement is a version constraint string, got %s", string(v))
 		}
 		s = strings.TrimSpace(s)
 		return &s, nil

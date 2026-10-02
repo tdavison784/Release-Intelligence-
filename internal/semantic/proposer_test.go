@@ -80,10 +80,10 @@ func TestProposeRefusals(t *testing.T) {
 		answer string
 		want   string
 	}{
-		"hallucinated citation": {fullAnswer(c, func(m map[string]any) { m["citations"] = []any{"ev-000000000000"} }), "did not show"},
+		"hallucinated citation":        {fullAnswer(c, func(m map[string]any) { m["citations"] = []any{"ev-000000000000"} }), "did not show"},
 		"no citation for an assertion": {fullAnswer(c, func(m map[string]any) { m["citations"] = []any{} }), "must cite evidence"},
-		"model emits action-required": {fullAnswer(c, func(m map[string]any) { m["suggestedClass"] = "action-required" }), "schema"},
-		"model emits not-affected":    {fullAnswer(c, func(m map[string]any) { m["suggestedClass"] = "not-affected" }), "schema"},
+		"model emits action-required":  {fullAnswer(c, func(m map[string]any) { m["suggestedClass"] = "action-required" }), "schema"},
+		"model emits not-affected":     {fullAnswer(c, func(m map[string]any) { m["suggestedClass"] = "not-affected" }), "schema"},
 		"model states an exposed class": {fullAnswer(c, func(m map[string]any) {
 			m["consequence"].(map[string]any)["exposedClass"] = "action-required"
 		}), "schema"},
@@ -271,5 +271,18 @@ func TestProposeAllRecordsEveryOutcome(t *testing.T) {
 		if props[i].CandidateID != cands[i].ID {
 			t.Errorf("proposal %d out of order", i)
 		}
+	}
+}
+
+func TestProposeNullIsAValue(t *testing.T) {
+	c := rotationCandidate(t)
+	p, err := propose(t, c, domain.TaskFull, fullAnswer(c, func(m map[string]any) {
+		m["change"] = map[string]any{"determination": "asserted", "type": "default-changed", "before": nil, "after": 1}
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if *p.Assertion.Change.Before != "null" || *p.Assertion.Change.After != "1" {
+		t.Errorf("nil → 1 must encode as null → 1, got %v → %v", p.Assertion.Change.Before, p.Assertion.Change.After)
 	}
 }

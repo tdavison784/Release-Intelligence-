@@ -56,6 +56,7 @@ Commands:
   discover <repository>             inspect an upstream repository and propose a definition
   stats [product ...]               measure onboarding: constructs, effort, discovery, validation
   eval [entries ...]                score the validation dataset (eval/cases) against the pipeline
+  semantic candidates|propose ...   learning loop: restatement clusters of an edge; multi-model semantic proposals
 
 Global flags:
 `
@@ -147,6 +148,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return c.stats(cmdArgs)
 	case "eval":
 		return c.eval(cmdArgs)
+	case "semantic":
+		return c.semanticCmd(cmdArgs)
 	default:
 		fs.Usage()
 		return fmt.Errorf("%w: unknown command %q", app.ErrUsage, cmd)

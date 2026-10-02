@@ -24,7 +24,7 @@ type familyDoc struct {
 var familyDocs = []familyDoc{
 	{domain.SubjectCRDField, "group, kind, path (+version)", "a field of a custom resource's schema",
 		domain.Subject{Family: domain.SubjectCRDField, Group: "example.io", Kind: "Widget", Path: "spec.rotation.policy"},
-		"path is the schema path below the object root (spec./status.), [] marks list elements: spec.rules[].host"},
+		"path is the schema path below the object root (spec./status.), spelled as the schema spells it, [] marks list elements: spec.rules[].host; set version ONLY when the change is specific to one API version"},
 	{domain.SubjectHelmValue, "path (+name = chart, only for a subchart)", "a key of the Helm chart's values.yaml",
 		domain.Subject{Family: domain.SubjectHelmValue, Path: "tls.secretsBackend"}, "path is the dotted values key path"},
 	{domain.SubjectGVK, "version, kind (+group; \"\" = core)", "a served API group/version/kind",
@@ -134,7 +134,11 @@ var opDocs = []opDoc{
 		})},
 	{domain.OpField, "path, state (+values | pattern | separator) — only inside resource/ref", "a field of the scoped resource", fieldUnset},
 	{domain.OpTextLine, "path, pattern, state exists|none — only inside resource/ref", "lines of embedded text (e.g. ConfigMap data[\"policy.csv\"])",
-		cond(domain.OpTextLine, func(c *domain.Condition) { c.Path = `data["policy.csv"]`; c.Pattern = `^p, .*, widgets, update`; c.State = domain.StateExists })},
+		cond(domain.OpTextLine, func(c *domain.Condition) {
+			c.Path = `data["policy.csv"]`
+			c.Pattern = `^p, .*, widgets, update`
+			c.State = domain.StateExists
+		})},
 	{domain.OpRef, "path (the *Ref object) (+kind, group), of: [scoped conditions] — only inside resource/ref", "the reference resolves to a resource satisfying the operands",
 		cond(domain.OpRef, func(c *domain.Condition) {
 			c.Path = "spec.issuerRef"
@@ -154,13 +158,25 @@ var opDocs = []opDoc{
 	{domain.OpFeatureGate, "name, state enabled|disabled|unset (+path = values key carrying the gate list, component)", "a feature gate setting",
 		cond(domain.OpFeatureGate, func(c *domain.Condition) { c.Name = "ExampleGate"; c.State = domain.StateEnabled })},
 	{domain.OpProductVersion, "name (product id), range, state in-range|out-of-range", "another product's version in the environment",
-		cond(domain.OpProductVersion, func(c *domain.Condition) { c.Name = "ingress-nginx"; c.Range = ">=1.12.0"; c.State = domain.StateInRange })},
+		cond(domain.OpProductVersion, func(c *domain.Condition) {
+			c.Name = "ingress-nginx"
+			c.Range = ">=1.12.0"
+			c.State = domain.StateInRange
+		})},
 	{domain.OpClusterVersion, "name (platform), range, state in-range|out-of-range", "the platform version",
-		cond(domain.OpClusterVersion, func(c *domain.Condition) { c.Name = "kubernetes"; c.Range = ">=1.29.0"; c.State = domain.StateOutOfRange })},
+		cond(domain.OpClusterVersion, func(c *domain.Condition) {
+			c.Name = "kubernetes"
+			c.Range = ">=1.29.0"
+			c.State = domain.StateOutOfRange
+		})},
 	{domain.OpEdgeFromVersion, "range, state in-range|out-of-range", "the version the environment runs today (upgrade from-version)",
 		cond(domain.OpEdgeFromVersion, func(c *domain.Condition) { c.Range = "<1.15.6"; c.State = domain.StateInRange })},
 	{domain.OpRenderedChange, "kind, path (+group, name, values), state changed|unchanged|added|removed", "a field of the chart's rendered objects differs between the from and to release with the environment's values",
-		cond(domain.OpRenderedChange, func(c *domain.Condition) { c.Kind = "Deployment"; c.Path = "spec.template.spec.containers[].args"; c.State = domain.StateChanged })},
+		cond(domain.OpRenderedChange, func(c *domain.Condition) {
+			c.Kind = "Deployment"
+			c.Path = "spec.template.spec.containers[].args"
+			c.State = domain.StateChanged
+		})},
 	{domain.OpUndecidable, "reason (unknown reason), needed", "exposure depends on something no static input carries (runtime state, live traffic)",
 		cond(domain.OpUndecidable, func(c *domain.Condition) {
 			c.Reason = domain.UnknownRuntimeBehaviorGap
@@ -172,7 +188,7 @@ var opDocs = []opDoc{
 func renderVocabulary(b *strings.Builder, aspects []domain.Aspect) {
 	has := func(a domain.Aspect) bool { return containsAspect(aspects, a) }
 	if has(domain.AspectSubject) || has(domain.AspectChange) {
-		b.WriteString("\nSUBJECT FAMILIES (set exactly the identity fields listed; leave every other field out; the product is implied):\n")
+		b.WriteString("\nSUBJECT FAMILIES (set exactly the identity fields listed; optional fields in (+…) only when the text makes them part of\nthe change's identity — two answers naming the same thing must spell it identically; the product is implied):\n")
 		for _, d := range familyDocs {
 			fmt.Fprintf(b, "- %s: %s. Fields: %s. Example: %s", d.Family, d.Meaning, d.Fields, subjectJSON(d.Example))
 			if d.Example2 != "" {

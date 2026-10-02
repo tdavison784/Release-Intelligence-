@@ -172,3 +172,19 @@ func contains(xs []string, s string) bool {
 	}
 	return false
 }
+
+func TestLeadSentenceRestatements(t *testing.T) {
+	b := newEdge()
+	// a label prefix, and a title that runs on into the body naming the
+	// field again in another spelling: both restate the guide's item
+	b.note("chg-a", "We have changed the default value of `Widget.Spec.HistoryLimit` from `nil` to `1`. > Read the notes.", guideURI, "L1")
+	b.note("chg-b", "The default value of `Widget.Spec.HistoryLimit` is now `1`: The default for the `historyLimit` field is now…", notesURI, "L2")
+	b.note("chg-c", "DEPRECATION: The default value of `Widget.Spec.HistoryLimit` changed to `1`", notesURI, "L3")
+	cands := Candidates(b.edge(), t0)
+	if len(cands) != 1 || len(cands[0].Members) != 3 {
+		t.Fatalf("want one 3-member cluster, got %d candidates", len(cands))
+	}
+	if got := leadSentence("DEPRECATION: The `X` feature gate is deprecated"); got != "The `X` feature gate is deprecated" {
+		t.Errorf("lead = %q", got)
+	}
+}
