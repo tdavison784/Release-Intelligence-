@@ -320,6 +320,9 @@ func (p *Pair) stateEvidence(r *Result, version, key string, occ []Occurrence) d
 	ev := domain.NewEvidence(domain.EvidenceRenderedDiff, Producer, uri, "state "+key, excerpt, pv.OutputDigest, pv.RenderedAt)
 	rp := pv.Domain()
 	rp.Change = "state"
+	if len(occ) > 0 {
+		rp.Object = occ[0].Object.String()
+	}
 	ev.Render = &rp
 	ev.ID = domain.EvidenceID("ev-" + domain.ShortHash(string(ev.Kind), ev.URI, ev.Locator, ev.Excerpt, ev.ContentDigest, string(rp.Scope), rp.ValuesDigest, rp.ChartDigest))
 	return ev
