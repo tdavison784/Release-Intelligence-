@@ -37,6 +37,7 @@ type advFixture struct {
 			Rule      string   `yaml:"rule"`
 			Title     string   `yaml:"title"`
 			Detail    string   `yaml:"detail"`
+			Release   string   `yaml:"release"`
 			Subjects  []string `yaml:"subjects"`
 			Category  string   `yaml:"category"`
 			ActionReq *bool    `yaml:"actionRequired"`
@@ -49,8 +50,16 @@ type advFixture struct {
 	} `yaml:"edge"`
 	Environment struct {
 		Kubernetes string   `yaml:"kubernetes"`
+		Inventory  string   `yaml:"inventory"`
 		Files      []string `yaml:"files"`
 	} `yaml:"environment"`
+	// Knowledge declares verified facts the join must evaluate (the knowledge
+	// traps): each fact is hand-built from the contract's own shapes, never
+	// from eval expectations.
+	Knowledge struct {
+		MinVerification string    `yaml:"minVerification"`
+		Facts           []advFact `yaml:"facts"`
+	} `yaml:"knowledge"`
 	Expect struct {
 		Present []FindingMatcher `yaml:"present"`
 		Absent  []FindingMatcher `yaml:"absent"`
@@ -58,6 +67,77 @@ type advFixture struct {
 		// fixture's changes (nil = not asserted).
 		DuplicateGroups *int `yaml:"duplicateGroups"`
 	} `yaml:"expect"`
+}
+
+// advCondition mirrors domain.Condition in YAML (the applicability condition
+// language of DESIGN.md §1.3).
+type advCondition struct {
+	Op        string         `yaml:"op"`
+	Of        []advCondition `yaml:"of"`
+	Group     string         `yaml:"group"`
+	Version   string         `yaml:"version"`
+	Kind      string         `yaml:"kind"`
+	Name      string         `yaml:"name"`
+	Path      string         `yaml:"path"`
+	Component string         `yaml:"component"`
+	State     string         `yaml:"state"`
+	Values    []string       `yaml:"values"`
+	Pattern   string         `yaml:"pattern"`
+	Separator string         `yaml:"separator"`
+	Range     string         `yaml:"range"`
+}
+
+func (a advCondition) toCondition() domain.Condition {
+	c := domain.Condition{
+		Op:        domain.ConditionOp(a.Op),
+		Group:     a.Group,
+		Version:   a.Version,
+		Kind:      a.Kind,
+		Name:      a.Name,
+		Path:      a.Path,
+		Component: a.Component,
+		State:     domain.FieldState(a.State),
+		Values:    a.Values,
+		Pattern:   a.Pattern,
+		Separator: a.Separator,
+		Range:     a.Range,
+	}
+	for _, sub := range a.Of {
+		c.Of = append(c.Of, sub.toCondition())
+	}
+	return c
+}
+
+// advFact is a verified fact declared for a knowledge trap. The harness
+// derives id, product, release, exposed class and provenance so the fixture
+// states only what the attack needs.
+type advFact struct {
+	Level           string `yaml:"level"` // deterministic|human|consensus|proxy
+	ConsensusAction bool   `yaml:"consensusAction"`
+	Subject         struct {
+		Family    string `yaml:"family"`
+		Group     string `yaml:"group"`
+		Version   string `yaml:"version"`
+		Kind      string `yaml:"kind"`
+		Name      string `yaml:"name"`
+		Path      string `yaml:"path"`
+		Component string `yaml:"component"`
+	} `yaml:"subject"`
+	Change struct {
+		Type   string  `yaml:"type"`
+		Before *string `yaml:"before"`
+		After  *string `yaml:"after"`
+	} `yaml:"change"`
+	Exposure    advCondition  `yaml:"exposure"`
+	Overlap     *advCondition `yaml:"overlap"`
+	Consequence struct {
+		Kind        string `yaml:"kind"`
+		Statement   string `yaml:"statement"`
+		Remediation string `yaml:"remediation"`
+	} `yaml:"consequence"`
+	Statement string `yaml:"statement"`
+	// Anchors are titles of the fixture's own changes (statement anchors).
+	Anchors []string `yaml:"anchors"`
 }
 
 // TestAdversarialPack runs every fixture under eval/adversarial and asserts
@@ -126,12 +206,19 @@ func runAdversarialFixture(t *testing.T, dir string) {
 			inputs.Manifests = append(inputs.Manifests, p)
 		}
 	}
+	if f.Environment.Inventory != "" {
+		inputs.Inventory = filepath.Join(dir, f.Environment.Inventory)
+	}
 	e, err := env.Load(inputs)
 	if err != nil {
 		t.Fatalf("environment: %v", err)
 	}
 
-	rep, err := impact.Build(impact.Input{Edge: edge, Env: e, Now: adversarialNow})
+	in := impact.Input{Edge: edge, Env: e, Now: adversarialNow}
+	if len(f.Knowledge.Facts) > 0 {
+		in.Facts, in.MinVerification = buildAdvFacts(t, f, edge)
+	}
+	rep, err := impact.Build(in)
 	if err != nil {
 		t.Fatalf("join: %v", err)
 	}
@@ -165,6 +252,100 @@ func runAdversarialFixture(t *testing.T, dir string) {
 			t.Errorf("duplicate groups = %d, want %d", groups, *f.Expect.DuplicateGroups)
 		}
 	}
+}
+
+// advEdgeLookup resolves a fixture edge's evidence ids (for anchors).
+func advEdgeLookup(edge *domain.UpgradeEdge) func(domain.EvidenceID) (domain.Evidence, bool) {
+	ix := make(map[domain.EvidenceID]domain.Evidence, len(edge.Evidence))
+	for _, e := range edge.Evidence {
+		ix[e.ID] = e
+	}
+	return func(id domain.EvidenceID) (domain.Evidence, bool) {
+		e, ok := ix[id]
+		return e, ok
+	}
+}
+
+// buildAdvFacts compiles the fixture's declared facts into valid
+// domain.VerifiedFacts for the join: every aspect at the declared level,
+// statement anchors resolved against the fixture's own changes, and the
+// exposed class following the consequence kind. The facts are hand-built from
+// the contract (DESIGN.md §1, §2.6), never from eval expectations.
+func buildAdvFacts(t *testing.T, f advFixture, edge *domain.UpgradeEdge) ([]domain.VerifiedFact, domain.VerificationLevel) {
+	t.Helper()
+	level := domain.VerificationLevel("human") // Build's default gate level
+	if f.Knowledge.MinVerification != "" {
+		level = domain.VerificationLevel(f.Knowledge.MinVerification)
+		if !level.Valid() {
+			t.Fatalf("fixture %s: minVerification %q is not a level", f.ID, f.Knowledge.MinVerification)
+		}
+	}
+	byTitle := map[string]domain.Change{}
+	for _, c := range edge.Changes {
+		byTitle[c.Title] = c
+	}
+	var facts []domain.VerifiedFact
+	for i, af := range f.Knowledge.Facts {
+		lvl := domain.VerificationLevel(af.Level)
+		if !lvl.Valid() {
+			t.Fatalf("fixture %s: fact %d level %q is not a level", f.ID, i, af.Level)
+		}
+		release := edge.To.Semver
+		subject := &domain.Subject{Family: domain.SubjectFamily(af.Subject.Family), Product: edge.Product.ID,
+			Group: af.Subject.Group, Version: af.Subject.Version, Kind: af.Subject.Kind,
+			Name: af.Subject.Name, Path: af.Subject.Path, Component: af.Subject.Component}
+		cons := &domain.Consequence{Kind: domain.ConsequenceKind(af.Consequence.Kind),
+			ExposedClass: domain.ConsequenceKind(af.Consequence.Kind).ExposedClass(),
+			Statement:    af.Consequence.Statement, Remediation: af.Consequence.Remediation}
+		a := domain.SemanticAssertion{
+			Subject: subject,
+			Change:  &domain.ChangeSpec{Type: domain.ChangeKind(af.Change.Type), Before: af.Change.Before, After: af.Change.After},
+			Applicability: &domain.Applicability{Exposure: af.Exposure.toCondition(), Overlap: func() *domain.Condition {
+				if af.Overlap == nil {
+					return nil
+				}
+				c := af.Overlap.toCondition()
+				return &c
+			}()},
+			Consequence: cons,
+			Statement:   af.Statement,
+		}
+		fact := domain.VerifiedFact{
+			Product: edge.Product.ID, Release: release, Candidates: []string{"sc-000000000001"},
+			Assertion: a, Status: domain.FactActive, CreatedAt: adversarialNow,
+			Evidence: []domain.Evidence{domain.NewEvidence(domain.EvidenceDocument, "docs",
+				"https://adversarial.example/"+f.ID+"/fact", "L1", af.Statement,
+				domain.Digest([]byte(f.ID+af.Statement)), adversarialNow)},
+		}
+		for _, title := range af.Anchors {
+			c, ok := byTitle[title]
+			if !ok {
+				t.Fatalf("fixture %s: fact %d anchors unknown change %q", f.ID, i, title)
+			}
+			fact.Anchors = append(fact.Anchors, domain.NewChangeAnchor(c, advEdgeLookup(edge)))
+		}
+		for _, x := range domain.Aspects {
+			v := domain.AspectVerification{Aspect: x, Level: lvl}
+			switch lvl {
+			case domain.VerifiedDeterministic:
+				v.Basis = []string{"val-" + string(x)}
+			case domain.VerifiedConsensus:
+				v.Basis = []string{"sp-a" + string(x), "sp-b" + string(x)}
+				v.Consensus = domain.ConsensusCrossModel
+			default: // human, proxy: an accept/correct decision
+				v.Basis = []string{"rd-" + string(x)}
+			}
+			fact.Verification = append(fact.Verification, v)
+		}
+		fact.AutoApproved = lvl == domain.VerifiedDeterministic || lvl == domain.VerifiedConsensus
+		fact.ConsensusAction = af.ConsensusAction
+		fact.ID = domain.VerifiedFactID(fact.Product, fact.Release, fact.Assertion)
+		if err := fact.Validate(); err != nil {
+			t.Fatalf("fixture %s: fact %d is invalid: %v", f.ID, i, err)
+		}
+		facts = append(facts, fact)
+	}
+	return facts, level
 }
 
 // matcherMatchesFixture matches a finding against the set fields of a
@@ -207,17 +388,28 @@ func buildAdversarialEdge(t *testing.T, f advFixture) *domain.UpgradeEdge {
 		e := domain.NewEvidence(domain.EvidenceStructured, "notes", uri, "L1", c.Title,
 			domain.Digest([]byte(uri)), adversarialNow)
 		edge.Evidence = append(edge.Evidence, e)
+		method, producer := domain.MethodComputed, "upgrade@v1"
+		if c.Rule == "note" {
+			// the pack's documented vocabulary: `note` declares a note-derived
+			// change (docs/eval/adversarial/README.md), which statement
+			// anchors attach to (DESIGN.md §2.6)
+			method, producer = domain.MethodDeclared, "notes@v1"
+		}
 		ch := domain.Change{
 			ID:       "chg-" + domain.ShortHash(c.Rule, c.Title),
 			Title:    c.Title,
 			Detail:   c.Detail,
+			Release:  c.Release,
 			Subjects: c.Subjects,
 			Category: domain.Category(c.Category),
 			Provenance: domain.Provenance{
-				Method: domain.MethodComputed, Producer: "upgrade@v1", Rule: c.Rule,
+				Method: method, Producer: producer, Rule: c.Rule,
 				Confidence: domain.ConfidenceHigh,
 			},
 			Evidence: []domain.EvidenceID{e.ID},
+		}
+		if ch.Release == "" {
+			ch.Release = edge.To.Semver // facts anchor changes at their release
 		}
 		if c.ActionReq != nil {
 			ch.ActionRequired = *c.ActionReq

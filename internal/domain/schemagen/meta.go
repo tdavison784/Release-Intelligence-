@@ -86,11 +86,12 @@ var enums = []enumSet{
 	enumOf(domain.SeverityCritical, domain.SeverityHigh, domain.SeverityMedium, domain.SeverityLow),
 	enumOf(
 		domain.DimensionValues, domain.DimensionManifests, domain.DimensionCRDs,
-		domain.DimensionImages, domain.DimensionCluster, domain.DimensionProducts,
+		domain.DimensionImages, domain.DimensionCluster, domain.DimensionProducts, domain.DimensionFromVersion,
 	),
 	enumOf(
 		domain.MatchValuesKey, domain.MatchAPIVersion, domain.MatchCRD, domain.MatchCRDVersion,
 		domain.MatchManifestField, domain.MatchImage, domain.MatchKubernetes,
+		domain.MatchProduct, domain.MatchTextLine, domain.MatchReference, domain.MatchFromVersion, domain.MatchAbsence,
 	),
 	// --- semantic knowledge (internal/domain/semantic.go) ---
 	enumOf(domain.SubjectFamilies...),
@@ -252,9 +253,11 @@ func impactClassRules() []any {
 		o("if", classIs(domain.ImpactUnknown),
 			"then", o("required", []string{"neededToDetermine"},
 				"properties", o("neededToDetermine", o("minItems", 1), "matches", o("maxItems", 0)))),
-		// unknownReason is unknown-only
+		// unknownReason is unknown-only, and every unknown states one
 		o("if", o("required", []string{"unknownReason"}),
 			"then", classIs(domain.ImpactUnknown)),
+		o("if", classIs(domain.ImpactUnknown),
+			"then", o("required", []string{"unknownReason"})),
 		// the trust ladder (docs/phase3/learning-loop/DESIGN.md §4): a finding
 		// evaluated from verified knowledge reaches not-affected only from a
 		// trusted (deterministic/human) fact, and action-required from a

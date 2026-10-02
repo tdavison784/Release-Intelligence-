@@ -27,6 +27,15 @@ type Pipeline interface {
 	Impact(ctx context.Context, product, from, to string, inputs env.Inputs) (*domain.ImpactReport, error)
 }
 
+// KnowledgePipeline is implemented by pipelines that can evaluate verified
+// knowledge (`ri eval -knowledge`): the impact report joined with facts at or
+// above a verification level (DESIGN.md §7). Without facts the report equals
+// Impact's.
+type KnowledgePipeline interface {
+	Pipeline
+	ImpactWithKnowledge(ctx context.Context, product, from, to string, inputs env.Inputs, facts []domain.VerifiedFact, min domain.VerificationLevel) (*domain.ImpactReport, error)
+}
+
 // Kinds of expected items (vocabulary of eval/FORMAT.md).
 const (
 	KindBreaking      = "breaking"

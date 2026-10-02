@@ -29,6 +29,73 @@ cluster access, no network beyond what `ri upgrade` already needs, no LLM.
 Enrichment (`ri upgrade -enrich`) is a separate optional layer and is never
 part of it.
 
+## Why an UNKNOWN is unknown (`unknownReason`)
+
+Every UNKNOWN finding states a reason (MISSION G18; required by
+`ImpactReport.Validate()` and the schema), so it can be routed:
+
+| Reason | Assigned when | Routes to |
+|---|---|---|
+| `release-knowledge-gap` | a note-derived change (no machine-comparable subject), a computed diff rule without a join rule (`crd:fields-added`, `crd:added`, …), a subject-less computed change; an untrusted (consensus/proxy) fact whose exposure is false — it may not clear | candidate generation / review |
+| `environment-visibility-gap` | the deciding dimension was not supplied or is partial, a compared value is withheld, a reference does not resolve in incomplete manifests | the user (`--values`, `--manifests`, …) |
+| `cross-product-context-gap` | the verdict depends on another product's presence or version and the inventory cannot decide it (not supplied, product not listed in a non-complete inventory, chart version only, conflicting entries) | the user (`--inventory`) |
+| `runtime-behavior-gap` | only runtime state decides (objects converted between served versions, an explicit `undecidable` leaf) | stays UNKNOWN, documented |
+| `evidence-gap` | the upstream constraint or change is not machine-readable | upstream research |
+| `semantic-ambiguity` | the CRD identity cannot be parsed, a reference matches several resources | review |
+
+The text output groups the collapsed UNKNOWN view by family and names the
+reason (`· 40 × note-derived changes … (release-knowledge-gap)`).
+`impact:knowledge-undecided` carries the reason of the deciding unknown leaf
+(precedence: cross-product → environment-visibility → runtime-behavior →
+evidence → semantic-ambiguity).
+
+## Verified knowledge in the join (`--knowledge`)
+
+`ri impact … --knowledge knowledge/` evaluates the verified, release-level
+facts of the learning loop (docs/phase3/learning-loop/DESIGN.md) against the
+environment: a fact attaches to the changes that restate it, and its
+exposure/overlap conditions decide the verdict (`impact:knowledge-exposed`,
+`-overlap`, `-clear` or `-undecided`), always under the trust ladder of
+[ACTION_CLASSIFICATION.md](ACTION_CLASSIFICATION.md) §8. `--min-verification
+deterministic|human|consensus|proxy` (default `human`) keeps facts at or above
+the level; facts whose verification their own records do not prove are refused
+with a warning, never evaluated. Without `--knowledge` the report is
+byte-identical to the knowledge-free join.
+
+How a fact's applicability condition is evaluated — three-valued, each leaf
+bound to the environment model (`field`/`text-line`/`ref` to the resource
+facts, `values-key`, `gvk-in-use`, `image-in-use`, `cli-flag`/`env-var`/
+`feature-gate` to workload container args and env, `product-version` to the
+inventory, `cluster-version`, `edge-from-version`, `rendered-change` through
+the render lane's evaluator, unknown without renders) — is specified in
+DESIGN.md §1.3 and implemented in `internal/impact/condition.go`. Rules it
+keeps: a leaf is false only against a supplied, healthy dimension; a withheld
+value decides nothing (a credential-named ConfigMap key's text lines are
+treated as withheld even when line-level redaction let them through);
+`not(false)` is true only when the operand examined at least one record.
+Matches use the kinds `product`, `text-line`, `reference`, `from-version` and
+`absence` (an examined record proving something is not stated) besides the
+join's own. A product missing from the inventory is "not installed" only when
+the inventory file declares it:
+
+```yaml
+complete: true        # every product running here is listed
+products:
+  - {product: ingress-nginx, version: v1.12.1}
+```
+
+`ri eval --knowledge knowledge/` runs the dataset once per verification level
+(`none`, `deterministic`, `human`, `consensus`, `proxy`) and reports each
+separately: applicability accuracy overall and on the **transfer subset**
+(links whose deciding facts were never reviewed with that case's environment
+as context), classification accuracy, unknown rate, and the ACTION REQUIRED
+quality per level with model-consensus ACTION findings counted separately. The
+pre-registered gates keep applying to the level named by `--min-verification`
+(default `human`); the consensus and proxy levels are reported and labelled,
+never gated on. The stored-snapshot comparison always uses the knowledge-free
+`none` run, so knowledge never masks a regression of the deterministic
+pipeline.
+
 ## The action-classification contract
 
 Every verdict uses the five-class vocabulary of
@@ -389,8 +456,30 @@ CRD's `names.kind`).
 | `crd:version-removed` / `crd:version-unserved` | exact GVK in manifest use (kind pinned via the installed CRD); group/version with unpinnable kind → review; installed CRD declares the version but no manifest uses the GVK → not-affected (with manifests) / review (without) | `impact:crd-version-removed` · action-required · critical |
 | `crd:version-deprecated` | same matching; every affected verdict is review (a deprecation breaks nothing today) | `impact:crd-version-deprecated` · review-required · medium |
 | `crd:fields-removed` | the removed path (array markers stripped) set at/below it **within the change's GVK**; a same-named path under another GVK never matches | `impact:crd-field-removed` · action-required · high (exact GVK) / review (kind or version unpinned, or a set section above the path) |
+| `crd:default-changed` | a resource of the GVK leaves the field unset (or sets only its parent): the new schema default applies to it; every resource that reaches the field pins it | `impact:crd-default-applies` · review-required · medium / `impact:crd-default-pinned` · informational · low |
+| `crd:enum-changed` | a resource of the GVK uses an enum value the target removes | `impact:crd-enum-value-removed` · action-required · high (rejected) |
+| `crd:field-required` | a resource of the GVK omits the field the target makes required | `impact:crd-field-now-required` · action-required · high (rejected) |
+| `crd:field-type-changed` | a resource sets the field: action when its value no longer fits the new type, review when it fits | `impact:crd-field-type-changed` · action-required · high / review-required · medium |
+| `crd:storage-changed` | the CRD whose storage version moves is installed, or manifests use its kind (stored objects stay at the old version until migrated); installed CRDs supplied (healthy) without it and the kind unused → clear; installed CRDs not supplied → unknown (`environment-visibility-gap`: stored objects are only visible through them) | `impact:crd-storage-migration` · review-required · medium / `impact:crd-unused` · not-affected |
+| attribute rules, no resource of the GVK touched by the change (manifests healthy) | — | `impact:crd-attribute-clear` · not-affected (evaluation record) |
+| `crd:fields-added` | a new optional field decides nothing today | `impact:not-joined` · unknown (`release-knowledge-gap`) |
 | unparseable upstream identity | — | `impact:not-joined` · unknown |
 | no overlap, deciding dimension supplied (`--crds` for the CRD/version rules, `--manifests` for fields) | — | `impact:crd-unused` / `impact:crd-version-unused` / `impact:crd-field-unset` · not-affected |
+
+The attribute rules (`crd:default-changed`, `crd:enum-changed`,
+`crd:field-required`, `crd:field-type-changed`) resolve their GVK like
+`crd:fields-removed` (identity from the change's deterministic output, an
+installed CRD of the same name completing kind/group) and are evaluated per
+resource of that GVK against the resource facts, never by bare paths. A kind
+or version the change does not pin makes the finding medium confidence, so
+action is demoted to review (another CRD of the group could serve the kind);
+negative verdicts need healthy manifests (absence is not knowledge). Nothing
+matched is **unknown** instead of clear when a compared value is withheld
+(`environment-visibility-gap`), when the change does not state its values
+machine-readably (`evidence-gap`), when manifests were only partially parsed
+(`environment-visibility-gap`), or when resources of the same kind exist at
+another API version — the API server converts them to the changed version, so
+the attribute may still reach them (`runtime-behavior-gap`).
 
 ### 3. Kubernetes compatibility (`--kubernetes`)
 
@@ -418,6 +507,23 @@ exactly like Helm's semver check, so line 1.25 is admitted.
 
 Constraints of platforms with no environment input (OpenShift today) are
 always UNKNOWN — never assumed fine.
+
+A compatibility constraint on a platform that is an **operand or peer
+product** (Kafka for an operator: "Kafka support narrowed: 3.8–3.9 → 3.9,
+4.0") is decided against the **product inventory** (`--inventory`) with the
+product-version semantics of the knowledge condition language: only
+application versions decide (a chart version is never read as the product's
+version), conflicting entries decide nothing, and a platform missing from
+the inventory is "not running" only when the inventory declares itself
+complete.
+
+| Outcome (platform = the constraint's platform) | Finding |
+|---|---|
+| inventory runs the platform outside the target's supported set | `impact:platform-out-of-range` · action-required · high |
+| inventory runs the platform inside the supported set | `impact:platform-in-range` · informational · low |
+| inventory, declared complete, does not run the platform | `impact:platform-absent` · not-affected |
+| platform not listed, inventory not complete / conflicting versions / chart-version-only | `impact:insufficient-visibility` · unknown (`cross-product-context-gap`) |
+| no inventory supplied | `impact:insufficient-visibility` · unknown |
 
 ### 4. Images (`--manifests`, `--values`, `--images`)
 

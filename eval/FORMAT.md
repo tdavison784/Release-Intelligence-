@@ -17,7 +17,9 @@ eval/cases/<case-id>/
     images.txt       #   optional mirror list, one image ref per line
     inventory.yaml   #   optional product inventory: list of {product, version, note?};
                      #   only facts already stated in case.yaml's environment.description
-                     #   (or NOTES.md), each entry citing the sentence in a comment
+                     #   (or NOTES.md), each entry citing the sentence in a comment;
+                     #   the form {complete: true, products: [...]} declares that
+                     #   nothing else runs there (only when the sources say so)
 eval/results/        # stored results (snapshots), committed after review;
                      # `ri eval -update` rewrites them, tools never touch
                      # case.yaml

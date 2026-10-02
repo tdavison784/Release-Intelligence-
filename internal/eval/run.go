@@ -34,6 +34,17 @@ type Runner struct {
 	// expectations remain the case's; env-conditional expectations may
 	// legitimately miss under the recorded inputs.
 	EnrichedEnv *env.Inputs
+	// Knowledge, when set, evaluates verified facts in the join (pipelines
+	// implementing KnowledgePipeline); nil runs the knowledge-free join, so
+	// results are unchanged without -knowledge.
+	Knowledge *KnowledgeRun
+}
+
+// KnowledgeRun is the knowledge a run evaluates: the facts and the minimum
+// verification level they must reach.
+type KnowledgeRun struct {
+	Facts           []domain.VerifiedFact
+	MinVerification domain.VerificationLevel
 }
 
 // EnrichingPipeline is implemented by pipelines that can attach the AI
@@ -195,6 +206,12 @@ func (r *Runner) runCase(ctx context.Context, c *Case) EntryResult {
 				report, err = ep.EnrichedImpact(ctx, c.Product, c.From, c.To, inputs)
 			} else {
 				err = fmt.Errorf("pipeline does not support -enriched (no EnrichingPipeline)")
+			}
+		} else if r.Knowledge != nil {
+			if kp, ok := r.Pipeline.(KnowledgePipeline); ok {
+				report, err = kp.ImpactWithKnowledge(ctx, c.Product, c.From, c.To, inputs, r.Knowledge.Facts, r.Knowledge.MinVerification)
+			} else {
+				err = fmt.Errorf("pipeline does not support -knowledge (no KnowledgePipeline)")
 			}
 		} else {
 			report, err = r.Pipeline.Impact(ctx, c.Product, c.From, c.To, inputs)
