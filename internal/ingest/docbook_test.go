@@ -75,7 +75,7 @@ func TestValidateDocBookFormat(t *testing.T) {
 	if !found {
 		t.Fatalf("docbook with markdown-table must be rejected: %v", rep.Issues)
 	}
-	def.Sources[len(def.Sources)-1].Extract = &catalog.Extract{Format: "asciidoc", Type: catalog.ExtractWhole}
+	def.Sources[len(def.Sources)-1].Extract = &catalog.Extract{Format: "markdown-typo", Type: catalog.ExtractWhole}
 	rep = catalog.Validate(def)
 	found = false
 	for _, i := range rep.Errors() {

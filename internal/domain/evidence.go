@@ -21,6 +21,8 @@ const (
 	EvidenceStructured   EvidenceKind = "structured"    // a structured file (YAML/JSON) such as values.yaml or a CRD
 	EvidenceAdvisory     EvidenceKind = "advisory"      // a security advisory record
 	EvidenceRepoFile     EvidenceKind = "repo-file"     // a file inside a source repository (discovery)
+	EvidenceLocalFile    EvidenceKind = "local-file"    // a file of the user's environment (values, manifests)
+	EvidenceInput        EvidenceKind = "input"         // a value supplied directly (a CLI flag)
 )
 
 // Evidence is a verifiable pointer to source material that supports a fact or
@@ -35,8 +37,12 @@ type Evidence struct {
 	Excerpt  string       `json:"excerpt,omitempty"` // short verbatim excerpt (truncated)
 	// ContentDigest is the sha256 of the complete retrieved document, so the
 	// exact bytes the conclusion was drawn from can be identified later.
-	ContentDigest string    `json:"contentDigest,omitempty"`
-	RetrievedAt   time.Time `json:"retrievedAt,omitzero"`
+	ContentDigest string `json:"contentDigest,omitempty"`
+	// Representation records which published form of the artifact these bytes
+	// came from (source-tree, published-chart-tgz, ...); see Representation.
+	// Empty on evidence whose origin the pipeline does not classify.
+	Representation Representation `json:"representation,omitempty"`
+	RetrievedAt    time.Time      `json:"retrievedAt,omitzero"`
 }
 
 // MaxExcerpt bounds stored excerpts.
@@ -56,6 +62,19 @@ func NewEvidence(kind EvidenceKind, sourceID, uri, locator, excerpt, contentDige
 		RetrievedAt:   retrievedAt.UTC().Truncate(time.Second),
 	}
 	e.ID = EvidenceID("ev-" + ShortHash(string(kind), uri, locator, excerpt, contentDigest))
+	return e
+}
+
+// WithRepresentation returns a copy of e annotated with the representation
+// that produced it. The id is recomputed over the representation as well, so
+// records that differ only in representation stay distinct; evidence without
+// a representation keeps the id NewEvidence assigned it.
+func (e Evidence) WithRepresentation(rep Representation) Evidence {
+	if rep == "" || e.Representation == rep {
+		return e
+	}
+	e.Representation = rep
+	e.ID = EvidenceID("ev-" + ShortHash(string(e.Kind), e.URI, e.Locator, e.Excerpt, e.ContentDigest, string(rep)))
 	return e
 }
 

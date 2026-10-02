@@ -57,7 +57,7 @@ relationships:
     - {subject: helm-chart (helm-repo channel), reason: "helm.releases.hashicorp.com blocked; the helm-git channel verified the same chart versions"}
 constructs:
   new:
-    - name: extract.labelParagraphs
+    - name: field:sources.extract.labelParagraphs
       kind: extract option (markdown-section, whole) + DocInput.LabelPattern in normalize
       justification: >-
         HashiCorp-family changelogs group bullets under uppercase label
@@ -70,6 +70,24 @@ constructs:
         existing section classification (declared, high confidence) applies
         unchanged and product rules can match the label via `section:`.
       otherProducts: [terraform-aws-provider (wave 3, ENHANCEMENTS:/BUG FIXES:/NOTES:), terraform core, consul, nomad, packer, boundary]
+    - name: locator:helm-git
+      kind: locator
+      justification: "helm.releases.hashicorp.com is blocked from the sandbox, so the chart is read from the vault-helm repository's git tags: the reachable channel that verified the same chart versions (see the helm-chart artifact and unverifiable)."
+    - name: field:artifacts.channels.path
+      kind: channel field
+      justification: "The helm-git channel says where in the chart repository the chart lives (path '.', Chart.yaml at the vault-helm root); artifact channels had no path field before."
+    - name: field:artifacts.channels.tagPattern
+      kind: channel field
+      justification: "The helm-git channel carries its own tagPattern (vault-helm tags ^v(?P<version>\\d+\\.\\d+\\.\\d+)$) because the chart repository's independent 0.x tag family, not the product's tags, selects which repository tags are chart versions."
+    - name: field:sources.exceptions
+      kind: source field
+      justification: "Curated exceptions on sources, as argo-cd introduced them for artifacts: two changelog sections are structurally unreachable (1.17.5 and 1.18.0 have the release date as a second H2, so the version section is empty) and 1.3.0 has no section — recorded instead of bending the heading selectors (see manualInterventions)."
+    - name: field:sources.exceptions.versions
+      kind: source field
+      justification: "The releases a source exception covers: 1.17.5 and 1.18.0 of the changelog, 1.3.0 of the pre-1.10 changelog."
+    - name: field:sources.exceptions.reason
+      kind: source field
+      justification: "Mandatory reason of a source exception, as with artifacts.exceptions ('upstream formatting defect: ... the release date is a second H2 ... which a heading selector cannot reach')."
   considered:
     - {name: "include resolution for MDX '@include' partials (extract.includeBase)", rejected: "needs a second fetch per include, evidence line mapping and a docs-platform path convention; consumers named (Consul, Nomad, Boundary docs) are not in the onboarding plan. Recorded as a gap (measured: 4 of 7 breaking items and 12 of 14 known issues of the 2.x important-changes page are includes)"}
     - {name: "section end option for markdown-section (stop at the next heading matching a regex)", rejected: "only 2 of 135 changelog sections (1.17.5, 1.18.0) need it; represented as exceptions with a reason"}

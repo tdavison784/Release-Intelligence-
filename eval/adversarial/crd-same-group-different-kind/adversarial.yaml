@@ -1,0 +1,29 @@
+# Attack: upstream removes widgets.example.io/v1; the customer's manifests
+# use Gadget (a different kind of the SAME API group example.io). A group-only
+# join blames the Gadget resources as broken; the GVK ladder allows "same
+# group" to be review-required at most — never action-required — and must say
+# what is unconfirmed (the kind).
+id: crd-same-group-different-kind
+attacks: same API group, different kind
+expectation: >-
+  the Gadget usage surfaces as REVIEW (the version collision is real but the
+  kind is unconfirmed: docs/IMPACT.md GVK ladder "same API group →
+  review-required at most, never action") — never action-required, and the
+  finding must cite the group/version, not claim the customer's kind was
+  removed outright
+edge:
+  changes:
+    - rule: crd:version-removed
+      title: "widgets.example.io v1 API version removed in v2.0.0"
+      subjects: [widgets.example.io/v1]
+      category: api
+environment:
+  files: [manifests, crds]
+expect:
+  present:
+    - rule: impact:crd-version-removed
+      classification: review-required
+  absent:
+    - rule: impact:crd-version-removed
+      classification: action-required
+    - classification: action-required

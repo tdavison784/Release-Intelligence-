@@ -1,0 +1,76 @@
+id: postgresql-17-18
+product: postgresql
+from: REL_17_4
+to: REL_18_0
+researchedAt: "2026-10-01"
+sources:
+  - https://www.postgresql.org/docs/18/release-18.html
+  - https://github.com/postgres/postgres/blob/REL_18_0/doc/src/sgml/release-18.sgml
+expected:
+  - id: E1
+    title: Major-version upgrade requires pg_upgrade, dump/restore, or logical replication
+    kind: migration-step
+    importance: critical
+    actionRequired: true
+    match:
+      - text: '(?i)pg_upgrade|pg_dumpall|dump/restore|logical replication is required'
+    evidence:
+      - url: https://www.postgresql.org/docs/18/release-18.html
+        quote: "A dump/restore using pg_dumpall or use of pg_upgrade or logical replication is required for those wishing to migrate data from any previous release."
+  - id: E2
+    title: initdb now enables data checksums by default (--no-data-checksums to opt out); pg_upgrade requires matching checksum settings
+    kind: behaviour-change
+    importance: critical
+    actionRequired: true       # new clusters get checksums; upgrades must match old clusters
+    match:
+      - text: '(?i)data checksum'
+      - text: '(?i)no-data-checksums'
+    evidence:
+      - url: https://www.postgresql.org/docs/18/release-18.html
+        quote: "Change `initdb` default to enable data checksums … `pg_upgrade` requires matching cluster checksum settings, so this new option can be useful to upgrade non-checksum old clusters."
+  - id: E3
+    title: MD5 password authentication deprecated (CREATE/ALTER ROLE warn; md5_password_warnings=off silences)
+    kind: deprecation
+    importance: important
+    actionRequired: true       # move to SCRAM before the removal release
+    match:
+      - text: '(?i)MD5 password'
+    evidence:
+      - url: https://www.postgresql.org/docs/18/release-18.html
+        quote: "Deprecate MD5 password authentication … Support for MD5 passwords will be removed in a future major version release."
+  - id: E4
+    title: VACUUM and ANALYZE now process inheritance children of a parent (ONLY to keep old behavior)
+    kind: behaviour-change
+    importance: important
+    actionRequired: false      # longer runtime/surprising output; scripts may need ONLY
+    match:
+      - text: '(?i)VACUUM.*(inheritance|children)|ANALYZE.*(inheritance|children)'
+      - text: '(?i)inheritance children'
+    evidence:
+      - url: https://www.postgresql.org/docs/18/release-18.html
+        quote: "Change `VACUUM` and `ANALYZE` to process the inheritance children of a parent … The previous behavior can be performed by using the new `ONLY` option."
+  - id: E5
+    title: Time zone abbreviation handling changed (session time zone abbreviations favored over timezone_abbreviations)
+    kind: behaviour-change
+    importance: minor
+    actionRequired: false
+    match:
+      - text: '(?i)time zone abbreviation'
+    evidence:
+      - url: https://www.postgresql.org/docs/18/release-18.html
+        quote: "The system will now favor the current session's time zone abbreviations before checking the server variable `timezone_abbreviations`."
+  - id: E6
+    title: Full-text search now uses the cluster default collation provider; reindex FTS/pg_trgm indexes after pg_upgrade on non-libc clusters
+    kind: behaviour-change
+    importance: important
+    actionRequired: true
+    match:
+      - text: '(?i)collation provider|reindex'
+    evidence:
+      - url: https://www.postgresql.org/docs/18/release-18.html
+        quote: "When upgrading such clusters using `pg_upgrade`, it is recommended to reindex all indexes related to full-text search and `pg_trgm` after the upgrade."
+notExpected:
+  - title: performance features (async IO, virtual generated columns) are not upgrade blockers
+    match: [{text: '(?i)asynchronous I/O|virtual generated columns|io_method|io_workers'}]
+  - title: new-server-only system views/columns are not migration blockers
+    match: [{text: '(?i)pg_backend_memory_contexts'}]

@@ -1,0 +1,135 @@
+product: minio
+order: 27
+wave: 4
+repository: github.com/minio/minio
+onboarding:
+  startedAt: "2026-10-01T16:30:40Z"
+  finishedAt: "2026-10-01T16:59:22Z"
+  minutes: 29             # agent wall-clock, excludes writing this record
+discovery:
+  proposal: docs/onboarding/discovery/minio.proposed.yaml
+  report: docs/onboarding/discovery/minio.report.md
+# Discovery could infer NO tag scheme at all (523 tags: 0 stable, 523 junk) -
+# CalVer is invisible to the tag-train inference; the versioning, beyond the
+# git-tags locator itself, is research. It did find the chart index and the
+# advisories policy.
+sources:
+  - {id: git-tags, origin: discovered-modified, note: "locator kept (proposal id 'tags'); the scheme could not be inferred, so the RELEASE component-group pattern (with the 0* zero-stripping, see manualInterventions) and lineage linear are research"}
+  - {id: github-releases-versions, origin: manual, note: "hosted fallback behind git-tags (redis precedent); never consulted while git answers"}
+  - {id: release-notes, origin: manual, note: "the GitHub release body is the only per-release notes channel ('What's Changed' PR lists + '## Security' sections); discovery found no docs channels ('Documentation lives in another repository')"}
+  - {id: upgrade-guide, origin: manual, note: "'Upgrading MinIO' README section at the tag, >= 2019.10 < 2025.10.15 (removed 2025-10-06, absent at the final tag)"}
+  - {id: security-policy, origin: manual, note: "SECURITY.md at the tag ('security updates for the latest release only'); cited by the lifecycle statement"}
+  - {id: retirement-notice, origin: manual, note: "'Source-Only Distribution' README section at master; cited by the end-of-life statement (ingress-nginx pattern)"}
+  - {id: github-advisories, origin: discovered, note: "SECURITY.md's stated disclosure channel"}
+artifacts:
+  - {id: minio-image, origin: discovered-modified, note: "version = {{.Tag}} kept; docker.io declared before the proposed quay.io (README badge is canonical); unverifiable from here (401/401/empty mirror)"}
+  - {id: minio-binary-linux-amd64, origin: manual, note: "release-asset era >= 2021.1, exceptions 2022.2.8 (no assets) and 2025.10.15 (source-only)"}
+  - {id: minio-deb-amd64, origin: manual, note: "minio_YYYYMMDDHHMMSS.0.0_amd64.deb >= 2023.7; the timestamp name is rendered with the replace template function (first exercise)"}
+  - {id: minio-rpm-x86-64, origin: manual, note: "same era and rendering as the deb"}
+  - {id: minio-chart, origin: discovered-modified, note: "charts.min.io kept (served from this very repository); 'independent' corrected to optional lookup by appVersion == {{.Tag}} - the index pins a sparse subset and has been frozen since 2025-01-02"}
+discoveryRejected:
+  - {id: mc, reason: "quay.io/minio/mc with 'version = {{.Tag}}' is cross-product: mc is a separate product (minio/mc) with its own calendar train; noted as related instead"}
+relationships:
+  # from docs/onboarding/checks/minio.json (ri check minio -n 12)
+  historicalReleasesChecked: [2024.10.2, 2024.10.29, 2024.11.7, 2024.12.13, 2024.12.18, 2025.1.18, 2025.1.20, 2025.2.3, 2025.2.28, 2025.3.12, 2025.4.3, 2025.4.22, 2025.5.24, 2025.6.13, 2025.7.18, 2025.7.23, 2025.9.6, 2025.9.7, 2025.10.15]
+  # First run of the first complete draft (after the leading-zero pattern fix
+  # below): release-notes, minio-binary-linux-amd64, minio-deb-amd64 and
+  # minio-rpm-x86-64 all failed at 2025.9.6 - the GitHub release (and its
+  # assets) was deleted upstream. Before that fix the draft was worse than
+  # failing: strict semver rejects leading-zero components, so the first
+  # pattern matched only months 10-12 and days 10-31 - 78 of 521 releases -
+  # and ri check passed 11/11 subjects on that biased sample without a single
+  # failure (the 'ignored: 442 non-matching' counter in ri versions was the
+  # only visible trace). A representability blocker counted here, like
+  # postgresql's unparsable REL_ tags, not under check failures.
+  initialFailures: 4
+  finalFailures: 0
+  manualInterventions:
+    - {subject: git-tags, change: "tagPattern '0*(?P<minor>\\d{1,2})' / '0*(?P<patch>\\d{1,2})' (zeros consumed outside the groups)", reason: "strict semver forbids leading zeros: months 01-09 and days 01-09 did not parse (78/521 releases visible); the regex itself normalises 01 -> 1, no code change"}
+    - {subject: release-notes, change: "exceptions [2025.9.6]", reason: "the GitHub release of RELEASE.2025-09-06T17-38-46Z was deleted upstream (absent from the published list, API 404; the git tag remains and the atom feed still shows a cached entry) - the live proof of MinIO's delete-old-releases behavior, on a recent release"}
+    - {subject: minio-binary-linux-amd64 / minio-deb-amd64 / minio-rpm-x86-64, change: "exceptions [2025.9.6, 2025.10.15] (+ 2022.2.8 on the binary)", reason: "same deletion (assets gone with the release), the asset-less final release (source-only era), and the one 2022 release that never published assets"}
+    - {subject: minio-image, change: "references block dropped", reason: "the chart cross-check never resolved: the reference probe greps fetched channel bodies, and a lookup artifact's packaged-chart tgz is not readable that way; kept honest-unverifiable instead"}
+    - {subject: release-notes, change: "classify: added a bugfix rule for plain PR-subject failure wording ('LDAP TLS handshake fails with StartTLS...')", reason: "MinIO PR titles are not conventional commits; found by reading the edge, not by failing checks"}
+  unverifiable:
+    - {subject: minio-image, reason: "docker.io 401 anonymous (valid token, manifest denied); quay.io 401 with valid anonymous token - repo-specific, quay.io/prometheus/prometheus pulls 200; mirror.gcr.io carries an empty minio/minio repo"}
+constructs:
+  new:
+    - name: "lineage:linear"
+      kind: lineage value (first exercise; the constant and its all-releases path policy existed since the Phase 1 foundation)
+      justification: "MinIO is the first genuinely line-free product onboarded: 521 timestamped releases on one mainline, no branches, no backports (SECURITY.md: security fixes land in the latest release only), so upgrades must consider every intermediate release - exactly what PolicyAll traverses. Zero code change: discovery itself proposed lineage linear (from tag shape); every earlier definition used minor."
+      otherProducts:
+        - "external-secrets (order 9): its record says 'history is linear and only the newest minor is supported, which does not fit lineage minor; chosen only for its path policy' - it wanted linear and worked around it (its gap names a .PrevRelease variable for linear git-log ranges)"
+        - "any single-train product (rolling-release servers without maintained branches)"
+    - name: "template-func:replace"
+      kind: template function (first exercise; in the funcs map since cert-manager's foundation)
+      justification: "Renders the RPM/DEB asset names, whose versions are upstream's own CalVer-to-numeric normalization (minio-20250907161309.0.0-1.x86_64.rpm), by stripping RELEASE. / - / T / Z out of {{.Tag}} (four nested replace calls, in the version template and the channel URL of two artifacts). Zero code change."
+      otherProducts:
+        - "no onboarded product has needed string surgery on a tag before (versions appear verbatim in asset names); the need is generic for dated or re-separated asset names, and any future CalVer product (the same family question as the rejected calver scheme - see considered)"
+  considered:
+    - name: "scheme: calver (a calendar-version scheme with date-aware ordering, no semver assembly)"
+      reason: "the mission's central question. Rejected: no cross-product evidence - Linkerd's edge-Y.M.N family was excluded by its own record (helm.linkerd.io/edge 'CalVer versions; the edge family is out of scope'), Kubernetes v1.Y.Z is semver-shaped, and none of the other 23 products needs date ordering; the honesty mandate forbids a one-product construct. The component-group encoding below represents what is representable and the rest is recorded as gaps"
+    - name: "time-of-day as (?P<prerelease>) (RELEASE.2024-11-07T00-52-20Z -> 2024.11.7-T00-52-20Z)"
+      reason: "would make every final release a prerelease: the listing drops them without includePrereleases, selectPath skips prereleases even with it (so upgrade paths would collapse to the target alone), and prevInLineage skips them (PrevTag always empty). Strictly worse than the day-granular encoding"
+    - name: "whole-timestamp major, the RPM shape (20250907161309.0.0)"
+      reason: "impossible without new capability: the assembler concatenates raw group captures, and a single capture cannot span the tag's '-'/'T'/'Z' separators; stripping them inside a component would be a new construct (an assembler transform), rejected for the same no-second-product reason as the calver scheme"
+    - name: "leading-zero stripping in componentVersion (Go)"
+      reason: "avoided with pure configuration: '0*' consumed outside the capture groups normalises 01 -> 1 in the regex itself; strict semver then accepts every date. Recorded because the leading-zero hazard is the second CalVer trap (after separators) that any future calver encoding hits"
+    - name: "chart-package references for the image"
+      reason: "see manualInterventions: the reference probe cannot read packaged-chart bodies, so the cross-check never fires; dropped rather than declared dead"
+goChanges:
+  productSpecific: 0
+  generic: []        # none at all: the whole onboarding is configuration
+unreachableSources:
+  - {host: dl.min.io, reason: "reachable but 410 Gone on /server/minio/release/** - the legacy binary host was decommissioned upstream with the source-only pivot (the README still points there; stale link, not egress)"}
+  - {host: registry-1.docker.io, reason: "anonymous pulls of minio/minio denied (401 with a valid auth token; the standing Docker Hub limitation, harder than the 429s earlier products saw)"}
+  - {host: quay.io, reason: "minio/minio denies anonymous pulls (401 with valid token) while other repos pull 200 - repo-specific, consistent with the artifact withdrawal"}
+  - {host: mirror.gcr.io, reason: "the minio/minio repository is known but empty (no cached tags, manifests 404) - no Docker Hub fallback exists for this product"}
+  - {host: "docs.min.io (community pages)", reason: "soft-404 (HTTP 200, 'Not Found' body): the community docs are retired; www.min.io/docs serves the AIStor enterprise docs ('Upgrade from open-source MinIO')"}
+  - {host: api.github.com, reason: "anonymous quota-limited (the standing tax); all fetches succeeded within it"}
+ambiguousRelationships:
+  - "13 same-day release pairs (2016-12-12 ... 2023-11-01): the later tag of each day is invisible - 'ri upgrade minio RELEASE.2022-03-17T02-57-36Z RELEASE.2022-03-17T06-34-49Z' answers 'not a known release' because both parse to 2022.3.17 and the listing keeps the lexicographically smaller (earlier) tag, reporting '13 duplicates'"
+  - "the RPM/DEB artifact version is upstream's own normalization of the tag (20250723155402.0.0), rendered here by template string surgery; upstream itself proves the timestamp-as-number reading, but the model cannot derive it structurally (considered: whole-timestamp major)"
+  - "charts.min.io is served from the product repository itself (helm/minio + root index.yaml + helm-reindex.sh), yet its version train is independent and frozen since 2025-01-02 (5.4.0 -> RELEASE.2024-12-18): only the appVersion lookup joins it, and every release after 2024-12-18 warns 'no chart version ships appVersion ...' - true and useful (the chart no longer tracks releases)"
+  - "RELEASE.2025-09-06T17-38-46Z exists as a git tag, has cached atom-feed content, but its GitHub release is deleted: relationships that ride the release object are broken upstream (curated exceptions), and drift should be watched for more deletions (the atom feed's bulk 'updated 2026-04-24' stamps show a mass edit event)"
+  - "version display: users and upstream docs speak RELEASE.2024-11-07T00-52-20Z; the model's semver is 2024.11.7 and 'ri upgrade' accepts either form, but edges and JSON carry the synthetic number (the same class of gap postgresql recorded for two-part versions)"
+representability: partial
+gaps:
+  - "THE CalVer gap: the time-of-day is not representable. The component-group assembler offers major/minor/patch[-prerelease] and cannot strip the tag's intra-day separators, so RELEASE.YYYY-MM-DDTHH-MM-SSZ maps to day granularity (2024.11.7). The 13 later same-day releases (2.5%) are dropped from listing, paths and edges - with their notes and assets; the two hazard layers (separators, leading zeros) and the rejected escape hatches are documented under constructs.considered. Matters because MinIO really did publish twice on those days, and the evening release is usually the corrected one"
+  - "release kinds are meaningless under this encoding: every version has patch != 0 (a day), so all 508 releases are kind 'patch'; major/minor never occur and releaseKinds filters cannot express anything real"
+  - "Line() is a calendar month: synthetic. Nothing consumes it under lineage linear, but any consumer that assumed semver lines (support windows per line, minor-lineage reasoning) would build on sand"
+  - "availability constraints are month-granular: '>= 2023.7.0' means July 2023 onwards; a day-precise window cannot be written (the day lives in patch, so '>= 2023.7.7' does mean the 7th onwards - but ranges like 'only the 2024-11-07 release' cannot select one day's pair member)"
+  - "PrevTag is empty at each month's first release (prevInLineage only looks within the same major.minor line): git-log-style note sources (baseRef '{{.PrevTag}}..{{.Tag}}') cannot be declared - a hypothetical commits-between-notes channel for the 2025-09-06 deletion gap is therefore impossible too"
+  - "the support model 'security updates land in the latest release only' (SECURITY.md) cannot be scoped: no constraint expresses 'every version except the newest', so the edge cannot state that an intermediate target will never be patched; the end-of-life statement covers the retirement but not the latest-only policy of the living era"
+  - "minio-image has no verifiable channel from this sandbox (docker.io 401, quay.io 401, mirror.gcr.io empty) and no cross-check artifact: the one artifact users actually pull stays expected-forever here"
+  - "dl.min.io binaries are gone (410 Gone) and the final release ships no assets: binary verification is release-asset-only (>= 2021.1); the 2016-2020 dl.min.io era is unverifiable by design"
+sampleEdge:
+  from: RELEASE.2025-09-07T16-13-09Z
+  to: RELEASE.2025-10-15T17-29-55Z
+  summary: "0 breaking · 5 action required · 17 changes · 30 warnings"
+  evidenceRecords: 60
+  notes: "The adjacent hop into the final release, and everything the retirement means in one edge: the target is end-of-life since 2026-02 (action required, README evidence), the CVE body ('Privilege Escalation via Session Policy Bypass', GHSA-jjjj-jwhf-8rgr) is the second action item, and the three 'no longer published' artifact diffs (binary, deb, rpm, each citing the 09-07 URL it vanished from) are the source-only pivot made visible. 30 warnings = the frozen chart ('no chart version ships appVersion ...'), the never-observed image and 18 advisories without machine-readable ranges (each names its GHSA). Second edge exercised: RELEASE.2025-06-13T11-33-47Z -> RELEASE.2025-07-23T15-54-02Z, a 2-hop linear path (07-18, 07-23) - 0 breaking · 2 action required · 11 changes."
+notes: >-
+  The versioning stress test, answered. What worked without any new
+  capability: the postgresql component-group tagPattern reads
+  RELEASE.YYYY-MM-DD as 2024.11.7 (chronological ordering, full 508-release
+  listing, month-granular era windows), lineage linear - until now vocabulary
+  no definition had exercised - expresses the one-mainline no-backports
+  topology exactly (every intermediate release traversed, which upstream's
+  own README endorses: parallel, all-servers-at-once upgrades to any newer
+  release), {{.Tag}} templates carry the real timestamp into every locator,
+  and the whole retirement story (README banner, source-only section,
+  SECURITY.md support model) is the ingress-nginx lifecycle pattern verbatim.
+  What did not: the time-of-day (13 same-day later releases invisible),
+  meaningful release kinds (all 'patch'), non-synthetic lines, day-precise
+  availability, PrevTag at month boundaries, latest-only support scoping,
+  and any verifiable image channel. Two CalVer hazard layers were found and
+  one was defused in pure configuration (leading zeros via '0*' outside the
+  captures; the first pattern silently matched 78/521 tags and ri check
+  passed on that sample - the check does not notice a shrunken version
+  space, ri versions' 'non-matching' counter is the only trace). No calver
+  scheme construct: Linkerd's excluded edge family and Kubernetes's
+  v-prefixed semver leave MinIO without a second product that needs date
+  ordering, exactly the case PROTOCOL step 8 says to record as a gap. Two
+  zero-code first exercises are credited (lineage:linear, template-func:
+  replace) so the stats accounting stays clean. 29 minutes, 0 Go changes,
+  0 check failures after the deletion exceptions, tests green.

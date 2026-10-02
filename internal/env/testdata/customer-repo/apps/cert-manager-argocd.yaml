@@ -1,0 +1,25 @@
+# The Argo CD Application that installs cert-manager: chart identity,
+# targetRevision as the installed version, and inline Helm values — the
+# customer's values, which repo mode must flatten into the values inventory.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+spec:
+  source:
+    repoURL: https://charts.jetstack.io
+    chart: cert-manager
+    targetRevision: v1.17.0
+    helm:
+      values: |
+        replicaCount: 3
+        prometheus:
+          servicemonitor:
+            enabled: true
+      valuesObject:
+        webhook:
+          timeoutSeconds: 10
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager

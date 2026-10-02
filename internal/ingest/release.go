@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
@@ -27,6 +28,17 @@ type run struct {
 	// repo is the product repository (from the versions sources), used to
 	// resolve bare "#1234" references when a source has no repository.
 	repo string
+	// pinned holds the pre-resolved versions of the artifacts that source
+	// templates follow via {{.ArtifactVersionOf "id"}} (see pinned.go):
+	// sources and artifacts are ingested in parallel, so the followed
+	// artifacts' versions must be resolved before the fan-out.
+	pinned map[string]pinnedVersion
+	// resolutions caches every artifact's version resolution, keyed by
+	// artifact id: entries pre-resolved for a following source are reused by
+	// runArtifact, so a from-document is fetched and its statuses/evidence
+	// recorded exactly once per release.
+	resolutions map[string]resolution
+	resMu       sync.Mutex
 }
 
 // ingestion is the full result of one release ingestion.
@@ -62,18 +74,25 @@ func (i *Ingester) ingest(ctx context.Context, def *catalog.ProductDefinition, v
 		knownVersions = known.Versions
 	}
 	r := &run{
-		def:        def,
-		v:          v,
-		rc:         catalog.NewRenderContext(def.ID, v, knownVersions),
-		known:      known,
-		subject:    fmt.Sprintf("%s@%s", def.ID, v.Semver),
-		now:        i.now(),
-		memo:       newMemo(),
-		exhaustive: exhaustive,
-		repo:       productRepository(def),
+		def:         def,
+		v:           v,
+		rc:          catalog.NewRenderContext(def.ID, v, knownVersions),
+		known:       known,
+		subject:     fmt.Sprintf("%s@%s", def.ID, v.Semver),
+		now:         i.now(),
+		memo:        newMemo(),
+		exhaustive:  exhaustive,
+		repo:        productRepository(def),
+		resolutions: map[string]resolution{},
 	}
 
 	groups := groupSources(perReleaseSources(def), fallbackGroup)
+	// Sources whose templates follow a pinned artifact ({{.ArtifactVersionOf}})
+	// need that artifact's version before the fan-out below runs sources and
+	// artifacts in parallel. The followed artifact's own version relation
+	// reads the release's own files (field, pattern) or is pure templating
+	// (template), so this pre-resolution introduces no circularity.
+	i.presolvePinned(ctx, r, groups)
 	referenced := map[string]bool{}
 	for _, a := range def.Artifacts {
 		for _, ref := range a.References {

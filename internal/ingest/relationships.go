@@ -11,23 +11,26 @@ import (
 
 // checkRelationships ingests each release in exhaustive mode (every member
 // of a fallback group is consulted) and turns sources, artifacts and
-// contents into checks. Releases are processed sequentially in the given
+// contents into checks. It also returns the ingested releases, in the same
+// order as rep.Releases. Releases are processed sequentially in the given
 // order; each ingestion is internally parallel.
-func (i *Ingester) checkRelationships(ctx context.Context, def *catalog.ProductDefinition, releases []domain.Version, known *VersionList) (*RelationshipReport, error) {
+func (i *Ingester) checkRelationships(ctx context.Context, def *catalog.ProductDefinition, releases []domain.Version, known *VersionList) (*RelationshipReport, []*domain.Release, error) {
 	if def == nil {
-		return nil, errors.New("ingest: nil product definition")
+		return nil, nil, errors.New("ingest: nil product definition")
 	}
 	rep := &RelationshipReport{Product: domain.ProductID(def.ID)}
+	var rels []*domain.Release
 	byID := map[domain.EvidenceID]domain.Evidence{}
 	var evs domain.EvidenceSet
 	for _, v := range releases {
 		res, err := i.ingest(ctx, def, v, known, true)
 		if err != nil {
 			if ctx.Err() != nil {
-				return nil, ctx.Err()
+				return nil, nil, ctx.Err()
 			}
-			return nil, fmt.Errorf("release %s: %w", v, err)
+			return nil, nil, fmt.Errorf("release %s: %w", v, err)
 		}
+		rels = append(rels, res.release)
 		rep.Releases = append(rep.Releases, res.release.Version.Semver)
 		for _, e := range res.release.Evidence {
 			byID[e.ID] = e
@@ -48,7 +51,7 @@ func (i *Ingester) checkRelationships(ctx context.Context, def *catalog.ProductD
 	}
 	rep.Summary = summarize(rep.Checks)
 	rep.Evidence = evs.List()
-	return rep, nil
+	return rep, rels, nil
 }
 
 // summarize aggregates checks per subject. Each release counts once per

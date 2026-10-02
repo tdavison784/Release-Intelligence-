@@ -1,0 +1,341 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: golang
+name: Go
+description: >-
+  The Go toolchain (github.com/golang/go): language, compiler, runtime and
+  standard library, released every six months (February and August) with
+  monthly patches. Not a Kubernetes product: source tarballs and per-OS/arch
+  archives/installers on dl.google.com, plus the Docker official image; no
+  charts, no CRDs, no GitHub releases at all. Two tag eras: minors were
+  tagged go1.N through go1.20 (go1.20 IS 1.20.0), and from go1.21.0 the
+  first release of a line carries the .0 itself (the semver switchover the
+  1.21 notes announce). Release notes are HTML only: in-tree
+  doc/go1.N.html at the tag through go1.20, go.dev/doc/go1.N from 1.21
+  (the markdown sources live in doc/next/ on master during development and
+  are deleted at the cut, so they exist at no tag). Patch notes are the
+  per-release sections of the release-history page plus the release branch
+  git log. Support policy: each major is supported until there are two
+  newer majors. GOTOOLCHAIN (1.21+) makes the go command switch toolchains
+  per go.mod directives: a compatibility dimension of every upgrade.
+homepage: https://go.dev
+
+versioning:
+  scheme: semver
+  # go1.20 -> 1.20.0 (era A: the two-part minor tags, missing patch = 0,
+  # upstream's own rule from the 1.21 notes: "Starting in Go 1.21, the first
+  # release is now Go 1.N.0"); go1.21.0 -> 1.21.0, go1.20.14 -> 1.20.14.
+  # go1 (Go 1.0), go1.NrcM / beta / alpha pre-releases (the rc suffix
+  # attaches after the minor OR after the patch: one named group cannot sit
+  # in both positions) and weekly.* snapshots do not match.
+  tagPattern: '^go(?P<major>1)\.(?P<minor>\d+)(?:\.(?P<patch>\d+))?$'
+  lineage: minor
+
+sources:
+  # --- canonical versions ----------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/golang/go
+    notes: >-
+      496 tags; the versioning pattern keeps the 20 era-A minors, the 269
+      three-part stables and the 7 era-B .0 minors, and drops weekly.*,
+      rc/beta/alpha snapshots and the go1 tag. There are no GitHub releases
+      to fall back to (golang/go publishes tags only).
+
+  # --- release notes of minor releases ----------------------------------------
+  # The published HTML page of every minor (1.1-1.27): h2 Introduction /
+  # Changes to the language / Ports / Tools / Runtime / Compiler / Linker /
+  # Standard library, per-topic h3/h4, era-A pages use dl/dt/dd per package.
+  # The page is mutable upstream (grows patch annotations), so evidence
+  # digests pin what was read; the in-tree era-A twin below is the
+  # ref-stable alternative.
+  - id: release-notes
+    roles: [release-notes]
+    releaseKinds: [minor]
+    fallbackGroup: minor-notes
+    locator:
+      kind: http
+      url: https://go.dev/doc/go1.{{.Minor}}
+    extract:
+      format: html
+      type: whole
+    classify: &notes-classify
+      # the in-tree copies through go1.20 were never finalized upstream
+      - text: '(?i)DRAFT RELEASE NOTES|not yet released|work-in-progress|expected to be released in'
+        skip: true
+      # go.dev page footer (its items land in the page's last section)
+      - text: '^(Copyright|Privacy Policy|Report an Issue|Terms of Service|View page source)$'
+        skip: true
+      # new packages and topics are features whatever their bodies mention
+      # (json/v2's intro discusses what v1 removed; the QUICConfig item
+      # deprecates nothing)
+      - section: '(?i)› New '
+        category: feature
+      - text: '^(?:[a-z0-9/.]+: )?(?i)(The new|A new|New package)'
+        category: feature
+      # introduction: the compatibility statement is the payload, the rest
+      # is "arrives six months after Go 1.26" boilerplate
+      - section: '(?i)› Introduction'
+        text: '(?i)compatib|promise of|supported until|two newer'
+        category: compatibility
+      - section: '(?i)› Introduction'
+        text: '(?i)latest Go release|arrives|This page|general advice|changes compared|most important'
+        skip: true
+      # language changes are the headline feature of a minor
+      - section: '(?i)› Changes to the language'
+        category: feature
+      # ports: raised OS/arch requirements are the action items of a minor;
+      # dropped ports are removals
+      - section: '(?i)› Ports\b'
+        text: '(?i)requires .{0,40} or later|discontinued|no longer supported'
+        category: compatibility
+        actionRequired: true
+      - section: '(?i)› Ports\b'
+        text: '(?i)no longer|removed|unsupported|dropped'
+        category: removal
+      - section: '(?i)› Ports\b'
+        category: compatibility
+      # toolchain behavior (GOTOOLCHAIN switching, go command, vet, tooling)
+      - section: '(?i)› (Tools|Go command)\b'
+        text: '(?i)deprecat'
+        category: deprecation
+      - section: '(?i)› (Tools|Go command)\b'
+        text: '(?i)no longer|removed|support was removed'
+        category: removal
+      - section: '(?i)› (Tools|Go command)\b'
+        category: feature
+      - section: '(?i)› Bootstrap'
+        category: other
+      # performance topics are features even when their bodies say "fix"
+      - section: '(?i)(Faster|Improved|Performance)'
+        category: feature
+      # implementation sections: fixes vs everything else
+      - section: '(?i)› (Runtime|Compiler|Linker|Assembler|Cgo|Cover|Vet|Trace|Pprof)\b'
+        text: '(?i)\bfix(es|ed)?\b|crash|panic|incorrect|regression|memory leak|race'
+        category: bugfix
+      - section: '(?i)› (Runtime|Compiler|Linker|Assembler|Cgo|Cover|Vet|Trace|Pprof)\b'
+        category: feature
+      # library: per-package h3/h4 topics and dl/dt/dd entries
+      - section: '(?i)› (Standard library|Core library)\b'
+        text: '(?i)deprecat'
+        category: deprecation
+      - section: '(?i)› (Standard library|Core library)\b'
+        text: '(?i)no longer (?:be )?(?:supported|available|accepted)|has been removed|now rejects|will (?:fail|reject)'
+        category: removal
+      - section: '(?i)› (Standard library|Core library)\b'
+        text: '(?i)now returns an error|behavior of .{0,40}has changed|breaking'
+        category: api
+      - section: '(?i)› (Standard library|Core library)\b'
+        category: feature
+      # bold-only lines are the dt terms of era-A dl blocks (package names)
+      - text: '^\*\[[^]]+\]\([^)]*\)\*\*$'
+        skip: true
+  # The in-tree copy at the tag (era A only; go1.21+ tags carry no notes
+  # file): ref-stable, but never finalized upstream (draft banner skipped
+  # above) and MISSING at go1.19 itself (present at go1.19rc2, deleted at the
+  # final tag - the doc/next workflow began mid-1.19).
+  - id: release-notes-repo
+    roles: [release-notes]
+    releaseKinds: [minor]
+    priority: 1
+    fallbackGroup: minor-notes
+    availability: "< 1.21.0"
+    exceptions:
+      - versions: [1.19.0]
+        reason: >-
+          Upstream anomaly: doc/go1.19.html exists at go1.19rc2 but was
+          deleted at the go1.19 tag and is absent from release-branch.go1.19;
+          every other era-A minor keeps its file at the tag (checked go1.5,
+          go1.10, go1.16, go1.18, go1.20). Covered by the go.dev page.
+    locator:
+      kind: repo-file
+      repository: github.com/golang/go
+      ref: "{{.Tag}}"
+      path: doc/go1.{{.Minor}}.html
+    extract:
+      format: html
+      type: whole
+    classify: *notes-classify
+
+  # --- patch releases: the release branch git log --------------------------------
+  # The curated backport list between the previous release's tag and this one
+  # (go1.27.0..go1.27.1 = 15 commits: "[release-branch.go1.27] database/sql:
+  # fix ..."); the deterministic per-patch notes channel. The
+  # go.dev/doc/devel/release history page carries one high-value paragraph
+  # per patch ("go1.26.1 (released 2026-03-05) includes security fixes to
+  # the crypto/x509, ... packages") under the minor's shared "Minor
+  # revisions" heading - but those paragraphs are addressed only by their
+  # <p id=...> anchors, which no locator construct selects (see the record's
+  # gaps).
+  - id: patch-log
+    roles: [release-notes]
+    releaseKinds: [patch]
+    locator:
+      kind: git-log
+      repository: github.com/golang/go
+      ref: "{{.PrevTag}}..{{.Tag}}"
+    classify:
+      # the release-tagging commit itself
+      - text: '^\[release-branch\.go1\.\d+\] go1\.\d'
+        skip: true
+      # vendored testdata churn of the release branch
+      - text: '^\[release-branch[^\]]*\] (test|cmd/vendor|internal/test)'
+        skip: true
+      # security backports on the release branch say so in the subject
+      # (rule order: security wins over the fix rule)
+      - text: '(?i)security|CVE-\d{4}-\d+'
+        category: security
+      # Go subjects are "area: verb ..." - the verb carries the category
+      - text: '(?i): fix\b|: fixes\b|: don.t (use|emit|show)|regression|memory leak'
+        category: bugfix
+      - text: '(?i): add(ed)?\b|: support\b|: implement|: introduce'
+        category: feature
+      - text: '(?i): deprecat|: remove|: drop'
+        category: removal
+
+  # --- support policy (evidence of the lifecycle statements) -------------------
+  # "Each major Go release is supported until there are two newer major
+  # releases" + the release model; the per-release sections of the same page
+  # are read per patch by release-history above, this source is the policy
+  # statement the lifecycle cites.
+  - id: support-policy
+    roles: [release-notes]
+    locator:
+      kind: http
+      url: https://go.dev/doc/devel/release
+    extract:
+      format: html
+      type: markdown-section
+      heading: '^Release Policy$'
+
+  # --- security -----------------------------------------------------------------
+  # golang/go publishes no repository advisories (0 as of 2026-10-01): the
+  # project's channels are the Go vulnerability database (vuln.go.dev, JSON
+  # API, no adapter) and the golang-announce list (no adapter). Toolchain
+  # security fixes surface as the release-history page's per-patch
+  # "includes security fixes" paragraphs (unaddressable <p id> anchors, see
+  # patch-log) and in the patch-log subjects when the backport says so.
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: golang/go
+
+lifecycle:
+  # two-newer-majors policy: 1.27 (2026-08-19) and 1.26 are the supported
+  # pair today; go1.27.0's release ended 1.25 (last release go1.25.14) and
+  # everything older. The boundary moves each February and August.
+  - state: end-of-life
+    since: "2026-08"
+    versions: "< 1.26.0"
+    summary: >-
+      Every Go release line below 1.26 is end-of-life: each major Go
+      release is supported until there are two newer major releases, and
+      go1.27.0 (2026-08-19) made 1.27 and 1.26 the supported pair (1.25's
+      last release was go1.25.14). No fixes of any kind land on older
+      lines; the GOTOOLCHAIN auto-switching of 1.21+ means most modules can
+      move to the current toolchain without recompiling their dependencies.
+    sources: [support-policy]
+
+artifacts:
+  # --- source tarball ------------------------------------------------------------
+  # dl.google.com/go/go{{tag}}.src.tar.gz - the tag IS the published version
+  # string in both eras (go1.20, go1.21.0). storage.googleapis.com/golang/
+  # (the raw bucket) answers 403 from the sandbox; dl.google.com serves the
+  # same objects. The dl page JSON (go.dev/dl/?mode=json, include=all: 365
+  # entries with sha256/size) is the machine-readable manifest of this
+  # channel - no adapter reads it, the URLs template directly.
+  - id: source-tarball
+    type: package
+    name: go{{.Tag}}.src.tar.gz
+    description: Source distribution tarball (the project's primary artifact).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://dl.google.com/go/{{.Tag}}.src.tar.gz"
+  - id: source-tarball-checksum
+    type: package
+    name: go{{.Tag}}.src.tar.gz.sha256
+    availability: ">= 1.5.4"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://dl.google.com/go/{{.Tag}}.src.tar.gz.sha256"
+    notes: >-
+      sha256 sidecars appear mid-1.5 (probed: 1.5.3 and older 404, 1.5.4 on
+      answers 200).
+
+  # --- binary distributions (representatives of the 46-file platform set) --------
+  - id: linux-amd64-archive
+    type: binary
+    name: go{{.Tag}}.linux-amd64.tar.gz
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://dl.google.com/go/{{.Tag}}.linux-amd64.tar.gz"
+  # darwin/arm64 builds start with the M1 era
+  - id: darwin-arm64-archive
+    type: binary
+    name: go{{.Tag}}.darwin-arm64.tar.gz
+    availability: ">= 1.16.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://dl.google.com/go/{{.Tag}}.darwin-arm64.tar.gz"
+  - id: windows-amd64-installer
+    type: binary
+    name: go{{.Tag}}.windows-amd64.msi
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://dl.google.com/go/{{.Tag}}.windows-amd64.msi"
+
+  # --- Docker official image -------------------------------------------------------
+  # Three-part tags in BOTH eras (golang:1.20.0 exists for the go1.20 minor;
+  # oldest exact tag 1.2.0). docker.io answered anonymous token+manifest
+  # 200 at onboarding time; mirror.gcr.io is the fallback when Hub answers
+  # 429 - note the MIRROR lags the newest patch (1.27.1 absent there on
+  # 2026-10-01 while docker.io had it), so docker.io is first.
+  - id: golang-image
+    type: container-image
+    name: golang
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/library/golang
+      - kind: oci
+        repository: mirror.gcr.io/library/golang
+    notes: >-
+      The library image's exact tags exist from 1.2.0 on; alias tags
+      (1.27, 1.27-bookworm) move days behind upstream and are not modeled.
+  - id: golang-image-alpine
+    type: container-image
+    name: golang-alpine
+    availability: ">= 1.7.0"
+    version: {strategy: template, template: "{{.Version}}-alpine"}
+    channels:
+      - kind: oci
+        repository: docker.io/library/golang
+      - kind: oci
+        repository: mirror.gcr.io/library/golang
+    notes: >-
+      Exact alpine tags start at 1.7.0 (1.2.2-1.6.x-alpine 404); some early
+      lines skip patches (1.7.2, 1.7.4 absent - the library's build cadence).
+
+provenance:
+  method: manual+research
+  updated: "2026-10-01"
+  validatedReleases: [1.20.0, 1.20.14, 1.21.0, 1.26.0, 1.26.8, 1.27.0, 1.27.1]
+  notes: >-
+    Authored from docs/research/golang.md after `ri discover` (which proposed
+    the git-tags channel, the advisory feed and a tagPrefix: go semver scheme
+    that matched only the three-part era - the 20 two-part minor tags
+    go1..go1.20 landed in its junk bucket, so its versioning was rewritten
+    with the component-group pattern; it found no notes, no artifacts and no
+    policy: everything except git-tags and advisories is research). The
+    notes channels are HTML everywhere the content exists, which the new
+    extract.format html renders; storage.googleapis.com/golang is blocked,
+    dl.google.com serves the same objects.

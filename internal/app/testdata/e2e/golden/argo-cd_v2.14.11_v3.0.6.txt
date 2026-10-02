@@ -1,6 +1,6 @@
 Argo CD v2.14.11 → v3.0.6
 Path: v3.0.0 → v3.0.1 → v3.0.2 → v3.0.3 → v3.0.4 → v3.0.5 → v3.0.6  (policy minor-lineage; 10 backport releases skipped)
-Summary: 18 breaking · 6 action required · 399 changes · 1 warning
+Summary: 18 breaking · 6 action required · 399 changes · 1 warning · 173 routine
 
 Sources:
   ✗ github-releases              github-releases    versions       unavailable: fetch https://api.github.com/repos/argoproj/argo-cd/releases?per_page=100: not in cache (offline mode)
@@ -52,26 +52,26 @@ Deprecations & removals (1):
   • [v3.0.0] Replace deprecated go-gitlab dependency with client-go  (deprecation · heuristic/medium · ev-8eae0cc64e07)
 
 API & CRD schema changes (3):
-  • [diff] AppProject v1alpha1 schema: 1 field added: `spec.syncWindows[].andOperator`  (crd-schema · computed · ev-8da144fe47cc, ev-2c85b86baed2, ev-cef18ca169b8, +3)
-  • [diff] Application v1alpha1 schema: 24 fields added: `operation.sync.source.kustomize.ignoreMissingComponents`, `operation.sync.source.kustomize.labelIncludeTemplates…  (crd-schema · computed · ev-8da144fe47cc, ev-2c85b86baed2, ev-cef18ca169b8, +3)
-  • [diff] ApplicationSet v1alpha1 schema: 99 fields added: `spec.generators[].clusterDecisionResource.template.spec.source.kustomize.ignoreMissingComponents`…  (crd-schema · computed · ev-8da144fe47cc, ev-2c85b86baed2, ev-cef18ca169b8, +3)
+  • [diff] AppProject v1alpha1 schema: 1 field added: `spec.syncWindows[].andOperator`  (crd-schema · computed · ev-effed9e17892, ev-06105fe5fe4a, ev-0d98f9de1165, +3)
+  • [diff] Application v1alpha1 schema: 24 fields added: `operation.sync.source.kustomize.ignoreMissingComponents`, `operation.sync.source.kustomize.labelIncludeTemplates…  (crd-schema · computed · ev-effed9e17892, ev-06105fe5fe4a, ev-0d98f9de1165, +3)
+  • [diff] ApplicationSet v1alpha1 schema: 99 fields added: `spec.generators[].clusterDecisionResource.template.spec.source.kustomize.ignoreMissingComponents`…  (crd-schema · computed · ev-effed9e17892, ev-06105fe5fe4a, ev-0d98f9de1165, +3)
 
 Helm value changes (15):
-  • [diff] 10 new Helm values under `configs.*`  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] 2 new Helm values under `repoServer.*`  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] 3 new Helm values under `commitServer.*`  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] Default of Helm value `dex.image.tag` changed: "v2.42.1" → "v2.43.1"  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] Default of Helm value `redis-ha.image.repository` changed: "public.ecr.aws/docker/library/redis" → "ecr-public.aws.com/docker/library/redis"  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] Default of Helm value `redis.exporter.image.tag` changed: "v1.71.0" → "v1.74.0"  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] Default of Helm value `redis.image.repository` changed: "public.ecr.aws/docker/library/redis" → "ecr-public.aws.com/docker/library/redis"  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] New Helm value `applicationSet.deploymentLabels`  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] New Helm value `controller.deploymentLabels`  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] New Helm value `dex.deploymentLabels`  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] New Helm value `global.deploymentLabels`  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] New Helm value `notifications.deploymentLabels`  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] New Helm value `redis-ha.haproxy.image.repository`  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] New Helm value `redis.deploymentLabels`  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
-  • [diff] New Helm value `server.deploymentLabels`  (helm-values · computed · ev-2c7bdaece0d4, ev-2e7e92e48059)
+  • [diff] 10 new Helm values under `configs.*`  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] 2 new Helm values under `repoServer.*`  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] 3 new Helm values under `commitServer.*`  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] Default of Helm value `dex.image.tag` changed: "v2.42.1" → "v2.43.1"  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] Default of Helm value `redis-ha.image.repository` changed: "public.ecr.aws/docker/library/redis" → "ecr-public.aws.com/docker/library/redis"  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] Default of Helm value `redis.exporter.image.tag` changed: "v1.71.0" → "v1.74.0"  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] Default of Helm value `redis.image.repository` changed: "public.ecr.aws/docker/library/redis" → "ecr-public.aws.com/docker/library/redis"  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] New Helm value `applicationSet.deploymentLabels`  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] New Helm value `controller.deploymentLabels`  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] New Helm value `dex.deploymentLabels`  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] New Helm value `global.deploymentLabels`  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] New Helm value `notifications.deploymentLabels`  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] New Helm value `redis-ha.haproxy.image.repository`  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] New Helm value `redis.deploymentLabels`  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
+  • [diff] New Helm value `server.deploymentLabels`  (helm-values · computed · ev-d2dcd052ab4c, ev-060a5b8ed493)
 
 Artifact changes (5 updated):
   image             quay.io/argoproj/argocd  v2.14.11 → v3.0.6  [referenced]  (computed · ev-98f67c12bc2a, ev-7775ca935432)
@@ -81,11 +81,11 @@ Artifact changes (5 updated):
   cli-linux-amd64   https://github.com/argoproj/argo-cd/releases/download/{v2.14.11 → v3.0.6}/argocd-linux-amd64  [verified]  (computed · ev-d678fe467360, ev-d92f9b0562b2)
 
 Image & dependency changes (1):
-  • [diff] Third-party image `redis`: 7.0.15-alpine → 7.2.7-alpine  (dependency · computed · ev-cf12fa87c2ba, ev-6a987d1322c8)
+  • [diff] Third-party image `redis`: 7.0.15-alpine → 7.2.7-alpine  (dependency · computed · ev-0745b4a105d2, ev-baf37e7dcfaa)
 
 Kubernetes compatibility:
   tested: 1.28–1.31 → 1.29–1.32; drops 1.28, adds 1.32  [narrowed, informational]  (computed · ev-90cf881f4383, ev-1cbf6064e35e)
-  chart kubeVersion: ≥ 1.25 (unchanged)  (computed · ev-5e6f866a325d, ev-0484f42cbd51)
+  chart kubeVersion: ≥ 1.25 (unchanged)  (computed · ev-d4c370d6ea97, ev-12f0e6f07d9f)
 
 Security changes (4):
   • [v3.0.0] Merge commit from fork (6f5537b)  (security · heuristic/medium · ev-add5780c600b)
@@ -93,8 +93,7 @@ Security changes (4):
   • [v3.0.0] fix: upgrade x/crypto to v0.35.0 to solve CVE-2025-22869 (#22048) (94b34f8)  (security · heuristic · ev-4e0558c7040a)
   • [v3.0.4] Merge commit from fork (040ed44)  (security · heuristic/medium · ev-d53e014231f5)
 
-Other notable changes (105):
-  • [v3.0.0] Bump major version to 3 (#21410) (4d98359)  (other · heuristic/low · ev-139dc8621dd3)
+Other notable changes (22):
   • [v3.0.0] Fix application url for custom base href (#21377) (3f0a155)  (other · heuristic/low · ev-6f8436bcc0ed)
   • [v3.0.0] Fixing the link in the docs (#21316) (c689352)  (other · heuristic/low · ev-415cdc2fc829)
   • [v3.0.0] Revert "fix: Graceful shutdown for the API server (#18642) (#20981)" (#21221) (46bfc10)  (other · heuristic/low · ev-c65b721434b2)
@@ -112,20 +111,19 @@ Other notable changes (105):
   • [v3.0.0] [Bot] docs: Update Snyk reports (#21459) (ced8441)  (other · heuristic/low · ev-8b4047e56540)
   • [v3.0.0] add `project` missing field to spec (#21277) (0b542ba)  (other · heuristic/low · ev-031d6f982ad6)
   • [v3.0.0] added-ACL (#21238) (1194766)  (other · heuristic/low · ev-4e0d32679cfb)
-  • [v3.0.0] chore(appset): simplify cluster list code (#21820) (928fd19)  (other · declared · ev-7f37e6238b23)
-  • [v3.0.0] chore(appset): use DB instead of kube client for cluster validation (#21190) (75bbb50)  (other · declared · ev-d0974116f8e6)
-  • [v3.0.0] chore(ci): improve previous-version script readability, fix bug (cherry-pick #22378) (#22381) (226a670)  (other · declared · ev-4d07aba5509b)
-  • [v3.0.0] chore(ci): run codegen as part of version bump job (#21404) (77ad48a)  (other · declared · ev-baeba927fc51)
-  • [v3.0.0] chore(controller): simplify sharding code (#21244) (ab07b0a)  (other · declared · ev-2fad8bf14fda)
-  • [v3.0.0] chore(health): report progressing status for AppSets (#22092) (261137d)  (other · declared · ev-4494d170a47e)
-  • [v3.0.0] chore(hydrator): improve error message (#21987) (be293fe)  (other · declared · ev-20cc963fd795)
-  … and 80 more
-  (39 features, 117 bug fixes and 89 dependency updates not shown; use verbose output)
+  • [v3.0.0] crepocreds-short-changed (#21285) (e5df999)  (other · heuristic/low · ev-6ffa361293f6)
+  • [v3.0.0] fix(#19314, #15700): allow `ssh`/`altssh` subdomains in repo URLs to match webhook payload (#21227) (073ccf7)  (other · heuristic/low · ev-ff24696ef4e4)
+  • [v3.0.0] fix(ui, rbac): project-roles (#21829) (a1431be)  (other · heuristic/low · ev-a2668d4681ea)
+  • [v3.0.0] fixed the broken link while version upgrade/degrade (#21279) (26ebb9b)  (other · heuristic/low · ev-36c7bcba937e)
+  • [v3.0.0] revert: add a check for user defined role referential integrity #21065 (#22130) (2bcaa19)  (other · declared · ev-4416cf828c08)
+  (38 features and 117 bug fixes not shown; use verbose output)
+
+Routine maintenance (173): 94 dependency bumps, 79 UI/docs/CI churn
 
 Warnings (1):
   ! Security advisories were not fully retrieved (github-advisories: unavailable — fetch https://api.github.com/repos/argoproj/argo-cd/security-advisories?per_page=100&state=published: not in cache (offline mode)); advisory matching may be incomplete
 
-Evidence (503 records, 78 cited above):
+Evidence (503 records, 75 cited above):
   ev-0b6150153730  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L93-L126 (v2.14 to 3.0 › Breaking Changes › Changes to RBAC with Dex SSO Authentication)
   ev-3437aa882db2  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L60-L75 (v2.14 to 3.0 › Breaking Changes › Default `resource.exclusions` configurations)
   ev-d0cda25040fe  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L12-L24 (v2.14 to 3.0 › Breaking Changes › Fine-Grained RBAC for application `update` and `delete` sub-resources)
@@ -151,5 +149,5 @@ Evidence (503 records, 78 cited above):
   ev-c5faeec10a04  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L419-L437 (v2.14 to 3.0 › Other changes › Ignoring status field from differences by default)
   ev-adf2ed32df1c  https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md  L288-L297 (v2.14 to 3.0 › Other changes › Using `cluster.inClusterEnabled: "false"`)
   ev-8eae0cc64e07  https://github.com/argoproj/argo-cd/compare/v2.14.0...v3.0.0  L32-L32 (Commits v2.14.0..v3.0.0)
-  … and 53 more
-  (425 uncited records not shown; use verbose or JSON output)
+  … and 50 more
+  (428 uncited records not shown; use verbose or JSON output)

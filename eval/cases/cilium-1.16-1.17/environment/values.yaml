@@ -1,0 +1,38 @@
+# Customer Helm values for Cilium (eval fixture cilium-1.16-1.17).
+# Every pinned key below is grounded in the upgrade notes / chart values:
+#   1.16.0 chart: tls.secretsBackend: local|k8s
+#                 hubble.tls.auto.certValidityDuration: 1095
+#                 dnsProxy.endpointMaxIpPerHostname: 50
+#                 bgp.enabled / bgp.announce.* (metallb-bgp integration)
+#   1.17.0 chart: tls.secretsBackend deprecated (null), replaced by
+#                 tls.readSecretsOnlyFromSecretsNamespace;
+#                 certValidityDuration default 365; endpointMaxIpPerHostname
+#                 default 1000; bgp.* block gone (use bgpControlPlane).
+# https://github.com/cilium/cilium/blob/1.16.0/install/kubernetes/cilium/values.yaml
+# https://github.com/cilium/cilium/blob/1.17.0/install/kubernetes/cilium/values.yaml
+kubeProxyReplacement: true
+k8sServiceHost: 10.0.0.1
+k8sServicePort: 443
+ipam:
+  mode: cluster-pool
+  operator:
+    clusterPoolIPv4PodCIDRList:
+      - 10.42.0.0/16
+tls:
+  secretsBackend: k8s          # REMOVED/deprecated in 1.17: readSecretsOnlyFromSecretsNamespace
+bgp:
+  enabled: true                # metallb-bgp integration REMOVED in 1.17
+  announce:
+    loadbalancerIP: true
+    podCIDR: false
+hubble:
+  enabled: true
+  tls:
+    auto:
+      enabled: true
+      method: helm
+      certValidityDuration: 1095   # default lowered to 365 in 1.17 (new certs only)
+dnsProxy:
+  endpointMaxIpPerHostname: 50     # default raised to 1000 in 1.17
+operator:
+  replicas: 2

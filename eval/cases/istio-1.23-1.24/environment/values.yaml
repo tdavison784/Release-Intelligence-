@@ -1,0 +1,13 @@
+# istio-discovery (istiod) chart values as tuned by the mesh team.
+pilot:
+  autoscaleEnabled: true
+  autoscaleMin: 2
+meshConfig:
+  defaultConfig:
+    proxyMetadata:
+      # set for the istio-csr workaround? No: deliberately NOT set before the
+      # upgrade — this cluster is exposed to E2 (see case.yaml expectedImpact).
+      ISTIO_META_DNS_CAPTURE: "true"
+cni:
+  ambient:
+    dnsCapture: true

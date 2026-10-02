@@ -142,3 +142,29 @@ func TestAppliesToPrereleaseUsesReleaseVersion(t *testing.T) {
 		t.Error("1.21.0-alpha.1 must not satisfy < 1.21.0")
 	}
 }
+
+// The column kind vocabulary is closed: supported/tested/minimum/maximum
+// (maximum added for upper-bounded support matrices, e.g. Karpenter's
+// maxK8sVersion; first used by products/karpenter.yaml).
+func TestValidateColumnKindVocabulary(t *testing.T) {
+	mk := func(kind string) *ProductDefinition {
+		return &ProductDefinition{
+			APIVersion: APIVersion, Kind: Kind, ID: "x", Name: "x",
+			Versioning: Versioning{Scheme: "semver"},
+			Sources: []Source{
+				{ID: "t", Roles: []domain.SourceRole{domain.RoleVersions}, Locator: Locator{Kind: LocatorGitTags, Repository: "example.com/a/b"}},
+				{ID: "c", Roles: []domain.SourceRole{domain.RoleCompatibility},
+					Locator: Locator{Kind: LocatorRepoFile, Repository: "example.com/a/b", Ref: "{{.Tag}}", Path: "compat.yaml"},
+					Extract: &Extract{Type: ExtractYAMLRecords, KeyColumns: []string{"appVersion"}, KeyMatch: ".",
+						Columns: []ColumnSpec{{Platform: "kubernetes", Kind: kind, Headers: []string{"minK8sVersion"}}}}}},
+		}
+	}
+	for _, kind := range []string{"", "supported", "tested", "minimum", "maximum"} {
+		if rep := Validate(mk(kind)); len(rep.Errors()) != 0 {
+			t.Errorf("kind %q: unexpected errors %v", kind, rep.Errors())
+		}
+	}
+	if rep := Validate(mk("at-most")); len(rep.Errors()) == 0 {
+		t.Errorf("kind \"at-most\": expected an error")
+	}
+}

@@ -85,6 +85,25 @@ sources:
         breaking: true
         actionRequired: true
 
+  # 1.16's notes file additionally carries a dedicated "Breaking changes"
+  # section (only that minor): the OperatorHub discontinuation lives there,
+  # outside Themes.
+  - id: website-breaking-changes
+    roles: [release-notes]
+    availability: ">= 1.16.0, < 1.17.0"
+    locator:
+      kind: repo-file
+      repository: github.com/cert-manager/website
+      ref: master
+      path: content/docs/releases/release-notes/release-notes-{{.Major}}.{{.Minor}}.md
+    extract:
+      type: markdown-section
+      heading: '^Breaking [Cc]hanges$'
+    classify:
+      - text: '(?i)discontinued|no longer publish'
+        breaking: true
+        actionRequired: true
+
   # --- upgrade guides -----------------------------------------------------
   - id: upgrade-guide
     roles: [upgrade-guide]

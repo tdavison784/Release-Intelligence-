@@ -1,0 +1,380 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: grafana
+name: Grafana
+description: >-
+  Grafana OSS, the open-source visualization and observability platform
+  (github.com/grafana/grafana; Grafana Enterprise builds from the same tags
+  with enterprise_ artifacts and the grafana-enterprise image and is not part
+  of this product). Semver v-prefixed tags with minor lines maintained in
+  parallel (9-month support windows); release notes are CHANGELOG.md on main
+  (sections are merged after the tag is cut), upgrade guidance is a per-minor
+  docs page on main. Ships the docker.io/grafana/grafana image (OSS across all
+  of history; the parallel grafana-oss repository stopped at 13.0.2), deb/rpm
+  and tarballs on dl.grafana.com, Kubernetes-style app CRDs from 12.3, and a
+  community Helm chart whose versions are independent of the app version (the
+  chart itself moved repositories to grafana-community/helm-charts in
+  January 2026). Security-only releases (X.Y.Z+security-N) are out-of-band
+  build-metadata tags of an already-released patch and are not separate
+  versions.
+homepage: https://grafana.com/oss/grafana/
+
+versioning:
+  scheme: semver
+  # vX.Y.Z; pre-releases -betaN/-rcN are excluded from the stable list; the
+  # strict pattern also drops 110 junk tags (unprefixed 1.0.0-style ancients,
+  # "dupa", "list") and the security-only vX.Y.Z+security-N tags.
+  tagPrefix: v
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/grafana/grafana
+      tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$'
+    notes: >-
+      739 tags: 551 stable, 78 pre-releases, 110 junk; the tag list is the
+      superset (the v13.0.0 GitHub release, image tag and packages were
+      removed from distribution, but the tag exists).
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: grafana/grafana
+
+  # --- release notes --------------------------------------------------------
+  # CHANGELOG.md on main: one "# X.Y.Z (date)" section per release, newest
+  # first, with "### Security / Features and enhancements / Bug fixes /
+  # Breaking changes / Plugin development fixes & changes" groups. The section
+  # for a release is merged to main AFTER the tag is cut (absent at the
+  # v13.0.0/v13.1.0/v13.2.0 tags), so the file is read at main, never at the
+  # tag. Main covers 11.0.0 onward; older majors are archived per major in
+  # .changelog-archive/CHANGELOG.NN.md (see record gaps).
+  - id: changelog
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: release-notes
+    availability: ">= 11.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/grafana
+      ref: main
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: '^{{regexQuote .Version}} \('
+    classify: &changelog-classify
+      # GitHub release body preamble links (the fallback channel)
+      - text: '^\[(?:Download page|What''s new highlights)\]'
+        skip: true
+      # Enterprise-only entries are listed in the OSS changelog with this marker
+      - text: '\(Enterprise\)$'
+        skip: true
+      # plugin-development interface churn is for plugin authors; the
+      # operator-facing plugin compatibility (React 19 etc.) is in the
+      # upgrade guide
+      - section: '^Plugin development fixes & changes$'
+        skip: true
+      - text: 'CVE-\d{4}-\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+        category: security
+      # whole-word only: identifiers like "deprecatedInternalId" are not
+      # deprecation notes
+      - text: '(?i)\b(?:deprecate|deprecated|deprecates|deprecating)\b'
+        category: deprecation
+      # base-toolchain bumps repackaged per release
+      - text: '^(?:\*\*)?(?:Docker|Go|Node|Chore)(?:\*\*)?: (?:Bump|Update) '
+        category: dependency
+      - section: '^Security$'
+        category: security
+      - section: '^Breaking changes$'
+        text: '(?i)\b(?:remove[sd]?|delete[sd]?|no longer|renamed|disabled)\b'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - section: '^Breaking changes$'
+        category: other
+        breaking: true
+        actionRequired: true
+      - section: '^Features and enhancements$'
+        category: feature
+      - section: '^Bug fixes$'
+        category: bugfix
+  # The GitHub Release body is the same changelog section plus download-page
+  # links; it also covers everything back to ~6.5.0 where main's CHANGELOG.md
+  # no longer has the section. api.github.com is anonymous rate-limited
+  # (60/h), so it is the fallback, not the primary.
+  - id: github-release-notes
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: release-notes
+    availability: ">= 6.5.0"
+    locator:
+      kind: github-releases
+      repository: grafana/grafana
+      ref: "{{.Tag}}"
+    extract:
+      type: whole
+    classify: *changelog-classify
+    exceptions:
+      - versions: [13.0.0]
+        reason: >-
+          v13.0.0 was removed from distribution (Git Sync migration bug; the
+          upgrade guide tells affected users to restore a backup and move to
+          v13.0.1): no GitHub release exists (404).
+
+  # --- upgrade guides ------------------------------------------------------
+  # docs/sources/upgrade-guide/upgrade-vX.Y/index.md on main: "## Technical
+  # notes" with one "###" heading per behaviour change and "#### You are
+  # affected if / Migration / Action required" sub-sections, plus Hugo
+  # admonition blocks. Written after the branch is cut (404 at the X.Y.0 tag),
+  # so read at main; one guide per minor line, attached to the X.Y.0 path
+  # entry.
+  # X.0.0 is a major release (the yearly Grafana major carries the
+  # comprehensive guide), X.Y.0 a minor: both are the line's path entry.
+  - id: upgrade-guide
+    roles: [upgrade-guide]
+    releaseKinds: [major, minor]
+    availability: ">= 8.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/grafana
+      ref: main
+      path: docs/sources/upgrade-guide/upgrade-v{{.Major}}.{{.Minor}}/index.md
+    classify: &guide-classify
+      # Hugo shortcodes render as raw lines (shared includes, admonition
+      # markers, embedded sections); their bodies are real prose and stay
+      - text: '^\{\{<'
+        skip: true
+      # document title heading, not a change
+      - text: '^Upgrade to Grafana v'
+        skip: true
+      - section: '(?i)^(You are affected if|Learn more)$'
+        skip: true
+      - section: '(?i)^(Description|Background|Change in Grafana)'
+        category: other
+      - section: '(?i)^(Migration|Migration/mitigation|How to mitigate)$'
+        category: migration
+        actionRequired: true
+      - section: '(?i)^Action required$'
+        category: other
+        actionRequired: true
+      - section: '(?i)(removed?|no longer|deprecated|breaking)'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - section: '(?i)deprecat'
+        category: deprecation
+      - section: '(?i)^Technical notes$'
+        category: other
+
+  # Dedicated breaking-changes pages exist only for v10.0, v10.3 and v11.0
+  # ("as of Grafana v12.0 we no longer publish a dedicated breaking changes
+  # page" — from v12 the breaking changes live in the What's new pages, whose
+  # content is not in this repository). Each file is pinned to exactly its
+  # minor by the availability window.
+  - id: breaking-changes-10-0
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 10.0.0, < 10.1.0"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/grafana
+      ref: main
+      path: docs/sources/breaking-changes/breaking-changes-v{{.Major}}-{{.Minor}}.md
+    classify: *guide-classify
+  - id: breaking-changes-10-3
+    roles: [upgrade-guide]
+    releaseKinds: [minor]
+    availability: ">= 10.3.0, < 10.4.0"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/grafana
+      ref: main
+      path: docs/sources/breaking-changes/breaking-changes-v{{.Major}}-{{.Minor}}.md
+    classify: *guide-classify
+  - id: breaking-changes-11-0
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 11.0.0, < 11.1.0"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/grafana
+      ref: main
+      path: docs/sources/breaking-changes/breaking-changes-v{{.Major}}-{{.Minor}}.md
+    classify: *guide-classify
+
+  # --- security ------------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: grafana/grafana
+    notes: >-
+      grafana.com/security/security-advisories (reachable) is the HTML
+      write-up index; the GHSA feed is the machine-readable channel.
+      Security-only +security-N releases are extra tags, not versions; their
+      CVEs appear in the changelog sections they prepend.
+  - id: security-page
+    roles: [security]
+    locator:
+      kind: http
+      url: https://grafana.com/security/security-advisories/
+
+artifacts:
+  # --- container image ------------------------------------------------------
+  # docker.io/grafana/grafana is the OSS image across all of history (the
+  # in-repo docker docs: "Grafana Open Source: grafana/grafana; Grafana
+  # Enterprise: grafana/grafana-enterprise"; the parallel grafana-oss
+  # repository published the same OSS images 10.0.0-13.0.2 and stopped at the
+  # 12.4.0 announcement). Variants: -ubuntu, -slim, -distroless (13.x) tags;
+  # X.Y.Z-security-N for security-only releases. Docker Hub anonymous pulls
+  # are rate-limited from this sandbox: mirror.gcr.io is the fallback channel.
+  - id: image
+    type: container-image
+    name: docker.io/grafana/grafana
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/grafana/grafana
+      - kind: oci
+        repository: mirror.gcr.io/grafana/grafana
+    exceptions:
+      - versions: [13.0.0]
+        reason: >-
+          Removed from distribution (Git Sync migration bug): only
+          CI-build-id tags (13.0.0-<id>) remain, the plain 13.0.0 tag is gone
+          from Docker Hub (checked 2026-10-01).
+    notes: >-
+      grafana/grafana-oss mirrored the same images 10.0.0-13.0.2 (irregular
+      at the end); not a separate artifact.
+
+  # --- Helm chart (independent versions, lookup by appVersion) --------------
+  # charts/grafana lived in github.com/grafana/helm-charts (index
+  # grafana.github.io/helm-charts) until chart 10.5.15 (deprecated), then
+  # moved to github.com/grafana-community/helm-charts (index
+  # grafana-community.github.io/helm-charts, full history re-published).
+  # Chart version != app version (chart 10.5.15 ships app 12.3.1; chart
+  # 13.2.7 ships app 13.2.3); not every app release ships as an appVersion
+  # (none for 13.0.10, 13.1.7, 12.4.12, ...): absence is a fact.
+  - id: chart
+    type: helm-chart
+    name: grafana
+    optional: true
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Version}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://grafana-community.github.io/helm-charts
+        chart: grafana
+      - kind: helm-repo
+        url: https://grafana.github.io/helm-charts
+        chart: grafana
+      - kind: helm-git
+        repository: github.com/grafana-community/helm-charts
+        path: charts/grafana
+        tagPattern: '^grafana-(?P<version>\d+\.\d+\.\d+)$'
+      # the ghcr OCI mirror carries only the deprecated-era chart versions
+      # (10.0.0-10.5.15)
+      - kind: oci
+        repository: ghcr.io/grafana-community/helm-charts/grafana
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/grafana-community/helm-charts
+          ref: "grafana-{{.ArtifactVersion}}"
+          path: charts/grafana/values.yaml
+      # kubeVersion becomes the chart's Kubernetes constraint; appVersion
+      # doubles as evidence of the chart->app pin
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/grafana-community/helm-charts
+          ref: "grafana-{{.ArtifactVersion}}"
+          path: charts/grafana/Chart.yaml
+
+  # --- CRDs (Grafana's Kubernetes-style app APIs, experimental) --------------
+  - id: crds-alerting-notifications
+    type: crd
+    name: notifications.alerting.grafana.app
+    availability: ">= 12.3.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-dir
+        repository: github.com/grafana/grafana
+        path: apps/alerting/notifications/definitions
+        glob: "*.yaml"
+    contents:
+      - kind: crds
+  - id: crds-alerting-rules
+    type: crd
+    name: rules.alerting.grafana.app
+    availability: ">= 12.4.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-dir
+        repository: github.com/grafana/grafana
+        path: apps/alerting/rules/definitions
+        glob: "*.yaml"
+    contents:
+      - kind: crds
+
+  # --- packages and tarballs (dl.grafana.com) -------------------------------
+  # The GitHub release assets carry the same deb/rpm with an unpredictable CI
+  # build id in the name (grafana_13.2.3_36482603486_linux_amd64.deb); the
+  # predictable dl.grafana.com paths are the channel.
+  - id: deb-package
+    type: package
+    name: grafana_amd64.deb
+    description: OSS deb package (Debian/Ubuntu, amd64).
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://dl.grafana.com/oss/release/grafana_{{.Version}}_amd64.deb"
+    exceptions:
+      - versions: [13.0.0]
+        reason: Removed from distribution (404 on dl.grafana.com, checked 2026-10-01).
+  - id: rpm-package
+    type: package
+    name: grafana_x86_64.rpm
+    description: OSS rpm package (RHEL/Fedora, x86_64).
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://dl.grafana.com/oss/release/grafana-{{.Version}}-1.x86_64.rpm"
+    exceptions:
+      - versions: [13.0.0]
+        reason: Removed from distribution (404 on dl.grafana.com, checked 2026-10-01).
+  - id: linux-tarball
+    type: package
+    name: grafana.linux-amd64.tar.gz
+    description: Standalone linux binary tarball (amd64).
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://dl.grafana.com/oss/release/grafana-{{.Version}}.linux-amd64.tar.gz"
+    exceptions:
+      - versions: [13.0.0]
+        reason: Removed from distribution (404 on dl.grafana.com, checked 2026-10-01).
+
+provenance:
+  method: discovery+review
+  author: onboarding wave 2
+  updated: "2026-10-01"
+  validatedReleases: [13.0.0, 13.0.10, 13.1.0, 13.1.7, 13.2.0, 13.2.3]
+  notes: >-
+    Started from the discovery proposal (tagPattern, github-advisories, the
+    alerting-notifications CRD repo-dir, the chart lookup by appVersion) and
+    rebuilt around the docs-at-main pattern from docs/research/grafana.md:
+    changelog and upgrade guides are merged after the tag is cut, so they are
+    read at main; the chart's canonical index is the community repository the
+    chart moved to in January 2026. Verified with `ri check grafana`.

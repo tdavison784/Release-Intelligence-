@@ -138,6 +138,9 @@ func Propose(d *Draft, vr *ValidationResult, proposals []Proposal, ta *TagAnalys
 					a.ID = orig
 					def.Artifacts[i] = a
 					replaced = true
+					if el := d.Elements[e.Replaces]; el != nil {
+						el.Origin = OriginAI // content now AI-sourced; status caps at inferred
+					}
 					setStatus(e, ProposalValidated, "validated; replaces the deterministic "+e.Replaces)
 					decide(e.Replaces, "replace", "validate.ai-variant-validated", "AI variant "+e.ProposalID+" validated where the deterministic element did not.", domain.ConfidenceMedium, domain.MethodAI)
 					usedAI = true
@@ -168,6 +171,7 @@ func Propose(d *Draft, vr *ValidationResult, proposals []Proposal, ta *TagAnalys
 		}
 		def.Artifacts[i].References = refs
 	}
+	applyElementStatuses(d, def, vr, out.Decisions, candidates, ta)
 	// definition provenance
 	prov := &catalog.DefinitionProvenance{Method: "discovery", Author: ProducerResolve, Updated: now.UTC().Format("2006-01-02")}
 	if usedAI {
@@ -306,6 +310,101 @@ func aiRejection(vr *ValidationResult, key, verdict string) (string, string) {
 		return ProposalUnverified, "not checked by the relationship checker"
 	}
 	return ProposalUnverified, verdict + ": " + vr.detail(key)
+}
+
+// applyElementStatuses classifies every kept element with the closed status
+// vocabulary and grounds it in the evidence of its candidates. AI-sourced
+// elements are never validated: their status caps at inferred.
+func applyElementStatuses(d *Draft, def *catalog.ProductDefinition, vr *ValidationResult, decisions []Decision, candidates []Candidate, ta *TagAnalysis) {
+	annotated := map[string]bool{}
+	for _, dec := range decisions {
+		switch dec.Rule {
+		case "validate.optional-lookup", "validate.single-failure-kept", "validate.availability-inferred":
+			annotated[dec.Element] = true
+		}
+	}
+	byID := map[string]Candidate{}
+	for _, c := range candidates {
+		byID[c.ID] = c
+	}
+	verdictOf := func(key string) string {
+		if key == "versioning" {
+			key = versioningKey(d)
+		}
+		return vr.Verdict(key)
+	}
+	for key, e := range d.Elements {
+		if e.Kind == "versioning" {
+			e.Status = elementStatus(e, verdictOf(key), annotated[versioningKey(d)])
+			if ta != nil && ta.Scheme == SchemeComponentGroups && e.Status == StatusDiscovered {
+				// digit roles of a mined component scheme are an assumption
+				e.Status = StatusInferred
+			}
+		} else {
+			e.Status = elementStatus(e, verdictOf(key), annotated[key])
+		}
+		e.Evidence = elementEvidence(e, byID)
+	}
+}
+
+// elementStatus derives the status of one source or artifact element.
+func elementStatus(e *Element, verdict string, annotated bool) string {
+	if e.Origin == OriginAI {
+		return StatusInferred // AI answers are never historically-validated
+	}
+	if annotated {
+		return StatusException
+	}
+	switch verdict {
+	case VerdictValidated:
+		return StatusHistoricallyValidated
+	case VerdictUnverifiable, VerdictInsufficient:
+		return StatusUnverified
+	case VerdictFailing:
+		return StatusUnverified // kept despite failing; details in decisions
+	}
+	if e.Confidence == domain.ConfidenceLow {
+		return StatusInferred // heuristic assumption, not file-grounded fact
+	}
+	return StatusDiscovered
+}
+
+// versioningKey returns the canonical versions source element key.
+func versioningKey(d *Draft) string {
+	if d == nil || d.Definition == nil {
+		return ""
+	}
+	for _, s := range d.Definition.Sources {
+		if s.HasRole(domain.RoleVersions) {
+			return "source:" + s.ID
+		}
+	}
+	return ""
+}
+
+// elementEvidence grounds an element in the evidence of its candidates (the
+// scanned file, tag ref or URL each finding came from).
+func elementEvidence(e *Element, byID map[string]Candidate) []string {
+	var out []string
+	add := func(uri string) {
+		if uri != "" && !containsStr(out, uri) && len(out) < 3 {
+			out = append(out, uri)
+		}
+	}
+	for _, id := range e.Candidates {
+		c, ok := byID[id]
+		if !ok {
+			continue
+		}
+		for _, ev := range c.Evidence {
+			add(ev.URI + "#" + ev.Locator)
+			break
+		}
+		if len(out) >= 3 {
+			break
+		}
+	}
+	return out
 }
 
 // applyVerdict applies a validation verdict to a deterministic element.

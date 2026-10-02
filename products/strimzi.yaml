@@ -1,0 +1,305 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: strimzi
+name: Strimzi
+description: >-
+  Apache Kafka operator for Kubernetes: cluster operator plus topic/user
+  operators, operand Kafka images per supported Kafka version, Kafka Connect /
+  MirrorMaker 2 build tooling images and a pinned HTTP bridge. Bare-semver tags
+  (0.x then 1.x since the 2026 v1-CRD-API release); minors are the feature and
+  breaking unit, patches are fixes-only, so upgrade paths run through every
+  consecutive minor. Release notes are CHANGELOG.md sections in the repository;
+  the Kafka support matrix is kafka-versions.yaml at the tag. Helm chart on
+  quay.io (OCI, chart version == appVersion == release version), images on
+  quay.io/strimzi with docker.io mirrors, CRDs and the install bundle as
+  release assets.
+homepage: https://strimzi.io
+
+versioning:
+  scheme: semver
+  # Bare semver tags (no "v" prefix): 0.x.y across the whole 0-major era and
+  # 1.x.y since 1.0.0. Pre-releases are -rcN suffixed and excluded; the single
+  # ancient v-prefixed tag (v0.2.0-rc1) does not match.
+  tagPattern: '^(?P<version>\d+\.\d+\.\d+(?:-rc\d+)?)$'
+  # Minors carry the breaking changes ("Major changes, deprecations, and
+  # removals" sections exist only on N.M.0; the docs define upgrade paths as
+  # consecutive minors). The 0-major scheme changes nothing structurally:
+  # 0.51.0 -> 1.0.0 is just the next line.
+  lineage: minor
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/strimzi/strimzi-kafka-operator
+      tagPattern: '^(?P<version>\d+\.\d+\.\d+(?:-rc\d+)?)$'
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: strimzi/strimzi-kafka-operator
+
+  # --- release notes --------------------------------------------------------
+  # CHANGELOG.md at the release's own tag: one "## <version>" section per
+  # release (patches included), newest first. Minors additionally carry a
+  # "### Major changes, deprecations, and removals" subsection ("### Changes,
+  # deprecations and removals" in older lines) — that subsection is the
+  # upgrade guidance.
+  - id: changelog
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/strimzi/strimzi-kafka-operator
+      ref: "{{.Tag}}"
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: '^{{regexQuote .Version}}$'
+    classify:
+      # Kafka support changes: the compatibility-bearing bullets
+      - text: '(?i)^remove support for (Apache )?Kafka'
+        category: compatibility
+        breaking: true
+        actionRequired: true
+      - text: '(?i)^(add|added) support for (Apache )?Kafka'
+        category: compatibility
+      # Kubernetes floor bumps ("From Strimzi 0.51 on, we support only
+      # Kubernetes 1.30 and newer") — the only published k8s statement
+      - text: '(?i)Kubernetes [\d.]+ (and newer|or newer|or later)|support only Kubernetes'
+        category: compatibility
+        actionRequired: true
+      # feature gates moving stages; GA/permanently enabled ones are breaking
+      - text: '(?i)feature gate.*permanently enabled'
+        category: configuration
+        breaking: true
+      - text: '(?i)feature gate.*moves to (alpha|beta|GA)'
+        category: configuration
+      # pinned companion releases (bridge, drain cleaner, access operator)
+      - text: '(?i)^(Update|Updated) (the )?(HTTP bridge|Strimzi (Drain Cleaner|Access Operator|metrics-reporter|kafka-oauth))'
+        category: dependency
+      # feature bullets that the generic keywords leave in "other" ("Support
+      # for Gateway API-based type: tlsroute listener", "In-place Pod
+      # resizing support"); anchored so removal bullets stay untouched
+      - text: '(?i)^((added |new )?support for |in-place .{0,40}support)'
+        category: feature
+      # everything under the breaking subsection needs the user's attention
+      - section: '(?i)changes, deprecations'
+        actionRequired: true
+  # The GitHub release body is a curated announcement (⚠️ v1-only API warning,
+  # "Main Changes since X.Y" highlights, Maven coordinates, an image digest
+  # table) rather than the changelog section: a fallback for the releases
+  # whose raw file cannot be fetched, not a parallel channel.
+  - id: github-release-notes
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: release-notes
+    locator:
+      kind: github-releases
+      repository: strimzi/strimzi-kafka-operator
+      ref: "{{.Tag}}"
+    extract:
+      type: whole
+    classify:
+      # digest-table lines of the "Container Images" section
+      - text: '@sha256:[0-9a-f]{12,}'
+        skip: true
+      - text: '(?i)^(Maven [Aa]rtifacts|Container Images|Upgrading from Strimzi)'
+        skip: true
+
+  # --- compatibility --------------------------------------------------------
+  # The upstream support matrix is kafka-versions.yaml at the tag (a YAML list
+  # of records: version / supported / default per Kafka version — the single
+  # source driving image builds, the operator's runtime image map and the
+  # docs). It is deliberately NOT a compatibility source here: the record
+  # selector reads one record, and a point constraint of any single version
+  # (the default, or the oldest supported) is diffed as a version SET, which
+  # renders half-true statements ("drops 4.2" when 4.2.x remains supported,
+  # "adds 4.2" when 4.2.0 already was). The matrix changes are carried
+  # accurately by the changelog bullets classified above ("Remove support for
+  # Kafka 4.1.x" → breaking / action required; "Add support for Apache Kafka
+  # X" → compatibility); see the onboarding record for the gap.
+
+  # --- security -----------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: strimzi/strimzi-kafka-operator
+    notes: >-
+      Patch changelog sections lead with "**Fixes CVE-… (GHSA-…)**" bullets
+      pointing at these advisories.
+
+artifacts:
+  # --- Helm chart -----------------------------------------------------------
+  # chart version == appVersion == release version (65 OCI tags, 0.x to 1.2.0).
+  # Canonical channel is OCI: upstream deprecated the classic Helm repository
+  # (CHANGELOG notice pointing to quay.io/strimzi-helm). The in-tree
+  # Chart.yaml is a placeholder (version 0.1.1 / appVersion 0.1.0 at every
+  # tag — rewritten by packaging), so there is no chart-metadata content; the
+  # published chart sets no kubeVersion either.
+  - id: chart
+    type: helm-chart
+    name: strimzi-kafka-operator
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/strimzi-helm/strimzi-kafka-operator
+      - kind: helm-repo
+        url: https://strimzi.io/charts
+        chart: strimzi-kafka-operator
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/strimzi/strimzi-kafka-operator
+          ref: "{{.Tag}}"
+          path: packaging/helm-charts/helm3/strimzi-kafka-operator/values.yaml
+        # defaultImageTag restates the release tag on every release; the
+        # kafkaBridge.image.tag pin is covered by the kafka-bridge-image
+        # artifact with registry evidence (not twice)
+        ignoreKeys: [defaultImageTag, kafkaBridge.image.tag]
+
+  # --- CRDs -------------------------------------------------------------------
+  # The release-asset bundle (multi-document, one file for all Kafka,
+  # KafkaConnect, KafkaTopic, KafkaUser, KafkaBridge, KafkaMirrorMaker2,
+  # KafkaRebalance, KafkaNodePool, StrimziPodSet, KafkaConnector CRDs). The
+  # in-tree packaging/install/**/04x-Crd-*.yaml files and the chart's crds/
+  # directory carry the same definitions.
+  - id: crds
+    type: crd
+    name: strimzi-crds
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://github.com/strimzi/strimzi-kafka-operator/releases/download/{{.Tag}}/strimzi-crds-{{.Version}}.yaml
+    contents:
+      - kind: crds
+
+  # --- install bundle + manifests ---------------------------------------------
+  # The release zip with all install YAMLs (cluster/topic/user operator,
+  # drain cleaner, access operator) and examples.
+  - id: install-zip
+    type: binary
+    name: strimzi-install-zip
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: https://github.com/strimzi/strimzi-kafka-operator/releases/download/{{.Tag}}/strimzi-{{.Version}}.zip
+  # The cluster-operator Deployment at the tag embeds every default image pin
+  # as env (STRIMZI_KAFKA_IMAGES map per supported Kafka version, bridge,
+  # kaniko, buildah, maven-builder). packaging/install is the source; the
+  # install/ tree mirrors it.
+  - id: cluster-operator-manifest
+    type: manifest
+    name: 060-Deployment-strimzi-cluster-operator.yaml
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/strimzi/strimzi-kafka-operator
+        path: packaging/install/cluster-operator/060-Deployment-strimzi-cluster-operator.yaml
+    contents:
+      - kind: image-refs
+
+  # --- container images (quay.io canonical, docker.io mirrors) ----------------
+  - id: operator-image
+    type: container-image
+    name: operator
+    description: >-
+      The cluster operator, entity-operator (topic + user operator) and kafka
+      init image — one repository serves all of them.
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/strimzi/operator
+      - kind: oci
+        repository: docker.io/strimzi/operator
+    references:
+      - artifact: cluster-operator-manifest
+        pattern: quay.io/strimzi/operator:{{.Tag}}
+  - id: kaniko-executor-image
+    type: container-image
+    name: kaniko-executor
+    description: Kafka Connect image build executor (pre-buildah path).
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/strimzi/kaniko-executor
+      - kind: oci
+        repository: docker.io/strimzi/kaniko-executor
+  - id: maven-builder-image
+    type: container-image
+    name: maven-builder
+    description: Builder for Kafka Connect artifacts pulled from Maven.
+    # quay.io/strimzi/maven-builder starts at 0.26.0 (0.25.0 was never pushed)
+    availability: ">= 0.26.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/strimzi/maven-builder
+      - kind: oci
+        repository: docker.io/strimzi/maven-builder
+  - id: buildah-image
+    type: container-image
+    name: buildah
+    description: Kafka Connect build executor since the UseConnectBuildWithBuildah default.
+    availability: ">= 0.49.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/strimzi/buildah
+      - kind: oci
+        repository: docker.io/strimzi/buildah
+  - id: jmxtrans-image
+    type: container-image
+    name: jmxtrans
+    availability: ">= 0.17.0, < 0.35.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/strimzi/jmxtrans
+    notes: JmxTrans support was removed in Strimzi 0.35.0.
+  # Independently versioned companion (own release train, pinned per release
+  # by the chart's kafkaBridge.image.tag; the root bridge.version file carries
+  # the same scalar). Its bump rolls KafkaBridge deployments on upgrade.
+  - id: kafka-bridge-image
+    type: container-image
+    name: kafka-bridge
+    version:
+      strategy: field
+      field: kafkaBridge.image.tag
+      from:
+        kind: repo-file
+        repository: github.com/strimzi/strimzi-kafka-operator
+        ref: "{{.Tag}}"
+        path: packaging/helm-charts/helm3/strimzi-kafka-operator/values.yaml
+    channels:
+      - kind: oci
+        repository: quay.io/strimzi/kafka-bridge
+      - kind: oci
+        repository: docker.io/strimzi/kafka-bridge
+    notes: >-
+      The quay.io/strimzi/kafka-bridge repository also carries the bridge
+      project's own releases (its train moved to 1.x in lockstep numbering);
+      this artifact resolves only the version pinned by each Strimzi release.
+
+provenance:
+  method: discovery+review
+  author: onboarding wave 2
+  updated: "2026-10-01"
+  validatedReleases: [0.25.0, 0.33.2, 0.34.0, 0.35.0, 0.45.0, 0.48.0, 0.49.0, 0.51.0, 1.0.0, 1.0.1, 1.1.0, 1.2.0]
+  notes: >-
+    Started from the discovery proposal (git-tags, CHANGELOG.md, the OCI
+    chart, quay operator image, CRD/release assets, github-advisories kept)
+    and rebuilt around the topology in docs/research/strimzi.md: the
+    placeholder Chart.yaml correction (chart version == release version on
+    OCI), the kafka-versions.yaml compatibility matrix, the build tooling
+    images with availability eras, the kafka-bridge field pin and the
+    single cluster-operator manifest (discovery had proposed four install
+    manifests; packaging/install is the source and the image-refs content is
+    what carries them).

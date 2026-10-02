@@ -1,6 +1,7 @@
 package ingest
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/normalize"
 	"github.com/tdavison784/release-intelligence/internal/sources"
 )
 
@@ -66,16 +68,17 @@ type resolvedVersion struct {
 }
 
 // resolution is the outcome of resolving an artifact's version(s). When
-// versions is empty, status/detail describe why.
+// versions is empty, status/detail describe why; statuses carries the source
+// statuses the resolution produced (index lookups, from-document fetches),
+// which runArtifact records on the artifact exactly once — also when the
+// resolution was computed earlier for a source following this artifact (see
+// run.resolutions).
 type resolution struct {
 	versions   []resolvedVersion
 	status     domain.ArtifactStatus
 	detail     string
 	coordinate string
-}
-
-func isDocumentKind(kind string) bool {
-	return kind == catalog.LocatorHTTP || kind == catalog.LocatorRepoFile || kind == catalog.LocatorRepoDir
+	statuses   []domain.SourceStatus
 }
 
 func contentUsesChannel(a catalog.Artifact) bool {
@@ -114,7 +117,8 @@ func (i *Ingester) runArtifact(ctx context.Context, r *run, a catalog.Artifact, 
 		return ar
 	}
 	ar.applicable = true
-	res := i.resolveVersions(ctx, r, ar)
+	res := i.resolutionFor(ctx, r, a)
+	ar.statuses = append(ar.statuses, res.statuses...)
 	if len(res.versions) == 0 {
 		inst := base
 		inst.Status, inst.Detail, inst.Coordinate = res.status, res.detail, res.coordinate
@@ -130,8 +134,26 @@ func (i *Ingester) runArtifact(ctx context.Context, r *run, a catalog.Artifact, 
 	return ar
 }
 
-func (i *Ingester) resolveVersions(ctx context.Context, r *run, ar *artifactRun) resolution {
-	a := ar.art
+// resolutionFor returns the version resolution of artifact a, computed at
+// most once per release: sources following a pinned artifact (see pinned.go)
+// force an early resolution before the parallel fan-out, and runArtifact
+// reuses that cached result — so the from-document is fetched once and its
+// statuses/evidence are recorded exactly once.
+func (i *Ingester) resolutionFor(ctx context.Context, r *run, a catalog.Artifact) resolution {
+	r.resMu.Lock()
+	if res, ok := r.resolutions[a.ID]; ok {
+		r.resMu.Unlock()
+		return res
+	}
+	r.resMu.Unlock()
+	res := i.resolveVersions(ctx, r, a)
+	r.resMu.Lock()
+	r.resolutions[a.ID] = res
+	r.resMu.Unlock()
+	return res
+}
+
+func (i *Ingester) resolveVersions(ctx context.Context, r *run, a catalog.Artifact) resolution {
 	switch a.Version.Strategy {
 	case catalog.VersionTemplate:
 		av, err := catalog.Render(a.Version.Template, r.rc)
@@ -143,7 +165,11 @@ func (i *Ingester) resolveVersions(ctx context.Context, r *run, ar *artifactRun)
 		}
 		return resolution{versions: []resolvedVersion{{version: av}}}
 	case catalog.VersionLookup:
-		return i.lookupVersions(ctx, r, ar)
+		return i.lookupVersions(ctx, r, a)
+	case catalog.VersionField:
+		return i.fieldVersion(ctx, r, a)
+	case catalog.VersionPattern:
+		return i.patternVersion(ctx, r, a)
 	case catalog.VersionIndependent:
 		return resolution{
 			status:     domain.ArtifactExpected,
@@ -170,13 +196,13 @@ func firstCoordinate(a catalog.Artifact, rc catalog.RenderContext) string {
 // lookupVersions searches the version index of the artifact's channels (in
 // order; the first index that answers and exposes the field decides) for
 // entries whose Field equals the rendered Match.
-func (i *Ingester) lookupVersions(ctx context.Context, r *run, ar *artifactRun) resolution {
-	a := ar.art
+func (i *Ingester) lookupVersions(ctx context.Context, r *run, a catalog.Artifact) resolution {
 	field := a.Version.Field
 	match, err := catalog.Render(a.Version.Match, r.rc)
 	if err != nil {
 		return resolution{status: domain.ArtifactExpected, detail: "lookup match: " + err.Error(), coordinate: firstCoordinate(a, r.rc)}
 	}
+	var statuses []domain.SourceStatus
 	var notes []string
 	anyIndex := false
 	for _, ch := range a.Channels {
@@ -189,7 +215,7 @@ func (i *Ingester) lookupVersions(ctx context.Context, r *run, ar *artifactRun) 
 		loc, err := renderLocator(ch, r.rc)
 		if err != nil {
 			st.State, st.Detail, _ = stateFor(err)
-			ar.statuses = append(ar.statuses, st)
+			statuses = append(statuses, st)
 			notes = append(notes, fmt.Sprintf("%s: %s", ch.Kind, st.Detail))
 			continue
 		}
@@ -197,7 +223,7 @@ func (i *Ingester) lookupVersions(ctx context.Context, r *run, ar *artifactRun) 
 		entries, err := idx.ListArtifactVersions(ctx, loc)
 		if err != nil {
 			st.State, st.Detail, _ = stateFor(err)
-			ar.statuses = append(ar.statuses, st)
+			statuses = append(statuses, st)
 			notes = append(notes, fmt.Sprintf("%s index %s: %s", ch.Kind, describeLocator(loc), st.State))
 			continue
 		}
@@ -216,18 +242,19 @@ func (i *Ingester) lookupVersions(ctx context.Context, r *run, ar *artifactRun) 
 		if !exposes {
 			st.State = domain.SourcePartial
 			st.Detail = fmt.Sprintf("version index lists %d versions but none exposes %s", len(entries), field)
-			ar.statuses = append(ar.statuses, st)
+			statuses = append(statuses, st)
 			notes = append(notes, fmt.Sprintf("%s index %s does not expose %s", ch.Kind, describeLocator(loc), field))
 			continue
 		}
 		if len(matched) == 0 {
 			st.State = domain.SourceOK
 			st.Detail = fmt.Sprintf("%d versions; none with %s %s", len(entries), field, match)
-			ar.statuses = append(ar.statuses, st)
+			statuses = append(statuses, st)
 			return resolution{
 				status:     domain.ArtifactMissing,
 				detail:     fmt.Sprintf("no %s version ships %s %s (%s lists %d versions)", typeNoun(a.Type), field, match, describeLocator(loc), len(entries)),
 				coordinate: coordinateFor(loc, ""),
+				statuses:   statuses,
 			}
 		}
 		selected := selectArtifactVersions(matched, a.Version.Select)
@@ -237,7 +264,7 @@ func (i *Ingester) lookupVersions(ctx context.Context, r *run, ar *artifactRun) 
 		}
 		st.State = domain.SourceOK
 		st.Detail = fmt.Sprintf("%d versions; %d with %s %s; selected %s", len(entries), len(matched), field, match, strings.Join(names, ", "))
-		ar.statuses = append(ar.statuses, st)
+		statuses = append(statuses, st)
 		out := make([]resolvedVersion, 0, len(selected))
 		for _, e := range selected {
 			rv := resolvedVersion{version: e.Version, digest: e.Digest}
@@ -246,7 +273,7 @@ func (i *Ingester) lookupVersions(ctx context.Context, r *run, ar *artifactRun) 
 			}
 			out = append(out, rv)
 		}
-		return resolution{versions: out}
+		return resolution{versions: out, statuses: statuses}
 	}
 	if !anyIndex {
 		return resolution{
@@ -259,7 +286,123 @@ func (i *Ingester) lookupVersions(ctx context.Context, r *run, ar *artifactRun) 
 		status:     domain.ArtifactExpected,
 		detail:     "no version index answered: " + strings.Join(notes, "; "),
 		coordinate: firstCoordinate(a, r.rc),
+		statuses:   statuses,
 	}
+}
+
+// fieldVersion resolves an artifact version with strategy "field": the
+// version is read out of a YAML document fetched at the release ref (the
+// pinned sub-component versions of an aggregating chart — appVersion,
+// dependencies[name=x].version, a values.yaml image tag — or any other
+// per-release pin inside a file). The evidence is the document itself, with
+// the path (and line) that carried the value.
+func (i *Ingester) fieldVersion(ctx context.Context, r *run, a catalog.Artifact) resolution {
+	from := a.Version.From
+	if from == nil {
+		return resolution{status: domain.ArtifactExpected, detail: "strategy field declares no from locator", coordinate: firstCoordinate(a, r.rc)}
+	}
+	loc, err := renderLocator(*from, r.rc)
+	if err != nil {
+		return resolution{status: domain.ArtifactExpected, detail: "field from locator: " + err.Error(), coordinate: firstCoordinate(a, r.rc)}
+	}
+	f := i.fetch(ctx, r.memo, loc, r.now)
+	st := domain.SourceStatus{SourceID: a.ID, Kind: loc.Kind, Version: r.v.Semver, URI: locatorURI(loc)}
+	if f.err != nil {
+		state, detail, _ := stateFor(f.err)
+		st.State, st.Detail = state, detail
+		return resolution{status: domain.ArtifactExpected, detail: fmt.Sprintf("cannot read %s: %s", describeLocator(loc), detail), coordinate: firstCoordinate(a, r.rc), statuses: []domain.SourceStatus{st}}
+	}
+	if len(f.docs) == 0 {
+		st.State, st.Detail = domain.SourceNotFound, "no document at "+describeLocator(loc)
+		return resolution{status: domain.ArtifactMissing, detail: "no document at " + describeLocator(loc), coordinate: firstCoordinate(a, r.rc), statuses: []domain.SourceStatus{st}}
+	}
+	d := f.docs[0]
+	st.URI = d.URI
+	value, line, err := i.parser().ReadYAMLPath(d.Content, a.Version.Field)
+	if err != nil {
+		if errors.Is(err, normalize.ErrNoMatch) {
+			st.State, st.Detail = domain.SourceNotFound, err.Error()
+			return resolution{status: domain.ArtifactMissing, detail: fmt.Sprintf("%s does not carry %s (%s)", describeLocator(loc), a.Version.Field, err), coordinate: firstCoordinate(a, r.rc), statuses: []domain.SourceStatus{st}}
+		}
+		st.State, st.Detail = domain.SourceError, err.Error()
+		return resolution{status: domain.ArtifactExpected, detail: fmt.Sprintf("reading %s from %s: %v", a.Version.Field, describeLocator(loc), err), coordinate: firstCoordinate(a, r.rc), statuses: []domain.SourceStatus{st}}
+	}
+	if strings.TrimSpace(value) == "" {
+		st.State, st.Detail = domain.SourcePartial, fmt.Sprintf("%s is empty", a.Version.Field)
+		return resolution{status: domain.ArtifactExpected, detail: fmt.Sprintf("%s of %s is empty", a.Version.Field, describeLocator(loc)), coordinate: firstCoordinate(a, r.rc), statuses: []domain.SourceStatus{st}}
+	}
+	st.State = domain.SourceOK
+	st.Detail = fmt.Sprintf("%s = %s (%s)", a.Version.Field, value, describeLocator(loc))
+	elocator := "$." + a.Version.Field
+	if line > 0 {
+		elocator = fmt.Sprintf("L%d", line)
+	}
+	ev := domain.NewEvidence(domain.EvidenceStructured, a.ID, d.URI, elocator, fmt.Sprintf("%s: %s", a.Version.Field, value), d.Digest, d.RetrievedAt)
+	return resolution{versions: []resolvedVersion{{version: value, evidence: []domain.Evidence{ev}}}, statuses: []domain.SourceStatus{st}}
+}
+
+// patternVersion resolves an artifact version with strategy "pattern": the
+// raw text of a document fetched at the release ref is searched with a
+// regular expression whose named capture group "version" holds the artifact
+// version — the text-mode twin of field, for per-release pins that live
+// inside strings rather than addressable YAML fields (a controller version
+// embedded in a kustomize remote-resource URL, a go.mod require line, a
+// Dockerfile FROM). The evidence is the document itself, with the line that
+// carried the match.
+func (i *Ingester) patternVersion(ctx context.Context, r *run, a catalog.Artifact) resolution {
+	from := a.Version.From
+	if from == nil {
+		return resolution{status: domain.ArtifactExpected, detail: "strategy pattern declares no from locator", coordinate: firstCoordinate(a, r.rc)}
+	}
+	re, err := catalog.CompileVersionPattern(a.Version.Pattern, r.rc)
+	if err != nil {
+		return resolution{status: domain.ArtifactExpected, detail: "version pattern: " + err.Error(), coordinate: firstCoordinate(a, r.rc)}
+	}
+	loc, err := renderLocator(*from, r.rc)
+	if err != nil {
+		return resolution{status: domain.ArtifactExpected, detail: "pattern from locator: " + err.Error(), coordinate: firstCoordinate(a, r.rc)}
+	}
+	f := i.fetch(ctx, r.memo, loc, r.now)
+	st := domain.SourceStatus{SourceID: a.ID, Kind: loc.Kind, Version: r.v.Semver, URI: locatorURI(loc)}
+	if f.err != nil {
+		state, detail, _ := stateFor(f.err)
+		st.State, st.Detail = state, detail
+		return resolution{status: domain.ArtifactExpected, detail: fmt.Sprintf("cannot read %s: %s", describeLocator(loc), detail), coordinate: firstCoordinate(a, r.rc), statuses: []domain.SourceStatus{st}}
+	}
+	if len(f.docs) == 0 {
+		st.State, st.Detail = domain.SourceNotFound, "no document at "+describeLocator(loc)
+		return resolution{status: domain.ArtifactMissing, detail: "no document at " + describeLocator(loc), coordinate: firstCoordinate(a, r.rc), statuses: []domain.SourceStatus{st}}
+	}
+	d := f.docs[0]
+	st.URI = d.URI
+	m := re.FindSubmatchIndex(d.Content)
+	if m == nil {
+		st.State, st.Detail = domain.SourceNotFound, fmt.Sprintf("no match for the version pattern in %s", describeLocator(loc))
+		return resolution{status: domain.ArtifactMissing, detail: fmt.Sprintf("%s does not match the version pattern", describeLocator(loc)), coordinate: firstCoordinate(a, r.rc), statuses: []domain.SourceStatus{st}}
+	}
+	gi := re.SubexpIndex(catalog.VersionPatternGroup)
+	value := ""
+	if gi >= 0 && 2*gi+1 < len(m) && m[2*gi] >= 0 {
+		value = string(d.Content[m[2*gi]:m[2*gi+1]])
+	}
+	if strings.TrimSpace(value) == "" {
+		st.State, st.Detail = domain.SourcePartial, "the version capture group matched an empty string"
+		return resolution{status: domain.ArtifactExpected, detail: fmt.Sprintf("version capture group of %s is empty", describeLocator(loc)), coordinate: firstCoordinate(a, r.rc), statuses: []domain.SourceStatus{st}}
+	}
+	line := 1 + bytes.Count(d.Content[:m[0]], []byte("\n"))
+	lineStart := bytes.LastIndexByte(d.Content[:m[0]], '\n')
+	lineEnd := bytes.IndexByte(d.Content[m[0]:], '\n')
+	excerpt := d.Content[m[0]:]
+	if lineStart >= 0 {
+		excerpt = d.Content[lineStart+1:]
+	}
+	if lineEnd >= 0 {
+		excerpt = excerpt[:lineEnd]
+	}
+	st.State = domain.SourceOK
+	st.Detail = fmt.Sprintf("pattern capture %s = %s (%s)", catalog.VersionPatternGroup, value, describeLocator(loc))
+	ev := domain.NewEvidence(domain.EvidenceStructured, a.ID, d.URI, fmt.Sprintf("L%d", line), strings.TrimSpace(string(excerpt)), d.Digest, d.RetrievedAt)
+	return resolution{versions: []resolvedVersion{{version: value, evidence: []domain.Evidence{ev}}}, statuses: []domain.SourceStatus{st}}
 }
 
 func typeNoun(t domain.ArtifactType) string {

@@ -158,6 +158,12 @@ func TestRenderHidesDependencyNotesWithoutVerbose(t *testing.T) {
 	if strings.Contains(plain, note) || strings.Contains(plain, "Helm was upgraded to 3.18.4") {
 		t.Errorf("dependency release notes must be hidden without Verbose:\n%s", plain)
 	}
+	// "Dex was upgraded to v2.43.0; review the Dex release notes …" carries a
+	// review pointer, so it is a plain dependency note, not routine; the bare
+	// "chore(deps): bump github.com/go-git/go-git/v5 …" is routine.
+	if !strings.Contains(plain, "Routine maintenance (1): 1 dependency bump") {
+		t.Errorf("expected the routine summary line:\n%s", plain)
+	}
 	if !strings.Contains(plain, "2 dependency updates") || !strings.Contains(plain, "not shown; use verbose output") {
 		t.Errorf("expected a count hint for the hidden dependency notes:\n%s", plain)
 	}
@@ -169,14 +175,14 @@ func TestRenderHidesDependencyNotesWithoutVerbose(t *testing.T) {
 		t.Errorf("verbose output lists the dependency notes and has no hint:\n%s", verbose)
 	}
 
-	// A dependency note that is breaking or needs action is never hidden.
+	// A dependency note that is breaking or needs action is never routine.
 	from := bare("v1.0.0")
 	to := bare("v1.1.0").
 		note("notes", domain.RoleReleaseNotes, "https://notes", "Dependencies", "Bump the Go toolchain to 1.23", domain.CategoryDependency).
 		note("notes", domain.RoleReleaseNotes, "https://notes", "Dependencies", "Postgres 12 is no longer supported", domain.CategoryDependency, action)
 	out := string(render(t, mustBuild(t, simpleInput(from, to)), RenderOptions{}))
-	if strings.Contains(out, "Bump the Go toolchain") || !strings.Contains(out, "Postgres 12 is no longer supported") || !strings.Contains(out, "1 dependency update ") {
-		t.Errorf("only plain dependency notes are hidden:\n%s", out)
+	if strings.Contains(out, "Bump the Go toolchain") || !strings.Contains(out, "Postgres 12 is no longer supported") || !strings.Contains(out, "Routine maintenance (1): 1 dependency bump") {
+		t.Errorf("plain bump notes become routine, action-required ones stay visible:\n%s", out)
 	}
 }
 

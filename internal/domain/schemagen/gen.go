@@ -24,6 +24,7 @@ type target struct {
 var targets = []target{
 	{"upgrade-edge.schema.json", "https://ri.dev/schemas/upgrade-edge/v1alpha1.json", reflect.TypeOf(domain.UpgradeEdge{})},
 	{"release.schema.json", "https://ri.dev/schemas/release/v1alpha1.json", reflect.TypeOf(domain.Release{})},
+	{"impact-report.schema.json", "https://ri.dev/schemas/impact-report/v1alpha1.json", reflect.TypeOf(domain.ImpactReport{})},
 }
 
 var timeType = reflect.TypeOf(time.Time{})

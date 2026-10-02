@@ -1,0 +1,11 @@
+# A kustomization overlaying the base manifests. Repo mode inventories the
+# referenced resources as plain manifests (no kustomize build) and records
+# the images: override as a pinned reference.
+resources:
+  - ../base/namespace.yaml
+  - ../base/deployment.yaml
+  - ../base/certificate.yaml
+
+images:
+  - name: quay.io/jetstack/cert-manager-controller
+    newTag: v1.17.0

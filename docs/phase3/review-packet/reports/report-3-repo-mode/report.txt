@@ -1,0 +1,121 @@
+cert-manager v1.17.0 → v1.18.0 — impact on this environment
+51 upstream changes analyzed
+ACTION REQUIRED:    1
+REVIEW REQUIRED:    3
+INFORMATIONAL:    6
+NOT AFFECTED:    3
+UNKNOWN:   45
+
+Environment
+  kubernetes 1.28
+  values: 9 keys set
+  manifests: 6 docs, 5 apiVersions, 45 field paths
+  installed CRDs: 1
+  images: 5
+  docs/phase3/review-packet/example-env/customer-repo/.github/workflows/mirror.yaml  sha256:495adb34bc62977e23f65eae56289dcaeb8f9f3f3ce0d2043e3cc71f7cb78868
+  docs/phase3/review-packet/example-env/customer-repo/apps/cert-manager-argocd.yaml  sha256:9bedcbb56147bd5266828eb6d920e43f5e40bc1b7dec971658697b36854c7312
+  docs/phase3/review-packet/example-env/customer-repo/base/certificate.yaml  sha256:06339df1a599d70b0e4c622d41630dd9cb4de8514e7c0d67d3a990f650d3a434
+  docs/phase3/review-packet/example-env/customer-repo/base/deployment.yaml  sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9
+  docs/phase3/review-packet/example-env/customer-repo/base/namespace.yaml  sha256:01d103b70c0c8c3e1b4d13f62b82c3761a5a535817153b5ea2aec2dbcb30b07b
+  docs/phase3/review-packet/example-env/customer-repo/clusters/dev/values-cert-manager.yaml  sha256:a20b528b47151d40c1296e56fabf4cb7935cd27f04fca8c3fea64b0ede7287d8
+  docs/phase3/review-packet/example-env/customer-repo/clusters/prod/values-cert-manager.yaml  sha256:3dc2435c9a131ab168b9f1f3279505e9a272e78a6a3982e8b46b9841626c92ad
+  docs/phase3/review-packet/example-env/customer-repo/crds/certificates.cert-manager.io.yaml  sha256:878adaf53ac492b0f32bf288bdec5e20897a8314968661cbaabae69872d86614
+  docs/phase3/review-packet/example-env/customer-repo/flux/cert-manager-helmrelease.yaml  sha256:a885a7dc47b955389a3ea80de2316e1231ddd9d2ed01ace33a82fde8a6edfcda
+  docs/phase3/review-packet/example-env/customer-repo/helmfile.yaml  sha256:4fb414cd631d8b9e11f2dc0fb1a36149356b7d94be31d2ca438cab0d1965cc31
+  docs/phase3/review-packet/example-env/customer-repo/kustomize/kustomization.yaml  sha256:23938e45483df782e8ecf9a3b6f67808612029ac6b0255380b294bfdf6ccc625
+  docs/phase3/review-packet/example-env/customer-repo/terraform/main.tf  sha256:413269160df56b49638692294ef950bfd96733f6811183984defd81de40c4ac4
+
+Action required (1)
+  1. Cluster Kubernetes 1.28 is below the supported range 1.29–1.33 of v1.18.0 [imp-7e9a11c2834d]
+     evidence: upstream: README L306 · upstream: README L307 · environment: flag:--kubernetes
+     v1.18.0 requires Kubernetes 1.29–1.33; the cluster runs 1.28, which is also already outside the source release's range (v1.17.0): the exclusion is pre-existing — this upgrade does not cause it, but the upgrade is still blocked. Plan the cluster upgrade at or above 1.29 before upgrading v1.18.0. The chart's kubeVersion constraint itself admits 1.28; the narrower supported range is the project's tested-matrix statement (Helm will not refuse the install).
+     environment: kubernetes 1.28  (ev-7ed6c5e2142e)
+     upstream evidence: ev-94a8abc4e147, ev-904e0ae133bd
+
+Review required (3)
+  1. Image you reference moves quay.io/jetstack/cert-manager-controller:v1.17.0 → quay.io/jetstack/cert-manager-controller:v1.18.0 [imp-123e6594ecd5]
+     evidence: upstream: cert-manager L13047 · upstream: cert-manager L13151 · environment: mirror.yaml:L12
+     The release publishes quay.io/jetstack/cert-manager-controller:v1.18.0 (was quay.io/jetstack/cert-manager-controller:v1.17.0). Your environment pins the old reference; update it (or your mirror) to pick up v1.18.0.
+     environment: image quay.io/jetstack/cert-manager-controller:v1.17.0  (ev-481fdde9b6ab)
+     upstream evidence: ev-87e79b56b7a6, ev-e3abe417763b
+  2. Image you reference moves quay.io/jetstack/cert-manager-webhook:v1.17.0 → quay.io/jetstack/cert-manager-webhook:v1.18.0 [imp-a137dded3ed6]
+     evidence: upstream: cert-manager L13129 · upstream: cert-manager L13233 · environment: mirror.yaml:L16
+     The release publishes quay.io/jetstack/cert-manager-webhook:v1.18.0 (was quay.io/jetstack/cert-manager-webhook:v1.17.0). Your environment pins the old reference; update it (or your mirror) to pick up v1.18.0.
+     environment: image quay.io/jetstack/cert-manager-webhook:v1.17.0  (ev-864b52d2410f)
+     upstream evidence: ev-6048662cc28a, ev-4ada24bd69ce
+  3. Your values already set global.rbac.disableHTTPChallengesRole, which v1.18.0 introduces [imp-0dae408f0c17]
+     evidence: upstream: deploy/charts/cert-manager/values.yaml · +1 more · environment: values-cert-manager.yaml:$.global.rbac.disableHTTPChallengesRole (L11)
+     upstream change: New Helm value `global.rbac.disableHTTPChallengesRole` (helm-values) [chg-0d81e035fa84]
+     A key your values file already set (previously ignored by the chart) becomes live with this release, or sits directly under/over a newly added section. Check that the value you set is what you intend the new key to have.
+     environment: values-key global.rbac.disableHTTPChallengesRole  (ev-fb2e33f3320d)
+     upstream evidence: ev-717ddb6f40cd, ev-7a67f12867b2
+
+Informational (6)
+  1. Security fix ships with v1.18.0: Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp` [imp-d076732b11f9]
+     evidence: upstream: release-notes-1.18 L350-L350 (v1.18.0 › Bug or Regression)
+     upstream change: Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp` (security) [chg-6db1e2247a3e]
+     The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: GHSA-mh63-6h87-95cp.
+     upstream evidence: ev-695a6d7c7c6e
+  2. Security fix ships with v1.18.0: Bump `go-jose` dependency to address `CVE-2025-27144` [imp-8d52c4440ee1]
+     evidence: upstream: release-notes-1.18 L347-L347 (v1.18.0 › Bug or Regression)
+     upstream change: Bump `go-jose` dependency to address `CVE-2025-27144` (security) [chg-4da7f0d97cf0]
+     The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: CVE-2025-27144.
+     upstream evidence: ev-8a902cdb88e1
+  3. Security fix ships with v1.18.0: Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77` [imp-b5e9107c69be]
+     evidence: upstream: release-notes-1.18 L349-L349 (v1.18.0 › Bug or Regression)
+     upstream change: Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77` (security) [chg-b5b5a645584a]
+     The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: GHSA-hcg3-q754-cr77.
+     upstream evidence: ev-8e895983c9dd
+  4. Security fix ships with v1.18.0: Bump `golang.org/x/oauth2` to patch `CVE-2025-22868` [imp-8d30fe09df0f]
+     evidence: upstream: release-notes-1.18 L348-L348 (v1.18.0 › Bug or Regression)
+     upstream change: Bump `golang.org/x/oauth2` to patch `CVE-2025-22868` (security) [chg-fb783ed69ea8]
+     The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: CVE-2025-22868.
+     upstream evidence: ev-c6232bc5c8d4
+  5. Security fix ships with v1.18.0: Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`) [imp-bbdff364a353]
+     evidence: upstream: release-notes-1.18 L360-L360 (v1.18.0 › Bug or Regression) · upstream: release-notes-1.18 L368-L368 (v1.18.0 › Other (Cleanup or Flake))
+     upstream change: Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`) (security) [chg-1b9f0e5312e3]
+     The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: CVE-2025-22870.
+     upstream evidence: ev-bfe1f4f54646, ev-cb5102bd647d
+  6. You pin `prometheus.servicemonitor.targetPort`; its default change in v1.18.0 does not apply to you [imp-6cae808def98]
+     evidence: upstream: deploy/charts/cert-manager/values.yaml · +1 more · environment: values-cert-manager.yaml:$.prometheus.servicemonitor.targetPort (L8)
+     upstream change: Default of Helm value `prometheus.servicemonitor.targetPort` changed: 9402 → "http-metrics" (helm-values) [chg-917796919822]
+     You set prometheus.servicemonitor.targetPort explicitly. Helm keeps your value and discards the new default; your deployment does not change. Re-check the value against the new defaults when you next edit it.
+     environment: values-key prometheus.servicemonitor.targetPort  (ev-25503752df6f)
+     upstream evidence: ev-717ddb6f40cd, ev-7a67f12867b2
+
+Unknown — insufficient evidence (45)
+  · 40 × note-derived changes the deterministic join cannot compare
+      run -enrich for AI suggestions on these
+  · 4 × computed diff rules without a join rule
+  · 1 × environment dimension not supplied: openshift cluster version
+  45 total — render with --show-unknown to list every item
+
+Warnings (7)
+  · Security advisories were not fully retrieved (github-advisories: unavailable — fetch https://api.github.com/repos/cert-manager/cert-manager/security-advisories?per_page=100&state=published: not in cache (offline mode)); advisory matching may be incomplete
+  · 2 artifacts of v1.18.0 only expected (not observed or referenced): helm-chart, startupapicheck-image
+  · skipped docs/phase3/review-packet/example-env/customer-repo/charts/vendored: a Helm chart source tree (its values and templates are chart inputs, not customer environment)
+  · helmfile helmfile.yaml: templating (go templates, environments) is not evaluated; releases are inventoried from the literal file
+  · kustomization kustomize/kustomization.yaml is not built with kustomize: its resources are inventoried as plain manifests, patches and transformers are not applied
+  · repo mode found 2 values files; all are applied, the last one wins per key
+  · HelmRelease cert-manager uses spec.valuesFrom, which references cluster objects; those values are not readable from files
+
+Evidence
+  ev-7ed6c5e2142e  input  flag:--kubernetes  
+  ev-481fdde9b6ab  local-file  docs/phase3/review-packet/example-env/customer-repo/.github/workflows/mirror.yaml  L12
+  ev-864b52d2410f  local-file  docs/phase3/review-packet/example-env/customer-repo/.github/workflows/mirror.yaml  L16
+  ev-fb2e33f3320d  local-file  docs/phase3/review-packet/example-env/customer-repo/clusters/prod/values-cert-manager.yaml  $.global.rbac.disableHTTPChallengesRole (L11)
+  ev-25503752df6f  local-file  docs/phase3/review-packet/example-env/customer-repo/clusters/prod/values-cert-manager.yaml  $.prometheus.servicemonitor.targetPort (L8)
+  ev-94a8abc4e147  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md  L306
+  ev-904e0ae133bd  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md  L307
+  ev-87e79b56b7a6  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml  L13047
+  ev-e3abe417763b  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml  L13151
+  ev-6048662cc28a  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml  L13129
+  ev-4ada24bd69ce  release-asset  https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml  L13233
+  ev-717ddb6f40cd  structured  https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml  deploy/charts/cert-manager/values.yaml
+  ev-7a67f12867b2  structured  https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml  deploy/charts/cert-manager/values.yaml
+  ev-695a6d7c7c6e  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L350-L350 (v1.18.0 › Bug or Regression)
+  ev-8a902cdb88e1  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L347-L347 (v1.18.0 › Bug or Regression)
+  ev-8e895983c9dd  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L349-L349 (v1.18.0 › Bug or Regression)
+  ev-c6232bc5c8d4  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L348-L348 (v1.18.0 › Bug or Regression)
+  ev-bfe1f4f54646  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L360-L360 (v1.18.0 › Bug or Regression)
+  ev-cb5102bd647d  document  https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md  L368-L368 (v1.18.0 › Other (Cleanup or Flake))

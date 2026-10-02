@@ -1,0 +1,3118 @@
+{
+ "caseId": "cilium-1.16-1.17",
+ "recordedFrom": "cilium/edges/1.16.1_1.17.0.json (stored eval run of 2026-10-01, commit 0cf815f)",
+ "changes": [
+  {
+   "id": "chg-fbd542608fe3",
+   "category": "removal",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "The previously deprecated `clustermesh-ip-identities-sync-timeout` flag has been removed in favor of `clustermesh-sync-timeout`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cccfc2f4bcd7",
+   "category": "removal",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "The previously deprecated `metallb-bgp` flags `bgp-config-path`, `bgp-announce-lb-ip` and `bgp-announce-pod-cidr` have been removed",
+   "detail": "The previously deprecated `metallb-bgp` flags `bgp-config-path`, `bgp-announce-lb-ip` and `bgp-announce-pod-cidr` have been removed. Users are now required to use Cilium BGP control plane for BGP advertisements.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-24d33d82d7bd",
+   "category": "removal",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "The previously deprecated built-in WireGuard userspace-mode fallback (Helm `wireguard.userspaceFallback`) has been removed",
+   "detail": "The previously deprecated built-in WireGuard userspace-mode fallback (Helm `wireguard.userspaceFallback`) has been removed. Users of WireGuard transparent encryption are required to use a Linux kernel with WireGuard support.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8d1c442dccb7",
+   "category": "helm-values",
+   "breaking": true,
+   "actionRequired": true,
+   "title": "Helm values section `bgp.*` removed (3 keys)",
+   "detail": "`bgp` of chart cilium no longer exists in v1.17.0. Remove these keys from your values and migrate the configuration they controlled; values set here no longer take effect (or are rejected when the chart validates values against a schema).\nRemoved keys:\nbgp.announce.loadbalancerIP (default false)\nbgp.announce.podCIDR (default false)\nbgp.enabled (default false)",
+   "release": "",
+   "subjects": [
+    "bgp.announce.loadbalancerIP",
+    "bgp.announce.podCIDR",
+    "bgp.enabled"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-29ce760f1a2d",
+   "category": "crd-schema",
+   "breaking": true,
+   "actionRequired": false,
+   "title": "CiliumEndpoint v2 schema: 1 field removed: `status.visibility-policy-status`",
+   "detail": "Fields no longer in the cilium.io/v2 schema of ciliumendpoints.cilium.io are pruned from stored objects and rejected or dropped in manifests. Remove them from your resources.\nRemoved paths:\nstatus.visibility-policy-status",
+   "release": "",
+   "subjects": [
+    "status.visibility-policy-status"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-64d19a6522e7",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Cilium could previously be run in a configuration where the Etcd instances that distribute Cilium state between nodes would be managed in pod network by Cilium…",
+   "detail": "Cilium could previously be run in a configuration where the Etcd instances that distribute Cilium state between nodes would be managed in pod network by Cilium itself. This support, which had been previously deprecated as complicated and error prone, has now been removed. Refer to k8s_install_etcd for alternatives for running Cilium with Etcd.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6e3629ecb3bf",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Cilium now supports services protocol differentiation, which allows the agent to distinguish two services on the same port with different protocols (e.g. TCP…",
+   "detail": "Cilium now supports services protocol differentiation, which allows the agent to distinguish two services on the same port with different protocols (e.g. TCP and UDP). This feature, enabled by default, can be controlled with the `--bpf-lb-proto-diff` flag. After the upgrade, existing services without a protocol set will be preserved as such, to avoid any connection disruptions, and will need to be deleted and recreated in order for their protocol to be taken into account by the agent. In case of downgrades to a version that doesn't support services protocol differentiation, existing services with the protocol set will be deleted and recreated, without the protocol, by the agent, causing connection disruptions for such services.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d44cab8fff59",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "For IPsec, support for a single key has been removed",
+   "detail": "For IPsec, support for a single key has been removed. Per-tunnel keys will now be used regardless of the presence of the `+` sign in the secret.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-840c3af6146d",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Layer 7 policy support for Cassandra and Memcached have been deprecated and their getting started guides have been removed",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e3f74dceec11",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "MTU auto-detection is now continuous during agent lifetime, changing device MTU no longer requires restarting the agent to pick up the new MTU",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d49b29660255",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "MTU auto-detection will now use the lowest MTU of all external interfaces",
+   "detail": "MTU auto-detection will now use the lowest MTU of all external interfaces. Before, only the primary interface was considered. One exception to this is in ENI mode where the secondary interfaces are not considered for MTU auto-detection. MTU can still be configured manually via the `MTU` helm option, `--mtu` agent flag or `mtu` option in CNI configuration.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-606740797aec",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Operating Cilium in `--datapath-mode=lb-only` for plain Docker mode now requires to add an additional `--enable-k8s=false` to the command line, otherwise it is…",
+   "detail": "Operating Cilium in `--datapath-mode=lb-only` for plain Docker mode now requires to add an additional `--enable-k8s=false` to the command line, otherwise it is assumed that Kubernetes is present.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-07853552ee8e",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Support for Consul, deprecated since v1.12, has been removed",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-25f2b09f6c82",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Support for L7 protocol visibility using Pod annotations (`policy.cilium.io/proxy-visibility`), deprecated since v1.15, has been removed",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-185edee7e447",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Support for `metallb-bgp`, deprecated since 1.14, has been removed",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-5630efd4738a",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "TLS Visibility can now pass secrets to Envoy via SDS instead of inline via NPDS",
+   "detail": "TLS Visibility can now pass secrets to Envoy via SDS instead of inline via NPDS. This comes with some configuration changes: * The Helm value `tls.secretsBackend`, which could be set to `local` or `k8s` (which would grant the Agent read access to all Secrets in the cluster so it could send Secrets inline) has been deprecated and replaced with `tls.readSecretsOnlyFromSecretsNamespace`, which defaults to `true` (the agent can only read TLS Visibility Secrets from the namespace configured in the new `tls.secretsNamespace` setting) or `false` (the agent can read TLS Visibility Secrets from anywhere in the cluster, equivalent to `tls.secretsBackend: k8s`) * A new Helm value `tls.secretSync` has been added, which controls if TLS Visibility Secrets will be synchronized to the configured secrets namespace (`tls.secretsNamespace.name`) by the Cilium Operator, and if SDS will be used. SDS usage requires that secret synchronization be enabled. * The defaults for new clusters enable SDS via `tls.readSecretsOnlyFromSecretsNamespace: true` and `tls.secretSync.enabled: true` * The defaults for upgraded clusters (where `upgradeCompatibility` is `v1.16`) do not enable SDS. They are…",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-10d7b3c2d2a9",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The Cilium cluster name validation cannot be bypassed anymore, both for the local and remote clusters",
+   "detail": "The Cilium cluster name validation cannot be bypassed anymore, both for the local and remote clusters. The cluster name is strictly enforced to consist of at most 32 lower case alphanumeric characters and '-', start and end with an alphanumeric character.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-639db3f1694a",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The Cilium status API now reports the KVStore subsystem with `Disabled` state when disabled, instead of `OK` state and `Disabled` message",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-d5536e57f7c8",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The Helm option `hubble.relay.dialTimeout` has been deprecated (now a no-op) and will be removed in Cilium 1.18",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ae6b6d6407e7",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The Helm options `hubble.tls.server.cert`, `hubble.tls.server.key`, `hubble.relay.tls.client.cert`, `hubble.relay.tls.client.key`, `hubble.relay.tls.server.cer…",
+   "detail": "The Helm options `hubble.tls.server.cert`, `hubble.tls.server.key`, `hubble.relay.tls.client.cert`, `hubble.relay.tls.client.key`, `hubble.relay.tls.server.cert`, `hubble.relay.tls.server.key`, `hubble.ui.tls.client.cert`, and `hubble.ui.tls.client.key` have been deprecated in favor of the associated `existingSecret` options and will be removed in a future release.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a979cf93f1b3",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The Kubernetes clients used by Cilium Agent and Cilium Operator now have separately configurable rate limits",
+   "detail": "The Kubernetes clients used by Cilium Agent and Cilium Operator now have separately configurable rate limits. The default rate limit for Cilium Operator K8s clients has been increased to 100 QPS/200 Burst. To configure the rate limit for Cilium Operator, use the `--operator-k8s-client-qps` and `--operator-k8s-client-burst` flags or the corresponding Helm values.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-125fc784a2e8",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The `CONNTRACK_LOCAL` option has been deprecated and will be removed in a future release",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-991133fe1de5",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The `metallb-bgp` integration Helm options `bgp.enabled`, `bgp.announce.podCIDR`, and `bgp.announce.loadbalancerIP` have been removed",
+   "detail": "The `metallb-bgp` integration Helm options `bgp.enabled`, `bgp.announce.podCIDR`, and `bgp.announce.loadbalancerIP` have been removed. Users are now required to use Cilium BGP control plane options available under `bgpControlPlane` for BGP announcements.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e45fbe2aa651",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The default value of `dnsProxy.endpointMaxIpPerHostname` and its corresponding agent option has been increased from 50 to 1000 to reflect improved scaling of…",
+   "detail": "The default value of `dnsProxy.endpointMaxIpPerHostname` and its corresponding agent option has been increased from 50 to 1000 to reflect improved scaling of toFQDNs policies and to better handle domains which return a large number of IPs with short TTLs.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2e854876653c",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The default value of `hubble.tls.auto.certValidityDuration` has been lowered from 1095 days to 365 days because recent versions of MacOS will fail to validate…",
+   "detail": "The default value of `hubble.tls.auto.certValidityDuration` has been lowered from 1095 days to 365 days because recent versions of MacOS will fail to validate certificates with expirations longer than 825 days.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-353ab9f172e5",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The flag `k8s-mode` (and related flags `cilium-agent-container-name`, `k8s-namespace` & `k8s-label`) have been deprecated and will be removed in a Cilium 1.18",
+   "detail": "The flag `k8s-mode` (and related flags `cilium-agent-container-name`, `k8s-namespace` & `k8s-label`) have been deprecated and will be removed in a Cilium 1.18. Cilium CLI should be used to gather a sysdump from a K8s cluster.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-2dc5cbe8d7b7",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The option to run a synchronous probe using `cilium-health status --probe` is no longer supported, and is now a hidden option that returns the results of the…",
+   "detail": "The option to run a synchronous probe using `cilium-health status --probe` is no longer supported, and is now a hidden option that returns the results of the most recent cached probe. It will be removed in a future release.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f45934d69b41",
+   "category": "migration",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "the `--cluster` behavior changed to show flows emitted from nodes outside of the provided cluster name (either coming from or going to the target cluster)",
+   "detail": "the `--cluster` behavior changed to show flows emitted from nodes outside of the provided cluster name (either coming from or going to the target cluster). This change brings consistency between the `--cluster` and `--namespace` flags and removed the incompatibility between the `--cluster` and `--node-name` flags. The previous behavior of `--cluster foo` can be reproduced with `--node-name foo/` (shows all flows emitted from a node in cluster `foo`).",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-112238b949f3",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_cidrgroup_translation_time_stats_seconds` has been removed, as the measured code path no longer exists",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3fab19e27e23",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_triggers_policy_update_call_duration` has been removed",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f3fe36368c4d",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_triggers_policy_update_folds` has been removed",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3c5a002aaf7a",
+   "category": "removal",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_triggers_policy_update_total` has been removed",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-585f1d86bfa0",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The External Workloads feature has been deprecated and will be removed in v1.18",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-87999cdb612b",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The `--enable-k8s-terminating-endpoint` cilium-agent flag (`enableK8sTerminatingEndpoint` in Helm) has been deprecated",
+   "detail": "The `--enable-k8s-terminating-endpoint` cilium-agent flag (`enableK8sTerminatingEndpoint` in Helm) has been deprecated. The feature will be unconditionally enabled in v1.18.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-fa8b2d90c871",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The `--k8s-watcher-endpoint-selector` cilium-agent flag didn't have any effect since v1.14 and has been deprecated",
+   "detail": "The `--k8s-watcher-endpoint-selector` cilium-agent flag didn't have any effect since v1.14 and has been deprecated. It will be remove in v1.18.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8a6475bc992e",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The `cilium-docker-plugin` has been deprecated and is planned to be removed in v1.18",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-052c98fae481",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The high-scale mode for ipcache has been deprecated and will be removed in v1.18",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6a1236c12830",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "The hubble-relay flag `--dial-timeout` has been deprecated (now a no-op) and will be removed in Cilium 1.18",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-253a5b973489",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_node_connectivity_latency_seconds` is now deprecated",
+   "detail": "`cilium_node_connectivity_latency_seconds` is now deprecated. Please use `cilium_node_health_connectivity_latency_seconds` instead.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-36bfaf375766",
+   "category": "deprecation",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_node_connectivity_status` is now deprecated",
+   "detail": "`cilium_node_connectivity_status` is now deprecated. Please use `cilium_node_health_connectivity_status` instead.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-f65c27b0d85b",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Helm value `encryption.wireguard.userspaceFallback` removed",
+   "detail": "Values set at this key no longer take effect after the upgrade (or are rejected when the chart validates values against a schema). Default in v1.16.1: false.\nDocumentation in v1.16.1: Enables the fallback to the user-space implementation (deprecated).",
+   "release": "",
+   "subjects": [
+    "encryption.wireguard.userspaceFallback"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-7fee6bc258d2",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-24qp-4xx8-3jvj (CVE-2025-30162) still affects target v1.17.0: East-west traffic not subject to egress policy enforcement for requests via Gateway API load…",
+   "detail": "Severity: low. Affected versions: >= 1.16.0, < 1.16.8 || >= 1.17.0, < 1.17.2 || >= 1.15.0, < 1.15.15. Patched: v1.16.8, v1.17.2, v1.15.15. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-24qp-4xx8-3jvj"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-24qp-4xx8-3jvj"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2025-30162"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-b3a276eb746b",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-33qq-jq9c-6gcc (CVE-2026-83620) still affects target v1.17.0: Identity spoofing in Cilium mutual authentication via certificate substitution",
+   "detail": "Severity: high. Affected versions: >= 1.19.0, < 1.19.6 || >= 1.18.0, < 1.18.12 || >= 1.14.0, < 1.17.18. Patched: v1.19.6, v1.18.12, v1.17.18. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-33qq-jq9c-6gcc"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-33qq-jq9c-6gcc"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2026-83620"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-48e7549aaed8",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-38pp-6gcp-rqvm (CVE-2025-64715) still affects target v1.17.0: Misconfigured toGroups in policies can lead to unrestricted egress traffic",
+   "detail": "Severity: medium. Affected versions: >= 1.18.0, < 1.18.4 || >= 1.17.0, < 1.17.10 || < 1.16.17. Patched: v1.18.4, v1.17.10, v1.16.17. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-38pp-6gcp-rqvm"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-38pp-6gcp-rqvm"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2025-64715"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-d3dab9467dae",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-3fcv-jvfp-m4q9 (CVE-2026-49445) still affects target v1.17.0: Sensitive information disclosure and cluster disruption via local Envoy admin socket access",
+   "detail": "Severity: critical. Affected versions: >= 1.19.0, < 1.19.2 || >= 1.18.0, < 1.18.8 || < 1.17.14. Patched: 1.19.2, 1.18.8, 1.17.14. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-3fcv-jvfp-m4q9"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-3fcv-jvfp-m4q9"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2026-49445"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-f2e91acf6624",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-5vxx-c285-pcq4 (CVE-2025-32793) still affects target v1.17.0: Packets from terminating endpoints may not be encrypted in Wireguard-enabled clusters",
+   "detail": "Severity: medium. Affected versions: >= 1.13.0, < 1.15.16 || >= 1.16.0, < 1.16.9 || >= 1.17.0, < 1.17.3. Patched: v1.15.16, v1.16.9, v1.17.3. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-5vxx-c285-pcq4"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-5vxx-c285-pcq4"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2025-32793"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-f0c33214d8d4",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-c6pf-2v8j-96mc (CVE-2025-30163) still affects target v1.17.0: Node based network policies may incorrectly allow workload traffic",
+   "detail": "Severity: low. Affected versions: >= 1.16.0, < 1.16.8 || >= 1.17.0, < 1.17.2. Patched: v1.16.8, v1.17.2. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-c6pf-2v8j-96mc"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-c6pf-2v8j-96mc"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2025-30163"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-86e3bd9e4a8d",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-gj49-89wh-h4gj (CVE-2026-41520) still affects target v1.17.0: Sensitive information included in cilium-bugtool debug archive",
+   "detail": "Severity: high. Affected versions: < 1.17.15 || >= 1.18.0, < 1.18.9 || >= 1.19.0, < 1.19.3. Patched: 1.17.15, 1.18.9, 1.19.3. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-gj49-89wh-h4gj"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-gj49-89wh-h4gj"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2026-41520"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-3704640bad0e",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-hxv8-4j4r-cqgv (CVE-2026-33726) still affects target v1.17.0: Cilium L7 proxy may bypass Kubernetes NetworkPolicy for same-node traffic",
+   "detail": "Severity: medium. Affected versions: < 1.17.14 || >= 1.18.0, < 1.18.8 || >= 1.19.0, < 1.19.2. Patched: v1.17.14, v1.18.8, v1.19.2. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-hxv8-4j4r-cqgv"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-hxv8-4j4r-cqgv"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2026-33726"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-7632d1717ade",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-q6h5-q3q6-f87x (CVE-2026-53935) still affects target v1.17.0: CiliumLocalRedirectPolicy addressMatcher allows cross-namespace service traffic hijacking…",
+   "detail": "Severity: medium. Affected versions: >= 1.19.0, < 1.19.4 || >= 1.18.2, < 1.18.10 || < 1.17.16. Patched: 1.19.4, 1.18.10, 1.17.16. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-q6h5-q3q6-f87x"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-q6h5-q3q6-f87x"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2026-53935"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-38b29d84b7db",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-vh48-r624-p8v7 still affects target v1.17.0: Ingress host and L7 network policies bypassed when attaching to a VLAN interface and its parent",
+   "detail": "Severity: high. Affected versions: >= 1.18.0, < 1.18.9 || >= 1.17.0, < 1.17.15 || >= 1.16.0, <= 1.16.19. Patched: 1.18.9, 1.17.15. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-vh48-r624-p8v7"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-vh48-r624-p8v7"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-ea43776dd6b9",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-w7c2-w76w-5hmj (CVE-2026-56742) still affects target v1.17.0: Namespaced HTTPRoutes can redirect traffic to other namespaces",
+   "detail": "Severity: medium. Affected versions: < 1.17.17 || >= 1.18.0, < 1.18.11 || >= 1.19.0, < 1.19.5. Patched: 1.17.17, v1.18.11, 1.19.5. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-w7c2-w76w-5hmj"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-w7c2-w76w-5hmj"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2026-56742"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-f12d81cbad09",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "GHSA-xqhm-7xhv-6ppj (CVE-2026-77531) still affects target v1.17.0: Cilium secret sync name collision enables cross-namespace L7 policy bypass",
+   "detail": "Severity: high. Affected versions: < 1.17.18 || >= 1.18.0, < 1.18.12 || >= 1.19.0, < 1.19.6. Patched: v1.17.18, v1.18.12, v1.19.6. Consider upgrading to a patched release instead.",
+   "release": "",
+   "subjects": [
+    "GHSA-xqhm-7xhv-6ppj"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-xqhm-7xhv-6ppj"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2026-77531"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-4b5aa2f71e57",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "Changed Metrics: The metrics prefix of all Envoy NPDS (NetworkPolicy discovery service) metrics has been renamed from `envoy_cilium_policymap_<node-ip>_<node-i…",
+   "detail": "Changed Metrics: The metrics prefix of all Envoy NPDS (NetworkPolicy discovery service) metrics has been renamed from `envoy_cilium_policymap_<node-ip>_<node-id>_` to `envoy_cilium_npds_`.",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-db04dc60b4fa",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_identity_cache_timer_duration`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-51ee343f1941",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_identity_cache_timer_trigger_folds`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e9eb4bdadab9",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_identity_cache_timer_trigger_latency`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a771658f1071",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_node_health_connectivity_latency_seconds`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e577d30368ff",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_node_health_connectivity_status`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-17a68a6e264a",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_operator_unmanaged_pods`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-3f51b1a18fe8",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`cilium_policy_selector_match_count_max`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-83c9592886e5",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`doublewrite_identity_crd_only_count` has been renamed to `doublewrite_crd_only_identities`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7edb48946d87",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`doublewrite_identity_crd_only_count` has been renamed to `doublewrite_identity_crd_only_total`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-75fccff6d8e7",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`doublewrite_identity_crd_total_count` has been renamed to `doublewrite_crd_identities`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-e42b7034c590",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`doublewrite_identity_crd_total_count` has been renamed to `doublewrite_identity_crd_total`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-39c1169bfb5f",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`doublewrite_identity_kvstore_only_count` has been renamed to `doublewrite_identity_kvstore_only_total`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-38824a818315",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`doublewrite_identity_kvstore_only_count` has been renamed to `doublewrite_kvstore_only_identities`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-42b986fb12a0",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-38d0a3c38b6d",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_kvstore_identities`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-eef1efe9acfa",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_connected_state` -> `envoy_cilium_npds_control_plane_connected_state`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-401606c17b97",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_pending_requests` -> `envoy_cilium_npds_control_plane_pending_requests`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-7db8bfb8be38",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_rate_limit_enforced` -> `envoy_cilium_npds_control_plane_rate_limit_enforced`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-afada784050c",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout` -> `envoy_cilium_npds_init_fetch_timeout`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9ff2259164bf",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`envoy_cilium_policymap_<node-ip>_<node-id>_update_attempt` -> `envoy_cilium_npds_update_attempt`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-6b0827ac0d74",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`envoy_cilium_policymap_<node-ip>_<node-id>_update_duration` -> `envoy_cilium_npds_update_duration`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-74f9cfb4cf5c",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`envoy_cilium_policymap_<node-ip>_<node-id>_update_failure` -> `envoy_cilium_npds_update_failure`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-9f7c13f94fe0",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`envoy_cilium_policymap_<node-ip>_<node-id>_update_rejected` -> `envoy_cilium_npds_update_rejected`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-45faeb3b9d3c",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`envoy_cilium_policymap_<node-ip>_<node-id>_update_success` -> `envoy_cilium_npds_update_success`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-98bdce17c439",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`envoy_cilium_policymap_<node-ip>_<node-id>_update_time` -> `envoy_cilium_npds_update_time`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-8b5c3d77f1b2",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`envoy_cilium_policymap_<node-ip>_<node-id>_version` -> `envoy_cilium_npds_version`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-ee50bec577c6",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`lbipam_conflicting_pools_total` has been renamed to `lbipam_conflicting_pools`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-0373d1d75cdf",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`lbipam_ips_available_total` has been renamed to `lbipam_ips_available`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-4374f03d0599",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`lbipam_ips_used_total` has been renamed to `lbipam_ips_used`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-cbd5b1581dfd",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`lbipam_services_matching_total` has been renamed to `lbipam_services_matching`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-85a55b1cc27a",
+   "category": "other",
+   "breaking": false,
+   "actionRequired": true,
+   "title": "`lbipam_services_unsatisfied_total` has been renamed to `lbipam_services_unsatisfied`",
+   "detail": "",
+   "release": "1.17.0",
+   "subjects": [],
+   "references": [],
+   "provenance": {
+    "producer": "normalize.notes@v1"
+   }
+  },
+  {
+   "id": "chg-a1f22f1be8a0",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "CiliumClusterwideNetworkPolicy v2 schema: 8 fields added: `spec.egressDeny[].toCIDRSet[].cidrGroupSelector`, `spec.egress[].toCIDRSet[].cidrGroupSelector`…",
+   "detail": "New paths in the cilium.io/v2 schema of ciliumclusterwidenetworkpolicies.cilium.io:\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[]\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchLabels\nspec.egress[].toCIDRSet[].cidrGroupSelector\nspec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[]\nspec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspec.egress[].toCIDRSet[].cidrGroupSelector.matchLabels\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchLabels\nspec.ingress[].fromCIDRSet[].cidrGroupSelector\nspec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]\nspec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspec.ingress[].fromCIDRSet[].cidrGroupSelector.matchLabels\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[]\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchLabels\nspecs[].egress[].toCIDRSet[].cidrGroupSelector\nspecs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[]\nspecs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspecs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspecs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspecs[].egress[].toCIDRSet[].cidrGroupSelector.matchLabels\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchLabels\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchLabels",
+   "release": "",
+   "subjects": [
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector",
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchLabels",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector.matchLabels",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchLabels",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector.matchLabels",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchLabels",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector.matchLabels",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchLabels",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchLabels"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-858bafa35382",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "CiliumEgressGatewayPolicy v2 schema: 1 field added: `spec.selectors[].nodeSelector`",
+   "detail": "New paths in the cilium.io/v2 schema of ciliumegressgatewaypolicies.cilium.io:\nspec.selectors[].nodeSelector\nspec.selectors[].nodeSelector.matchExpressions[]\nspec.selectors[].nodeSelector.matchExpressions[].key\nspec.selectors[].nodeSelector.matchExpressions[].operator\nspec.selectors[].nodeSelector.matchExpressions[].values[]\nspec.selectors[].nodeSelector.matchLabels",
+   "release": "",
+   "subjects": [
+    "spec.selectors[].nodeSelector",
+    "spec.selectors[].nodeSelector.matchExpressions[]",
+    "spec.selectors[].nodeSelector.matchExpressions[].key",
+    "spec.selectors[].nodeSelector.matchExpressions[].operator",
+    "spec.selectors[].nodeSelector.matchExpressions[].values[]",
+    "spec.selectors[].nodeSelector.matchLabels"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-0649daa54a6d",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "CiliumNetworkPolicy v2 schema: 8 fields added: `spec.egressDeny[].toCIDRSet[].cidrGroupSelector`, `spec.egress[].toCIDRSet[].cidrGroupSelector`…",
+   "detail": "New paths in the cilium.io/v2 schema of ciliumnetworkpolicies.cilium.io:\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[]\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchLabels\nspec.egress[].toCIDRSet[].cidrGroupSelector\nspec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[]\nspec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspec.egress[].toCIDRSet[].cidrGroupSelector.matchLabels\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchLabels\nspec.ingress[].fromCIDRSet[].cidrGroupSelector\nspec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]\nspec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspec.ingress[].fromCIDRSet[].cidrGroupSelector.matchLabels\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[]\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspecs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchLabels\nspecs[].egress[].toCIDRSet[].cidrGroupSelector\nspecs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[]\nspecs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspecs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspecs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspecs[].egress[].toCIDRSet[].cidrGroupSelector.matchLabels\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspecs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchLabels\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]\nspecs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchLabels",
+   "release": "",
+   "subjects": [
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector",
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "spec.egressDeny[].toCIDRSet[].cidrGroupSelector.matchLabels",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "spec.egress[].toCIDRSet[].cidrGroupSelector.matchLabels",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "spec.ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchLabels",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "spec.ingress[].fromCIDRSet[].cidrGroupSelector.matchLabels",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "specs[].egressDeny[].toCIDRSet[].cidrGroupSelector.matchLabels",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "specs[].egress[].toCIDRSet[].cidrGroupSelector.matchLabels",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "specs[].ingressDeny[].fromCIDRSet[].cidrGroupSelector.matchLabels",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[]",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].key",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].operator",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchExpressions[].values[]",
+    "specs[].ingress[].fromCIDRSet[].cidrGroupSelector.matchLabels"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-98bdd4e83561",
+   "category": "crd-schema",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "CiliumNode v2 schema: 2 fields added: `spec.ipam.static-ip-tags`, `status.ipam.assigned-static-ip`",
+   "detail": "New paths in the cilium.io/v2 schema of ciliumnodes.cilium.io:\nspec.ipam.static-ip-tags\nstatus.ipam.assigned-static-ip",
+   "release": "",
+   "subjects": [
+    "spec.ipam.static-ip-tags",
+    "status.ipam.assigned-static-ip"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-c776a70a4550",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "2 new Helm values under `ipam.*`",
+   "detail": "Defaults in v1.17.0:\nipam.installUplinkRoutesForDelegatedIPAM = false  # Install ingress/egress routes through uplink on host for Pods when working with delegated IPAM plugin.\nipam.multiPoolPreAllocation = \"\"  # Pre-allocation settings for IPAM in Multi-Pool mode",
+   "release": "",
+   "subjects": [
+    "ipam.installUplinkRoutesForDelegatedIPAM",
+    "ipam.multiPoolPreAllocation"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-b9c86e53e4cc",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "2 new Helm values under `k8sClientRateLimit.*`",
+   "detail": "Defaults in v1.17.0:\nk8sClientRateLimit.operator.burst = null  # @schema type: [null, integer] @schema (int) The burst request rate in requests per second. The rate limiter will allow short bursts with a higher rate.\nk8sClientRateLimit.operator.qps = null  # @schema type: [null, integer] @schema (int) The sustained request rate in requests per second.",
+   "release": "",
+   "subjects": [
+    "k8sClientRateLimit.operator.burst",
+    "k8sClientRateLimit.operator.qps"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-8689de2baf07",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "3 new Helm values under `certgen.*`",
+   "detail": "Defaults in v1.17.0:\ncertgen.generateCA = true  # When set to true the certificate authority secret is created.\ncertgen.nodeSelector = {}  # Node selector for certgen ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector\ncertgen.priorityClassName = \"\"  # Priority class for certgen ref: https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass",
+   "release": "",
+   "subjects": [
+    "certgen.generateCA",
+    "certgen.nodeSelector",
+    "certgen.priorityClassName"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-14b1e65948bd",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "4 new Helm values under `authentication.*`",
+   "detail": "Defaults in v1.17.0:\nauthentication.mutual.spire.install.agent.priorityClassName = \"\"  # The priority class to use for the spire agent\nauthentication.mutual.spire.install.agent.resources = {}  # container resource limits & requests\nauthentication.mutual.spire.install.server.priorityClassName = \"\"  # The priority class to use for the spire server\nauthentication.mutual.spire.install.server.resources = {}  # SPIRE server service configuration container resource limits & requests",
+   "release": "",
+   "subjects": [
+    "authentication.mutual.spire.install.agent.priorityClassName",
+    "authentication.mutual.spire.install.agent.resources",
+    "authentication.mutual.spire.install.server.priorityClassName",
+    "authentication.mutual.spire.install.server.resources"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-37c4c95379a8",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "4 new Helm values under `tls.*`",
+   "detail": "Defaults in v1.17.0:\ntls.readSecretsOnlyFromSecretsNamespace = null  # @schema type: [null, boolean] @schema Configure if the Cilium Agent will only look in `tls.secretsNamespace` for CiliumNetworkPolicy relevant Secrets. If false, the Cilium Agent will be granted READ (GET/LIST/WATCH) access to _all_ secrets in the entire cluster. This is not recommended and is…\ntls.secretSync.enabled = null  # @schema type: [null, boolean] @schema Enable synchronization of Secrets for TLS Interception. If disabled and tls.secretsBackend is set to 'k8s', then secrets will be read directly by the agent.\ntls.secretsNamespace.create = true  # Create secrets namespace for TLS Interception secrets.\ntls.secretsNamespace.name = \"cilium-secrets\"  # Name of TLS Interception secret namespace.",
+   "release": "",
+   "subjects": [
+    "tls.readSecretsOnlyFromSecretsNamespace",
+    "tls.secretSync.enabled",
+    "tls.secretsNamespace.create",
+    "tls.secretsNamespace.name"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-0e83fc65a31a",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "5 new Helm values under `hubble.*`",
+   "detail": "Defaults in v1.17.0:\nhubble.metrics.dynamic.config.configMapName = \"cilium-dynamic-metrics-config\"  # ---- Name of configmap with configuration that may be altered to reconfigure metric handlers within a running agent.\nhubble.metrics.dynamic.config.content = [{\"contextOptions\":[],\"excludeFilters\":[],\"includeFilters\":[],\"name\":\"all\"}]  # ---- Exporters configuration in YAML format.\nhubble.metrics.dynamic.config.createConfigMap = true  # ---- True if helm installer should create config map. Switch to false if you want to self maintain the file content.\nhubble.metrics.dynamic.enabled = false\nhubble.ui.labels = {}  # Additional labels to be added to 'hubble-ui' deployment object",
+   "release": "",
+   "subjects": [
+    "hubble.metrics.dynamic.config.configMapName",
+    "hubble.metrics.dynamic.config.content",
+    "hubble.metrics.dynamic.config.createConfigMap",
+    "hubble.metrics.dynamic.enabled",
+    "hubble.ui.labels"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-d9932d2d949d",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "6 new Helm values under `bpf.*`",
+   "detail": "Defaults in v1.17.0:\nbpf.ctAccounting = false  # Enable CT accounting for packets and bytes\nbpf.events.default.burstLimit = null  # (int) Configure the maximum number of messages that can be written to BPF events map in 1 second. If burstLimit is greater than 0, non-zero value for rateLimit must also be provided lest the configuration is considered invalid. Setting both burstLimit and rateLimit to 0 disables BPF events rate…\nbpf.events.default.rateLimit = null  # (int) Configure the limit of messages per second that can be written to BPF events map. The number of messages is averaged, meaning that if no messages were written to the map over 5 seconds, it's possible to write more events in the 6th second. If rateLimit is greater than 0, non-zero value for…\nbpf.lbAlgorithmAnnotation = false  # (bool) Enable the option to define the load balancing algorithm on a per-service basis through service.cilium.io/lb-algorithm annotation.\nbpf.lbModeAnnotation = false  # (bool) Enable the option to define the load balancing mode (SNAT or DSR) on a per-service basis through service.cilium.io/forwarding-mode annotation.\nbpf.lbSourceRangeAllTypes = false  # (bool) Enable loadBalancerSourceRanges CIDR filtering for all service types, not just LoadBalancer services. The corresponding NodePort and ClusterIP (if enabled for cluster-external traffic) will also apply the CIDR filter.",
+   "release": "",
+   "subjects": [
+    "bpf.ctAccounting",
+    "bpf.events.default.burstLimit",
+    "bpf.events.default.rateLimit",
+    "bpf.lbAlgorithmAnnotation",
+    "bpf.lbModeAnnotation",
+    "bpf.lbSourceRangeAllTypes"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-2009321c702d",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "7 new Helm values under `envoy.*`",
+   "detail": "Defaults in v1.17.0:\nenvoy.bootstrapConfigMap = null  # ADVANCED OPTION: Bring your own custom Envoy bootstrap ConfigMap. Provide the name of a ConfigMap with a `bootstrap-config.json` key. When specified, Envoy will use this ConfigMap instead of the default provided by the chart. WARNING: Use of this setting has the potential to prevent cilium-envoy…\nenvoy.httpRetryCount = 3  # Maximum number of retries for each HTTP request\nenvoy.initialFetchTimeoutSeconds = 30  # Time in seconds after which the initial fetch on an xDS stream is considered timed out\nenvoy.log.accessLogBufferSize = 4096  # @schema type: [null, integer] @schema Size of the Envoy access log buffer created within the agent in bytes. Tune this value up if you encounter \"Envoy: Discarded truncated access log message\" errors. Large request/response header sizes (e.g. 16KiB) will require a larger buffer size.\nenvoy.log.defaultLevel = null  # @schema oneOf: - type: [null] - enum: [trace,debug,info,warning,error,critical,off] @schema Default log level of Envoy application log that is configured if Cilium debug / verbose logging isn't enabled. This option allows to have a different log level than the Cilium Agent - e.g. lower it to…\nenvoy.log.format_json = null  # @schema type: [null, object] @schema The JSON logging format to use for Envoy. This setting is mutually exclusive with envoy.log.format. ref: https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/bootstrap/v3/bootstrap.proto#envoy-v3-api-field-config-bootstrap-v3-bootstrap-applicationlogconfig-l…\nenvoy.maxConcurrentRetries = 128  # Maximum number of concurrent retries on Envoy clusters",
+   "release": "",
+   "subjects": [
+    "envoy.bootstrapConfigMap",
+    "envoy.httpRetryCount",
+    "envoy.initialFetchTimeoutSeconds",
+    "envoy.log.accessLogBufferSize",
+    "envoy.log.defaultLevel",
+    "envoy.log.format_json",
+    "envoy.maxConcurrentRetries"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-53c33c412cb8",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `authentication.mutual.spire.install.initImage.digest` changed: \"sha256:9ae97d36d26566ff84e8893c64a6dc4fe8ca6d114… →…",
+   "detail": "\"sha256:9ae97d36d26566ff84e8893c64a6dc4fe8ca6d1144bf5b87b2b85a32def253c7\" → \"sha256:a5d0ce49aa801d475da48f8cb163c354ab95cab073cd3c138bd458fc8257fbf1\"",
+   "release": "",
+   "subjects": [
+    "authentication.mutual.spire.install.initImage.digest"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-466c65130511",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `authentication.mutual.spire.install.initImage.tag` changed: \"1.36.1\" → \"1.37.0\"",
+   "detail": "\"1.36.1\" → \"1.37.0\"",
+   "release": "",
+   "subjects": [
+    "authentication.mutual.spire.install.initImage.tag"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-f6f3beef6f4d",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `certgen.image.digest` changed: \"sha256:169d93fd8f2f9009db3b9d5ccd37c2b753d0989e1… → \"sha256:ab6b1928e9c5f424f6b0f51c68065b9fd85e2f8d3…",
+   "detail": "\"sha256:169d93fd8f2f9009db3b9d5ccd37c2b753d0989e1e7cd8fe79f9160c459eef4f\" → \"sha256:ab6b1928e9c5f424f6b0f51c68065b9fd85e2f8d3e5f21fbd1a3cb27e6fb9321\"",
+   "release": "",
+   "subjects": [
+    "certgen.image.digest"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-dbae4b34f20d",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `certgen.image.tag` changed: \"v0.2.0\" → \"v0.2.1\"",
+   "detail": "\"v0.2.0\" → \"v0.2.1\"",
+   "release": "",
+   "subjects": [
+    "certgen.image.tag"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-3947599625c7",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `ciliumEndpointSlice.rateLimits` changed: [{\"burst\":20,\"limit\":10,\"nodes\":0},{\"burst\":15,\"l… → [{\"burst\":20,\"limit\":10,\"nodes\":0},{\"burst…",
+   "detail": "[{\"burst\":20,\"limit\":10,\"nodes\":0},{\"burst\":15,\"limit\":7,\"nodes\":100},{\"burst\":10,\"limit\":5,\"nodes\":500}] → [{\"burst\":20,\"limit\":10,\"nodes\":0},{\"burst\":100,\"limit\":50,\"nodes\":100}]",
+   "release": "",
+   "subjects": [
+    "ciliumEndpointSlice.rateLimits"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-8f284960b326",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `clustermesh.apiserver.image.tag` changed: \"v1.16.1\" → \"v1.17.0\"",
+   "detail": "\"v1.16.1\" → \"v1.17.0\"",
+   "release": "",
+   "subjects": [
+    "clustermesh.apiserver.image.tag"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-71a525926294",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `dnsProxy.endpointMaxIpPerHostname` changed: 50 → 1000",
+   "detail": "50 → 1000",
+   "release": "",
+   "subjects": [
+    "dnsProxy.endpointMaxIpPerHostname"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-e15574fe1063",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `envoy.image.digest` changed: \"sha256:bd5ff8c66716080028f414ec1cb4f7dc66f40d2fb… → \"sha256:57a3aa6355a3223da360395e3a109802867ff635c…",
+   "detail": "\"sha256:bd5ff8c66716080028f414ec1cb4f7dc66f40d2fb5a009fff187f4a9b90b566b\" → \"sha256:57a3aa6355a3223da360395e3a109802867ff635cb852aa0afe03ec7bf04e545\"",
+   "release": "",
+   "subjects": [
+    "envoy.image.digest"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-74417c0bed8a",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `envoy.image.tag` changed: \"v1.29.7-39a2a56bbd5b3a591f69dbca51d3e30ef97e0e51\" → \"v1.31.5-1737535524-fe8efeb16a7d233bffd05af9ea535…",
+   "detail": "\"v1.29.7-39a2a56bbd5b3a591f69dbca51d3e30ef97e0e51\" → \"v1.31.5-1737535524-fe8efeb16a7d233bffd05af9ea53599340d3f18e\"",
+   "release": "",
+   "subjects": [
+    "envoy.image.tag"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-15cb7490880e",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `hubble.relay.image.tag` changed: \"v1.16.1\" → \"v1.17.0\"",
+   "detail": "\"v1.16.1\" → \"v1.17.0\"",
+   "release": "",
+   "subjects": [
+    "hubble.relay.image.tag"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-b1675eb35b31",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `hubble.tls.auto.certValidityDuration` changed: 1095 → 365",
+   "detail": "1095 → 365",
+   "release": "",
+   "subjects": [
+    "hubble.tls.auto.certValidityDuration"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-661bbdf393a0",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `image.tag` changed: \"v1.16.1\" → \"v1.17.0\"",
+   "detail": "\"v1.16.1\" → \"v1.17.0\"",
+   "release": "",
+   "subjects": [
+    "image.tag"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-594658b5c8dc",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `operator.image.tag` changed: \"v1.16.1\" → \"v1.17.0\"",
+   "detail": "\"v1.16.1\" → \"v1.17.0\"",
+   "release": "",
+   "subjects": [
+    "operator.image.tag"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-fb71b9a9a950",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `preflight.image.tag` changed: \"v1.16.1\" → \"v1.17.0\"",
+   "detail": "\"v1.16.1\" → \"v1.17.0\"",
+   "release": "",
+   "subjects": [
+    "preflight.image.tag"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-5d7ba30d19f8",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Default of Helm value `tls.secretsBackend` changed: \"local\" → null",
+   "detail": "\"local\" → null",
+   "release": "",
+   "subjects": [
+    "tls.secretsBackend"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-c1683026f6bb",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `bgpControlPlane.statusReport.enabled`",
+   "detail": "Defaults in v1.17.0:\nbgpControlPlane.statusReport.enabled = true  # Enable/Disable BGPv2 status reporting It is recommended to enable status reporting in general, but if you have any issue such as high API server load, you can disable it by setting this to false.",
+   "release": "",
+   "subjects": [
+    "bgpControlPlane.statusReport.enabled"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-f81e4ea65bfb",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `ciliumEndpointSlice.sliceMode`",
+   "detail": "Defaults in v1.17.0:\nciliumEndpointSlice.sliceMode = \"identity\"  # @schema enum: [\"identity\", \"fcfs\"] @schema The slicing mode to use for CiliumEndpointSlices. identity groups together CiliumEndpoints that share the same identity. fcfs groups together CiliumEndpoints in a first-come-first-serve basis, filling in the largest non-full slice first.",
+   "release": "",
+   "subjects": [
+    "ciliumEndpointSlice.sliceMode"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-22bfa0f033f3",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `clustermesh.apiserver.service.loadBalancerSourceRanges`",
+   "detail": "Defaults in v1.17.0:\nclustermesh.apiserver.service.loadBalancerSourceRanges = []  # Configure loadBalancerSourceRanges. Allows to configure the source IP ranges allowed to access the clustermesh-apiserver LB service in case the Service type is set to LoadBalancer.",
+   "release": "",
+   "subjects": [
+    "clustermesh.apiserver.service.loadBalancerSourceRanges"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-88b4fdec588b",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `commonLabels`",
+   "detail": "Defaults in v1.17.0:\ncommonLabels = {}  # @schema type: [null, object] @schema commonLabels allows users to add common labels for all Cilium resources.",
+   "release": "",
+   "subjects": [
+    "commonLabels"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-bc8bbccd088c",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `daemon.enableSourceIPVerification`",
+   "detail": "Defaults in v1.17.0:\ndaemon.enableSourceIPVerification = true  # @schema type: [null, boolean] @schema enableSourceIPVerification is a boolean flag to enable or disable the Source IP verification of endpoints. This flag is useful when Cilium is chained with other CNIs. By default, this functionality is enabled",
+   "release": "",
+   "subjects": [
+    "daemon.enableSourceIPVerification"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-d27d2090f354",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `defaultLBServiceIPAM`",
+   "detail": "Defaults in v1.17.0:\ndefaultLBServiceIPAM = \"lbipam\"  # defaultLBServiceIPAM indicates the default LoadBalancer Service IPAM when no LoadBalancer class is set. Applicable values: lbipam, nodeipam, none @schema type: [string] @schema",
+   "release": "",
+   "subjects": [
+    "defaultLBServiceIPAM"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-2bbb02d9c469",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `enableInternalTrafficPolicy`",
+   "detail": "Defaults in v1.17.0:\nenableInternalTrafficPolicy = true  # Enable Internal Traffic Policy",
+   "release": "",
+   "subjects": [
+    "enableInternalTrafficPolicy"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-03cb392b5204",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `enableLBIPAM`",
+   "detail": "Defaults in v1.17.0:\nenableLBIPAM = true  # Enable LoadBalancer IP Address Management",
+   "release": "",
+   "subjects": [
+    "enableLBIPAM"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-8d79d4a5dd2e",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `enableNonDefaultDenyPolicies`",
+   "detail": "Defaults in v1.17.0:\nenableNonDefaultDenyPolicies = true  # Enable Non-Default-Deny policies",
+   "release": "",
+   "subjects": [
+    "enableNonDefaultDenyPolicies"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-c5a7c2c5c7b9",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `endpointLockdownOnMapOverflow`",
+   "detail": "Defaults in v1.17.0:\nendpointLockdownOnMapOverflow = false  # Enable endpoint lockdown on policy map overflow.",
+   "release": "",
+   "subjects": [
+    "endpointLockdownOnMapOverflow"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-de1b93622df0",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `healthCheckICMPFailureThreshold`",
+   "detail": "Defaults in v1.17.0:\nhealthCheckICMPFailureThreshold = 3  # Number of ICMP requests sent for each health check before marking a node or endpoint unreachable.",
+   "release": "",
+   "subjects": [
+    "healthCheckICMPFailureThreshold"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-3149687453e6",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `iptablesRandomFully`",
+   "detail": "Defaults in v1.17.0:\niptablesRandomFully = false  # Configure iptables--random-fully. Disabled by default. View https://github.com/cilium/cilium/issues/13037 for more information.",
+   "release": "",
+   "subjects": [
+    "iptablesRandomFully"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-217127f26025",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `k8sServiceLookupConfigMapName`",
+   "detail": "Defaults in v1.17.0:\nk8sServiceLookupConfigMapName = \"\"  # @schema type: [null, string] @schema (string) When `k8sServiceHost=auto`, allows to customize the configMap name. It defaults to `cluster-info`.",
+   "release": "",
+   "subjects": [
+    "k8sServiceLookupConfigMapName"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-8d0d3b361210",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `k8sServiceLookupNamespace`",
+   "detail": "Defaults in v1.17.0:\nk8sServiceLookupNamespace = \"\"  # @schema type: [null, string] @schema (string) When `k8sServiceHost=auto`, allows to customize the namespace that contains `k8sServiceLookupConfigMapName`. It defaults to `kube-public`.",
+   "release": "",
+   "subjects": [
+    "k8sServiceLookupNamespace"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-2388daf3813d",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `loadBalancer.experimental`",
+   "detail": "Defaults in v1.17.0:\nloadBalancer.experimental = false  # serviceTopology enables K8s Topology Aware Hints -based service endpoints filtering serviceTopology: false experimental enables support for the experimental load-balancing control-plane.",
+   "release": "",
+   "subjects": [
+    "loadBalancer.experimental"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-861e0cae9a2a",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `namespaceOverride`",
+   "detail": "Defaults in v1.17.0:\nnamespaceOverride = \"\"  # @schema type: [null, string] @schema namespaceOverride allows to override the destination namespace for Cilium resources. This property allows to use Cilium as part of an Umbrella Chart with different targets.",
+   "release": "",
+   "subjects": [
+    "namespaceOverride"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-ab269859c7c0",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `operator.prometheus.metricsService`",
+   "detail": "Defaults in v1.17.0:\noperator.prometheus.metricsService = false",
+   "release": "",
+   "subjects": [
+    "operator.prometheus.metricsService"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-38d1bbc14516",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `prometheus.metricsService`",
+   "detail": "Defaults in v1.17.0:\nprometheus.metricsService = false",
+   "release": "",
+   "subjects": [
+    "prometheus.metricsService"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-b3d4a41ad7db",
+   "category": "helm-values",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "New Helm value `scheduling.mode`",
+   "detail": "Defaults in v1.17.0:\nscheduling.mode = \"anti-affinity\"  # @schema enum: [\"anti-affinity\", \"kube-scheduler\"] @schema Mode specifies how Cilium daemonset pods should be scheduled to Nodes. `anti-affinity` mode applies a pod anti-affinity rule to the cilium daemonset. Pod anti-affinity may significantly impact scheduling throughput for large clusters. See…",
+   "release": "",
+   "subjects": [
+    "scheduling.mode"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-2f157af01ca7",
+   "category": "compatibility",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Kubernetes tested versions narrowed: 1.27–1.30 → 1.29–1.32 (drops 1.27–1.28)",
+   "detail": "Informational: the project tests this release on Kubernetes 1.29–1.32; other versions may work but are not covered by its testing.",
+   "release": "",
+   "subjects": [
+    "kubernetes/tested"
+   ],
+   "references": [],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-479cc52da57c",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixes GHSA-9m5p-c77c-f9j7 (CVE-2025-23028): DoS in Cilium agent DNS proxy from crafted DNS responses",
+   "detail": "Severity: medium. Affected versions: >= 1.14.0, < 1.14.18 || >= 1.15.0, < 1.15.12 || >= 1.16.0, < 1.16.5. Patched: v1.14.18, v1.15.12, v1.16.5. v1.16.1 is affected; v1.17.0 is not.",
+   "release": "1.17.0",
+   "subjects": [
+    "GHSA-9m5p-c77c-f9j7"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-9m5p-c77c-f9j7"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2025-23028"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-37735d9745b5",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixes GHSA-h78m-j95m-5356 (CVE-2025-23047): Information leakage via insecure default Hubble UI CORS header",
+   "detail": "Severity: medium. Affected versions: >= 1.14.0, < 1.14.19 || >= 1.15.0, < 1.15.13 || >= 1.16.0, < 1.16.6. Patched: v1.14.19, v1.15.13, v1.16.6. v1.16.1 is affected; v1.17.0 is not.",
+   "release": "1.17.0",
+   "subjects": [
+    "GHSA-h78m-j95m-5356"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-h78m-j95m-5356"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2025-23047"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  },
+  {
+   "id": "chg-4b4686b8e414",
+   "category": "security",
+   "breaking": false,
+   "actionRequired": false,
+   "title": "Fixes GHSA-xg58-75qf-9r67 (CVE-2024-52529): Layer 7 policy enforcement may not occur in policies with wildcarded port ranges",
+   "detail": "Severity: medium. Affected versions: >= 1.16.0, < 1.16.4. Patched: 1.16.4. v1.16.1 is affected; v1.17.0 is not.",
+   "release": "1.17.0",
+   "subjects": [
+    "GHSA-xg58-75qf-9r67"
+   ],
+   "references": [
+    {
+     "type": "ghsa",
+     "id": "GHSA-xg58-75qf-9r67"
+    },
+    {
+     "type": "cve",
+     "id": "CVE-2024-52529"
+    }
+   ],
+   "provenance": {
+    "producer": "upgrade@v1"
+   }
+  }
+ ],
+ "evidence": [
+  {
+   "id": "ev-459fa47cda42",
+   "uri": "https://github.com/cilium/cilium/releases/tag/v1.16.1"
+  },
+  {
+   "id": "ev-830441b6bcc0",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/CHANGELOG.md"
+  },
+  {
+   "id": "ev-1cf647247279",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-ba1360a5ee41",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-99fb3e363ef5",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-6a671edd8957",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-cc671d02c560",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-091ec6c5cdad",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-177a5de433c8",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-acad23389493",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-c613fbdc0172",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-395f97f5f2f0",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-bfcbaf50fad4",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-733ce24c38ab",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-fcbfbfa92454",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-e726e78a98c3",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-e0beb718d8c9",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-2f133e32a7d6",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-5d73a1675ef2",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-8e4d3e064db3",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-6dd6da792cf9",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-fe5a5c5308e2",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-6b92b9fee117",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-422bc09e0710",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-11cf46551217",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-225e0e043bca",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-ca22a58ba45d",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-ec4f5d79f0af",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-b1c6eb9f58d2",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-fd54b8e217b6",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-12d8891e9ea8",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-73e4d0d451b4",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-a40e0153215d",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-e67962e1cdda",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-7b3aeda9ff65",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-1fddd823f573",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-e54a0238bffc",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-79093f609375",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-6fa6caca33c4",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-72409775dac2",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-e176838dd77c",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-45da27555d3c",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-7d12d9bc327e",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-81f973c7b852",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-30c8c6046e97",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-dcd4eff9e01b",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-c1310477ddfb",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-7a0a98bc0d2b",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-60d0ceb77871",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-c2a31e332e66",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-cecbd94dc438",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/Documentation/network/kubernetes/compatibility.rst"
+  },
+  {
+   "id": "ev-a227afe1c5f4",
+   "uri": "https://helm.cilium.io/index.yaml"
+  },
+  {
+   "id": "ev-9816f1f8f1d9",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/install/kubernetes/cilium/values.yaml"
+  },
+  {
+   "id": "ev-d2ef1a08ee73",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/install/kubernetes/cilium/Chart.yaml"
+  },
+  {
+   "id": "ev-baa031e0f978",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/install/kubernetes/cilium/Chart.yaml"
+  },
+  {
+   "id": "ev-1d5828afb544",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumclusterwideenvoyconfigs.yaml"
+  },
+  {
+   "id": "ev-375cec0e3562",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumclusterwidenetworkpolicies.yaml"
+  },
+  {
+   "id": "ev-291e757997ce",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumegressgatewaypolicies.yaml"
+  },
+  {
+   "id": "ev-70069a0bcf0e",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumendpoints.yaml"
+  },
+  {
+   "id": "ev-e5c4f36881f5",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumenvoyconfigs.yaml"
+  },
+  {
+   "id": "ev-dc7ea5bce2eb",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumexternalworkloads.yaml"
+  },
+  {
+   "id": "ev-569cbc29fb60",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumidentities.yaml"
+  },
+  {
+   "id": "ev-15f8fa0a2a4d",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumlocalredirectpolicies.yaml"
+  },
+  {
+   "id": "ev-ca9f188b1598",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnetworkpolicies.yaml"
+  },
+  {
+   "id": "ev-c5df606aaa58",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnodeconfigs.yaml"
+  },
+  {
+   "id": "ev-2f96c5862bce",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnodes.yaml"
+  },
+  {
+   "id": "ev-d67083a99735",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumclusterwideenvoyconfigs.yaml"
+  },
+  {
+   "id": "ev-506d62698d08",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumclusterwidenetworkpolicies.yaml"
+  },
+  {
+   "id": "ev-516e27dee16b",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumegressgatewaypolicies.yaml"
+  },
+  {
+   "id": "ev-a9fb60156340",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumendpoints.yaml"
+  },
+  {
+   "id": "ev-0bb01b17394a",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumenvoyconfigs.yaml"
+  },
+  {
+   "id": "ev-775b7a4849c9",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumexternalworkloads.yaml"
+  },
+  {
+   "id": "ev-4b7308da7fdd",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumidentities.yaml"
+  },
+  {
+   "id": "ev-e1cf5657ba6b",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumlocalredirectpolicies.yaml"
+  },
+  {
+   "id": "ev-b971cba16bac",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnetworkpolicies.yaml"
+  },
+  {
+   "id": "ev-6aae253117fe",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnodeconfigs.yaml"
+  },
+  {
+   "id": "ev-4da9f54b9fed",
+   "uri": "https://github.com/cilium/cilium/blob/v1.16.1/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnodes.yaml"
+  },
+  {
+   "id": "ev-200a537ef831",
+   "uri": "https://quay.io/v2/cilium/cilium/manifests/sha256:0b4a3ab41a4760d86b7fc945b8783747ba27f29dac30dd434d94f2c9e3679f39"
+  },
+  {
+   "id": "ev-d8e83b00ed40",
+   "uri": "https://quay.io/v2/cilium/operator/manifests/sha256:258b28fefc9f3fe1cbcb21a3b2c4c96dcc72f6ee258eed0afebe9b0ac47f462b"
+  },
+  {
+   "id": "ev-29c83b9329a3",
+   "uri": "https://quay.io/v2/cilium/operator-aws/manifests/sha256:e3876fcaf2d6ccc8d5b4aaaded7b1efa971f3f4175eaa2c8a499878d58c39df4"
+  },
+  {
+   "id": "ev-24f7e21c8f0d",
+   "uri": "https://quay.io/v2/cilium/operator-azure/manifests/sha256:e55c222654a44ceb52db7ade3a7b9e8ef05681ff84c14ad1d46fea34869a7a22"
+  },
+  {
+   "id": "ev-6423441dd835",
+   "uri": "https://quay.io/v2/cilium/operator-alibabacloud/manifests/sha256:4381adf48d76ec482551183947e537d44bcac9b6c31a635a9ac63f696d978804"
+  },
+  {
+   "id": "ev-0d0310551c83",
+   "uri": "https://quay.io/v2/cilium/clustermesh-apiserver/manifests/sha256:e9c77417cd474cc943b2303a76c5cf584ac7024dd513ebb8d608cb62fe28896f"
+  },
+  {
+   "id": "ev-048b52b25c02",
+   "uri": "https://quay.io/v2/cilium/hubble-relay/manifests/sha256:2e1b4c739a676ae187d4c2bfc45c3e865bda2567cc0320a90cb666657fcfcc35"
+  },
+  {
+   "id": "ev-31e06c814f77",
+   "uri": "https://github.com/cilium/cilium/archive/refs/tags/v1.16.1.tar.gz"
+  },
+  {
+   "id": "ev-006be8d1f11d",
+   "uri": "https://github.com/cilium/cilium/releases/tag/v1.17.0"
+  },
+  {
+   "id": "ev-21410490ab71",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/CHANGELOG.md"
+  },
+  {
+   "id": "ev-1f29f1cf0c96",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-09d5e26554e5",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-fa8f791f1c11",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-ddf5fd344d03",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-2a9b9b849526",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-01a5226ddc9a",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-b37407b60520",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-7424e74176c0",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-3c259372f6bf",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-c05c58b487cc",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-a152c8cea30c",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-5f4aedc964f4",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-e6b268264713",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-1a27180320cd",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-23473218087f",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-ed86f8eb85bf",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-98d8079a3380",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-ffd2c3200e89",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-32984cccce52",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-21e07cf98d97",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-bcdbfe5ecd01",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-b5054e15ad6c",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-c082dfefeb1b",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-b7f3339817fc",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-9113ff586fec",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-672c6336b39c",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-0debb0d83ac2",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-4ce2886cea1f",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-42d13e5eb7d7",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-f13e15b06a08",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-f941fa338b6a",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-a7d9e5f931b3",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-b598b51801ea",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-34619549fb8a",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-b182e7794768",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-b66b29e5567d",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-8a664283f86e",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-1a97b17bde3d",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-1b1b9343e346",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-f3d0a6f12b97",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-72ecae3c2fc1",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-070e2e78535d",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-fd031f140d8c",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-77f05428497a",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-caf88a546536",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-4024cb69f8ce",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-b142822738f9",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-3c947c36df35",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-5d9f7bca7ba3",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-9f3945740531",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-f7021b9d3606",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-0739bc6582ad",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-2214fc54500d",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-3fa40f2e19e8",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-a70b049ef951",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-eaf366d94d17",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-d6005e84dee9",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-6a341603b700",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-a2a020af7830",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-2e2ab2d37845",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-875bb56564b0",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-1bf87d491deb",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-dc171b318f79",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-9a62461ebaa9",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-7ede52ce8bb8",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-2349d1c09109",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-df8818f69d5e",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-57fea1f2c18e",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-82ab63ec4bf8",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-ac4018b89668",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-868456a7673f",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst"
+  },
+  {
+   "id": "ev-02717a6226f3",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/network/kubernetes/compatibility.rst"
+  },
+  {
+   "id": "ev-4d68789137c6",
+   "uri": "https://helm.cilium.io/index.yaml"
+  },
+  {
+   "id": "ev-39a22d88e2f5",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/install/kubernetes/cilium/values.yaml"
+  },
+  {
+   "id": "ev-34da981bef1f",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/install/kubernetes/cilium/Chart.yaml"
+  },
+  {
+   "id": "ev-de4d84a20e50",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/install/kubernetes/cilium/Chart.yaml"
+  },
+  {
+   "id": "ev-8e1be6c673ec",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumclusterwideenvoyconfigs.yaml"
+  },
+  {
+   "id": "ev-c832df76fb72",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumclusterwidenetworkpolicies.yaml"
+  },
+  {
+   "id": "ev-2d8760590848",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumegressgatewaypolicies.yaml"
+  },
+  {
+   "id": "ev-07bcb0b15b74",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumendpoints.yaml"
+  },
+  {
+   "id": "ev-17a4e2676a0c",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumenvoyconfigs.yaml"
+  },
+  {
+   "id": "ev-e28387bdb211",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumexternalworkloads.yaml"
+  },
+  {
+   "id": "ev-88b398133689",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumidentities.yaml"
+  },
+  {
+   "id": "ev-c6ec8af9a459",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumlocalredirectpolicies.yaml"
+  },
+  {
+   "id": "ev-c6e4d16fb1e4",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnetworkpolicies.yaml"
+  },
+  {
+   "id": "ev-695a1b1d2d39",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnodeconfigs.yaml"
+  },
+  {
+   "id": "ev-08403500d644",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnodes.yaml"
+  },
+  {
+   "id": "ev-60fe44edb215",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumclusterwideenvoyconfigs.yaml"
+  },
+  {
+   "id": "ev-055553900472",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumclusterwidenetworkpolicies.yaml"
+  },
+  {
+   "id": "ev-d67c28424e3f",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumegressgatewaypolicies.yaml"
+  },
+  {
+   "id": "ev-9c589747ef03",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumendpoints.yaml"
+  },
+  {
+   "id": "ev-9ba655ea5c72",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumenvoyconfigs.yaml"
+  },
+  {
+   "id": "ev-061ee9721e03",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumexternalworkloads.yaml"
+  },
+  {
+   "id": "ev-8a88bff80696",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumidentities.yaml"
+  },
+  {
+   "id": "ev-313ddc646740",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumlocalredirectpolicies.yaml"
+  },
+  {
+   "id": "ev-0f7b2c78b11f",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnetworkpolicies.yaml"
+  },
+  {
+   "id": "ev-2be643334952",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnodeconfigs.yaml"
+  },
+  {
+   "id": "ev-ff2b96a700d5",
+   "uri": "https://github.com/cilium/cilium/blob/v1.17.0/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnodes.yaml"
+  },
+  {
+   "id": "ev-6198827fd0e0",
+   "uri": "https://quay.io/v2/cilium/cilium/manifests/sha256:51f21bdd003c3975b5aaaf41bd21aee23cc08f44efaa27effc91c621bc9d8b1d"
+  },
+  {
+   "id": "ev-88158419d57c",
+   "uri": "https://quay.io/v2/cilium/operator/manifests/sha256:39c9221d75f47f717fe438912309a96b59b8257a74dc624fdeebebcfbd74b587"
+  },
+  {
+   "id": "ev-1ba576b43e16",
+   "uri": "https://quay.io/v2/cilium/operator-aws/manifests/sha256:a81cea10c4210589750c2588a20ece2822fd57be8529df4dc7779031cec66af7"
+  },
+  {
+   "id": "ev-d235ed915213",
+   "uri": "https://quay.io/v2/cilium/operator-azure/manifests/sha256:56e83fbdfbea161b2252c51c7ce03960f7141700473bbd2906bcdb53f46610d7"
+  },
+  {
+   "id": "ev-290c781733ff",
+   "uri": "https://quay.io/v2/cilium/operator-alibabacloud/manifests/sha256:0154a855650dac844347d35404e08f3ad141c05e1d903a648558e6f15e4fef8b"
+  },
+  {
+   "id": "ev-afce1fcc4027",
+   "uri": "https://quay.io/v2/cilium/clustermesh-apiserver/manifests/sha256:05ccf79102724a943b967337a7cd45177118b76b72fb937d0c8ecb3ce136605c"
+  },
+  {
+   "id": "ev-4e1e206fd14d",
+   "uri": "https://quay.io/v2/cilium/hubble-relay/manifests/sha256:022c084588caad91108ac73e04340709926ea7fe12af95f57fcb794b68472e05"
+  },
+  {
+   "id": "ev-8e1ca8ffcc66",
+   "uri": "https://github.com/cilium/cilium/archive/refs/tags/v1.17.0.tar.gz"
+  },
+  {
+   "id": "ev-3e67c82aa0a1",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-24qp-4xx8-3jvj"
+  },
+  {
+   "id": "ev-9c33f2148b9a",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-33qq-jq9c-6gcc"
+  },
+  {
+   "id": "ev-7d6aa97775cc",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-38pp-6gcp-rqvm"
+  },
+  {
+   "id": "ev-8ba4ea0e6e39",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-3fcv-jvfp-m4q9"
+  },
+  {
+   "id": "ev-59c8cb86ca2a",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-5vxx-c285-pcq4"
+  },
+  {
+   "id": "ev-949befee7c40",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-9m5p-c77c-f9j7"
+  },
+  {
+   "id": "ev-fff9056ebb5d",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-c6pf-2v8j-96mc"
+  },
+  {
+   "id": "ev-b53eb9ccdc22",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-gj49-89wh-h4gj"
+  },
+  {
+   "id": "ev-30b7d6c38289",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-h78m-j95m-5356"
+  },
+  {
+   "id": "ev-e6ee73028879",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-hxv8-4j4r-cqgv"
+  },
+  {
+   "id": "ev-61d9fad82b18",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-q6h5-q3q6-f87x"
+  },
+  {
+   "id": "ev-7c18ae71ad51",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-vh48-r624-p8v7"
+  },
+  {
+   "id": "ev-238b98b5fd92",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-w7c2-w76w-5hmj"
+  },
+  {
+   "id": "ev-fbfb760b54b0",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-xg58-75qf-9r67"
+  },
+  {
+   "id": "ev-4094e177a6aa",
+   "uri": "https://github.com/cilium/cilium/security/advisories/GHSA-xqhm-7xhv-6ppj"
+  }
+ ]
+}

@@ -1,0 +1,26 @@
+case: terraform-provider-aws-5.99-6.0
+reviewedAt: "2026-10-01"
+method: >-
+    Sample-based human adjudication (G9): every change matching a notExpected
+    entry plus a sample of unmatched changes, each read against the case's
+    cited upstream documents. Dataset false positives are confirmed or
+    overturned; unmatched samples get true-positive / false-positive /
+    uncertain verdicts. Verdicts feed labeledPrecision and the false-action
+    rate.
+adjudications:
+  - changeId: chg-929d86f00ecd
+    verdict: true-positive
+    reason: "aws_resiliencehub_resiliency_policy single-nested blocks become lists — a breaking schema change (BREAKING CHANGES section) the must-find list lacked"
+    # output was: Resource `aws_resiliencehub_resiliency_policy`: Treat the following as lists of nested blocks instea
+  - changeId: chg-fa4f5179d3d6
+    verdict: false-positive
+    reason: "aws_opsworks_stack bare resource mention (deprecation list entry without action surface in the ingested text)"
+    # output was: `aws_opsworks_stack`
+  - changeId: chg-b14326814df0
+    verdict: false-positive
+    reason: "aws_opsworks_rds_db_instance bare resource mention"
+    # output was: `aws_opsworks_rds_db_instance`
+  - changeId: chg-379ccc4e81fa
+    verdict: false-positive
+    reason: "'Add owner:' fragment; malformed changelog line, no upgrade meaning"
+    # output was: Add `owner`:

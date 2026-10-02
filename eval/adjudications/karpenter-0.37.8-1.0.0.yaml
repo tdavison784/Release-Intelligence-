@@ -1,0 +1,26 @@
+case: karpenter-0.37.8-1.0.0
+reviewedAt: "2026-10-01"
+method: >-
+    Sample-based human adjudication (G9): every change matching a notExpected
+    entry plus a sample of unmatched changes, each read against the case's
+    cited upstream documents. Dataset false positives are confirmed or
+    overturned; unmatched samples get true-positive / false-positive /
+    uncertain verdicts. Verdicts feed labeledPrecision and the false-action
+    rate.
+adjudications:
+  - changeId: chg-4f5023c01335
+    verdict: true-positive
+    reason: "v1.0.0 end-of-life notice (SUPPORT.md) — an operator on 1.0.0 must know the line is EOL; the must-find list lacked it"
+    # output was: Karpenter for AWS v1.0.0 is end-of-life since 2026-02
+  - changeId: chg-ea9384fa19f4
+    verdict: false-positive
+    reason: "'Use ScheduleAnyway instead of DoNotSchedule' commit; the upgrade-guide item E10 already covers the topology-spread default change"
+    # output was: Use ScheduleAnyway instead of DoNotSchedule (#6568) #6568 (Reed Schalo)
+  - changeId: chg-0329d0977457
+    verdict: false-positive
+    reason: "remove unused option; internal"
+    # output was: remove unused option (#6557) #6557 (Reed Schalo)
+  - changeId: chg-1ac8f769acc5
+    verdict: false-positive
+    reason: "test flake fix; development noise"
+    # output was: scheduling zone-id flake (#6493) #6493 (Jason Deal)

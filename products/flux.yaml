@@ -1,0 +1,495 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: flux
+name: Flux (flux2)
+description: >-
+  The Flux GitOps fleet (github.com/fluxcd/flux2): the flux CLI plus the
+  generated install manifests that bundle the independently-versioned Flux
+  controllers. Flux v2 is an AGGREGATE product — source-controller,
+  kustomize-controller, helm-controller, notification-controller,
+  image-reflector-controller, image-automation-controller and (since 2.7)
+  source-watcher live in their own repositories, and every v2.x.y tag pins
+  one version of each in manifests/bases/<controller>/kustomization.yaml as
+  kustomize remote-resource URLs. Tags run v0.0.1 - v0.41.2 (0.x era, no
+  v1.x exists), then v2.0.0 (2022-05) - v2.9.x; the project supports the
+  last three minor releases. Release bodies are hand-written (Highlights,
+  Fixes:/Improvements: label bullets, a per-release Kubernetes compatibility
+  table in minors, the components changelog, a generated CLI changelog).
+  Images are on ghcr.io/fluxcd, the generated manifests are pushed as OCI
+  artifacts, and the community Helm chart (fluxcd-community/helm-charts)
+  tracks flux2 releases by appVersion.
+homepage: https://fluxcd.io
+
+versioning:
+  scheme: semver
+  tagPrefix: v
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions -----------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/fluxcd/flux2
+    notes: >-
+      216 tags (v0.0.1 - v0.41.2, then v2.0.0-rc.1 - v2.9.6): 206 stable, 10
+      pre-releases (alpha.N, beta.N, rc.N), no junk tags; the pattern keeps
+      the pre-releases, the 0.x -> 2.x jump has no v1.x.
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: fluxcd/flux2
+
+  # --- release notes (hand-written body + generated CLI changelog) ------------
+  # One release per tag. Structure (docs/release/release-notes-template.md):
+  # "## Highlights" prose + upgrade-procedure pointer; "Fixes:" /
+  # "Improvements:" label paragraphs whose bullets each name the responsible
+  # controller in parentheses; "## Components changelog" (the controller pins
+  # as markdown links); "## CLI changelog" (github-native PR list);
+  # "**Full Changelog**". The components pins are skipped here: the
+  # *-controller-image artifacts report them verified at their registries
+  # (kube-prometheus-stack ignoreKeys precedent).
+  - id: release-notes
+    roles: [release-notes]
+    locator:
+      kind: github-releases
+      repository: fluxcd/flux2
+      ref: "{{.Tag}}"
+    extract:
+      type: whole
+      labelParagraphs: '^(Fixes|Improvements|Changes|Deprecations|Breaking [Cc]hanges|Overview of the new features|New documentation):$'
+    classify:
+      # generated trailing links and contributor thanks
+      - text: '^\*\*Full Changelog\*\*'
+        skip: true
+      - text: '^❤️ Big thanks'
+        skip: true
+      # the compatibility tables are extracted structurally by the
+      # kubernetes-compat source; the section prose and the folded GitHub
+      # [!NOTE] alerts are not items (same for the version-independent
+      # OpenShift note every body carries)
+      - section: '^Kubernetes compatibility$'
+        skip: true
+      - section: '^OpenShift compatibility$'
+        skip: true
+      - text: 'This release is compatible with the following Kubernetes versions'
+        skip: true
+      # the per-release upgrade pointer (v2.7+ discussion); the single most
+      # useful item of a patch body
+      - text: 'Please follow the .*\[Upgrade Procedure'
+        category: migration
+        actionRequired: true
+      # the pinned component versions: reported as verified artifacts, not text
+      - section: '^Components [Cc]hangelog$'
+        skip: true
+      # the generated CLI PR list: dependency/CI churn, conventional-commit
+      # repo-machinery prefixes and the umbrella component-bump commits are
+      # not upgrade intelligence
+      - section: '^CLI [Cc]hangelog$'
+        text: 'dependabot\[bot\]|build\(deps\)|bump |github-workflow|Update toolkit components|update toolkit components|\[(CI|chore|docs?|test|build)\]|^(ci|refactor|tests?|chore|build|docs|e2e):|conformance|e2e test'
+        skip: true
+      # the CLI's own dependency bumps (k8s client, cosign, helm)
+      - section: '^CLI [Cc]hangelog$'
+        text: '(?i)^(upgrade|pin|update) .*(k8s|kubernetes|helm|cosign|deps)| pin .* to v'
+        category: dependency
+      - section: '^CLI [Cc]hangelog$'
+        text: '(?i)^(diff|feat):|(?i)\b(add(?:ed|s)?|support|introduc|enable|allow|implement|prov|extend)'
+        category: feature
+      - section: '^CLI [Cc]hangelog$'
+        text: '(?i)^fix:|(?i)\b(fix|correct|resolv|prevent|restor|revert|updat|format|improv)'
+        category: bugfix
+      - section: '^CLI [Cc]hangelog$'
+        category: other
+      # labels promoted by labelParagraphs
+      - section: '^Fixes$'
+        category: bugfix
+      - section: '^(Improvements|Overview of the new features)$'
+        category: feature
+      - section: '^New documentation$'
+        skip: true
+      - text: '\bCVE-\d{4}-\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+        category: security
+      # Highlights prose: the release opener duplicates the Fixes bullets
+      - section: '^Highlights$'
+        text: 'Flux v[\d.]+ is a (feature|patch|minor) release'
+        skip: true
+      - section: '^Highlights$'
+        category: other
+
+  # --- Kubernetes compatibility (per-release table in minor bodies) -----------
+  # "### Kubernetes compatibility" carries one row per supported Kubernetes
+  # minor ("v1.34 | >= 1.34.1") in every minor body since v2.0.0; patch
+  # bodies have none. One row is selectable per release: the first row is
+  # the oldest supported Kubernetes minor, read as the minimum (the whole
+  # supported set is upstream's "upstream-supported Kubernetes" policy; the
+  # upper rows are not expressible as a per-release set — see record).
+  - id: kubernetes-compat
+    roles: [compatibility]
+    availability: ">= 2.0.0"
+    releaseKinds: [minor, major]
+    locator:
+      kind: github-releases
+      repository: fluxcd/flux2
+      ref: "{{.Tag}}"
+    extract:
+      type: markdown-table
+      tableHeading: '^Kubernetes compatibility$'
+      keyColumns: [Kubernetes version]
+      keyMatch: '^v\d+\.\d+$'
+      columns:
+        - platform: kubernetes
+          kind: minimum
+          headers: [Minimum required]
+
+  # --- upgrade guide (website, generic procedure) ------------------------------
+  # docs.fluxcd.io/flux/installation/upgrade: version-independent procedure
+  # (CLI upgrade, bootstrap/Git reconciliation, automation). Markdown sources
+  # live in the website repository (main only, not at flux2 tags). Minor
+  # releases carry it; the v2.7+ step-by-step upgrade procedure it points to
+  # is a GitHub discussion (HTML, not declaratively readable — see record).
+  - id: upgrade-guide
+    roles: [upgrade-guide]
+    availability: ">= 2.0.0"
+    releaseKinds: [minor]
+    locator:
+      kind: repo-file
+      repository: github.com/fluxcd/website
+      ref: main
+      path: content/en/flux/installation/upgrade.md
+    extract:
+      type: whole
+    classify:
+      # Hugo shortcode fences
+      - text: '^\{\{%?\s'
+        skip: true
+      # mechanical shell steps inside code fences
+      - text: '^(git |cd |helm |kubectl |flux )'
+        skip: true
+      - text: '^\*\*Full Changelog'
+        skip: true
+
+  # --- lifecycle evidence --------------------------------------------------------
+  # content/en/flux/releases/_index.md (main only): the support policy —
+  # "we support the last three minor releases" (currently 2.7/2.8/2.9),
+  # controllers compatible within one minor, Kubernetes supported as
+  # upstream. Cited by the lifecycle statements below; its items are
+  # reported through them, not as per-release notes.
+  - id: support-policy
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/fluxcd/website
+      ref: main
+      path: content/en/flux/releases/_index.md
+    extract:
+      type: whole
+
+  # --- security -------------------------------------------------------------------
+  # fluxcd publishes ecosystem advisories under flux2 (including controller
+  # ones, e.g. "Helm Controller denial of service"); the controllers also
+  # carry their own feeds. Affected-version ranges are mostly absent from
+  # the public endpoint, so the edge surfaces them as check-manually
+  # warnings; joining controller CVEs to flux releases needs the pin map
+  # (kube-prometheus-stack sub-component-security gap).
+  - id: advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: fluxcd/flux2
+  - id: source-controller-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: fluxcd/source-controller
+  - id: kustomize-controller-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: fluxcd/kustomize-controller
+  - id: helm-controller-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: fluxcd/helm-controller
+  - id: notification-controller-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: fluxcd/notification-controller
+  - id: image-reflector-controller-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: fluxcd/image-reflector-controller
+  - id: image-automation-controller-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: fluxcd/image-automation-controller
+  - id: source-watcher-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: fluxcd/source-watcher
+
+# --- lifecycle -----------------------------------------------------------------
+# The releases page: "For Flux the CLI and its controllers, we support the
+# last three minor releases" (checked 2026-10-01: 2.7, 2.8, 2.9; v2.9.0
+# 2026-06-30 pushed 2.6 out). Backports are best-effort patch releases.
+lifecycle:
+  - state: end-of-life
+    since: "2022-05"
+    versions: "< 2.0.0"
+    summary: >-
+      The v0.x era (v0.0.1 - v0.41.2) is outside the supported-release policy
+      since the v2.0.0 GA (2022-05): the last-three-minors window covers v2
+      lines only, and no 0.x line receives fixes.
+    sources: [support-policy]
+  - state: end-of-life
+    since: "2026-06"
+    versions: ">= 2.0.0, < 2.7.0"
+    summary: >-
+      Lines 2.0 - 2.6 have left the three-minor support window (v2.7.0
+      2025-09-30, v2.8.0 2026-02-24, v2.9.0 2026-06-30 are the supported
+      three; checked 2026-10-01). Critical fixes may be backported
+      best-effort; upgrading to the 2.7+ lines is the supported path.
+    sources: [support-policy]
+
+artifacts:
+  # --- CLI image (goreleaser manifest lists on ghcr) ---------------------------
+  - id: cli-image
+    type: container-image
+    name: ghcr.io/fluxcd/flux-cli
+    description: >-
+      The flux CLI as a multi-arch image (per-arch {{.Tag}}-{amd64,arm64,arm}
+      manifests plus the {{.Tag}} list; same names since the 0.x era).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/fluxcd/flux-cli
+      - kind: oci
+        repository: docker.io/fluxcd/flux-cli
+
+  # --- pinned controllers (the aggregation topology) ---------------------------
+  # Each controller image is versioned by the pin in the release's own
+  # manifests/bases/<controller>/kustomization.yaml — the version inside the
+  # kustomize remote-resource URL (pattern strategy, the text twin of the
+  # kube-prometheus-stack field strategy). The controllers are separate
+  # upstream products; here they are the pinned sub-components of a flux2
+  # release, probe-verified at their own registry per release.
+  - id: source-controller-image
+    type: container-image
+    name: ghcr.io/fluxcd/source-controller
+    version:
+      strategy: pattern
+      pattern: 'source-controller/releases/download/(?P<version>v\d+\.\d+\.\d+)/source-controller\.crds\.yaml'
+      from:
+        kind: repo-file
+        repository: github.com/fluxcd/flux2
+        ref: "{{.Tag}}"
+        path: manifests/bases/source-controller/kustomization.yaml
+    channels:
+      - kind: oci
+        repository: ghcr.io/fluxcd/source-controller
+  - id: kustomize-controller-image
+    type: container-image
+    name: ghcr.io/fluxcd/kustomize-controller
+    version:
+      strategy: pattern
+      pattern: 'kustomize-controller/releases/download/(?P<version>v\d+\.\d+\.\d+)/kustomize-controller\.crds\.yaml'
+      from:
+        kind: repo-file
+        repository: github.com/fluxcd/flux2
+        ref: "{{.Tag}}"
+        path: manifests/bases/kustomize-controller/kustomization.yaml
+    channels:
+      - kind: oci
+        repository: ghcr.io/fluxcd/kustomize-controller
+  - id: helm-controller-image
+    type: container-image
+    name: ghcr.io/fluxcd/helm-controller
+    version:
+      strategy: pattern
+      pattern: 'helm-controller/releases/download/(?P<version>v\d+\.\d+\.\d+)/helm-controller\.crds\.yaml'
+      from:
+        kind: repo-file
+        repository: github.com/fluxcd/flux2
+        ref: "{{.Tag}}"
+        path: manifests/bases/helm-controller/kustomization.yaml
+    channels:
+      - kind: oci
+        repository: ghcr.io/fluxcd/helm-controller
+  - id: notification-controller-image
+    type: container-image
+    name: ghcr.io/fluxcd/notification-controller
+    version:
+      strategy: pattern
+      pattern: 'notification-controller/releases/download/(?P<version>v\d+\.\d+\.\d+)/notification-controller\.crds\.yaml'
+      from:
+        kind: repo-file
+        repository: github.com/fluxcd/flux2
+        ref: "{{.Tag}}"
+        path: manifests/bases/notification-controller/kustomization.yaml
+    channels:
+      - kind: oci
+        repository: ghcr.io/fluxcd/notification-controller
+  - id: image-reflector-controller-image
+    type: container-image
+    name: ghcr.io/fluxcd/image-reflector-controller
+    version:
+      strategy: pattern
+      pattern: 'image-reflector-controller/releases/download/(?P<version>v\d+\.\d+\.\d+)/image-reflector-controller\.crds\.yaml'
+      from:
+        kind: repo-file
+        repository: github.com/fluxcd/flux2
+        ref: "{{.Tag}}"
+        path: manifests/bases/image-reflector-controller/kustomization.yaml
+    channels:
+      - kind: oci
+        repository: ghcr.io/fluxcd/image-reflector-controller
+  - id: image-automation-controller-image
+    type: container-image
+    name: ghcr.io/fluxcd/image-automation-controller
+    version:
+      strategy: pattern
+      pattern: 'image-automation-controller/releases/download/(?P<version>v\d+\.\d+\.\d+)/image-automation-controller\.crds\.yaml'
+      from:
+        kind: repo-file
+        repository: github.com/fluxcd/flux2
+        ref: "{{.Tag}}"
+        path: manifests/bases/image-automation-controller/kustomization.yaml
+    channels:
+      - kind: oci
+        repository: ghcr.io/fluxcd/image-automation-controller
+  # seventh controller: base added 2025-09-15, first release tag v2.7.0
+  - id: source-watcher-image
+    type: container-image
+    name: ghcr.io/fluxcd/source-watcher
+    availability: ">= 2.7.0"
+    version:
+      strategy: pattern
+      pattern: 'source-watcher/releases/download/(?P<version>v\d+\.\d+\.\d+)/source-watcher\.crds\.yaml'
+      from:
+        kind: repo-file
+        repository: github.com/fluxcd/flux2
+        ref: "{{.Tag}}"
+        path: manifests/bases/source-watcher/kustomization.yaml
+    channels:
+      - kind: oci
+        repository: ghcr.io/fluxcd/source-watcher
+
+  # --- generated install manifests (OCI artifact + release asset) --------------
+  # The umbrella's install bundle: kustomize build manifests/install with the
+  # pinned controller images and all controller CRDs. Canonical channel is
+  # the OCI artifact ghcr.io/flux-system/gotk-components.yaml (flux install
+  # --export, pushed since the v2.1.0 era; anonymous pulls DENIED from this
+  # sandbox); the identical-content release asset install.yaml answers 200
+  # for every release since at least v0.20.1 and serves the probes and the
+  # contents snapshots (image pins + CRD versions per release).
+  - id: install-bundle
+    type: package
+    name: gotk-components.yaml
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/flux-system/gotk-components.yaml
+      - kind: http
+        url: "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/install.yaml"
+    contents:
+      - kind: image-refs
+        locator:
+          kind: http
+          url: "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/install.yaml"
+      - kind: crds
+        locator:
+          kind: http
+          url: "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/install.yaml"
+  # the second OCI artifact of the generated manifests (workflow job added
+  # between v2.0.0 and v2.1.0): the flux pull/OCI-install distribution
+  - id: flux-manifests-oci
+    type: package
+    name: ghcr.io/fluxcd/flux-manifests
+    availability: ">= 2.1.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: ghcr.io/fluxcd/flux-manifests
+      - kind: oci
+        repository: docker.io/fluxcd/flux-manifests
+
+  # --- CLI binaries and release files --------------------------------------------
+  - id: cli-binary
+    type: binary
+    name: flux
+    description: goreleaser archives (flux_<version>_<os>_<arch>), asset names carry the unprefixed version.
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/flux_{{.Version}}_linux_amd64.tar.gz"
+  - id: sbom
+    type: package
+    name: flux_<version>_sbom.spdx.json
+    description: >-
+      SPDX SBOM of the release source (attached since v0.25.3, the release
+      the SBOM blog post introduced them with; 404 for every earlier tag).
+    availability: ">= 0.25.3"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/flux_{{.Version}}_sbom.spdx.json"
+  - id: source-archive
+    type: package
+    name: flux_<version>_source_code.tar.gz
+    description: goreleaser source archive attached to the release (since v0.25.3).
+    availability: ">= 0.25.3"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/flux_{{.Version}}_source_code.tar.gz"
+
+  # --- the community Helm chart (lookup by appVersion) ----------------------------
+  # Not in the flux2 repository: fluxcd-community/helm-charts, chart flux2,
+  # with its own chart majors (chart 2.19.x tracks appVersion 2.9.x; chart
+  # 2.9.x tracked appVersion 2.0.0). The relation is "the chart release
+  # whose appVersion is this flux2 release" (the Argo CD lookup shape). The
+  # chart lags upstream (2.9.6, released 2026-10-01, has none yet) and
+  # minor .0 releases often never get one: optional, absence is a fact.
+  - id: chart
+    type: helm-chart
+    name: flux2
+    availability: ">= 0.20.1"
+    optional: true
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Version}}"
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://fluxcd-community.github.io/helm-charts
+        chart: flux2
+      - kind: oci
+        repository: ghcr.io/fluxcd-community/charts/flux2
+
+provenance:
+  method: discovery+review
+  author: onboarding wave 2
+  updated: "2026-10-01"
+  validatedReleases: [0.20.1, 0.41.2, 2.0.0, 2.3.0, 2.7.0, 2.9.0, 2.9.6]
+  notes: >-
+    Started from the discovery proposal (git-tags + the v tag family, the
+    GitHub release body, the flux-manifests OCI artifact, github-advisories)
+    and rebuilt around the aggregation topology from docs/research/flux.md:
+    discovery assumed the six controller images are tagged with the flux2
+    release (its relationship checks failed for every release and dropped
+    them) — their tags are their own pins, read with the new pattern
+    strategy out of manifests/bases/*/kustomization.yaml; the chart is a
+    lookup by appVersion in the community repository, not a template
+    relation; the generated install bundle is probe-verified through the
+    install.yaml release asset because the canonical flux-system OCI
+    artifact denies anonymous pulls.

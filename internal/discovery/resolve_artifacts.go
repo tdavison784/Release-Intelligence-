@@ -79,17 +79,17 @@ type imageInfo struct {
 }
 
 func (r *resolver) artifacts() {
-	charts := r.helmCharts()
+	charts, chartAppVersion := r.helmCharts()
 	r.externalCharts()
 	manifests := r.inRepoManifests()
 	r.releaseAssets()
 	r.crds()
-	r.images(charts, manifests)
+	r.images(charts, chartAppVersion, manifests)
 }
 
 // images groups product images by name; channels are the registries that
 // publish them.
-func (r *resolver) images(chartTemplate string, manifests map[string]Candidate) {
+func (r *resolver) images(chartTemplate, chartAppVersion string, manifests map[string]Candidate) {
 	byName := map[string][]imageInfo{}
 	var names []string
 	for _, c := range r.byK[KindImage] {
@@ -190,6 +190,8 @@ func (r *resolver) images(chartTemplate string, manifests map[string]Candidate) 
 		case tmpl != "":
 		case setOf(infos[0].c.Attr("classes"))["chart-appversion"] && chartTemplate != "":
 			tmpl, rule, why = chartTemplate, "image.tag-from-chart-appversion", "The chart leaves the image tag empty so it defaults to the chart appVersion, which follows the release."
+		case setOf(infos[0].c.Attr("classes"))["chart-appversion"] && chartAppVersion != "":
+			tmpl, rule, why = chartAppVersion, "image.tag-from-chart-appversion", "The chart leaves the image tag empty so it defaults to the chart appVersion, which equals the release tag."
 		default:
 			tmpl, rule, conf, why = tmplTag, "image.tag-assumed-release", domain.ConfidenceLow, "No explicit tag evidence; assuming images are tagged with the release tag."
 		}
@@ -252,8 +254,9 @@ func registryScore(c Candidate) int {
 }
 
 // helmCharts adds in-repo charts with publication evidence and returns the
-// version template of the main chart ("" when none).
-func (r *resolver) helmCharts() string {
+// version template of the main chart plus its appVersion lookup match (""
+// when none).
+func (r *resolver) helmCharts() (string, string) {
 	type chart struct {
 		c         Candidate
 		name, dir string
@@ -289,7 +292,12 @@ func (r *resolver) helmCharts() string {
 			}
 		}
 		for _, h := range r.byK[KindHelmRepo] {
-			if setOf(h.Attr("charts"))[name] || h.Attr("chartDir") == dir {
+			// chart-releaser publishes every chart of the repository it runs
+			// in, so its pages candidates match the repo's own charts even
+			// without naming them.
+			releaser := c.Attr("repo") == "" && h.Attr("repo") == "" &&
+				(containsStr(h.Rules, "workflow.chart-releaser-pages") || containsStr(h.Rules, "workflow.chart-releaser-pages-raw"))
+			if setOf(h.Attr("charts"))[name] || h.Attr("chartDir") == dir || releaser {
 				ch.repos = append(ch.repos, h)
 			}
 		}
@@ -317,7 +325,7 @@ func (r *resolver) helmCharts() string {
 			anyPublished = true
 		}
 	}
-	mainTemplate := ""
+	mainTemplate, appVersionMatch := "", ""
 	for _, ch := range charts {
 		if !ch.published && (anyPublished || !r.productRelated(ch.name+" "+ch.dir)) {
 			r.exclude(ch.c, "helm.unpublished", "No publication channel (OCI push/reference or Helm repository) mentions this chart.")
@@ -344,9 +352,47 @@ func (r *resolver) helmCharts() string {
 				}
 			}
 		}
+		// Development channels (charts.crossplane.io/master: unreleased main
+		// builds) are dropped when a stable sibling repository of the same
+		// chart exists.
+		if len(ch.repos) > 1 {
+			hasStable := false
+			for _, h := range ch.repos {
+				if !devChannelURL(h.Value) {
+					hasStable = true
+					break
+				}
+			}
+			if hasStable {
+				kept := ch.repos[:0]
+				for _, h := range ch.repos {
+					if devChannelURL(h.Value) {
+						r.exclude(h, "helm.dev-channel", "Chart repository path is a development channel (unreleased main builds); a stable channel of the same chart exists.")
+						continue
+					}
+					kept = append(kept, h)
+				}
+				ch.repos = kept
+			}
+		}
+		// Canonical *.github.io repository first, then the same index on
+		// raw.githubusercontent.com (reachable where the pages host is not).
+		sort.SliceStable(ch.repos, func(i, j int) bool {
+			return ch.repos[i].Attr("pagesIndex") == "" && ch.repos[j].Attr("pagesIndex") != ""
+		})
 		for _, h := range ch.repos {
 			channels = append(channels, catalog.Locator{Kind: catalog.LocatorHelmRepo, URL: h.Value, Chart: ch.name})
 			cands = append(cands, h)
+		}
+		// chart-releaser also tags every chart release ("<chart>-X.Y.Z" or
+		// another dedicated family); the chart directory at those tags is a
+		// git channel that needs no HTTP host at all.
+		if r.hasBuildTool("chart-releaser") {
+			if f := chartTrainFamily(r.in.Tags, ch.name); f != nil {
+				pat := `^` + regexp.QuoteMeta(f.Prefix) + `(?P<version>\d+\.\d+\.\d+)$`
+				channels = append(channels, catalog.Locator{Kind: catalog.LocatorHelmGit, Repository: r.in.Repo.String(), Path: ch.dir, TagPattern: pat})
+				cands = append(cands, tagFamilyCandidate(r.in.Tags, *f))
+			}
 		}
 		vr, rule, conf, why := r.chartVersion(ch.c, ch.dir)
 		chartFile := ch.c.Attr("chartFile")
@@ -363,16 +409,38 @@ func (r *resolver) helmCharts() string {
 		if mainTemplate == "" && vr.Strategy == catalog.VersionTemplate {
 			mainTemplate = vr.Template
 		}
+		if appVersionMatch == "" && vr.Strategy == catalog.VersionLookup && vr.Field == "appVersion" {
+			appVersionMatch = vr.Match
+		}
 	}
-	return mainTemplate
+	return mainTemplate, appVersionMatch
 }
 
 // chartVersion derives the relation between chart and release versions.
+// Evidence priority: an explicit build stamp (make/goreleaser) beats the
+// Chart.yaml appVersion relation, which beats a chart version that happens
+// to equal the release version.
 func (r *resolver) chartVersion(c Candidate, dir string) (catalog.VersionRelation, string, domain.Confidence, string) {
 	for _, vr := range r.byK[KindVersionRelation] {
-		if vr.Attr("subject") == "chart.version" && vr.Attr("template") != "" && (vr.Attr("chart") == "" || strings.HasPrefix(c.Value, vr.Attr("chart")+"@")) {
+		if vr.Attr("subject") == "chart.version" && vr.Attr("template") != "" && vr.Attr("chart") == "" {
 			return catalog.VersionRelation{Strategy: catalog.VersionTemplate, Template: vr.Attr("template")}, "helm.version-from-build", domain.ConfidenceHigh,
 				fmt.Sprintf("The build sets the chart version from the release tag (%s).", vr.Value)
+		}
+	}
+	for _, vr := range r.byK[KindVersionRelation] {
+		if vr.Attr("subject") == "chart.appVersion" && vr.Attr("template") != "" && (vr.Attr("chart") == "" || strings.HasPrefix(c.Value, vr.Attr("chart")+"@")) {
+			why := fmt.Sprintf("Chart.yaml sets appVersion %q, which equals a release tag; the chart release for a product release is looked up by appVersion == %s (the chart's own version moves independently).", vr.Attr("appVersion"), vr.Attr("template"))
+			if vr.Attr("lag") != "" {
+				why = fmt.Sprintf("Chart.yaml at the scanned release still packages the previous chart (appVersion %q, %s release(s) behind): chart releases are cut after the product tag; the chart for a release is looked up by appVersion == %s.", vr.Attr("appVersion"), vr.Attr("lag"), vr.Attr("template"))
+			}
+			return catalog.VersionRelation{Strategy: catalog.VersionLookup, Field: "appVersion", Match: vr.Attr("template"), Select: "latest"},
+				"helm.appversion-lookup", domain.ConfidenceHigh, why
+		}
+	}
+	for _, vr := range r.byK[KindVersionRelation] {
+		if vr.Attr("subject") == "chart.version" && vr.Attr("template") != "" && (vr.Attr("chart") == "" || strings.HasPrefix(c.Value, vr.Attr("chart")+"@")) {
+			return catalog.VersionRelation{Strategy: catalog.VersionTemplate, Template: vr.Attr("template")}, "helm.version-matches-release", domain.ConfidenceHigh,
+				fmt.Sprintf("Chart.yaml at the scanned release carries version %q, the release version; chart versions follow the release (%s).", c.Attr("version"), vr.Attr("template"))
 		}
 	}
 	if c.Attr("placeholder") == "true" {
@@ -604,8 +672,69 @@ func (r *resolver) inRepoManifests() map[string]Candidate {
 	return out
 }
 
-// crds adds CRD artifacts: release-asset CRD bundles are preferred; else
-// dedicated in-repo CRD files of the product's API groups.
+// inRepoManifestCandidates returns manifest candidates of the main
+// repository (docs-referenced YAML files), most evidenced first.
+func (r *resolver) inRepoManifestCandidates() []Candidate {
+	var out []Candidate
+	for _, c := range r.byK[KindManifest] {
+		if _, _, main := r.repoOf(c); main {
+			out = append(out, c)
+		}
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		return atoiDefault(out[i].Attr("occurrences"), 1) > atoiDefault(out[j].Attr("occurrences"), 1)
+	})
+	return out
+}
+
+var crdBundleBaseRe = regexp.MustCompile(`(?i)^(?:[a-z0-9_.-]*-)?crds?\.ya?ml$|^crd\.ya?ml$`)
+
+// isCRDBundlePath reports whether a path names a single CRD bundle file
+// (deploy/crds/bundle.yaml, something-crds.yaml) rather than one CRD of a
+// directory of many.
+func isCRDBundlePath(p string) bool {
+	base := strings.ToLower(path.Base(p))
+	dir := strings.ToLower(path.Dir(p))
+	if crdBundleBaseRe.MatchString(base) {
+		return true
+	}
+	return (base == "bundle.yaml" || base == "bundle.yml") && (strings.Contains(dir, "crd"))
+}
+
+// hasBuildTool reports whether a build-tool candidate names tool.
+func (r *resolver) hasBuildTool(tool string) bool {
+	for _, c := range r.byK[KindBuildTool] {
+		if c.Value == tool {
+			return true
+		}
+	}
+	return false
+}
+
+var devChannelRe = regexp.MustCompile(`(?i)/(master|main|dev|devel|nightly|canary|edge|testing)(/|$)`)
+
+// devChannelURL reports whether a chart repository URL points at a
+// development channel of a repository that also has stable releases.
+func devChannelURL(u string) bool {
+	u = strings.TrimSuffix(strings.TrimSpace(u), "/")
+	return devChannelRe.MatchString(u)
+}
+
+// tagFamilyCandidate turns a tag family into a pseudo-candidate so that the
+// chart's helm-git channel can cite the tag list as evidence.
+func tagFamilyCandidate(ta *TagAnalysis, f TagFamily) Candidate {
+	c := Candidate{Kind: KindTagScheme, Value: f.Prefix, Confidence: domain.ConfidenceMedium, Rules: []string{"tags.family"},
+		Attributes: map[string]string{"prefix": f.Prefix, "stable": itoa(f.Count), "latest": f.Latest}}
+	c.ID = candidateID(c.Kind, "family:"+f.Prefix)
+	if ta != nil && f.Latest != "" {
+		c.Evidence = append(c.Evidence, ta.Evidence(f.Latest, ta.ListedAt))
+	}
+	return c
+}
+
+// crds adds CRD artifacts: release-asset CRD bundles are preferred; else a
+// docs-referenced CRD bundle file; else dedicated in-repo CRD files of the
+// product's API groups.
 func (r *resolver) crds() {
 	for _, a := range r.def.Artifacts {
 		if a.Type == domain.ArtifactCRD {
@@ -614,6 +743,26 @@ func (r *resolver) crds() {
 			}
 			return
 		}
+	}
+	// A single CRD bundle file referenced from the repository's own install
+	// documentation (e.g. deploy/crds/bundle.yaml linked from the README) is
+	// what non-Helm users are told to apply: prefer it over the raw CRD
+	// directory tree.
+	for _, m := range r.inRepoManifestCandidates() {
+		if !isCRDBundlePath(m.Value) {
+			continue
+		}
+		a := catalog.Artifact{ID: "crds", Type: domain.ArtifactCRD, Name: path.Base(m.Value),
+			Version:  catalog.VersionRelation{Strategy: catalog.VersionTemplate, Template: tmplTag},
+			Channels: []catalog.Locator{r.repoFile(m, m.Value)},
+			Contents: []catalog.Content{{Kind: catalog.ContentCRDs}},
+			Notes:    "Single CRD bundle file; the repository's install documentation references it."}
+		r.addArtifact(a, "crd.docs-referenced-bundle", m.Confidence, []string{TargetVersionRelations},
+			"The install documentation references this CRD bundle directly; preferred over the CRD source directory.", m)
+		for _, c := range r.byK[KindCRD] {
+			r.exclude(c, "crd.prefer-docs-bundle", "A docs-referenced CRD bundle file covers the CRDs; the directory layout is not modelled.")
+		}
+		return
 	}
 	dirs := map[string][]Candidate{}
 	for _, c := range r.byK[KindCRD] {

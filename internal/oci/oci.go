@@ -145,11 +145,14 @@ func (a *Adapter) tokenClient() fetch.Client {
 }
 
 // Register registers the adapter for the "oci" locator kind as both
-// ArtifactProbe and VersionIndex.
+// ArtifactProbe and VersionIndex, plus its chart-package reader (charts
+// published as OCI artifacts) and image-manifest reader.
 func Register(reg *sources.Registry, f fetch.Client) {
 	a := New(f)
 	reg.RegisterProbe(catalog.LocatorOCI, a)
 	reg.RegisterVersionIndex(catalog.LocatorOCI, a)
+	reg.RegisterChartPackageReader(catalog.LocatorOCI, a)
+	reg.RegisterImageManifestReader(catalog.LocatorOCI, a)
 }
 
 // repository parses a locator repository and applies endpoint overrides.

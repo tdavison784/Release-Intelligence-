@@ -1,0 +1,103 @@
+product: linkerd
+order: 23
+wave: 3
+repository: github.com/linkerd/linkerd2
+onboarding:
+  startedAt: "2026-10-01T15:56:19Z"
+  finishedAt: "2026-10-01T16:26:56Z"
+  minutes: 30              # agent wall-clock, excludes writing this record
+discovery:
+  proposal: docs/onboarding/discovery/linkerd.proposed.yaml
+  report: docs/onboarding/discovery/linkerd.report.md
+sources:
+  - {id: git-tags, origin: discovered-modified, note: "discovery proposed the edge- CalVer family (newest-tag trap); corrected to the stable lineage stable-2.X.N ∪ version-2.Y"}
+  - {id: github-releases, origin: discovered}
+  - {id: release-notes-github, origin: discovered, note: "kept, scoped to the <= 2.14 artifact era"}
+  - {id: announce-2-15, origin: manual, note: "website announcement blog; date-prefixed path is upstream data, so one availability-pinned source per designation"}
+  - {id: announce-2-16, origin: manual, note: "same"}
+  - {id: announce-2-17, origin: manual, note: "same"}
+  - {id: announce-2-18, origin: manual, note: "same"}
+  - {id: announce-2-19, origin: manual, note: "same"}
+  - {id: announce-2-20, origin: manual, note: "same"}
+  - {id: upgrade-notices, origin: manual, note: "Upgrade notice: stable-X.Y.0 sections of the per-docs-version website upgrade page (2.10-2.14)"}
+  - {id: github-advisories, origin: discovered}
+artifacts:
+  - {id: control-plane-chart, origin: discovered-modified, note: "discovery assumed placeholder version == release; corrected to lookup by appVersion == {{.Tag}} (chart versions are an independent 1.x train), optional over the artifact-less era"}
+  - {id: crds, origin: manual, note: "in-tree linkerd-crds template file set at the tag; discovery's published-chart proposal had no relation to releases"}
+  - {id: controller-image, origin: manual, note: "discovery excluded every real image (test-only/docs-only rules) and proposed only extension-init"}
+  - {id: policy-controller-image, origin: manual}
+  - {id: proxy-image, origin: manual}
+  - {id: web-image, origin: manual}
+  - {id: debug-image, origin: manual}
+  - {id: linkerd2-proxy, origin: manual, note: ".proxy-version pin, version:pattern (flux construct)"}
+  - {id: proxy-init-image, origin: manual, note: "proxyInit.image.version values pin, version:field"}
+  - {id: cni-plugin-image, origin: manual, note: "linkerd2-cni values image.version pin, version:field"}
+  - {id: cli-binary, origin: manual}
+discoveryRejected:
+  - {id: linkerd-multicluster-chart, reason: "extension chart, related product, out of scope"}
+  - {id: extension-init, reason: "multicluster extension image, out of scope"}
+  - {id: linkerd-crds-chart-published, reason: "sparse independent versions (1.4-1.8) with no appVersion: no relation to releases"}
+  - {id: helm.linkerd.io/edge, reason: "edge-channel charts (CalVer versions); the edge family is out of scope"}
+  - {id: CHANGES.md, reason: "dead since the 2018 CalVer era (newest section v18.9.1)"}
+relationships:
+  # from docs/onboarding/checks/linkerd.json (ri check linkerd -n 12; 18 releases
+  # spanning both tag schemes, both artifact eras and the chart-split boundary)
+  historicalReleasesChecked: [2.9.0, 2.9.5, 2.10.0, 2.10.2, 2.11.0, 2.11.5, 2.12.0, 2.12.6, 2.13.0, 2.13.7, 2.14.0, 2.14.10, 2.15.0, 2.16.0, 2.17.0, 2.18.0, 2.19.0, 2.20.0]
+  initialFailures: 5        # failing subjects of the first complete draft
+  finalFailures: 0
+  manualInterventions:
+    - {subject: linkerd2-proxy, change: "version pattern '^(?P<version>v\\d+\\.\\d+\\.\\d+)\\s*$' (v inside the group, newline tolerated)", reason: "proxy tags are release/v2.NNN.N: the first draft anchored outside the v (probes 404'd) and tripped on the trailing newline"}
+    - {subject: crds, change: "repo-dir channel replaced by an http channel on the serviceprofile.yaml file; crds contents removed", reason: "repo-dir channels cannot probe, and the CRD files are helm templates ({{ include }} / {{- if }}) that no CRD reader can parse; no rendered per-release CRD manifest is published"}
+    - {subject: control-plane-chart/helm-values, change: 'availability ">= 2.12.0"', reason: "charts/linkerd-control-plane does not exist before the 2.12 chart split (404 at 2.9-2.11 tags)"}
+    - {subject: crds, change: 'availability ">= 2.12.0"', reason: "the linkerd-crds chart was introduced with 2.12"}
+    - {subject: upgrade-notices, change: 'availability floor raised from 2.9.0 to 2.10.0', reason: "no content/2.9 docs directory exists in linkerd/website"}
+  unverifiable: []         # final run: every subject validated or (the six single-release announcement sources) insufficient
+constructs:
+  new: []                  # 82 constructs used, all introduced by earlier products
+  considered:
+    - name: "tag-alias join (map a release to another tag of the same commit via an upstream data table)"
+      reason: "stable 2.15+ designations (version-2.Y) are double-tags of edge releases whose artifacts are published under the edge tag; the mapping lives in linkerd.io/data/versions.yaml. No other onboarded product needs a data-table tag join (istio/argo-cd channels are template-derivable), so it is recorded as a gap, not a construct"
+    - name: "rendered-CRD extraction from helm chart templates"
+      reason: "linkerd's CRDs exist only as helm templates in-tree and in the published tarball; rendering would mean embedding helm. Strimzi ships CRDs as release assets and istio generates a flat crd-all.gen.yaml, so no cross-product need; recorded as a gap"
+goChanges:
+  productSpecific: 0
+  generic: []
+unreachableSources:
+  - {host: api.github.com, reason: "403 anonymous rate limit during discovery (shared quota; transient): the release-body source was unverifiable there. It recovered by check time and validated 6/6; git/atom/raw hosts were never affected"}
+ambiguousRelationships:
+  - "Stable 2.15+ designations carry no artifacts of their own; the artifacts of their commits are published under the sibling edge-YY.M.N tag (2.15=edge-24.2.4 ... 2.19=edge-25.10.7, verified double-tagged). The join is upstream data (versions.yaml), not a template"
+  - "Published chart versions are independent trains per era (linkerd-control-plane 1.9.x-1.16.11, linkerd2-cni 30.x): only appVersion == stable-2.X.N joins them to releases, and only through 2.14.10 (index frozen 2024-02-20)"
+  - "cr.l5d.io is an alias of ghcr.io (its 401 advertises ghcr.io/token; identical tags through both hosts): declared as the second channel, not a separate registry era. registry.k8s.io has no linkerd repositories at all (404) — the hypothesised k8s.io mirror does not exist"
+representability: full
+gaps:
+  - "The version-2.Y ↔ edge-tag mapping is data, so 2.15+ releases surface as artifact-absent (with the announcement, values, pins, kubeVersion and CRD file set) instead of joined to their edge-carrier artifacts; an edge-channel definition would see those artifacts directly"
+  - "No crds contents/diffs: CRDs publish only as helm templates (no rendered per-release manifest upstream)"
+  - "Announcement-blog paths are date-prefixed, so each future stable designation needs one new availability-pinned source block (2.21+ is a reviewer edit, the standing cost of the artifact-less era)"
+  - "The edge channel (weekly, the only live OSS artifact stream) is out of scope: one family per definition, istio-style channel discipline; it would be its own product id if ever needed"
+sampleEdge:
+  from: 2.19.0
+  to: 2.20.0
+  summary: "0 breaking · 3 action required · 11 changes · 8 warnings"
+  evidenceRecords: 32
+notes: >-
+  The topology surprise: the mission brief's hypothesis (stable-2.X.N and edge
+  tags, stable canonical, edge possibly dead) was inverted by research — the
+  stable TAG scheme itself changed in February 2024 (stable-2.14.10 was the
+  last OSS stable release; since 2.15 stable releases are version-2.Y
+  designation markers on edge commits with NO open-source artifacts, upstream
+  announcing "producing stable Linkerd releases will be in the hands of the
+  vendor community"), while the weekly edge channel lives on. Canonical =
+  stable lineage via one component-group pattern (postgresql construct).
+  Highest-value edge output: the cross-era edge 2.14.10 -> 2.15.0 shows the
+  entire stable artifact set (chart 1.16.11, five images, CLI) verified ->
+  removed with evidence, next to the kubeVersion narrowing; 2.19.0 -> 2.20.0
+  shows the proxy pin v2.326.0 -> v2.359.0, cni v1.6.4 -> v1.6.8, the
+  proxy-init pin removed (native sidecars default) and kubeVersion 1.23 ->
+  1.31, all registry/tag-verified. Classification tuning was two iterations
+  found by reading edges, not checks: "circuit breaking" false-positived the
+  breaking rule (now "breaking change|no longer|deprecat|incompatible") and
+  the blog's boilerplate sections (Photo credit, Linkerd is for everyone) are
+  skipped. Zero new constructs, zero Go changes: the dual tag scheme
+  (component groups), the chart join (lookup), the three per-release pins
+  (field/pattern), the optional artifact-less era and the announcement
+  sources are all wave-0/1/2 vocabulary.

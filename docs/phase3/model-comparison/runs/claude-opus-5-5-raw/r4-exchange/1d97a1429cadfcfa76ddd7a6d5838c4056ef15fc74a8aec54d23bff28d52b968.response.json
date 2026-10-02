@@ -1,0 +1,16 @@
+{
+  "format": "ri.dev/llm-exchange/response/v1",
+  "promptDigest": "sha256:1d97a1429cadfcfa76ddd7a6d5838c4056ef15fc74a8aec54d23bff28d52b968",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "generatedAt": "2026-10-02T01:29:13Z",
+  "output": {
+    "verdict": "plausibly-applies",
+    "title": "New certificate timestamp metrics overlap enabled ServiceMonitor and Certificate resources",
+    "content": "The v1.18.0 release notes add two certificate metrics: `certmanager_certificate_not_before_timestamp_seconds` and `certmanager_certificate_not_after_timestamp_seconds`. Your environment sets `prometheus.servicemonitor.enabled` and `prometheus.servicemonitor.targetPort`, and its manifests use `cert-manager.io/v1 Certificate` (CRD `certificates.cert-manager.io` [v1]). That makes it plausible these new series will appear in the metrics your Prometheus collects. The notes describe this as an added feature and mention no breaking change. Check whether your monitoring stack, dashboards or alert rules should use these metrics, and confirm what your ServiceMonitor scrapes after the upgrade.",
+    "citations": [
+      "ev-e8facc7cba98"
+    ],
+    "confidence": "medium"
+  }
+}

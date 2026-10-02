@@ -85,3 +85,33 @@ type RenderOptions struct {
 	// Color enables ANSI colours.
 	Color bool
 }
+
+// PlatformVersionCheck is the result of evaluating one platform version
+// against a compatibility constraint; it is how the environment join asks
+// "is this cluster inside what the release supports?".
+type PlatformVersionCheck struct {
+	// Computable is false when the constraint can neither be read as an
+	// explicit version list nor parsed as a semver range.
+	Computable bool
+	// Admits reports whether the version satisfies the constraint. A version
+	// given as a line ("1.31") is admitted when any patch of the line is.
+	// A "minimum" kind admits the bound line and everything above it
+	// ("minimum: 1.30" means ">= 1.30"); a "maximum" kind the bound line and
+	// everything below.
+	Admits bool
+	// Display is the human form of the constraint's range ("1.29–1.33",
+	// "≥ 1.22"), or its raw text when not computable.
+	Display string
+	// Below/Above name the nearest admitted line when the version falls
+	// outside a closed range ("1.30" when the range starts there and the
+	// cluster is older). Empty when the constraint is open-ended on that
+	// side or the position could not be determined.
+	Below, Above string
+}
+
+// EvaluatePlatformConstraint checks a single platform version (e.g. "1.31" or
+// "1.31.5") against one constraint, using the same range semantics as the
+// endpoint diff (compat.go).
+func EvaluatePlatformConstraint(c *domain.CompatibilityConstraint, version string) PlatformVersionCheck {
+	return evaluatePlatformConstraint(c, version)
+}

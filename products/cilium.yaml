@@ -1,0 +1,323 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: cilium
+name: Cilium
+description: >-
+  eBPF-based networking, security and observability for Kubernetes (agent,
+  operator, Envoy proxy, Hubble). Semver v-prefixed tags with minor lines
+  maintained in parallel; release notes are CHANGELOG.md in the repository,
+  upgrade notes are reStructuredText under Documentation/operations/. Ships a
+  Helm chart (chart version == appVersion == release version), images on
+  quay.io (docker.io mirrors) and CRDs in the source tree.
+homepage: https://cilium.io
+
+versioning:
+  scheme: semver
+  # v1.X.Y tags; pre-releases v1.X.0-pre.N / -rc.N (rcN before ~1.13) are
+  # excluded from the canonical list. Unprefixed 1.0.4-style ancient tags and
+  # submodule/junk tags do not match.
+  tagPrefix: v
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-(?:pre\.\d+|rc\.\d+|rc\d+))?)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/cilium/cilium
+      tagPattern: '^v(?P<version>\d+\.\d+\.\d+(?:-(?:pre\.\d+|rc\.\d+|rc\d+))?)$'
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: cilium/cilium
+
+  # --- release notes --------------------------------------------------------
+  # CHANGELOG.md at the release's own tag: one "## v1.X.Y" section per
+  # release, cumulative per line, newest first. Items are grouped under bold
+  # label paragraphs (**Major/Minor/Bugfix/CI/Misc/Other Changes:**), which
+  # labelParagraphs promotes to headings. The section body also carries a
+  # setext "Summary of Changes" ruler (not a heading for the ATX scanner).
+  - id: changelog
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: release-notes
+    availability: ">= 1.8.0"
+    locator:
+      kind: repo-file
+      repository: github.com/cilium/cilium
+      ref: "{{.Tag}}"
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: '^v{{regexQuote .Version}}$'
+      labelParagraphs: '^\*\*((?:Major|Minor|CI|Misc|Other) Changes|Bugfixes?):\*\*$'
+    classify: &changelog-classify
+      # setext title of the section body (emitted as "v1.20.2: Summary of
+      # Changes"), not a change
+      - text: 'Summary of Changes'
+        skip: true
+      # release-bot digest bumps, not product changes
+      - text: '^install: Update image digests'
+        skip: true
+      - text: '^\.github: '
+        skip: true
+      # contributor/CI mechanics, ~half of the bullets of a patch release
+      - section: '^(CI|Misc) Changes:?$'
+        skip: true
+      - section: '^(Major|Minor) Changes:?$'
+        category: feature
+      - section: '^Bugfix(es)?:?$'
+        category: bugfix
+      - text: 'CVE-\d{4}-\d{4,}|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+        category: security
+      - section: '^Other Changes:?$'
+        category: other
+  # The GitHub Release body is the same CHANGELOG section, verbatim; it also
+  # covers the pre-1.8 releases that have no CHANGELOG.md.
+  - id: github-release-notes
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: release-notes
+    locator:
+      kind: github-releases
+      repository: cilium/cilium
+      ref: "{{.Tag}}"
+    extract:
+      type: whole
+      labelParagraphs: '^\*\*((?:Major|Minor|CI|Misc|Other) Changes|Bugfixes?):\*\*$'
+    classify: *changelog-classify
+
+  # --- upgrade guide (reStructuredText) --------------------------------------
+  # < 1.20: the "X.Y Upgrade Notes" section of Documentation/operations/
+  # upgrade.rst at the tag (Action Required / Informational Notes /
+  # New|Changed|Deprecated|Removed Options / Metrics sub-sections).
+  - id: upgrade-notes
+    roles: [upgrade-guide]
+    availability: ">= 1.9.0, < 1.20.0"
+    locator:
+      kind: repo-file
+      repository: github.com/cilium/cilium
+      ref: "{{.Tag}}"
+      path: Documentation/operations/upgrade.rst
+    extract:
+      format: rst
+      type: markdown-section
+      heading: '^{{.Major}}.{{.Minor}} Upgrade Notes$'
+    classify: &upgrade-classify
+      # intro paragraphs of the sub-sections (emitted as prose items with the
+      # section label prefixed: "Action Required: If you are using ...")
+      - text: '^(Action Required: )?If you are using (the following features|\w[^.]*)? in your environment'
+        skip: true
+      - text: '^(Removed Options: )?The following options were previously deprecated'
+        skip: true
+      - text: '^(New Options: )?The following options have been introduced'
+        skip: true
+      - text: '^(Changed Options: )?The following options have been modified'
+        skip: true
+      - text: '^(Deprecated Options: )?The following options have been deprecated'
+        skip: true
+      - section: 'New Options$'
+        category: feature
+      - section: 'Changed Options$'
+        category: configuration
+        actionRequired: true
+      - section: 'Deprecated Options$'
+        category: deprecation
+      - section: '(Removed Options|Removed CRD Fields)$'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - section: '(Added|Changed) Metrics$'
+        category: other
+      - section: 'Informational Notes$'
+        category: other
+      - section: 'Changes to Features$'
+        category: feature
+  # >= 1.20: the same content lives in upgrade-current.inc (upgrade.rst
+  # includes it); identical across the line's patches, titled
+  # "|CURRENT_RELEASE| Upgrade Notes" via a Sphinx substitution.
+  - id: upgrade-notes-current
+    roles: [upgrade-guide]
+    availability: ">= 1.20.0"
+    locator:
+      kind: repo-file
+      repository: github.com/cilium/cilium
+      ref: "{{.Tag}}"
+      path: Documentation/operations/upgrade-current.inc
+    extract:
+      format: rst
+      type: whole
+    classify: *upgrade-classify
+
+  # --- compatibility ---------------------------------------------------------
+  # compatibility.rst at the tag: grid table whose single "k8s Version" row
+  # lists the line's e2e-tested Kubernetes minors (frozen per release line).
+  # The chart's kubeVersion (minimum) is captured by the chart-metadata
+  # content of the cilium-chart artifact.
+  - id: k8s-compatibility
+    roles: [compatibility]
+    availability: ">= 1.13.0"
+    locator:
+      kind: repo-file
+      repository: github.com/cilium/cilium
+      ref: "{{.Tag}}"
+      path: Documentation/network/kubernetes/compatibility.rst
+    extract:
+      format: rst
+      type: markdown-table
+      keyColumns: [k8s Version]
+      keyMatch: '.'
+      columns:
+        - platform: kubernetes
+          kind: tested
+          headers: [k8s Version]
+
+  # --- security --------------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: cilium/cilium
+    notes: >-
+      Cilium also publishes write-ups on cilium.io/blog/category/security;
+      the GHSA feed (CVE, affected/fixed ranges) is the machine-readable channel.
+
+artifacts:
+  # --- Helm chart (version == appVersion == release version) ------------------
+  - id: cilium-chart
+    type: helm-chart
+    name: cilium
+    description: The Cilium Helm chart (install/kubernetes/cilium).
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/charts/cilium
+      - kind: helm-repo
+        url: https://helm.cilium.io
+        chart: cilium
+    contents:
+      - kind: helm-values
+        locator: {kind: repo-file, repository: github.com/cilium/cilium, path: install/kubernetes/cilium/values.yaml}
+      - kind: chart-metadata
+        locator: {kind: repo-file, repository: github.com/cilium/cilium, path: install/kubernetes/cilium/Chart.yaml}
+    notes: >-
+      values.yaml at the tag carries the real release defaults (image tags are
+      bumped by the release commit), including the pinned versions of the
+      independently versioned companion images (cilium-envoy, certgen,
+      hubble-ui, ztunnel, startup-script), whose changes show up in the
+      values diff.
+
+  # --- CRDs (cilium.io/v2 API group; also rendered into the chart) ------------
+  - id: crds
+    type: crd
+    name: cilium.io CRDs
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-dir
+        repository: github.com/cilium/cilium
+        path: pkg/k8s/apis/cilium.io/client/crds/v2
+        glob: "*.yaml"
+    contents:
+      - kind: crds
+
+  # --- container images (quay.io canonical, docker.io mirrors) ----------------
+  - id: cilium-image
+    type: container-image
+    name: cilium
+    description: The Cilium agent (DaemonSet) image.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/cilium
+      - kind: oci
+        repository: docker.io/cilium/cilium
+  - id: operator-image
+    type: container-image
+    name: operator
+    description: Cilium operator (default deployment image).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/operator
+      - kind: oci
+        repository: docker.io/cilium/operator
+    notes: Cloud-specific builds are published as operator-aws/-azure/-alibabacloud (below); the chart selects them via operator.image.suffix.
+  - id: operator-aws-image
+    type: container-image
+    name: operator-aws
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/operator-aws
+      - kind: oci
+        repository: docker.io/cilium/operator-aws
+  - id: operator-azure-image
+    type: container-image
+    name: operator-azure
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/operator-azure
+      - kind: oci
+        repository: docker.io/cilium/operator-azure
+  - id: operator-alibabacloud-image
+    type: container-image
+    name: operator-alibabacloud
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/operator-alibabacloud
+      - kind: oci
+        repository: docker.io/cilium/operator-alibabacloud
+  - id: clustermesh-apiserver-image
+    type: container-image
+    name: clustermesh-apiserver
+    description: Cluster Mesh apiserver (etcd operator) image.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/clustermesh-apiserver
+      - kind: oci
+        repository: docker.io/cilium/clustermesh-apiserver
+  - id: hubble-relay-image
+    type: container-image
+    name: hubble-relay
+    description: Hubble Relay (cluster-wide observability) image.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/hubble-relay
+      - kind: oci
+        repository: docker.io/cilium/hubble-relay
+
+  # --- source tarball ----------------------------------------------------------
+  # The GitHub tag archive (redirects to codeload.github.com). Earlier
+  # onboardings found codeload blocked from the sandbox; from this one it
+  # answers 200, so the tarball is verified.
+  - id: source-archive
+    type: package
+    name: cilium-source.tar.gz
+    description: Source tarball of the release tag.
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/cilium/cilium/archive/refs/tags/{{.Tag}}.tar.gz"
+
+provenance:
+  method: discovery+review
+  author: onboarding wave 1
+  updated: "2026-10-01"
+  validatedReleases: [1.18.0, 1.18.14, 1.19.0, 1.19.8, 1.20.0, 1.20.2]
+  notes: >-
+    Started from the discovery proposal (git-tags, CHANGELOG.md, chart, CRDs,
+    quay images, github-advisories) and corrected from docs/research/cilium.md:
+    added the upgrade guide (rst, split upgrade.rst / upgrade-current.inc at
+    1.20), the compatibility.rst k8s table, docker.io mirrors and the operator
+    cloud variants; quay.io and helm.cilium.io were reachable from this
+    sandbox (unlike earlier waves recorded), so all relationships are
+    verified against the registries.

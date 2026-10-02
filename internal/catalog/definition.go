@@ -152,6 +152,11 @@ const (
 	LocatorHelmRepo         = "helm-repo"         // url, chart
 	LocatorOCI              = "oci"               // repository: registry/name
 	LocatorHelmGit          = "helm-git"          // repository, path (chart dir), tagPattern
+	// LocatorChartTGZ addresses a packaged Helm chart tarball by URL: a
+	// release asset (".../releases/download/v1/acme-1.2.3.tgz") or a plain
+	// chart-archive URL. Read as a chart package (members: Chart.yaml,
+	// values.yaml, crds/**, templates/**) and probed like an http asset.
+	LocatorChartTGZ = "chart-tgz" // url
 	// LocatorGitLog renders the commit subjects in a revision range
 	// (ref: "{{.PrevTag}}..{{.Tag}}") as a markdown bullet list, a
 	// deterministic fallback when curated release notes are unreachable.
@@ -192,13 +197,38 @@ const (
 	// line-preserving markdown before extraction (normalize.DocBookToMarkdown),
 	// so "markdown-section" selects <sectN> by title and "whole" parses it as notes.
 	FormatDocBook = "docbook"
+	// FormatRST: the document is reStructuredText; it is rendered as
+	// line-preserving markdown before extraction (normalize.RSTToMarkdown):
+	// section titles become headings and grid tables become pipe tables, so
+	// "markdown-section" selects a section by title and "markdown-table" can
+	// read converted grid tables.
+	FormatRST = "rst"
+	// FormatAsciiDoc: the document is AsciiDoc; it is rendered as
+	// line-preserving markdown before extraction
+	// (normalize.ASCIIDocToMarkdown): one-line "="-prefix titles and
+	// two-line underline titles become headings (fixed style levels),
+	// anchors, attribute lists, macros, comments and block delimiters are
+	// blanked, block titles become bold text, link macros become markdown
+	// links and pipe tables become markdown tables, so "markdown-section"
+	// selects a section by title, "markdown-table" reads converted tables
+	// and "whole" parses the topics as notes.
+	FormatAsciiDoc = "adoc"
+	// FormatHTML: the document is HTML; it is rendered as line-preserving
+	// markdown before extraction (normalize.HTMLToMarkdown): h1..h6 become
+	// headings, li become bullets, dt/dd become term/description lines, pre
+	// becomes indented code, comments and head/style/script are dropped, so
+	// "markdown-section" selects a section by its rendered heading and
+	// "whole" parses the page as notes.
+	FormatHTML = "html"
 )
 
 // Extract configures how to extract information from a fetched document.
 type Extract struct {
-	// Format is the markup of the document ("markdown" when empty); "docbook"
-	// documents are converted to markdown first. Only for the types "whole"
-	// and "markdown-section".
+	// Format is the markup of the document ("markdown" when empty); "docbook",
+	// "rst", "adoc" and "html" documents are converted to markdown first
+	// (docbook and html for the types "whole" and "markdown-section"; rst and
+	// adoc also for "markdown-table", because their tables are converted to
+	// pipe tables).
 	Format string `yaml:"format,omitempty" json:"format,omitempty"`
 	Type   string `yaml:"type" json:"type"`
 	// Heading is a regex template selecting the section (markdown-section).
@@ -222,12 +252,19 @@ type Extract struct {
 	// uppercase label paragraphs ("SECURITY:", "BUG FIXES:") rather than
 	// markdown headings, e.g. '^[A-Z][A-Z0-9 /&-]*:$'.
 	LabelParagraphs string `yaml:"labelParagraphs,omitempty" json:"labelParagraphs,omitempty"`
+	// ListItems (whole, markdown-section) selects the structural reading that
+	// docbook/rst conversions always use: every list item is one item of its
+	// own and the substantive prose of a section is one item, instead of a
+	// prose-led section (callout, intro) folding its whole list into a single
+	// item. For documents like Karpenter's upgrade guide, whose per-version
+	// sections open with a warning callout before the bullet list.
+	ListItems bool `yaml:"listItems,omitempty" json:"listItems,omitempty"`
 }
 
 // ColumnSpec maps a table column to a platform constraint.
 type ColumnSpec struct {
 	Platform string `yaml:"platform" json:"platform"`             // "kubernetes", "openshift", ...
-	Kind     string `yaml:"kind,omitempty" json:"kind,omitempty"` // "supported" (default), "tested", "minimum"
+	Kind     string `yaml:"kind,omitempty" json:"kind,omitempty"` // "supported" (default), "tested", "minimum", "maximum"
 	// Headers are alternative header names (case-insensitive, markdown
 	// links stripped); the first present in the table is used.
 	Headers []string `yaml:"headers" json:"headers"`
@@ -282,8 +319,13 @@ type Artifact struct {
 const (
 	VersionTemplate    = "template"    // artifact version = render(template)
 	VersionLookup      = "lookup"      // search channel index for entries whose Field matches render(Match)
+	VersionField       = "field"       // artifact version = a YAML field of the document at From (read at the release ref)
+	VersionPattern     = "pattern"     // artifact version = the (?P<version>…) capture of Pattern in the document at From (read at the release ref)
 	VersionIndependent = "independent" // no derivable relationship
 )
+
+// VersionPatternGroup is the capture group name the pattern strategy reads.
+const VersionPatternGroup = "version"
 
 // VersionRelation describes how artifact versions relate to release versions.
 // This exists because versions across artifacts frequently do not match
@@ -292,9 +334,21 @@ type VersionRelation struct {
 	Strategy string `yaml:"strategy" json:"strategy"`
 	Template string `yaml:"template,omitempty" json:"template,omitempty"`
 	// Lookup: Field of the index entry (e.g. "appVersion") compared with Match.
-	Field  string `yaml:"field,omitempty" json:"field,omitempty"`
-	Match  string `yaml:"match,omitempty" json:"match,omitempty"`
-	Select string `yaml:"select,omitempty" json:"select,omitempty"` // "latest" (default), "earliest", "all"
+	Field string `yaml:"field,omitempty" json:"field,omitempty"`
+	Match string `yaml:"match,omitempty" json:"match,omitempty"`
+	// Field: YAML path read out of the From document (e.g. "appVersion" or
+	// "dependencies[name=kube-state-metrics].version").
+	// From: locator of the document the field is read from, rendered with the
+	// release context (e.g. Chart.yaml at "{{.Tag}}").
+	From *Locator `yaml:"from,omitempty" json:"from,omitempty"`
+	// Pattern: regular expression (with a release-context template) whose
+	// named capture group "version" is the artifact version, applied to the
+	// raw text of the From document. The text-mode twin of field: for pins
+	// that live inside strings of a document rather than addressable YAML
+	// fields (versions embedded in kustomize remote-resource URLs, go.mod
+	// require lines, Dockerfile FROMs).
+	Pattern string `yaml:"pattern,omitempty" json:"pattern,omitempty"`
+	Select  string `yaml:"select,omitempty" json:"select,omitempty"` // lookup: "latest" (default), "earliest", "all"
 }
 
 // ArtifactReference declares that another artifact references this one.
@@ -317,8 +371,18 @@ const (
 type Content struct {
 	Kind string `yaml:"kind" json:"kind"`
 	// Locator to fetch the content from. When omitted the artifact's first
-	// http channel is used.
+	// http / repo-file / repo-dir channel is used; a channel of kind
+	// helm-repo, oci (a chart repository) or chart-tgz is read as a packaged
+	// chart instead (the published-artifact representation; see
+	// docs/ARTIFACTS.md).
 	Locator *Locator `yaml:"locator,omitempty" json:"locator,omitempty"`
+	// CompareWith is an alternate representation of the same content, read
+	// for comparison only: when the two representations of the same release
+	// differ (e.g. source-tree values rewritten when the chart was packaged),
+	// a representation.divergence fact records what diverged, so preferring
+	// one representation is never silent. The comparison itself is not
+	// captured as a snapshot.
+	CompareWith *Locator `yaml:"compareWith,omitempty" json:"compareWith,omitempty"`
 	// Availability narrows when this content can be captured.
 	Availability string `yaml:"availability,omitempty" json:"availability,omitempty"`
 	// StripPrefix (helm-values only) removes a wrapper key path from every

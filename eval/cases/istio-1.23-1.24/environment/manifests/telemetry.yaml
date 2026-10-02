@@ -1,0 +1,21 @@
+# Ambient-mode edge namespace and legacy-attribute Telemetry CR.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: edge
+  labels:
+    istio.io/dataplane-mode: ambient
+---
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: peer-attrs
+  namespace: istio-system
+spec:
+  metrics:
+    - providers:
+        - name: prometheus
+      overrides:
+        - tagOverrides:
+            peer_namespace:
+              value: 'filter_state["wasm.downstream_peer"].namespace'

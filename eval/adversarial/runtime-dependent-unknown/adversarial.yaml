@@ -1,0 +1,24 @@
+# Attack: a behavioural change whose applicability depends on runtime state
+# (traffic patterns, feature usage) that no static configuration can prove.
+# The join has no machine-comparable subject: the honest verdict is UNKNOWN
+# (impact:not-joined) — never not-affected, never action-required.
+id: runtime-dependent-unknown
+attacks: runtime-dependent behaviour static config cannot prove
+expectation: >-
+  unknown (impact:not-joined, neededToDetermine says the change carries no
+  comparable subject); never not-affected (nothing was checked) and never
+  action-required (nothing was compared)
+edge:
+  changes:
+    - rule: note
+      title: "Connection pool eviction now adapts to live traffic patterns"
+      category: other
+environment:
+  files: [values.yaml]
+expect:
+  present:
+    - rule: impact:not-joined
+      classification: unknown
+  absent:
+    - classification: not-affected
+    - classification: action-required

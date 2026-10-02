@@ -1,0 +1,62 @@
+case: postgresql-17.2-17.3
+reviewedAt: "2026-10-01"
+method: >-
+    Sample-based human adjudication (G9): every change matching a notExpected
+    entry plus a sample of unmatched changes, each read against the case's
+    cited upstream documents. Dataset false positives are confirmed or
+    overturned; unmatched samples get true-positive / false-positive /
+    uncertain verdicts. Verdicts feed labeledPrecision and the false-action
+    rate.
+adjudications:
+  - changeId: chg-1b6f2c2ae371
+    verdict: false-positive
+    reason: "routine bug-fix bullets of the 17.3 Changes section (assertion failures, memory leaks, valgrind complaints); fixes, not upgrade decisions"
+    # output was: Avoid assertion failure in rule deparsing if a set operation leaf query contains set operations (Man
+  - changeId: chg-7958bfa69474
+    verdict: false-positive
+    reason: "routine bug-fix bullets of the 17.3 Changes section (assertion failures, memory leaks, valgrind complaints); fixes, not upgrade decisions"
+    # output was: Avoid edge-case assertion failure in parallel query startup (Tom Lane)
+  - changeId: chg-a9a735c5d2b4
+    verdict: false-positive
+    reason: "routine bug-fix bullets of the 17.3 Changes section (assertion failures, memory leaks, valgrind complaints); fixes, not upgrade decisions"
+    # output was: Avoid valgrind complaints about string hashing code (John Naylor)
+  - changeId: chg-ceee50b13d77
+    verdict: false-positive
+    reason: "routine bug-fix bullets of the 17.3 Changes section (assertion failures, memory leaks, valgrind complaints); fixes, not upgrade decisions"
+    # output was: Fix assertion failure at shutdown when writing out the statistics file (Michael Paquier)
+  - changeId: chg-676e8dc50cc5
+    verdict: false-positive
+    reason: "routine bug-fix bullets of the 17.3 Changes section (assertion failures, memory leaks, valgrind complaints); fixes, not upgrade decisions"
+    # output was: Fix assertion failure in `WITH RECURSIVE ..
+  - changeId: chg-9b53a8e1d90a
+    verdict: false-positive
+    reason: "routine bug-fix bullets of the 17.3 Changes section (assertion failures, memory leaks, valgrind complaints); fixes, not upgrade decisions"
+    # output was: Fix memory leak in `pg_restore` with zstd-compressed data (Tom Lane) The leak was per-decompression-
+  - changeId: chg-44290a937b65
+    verdict: false-positive
+    reason: "routine bug-fix bullets of the 17.3 Changes section (assertion failures, memory leaks, valgrind complaints); fixes, not upgrade decisions"
+    # output was: Fix multiple memory leaks in logical decoding output (Vignesh C, Masahiko Sawada, Boyu Yang)
+  - changeId: chg-5b7741051464
+    verdict: false-positive
+    reason: "routine bug-fix bullets of the 17.3 Changes section (assertion failures, memory leaks, valgrind complaints); fixes, not upgrade decisions"
+    # output was: Fix small memory leak when updating the `application_name` or `cluster_name` settings (Tofig Aliev)
+  - changeId: chg-6a2058411019
+    verdict: false-positive
+    reason: "routine bug-fix bullets of the 17.3 Changes section (assertion failures, memory leaks, valgrind complaints); fixes, not upgrade decisions"
+    # output was: Repair memory leaks in PL/Python (Mat Arye, Tom Lane) Repeated use of `PLyPlan.execute` or `plpy.cur
+  - changeId: chg-cb1c3efc69d8
+    verdict: false-positive
+    reason: "to_timestamp FFn bugfix; no upgrade decision"
+    # output was: Fix mis-processing of `to_timestamp`'s `FFn` format codes (Tom Lane) An integer format code immediat
+  - changeId: chg-1060a9ef54ef
+    verdict: false-positive
+    reason: "UNION planning bugfix; no upgrade decision"
+    # output was: Fix planning of pre-sorted `UNION` operations for cases where the input column datatypes don't all m
+  - changeId: chg-d7e1827b512c
+    verdict: false-positive
+    reason: "statistics lookup bugfix; no upgrade decision"
+    # output was: Ignore nulling-relation marker bits when looking up statistics (Richard Guo) This oversight could le
+  - changeId: chg-7105e7edf03a
+    verdict: false-positive
+    reason: "NULLIF internal fix; no upgrade decision"
+    # output was: In `NULLIF()`, avoid passing a read-write expanded object pointer to the data type's equality functi

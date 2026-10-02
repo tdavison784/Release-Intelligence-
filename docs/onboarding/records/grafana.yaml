@@ -1,0 +1,137 @@
+product: grafana
+order: 11
+wave: 2
+repository: github.com/grafana/grafana
+onboarding:
+  startedAt: "2026-10-01T14:06:17Z"
+  finishedAt: "2026-10-01T14:33:10Z"
+  minutes: 27                     # wall-clock, agent time (research, authoring, checks, edges, record); no Go changes at all
+discovery:
+  proposal: docs/onboarding/discovery/grafana.proposed.yaml
+  report: docs/onboarding/discovery/grafana.report.md
+# Discovery (deterministic, post-G3: tag-family/train detection, chart
+# relations, image classes) got the versioning exactly right (tagPattern
+# kept verbatim; 739 tags classified 551/78/110 with a strict pattern that
+# already excludes the +security-N tags), found the CHANGELOG, the per-minor
+# upgrade docs, the chart monorepo relation (chart.external-lookup-appversion
+# at grafana-community.github.io — the repository the chart moved to in
+# January 2026), 7 CRD candidates of which it historically validated the
+# notifications repo-dir, and the GHSA feed. It dropped the changelog and the
+# upgrade guide because their sections do not exist AT THE TAG (docs are
+# merged after the branch cut), and dropped the chart because its lookup
+# matched appVersion "v13.0.0" against unprefixed appVersions — both are
+# relation-template corrections, not wrong channels. It also excluded
+# docker.io/grafana/grafana as image.no-release-evidence (the only in-repo
+# references are floating devenv tags) and never looked at dl.grafana.com.
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id 'tags'; tagPattern and lineage minor kept verbatim"}
+  - {id: github-releases, origin: discovered, note: "versions fallback priority 1 (releases exist back to ~v6.5.0-beta1)"}
+  - {id: changelog, origin: discovered-modified, note: "locator and heading '^X.Y.Z \\(' corrected to ref main (sections are merged after the tag is cut); classify rules added (### Security/Features and enhancements/Bug fixes/Breaking changes/Plugin development groups, (Enterprise) items skipped)"}
+  - {id: github-release-notes, origin: discovered, note: "kept as the fallback of group release-notes with availability >= 6.5.0 (body == changelog section + download links); discovery flagged the v13.0.0 404, which became the exceptions entry"}
+  - {id: upgrade-guide, origin: discovered-modified, note: "path docs/sources/upgrade-guide/upgrade-vX.Y/index.md as proposed, corrected to ref main + releaseKinds [major, minor] (X.0.0 is a major release)"}
+  - {id: breaking-changes-10-0, origin: manual, note: "breaking-changes-v10-0.md exists only for v10.0 (dash filename); availability window pins it to 10.0.0"}
+  - {id: breaking-changes-10-3, origin: manual, note: "same for v10.3"}
+  - {id: breaking-changes-11-0, origin: manual, note: "same for v11.0 (from v12 on breaking changes live in the What's new pages, outside this repository)"}
+  - {id: github-advisories, origin: discovered, note: "proposal id advisories, kept"}
+  - {id: security-page, origin: manual, note: "grafana.com/security/security-advisories declared as the documented channel (reachable; HTML, no adapter parses it)"}
+artifacts:
+  - {id: image, origin: manual, note: "docker.io/grafana/grafana excluded by discovery's image.no-release-evidence rule (only floating devenv references in the repo); the OSS-across-history choice and the mirror.gcr.io fallback come from the in-repo docker docs + registry tag lists; exception for the removed-from-distribution 13.0.0"}
+  - {id: chart, origin: discovered-modified, note: "chart.external-lookup-appversion was the right relation at the right (community) index; match corrected to {{.Version}} (appVersions carry no v); optional (no chart for 13.0.10/13.1.7/12.4.12); old grafana.github.io index, helm-git community tags and the deprecated-era ghcr mirror added as channels; contents read at tag grafana-{{.ArtifactVersion}}"}
+  - {id: crds-alerting-notifications, origin: discovered, note: "repo-dir apps/alerting/notifications/definitions as proposed (historically validated by discovery itself); availability >= 12.3.0 added"}
+  - {id: crds-alerting-rules, origin: manual, note: "the sibling apps/alerting/rules/definitions directory was a crd candidate but no artifact; 3 CRDs from 12.4.0, 4 from 13.1.0"}
+  - {id: deb-package, origin: manual, note: "dl.grafana.com/oss/release (not scanned by discovery); GitHub release assets rejected: names embed CI build ids"}
+  - {id: rpm-package, origin: manual, note: "same"}
+  - {id: linux-tarball, origin: manual, note: "same"}
+discoveryRejected:
+  - {id: "source:changelog (dropped by discovery)", reason: "validation at the tag failed because the release's own section is merged to main after the branch cut (absent at v13.0.0/v13.1.0/v13.2.0 tags): the file is correct, the ref was wrong — read at main the section exists for every 11.0.0+ release"}
+  - {id: "source:upgrade-guide (dropped by discovery)", reason: "same timing: the per-minor guide 404s at the X.Y.0 tag and exists from the first patch on"}
+  - {id: "artifact:grafana-chart (dropped by discovery)", reason: "the lookup matched appVersion == 'v13.0.0'; grafana chart appVersions are unprefixed (13.0.0)"}
+  - {id: "image docker.io/grafana/grafana (excluded, image.no-release-evidence)", reason: "the only in-repo image references are floating devenv docker-compose tags; release-channel evidence lives in CI/packaging outside the scanned tree — a release-tagged reference or a publish-workflow scan would rescue it (G3 input)"}
+  - {id: "packages/grafana-ui and ngalert CHANGELOGs (changelog.not-primary)", reason: "correctly excluded; per-package changelogs of subcomponents"}
+  - {id: "44 registries incl. registry.terraform.io/providers/grafana/grafana", reason: "docs registry references; the Terraform provider is another product"}
+relationships:
+  # Default `ri check` (6 releases) plus two era runs:
+  #   8.0.0 9.0.0 10.0.0 10.3.0 11.0.0 11.6.0 12.0.0 12.2.0 12.3.0 12.4.0 12.4.12
+  #   and, after the fixes below, 8.0.0 9.0.0 10.0.0 10.3.0 11.0.0 12.0.0 13.0.0.
+  historicalReleasesChecked: [8.0.0, 9.0.0, 10.0.0, 10.3.0, 11.0.0, 11.6.0, 12.0.0, 12.2.0, 12.3.0, 12.4.0, 12.4.12, 13.0.0, 13.0.10, 13.1.0, 13.1.7, 13.2.0, 13.2.3]
+  initialFailures: 0              # first complete draft, default check: 0 failing, 0 unverifiable
+  initialFailuresExtended: 1      # the first era run found breaking-changes-10-3 failing (dash filename) and, silently, X.0.0 guides not attaching (releaseKinds [minor] excludes majors)
+  finalFailures: 0
+  manualInterventions:
+    - {subject: breaking-changes-10-0/10-3/11-0, change: "path breaking-changes-vX-Y.md (dash, not vX.Y)", reason: "404: upstream filenames use v10-3.md form"}
+    - {subject: upgrade-guide + breaking-changes, change: "releaseKinds [major, minor]", reason: "X.0.0 is kind major; the yearly comprehensive guide must attach at 13.0.0 — with [minor] the most important guide of each major was silently never ingested (found by reading the check matrix n/a columns, not by a failure)"}
+    - {subject: changelog classify, change: "deprecation rule requires whole words \\b(deprecate|deprecated|...)\\b", reason: "'Provisioning: Strip deprecatedInternalId label for dashboards' was classified a deprecation (identifier, not a deprecation note)"}
+    - {subject: changelog classify, change: "Breaking-changes removal rule adds delete[sd]?", reason: "'Gauge: Delete from @grafana/ui' fell through to the catch-all instead of removal"}
+  unverifiable:
+    - {subject: github-release-notes, reason: "api.github.com anonymous rate limit (60/h) exhausted by discovery's validation pass plus research; the 8.0.0-10.3.0 era run marked it unverifiable while the default-window run verified it fully from the fetch cache"}
+constructs:
+  new: []                        # zero: every construct existed (see below); the definition is configuration only
+  considered:
+    - {name: "release tags for +security-N releases (assembled or build-metadata versions)", rejected: "security-only releases are vX.Y.Z+security-N: semver build metadata of an already-shipped patch ('the indicated version PLUS the security fix'); modeling them as releases needs a non-semver version shape for the sake of out-of-band fixes that ship in the next regular patch anyway — recorded as a gap"}
+    - {name: "whatsnew source (docs/sources/whatsnew/whats-new-in-vX-Y.md)", rejected: "since v12 the file is a Hugo posts: index; the item content (including the Breaking changes posts) is rendered by the {{< docs/whats-new >}} shortcode from content outside this repository — no git channel"}
+    - {name: "grafana-oss image artifact", rejected: "docker.io/grafana/grafana-oss published the SAME OSS images 10.0.0-13.0.2 and stopped ('Starting with 12.4.0 ... will no longer be updated', in-repo docker docs); grafana/grafana is OSS across all of history — noted on the image artifact instead of duplicating it"}
+    - {name: "GitHub release assets as package artifacts", rejected: "asset names embed CI build ids (grafana_13.2.3_36482603486_linux_amd64.deb) that no template can predict; dl.grafana.com/oss/release is the predictable channel"}
+    - {name: "support-window table as a compatibility source (when-to-upgrade)", rejected: "a markdown table of per-minor support end dates (9 months, 15 for the last minor of a major) exists in the repo; the model has no support-window construct and the lifecycle statement (ingress-nginx) is product-wide, not per-minor — gap"}
+    - {name: "image variant artifacts (-ubuntu/-slim/-distroless)", rejected: "one image artifact carries the channel truth; the variants surface where they matter (the chart values diff reports the default image.tag switch to {{ .Chart.AppVersion }}-distroless in the 13.2 edge)"}
+    - {name: "a compatibility role source", rejected: "Grafana publishes no platform matrix (not a Kubernetes component); the only constraint is the chart's kubeVersion, already captured via chart-metadata"}
+goChanges:
+  productSpecific: 0
+  generic: []                     # none: no Go file was touched
+unreachableSources: []            # none: github.com/raw/codeload-class content, grafana-community.github.io + grafana.github.io indexes, ghcr.io (deprecated-era charts), auth.docker.io/registry-1 + mirror.gcr.io, dl.grafana.com and grafana.com all answered; api.github.com answered until the anonymous 60/h budget ran out (rate limit, not a block)
+ambiguousRelationships:
+  - "Docs are merged to main after the release branch is cut: the changelog section and the per-minor upgrade guide are absent at the X.Y.0 tags, so both are read at main. The changelog-at-main covers 11.0.0+ today; older majors are archived into .changelog-archive/CHANGELOG.NN.md as the file grows, so the >= 11.0.0 availability window will age (drift-report material, not a broken relationship)."
+  - "v13.0.0 was removed from distribution (Git Sync migration bug that could lose dashboards): git tag and changelog section exist, but the GitHub release, the plain Docker tag and all dl.grafana.com packages are gone — exceptions on four subjects; only CI-build-id image tags (13.0.0-<id>) remain."
+  - "Chart version vs app version are fully independent (chart 10.5.15 ships app 12.3.1; chart 13.2.7 ships app 13.2.3) and the chart itself moved repositories in January 2026 (grafana/helm-charts deprecated at 10.5.15 → grafana-community/helm-charts, full history re-published; ghcr OCI mirror froze at the deprecated era)."
+  - "Security-only releases vX.Y.Z+security-N exist as tags, Docker X.Y.Z-security-N tags and changelog sections; the next regular patch's changelog does NOT repeat their CVEs, so an upgrade crossing one (12.4.3 → 12.4.4 crosses +security-02) is silent about the fix in the notes even though the code contains it."
+  - "~10 published GHSAs have unbounded affected ranges ('>= 8.3.0-beta1' with patched 9.3.4) and ~14 have no machine-readable range: the edge reports both as warnings ('still affects target' / 'check manually') — upstream data shape, same as cilium recorded."
+  - "The changelog lists Enterprise-only entries with an '(Enterprise)' marker inside the OSS changelog; classify skips them (this product is OSS)."
+  - "The What's new pages are the canonical breaking-changes channel from v12 on, but their content is not in the repository (Hugo shortcode); the in-repo upgrade guide + the changelog's ### Breaking changes carry v12+ breaking changes instead."
+representability: full
+gaps:
+  - "security-only releases (+security-N) are not modeled: their CVE fixes are invisible when an upgrade path crosses one, because the next regular patch's changelog does not repeat them (see ambiguousRelationships). Needs either a build-metadata version shape or an advisory-side join on 'security releases between A and B'."
+  - "What's new content (and therefore the official v12+ breaking-changes lists) lives outside the repository; only the prose index page is in git."
+  - "changelog-at-main availability ages as upstream archives old majors (>= 11.0.0 today); releases older than the archive cutoff depend on the rate-limited GitHub release bodies."
+  - "no support-window model: the published 9/15-month per-minor table cannot be expressed (the lifecycle statement is product-wide); the edge cannot say '13.0 is EOL January 2027'."
+  - "GitHub release assets (deb/rpm/spdx with CI build ids) and the Enterprise artifact set (grafana-enterprise image, grafana-enterprise_* packages, same-versioned) are out of model by design; grafana-operator is a separate product (its chart still lives in the old monorepo)."
+sampleEdge:
+  from: 13.1.0
+  to: 13.2.3
+  summary: "1 breaking · 10 action required · 179 changes · 25 warnings"
+  evidenceRecords: 498
+  notes: >-
+    Minor-lineage edge (path v13.2.0 → 13.2.3, 7 backports skipped). The one
+    breaking item is the upstream "### Breaking changes" entry "Remove
+    alertingSaveStateCompressed feature flag" (changelog, declared); action
+    required is dominated by the still-affects GHSA warnings (upstream
+    unbounded ranges); 85 features / 58 bug fixes; 9 security items across
+    the four patches; the chart moves 12.7.2 → 13.2.7 [verified] and its
+    values diff reports the default image.tag switch to
+    {{ .Chart.AppVersion }}-distroless plus 12 other values changes; CRDs
+    unchanged. Major edge 12.4.12 → 13.0.10 (path of 11 patches): 17
+    breaking · 30 action required · 376 changes · 646 evidence records —
+    the upstream Breaking changes section (14 items) is reported 1:1
+    (grafana-cli/grafana-server commands removed, core Elasticsearch
+    datasource removed, enable_gzip default flip), the upgrade guide's
+    technical notes arrive as declared items (the v13.0.0 Git Sync data-loss
+    warning as action-required "Git Sync early adopters: ...", the Image
+    Renderer JWT token requirement, the deprecated numeric-id APIs disabled
+    by default), and the CRD diff computes the four
+    notifications.alerting.grafana.app storage-version changes
+    v0alpha1 → v1beta1 with migration guidance.
+notes: >-
+  Zero new constructs, zero Go changes: the wave-2 convergence point the
+  plan predicts — everything this product needed (docs-at-main sources with
+  release-kind and availability windows, a monorepo chart lookup by
+  unprefixed appVersion, optional artifacts, exceptions for a
+  removed-from-distribution release, package channels on a downloads host,
+  CRD repo-dirs) already existed after ten onboardings. The two definition
+  corrections that mattered (read the changelog and the upgrade guides at
+  main; attach guides at majors too) were upstream timing facts found by
+  research, and the classify tuning (whole-word deprecation, delete as
+  removal, skip (Enterprise) items and plugin-development churn) was found
+  by reading the edges, not by failing checks. Discovery's strengthened
+  resolver was closer than for any earlier product: it had the right
+  versioning, the right chart relation at the right post-migration index,
+  and it validated the CRD artifact itself — its two wrong drops were both
+  "the relationship template was rendered at the tag / with a v prefix",
+  which is exactly the class of correction a reviewer can make in seconds.

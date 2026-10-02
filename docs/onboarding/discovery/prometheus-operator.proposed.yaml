@@ -1,0 +1,158 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: prometheus-operator
+name: prometheus-operator
+homepage: https://github.com/prometheus-operator/prometheus-operator
+versioning:
+  scheme: semver
+  tagPrefix: v
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/prometheus-operator/prometheus-operator
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: prometheus-operator/prometheus-operator
+    priority: 1
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: prometheus-operator/prometheus-operator
+      ref: '{{.Tag}}'
+    fallbackGroup: release-notes
+    notes: 'Unverified by discovery (unverifiable: 0.92.0 unverifiable (fetch https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/tags/v0.92.0: unavailable (HTTP 403): {"message":"API rate limit exceeded for 69.9.221.149. (But here''s the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)","documentation_url":"ht…); 0.92.1 unverifiable (fetch https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/tags/v0.92.1: unavailable (HTTP 403): {"message":"API rate limit exceeded for 69.9.221.149. (But here''s the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)","documentation_url":"ht…); 0.93.0 unverifiable (fetch https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/tags/v0.93.0: unavailable (HTTP 403): {"message":"API rate limit exceeded for 69.9.221.149. (But here''s the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)","documentation_url":"ht…); 0.93.1 unverifiable (fetch https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/tags/v0.93.1: unavailable (HTTP 403): {"message":"API rate limit exceeded for 69.9.221.149. (But here''s the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)","documentation_url":"ht…); …).'
+  - id: changelog
+    roles:
+      - changelog
+    locator:
+      kind: repo-file
+      repository: github.com/prometheus-operator/prometheus-operator
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: ^\[?v?{{regexQuote .Version}}\]?(\s|$)
+    validatedAgainst:
+      - 0.92.0
+      - 0.92.1
+      - 0.93.0
+      - 0.93.1
+      - 0.94.0
+      - 0.94.1
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: prometheus-operator/prometheus-operator
+    notes: 'Security policy: SECURITY.md → https://prometheus.io/docs/operating/security/#automated-security-scanners'
+artifacts:
+  - id: bundle
+    type: manifest
+    name: bundle.yaml
+    description: Install manifest (also bundles the CRDs).
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/prometheus-operator/prometheus-operator
+        path: bundle.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 0.92.0
+      - 0.92.1
+      - 0.93.0
+      - 0.93.1
+      - 0.94.0
+      - 0.94.1
+  - id: bundle-manifest
+    type: manifest
+    name: bundle.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: http
+        url: https://github.com/prometheus-operator/prometheus-operator/releases/download/{{.Tag}}/bundle.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 0.92.0
+      - 0.92.1
+      - 0.93.0
+      - 0.93.1
+      - 0.94.0
+      - 0.94.1
+  - id: admission-webhook
+    type: container-image
+    name: admission-webhook
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/prometheus-operator/admission-webhook
+    validatedAgainst:
+      - 0.92.0
+      - 0.92.1
+      - 0.93.0
+      - 0.93.1
+      - 0.94.0
+      - 0.94.1
+  - id: prometheus-config-reloader
+    type: container-image
+    name: prometheus-config-reloader
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/prometheus-operator/prometheus-config-reloader
+    validatedAgainst:
+      - 0.92.0
+      - 0.92.1
+      - 0.93.0
+      - 0.93.1
+      - 0.94.0
+      - 0.94.1
+  - id: prometheus-operator
+    type: container-image
+    name: prometheus-operator
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/prometheus-operator/prometheus-operator
+    references:
+      - artifact: bundle
+        pattern: quay.io/prometheus-operator/prometheus-operator:{{.Tag}}
+    validatedAgainst:
+      - 0.92.0
+      - 0.92.1
+      - 0.93.0
+      - 0.93.1
+      - 0.94.0
+      - 0.94.1
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  validatedReleases:
+    - v0.92.0
+    - v0.92.1
+    - v0.93.0
+    - v0.93.1
+    - v0.94.0
+    - v0.94.1
+  notes: Proposed by automated discovery; relationship checks run against v0.92.0, v0.92.1, v0.93.0, v0.93.1, v0.94.0, v0.94.1.

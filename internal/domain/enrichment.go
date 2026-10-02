@@ -27,10 +27,47 @@ const (
 	// is a hypothesis that requires verification; the enrichment is always
 	// marked Unverified.
 	EnrichmentRelated EnrichmentKind = "related"
+
+	// --- impact-report-only kinds (internal/impactenrich) -------------------
+	//
+	// These are defined on ImpactReport enrichments, whose RelatesTo lists
+	// finding ids instead of change ids. An UpgradeEdge rejects them (see
+	// ImpactOnly), exactly as an ImpactReport rejects the edge-only kinds
+	// "diff-explanation" and "related".
+
+	// EnrichmentPlausiblyApplies: an unknown finding whose change the model
+	// judges plausibly applicable to the environment. It is a SUGGESTION:
+	// the finding's deterministic classification stays "unknown" and the
+	// report carries SuggestedClassification "review-required" (never
+	// higher) next to the enrichment's why.
+	EnrichmentPlausiblyApplies EnrichmentKind = "plausibly-applies"
+	// EnrichmentNotApplicable: the model argues the change does not apply.
+	// The contract forbids AI-produced not-affected: the finding stays
+	// "unknown"; this is a note the human weighs, never a verdict.
+	EnrichmentNotApplicable EnrichmentKind = "not-applicable"
+	// EnrichmentUndetermined: the model could not decide from the bounded
+	// input; the reason is recorded and the finding stays "unknown".
+	EnrichmentUndetermined EnrichmentKind = "undetermined"
 )
 
 // EnrichmentKinds lists every kind in display order.
-var EnrichmentKinds = []EnrichmentKind{EnrichmentCluster, EnrichmentMigrationSummary, EnrichmentDiffExplanation, EnrichmentRelated}
+var EnrichmentKinds = []EnrichmentKind{EnrichmentCluster, EnrichmentMigrationSummary, EnrichmentDiffExplanation, EnrichmentRelated,
+	EnrichmentPlausiblyApplies, EnrichmentNotApplicable, EnrichmentUndetermined}
+
+// ImpactOnlyKinds are the enrichment kinds defined on ImpactReports only.
+// UpgradeEdge.Validate rejects them; ImpactReport.Validate accepts only
+// these (plus cluster and migration-summary).
+var ImpactOnlyKinds = []EnrichmentKind{EnrichmentPlausiblyApplies, EnrichmentNotApplicable, EnrichmentUndetermined}
+
+// ImpactOnly reports whether k is an impact-report-only enrichment kind.
+func (k EnrichmentKind) ImpactOnly() bool {
+	for _, x := range ImpactOnlyKinds {
+		if k == x {
+			return true
+		}
+	}
+	return false
+}
 
 // Valid reports whether k is a known kind.
 func (k EnrichmentKind) Valid() bool {
@@ -180,6 +217,8 @@ func (e *UpgradeEdge) validateEnrichments(ev map[EvidenceID]bool) []error {
 		}
 		if !en.Kind.Valid() {
 			bad("unknown kind %q", en.Kind)
+		} else if en.Kind.ImpactOnly() {
+			bad("kind %q is an impact-report enrichment kind; an edge enrichment never carries it", string(en.Kind))
 		}
 		if strings.TrimSpace(en.Content) == "" {
 			bad("empty content")

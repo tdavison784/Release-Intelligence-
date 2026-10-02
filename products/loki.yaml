@@ -1,0 +1,519 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: loki
+name: Grafana Loki
+description: >-
+  Grafana Loki OSS, the log aggregation system (github.com/grafana/loki).
+  Semver v-prefixed tags with minor lines maintained in parallel on
+  release-X.Y.x branches (3.5.x/3.6.x still patching alongside 3.7.x); the
+  same repository also carries the helm-loki-X.Y.Z chart tags of the
+  Grafana Enterprise Logs chart (out of scope), the operator/v0.x Loki
+  Operator sub-project and weekly kNNN builds, all excluded by the strict
+  tag pattern. Release notes are a release-please CHANGELOG read on the
+  release branch (sections are merged after the tag is cut); curated
+  per-minor release notes and a cumulative upgrade guide live in
+  docs/sources on main. Ships docker.io/grafana/{loki,loki-canary,logcli}
+  images (promtail through 3.6.0), predictable per-OS release assets, and
+  a Helm chart that moved to the grafana-community repository in March
+  2026 with chart versions independent of the app version.
+homepage: https://grafana.com/oss/loki/
+
+versioning:
+  scheme: semver
+  # vX.Y.Z only: also excludes helm-loki-*, operator/v*, *-weekly.kNNN and
+  # the stray unprefixed 2.8.3. Chart tags helm-loki-7.3.0 version-sort
+  # ABOVE the newest app tag v3.7.8 (chart major > app major) — the family
+  # discovery mistook for canonical.
+  tagPrefix: v
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+)$'
+  lineage: minor
+
+sources:
+  # --- canonical versions ---------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/grafana/loki
+      tagPattern: '^v(?P<version>\d+\.\d+\.\d+)$'
+    notes: >-
+      396 tags: 125 app releases (v0.1.0 - v3.7.8, no app pre-releases),
+      253 helm-loki- chart tags (the Enterprise Logs chart, 3.0.0-7.3.0),
+      15 operator/v0.x, weekly kNNN builds and one stray 2.8.3.
+  - id: github-releases
+    roles: [versions]
+    priority: 1
+    locator:
+      kind: github-releases
+      repository: grafana/loki
+
+  # --- release notes --------------------------------------------------------
+  # Release-please CHANGELOG on the release branch: one "## [X.Y.Z] (date)"
+  # section per release with "### BREAKING CHANGES", "### Features",
+  # "### Bug Fixes", "### Documentation" groups. The section is merged AFTER
+  # the tag is cut (at tag v3.7.8 the branch file's newest section is 3.7.7),
+  # so the file is read at the branch head, never at the tag; main only
+  # carries the in-flight minor (## [3.8.0]) and minor-start entries.
+  # Bracketed sections exist since 2.8.9 (Feb 2024); older eras fall back to
+  # the GitHub release body, which release-please fills with the same
+  # section.
+  - id: changelog
+    roles: [release-notes]
+    priority: 0
+    fallbackGroup: release-notes
+    availability: ">= 2.8.9"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/loki
+      ref: "release-{{.Major}}.{{.Minor}}.x"
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: '^\[{{regexQuote .Version}}\]'
+    classify: &changelog-classify
+      # Renovate dependency bumps: "**security/HIGH/pkg/push:** Update module
+      # ... [SECURITY] (release-3.7.x)"
+      - text: '\[SECURITY\]|CVE-\d{4}-\d+|GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}'
+        category: security
+      # docs churn and CI/test/chore groups are not upgrade intelligence
+      - section: '^Documentation$'
+        skip: true
+      - section: '^Miscellaneous Chores$'
+        skip: true
+      - section: '^Continuous Integration$'
+        skip: true
+      - section: '^Tests$'
+        skip: true
+      - section: '^Unknown$'
+        skip: true
+      - text: '(?i)\b(?:deprecate|deprecated|deprecates|deprecating)\b'
+        category: deprecation
+      - section: 'BREAKING CHANGES'
+        text: '(?i)\b(?:remove[sd]?|delete[sd]?|no longer|drop[sd]?)\b'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - section: 'BREAKING CHANGES'
+        category: other
+        breaking: true
+        actionRequired: true
+      - section: '^Features$'
+        category: feature
+      - section: '^Performance Improvements$'
+        category: feature
+      - section: '^Bug Fixes$'
+        category: bugfix
+    notes: >-
+      Upstream formatting defects: duplicate sections for 3.7.3 (a
+      2026-06-24 re-cut comparing v3.7.3...v3.7.3, which a heading selector
+      matches first, next to the real 2026-06-23 section) and 3.6.0 (the
+      2025-11-05 section ahead of the 2025-11-17 re-cut) — a heading
+      selector reads the first of each; the GitHub release body (fallback)
+      carries the merged truth.
+  # The X.Y.0 and X.Y.1 sections live on MAIN (release-please merges the
+  # minor's first sections there before the release branch takes over), so
+  # main is the raw-host middle fallback, ahead of the rate-limited API.
+  - id: changelog-main
+    roles: [release-notes]
+    priority: 1
+    fallbackGroup: release-notes
+    availability: ">= 2.8.9"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/loki
+      ref: main
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: '^\[{{regexQuote .Version}}\]'
+    classify: *changelog-classify
+    notes: >-
+      Also carries the in-flight minor (## [3.8.0]). Upstream anomaly: the
+      release branches carry duplicate [3.6.0] sections (2025-11-05 and the
+      2025-11-17 re-cut; a heading selector reads the first) and the same
+      shape for [3.7.3] — see the changelog source notes.
+  # The GitHub release body is the same release-please section; it is the
+  # fallback for the pre-2.8.9 eras and whenever raw hosts fail.
+  # api.github.com is anonymous rate-limited (60/h).
+  - id: github-release-notes
+    roles: [release-notes]
+    priority: 2
+    fallbackGroup: release-notes
+    locator:
+      kind: github-releases
+      repository: grafana/loki
+      ref: "{{.Tag}}"
+    extract:
+      type: whole
+    classify: *changelog-classify
+
+  # --- curated per-minor release notes (docs on main) ------------------------
+  # docs/sources/release-notes/vX-Y.md: one file per minor line, merged to
+  # main with the minor. "## Upgrade Considerations" is the curated
+  # BREAKING-CHANGE list of the line; attach at the X.Y.0 path entry.
+  # (Every v3-x file has this section; the v2-x files do not.)
+  - id: release-notes-upgrade
+    roles: [upgrade-guide]
+    releaseKinds: [major, minor]
+    availability: ">= 3.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/loki
+      ref: main
+      path: docs/sources/release-notes/v{{.Major}}-{{.Minor}}.md
+    extract:
+      type: markdown-section
+      heading: '^## Upgrade Considerations$'
+      # the section opens with a boilerplate intro paragraph before the
+      # BREAKING CHANGE bullet list: read every bullet as its own item
+      listItems: true
+    classify:
+      # the section's boilerplate intro (the generic heuristic would flag it
+      # breaking; the bullets carry the real content)
+      - text: "For important upgrade guidance"
+        skip: true
+      # the BREAKING CHANGE bullets duplicate the release-please changelog's
+      # "### BREAKING CHANGES" section, which classifies them declared via
+      # its section rule; keep one authority
+      - text: 'BREAKING CHANGE - '
+        skip: true
+      - text: '(?i)BREAKING CHANGE.*\b(?:remove[sd]?|no longer|drop[sd]?)\b'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - text: 'BREAKING CHANGE'
+        category: other
+        breaking: true
+        actionRequired: true
+      - text: '(?i)\bdeprecat'
+        category: deprecation
+    # "## Deprecations" of the same file: the line's deprecation narrative
+    # (promtail, storage backends, config options, API endpoints).
+  - id: release-notes-deprecations
+    roles: [release-notes]
+    releaseKinds: [major, minor]
+    availability: ">= 3.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/loki
+      ref: main
+      path: docs/sources/release-notes/v{{.Major}}-{{.Minor}}.md
+    extract:
+      type: markdown-section
+      heading: '^## Deprecations$'
+      listItems: true
+    classify:
+      # the 3.0-cleanup retrospective lead paragraph describes an older
+      # minor's cleanup, not this line's changes
+      - text: 'One of the focuses of Loki 3\.0 was cleaning up'
+        skip: true
+      - text: '(?i)\bdeprecat|end of life|end-of-life|\bEOL\b'
+        category: deprecation
+      - text: '(?i)\bremoved?\b'
+        category: removal
+        actionRequired: true
+
+  # --- upgrade guides (cumulative docs on main) -------------------------------
+  # docs/sources/setup/upgrade/_index.md: one "## X.Y.0" section per minor
+  # with "### Loki X.Y.Z" / "#### topic" behaviour-change subsections (3.0:
+  # structured metadata + schema v13 + tsdb; 3.2: HTTP API/config/bloom;
+  # plus a "## Helm Chart Upgrades" section). Read at main; attached at the
+  # X.Y.0 path entry. 3.1 and 3.7 never got a section (their changes live in
+  # the curated release notes) — curated exceptions, not a broken channel.
+  - id: upgrade-guide
+    roles: [upgrade-guide]
+    releaseKinds: [major, minor]
+    availability: ">= 3.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/loki
+      ref: main
+      path: docs/sources/setup/upgrade/_index.md
+    extract:
+      type: markdown-section
+      heading: '^## {{.Major}}[.]{{.Minor}}[.]0$'
+      # the per-minor sections are heading-led prose ("### Loki X.Y.0" with
+      # one "#### topic" per behaviour change, no bullet lists): the
+      # structural reading makes every topic its own item (karpenter's
+      # listItems), otherwise the whole minor folds into one note
+      listItems: true
+    classify: &guide-classify
+      - text: '^\{\{<'
+        skip: true
+      # the sections close with a community-Slack call to action
+      - text: 'join us on the .?community Slack|If you have questions about upgrading'
+        skip: true
+      - section: '(?i)^Further reading$'
+        skip: true
+      # "### Loki X.Y.Z" group headings inside the section
+      - section: '(?i)^Loki \d+\.\d+'
+        category: other
+      - section: '(?i)^(Removed?|Breaking change)'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - text: '(?i)\b(?:remove[sd]?|no longer|deleted?)\b'
+        category: removal
+        breaking: true
+        actionRequired: true
+      - text: '(?i)deprecat'
+        category: deprecation
+      - text: '(?i)default (?:value )?changed|now (?:required|defaults|enabled)|renamed|rejects'
+        category: other
+        actionRequired: true
+    exceptions:
+      - versions: [3.1.0, 3.7.0]
+        reason: >-
+          The cumulative upgrade index has no 3.1.0/3.7.0 section (upstream
+          published none for those minors); their breaking changes are
+          carried by the curated release-notes Upgrade Considerations
+          sections instead.
+    notes: >-
+      The in-flight minor's guidance is the "## Main / Unreleased" section
+      (today: TSDB schema v14, the new head-WAL chunk format, SSD mode
+      removal, deprecated storage-backend removals) which becomes "## X.Y.0"
+      only when the release is cut — a heading selector cannot attach it
+      deterministically before that (recorded gap).
+  # docs/sources/setup/upgrade/upgrade-2.x.md: the 2.x twin with one
+  # "## X.Y.0" section per 2.x minor (2.9.0 down to 2.0.0).
+  - id: upgrade-guide-2x
+    roles: [upgrade-guide]
+    releaseKinds: [major, minor]
+    availability: ">= 2.0.0, < 3.0.0"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/loki
+      ref: main
+      path: docs/sources/setup/upgrade/upgrade-2.x.md
+    extract:
+      type: markdown-section
+      heading: '^## {{.Major}}[.]{{.Minor}}[.]0$'
+      listItems: true
+    classify: *guide-classify
+  # The chart-migration guide: the OSS chart left this repository in March
+  # 2026 ("Chart version 6.55.0 (appVersion 3.6.7) was the last release from
+  # the Loki repository"); this page walks 6.55 -> 18.x, twelve chart majors
+  # of breaking values changes, and warns GEL users not to migrate.
+  # Attached to the minor whose era forced it.
+  - id: chart-upgrade-community
+    roles: [upgrade-guide]
+    releaseKinds: [minor]
+    availability: ">= 3.7.0, < 3.8.0"
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/loki
+      ref: main
+      path: docs/sources/setup/upgrade/upgrade-to-community/_index.md
+    extract:
+      type: whole
+    classify:
+      - text: '^\{\{<'
+        skip: true
+      - text: '^#{1,2} '
+        skip: true
+      - section: '(?i)(breaking|remove|Kubernetes API cleanup|required)'
+        category: migration
+        actionRequired: true
+      - text: '(?i)GEL|Grafana Enterprise Logs'
+        category: other
+        actionRequired: true
+      - text: '(?i)helm repo|helm upgrade|oci://'
+        skip: true
+
+  # --- security --------------------------------------------------------------
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: grafana/loki
+    notes: >-
+      The repository advisory feed answers empty today (checked 2026-10-01);
+      dependency CVE fixes ship as "[SECURITY]" Renovate bullets inside the
+      changelog sections, which the notes channel therefore carries.
+
+  # --- lifecycle evidence ----------------------------------------------------
+  # The promtail docs page: "Promtail is end of life (EOL) as of March 2,
+  # 2026. Commercial support has ended. No future support or updates will be
+  # provided. All future feature development will occur in Grafana Alloy."
+  # Cited by the lifecycle statement below; not reported as per-release
+  # notes.
+  - id: promtail-eol
+    roles: [release-notes]
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/loki
+      ref: main
+      path: docs/sources/send-data/promtail/_index.md
+    extract:
+      type: markdown-section
+      heading: '^# Promtail agent$'
+
+lifecycle:
+  - state: end-of-life
+    since: "2026-03-02"
+    summary: >-
+      Promtail, the log-shipping client released from this repository, is
+      end of life as of 2026-03-02: deprecated in Loki 3.0, last shipped as
+      image and release assets with 3.6.0 (nothing published for any 3.7.x)
+      and its code removed in 3.7.3; all future client development happens
+      in Grafana Alloy (lambda-promtail is not affected).
+    sources: [promtail-eol]
+
+artifacts:
+  # --- container images ------------------------------------------------------
+  # Published via Grafana's GAR prod mirror to Docker Hub; tags are the bare
+  # version. Docker Hub answered anonymously at onboarding time but stays
+  # quota-flaky, so mirror.gcr.io is the verified fallback channel.
+  - id: image
+    type: container-image
+    name: docker.io/grafana/loki
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/grafana/loki
+      - kind: oci
+        repository: mirror.gcr.io/grafana/loki
+    notes: >-
+      us-docker.pkg.dev/grafanalabs-global/dockerhub-loki-prod-mirror is the
+      build-side mirror (private, anonymous DENIED); boringcrypto/weekly
+      variants are out of model.
+  - id: canary-image
+    type: container-image
+    name: docker.io/grafana/loki-canary
+    description: Loki Canary, the health-probe deployment shipped with each release.
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/grafana/loki-canary
+      - kind: oci
+        repository: mirror.gcr.io/grafana/loki-canary
+  # Promtail images stop with 3.6.0 (404 from 3.6.1 on; nothing for any
+  # 3.7.x): the client is end of life (see the lifecycle statement).
+  - id: promtail-image
+    type: container-image
+    name: docker.io/grafana/promtail
+    availability: "<= 3.6.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: oci
+        repository: docker.io/grafana/promtail
+      - kind: oci
+        repository: mirror.gcr.io/grafana/promtail
+
+  # --- release assets (predictable names; release-asset representation) ------
+  - id: binary
+    type: binary
+    name: loki-linux-amd64.zip
+    description: Standalone loki server binary (linux/amd64 zip).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/grafana/loki/releases/download/{{.Tag}}/loki-linux-amd64.zip"
+  - id: logcli-binary
+    type: binary
+    name: logcli-linux-amd64.zip
+    description: LogCLI, the command-line log query client (linux/amd64 zip).
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/grafana/loki/releases/download/{{.Tag}}/logcli-linux-amd64.zip"
+    notes: >-
+      The same family ships lokitool binaries and darwin/freebsd/windows
+      variants; the grafana/logcli image mirrors these tags.
+  - id: promtail-binary
+    type: binary
+    name: promtail-linux-amd64.zip
+    description: Promtail client binary (linux/amd64 zip); last published for 3.6.0.
+    availability: "<= 3.6.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/grafana/loki/releases/download/{{.Tag}}/promtail-linux-amd64.zip"
+  - id: deb-package
+    type: package
+    name: loki_amd64.deb
+    description: loki server deb package (amd64).
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: "https://github.com/grafana/loki/releases/download/{{.Tag}}/loki_{{.Version}}_amd64.deb"
+    notes: >-
+      rpms (loki-X.Y.Z-1.x86_64.rpm) and arm/arm64 variants share the
+      release-asset family; rpm naming differs in the 2.x drone era, so only
+      the deb is declared.
+
+  # --- Helm chart (community repository, lookup by appVersion) ----------------
+  # The OSS chart moved OUT of this repository in March 2026:
+  # grafana-community/helm-charts is the source of truth (index + OCI + git
+  # tags), chart versions are fully independent of the app version (chart
+  # 18.13.7 ships app 3.7.8; 44 chart versions ship app 3.7.2), and not every
+  # app release becomes an appVersion (3.7.0 has none) — optional, absence
+  # is a fact. kubeVersion >=1.25.0-0 enforced since community chart 7.0.0.
+  # The in-repo production/helm/loki chart is the Grafana Enterprise Logs
+  # chart now (helm-loki-7.x tags, old grafana.github.io index +
+  # ghcr.io/grafana/helm-charts/loki): out of model like grafana-enterprise,
+  # and NOT a lookup channel — its 7.x versions collide with the community
+  # chart's 7.x while shipping different content.
+  - id: chart
+    type: helm-chart
+    name: loki
+    optional: true
+    version:
+      strategy: lookup
+      field: appVersion
+      match: "{{.Version}}"
+      select: latest
+    channels:
+      # the index is the only channel that carries appVersion fields
+      - kind: helm-repo
+        url: https://grafana-community.github.io/helm-charts
+        chart: loki
+      - kind: helm-git
+        repository: github.com/grafana-community/helm-charts
+        path: charts/loki
+        tagPattern: '^loki-(?P<version>\d+\.\d+\.\d+)$'
+      - kind: oci
+        repository: ghcr.io/grafana-community/helm-charts/loki
+    contents:
+      # The published OCI chart layer — the artifact users install — is the
+      # primary values representation (representation published-oci-chart),
+      # verified against the source tree at the chart's own tag.
+      - kind: helm-values
+        locator:
+          kind: oci
+          repository: ghcr.io/grafana-community/helm-charts/loki
+        compareWith:
+          kind: repo-file
+          repository: github.com/grafana-community/helm-charts
+          ref: "loki-{{.ArtifactVersion}}"
+          path: charts/loki/values.yaml
+      # kubeVersion becomes the chart's Kubernetes constraint; appVersion
+      # doubles as evidence of the chart->app pin
+      - kind: chart-metadata
+        locator:
+          kind: oci
+          repository: ghcr.io/grafana-community/helm-charts/loki
+    notes: >-
+      Frozen sibling charts of the pre-fork era (promtail 6.17.1,
+      loki-canary 0.14.1, loki-distributed 0.80.6, loki-simple-scalable
+      1.8.11, loki-stack 2.10.3 — the loki/promtail/grafana dependency pins
+      kube-prometheus-stack's record asked about) stayed in the deprecated
+      grafana.github.io index when the community repository forked, and
+      loki-stack's source also lives in-tree at production/helm/loki-stack;
+      none release anymore. Neither loki chart ships CRDs (the
+      loki.grafana.com Lokistack CRDs belong to the Loki Operator
+      sub-project).
+
+provenance:
+  method: discovery+review
+  author: onboarding wave 4
+  updated: "2026-10-01"
+  validatedReleases: [3.7.3, 3.7.4, 3.7.5, 3.7.6, 3.7.7, 3.7.8]
+  notes: >-
+    Started from the discovery proposal, which locked onto the wrong tag
+    family (helm-loki- chart tags) and was rebuilt around the v3.N.M app
+    channel from docs/research/loki.md: release-branch changelog, curated
+    release notes and the cumulative upgrade guide at main, the community
+    chart lookup by unprefixed appVersion, release-asset packages, and the
+    promtail end-of-life statement. Verified with `ri check loki`.

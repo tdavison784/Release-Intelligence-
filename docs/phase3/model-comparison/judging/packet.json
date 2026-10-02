@@ -1,0 +1,827 @@
+[
+  {
+    "item": "S01",
+    "findings": [
+      {
+        "id": "imp-2577b5434545",
+        "title": "Added the `ciss` short name for the cert-manager `ClusterIssuer` resource",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "ClusterIssuer kubectl short name improves operator convenience",
+      "content": "This change adds the `ciss` short name for ClusterIssuer resources, a kubectl convenience feature similar to the `iss` short name added for Issuer resources. Operators managing this cert-manager deployment will benefit from shorter kubectl syntax when working with ClusterIssuer resources. This is a non-breaking convenience enhancement that plausibly applies to any operator using ClusterIssuer resources.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-41698084a48b",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L330-L330 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Added the `ciss` short name for the cert-manager `ClusterIssuer` resource ([`#7373`](https://github.com/cert-manager/cert-manager/pull/7373), [`@SgtCoDFish`](https://github.com/SgtCoDFish))"
+      }
+    ]
+  },
+  {
+    "item": "S02",
+    "findings": [
+      {
+        "id": "imp-d1ff8cfc0c11",
+        "title": "Copy annotations from Ingress or Gateway to the Certificate: We've added a new configuration option to the cert-manager controller: `--extra-certificate-annota\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "other"
+      }
+    ],
+    "suggestion": {
+      "title": "New cert-manager annotation-copy flag may interest Certificate users",
+      "content": "The environment uses cert-manager.io/v1 Certificates (CRD certificates.cert-manager.io), so the new --extra-certificate-annotations option touches the resource type in use. The option is opt-in and the change describes no default behavior change, so existing Certificates are unaffected unless the operator configures it. The environment summary does not state whether Ingress or Gateway resources are used, which is what this feature reads annotations from. Review the release notes to decide whether copying annotations from Ingress/Gateway resources to Certificates is useful or should be enabled here.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-da53ded48367",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L162-L166 (Major Themes \u203a Copy annotations from Ingress or Gateway to the Certificate)",
+        "excerpt": "### Copy annotations from Ingress or Gateway to the Certificate\n\nWe've added a new configuration option to the cert-manager controller: `--extra-certificate-annotations`, which allows you to specify annotation keys to be copied from an Ingress or Gateway resource to the resulting Certificate object.\nRead [Annotated Ingress resource: Copy annotations to the Certificate](../../usage/ingress.md#copy-annotations-to-the-certificate ), and\n[Annotated Gateway resource: Copy annotations to the Certificate](../../usage/gateway.md#copy-annotations-to-the-certificate), to learn more."
+      }
+    ]
+  },
+  {
+    "item": "S03",
+    "findings": [
+      {
+        "id": "imp-2512f0e1bfab",
+        "title": "Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "bugfix"
+      }
+    ],
+    "suggestion": {
+      "title": "Ingress pathType change affects cert-manager HTTP challenge handling",
+      "content": "This change modifies the Kubernetes Ingress pathType from ImplementationSpecific to Exact for cert-manager's HTTP challenge handling. The environment has global.rbac.disableHTTPChallengesRole set, indicating HTTP challenge support is configured. This change affects Ingress resources that cert-manager creates for HTTP challenges. Review your ingress controller compatibility with Exact pathType and ensure it properly handles cert-manager's HTTP challenge ingresses.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-4faa7ca81b54",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L351-L351 (v1.18.0 \u203a Bug or Regression)",
+        "excerpt": "- Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security. ([`#7767`](https://github.com/cert-manager/cert-manager/pull/7767), [`@sspreitzer`](https://github.com/sspreitzer))"
+      }
+    ]
+  },
+  {
+    "item": "S04",
+    "findings": [
+      {
+        "id": "imp-eef2b0d0d72f",
+        "title": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": true,
+        "category": "other"
+      }
+    ],
+    "suggestion": {
+      "title": "HTTP01 challenge PathType change may affect this environment",
+      "content": "The environment uses cert-manager.io/v1 Certificate resources (certificates.cert-manager.io CRD), and the values key global.rbac.disableHTTPChallengesRole suggests HTTP01 challenges are relevant here. Whether ACME HTTP01 Ingress-based solvers and the Ingress controller in use are affected is not shown in the environment summary. Inspect Certificate resources for HTTP01 solver blocks and the Ingress controller's PathType handling before upgrading.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-110340e9c914",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L28-L89 (Major Themes \u203a ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes)",
+        "excerpt": "### ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes\n\n> \u26a0\ufe0f Breaking change\n\nWe have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\nThis security feature ensures that the challenge path (which is an exact path)\nis not misinterpreted as a regular expression or some other Ingress-specific\n(`ImplementationSpecific`) parsing.\nThis allows HTTP01 challenges to be solved when using standards compliant\nIngress controllers such as Cilium.\n\nThis change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controlle\u2026"
+      }
+    ]
+  },
+  {
+    "item": "S05",
+    "findings": [
+      {
+        "id": "imp-4abadd43d378",
+        "title": "Cert-manager now uses a local fork of the `golang.org/x/crypto/acme` package",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "ACME implementation uses local package fork for flexibility",
+      "content": "This change introduces a local fork of golang.org/x/crypto/acme, allowing cert-manager to customize and fix ACME protocol handling independently. The environment uses cert-manager with Certificate resources for ACME-based certificate issuance. This internal implementation change is transparent to operators but enables cert-manager maintainers to respond faster to ACME protocol issues and requirements.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-4fcf47388827",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L334-L334 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Cert-manager now uses a local fork of the `golang.org/x/crypto/acme` package ([`#7752`](https://github.com/cert-manager/cert-manager/pull/7752), [`@wallrj`](https://github.com/wallrj))"
+      }
+    ]
+  },
+  {
+    "item": "S06",
+    "findings": [
+      {
+        "id": "imp-dc9dc7badd15",
+        "title": "Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "bugfix"
+      }
+    ],
+    "suggestion": {
+      "title": "IP addresses in Certificate commonName now go to ipAddresses",
+      "content": "The fix changes how certificates whose `commonName` holds an IP address are handled: the IP moves from the DNS subjectAlternativeName list to `ipAddresses`. The environment uses cert-manager.io/v1 Certificate in its manifests and has the certificates.cert-manager.io [v1] CRD installed. Inspect the Certificate manifests for any `commonName` containing an IP address, and check whether downstream consumers depend on the old DNS SAN entry. The summary does not show the actual commonName values, so this is only a review prompt.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-a8c04d9f0485",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L354-L354 (v1.18.0 \u203a Bug or Regression)",
+        "excerpt": "- Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are instead added to the `ipAddresses` field as expected. ([`#7081`](https://github.com/cert-manager/cert-manager/pull/7081), [`@johnjcool`](https://github.com/johnjcool))"
+      }
+    ]
+  },
+  {
+    "item": "S07",
+    "findings": [
+      {
+        "id": "imp-4abadd43d378",
+        "title": "Cert-manager now uses a local fork of the `golang.org/x/crypto/acme` package",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "Internal ACME fork change may affect cert-manager deployment",
+      "content": "The environment runs cert-manager with the certificates.cert-manager.io v1 CRD and a Certificate resource, so an upstream change to the ACME package used by cert-manager plausibly intersects it. The release note (ev-4fcf47388827) describes only an internal dependency fork with no stated operator-facing behavior, so impact is not clear. The values and manifests shown do not indicate whether ACME issuers are actually used. The operator should review PR #7752 and their issuer configuration to confirm whether the acme fork affects their Certificate issuance.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-4fcf47388827",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L334-L334 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Cert-manager now uses a local fork of the `golang.org/x/crypto/acme` package ([`#7752`](https://github.com/cert-manager/cert-manager/pull/7752), [`@wallrj`](https://github.com/wallrj))"
+      }
+    ]
+  },
+  {
+    "item": "S08",
+    "findings": [
+      {
+        "id": "imp-dc9dc7badd15",
+        "title": "Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "bugfix"
+      }
+    ],
+    "suggestion": {
+      "title": "Certificate IP address handling changed; review affected definitions",
+      "content": "This fix changes how IP addresses in certificate commonName fields are handled. Previously, IP addresses were incorrectly added to DNS subjectAlternativeName; now they are correctly placed in the ipAddresses field. The environment uses cert-manager.io/v1 Certificate resources, so any certificates with IP addresses in the commonName field will have different SAN handling. Inspect your Certificate definitions to identify any that use IP addresses in commonName and verify the field migration is compatible with your use cases.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-a8c04d9f0485",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L354-L354 (v1.18.0 \u203a Bug or Regression)",
+        "excerpt": "- Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are instead added to the `ipAddresses` field as expected. ([`#7081`](https://github.com/cert-manager/cert-manager/pull/7081), [`@johnjcool`](https://github.com/johnjcool))"
+      }
+    ]
+  },
+  {
+    "item": "S09",
+    "findings": [
+      {
+        "id": "imp-6432f469b85a",
+        "title": "Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_se\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "New certificate timestamp metrics reach the enabled ServiceMonitor scrape",
+      "content": "v1.18.0 adds the metrics certmanager_certificate_not_before_timestamp_seconds and certmanager_certificate_not_after_timestamp_seconds. The environment sets prometheus.servicemonitor.enabled and uses cert-manager.io/v1 Certificate resources, so these new series will plausibly be scraped for those Certificates. Inspect whether your dashboards or alerts should adopt them and whether the added series matter for your monitoring.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-e8facc7cba98",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L327-L327 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_seconds`). ([`#7612`](https://github.com/cert-manager/cert-manager/pull/7612), [`@solidDoWant`](https://github.com/solidDoWant))"
+      }
+    ]
+  },
+  {
+    "item": "S10",
+    "findings": [
+      {
+        "id": "imp-d09df14ed530",
+        "title": "Allow customizing signature algorithm",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "Certificate signature algorithm customization now available",
+      "content": "This change adds the ability to customize the signature algorithm for certificates, enabling operators to specify preferred cryptographic algorithms. The environment uses cert-manager with Certificate resources, so this feature is plausibly applicable. If you need to enforce specific signature algorithms (RSA, ECDSA, etc.) in your certificates, this new capability provides that flexibility.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-87995aee2ded",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L332-L332 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Allow customizing signature algorithm ([`#7591`](https://github.com/cert-manager/cert-manager/pull/7591), [`@tareksha`](https://github.com/tareksha))"
+      }
+    ]
+  },
+  {
+    "item": "S11",
+    "findings": [
+      {
+        "id": "imp-eef2b0d0d72f",
+        "title": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": true,
+        "category": "other"
+      }
+    ],
+    "suggestion": {
+      "title": "Breaking HTTP01 Ingress PathType change may affect challenge solving",
+      "content": "v1.18.0 changes the PathType for ACME HTTP01 Ingress-based challenges to Exact, flagged as a breaking change that is incompatible with certain setups. The environment uses cert-manager.io/v1 Certificate resources and sets global.rbac.disableHTTPChallengesRole, but the summary does not show whether HTTP01 Ingress solvers are configured. Inspect your issuers for HTTP01 Ingress solvers, the value of global.rbac.disableHTTPChallengesRole, and whether your Ingress controller handles PathType Exact.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-110340e9c914",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L28-L89 (Major Themes \u203a ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes)",
+        "excerpt": "### ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes\n\n> \u26a0\ufe0f Breaking change\n\nWe have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\nThis security feature ensures that the challenge path (which is an exact path)\nis not misinterpreted as a regular expression or some other Ingress-specific\n(`ImplementationSpecific`) parsing.\nThis allows HTTP01 challenges to be solved when using standards compliant\nIngress controllers such as Cilium.\n\nThis change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controlle\u2026"
+      }
+    ]
+  },
+  {
+    "item": "S12",
+    "findings": [
+      {
+        "id": "imp-dc9dc7badd15",
+        "title": "Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "bugfix"
+      }
+    ],
+    "suggestion": {
+      "title": "IP commonName handling change may alter issued Certificate SANs",
+      "content": "v1.18.0 stops adding IP addresses in commonName to the DNS subjectAlternativeName list and adds them to ipAddresses instead. The environment uses cert-manager.io/v1 Certificate manifests, but the summary does not show their commonName values. Inspect your Certificate resources for an IP address in commonName and whether consumers rely on it appearing as a DNS SAN.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-a8c04d9f0485",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L354-L354 (v1.18.0 \u203a Bug or Regression)",
+        "excerpt": "- Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are instead added to the `ipAddresses` field as expected. ([`#7081`](https://github.com/cert-manager/cert-manager/pull/7081), [`@johnjcool`](https://github.com/johnjcool))"
+      }
+    ]
+  },
+  {
+    "item": "S13",
+    "findings": [
+      {
+        "id": "imp-5cbc5860638d",
+        "title": "Cache the full DNS response and handle TTL expiration in `FindZoneByFqdn`",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "DNS caching improves performance across all DNS challenge operations",
+      "content": "This change improves cert-manager's DNS zone lookup performance by caching DNS responses and handling TTL expiration. This optimization applies to any cert-manager deployment using DNS challenges (DNS01, ACME). The environment configuration shows global.rbac.disableHTTPChallengesRole is set, indicating active certificate challenges. This performance improvement plausibly benefits all DNS-based challenge operations in this environment.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-d4918828336e",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L333-L333 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Cache the full DNS response and handle TTL expiration in `FindZoneByFqdn` ([`#7596`](https://github.com/cert-manager/cert-manager/pull/7596), [`@ThatsIvan`](https://github.com/ThatsIvan))"
+      }
+    ]
+  },
+  {
+    "item": "S14",
+    "findings": [
+      {
+        "id": "imp-588f3cf5a260",
+        "title": "Added ingress-shim option `--extra-certificate-annotations`, which sets a list of annotation keys to be copied from Ingress-like to resulting Certificate object",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "Ingress-shim annotation copying feature available for Ingress resources",
+      "content": "This change adds the --extra-certificate-annotations flag to the ingress-shim component to copy annotations from Ingress resources to created Certificate objects. This feature is available for any cert-manager deployment using Ingress-based certificate automation. The environment shows HTTP challenge role configuration, consistent with Ingress automation. If you use Ingress resources for certificate provisioning and need to propagate annotations to Certificate objects, this feature is now available.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-dde3ce032096",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L328-L328 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Added ingress-shim option `--extra-certificate-annotations`, which sets a list of annotation keys to be copied from Ingress-like to resulting Certificate object ([`#7083`](https://github.com/cert-manager/cert-manager/pull/7083), [`@k0da`](https://github.com/k0da))"
+      }
+    ]
+  },
+  {
+    "item": "S15",
+    "findings": [
+      {
+        "id": "imp-3a0f812fe693",
+        "title": "Added the `iss` short name for the cert-manager `Issuer` resource",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "Issuer kubectl short name improves operator convenience",
+      "content": "This change adds the `iss` short name for Issuer resources, a kubectl convenience feature. The environment uses cert-manager with cert-manager.io/v1 Certificate resources installed. Operators managing this cert-manager deployment will benefit from the shorter kubectl syntax when working with Issuer resources. This is a non-breaking convenience enhancement that plausibly applies to operators administering cert-manager in this environment.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-38243747b200",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L329-L329 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Added the `iss` short name for the cert-manager `Issuer` resource"
+      }
+    ]
+  },
+  {
+    "item": "S16",
+    "findings": [
+      {
+        "id": "imp-eef2b0d0d72f",
+        "title": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": true,
+        "category": "other"
+      }
+    ],
+    "suggestion": {
+      "title": "HTTP01 Ingress challenge paths now use PathType Exact (breaking change)",
+      "content": "The release notes flag as a breaking change that ACME HTTP01 Ingress-based challenges now use `PathType` `Exact` instead of `ImplementationSpecific`, and note it is incompatible with certain ingress setups. The environment's values set `global.rbac.disableHTTPChallengesRole`, which suggests HTTP-01 challenges are in scope, though the summary shows no Issuer or Ingress manifests. Inspect whether any issuer uses an HTTP01 Ingress solver and whether your ingress controller handles `Exact` paths for the challenge route. The excerpt is truncated, so read the full note for the incompatibility conditions.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-110340e9c914",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L28-L89 (Major Themes \u203a ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes)",
+        "excerpt": "### ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes\n\n> \u26a0\ufe0f Breaking change\n\nWe have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\nThis security feature ensures that the challenge path (which is an exact path)\nis not misinterpreted as a regular expression or some other Ingress-specific\n(`ImplementationSpecific`) parsing.\nThis allows HTTP01 challenges to be solved when using standards compliant\nIngress controllers such as Cilium.\n\nThis change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controlle\u2026"
+      }
+    ]
+  },
+  {
+    "item": "S17",
+    "findings": [
+      {
+        "id": "imp-62fb5ea91b14",
+        "title": "Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "New helm value intersects environment's global.rbac values",
+      "content": "The environment's values key set already includes the key `global.rbac.disableHTTPChallengesRole`, which this v1.18.0 change introduces, and cert-manager is in use (Certificate via cert-manager.io/v1 and the certificates.cert-manager.io CRD). The release notes state this value drops cert-manager's permission to create pods for HTTP-01 challenges when set, so its presence in values should be verified against the new chart semantics. Inspect how this key is set in your values and whether HTTP-01 ACME challenges are required for your Certificate resources. Note the change is a declared, note-derived feature, so confirm the chart's documented behavior for this key in v1.18.0.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-861cb2d69752",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L331-L331 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges. This allows cert-manager to drop its permission to create pods, improving security when HTTP-01 challenges are not required. ([`#7666`](https://github.com/cert-manager/cert-manager/pull/7666), [`@ali-hamza-noor`](https://github.com/ali-hamza-noor))"
+      }
+    ]
+  },
+  {
+    "item": "S18",
+    "findings": [
+      {
+        "id": "imp-80754ea19305",
+        "title": "Add support for `ACME profiles extension`",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "ACME profiles feature may touch Certificate issuance here",
+      "content": "The environment runs cert-manager with the certificates.cert-manager.io CRD and cert-manager.io/v1 Certificate resources, so ACME-related issuance behavior could intersect this change (ev-7be235e771a3). However, the environment summary does not show which issuer type (e.g., ACME) is configured. Inspect your Issuer/ClusterIssuer resources for ACME configuration to confirm whether the new ACME profiles extension is relevant. This is a review suggestion only; verify against the v1.18.0 release notes before upgrading.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-7be235e771a3",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L335-L335 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Add support for [`ACME profiles extension`](https://datatracker.ietf.org/doc/draft-aaron-acme-profiles/). ([`#7777`](https://github.com/cert-manager/cert-manager/pull/7777), [`@wallrj`](https://github.com/wallrj))"
+      }
+    ]
+  },
+  {
+    "item": "S19",
+    "findings": [
+      {
+        "id": "imp-16163701185e",
+        "title": "Added `app.kubernetes.io/managed-by: cert-manager` label to the created Let's Encrypt account keys",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "Let's Encrypt account key labeling improves resource visibility",
+      "content": "This change adds the app.kubernetes.io/managed-by: cert-manager label to Let's Encrypt account key secrets created by cert-manager. This metadata improves resource visibility and ownership tracking for ACME account keys. The environment uses cert-manager with Certificate resources, implying ACME usage for certificate issuance. This labeling enhancement is automatically applied to new account keys created during the upgrade.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-1d4a9d664d8c",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L326-L326 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Added `app.kubernetes.io/managed-by: cert-manager` label to the created Let's Encrypt account keys ([`#7577`](https://github.com/cert-manager/cert-manager/pull/7577), [`@terinjokes`](https://github.com/terinjokes))"
+      }
+    ]
+  },
+  {
+    "item": "S20",
+    "findings": [
+      {
+        "id": "imp-16163701185e",
+        "title": "Added `app.kubernetes.io/managed-by: cert-manager` label to the created Let's Encrypt account keys",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "cert-manager Certificate usage makes Let's Encrypt account key label change relevant",
+      "content": "The environment uses cert-manager resources (CRD certificates.cert-manager.io v1 and apiVersion cert-manager.io/v1), so cert-manager itself is installed. The change adds a label to Let's Encrypt account keys, which matters if ACME/Let's Encrypt issuers are used, but the environment summary does not state whether ClusterIssuer/Issuer resources use an ACME solver. Inspect any Issuer/ClusterIssuer resources with an ACME (letsencrypt) configuration and any selection or policy logic that filters Secrets by labels, since newly created account keys will now carry app.kubernetes.io/managed-by: cert-manager.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-1d4a9d664d8c",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L326-L326 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Added `app.kubernetes.io/managed-by: cert-manager` label to the created Let's Encrypt account keys ([`#7577`](https://github.com/cert-manager/cert-manager/pull/7577), [`@terinjokes`](https://github.com/terinjokes))"
+      }
+    ]
+  },
+  {
+    "item": "S21",
+    "findings": [
+      {
+        "id": "imp-d09df14ed530",
+        "title": "Allow customizing signature algorithm",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "Signature algorithm customization may touch Certificate usage",
+      "content": "The environment uses cert-manager (Certificate via cert-manager.io/v1, CRD certificates.cert-manager.io), so a new feature in cert-manager's Certificate handling plausibly intersects it. The release-note excerpt only states that signature algorithm customization was added, without specifying which fields or CRD versions are involved. The operator should check the v1.18.0 notes and PR #7591 for which Certificate fields changed and whether any manifest or values updates are needed.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-87995aee2ded",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L332-L332 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Allow customizing signature algorithm ([`#7591`](https://github.com/cert-manager/cert-manager/pull/7591), [`@tareksha`](https://github.com/tareksha))"
+      }
+    ]
+  },
+  {
+    "item": "S22",
+    "findings": [
+      {
+        "id": "imp-2577b5434545",
+        "title": "Added the `ciss` short name for the cert-manager `ClusterIssuer` resource",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "Additive ClusterIssuer short name; check ClusterIssuer usage",
+      "content": "The v1.18.0 change only adds the `ciss` short name to the cert-manager `ClusterIssuer` resource, which is additive. The environment summary shows `certificates.cert-manager.io` as the only installed CRD and `cert-manager.io/v1 Certificate` as the only cert-manager apiVersion in use, so no `ClusterIssuer` usage is shown. If the upgrade installs or updates cert-manager's CRDs, the short name would come along harmlessly, but it only matters if operators or tooling reference `ClusterIssuer` via `kubectl ciss`. Inspect whether any manifests, scripts, or workflows use `ClusterIssuer` resources or the `ciss` short name.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-41698084a48b",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L330-L330 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Added the `ciss` short name for the cert-manager `ClusterIssuer` resource ([`#7373`](https://github.com/cert-manager/cert-manager/pull/7373), [`@SgtCoDFish`](https://github.com/SgtCoDFish))"
+      }
+    ]
+  },
+  {
+    "item": "S23",
+    "findings": [
+      {
+        "id": "imp-eef2b0d0d72f",
+        "title": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": true,
+        "category": "other"
+      }
+    ],
+    "suggestion": {
+      "title": "BREAKING: HTTP01 challenge paths use Exact PathType; review ingress compatibility",
+      "content": "This is a breaking change that alters HTTP01 ACME challenge Ingress path handling from ImplementationSpecific to Exact PathType. The environment has global.rbac.disableHTTPChallengesRole configured, indicating HTTP01 challenges are in use. This change improves security and compatibility with standards-compliant controllers (like Cilium) but may affect ingress controllers that don't handle Exact paths correctly. Review your ingress controller compatibility before upgrading.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-110340e9c914",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L28-L89 (Major Themes \u203a ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes)",
+        "excerpt": "### ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes\n\n> \u26a0\ufe0f Breaking change\n\nWe have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\nThis security feature ensures that the challenge path (which is an exact path)\nis not misinterpreted as a regular expression or some other Ingress-specific\n(`ImplementationSpecific`) parsing.\nThis allows HTTP01 challenges to be solved when using standards compliant\nIngress controllers such as Cilium.\n\nThis change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controlle\u2026"
+      }
+    ]
+  },
+  {
+    "item": "S24",
+    "findings": [
+      {
+        "id": "imp-6432f469b85a",
+        "title": "Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_se\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "New certificate metrics may surface in Prometheus-enabled environment",
+      "content": "The environment uses cert-manager.io/v1 Certificate resources (CRD certificates.cert-manager.io [v1]), which are the objects these new metrics report on. Prometheus integration appears active via the values keys prometheus.servicemonitor.enabled and prometheus.servicemonitor.targetPort, so new metrics like certmanager_certificate_not_before_timestamp_seconds may become available. The release notes excerpt (ev-e8facc7cba98) states these metrics were added in v1.18.0. The operator should check their Prometheus ServiceMonitor configuration and dashboards/alerts for the new metric names after upgrading.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-e8facc7cba98",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L327-L327 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_seconds`). ([`#7612`](https://github.com/cert-manager/cert-manager/pull/7612), [`@solidDoWant`](https://github.com/solidDoWant))"
+      }
+    ]
+  },
+  {
+    "item": "S25",
+    "findings": [
+      {
+        "id": "imp-2512f0e1bfab",
+        "title": "Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "bugfix"
+      }
+    ],
+    "suggestion": {
+      "title": "HTTP01 Ingress pathType switch to Exact may affect challenges",
+      "content": "The Ingress pathType used changes from ImplementationSpecific to Exact. The environment uses cert-manager.io/v1 Certificate resources and sets global.rbac.disableHTTPChallengesRole, but the summary does not show whether Ingress-based HTTP01 solving is in use. Inspect your issuers for Ingress HTTP01 solvers, the value of global.rbac.disableHTTPChallengesRole, and your Ingress controller's handling of pathType Exact.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-4faa7ca81b54",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L351-L351 (v1.18.0 \u203a Bug or Regression)",
+        "excerpt": "- Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security. ([`#7767`](https://github.com/cert-manager/cert-manager/pull/7767), [`@sspreitzer`](https://github.com/sspreitzer))"
+      }
+    ]
+  },
+  {
+    "item": "S26",
+    "findings": [
+      {
+        "id": "imp-d1ff8cfc0c11",
+        "title": "Copy annotations from Ingress or Gateway to the Certificate: We've added a new configuration option to the cert-manager controller: `--extra-certificate-annota\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "other"
+      }
+    ],
+    "suggestion": {
+      "title": "New flag enables annotation copying for Ingress and Gateway resources",
+      "content": "This change adds a --extra-certificate-annotations controller flag to copy annotations from Ingress or Gateway resources to Certificate objects. This feature is optionally available to any cert-manager deployment using Ingress or Gateway-based certificate automation. The environment runs cert-manager with HTTP challenge role configuration, consistent with Ingress-based automation. If you use Ingress or Gateway resources for certificate provisioning, you can enable this feature.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-da53ded48367",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L162-L166 (Major Themes \u203a Copy annotations from Ingress or Gateway to the Certificate)",
+        "excerpt": "### Copy annotations from Ingress or Gateway to the Certificate\n\nWe've added a new configuration option to the cert-manager controller: `--extra-certificate-annotations`, which allows you to specify annotation keys to be copied from an Ingress or Gateway resource to the resulting Certificate object.\nRead [Annotated Ingress resource: Copy annotations to the Certificate](../../usage/ingress.md#copy-annotations-to-the-certificate ), and\n[Annotated Gateway resource: Copy annotations to the Certificate](../../usage/gateway.md#copy-annotations-to-the-certificate), to learn more."
+      }
+    ]
+  },
+  {
+    "item": "S27",
+    "findings": [
+      {
+        "id": "imp-6432f469b85a",
+        "title": "Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_se\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "New metrics for certificate lifecycle monitoring now available",
+      "content": "This change adds certificate issuance and expiration timestamp metrics to cert-manager. The environment shows prometheus.servicemonitor.enabled and targetPort configured, indicating active Prometheus monitoring. The new metrics enable better certificate lifecycle visibility and alerting for expiration tracking. Review your Prometheus scrape configuration to capture the new certmanager_certificate_not_before_timestamp_seconds and certmanager_certificate_not_after_timestamp_seconds metrics.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-e8facc7cba98",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L327-L327 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_seconds`). ([`#7612`](https://github.com/cert-manager/cert-manager/pull/7612), [`@solidDoWant`](https://github.com/solidDoWant))"
+      }
+    ]
+  },
+  {
+    "item": "S28",
+    "findings": [
+      {
+        "id": "imp-dacd1e3d112b",
+        "title": "ACME Certificate Profiles: cert-manager now supports the selection of ACME certificate profiles, allowing users to request different categories of certificates\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "other"
+      }
+    ],
+    "suggestion": {
+      "title": "ACME certificate profiles enable flexible certificate request options",
+      "content": "This change adds support for ACME certificate profiles, allowing users to request different certificate categories (e.g., tlsserver, shortlived) from their ACME CA. The environment uses cert-manager with Certificate resources, indicating ACME-based certificate issuance. This feature is supported by Let's Encrypt and other ACME providers. If you use Let's Encrypt or profile-aware ACME providers, you can now specify certificate profiles in your Certificate resources.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-50f787991f0d",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L91-L107 (Major Themes \u203a ACME Certificate Profiles)",
+        "excerpt": "### ACME Certificate Profiles\n\ncert-manager now supports the selection of ACME certificate profiles, allowing\nusers to request different categories of certificates from their ACME\nCertificate Authority.\nThis enhancement leverages the latest [ACME protocol extension for certificate profiles (IETF draft)][rfc] and is supported by Let's Encrypt and other providers.\nFor example, Let's Encrypt offers the [`tlsserver`][tlsserver] profile for\nstandard server certificates and the [`shortlived`][shortlived] profile for\nshort-lived six-day certificates.\nThese new options provide users with greater flexi\u2026"
+      }
+    ]
+  },
+  {
+    "item": "S29",
+    "findings": [
+      {
+        "id": "imp-62fb5ea91b14",
+        "title": "Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "disableHTTPChallengesRole helm value is already set in your values",
+      "content": "The change adds the `global.rbac.disableHTTPChallengesRole` helm value, which lets cert-manager drop its permission to create pods when HTTP-01 challenges are not required. The environment's values already set the key `global.rbac.disableHTTPChallengesRole`. Inspect the value assigned to it and confirm that no Issuer relies on HTTP-01 ACME challenges, since disabling the role would remove the permission those challenges need. The environment summary lists key paths only, not their values.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-861cb2d69752",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L331-L331 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges. This allows cert-manager to drop its permission to create pods, improving security when HTTP-01 challenges are not required. ([`#7666`](https://github.com/cert-manager/cert-manager/pull/7666), [`@ali-hamza-noor`](https://github.com/ali-hamza-noor))"
+      }
+    ]
+  },
+  {
+    "item": "S30",
+    "findings": [
+      {
+        "id": "imp-62fb5ea91b14",
+        "title": "Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "HTTP challenge role config already set; review security impact",
+      "content": "This feature adds the global.rbac.disableHTTPChallengesRole helm value, which is already present in this environment's values configuration. This value controls RBAC permissions for HTTP-01 ACME challenges. Since this configuration is already set, review its current value to understand your HTTP challenge setup. The change improves security by allowing cert-manager to drop pod creation permissions when HTTP challenges are not required.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-861cb2d69752",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L331-L331 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges. This allows cert-manager to drop its permission to create pods, improving security when HTTP-01 challenges are not required. ([`#7666`](https://github.com/cert-manager/cert-manager/pull/7666), [`@ali-hamza-noor`](https://github.com/ali-hamza-noor))"
+      }
+    ]
+  },
+  {
+    "item": "S31",
+    "findings": [
+      {
+        "id": "imp-62fb5ea91b14",
+        "title": "Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "Environment sets the new global.rbac.disableHTTPChallengesRole value",
+      "content": "v1.18.0 adds the global.rbac.disableHTTPChallengesRole helm value, which disables HTTP-01 ACME challenges and drops cert-manager's permission to create pods. The environment's values set global.rbac.disableHTTPChallengesRole, so this change directly applies. Inspect its value and confirm none of your issuers need HTTP-01 challenges before upgrading.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-861cb2d69752",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L331-L331 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges. This allows cert-manager to drop its permission to create pods, improving security when HTTP-01 challenges are not required. ([`#7666`](https://github.com/cert-manager/cert-manager/pull/7666), [`@ali-hamza-noor`](https://github.com/ali-hamza-noor))"
+      }
+    ]
+  },
+  {
+    "item": "S32",
+    "findings": [
+      {
+        "id": "imp-80754ea19305",
+        "title": "Add support for `ACME profiles extension`",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "ACME profiles extension support enhances ACME protocol capabilities",
+      "content": "This change adds support for the ACME profiles extension, extending cert-manager's ACME protocol capabilities. The environment uses cert-manager with Certificate resources, which typically rely on ACME for certificate issuance. This extension support is now available for ACME-based certificate workflows. The feature is backward compatible and plausibly applies to any ACME users in this environment.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-7be235e771a3",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L335-L335 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Add support for [`ACME profiles extension`](https://datatracker.ietf.org/doc/draft-aaron-acme-profiles/). ([`#7777`](https://github.com/cert-manager/cert-manager/pull/7777), [`@wallrj`](https://github.com/wallrj))"
+      }
+    ]
+  },
+  {
+    "item": "S33",
+    "findings": [
+      {
+        "id": "imp-6432f469b85a",
+        "title": "Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_se\u2026",
+        "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+        "breaking": null,
+        "category": "feature"
+      }
+    ],
+    "suggestion": {
+      "title": "New certificate timestamp metrics may appear in your Prometheus scrape",
+      "content": "The change adds two metrics, `certmanager_certificate_not_before_timestamp_seconds` and `certmanager_certificate_not_after_timestamp_seconds`. The environment's values set `prometheus.servicemonitor.enabled` and `prometheus.servicemonitor.targetPort`, so cert-manager metrics are plausibly scraped. Inspect whether any metric relabeling, allow-lists or cardinality limits on that ServiceMonitor would affect the new series. The summary does not show those settings or the values.",
+      "confidence": "medium"
+    },
+    "cited_evidence": [
+      {
+        "id": "ev-e8facc7cba98",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L327-L327 (v1.18.0 \u203a Feature)",
+        "excerpt": "- Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_seconds`). ([`#7612`](https://github.com/cert-manager/cert-manager/pull/7612), [`@solidDoWant`](https://github.com/solidDoWant))"
+      }
+    ]
+  }
+]

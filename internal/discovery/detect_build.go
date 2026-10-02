@@ -365,7 +365,7 @@ func platforms(b grBuild) [][2]string {
 
 type rawRef struct{ owner, name, ref, path string }
 
-var rawPrefixRe = regexp.MustCompile(`https?://raw\.githubusercontent\.com/((?:\{\{[^}]*\}\}|\[\[[^\]]*\]\]|[^\s"'<>)` + "`" + `])+)`)
+var rawPrefixRe = regexp.MustCompile(`https?://raw\.githubusercontent\.com/((?:\{\{[^}]*\}\}|\[\[[^\]]*\]\]|<[A-Za-z_][A-Za-z0-9_-]*>|` + "[^\\s\"'<>)`\\]]" + `)+)`)
 
 // rawRefs parses raw.githubusercontent.com URLs; a templated owner/name
 // segment (e.g. {{ .Env.REPO }}) is accepted and reported with owner "".

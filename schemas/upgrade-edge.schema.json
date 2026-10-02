@@ -138,6 +138,14 @@
           "items": {"$ref": "#/$defs/EvidenceID"},
           "minItems": 1,
           "description": "Ids of the Evidence records that support the change; at least one, each resolving within the edge's `evidence`."
+        },
+        "routine": {
+          "type": "boolean",
+          "description": "True for release-note maintenance churn (dependency bumps, UI-only work, CI/docs/test/build noise, metric renames) found by the deterministic routine detector. Routine changes are never breaking, security-relevant or directive; they stay in `changes` with their evidence, but are kept out of the default upgrade narrative and summarised in `routine`. Omitted when false."
+        },
+        "routineKind": {
+          "type": "string",
+          "description": "Why the change is routine: dependency (version bumps), ui, housekeeping (CI/docs/test/build churn) or metrics (renames/deprecations). Set only when routine is true."
         }
       },
       "additionalProperties": false
@@ -249,13 +257,33 @@
           "then": {"properties": {"relatesTo": {"minItems": 2}}}
         },
         {
+          "if": {
+            "properties": {
+              "kind": {"enum": ["plausibly-applies", "not-applicable", "undetermined"]}
+            },
+            "required": ["kind"]
+          },
+          "then": {"properties": {"relatesTo": {"minItems": 1, "maxItems": 1}}}
+        },
+        {
           "if": {"properties": {"kind": {"enum": ["related"]}}, "required": ["kind"]},
           "then": {"required": ["unverified"], "properties": {"unverified": {"const": true}}},
           "else": {"properties": {"unverified": {"const": false}}}
         }
       ]
     },
-    "EnrichmentKind": {"type": "string", "enum": ["cluster", "migration-summary", "diff-explanation", "related"]},
+    "EnrichmentKind": {
+      "type": "string",
+      "enum": [
+        "cluster",
+        "migration-summary",
+        "diff-explanation",
+        "related",
+        "plausibly-applies",
+        "not-applicable",
+        "undetermined"
+      ]
+    },
     "EnrichmentRejection": {
       "type": "object",
       "required": ["group", "reason"],
@@ -333,6 +361,10 @@
           "type": "string",
           "description": "sha256 of the complete retrieved document, so the exact bytes the conclusion was drawn from can be identified later."
         },
+        "representation": {
+          "$ref": "#/$defs/Representation",
+          "description": "Which published form of the artifact these bytes came from: source-tree (a file in the source repository), published-chart-tgz (a chart tarball from a chart repository), published-oci-chart (a chart pulled as an OCI artifact), release-asset (a file attached to a release), http-document (a plain HTTP document) or registry-manifest (an OCI manifest/config). Orthogonal to Provenance.method, which states how knowledge was derived, not from which bytes."
+        },
         "retrievedAt": {
           "type": "string",
           "format": "date-time",
@@ -354,7 +386,9 @@
         "release-asset",
         "structured",
         "advisory",
-        "repo-file"
+        "repo-file",
+        "local-file",
+        "input"
       ]
     },
     "Fact": {
@@ -392,7 +426,8 @@
         "compatibility",
         "snapshot",
         "advisory",
-        "relationship"
+        "relationship",
+        "representation.divergence"
       ]
     },
     "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
@@ -484,6 +519,36 @@
       },
       "additionalProperties": false
     },
+    "Representation": {
+      "type": "string",
+      "description": "Which published form of an artifact a fact came from. The same content (chart defaults, CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers rewrite content at packaging time; the representation keeps the two apart. Orthogonal to Provenance.method (how knowledge was derived).",
+      "enum": [
+        "source-tree",
+        "published-chart-tgz",
+        "published-oci-chart",
+        "release-asset",
+        "http-document",
+        "registry-manifest"
+      ]
+    },
+    "RoutineSummary": {
+      "type": "object",
+      "description": "Count and breakdown of the routine-maintenance changes of an edge.",
+      "required": ["count", "summary"],
+      "properties": {
+        "count": {"type": "integer"},
+        "byKind": {
+          "type": "object",
+          "additionalProperties": {"type": "integer"},
+          "description": "Routine changes per kind (dependency, ui, housekeeping, metrics)."
+        },
+        "summary": {
+          "type": "string",
+          "description": "Human-readable breakdown, e.g. \"27 dependency bumps, 14 UI/docs/CI churn\"."
+        }
+      },
+      "additionalProperties": false
+    },
     "SourceRole": {
       "type": "string",
       "enum": ["versions", "release-notes", "changelog", "upgrade-guide", "compatibility", "security"]
@@ -563,6 +628,10 @@
           "type": "array",
           "items": {"$ref": "#/$defs/Change"},
           "description": "Deterministic conclusions (declared, computed or heuristic), most important first. Never AI-derived."
+        },
+        "routine": {
+          "$ref": "#/$defs/RoutineSummary",
+          "description": "Summary of the routine-maintenance changes (Changes with routine set): the count and breakdown a brief shows instead of the items. Absent when nothing classifies routine."
         },
         "compatibility": {"type": "array", "items": {"$ref": "#/$defs/CompatibilityChange"}},
         "artifacts": {"type": "array", "items": {"$ref": "#/$defs/ArtifactChange"}},

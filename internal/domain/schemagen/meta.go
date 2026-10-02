@@ -51,10 +51,12 @@ var enums = []enumSet{
 		domain.SourceUnavailable, domain.SourceSkipped, domain.SourceError,
 	),
 	enumOf(domain.ChangeAdded, domain.ChangeRemoved, domain.ChangeUpdated, domain.ChangeUnchanged),
-	enumOf(domain.EnrichmentCluster, domain.EnrichmentMigrationSummary, domain.EnrichmentDiffExplanation, domain.EnrichmentRelated),
+	enumOf(domain.EnrichmentCluster, domain.EnrichmentMigrationSummary, domain.EnrichmentDiffExplanation, domain.EnrichmentRelated,
+		domain.EnrichmentPlausiblyApplies, domain.EnrichmentNotApplicable, domain.EnrichmentUndetermined),
 	enumOf(
 		domain.EvidenceDocument, domain.EvidenceGitRef, domain.EvidenceRegistry, domain.EvidenceReleaseAsset,
 		domain.EvidenceStructured, domain.EvidenceAdvisory, domain.EvidenceRepoFile,
+		domain.EvidenceLocalFile, domain.EvidenceInput,
 	),
 	enumOf(domain.SnapshotHelmValues, domain.SnapshotCRDs, domain.SnapshotImages),
 	enumOf(
@@ -71,6 +73,24 @@ var enums = []enumSet{
 	enumOf(
 		domain.FactReleasePublished, domain.FactArtifactPublished, domain.FactDocumentRetrieved,
 		domain.FactCompatibility, domain.FactSnapshot, domain.FactAdvisory, domain.FactRelationship,
+		domain.FactRepresentationDivergence,
+	),
+	enumOf(
+		domain.RepresentationSourceTree, domain.RepresentationChartTGZ, domain.RepresentationOCIChart,
+		domain.RepresentationReleaseAsset, domain.RepresentationHTTPDocument, domain.RepresentationRegistryManifest,
+	),
+	enumOf(
+		domain.ImpactActionRequired, domain.ImpactReviewRequired, domain.ImpactInformational,
+		domain.ImpactNotAffected, domain.ImpactUnknown,
+	),
+	enumOf(domain.SeverityCritical, domain.SeverityHigh, domain.SeverityMedium, domain.SeverityLow),
+	enumOf(
+		domain.DimensionValues, domain.DimensionManifests, domain.DimensionCRDs,
+		domain.DimensionImages, domain.DimensionCluster,
+	),
+	enumOf(
+		domain.MatchValuesKey, domain.MatchAPIVersion, domain.MatchCRD, domain.MatchCRDVersion,
+		domain.MatchManifestField, domain.MatchImage, domain.MatchKubernetes,
 	),
 }
 
@@ -116,12 +136,27 @@ var fieldPatches = map[string]obj{
 	"Enrichment.content":   o("pattern", `\S`),
 	"Enrichment.relatesTo": o("minItems", 1, "uniqueItems", true),
 	"Enrichment.citations": o("minItems", 1, "uniqueItems", true),
+
+	// The impact report is a deterministic document too: its findings carry
+	// computed provenance and the class-specific provenance rules of
+	// docs/ACTION_CLASSIFICATION.md. That the evidence ids resolve is
+	// referential and checked by domain.ImpactReport.Validate().
+	"ImpactReport.schemaVersion":        o("const", domain.ImpactReportSchemaVersion),
+	"ImpactFinding.provenance":          o("$ref", "#/$defs/"+defDeterminist),
+	"ImpactFinding.upstreamEvidence":    o("minItems", 1, "uniqueItems", true),
+	"ImpactFinding.environmentEvidence": o("uniqueItems", true),
+	"ImpactFinding.title":               o("pattern", `\S`),
+	"ImpactMatch.evidence":              o("minItems", 1),
+	"ImpactCheck.subjects":              o("minItems", 1),
 }
 
 // typePatches are appended to the schema generated for a whole struct,
 // keyed by type name.
 var typePatches = map[string]obj{
 	"Enrichment": o("allOf", enrichmentKindRules()),
+	// The action-classification contract (docs/ACTION_CLASSIFICATION.md):
+	// which provenance each class must carry.
+	"ImpactFinding": o("allOf", impactClassRules()),
 	// "Exactly one of the typed payloads is set", and it is the one that
 	// matches kind.
 	"Snapshot": o(
@@ -138,6 +173,63 @@ var typePatches = map[string]obj{
 	),
 }
 
+// impactClassRules encodes the per-class provenance rules of
+// docs/ACTION_CLASSIFICATION.md as JSON Schema conditionals:
+//   - affected classes carry at least one environment match and cite the
+//     environment chain — except the impact:security-fix informational rule
+//     (internal/impact.RuleSecurityFix; the literal is pinned by its tests),
+//     which applies to every environment that upgrades and therefore carries
+//     the upstream chain only;
+//   - action-required carries high confidence only (below-high is demoted to
+//     review-required);
+//   - not-affected carries the evaluation record (checks) and no
+//     neededToDetermine;
+//   - unknown carries neededToDetermine; affected classes carry neither
+//     checks nor neededToDetermine.
+func impactClassRules() []any {
+	classIs := func(classes ...domain.ImpactClass) obj {
+		vals := make([]any, len(classes))
+		for i, c := range classes {
+			vals[i] = string(c)
+		}
+		return o("properties", o("classification", o("enum", vals)), "required", []string{"classification"})
+	}
+	// ruleIs: a conditional on the join rule (rule is required on every
+	// finding); v is the rule's schema, e.g. o("const", "impact:security-fix")
+	// or o("not", o("const", "impact:security-fix")).
+	ruleIs := func(v any) obj {
+		return o("properties", o("rule", v), "required", []string{"rule"})
+	}
+	all := func(cs ...obj) []any {
+		out := make([]any, len(cs))
+		for i, c := range cs {
+			out[i] = c
+		}
+		return out
+	}
+	affected := []domain.ImpactClass{domain.ImpactActionRequired, domain.ImpactReviewRequired, domain.ImpactInformational}
+	securityFix := "impact:security-fix"
+	return []any{
+		o("if", o("allOf", all(classIs(affected...), ruleIs(o("not", o("const", securityFix))))),
+			"then", o("required", []string{"matches", "environmentEvidence"},
+				"properties", o("matches", o("minItems", 1), "environmentEvidence", o("minItems", 1),
+					"checks", o("maxItems", 0), "neededToDetermine", o("maxItems", 0)))),
+		// impact:security-fix: universal applicability by construction — no
+		// environment chain, no matches, informational only
+		o("if", o("allOf", all(classIs(domain.ImpactInformational), ruleIs(o("const", securityFix)))),
+			"then", o("properties", o("matches", o("maxItems", 0), "environmentEvidence", o("maxItems", 0),
+				"checks", o("maxItems", 0), "neededToDetermine", o("maxItems", 0)))),
+		o("if", classIs(domain.ImpactActionRequired),
+			"then", o("properties", o("provenance", o("properties", o("confidence", o("const", string(domain.ConfidenceHigh))))))),
+		o("if", classIs(domain.ImpactNotAffected),
+			"then", o("required", []string{"checks"},
+				"properties", o("checks", o("minItems", 1), "neededToDetermine", o("maxItems", 0), "matches", o("maxItems", 0)))),
+		o("if", classIs(domain.ImpactUnknown),
+			"then", o("required", []string{"neededToDetermine"},
+				"properties", o("neededToDetermine", o("minItems", 1), "matches", o("maxItems", 0)))),
+	}
+}
+
 // enrichmentKindRules: clusters and related changes connect at least two
 // changes; "related" (and only "related") is a hypothesis marked unverified.
 func enrichmentKindRules() []any {
@@ -151,6 +243,9 @@ func enrichmentKindRules() []any {
 	return []any{
 		o("if", kindIs(domain.EnrichmentCluster, domain.EnrichmentRelated),
 			"then", o("properties", o("relatesTo", o("minItems", 2)))),
+		// the impact-only applicability kinds are about exactly one finding
+		o("if", kindIs(domain.EnrichmentPlausiblyApplies, domain.EnrichmentNotApplicable, domain.EnrichmentUndetermined),
+			"then", o("properties", o("relatesTo", o("minItems", 1, "maxItems", 1)))),
 		o("if", kindIs(domain.EnrichmentRelated),
 			"then", o("required", []string{"unverified"}, "properties", o("unverified", o("const", true))),
 			"else", o("properties", o("unverified", o("const", false)))),
@@ -184,6 +279,7 @@ var descriptions = map[string]string{
 	"UpgradeEdge.skippedReleases":  "Releases between the endpoints deliberately not traversed, e.g. backport patches of intermediate lines.",
 	"UpgradeEdge.sources":          "What happened when each source was consulted. Gaps are reported here (state unavailable, not-found, ...) instead of being hidden.",
 	"UpgradeEdge.changes":          "Deterministic conclusions (declared, computed or heuristic), most important first. Never AI-derived.",
+	"UpgradeEdge.routine":          "Summary of the routine-maintenance changes (Changes with routine set): the count and breakdown a brief shows instead of the items. Absent when nothing classifies routine.",
 	"UpgradeEdge.enrichments":      "AI-derived additions (clusters, migration summaries, diff explanations, related changes). Always labelled method \"ai\" and never mixed into `changes`.",
 	"UpgradeEdge.facts":            "Deterministic statements extracted from sources, without interpretation.",
 	"UpgradeEdge.evidence":         "Every piece of source evidence referenced by id anywhere in this document, de-duplicated.",
@@ -201,6 +297,64 @@ var descriptions = map[string]string{
 	"Release.sources":          "Outcome of consulting each source for this release.",
 	"Release.ingestedAt":       "When the release was ingested (UTC).",
 	"Release.definitionDigest": "Digest of the product definition revision used for ingestion; a stored release is only reusable with the same digest.",
+
+	// --- impact ---------------------------------------------------------------
+	"ImpactReport": "Which of an upgrade edge's changes matter to ONE environment, produced by joining " +
+		"an UpgradeEdge with locally parsed environment inputs (values files, manifests, installed CRDs, " +
+		"image references, a cluster version). Every finding cites two provenance chains: upstream evidence " +
+		"copied from the edge and environment evidence pointing at the user's files. Deterministic only; " +
+		"referential integrity (both chains resolve within this document) is checked by " +
+		"domain.ImpactReport.Validate() in Go and cannot be expressed in JSON Schema.",
+	"ImpactReport.schemaVersion":       "Serialisation version of this document.",
+	"ImpactReport.environment":         "What the join ran against: the supplied cluster version, the parsed input files with digests, counts of extracted facts and parsing warnings.",
+	"ImpactReport.summary":             "The funnel: all upstream changes, those with affected findings, and the explicit count of every verdict class — unknowns are counted, never folded into not-affected.",
+	"ImpactReport.findings":            "One verdict per analyzed unit: affected overlaps first (action-required, review-required, informational), then unknown, then the not-affected evaluation records.",
+	"ImpactReport.evidence":            "Chain 1: upstream Evidence records cited by findings, copied from the UpgradeEdge the report was built from.",
+	"ImpactReport.environmentEvidence": "Chain 2: Evidence records of kind local-file / input pointing at the user's environment inputs.",
+	"ImpactReport.enrichments": "AI-derived additions from the optional impact enrichment step " +
+		"(`ri impact … -enrich`): applicability suggestions on unknown findings, duplicate clusters and " +
+		"migration summaries. Always labelled method \"ai\" and never mixed into `findings`; the referential " +
+		"checks (finding ids resolve, citations ⊆ inputEvidence ⊆ the evidence pools) are " +
+		"domain.ImpactReport.Validate() in Go.",
+	"ImpactReport.enrichmentRun":    "Present when impact enrichment was attempted: how the AI enrichments were produced and what the validator rejected.",
+	"ImpactReport.generatedAt":      "When the report was built (UTC).",
+	"ImpactReport.definitionDigest": "Digest of the product definition revision the underlying edge was built from.",
+	"ImpactFinding": "One deterministic verdict of the applicability engine: an upstream change (or compatibility " +
+		"constraint, or moved image artifact) met the environment — or could not be evaluated. Affected classes " +
+		"(action-required / review-required / informational) cite both evidence chains; not-affected carries the " +
+		"evaluation record (`checks`); unknown carries `neededToDetermine`. See docs/ACTION_CLASSIFICATION.md.",
+	"ImpactFinding.classification":      "What to do (docs/ACTION_CLASSIFICATION.md): action-required — the environment must change to avoid concrete failure, evidenced on both chains, high confidence only; review-required — credible overlap, applicability not deterministically provable; informational — evidenced overlap with no action implied; not-affected — checked against a supplied environment dimension and clear; unknown — applicability undeterminable, `neededToDetermine` says why. The impact:security-fix informational findings are the one affected shape with no environment chain: the fix ships with the target, so applicability is universal and configuration-independent.",
+	"ImpactFinding.severity":            "How bad if it bites (independent axis): critical (upgrade fails outright), high (concrete degradation), medium (needs a look), low (confirmed no-action overlap). Absent for not-affected/unknown.",
+	"ImpactFinding.rule":                "Join rule that fired, e.g. \"impact:values-removed\"; verdict records use impact:values-unset / impact:not-joined / impact:insufficient-visibility / ... .",
+	"ImpactFinding.detail":              "Prose explaining the verdict: what upstream changed and which environment fact matched — or what could not be checked, and why.",
+	"ImpactFinding.changeId":            "Id of the upstream Change in the UpgradeEdge this report was built from; absent when the finding comes from a compatibility constraint or artifact move alone.",
+	"ImpactFinding.changeTitle":         "Copy of the upstream change's title, so the report renders standalone.",
+	"ImpactFinding.changeCategory":      "Copy of the upstream change's category.",
+	"ImpactFinding.changeBreaking":      "Copy of the upstream change's breaking flag.",
+	"ImpactFinding.matches":             "The environment facts that made the finding fire, each with its own environment evidence (affected classes only).",
+	"ImpactFinding.upstreamEvidence":    "Chain 1: Evidence ids resolving in `evidence` (every class).",
+	"ImpactFinding.environmentEvidence": "Chain 2: Evidence ids resolving in `environmentEvidence` (affected classes; check evidence for verdict records).",
+	"ImpactFinding.checks":              "Evaluation record of a not-affected verdict (and the partial record of an unknown one): which environment dimension was consulted, how many facts were compared, which upstream subjects were compared.",
+	"ImpactFinding.neededToDetermine":   "What evidence was missing for an unknown verdict, e.g. \"Helm values files (--values) not supplied\"; unknown-only by contract.",
+	"ImpactFinding.suggestedClassification": "The AI layer's review suggestion for an unknown finding (\"review-required\" only; never " +
+		"action-required). The deterministic classification is not overwritten: the finding stays as the join " +
+		"produced it and the suggestion is carried by a plausibly-applies enrichment with full AI provenance.",
+	"ImpactCheck":                   "One entry of an evaluation record: what was checked against what, so a not-affected verdict is auditable without re-running anything.",
+	"ImpactCheck.dimension":         "The environment input class consulted: values, manifests, crds, images, or cluster-version (platform names it).",
+	"ImpactCheck.platform":          "Cluster platform of a cluster-version check (\"kubernetes\", \"openshift\", ...).",
+	"ImpactCheck.facts":             "How many environment facts of that dimension were compared (0 when the input was supplied but yielded none).",
+	"ImpactCheck.subjects":          "The upstream subjects compared against those facts.",
+	"ImpactCheck.evidence":          "Environment evidence proving a directly-supplied input (the --kubernetes / --images flag); file-backed dimensions are audited through environment.files digests.",
+	"ImpactMatch":                   "One environment fact that matched: what it is (subject) and the local evidence that proves the environment has it.",
+	"ImpactMatch.kind":              "What kind of environment fact: a set values key, an apiVersion in use, an installed CRD or one of its versions, a manifest field path, an image in use, or the cluster Kubernetes version.",
+	"ImpactMatch.subject":           "The fact itself: a values key path, \"group/version Kind\", a CRD name, a field path, an image reference or a version string.",
+	"ImpactMatch.evidence":          "Environment evidence ids backing this match.",
+	"ImpactSummary":                 "Counts of the impact funnel; must equal the findings (checked by Validate). Unknowns are counted explicitly, never folded into not-affected.",
+	"ImpactSummary.suggestedReview": "How many unknown findings carry an AI review suggestion; they still count under unknown. 0 without -enrich.",
+	"ImpactFile":                    "One environment input file with the digest of the bytes that were parsed.",
+	"ImpactFile.path":               "Path exactly as supplied on the command line (evidence URIs use the same form).",
+	"ImpactEnvironment":             "Summary of the environment inputs the join consumed.",
+	"ImpactEnvironment.kubernetes":  "Cluster Kubernetes version as supplied (e.g. \"1.31\" or \"1.31.5\").",
 
 	// --- versions ---------------------------------------------------------
 	"Version":         "A release version of a product.",
@@ -249,8 +403,17 @@ var descriptions = map[string]string{
 	"Change.subjects": "What the change affects: Helm value paths, CRD names, image repositories, API versions.",
 	"Change.facts":    "Ids of the Facts this conclusion is based on.",
 	"Change.evidence": "Ids of the Evidence records that support the change; at least one, each resolving within the edge's `evidence`.",
-	"Reference":       "An external identifier mentioned by a source.",
-	"Reference.type":  "Kind of identifier, e.g. \"cve\", \"ghsa\", \"pull-request\", \"issue\" or \"url\".",
+	"Change.routine": "True for release-note maintenance churn (dependency bumps, UI-only work, CI/docs/test/build " +
+		"noise, metric renames) found by the deterministic routine detector. Routine changes are never breaking, " +
+		"security-relevant or directive; they stay in `changes` with their evidence, but are kept out of the default " +
+		"upgrade narrative and summarised in `routine`. Omitted when false.",
+	"Change.routineKind": "Why the change is routine: dependency (version bumps), ui, housekeeping (CI/docs/test/build " +
+		"churn) or metrics (renames/deprecations). Set only when routine is true.",
+	"RoutineSummary":         "Count and breakdown of the routine-maintenance changes of an edge.",
+	"RoutineSummary.byKind":  "Routine changes per kind (dependency, ui, housekeeping, metrics).",
+	"RoutineSummary.summary": "Human-readable breakdown, e.g. \"27 dependency bumps, 14 UI/docs/CI churn\".",
+	"Reference":              "An external identifier mentioned by a source.",
+	"Reference.type":         "Kind of identifier, e.g. \"cve\", \"ghsa\", \"pull-request\", \"issue\" or \"url\".",
 
 	// --- AI ------------------------------------------------------------------
 	"Enrichment": "AI-derived information that groups, summarises, connects or explains deterministic Changes. " +
@@ -275,13 +438,22 @@ var descriptions = map[string]string{
 	// --- evidence and facts ------------------------------------------------
 	"Evidence": "A verifiable pointer to source material supporting a fact or conclusion. `uri` is something a " +
 		"human can open; `locator` narrows it down; `excerpt` and `contentDigest` pin what was read.",
-	"EvidenceID":             "Stable identifier derived from the evidence content (\"ev-\" followed by a short hash).",
-	"Evidence.sourceId":      "Id of the product-definition source or artifact that produced the evidence.",
-	"Evidence.uri":           "Location a human or a later run can open to check the claim.",
-	"Evidence.locator":       "Position within the document, e.g. a line range (\"L120-L131\"), a heading (\"## Breaking Changes\") or a JSONPath (\"$.spec.versions[1]\").",
-	"Evidence.excerpt":       "Short verbatim excerpt of the source, truncated.",
+	"EvidenceID":        "Stable identifier derived from the evidence content (\"ev-\" followed by a short hash).",
+	"Evidence.sourceId": "Id of the product-definition source or artifact that produced the evidence.",
+	"Evidence.uri":      "Location a human or a later run can open to check the claim.",
+	"Evidence.locator":  "Position within the document, e.g. a line range (\"L120-L131\"), a heading (\"## Breaking Changes\") or a JSONPath (\"$.spec.versions[1]\").",
+	"Evidence.excerpt":  "Short verbatim excerpt of the source, truncated.",
+	"Representation": "Which published form of an artifact a fact came from. The same content (chart defaults, " +
+		"CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers " +
+		"rewrite content at packaging time; the representation keeps the two apart. Orthogonal to " +
+		"Provenance.method (how knowledge was derived).",
 	"Evidence.contentDigest": "sha256 of the complete retrieved document, so the exact bytes the conclusion was drawn from can be identified later.",
-	"Evidence.retrievedAt":   "When the source was fetched (UTC).",
+	"Evidence.representation": "Which published form of the artifact these bytes came from: source-tree (a file in the " +
+		"source repository), published-chart-tgz (a chart tarball from a chart repository), published-oci-chart (a chart " +
+		"pulled as an OCI artifact), release-asset (a file attached to a release), http-document (a plain HTTP document) " +
+		"or registry-manifest (an OCI manifest/config). Orthogonal to Provenance.method, which states how knowledge was " +
+		"derived, not from which bytes.",
+	"Evidence.retrievedAt": "When the source was fetched (UTC).",
 	"Fact": "A deterministic statement extracted from sources, with evidence. Facts hold no interpretation; " +
 		"interpretation lives in Changes.",
 	"FactID":         "Stable identifier derived from the fact content (\"fact-\" followed by a short hash).",

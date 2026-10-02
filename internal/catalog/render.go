@@ -23,6 +23,9 @@ import (
 //	                 patch release the previous patch of the same line, for an
 //	                 X.Y.0 release the X'.Y'.0 release of the previous line
 //	{{.ArtifactVersion}}  resolved artifact version (artifact contexts only)
+//	{{.ArtifactVersionOf "id"}}  the version another artifact of the same
+//	                 release resolved to (source templates only; see
+//	                 ArtifactVersionOf)
 //
 // Functions: regexQuote, trimPrefix, trimSuffix, lower, upper, replace.
 type RenderContext struct {
@@ -40,6 +43,17 @@ type RenderContext struct {
 	PrevTag         string
 	PrevVersion     string
 	ArtifactVersion string
+	// ArtifactVersions holds the resolved versions of the artifacts whose
+	// versions source templates follow (see ArtifactVersionOf). It is set
+	// only when rendering source locators and extracts, after ingest
+	// pre-resolved the referenced artifacts; nil everywhere else, so an
+	// {{.ArtifactVersionOf}} in an artifact template fails loudly.
+	ArtifactVersions map[string]string
+	// anyArtifactVersion makes ArtifactVersionOf answer any non-empty id
+	// with the sample version. Static validation only (sourceSampleContext):
+	// rendering must not mask a reference error that sourceArtifactRefs
+	// reports with a precise path and message. Never set during ingestion.
+	anyArtifactVersion bool
 }
 
 // NewRenderContext builds a context for version v. known is the list of known
@@ -132,6 +146,38 @@ func (rc RenderContext) WithArtifactVersion(av string) RenderContext {
 	return rc
 }
 
+// WithArtifactVersions returns a copy with the versions of followed
+// artifacts set (source rendering; see ArtifactVersionOf).
+func (rc RenderContext) WithArtifactVersions(m map[string]string) RenderContext {
+	rc.ArtifactVersions = m
+	return rc
+}
+
+// ArtifactVersionOf returns the version another artifact of the same release
+// resolved to: in a SOURCE template (locator or extract),
+//
+//	{{.ArtifactVersionOf "prometheus-operator-image"}}
+//
+// renders the pinned component version behind the product — the operator an
+// aggregating chart deploys, a controller a manifest pins — so the source can
+// read the component's own release notes at its pinned tag. Ingest resolves
+// the referenced artifact's version BEFORE sources are consulted (the
+// artifact's own version relation reads the release's files or is pure
+// templating, so this introduces no circularity); only ids that resolved are
+// in the map. A missing or unresolved id is an error, which makes the source
+// skipped/unavailable — never a wrong locator. The argument must be a
+// double-quoted literal so the reference is statically checkable (Validate
+// rejects unknown ids and unresolvable strategies).
+func (rc RenderContext) ArtifactVersionOf(id string) (string, error) {
+	if v, ok := rc.ArtifactVersions[id]; ok && v != "" {
+		return v, nil
+	}
+	if rc.anyArtifactVersion && id != "" {
+		return SampleArtifactVersion, nil
+	}
+	return "", fmt.Errorf("the version of artifact %q is not available for this release", id)
+}
+
 var funcs = template.FuncMap{
 	"regexQuote": regexp.QuoteMeta,
 	"trimPrefix": func(prefix, s string) string { return strings.TrimPrefix(s, prefix) },
@@ -193,6 +239,61 @@ func RenderLocator(l Locator, rc RenderContext) (Locator, error) {
 		*f = r
 	}
 	return out, nil
+}
+
+// LocatorTemplateFields returns the locator fields that are rendered as
+// templates (the field set of RenderLocator), in a fixed order. Shared by the
+// reference scanner and the validator so both see exactly what ingest renders.
+func LocatorTemplateFields(l Locator) []string {
+	return []string{l.Repository, l.Ref, l.BaseRef, l.Path, l.Glob, l.URL, l.Chart}
+}
+
+// artifactVersionRefRe matches the {{.ArtifactVersionOf "id"}} references in
+// a template. The argument must be a double-quoted literal: the id is data
+// (a definition field), not something computed at render time.
+var artifactVersionRefRe = regexp.MustCompile(`\.ArtifactVersionOf\s+"([^"]*)"`)
+
+// ReferencedArtifacts returns the artifact ids s references through
+// {{.ArtifactVersionOf "id"}}, in order of first reference, without
+// duplicates. Empty ids (a malformed reference) are kept so validation can
+// reject them.
+func ReferencedArtifacts(s string) []string {
+	var out []string
+	seen := map[string]bool{}
+	for _, m := range artifactVersionRefRe.FindAllStringSubmatch(s, -1) {
+		if seen[m[1]] {
+			continue
+		}
+		seen[m[1]] = true
+		out = append(out, m[1])
+	}
+	return out
+}
+
+// SourceArtifactRefs returns the artifact ids a source's templates reference
+// through {{.ArtifactVersionOf "id"}}: the locator fields and the extract's
+// rendered regex templates — exactly the strings ingest renders with the
+// release context when consulting the source.
+func SourceArtifactRefs(src Source) []string {
+	var out []string
+	for _, s := range LocatorTemplateFields(src.Locator) {
+		out = append(out, ReferencedArtifacts(s)...)
+	}
+	if src.Extract != nil {
+		for _, s := range []string{src.Extract.Heading, src.Extract.KeyMatch, src.Extract.TableHeading} {
+			out = append(out, ReferencedArtifacts(s)...)
+		}
+	}
+	seen := map[string]bool{}
+	var uniq []string
+	for _, id := range out {
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		uniq = append(uniq, id)
+	}
+	return uniq
 }
 
 // AppliesTo reports whether a source/artifact with the given availability

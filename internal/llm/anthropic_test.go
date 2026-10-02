@@ -168,3 +168,22 @@ func TestFakeScriptsAndRecords(t *testing.T) {
 		t.Fatal("prompt digest must depend on the request")
 	}
 }
+
+// Models behind Anthropic-compatible gateways may ignore the structured-output
+// config and answer with fenced or prose-wrapped JSON.
+func TestNormalizeStructuredJSON(t *testing.T) {
+	cases := []struct{ name, in, want string }{
+		{"already json", `  {"a":1}  `, `  {"a":1}  `},
+		{"fenced json", "```json\n{\"a\":1}\n```", `{"a":1}`},
+		{"fenced plain", "```\n[1,2]\n```", `[1,2]`},
+		{"prose wrapped", `Here you go: {"a": [1, {"b": "}"}]} — hope it helps`, `{"a": [1, {"b": "}"}]}`},
+		{"invalid stays", `no json here`, `no json here`},
+		{"fence invalid", "```json\n{broken\n```", "```json\n{broken\n```"},
+		{"unterminated fence", "```json\n{\"a\":1}\n", "{\"a\":1}"},
+	}
+	for _, c := range cases {
+		if got := normalizeStructuredJSON(c.in); got != c.want {
+			t.Errorf("%s: got %q want %q", c.name, got, c.want)
+		}
+	}
+}

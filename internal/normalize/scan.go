@@ -158,7 +158,100 @@ func scanDocument(md []byte) *document {
 			}
 		}
 	}
+	d.applySetextHeadings()
 	return d
+}
+
+// setextUnderlineRe matches a setext heading underline: one or more '=' or
+// '-' with at most three leading spaces and nothing else on the line.
+var setextUnderlineRe = regexp.MustCompile(`^ {0,3}([=-])[=-]*[ \t]*$`)
+
+// setextDecorationRe matches a line that is only a run of '=' or '-' (no
+// leading-space limit: these are the decorative ==== bars that authors draw
+// above a title in the same style as the underline below it).
+var setextDecorationRe = regexp.MustCompile(`^[=-][=-]*[ \t]*$`)
+
+// applySetextHeadings turns paragraphs closed by a setext underline
+// ("Title\n====", CommonMark sections 4.3/4.2) into headings. The scanner's
+// main loop only recognises ATX ('#') headings; without this pass the
+// per-release sections of setext-styled release notes (for example Redis's
+// 00-RELEASENOTES) are invisible to section selection and note parsing.
+//
+// Semantics follow CommonMark where they matter for headings: the underline
+// must directly follow a paragraph (no blank line), fences and front matter
+// never participate, and a '-' underline wins over a thematic-break reading
+// when it closes a paragraph. One deliberate deviation: lines of the
+// paragraph that are themselves runs of '=' or '-' (the decorative bar above
+// the title) are dropped from the heading text, so the heading a selector
+// sees is the human one ("Redis 8.10.2    Released Thu 17 Sep 2026 ..."),
+// not the CommonMark text which would include the bar.
+func (d *document) applySetextHeadings() {
+	// closeHeading turns lines [from, to) into one heading of the given level
+	// (decoration lines dropped); it reports whether a heading was created.
+	closeHeading := func(from, to, level int) bool {
+		var text []string
+		headingIdx := -1
+		for k := from; k < to; k++ {
+			if setextDecorationRe.MatchString(d.lines[k].vis) {
+				d.lines[k].kind = lkBlank
+				continue
+			}
+			if headingIdx < 0 {
+				headingIdx = k // first content line becomes the heading line
+				d.lines[k].kind = lkHeading
+				d.lines[k].level = level
+			} else {
+				d.lines[k].kind = lkBlank
+			}
+			text = append(text, strings.TrimSpace(d.lines[k].vis))
+		}
+		if headingIdx < 0 {
+			return false // only decoration above the underline
+		}
+		joined := strings.Join(text, " ")
+		h := &d.lines[headingIdx]
+		h.hraw = joined
+		h.head = normalizeHeading(joined)
+		return true
+	}
+	for i := 0; i < len(d.lines); i++ {
+		if d.lines[i].kind != lkText {
+			continue
+		}
+		// paragraph = maximal run of text lines starting at i
+		end := i
+		for end+1 < len(d.lines) && d.lines[end+1].kind == lkText {
+			end++
+		}
+		// Walk the run: an underline-only text line closes a heading out of
+		// the lines before it (less pure decoration); text after the
+		// underline starts the next paragraph of the same run.
+		start := i
+		for j := i; j <= end; j++ {
+			m := setextUnderlineRe.FindStringSubmatch(d.lines[j].raw)
+			if m == nil {
+				continue
+			}
+			level := 2
+			if m[1] == "=" {
+				level = 1
+			}
+			if closeHeading(start, j, level) || setextDecorationRe.MatchString(d.lines[j].vis) {
+				d.lines[j].kind = lkBlank // the underline itself
+			}
+			start = j + 1
+		}
+		// A '-' underline is a thematic break to the main loop (blank kind);
+		// directly after a paragraph it is a setext H2 underline instead.
+		if end+1 < len(d.lines) && d.lines[end+1].kind == lkBlank {
+			if m := setextUnderlineRe.FindStringSubmatch(d.lines[end+1].raw); m != nil && m[1] == "-" {
+				if closeHeading(start, end+1, 2) {
+					d.lines[end+1].kind = lkBlank
+				}
+			}
+		}
+		i = end
+	}
 }
 
 // markFrontMatter marks a leading YAML ("---") or TOML ("+++") front matter

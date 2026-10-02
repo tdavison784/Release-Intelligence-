@@ -1,0 +1,16 @@
+{
+  "format": "ri.dev/llm-exchange/response/v1",
+  "promptDigest": "sha256:6541578b00901b2fda576e311808704e9bb8755527e52eba4df21c0684d72e71",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "generatedAt": "2026-10-02T01:33:22Z",
+  "output": {
+    "verdict": "undetermined",
+    "title": "Unclear whether cert-manager runs with the --namespace flag",
+    "content": "The fix in ev-ef5237d47ade only applies when cert-manager runs with `--namespace=<namespace>`. With that flag set, v1.18.0 limits cert-manager to that single namespace and turns off its cluster-scoped controllers. None of the 9 values keys in the environment summary sets this flag. The only namespace-related key is `global.leaderElection.namespace`, which is a different setting from the `--namespace` flag. The values dimension is only partial, and the summary doesn't show the container args of the `apps/v1 Deployment`, so I can't rule the flag out. Check the cert-manager controller Deployment args, and any extra-args settings in the Flux HelmRelease, Argo CD Application or helmfile, for `--namespace`. If it's there, check whether any cluster-scoped resources this instance relies on will stop being reconciled.",
+    "citations": [
+      "ev-ef5237d47ade"
+    ],
+    "confidence": "medium"
+  }
+}

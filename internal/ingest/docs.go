@@ -125,7 +125,14 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 	if reason, ok := catalog.ExceptionFor(r.v, src.Exceptions); ok {
 		return set(domain.SourceSkipped, "known exception: "+reason)
 	}
-	loc, err := renderLocator(src.Locator, r.rc)
+	// Sources may follow a pinned artifact's version
+	// ({{.ArtifactVersionOf "id"}}); a follow that did not resolve is the
+	// source's status, never a half-rendered locator.
+	rc, followState, followDetail, ok := r.sourceContext(src)
+	if !ok {
+		return set(followState, followDetail)
+	}
+	loc, err := renderLocator(src.Locator, rc)
 	if err != nil {
 		state, detail, _ := stateFor(err)
 		return set(state, detail)
@@ -153,15 +160,31 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			ex.Type = catalog.ExtractWhole
 		}
 	}
-	if ex.Format == catalog.FormatDocBook {
-		// render DocBook as markdown (line for line) on a copy: documents
-		// are shared with other sources through the memo
+	// extract.listItems selects the structural reading for markdown too;
+	// docbook/rst/adoc conversions always use it
+	structuralLists := ex.ListItems
+	if ex.Format == catalog.FormatDocBook || ex.Format == catalog.FormatRST || ex.Format == catalog.FormatAsciiDoc || ex.Format == catalog.FormatHTML {
+		// render DocBook / reStructuredText / AsciiDoc as markdown (line for
+		// line) on a copy: documents are shared with other sources through
+		// the memo
 		conv := make([]sources.Document, len(f.docs))
 		for k, d := range f.docs {
-			d.Content = normalize.DocBookToMarkdown(d.Content)
+			switch ex.Format {
+			case catalog.FormatDocBook:
+				d.Content = normalize.DocBookToMarkdown(d.Content)
+			case catalog.FormatRST:
+				d.Content = normalize.RSTToMarkdown(d.Content)
+			case catalog.FormatHTML:
+				d.Content = normalize.HTMLToMarkdown(d.Content)
+			default:
+				d.Content = normalize.ASCIIDocToMarkdown(d.Content)
+			}
 			conv[k] = d
 		}
 		f.docs = conv
+		// converted structural markup: every list item is one item whatever
+		// prose precedes it (an intro paragraph is an item of its own)
+		structuralLists = true
 	}
 	repo := repositoryOf(loc)
 	if repo == "" {
@@ -179,7 +202,7 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			Repository:  repo,
 
 			LabelPattern: ex.LabelParagraphs,
-			ListItems:    ex.Format == catalog.FormatDocBook,
+			ListItems:    structuralLists,
 		}
 	}
 	p := i.parser()
@@ -201,7 +224,7 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			extract = fmt.Sprintf("%d files", len(f.docs))
 		}
 	case catalog.ExtractMarkdownSection:
-		pattern, re, err := renderRegex(ex.Heading, r.rc)
+		pattern, re, err := renderRegex(ex.Heading, rc)
 		if err != nil {
 			return set(domain.SourceError, "extract heading: "+err.Error())
 		}
@@ -226,7 +249,7 @@ func (i *Ingester) runSource(ctx context.Context, r *run, src catalog.Source) so
 			return set(domain.SourceNotFound, fmt.Sprintf("no section matching %q in %s", pattern, where))
 		}
 	case catalog.ExtractMarkdownTable, catalog.ExtractYAMLRecords:
-		sel, keyPattern, err := tableSelector(ex, r.rc)
+		sel, keyPattern, err := tableSelector(ex, rc)
 		if err != nil {
 			return set(domain.SourceError, "extract: "+err.Error())
 		}

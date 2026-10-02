@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://ri.dev/schemas/product-definition/v1alpha1.json",
   "title": "ProductDefinition",
-  "description": "Declarative description of a software product's authoritative release channels, the artifacts it publishes and how artifact versions relate to release versions. String fields marked 'template' may use Go text/template placeholders such as {{.Tag}}, {{.Version}}, {{.Major}}, {{.Minor}}, {{.Line}}, {{.PrevLine}}, {{.PrevTag}}, {{.ArtifactVersion}}.",
+  "description": "Declarative description of a software product's authoritative release channels, the artifacts it publishes and how artifact versions relate to release versions. String fields marked 'template' may use Go text/template placeholders such as {{.Tag}}, {{.Version}}, {{.Major}}, {{.Minor}}, {{.Line}}, {{.PrevLine}}, {{.PrevTag}}, {{.ArtifactVersion}}. Source templates may additionally follow a pinned component's version with {{.ArtifactVersionOf \"artifact-id\"}}, which renders the version the named artifact resolved to (its version.strategy must be template, field or pattern).",
   "type": "object",
   "additionalProperties": false,
   "required": ["apiVersion", "kind", "id", "name", "versioning", "sources", "artifacts"],
@@ -79,7 +79,7 @@
       "additionalProperties": false,
       "required": ["kind"],
       "properties": {
-        "kind": {"enum": ["github-releases", "github-advisories", "git-tags", "repo-file", "repo-dir", "git-log", "http", "helm-repo", "oci", "helm-git"]},
+        "kind": {"enum": ["github-releases", "github-advisories", "git-tags", "repo-file", "repo-dir", "git-log", "http", "helm-repo", "oci", "helm-git", "chart-tgz"]},
         "repository": {"type": "string"},
         "ref": {"type": "string"},
         "baseRef": {"type": "string"},
@@ -95,6 +95,7 @@
         {"if": {"properties": {"kind": {"const": "git-log"}}}, "then": {"required": ["repository", "ref"]}},
         {"if": {"properties": {"kind": {"const": "http"}}}, "then": {"required": ["url"]}},
         {"if": {"properties": {"kind": {"const": "helm-repo"}}}, "then": {"required": ["url", "chart"]}},
+        {"if": {"properties": {"kind": {"const": "chart-tgz"}}}, "then": {"required": ["url"]}},
         {"if": {"properties": {"kind": {"const": "helm-git"}}}, "then": {"required": ["repository", "path", "tagPattern"]}}
       ]
     },
@@ -104,7 +105,7 @@
       "required": ["platform", "headers"],
       "properties": {
         "platform": {"type": "string"},
-        "kind": {"enum": ["supported", "tested", "minimum"]},
+        "kind": {"enum": ["supported", "tested", "minimum", "maximum"]},
         "headers": {"type": "array", "minItems": 1, "items": {"type": "string"}},
         "separator": {"type": "string"},
         "part": {"type": "integer", "minimum": 0}
@@ -116,13 +117,13 @@
       "required": ["type"],
       "properties": {
         "type": {"enum": ["whole", "markdown-section", "markdown-table", "yaml-records", "release-note-yaml"]},
-        "format": {"enum": ["markdown", "docbook"], "description": "Markup of the document. 'docbook' (SGML/XML) is rendered as line-preserving markdown before extraction; only with types whole and markdown-section."},
+        "format": {"enum": ["markdown", "docbook", "rst", "adoc", "html"], "description": "Markup of the document. 'docbook' (SGML/XML), 'rst' (reStructuredText), 'adoc' (AsciiDoc) and 'html' are rendered as line-preserving markdown before extraction; docbook and html only with types whole and markdown-section, rst and adoc also with markdown-table (their tables become pipe tables)."},
         "heading": {"type": "string"},
         "keyColumns": {"$ref": "#/$defs/stringList"},
         "keyMatch": {"type": "string"},
         "columns": {"type": "array", "items": {"$ref": "#/$defs/columnSpec"}},
         "tableHeading": {"type": "string"},
-        "labelParagraphs": {"type": "string"}
+        "labelParagraphs": {"type": "string"}, "listItems": {"type": "boolean", "description": "structural reading: every list item is one item and section prose is its own item, instead of a prose-led section folding its list (docbook/rst conversions always use it)"}
       },
       "allOf": [
         {"if": {"properties": {"type": {"const": "markdown-section"}}}, "then": {"required": ["heading"]}},
@@ -166,15 +167,19 @@
       "additionalProperties": false,
       "required": ["strategy"],
       "properties": {
-        "strategy": {"enum": ["template", "lookup", "independent"]},
+        "strategy": {"enum": ["template", "lookup", "field", "pattern", "independent"]},
         "template": {"type": "string"},
-        "field": {"type": "string"},
+        "field": {"type": "string", "description": "lookup: index field (e.g. appVersion); field: YAML path read from the from document (e.g. dependencies[name=kube-state-metrics].version)"},
         "match": {"type": "string"},
+        "from": {"$ref": "#/$defs/locator", "description": "field/pattern strategy: the document the version is read from, rendered with the release context (repo-file or http)"},
+        "pattern": {"type": "string", "description": "pattern strategy: regular expression (release-context template) whose named capture group (?P<version>…) is the artifact version, applied to the raw text of the from document — the text-mode twin of field, for pins inside strings (kustomize remote-resource URLs, go.mod require lines)"},
         "select": {"enum": ["latest", "earliest", "all"]}
       },
       "allOf": [
         {"if": {"properties": {"strategy": {"const": "template"}}}, "then": {"required": ["template"]}},
-        {"if": {"properties": {"strategy": {"const": "lookup"}}}, "then": {"required": ["field", "match"]}}
+        {"if": {"properties": {"strategy": {"const": "lookup"}}}, "then": {"required": ["field", "match"]}},
+        {"if": {"properties": {"strategy": {"const": "field"}}}, "then": {"required": ["field", "from"]}},
+        {"if": {"properties": {"strategy": {"const": "pattern"}}}, "then": {"required": ["pattern", "from"]}}
       ]
     },
     "artifact": {
@@ -205,7 +210,8 @@
             "required": ["kind"],
             "properties": {
               "kind": {"enum": ["helm-values", "chart-metadata", "crds", "image-refs"]},
-              "locator": {"$ref": "#/$defs/locator"},
+              "locator": {"$ref": "#/$defs/locator", "description": "Where the content is read from. Kinds helm-repo, oci (a chart repository) and chart-tgz read the packaged chart archive (the published-artifact representation); http, repo-file and repo-dir read documents. When omitted, the artifact's first readable channel is used."},
+              "compareWith": {"$ref": "#/$defs/locator", "description": "Alternate representation of the same content (e.g. the published chart archive vs the source tree), read for comparison only; a representation.divergence fact records when they differ so preferring one representation is never silent."},
               "availability": {"$ref": "#/$defs/constraint"},
               "stripPrefix": {"type": "string"},
               "ignoreKeys": {

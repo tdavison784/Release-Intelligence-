@@ -1,0 +1,90 @@
+id: istio-1.28-1.29
+product: istio
+from: 1.28.3
+to: 1.29.0
+researchedAt: "2026-10-01"
+sources:
+  - https://istio.io/latest/news/releases/1.29.x/announcing-1.29/upgrade-notes/
+  - https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.29.x/announcing-1.29/upgrade-notes/index.md
+expected:
+  - id: E1
+    title: sidecar.istio.io/statsCompression annotation deprecated and removed; proxyConfig statsCompression now defaults to true
+    kind: removal
+    importance: critical
+    actionRequired: true       # scrapers that relied on uncompressed stats must configure compression or opt out
+    match:
+      - text: '(?i)statsCompression'
+      - text: '(?i)statsEvictionInterval'
+    evidence:
+      - url: https://istio.io/latest/news/releases/1.29.x/announcing-1.29/upgrade-notes/
+        quote: "The annotation `sidecar.istio.io/statsCompression` was deprecated and removed. There is now a `statsCompression` option in `proxyConfig` … The default value is `true`."
+  - id: E2
+    title: Ambient DNS capture enabled by default; existing pods keep old behavior until restarted or reconciled
+    kind: behaviour-change
+    importance: important
+    actionRequired: true       # restart pods or enable cni.ambient.reconcileIptablesOnStartup
+    match:
+      - text: '(?i)DNS (capture|proxying).*(default|enabled)'
+      - text: '(?i)ambient.*DNS'
+      - subject: 'cni.ambient.reconcileIptablesOnStartup'
+    evidence:
+      - url: https://istio.io/latest/news/releases/1.29.x/announcing-1.29/upgrade-notes/
+        quote: "DNS proxying is enabled by default for ambient workloads in this release. Note that only new pods will have DNS enabled; existing pods will not have their DNS traffic captured."
+  - id: E3
+    title: Debug endpoint authorization enabled by default; non-system namespaces restricted to config_dump/ndsz/edsz
+    kind: behaviour-change
+    importance: important
+    actionRequired: true       # tools like Kiali may lose access; ENABLE_DEBUG_ENDPOINT_AUTH=false restores
+    match:
+      - text: '(?i)ENABLE_DEBUG_ENDPOINT_AUTH'
+      - text: '(?i)debug endpoint.*auth'
+    evidence:
+      - url: https://istio.io/latest/news/releases/1.29.x/announcing-1.29/upgrade-notes/
+        quote: "Non-system namespaces are now restricted to `config_dump`, `ndsz`, and `edsz` endpoints for same-namespace proxies only. To restore the previous behavior, set `ENABLE_DEBUG_ENDPOINT_AUTH=false`."
+  - id: E4
+    title: Circuit breaker remaining-metrics tracking disabled by default (DISABLE_TRACK_REMAINING_CB_METRICS / compatibility version)
+    kind: behaviour-change
+    importance: important
+    actionRequired: false      # dashboards lose a metric; opt back in explicitly
+    match:
+      - text: '(?i)circuit breaker.*metrics|DISABLE_TRACK_REMAINING_CB_METRICS'
+      - text: '(?i)TrackRemaining'
+    evidence:
+      - url: https://istio.io/latest/news/releases/1.29.x/announcing-1.29/upgrade-notes/
+        quote: "Previously, these metrics were tracked by default. Now, tracking is disabled by default for better proxy memory usage."
+  - id: E5
+    title: base Helm chart removals; istiod ClusterRole/ServiceAccount resources renamed (istiod-clusterrole, istiod service account)
+    kind: helm-values
+    importance: important
+    actionRequired: true       # automation referencing the old names breaks
+    match:
+      - text: '(?i)istiod-clusterrole|istio-reader-clusterrole'
+      - text: '(?i)base .*chart.*removed|removed from the `?base`? chart'
+      - text: '(?i)ClusterRole istiod'
+    evidence:
+      - url: https://istio.io/latest/news/releases/1.29.x/announcing-1.29/upgrade-notes/
+        quote: "In this release, the duplicated configurations are fully removed from the `base` chart. | `ClusterRole istiod` → `ClusterRole istiod-clusterrole` …"
+  - id: E6
+    title: Ambient iptables reconciliation enabled by default (cni.ambient.reconcileIptablesOnStartup)
+    kind: behaviour-change
+    importance: important
+    actionRequired: false      # default flips; disable explicitly to keep old behavior
+    match:
+      - text: '(?i)iptables reconciliation'
+      - subject: 'cni.ambient.reconcileIptablesOnStartup'
+    evidence:
+      - url: https://istio.io/latest/news/releases/1.29.x/announcing-1.29/upgrade-notes/
+        quote: "Iptables reconciliation is enabled by default for ambient workloads in release 1.29.0."
+  - id: E7
+    title: Dry-run AuthorizationPolicy in ambient mode requires ztunnel >= 1.29 when AMBIENT_ENABLE_DRY_RUN_AUTHORIZATION_POLICY is set
+    kind: compatibility
+    importance: important
+    actionRequired: true       # older ztunnels enforce instead of dry-run
+    match:
+      - text: '(?i)dry-run AuthorizationPolicy'
+    evidence:
+      - url: https://istio.io/latest/news/releases/1.29.x/announcing-1.29/upgrade-notes/
+        quote: "A ztunnel below version 1.29 will not support this field. As a result, older ztunnels will fully enforce these policies, which is likely to produce an unexpected result."
+notExpected:
+  - title: new features without operator action (InferencePool GA plumbing etc.) are not upgrade blockers
+    match: [{text: '(?i)InferencePool'}]

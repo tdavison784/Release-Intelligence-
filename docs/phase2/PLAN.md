@@ -1,5 +1,9 @@
 # Phase 2 plan: does Release Intelligence scale?
 
+> **Status: complete (2026-10-01).** 28 products onboarded across waves 0–4,
+> all nine workstreams delivered. The measured outcome and the honest
+> frontier are in [OUTCOMES.md](OUTCOMES.md).
+
 Phase 1 showed that one generic, evidence-backed model can represent
 cert-manager, Istio and Argo CD without product-specific code. Phase 2 has to
 answer the product question:
@@ -54,12 +58,14 @@ The onboarding protocol and record format are in
   deterministic fact.
 - **Evidence or it did not happen.** Every conclusion cites evidence that
   resolves inside the same document (edge, impact report, drift report).
-- **Honest gaps.** Unreachable is `unavailable`, never `missing`. In this
-  sandbox the GitHub API, quay.io, registry.k8s.io, most `*.github.io` Helm
-  repositories, ghcr/Docker Hub blob storage and several vendor sites are
-  blocked by egress policy; definitions still declare the canonical channel
-  first and add reachable alternatives (gh-pages index on
-  raw.githubusercontent.com, GitHub release assets, registry manifests).
+- **Honest gaps.** Unreachable is `unavailable`, never `missing`. Sandbox
+  egress has varied over time: hosts blocked during Phase 1 and early wave-1
+  onboarding (GitHub API, quay.io, most `*.github.io` Helm repositories,
+  codeload tarballs) answered 200 by late 2026-10-01, while `registry.k8s.io`
+  307-redirects and anonymous Docker Hub pulls stay rate-limited or 401.
+  Verify each host when you onboard (records keep the truth of their moment),
+  still declare the canonical channel first, and add reachable alternatives
+  after it.
 - **Trusted definitions are never mutated by tools.** Discovery and drift
   write proposals and reports; a human (or a reviewing agent) edits
   `products/*.yaml`.

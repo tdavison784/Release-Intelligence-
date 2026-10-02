@@ -1,0 +1,345 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: terraform-provider-aws
+name: Terraform AWS Provider
+description: >-
+  The official AWS provider for Terraform (github.com/hashicorp/terraform-provider-aws):
+  one Go binary per OS/arch, published per release to releases.hashicorp.com and
+  indexed by registry.terraform.io; no images, no CRDs, no charts. Extreme
+  release velocity (518 stable tags; the v5 era alone ran 5.0.0 to 5.100.0 in
+  two years, ~2 releases per week; nearly every release is an X.Y.0 and only 49
+  patches exist). CHANGELOG.md carries each release's own section AT THE TAG
+  (HashiCorp label paragraphs, one bullet per PR); one in-repo upgrade guide per
+  major (v2-v6) is attached to major releases only. Major boundaries (v4->v5
+  2023-05, v5->v6 2025-06) carry the breaking-change sets. GitHub releases
+  carry the same notes body but no binaries (and no assets at all from v6.1.0).
+homepage: https://registry.terraform.io/providers/hashicorp/aws
+
+versioning:
+  scheme: semver
+  tagPrefix: v
+  # 521 tags: 518 stable vX.Y.Z + 3 prereleases (v6.0.0-beta1..3); no junk.
+  tagPattern: '^v(?P<version>\d+\.\d+\.\d+)$'
+  # X.Y.0 of every line after From's, patches of To's line: at this velocity a
+  # line is usually exactly its X.Y.0, so a minor hop traverses one release.
+  lineage: minor
+
+sources:
+  # --- canonical versions ----------------------------------------------------
+  - id: git-tags
+    roles: [versions]
+    priority: 0
+    locator:
+      kind: git-tags
+      repository: github.com/hashicorp/terraform-provider-aws
+    notes: >-
+      The only complete version source: registry.terraform.io /versions lists
+      506 of the 518 stable versions (12 delisted, e.g. 6.1.0, 6.57.0,
+      5.71.0 present on git and releases.hashicorp.com but 404 at the
+      registry's download endpoint); GitHub releases would work but are
+      quota-limited.
+
+  # --- release notes ---------------------------------------------------------
+  # CHANGELOG.md at the release tag contains the release's own section (the
+  # file is trimmed to the current major era + "## Previous Releases" on main,
+  # so the tag is the only complete read). Headings are "## X.Y.Z (Date)" or,
+  # at the release's own tag through the v5 era, "## X.Y.Z (Unreleased)".
+  # Labels are v4+ "NOTES:"/"FEATURES:"/"ENHANCEMENTS:"/"BUG FIXES:"/
+  # "BREAKING CHANGES:" and the same words WITHOUT the colon in v3 and
+  # earlier (plus IMPROVEMENTS/INTERNAL there).
+  - id: changelog
+    roles: [release-notes]
+    fallbackGroup: release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/hashicorp/terraform-provider-aws
+      ref: "{{.Tag}}"
+      path: CHANGELOG.md
+    extract: &changelog-extract
+      type: markdown-section
+      heading: '^{{regexQuote .Version}}(\s|$)'
+      labelParagraphs: '^[A-Z][A-Z0-9 /&-]+:?$'
+    classify: &changelog-classify
+      # Go toolchain bumps under NOTES (a bump that fixes a CVE keeps its
+      # security text classification by rule order: security wins first)
+      - text: '(?i)^(sdk|provider): Updates to Go |^(sdk|provider): Update to (aws-sdk|terraform-plugin)'
+        category: dependency
+      # AWS SDK service bumps surface as "sdk: Update to ..." enhancement bullets
+      - text: '^sdk: [Uu]pdate'
+        category: dependency
+      - section: '\bIMPROVEMENTS\b'
+        category: feature
+      - section: 'BREAKING CHANGES'
+        breaking: true
+        actionRequired: true
+      # NOTES carries deprecation notices and EOL announcements; generic text
+      # rules classify the rest (experimental flags etc.) as other/informational
+      - section: '\bNOTES\b'
+        text: '(?i)\bdeprecat|will be removed|end of life|no longer (?:be |be )?supported'
+        category: deprecation
+  # The GitHub release body is the same section byte-for-byte (headings
+  # included); behind the anonymous 60/h api.github.com quota, so it is the
+  # fallback, not the canonical channel.
+  - id: changelog-github
+    roles: [release-notes]
+    fallbackGroup: release-notes
+    availability: ">= 4.5.0"
+    locator:
+      kind: github-releases
+      repository: hashicorp/terraform-provider-aws
+      ref: "{{.Tag}}"
+    extract:
+      type: whole
+      labelParagraphs: '^[A-Z][A-Z0-9 /&-]+:?$'
+    classify: *changelog-classify
+
+  # --- upgrade guides (one per major, in-repo, accumulating) ------------------
+  # website/docs/guides/version-N-upgrade.html.md until v5.16.0, .html.markdown
+  # from v5.17.0 (website-wide extension rename); majors only.
+  - id: upgrade-guide-v2
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 2.0.0, < 3.0.0"
+    classify: &guide-classify
+      # the guide opens with a <!-- TOC --> block whose link bullets resolve
+      # to their link text, so they arrive as bare section titles ("Data
+      # Source `aws_ami`", "OpsWorks Stacks Removal") with no content; the
+      # sections themselves carry the real items
+      - text: '^(Data Source|Resource) `[^`]+`$'
+        skip: true
+      - text: '^[A-Z][A-Za-z0-9 /&.+-]*(Removal|Removed|Deprecation|Upgrade Guides?)$'
+        skip: true
+      - text: '^(Prerequisites to Upgrade( to v[0-9.]+)?|Removed Provider Arguments|Enhanced Region Support|Nullable Boolean Validation Update)$'
+        skip: true
+      # terraform-docs admonitions ("-> **Note:** ...") are doc furniture
+      - text: '^->'
+        skip: true
+      # Before/After HCL example fences (terraform { required_providers { ... }})
+      - text: '^(terraform \{|\s*(source|version|required_providers|providers)\s*=|\s*aws\s*=\s*\{|\}$)'
+        skip: true
+      # the upgrade procedure itself
+      - section: '(?i)Prerequisites'
+        category: migration
+        actionRequired: true
+      # removal sections carry the major's hard breaking changes (Removed
+      # Provider Arguments, OpsWorks Stacks Removal, SimpleDB Support Removed)
+      - section: '(?i)(removal|removed|decommission)'
+        category: removal
+        breaking: true
+        actionRequired: true
+      # deprecation sections (Elastic Transcoder, CloudWatch Evidently) stay
+      # deprecations, not removals
+      - section: '(?i)deprecat'
+        category: deprecation
+    locator: &guide-locator
+      kind: repo-file
+      repository: github.com/hashicorp/terraform-provider-aws
+      ref: "{{.Tag}}"
+      path: website/docs/guides/version-{{.Major}}-upgrade.html.md
+    extract: &guide-extract
+      type: whole
+      # prose-led sections fold their bullet lists without the structural
+      # reading; per-resource removal lists are the payload here
+      listItems: true
+  - id: upgrade-guide-v3
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 3.0.0, < 4.0.0"
+    classify: *guide-classify
+    locator: *guide-locator
+    extract: *guide-extract
+  - id: upgrade-guide-v4
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 4.0.0, < 5.0.0"
+    classify: *guide-classify
+    locator: *guide-locator
+    extract: *guide-extract
+  - id: upgrade-guide-v5
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 5.0.0, < 5.17.0"
+    classify: *guide-classify
+    locator: *guide-locator
+    extract: *guide-extract
+  - id: upgrade-guide-v5-renamed
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 5.17.0, < 6.0.0"
+    classify: *guide-classify
+    locator:
+      <<: *guide-locator
+      path: website/docs/guides/version-{{.Major}}-upgrade.html.markdown
+    extract: *guide-extract
+    notes: the v4->v5 upgrade guide (removed provider arguments, EC2-Classic and Macie Classic resource removals, default_tags behavior) under the post-v5.17.0 extension.
+  - id: upgrade-guide-v6
+    roles: [upgrade-guide]
+    releaseKinds: [major]
+    availability: ">= 6.0.0"
+    classify: *guide-classify
+    locator:
+      <<: *guide-locator
+      path: website/docs/guides/version-{{.Major}}-upgrade.html.markdown
+    extract: *guide-extract
+    notes: the v5->v6 upgrade guide (OpsWorks/SimpleDB/Worklink removals, Enhanced Region Support, nullable boolean validation, per-resource argument changes).
+
+  # --- security ---------------------------------------------------------------
+  # Repository advisories: 0 published as of 2026-10-01 (historical provider
+  # CVEs predate the database or live outside it); still the standard feed.
+  # Security-relevant release content travels in changelog NOTES bullets.
+  - id: github-advisories
+    roles: [security]
+    locator:
+      kind: github-advisories
+      repository: hashicorp/terraform-provider-aws
+
+artifacts:
+  # --- provider binaries (releases.hashicorp.com, the registry's backend) ------
+  # 15 OS/arch zips are declared in .release/terraform-provider-aws-artifacts.hcl;
+  # two are declared here as the family's representatives. Ten git-tagged
+  # releases were never published to (or were pulled from) the host entirely:
+  # the version directory 404s while the git tag and GitHub release remain.
+  - id: provider-zip-linux-amd64
+    type: binary
+    name: terraform-provider-aws_linux_amd64.zip
+    version: {strategy: template, template: "{{.Version}}"}
+    exceptions: &pulled-releases
+      - versions: [3.26.1, 3.26.2, 3.26.3, 3.26.5, 3.26.10, 3.26.16, 3.26.17, 3.26.18, 3.64.3, 5.71.0]
+        reason: >-
+          Release never published to (or pulled from) every HashiCorp channel
+          except git: the releases.hashicorp.com version directory 404s and
+          registry.terraform.io delists the version, while the git tag, its
+          CHANGELOG section and the GitHub release remain (6.1.0 and 6.57.0
+          are the mirror case: registry-delisted, still on releases.hashicorp.com).
+          Found by diffing git tags against the registry version list.
+    channels:
+      - kind: http
+        url: https://releases.hashicorp.com/terraform-provider-aws/{{.Version}}/terraform-provider-aws_{{.Version}}_linux_amd64.zip
+  # darwin/arm64 builds start at 3.30.0 (Apple Silicon; every release 3.30.0+
+  # has the zip except the pulled ones)
+  - id: provider-zip-darwin-arm64
+    type: binary
+    name: terraform-provider-aws_darwin_arm64.zip
+    availability: ">= 3.30.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    exceptions:
+      - versions: [3.64.3, 5.71.0]
+        reason: pulled releases absent from releases.hashicorp.com within this artifact's window (see provider-zip-linux-amd64).
+    channels:
+      - kind: http
+        url: https://releases.hashicorp.com/terraform-provider-aws/{{.Version}}/terraform-provider-aws_{{.Version}}_darwin_arm64.zip
+
+  # --- checksums and signature --------------------------------------------------
+  - id: checksums
+    type: binary
+    name: terraform-provider-aws_SHA256SUMS
+    version: {strategy: template, template: "{{.Version}}"}
+    exceptions: *pulled-releases
+    channels:
+      - kind: http
+        url: https://releases.hashicorp.com/terraform-provider-aws/{{.Version}}/terraform-provider-aws_{{.Version}}_SHA256SUMS
+  - id: checksums-signature
+    type: binary
+    name: terraform-provider-aws_SHA256SUMS.72D7468F.sig
+    version: {strategy: template, template: "{{.Version}}"}
+    exceptions: *pulled-releases
+    channels:
+      - kind: http
+        url: https://releases.hashicorp.com/terraform-provider-aws/{{.Version}}/terraform-provider-aws_{{.Version}}_SHA256SUMS.72D7468F.sig
+
+  # --- registry manifest ---------------------------------------------------------
+  # Generated from the in-repo terraform-registry-manifest.json (protocol
+  # versions); served by releases.hashicorp.com from 4.6.0 (the GitHub Actions
+  # release workflow), 404 before.
+  - id: registry-manifest
+    type: package
+    name: terraform-provider-aws_manifest.json
+    availability: ">= 4.6.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    exceptions:
+      - versions: [5.71.0]
+        reason: pulled release absent from releases.hashicorp.com (see provider-zip-linux-amd64).
+    channels:
+      - kind: http
+        url: https://releases.hashicorp.com/terraform-provider-aws/{{.Version}}/terraform-provider-aws_{{.Version}}_manifest.json
+
+  # --- GitHub release assets (the release-asset channel, in its real window) ----
+  # v4.5.0 - v6.0.0 attach _manifest.json + _SHA256SUMS to the GitHub release;
+  # every release from v6.1.0 on has an empty asset list (binaries never were
+  # GitHub assets; they live on releases.hashicorp.com).
+  - id: release-asset-checksums
+    type: package
+    name: terraform-provider-aws_SHA256SUMS (GitHub release asset)
+    availability: ">= 4.5.0, < 6.1.0"
+    version: {strategy: template, template: "{{.Version}}"}
+    channels:
+      - kind: http
+        url: https://github.com/hashicorp/terraform-provider-aws/releases/download/{{.Tag}}/terraform-provider-aws_{{.Version}}_SHA256SUMS
+
+  # --- pinned toolchain, read out of the release's own go.mod -------------------
+  # The plugins the provider is built on: their versions change behavior (SDK
+  # plan semantics, framework migrations). Read with the pattern strategy from
+  # go.mod at the release tag and verified at the Go module proxy.
+  - id: terraform-plugin-sdk
+    type: package
+    name: github.com/hashicorp/terraform-plugin-sdk/v2
+    availability: ">= 4.0.0"
+    version:
+      strategy: pattern
+      pattern: 'github\.com/hashicorp/terraform-plugin-sdk/v2 (?P<version>v\d+\.\d+\.\d+)'
+      from:
+        kind: repo-file
+        repository: github.com/hashicorp/terraform-provider-aws
+        ref: "{{.Tag}}"
+        path: go.mod
+    channels:
+      - kind: http
+        url: https://proxy.golang.org/github.com/hashicorp/terraform-plugin-sdk/v2/@v/{{.ArtifactVersion}}.info
+  - id: terraform-plugin-framework
+    type: package
+    name: github.com/hashicorp/terraform-plugin-framework
+    availability: ">= 4.23.0"
+    version:
+      strategy: pattern
+      pattern: 'github\.com/hashicorp/terraform-plugin-framework (?P<version>v\d+\.\d+\.\d+)'
+      from:
+        kind: repo-file
+        repository: github.com/hashicorp/terraform-provider-aws
+        ref: "{{.Tag}}"
+        path: go.mod
+    channels:
+      - kind: http
+        url: https://proxy.golang.org/github.com/hashicorp/terraform-plugin-framework/@v/{{.ArtifactVersion}}.info
+  - id: aws-sdk-go-v2
+    type: package
+    name: github.com/aws/aws-sdk-go-v2
+    availability: ">= 4.0.0"
+    version:
+      strategy: pattern
+      pattern: 'github\.com/aws/aws-sdk-go-v2 (?P<version>v\d+\.\d+\.\d+)'
+      from:
+        kind: repo-file
+        repository: github.com/hashicorp/terraform-provider-aws
+        ref: "{{.Tag}}"
+        path: go.mod
+    channels:
+      - kind: http
+        url: https://proxy.golang.org/github.com/aws/aws-sdk-go-v2/@v/{{.ArtifactVersion}}.info
+    notes: >-
+      The base module of the AWS SDK for Go v2 family (indirect until the
+      v1->v2 SDK migration completed mid-v4; direct after). Its bump moves
+      every service client's behavior.
+
+provenance:
+  method: manual+research
+  updated: "2026-10-01"
+  validatedReleases: [4.5.0, 4.23.0, 5.0.0, 5.16.0, 5.17.0, 5.100.0, 6.0.0, 6.1.0, 6.64.0, 6.67.0]
+  notes: >-
+    Authored from docs/research/terraform-provider-aws.md after `ri discover`
+    (which proposed the tag scheme, CHANGELOG.md at the tag and the advisory
+    feed, historically-validated the changelog against 4 releases, and excluded
+    registry.terraform.io/hashicorp/aws as a docs-only image reference — the
+    registry is the publication index, not a registry image). Discovery found
+    no artifacts (there are none in the repo: binaries are built and attached
+    by the release workflow outside the tree) and no upgrade guides (they live
+    under website/docs/guides/, found by research).

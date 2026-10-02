@@ -14,9 +14,21 @@ conclusion points back to the source it came from. It covers:
 - artifact changes
 
 Each source citation carries a URL, a line range, a verbatim excerpt and the
-digest of the exact bytes that were read. The first products are
-**cert-manager**, **Istio** and **Argo CD**. Nothing in the design is tied to
-one ecosystem.
+digest of the exact bytes that were read. The catalog holds **28 products** —
+cert-manager, Istio and Argo CD through Cilium, PostgreSQL, Vault,
+kube-prometheus-stack, Traefik, Flux, the OTel Collector, Redis, Elasticsearch,
+the Terraform AWS Provider, Falco, Linkerd, Prometheus Operator, Loki, MinIO
+and the Go toolchain — onboarded as pure configuration
+([docs/ONBOARDING.md](docs/ONBOARDING.md) measures how little code each one
+needed; [docs/phase2/OUTCOMES.md](docs/phase2/OUTCOMES.md) is the phase
+verdict). Nothing in the design is tied to one ecosystem.
+
+A second question builds on it: **which of those changes matter to YOUR
+environment?** `ri impact` joins the edge with local Helm values, manifests,
+installed CRDs, an image list and a cluster version. It is deterministic, and
+every finding cites two provenance chains — the upstream evidence of the
+change and the environment evidence (file, line, excerpt) that matched
+([docs/IMPACT.md](docs/IMPACT.md)).
 
 ```
 $ ri upgrade cert-manager v1.17.0 v1.18.0
@@ -80,7 +92,9 @@ Full examples are in [`internal/app/testdata/e2e/golden/`](internal/app/testdata
   - `UpgradeEdge.Validate()` and the JSON Schema both enforce this.
 - **Honest about gaps.** An unreachable channel is reported as
   `unavailable`, and a predicted artifact as `expected`. Neither is ever
-  shown as `verified` or `missing`.
+  shown as `verified` or `missing`. The same rule drives
+  [drift detection](docs/DRIFT.md): unreachable is `unverifiable`, only a
+  channel that answered differently is drift.
 - **Reproducible.** All upstream reads go through a filesystem cache, and
   `-offline` replays a run byte for byte.
 
@@ -98,6 +112,7 @@ ri products                                     # list definitions
 ri validate                                     # static validation (Go validator)
 ri versions istio                               # canonical releases (with source fallbacks)
 ri check argo-cd                                # validate declared relationships against 6 historical releases
+ri drift istio                                  # re-validate the definition on the newest releases; drift report + proposal (never applied)
 ri ingest cert-manager v1.18.0                  # one release: sources, artifacts, notes, snapshots
 ri upgrade cert-manager v1.17.0 v1.18.0         # the upgrade edge (text)
 ri upgrade argo-cd v2.14.11 v3.0.6 -o json      # … as JSON (schemas/upgrade-edge.schema.json)

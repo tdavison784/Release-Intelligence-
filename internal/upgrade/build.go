@@ -81,6 +81,7 @@ func build(in Input) (*domain.UpgradeEdge, error) {
 
 	b.linkFacts()
 	sortChanges(b.changes)
+	b.edge.Routine = routineSummary(b.changes)
 
 	b.edge.Changes = b.changes
 	b.edge.Facts = b.facts

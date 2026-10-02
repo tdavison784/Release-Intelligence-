@@ -1,0 +1,16 @@
+{
+  "format": "ri.dev/llm-exchange/response/v1",
+  "promptDigest": "sha256:bda470a7b87564bb1e89ce3a2eaeba2c6d7dcf4943486fc499a2b234d20f80ca",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "generatedAt": "2026-10-02T01:34:34Z",
+  "output": {
+    "title": "nodeSelector quoting fix: no nodeSelector key among the supplied values",
+    "verdict": "undetermined",
+    "content": "The release note says only that v1.18.0 quotes nodeSelector values in the Helm chart (#7579). None of the 9 values keys shown sets a nodeSelector: they are global.leaderElection.namespace, global.rbac.disableHTTPChallengesRole, prometheus.servicemonitor.*, replicaCount and webhook.timeoutSeconds. However, the values dimension is marked partial. This chart is deployed through a Flux HelmRelease, an Argo CD Application and helmfile, so values from those sources may not all have been supplied. Check every values source for any nodeSelector setting in the cert-manager chart; if none sets one, this fix does not touch your rendered manifests.",
+    "citations": [
+      "ev-565f3761f656"
+    ],
+    "confidence": "medium"
+  }
+}

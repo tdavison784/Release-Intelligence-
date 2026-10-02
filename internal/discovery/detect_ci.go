@@ -63,19 +63,21 @@ type tagPattern struct {
 }
 
 // workflowTriggers parses GitHub Actions `on:` (and recognises GitLab /
-// Cloud Build tag pipelines heuristically).
-func workflowTriggers(f *File) (string, []tagPattern) {
+// Cloud Build tag pipelines heuristically). Its second result reports a
+// workflow_dispatch input that names a release version (manual promotion
+// workflows, e.g. crossplane's "Promote" with input version=v1.18.0).
+func workflowTriggers(f *File) (string, []tagPattern, bool) {
 	low := strings.ToLower(f.Path)
 	if !strings.HasPrefix(low, ".github/workflows/") {
 		t := f.Text()
 		if strings.Contains(t, "CI_COMMIT_TAG") || strings.Contains(t, "TAG_NAME") || regexp.MustCompile(`(?m)^\s*only:\s*\n\s*-\s*tags`).MatchString(t) {
-			return triggerTag, nil
+			return triggerTag, nil, false
 		}
-		return triggerUnknown, nil
+		return triggerUnknown, nil, false
 	}
 	var doc yaml.Node
 	if err := yaml.Unmarshal(f.Data, &doc); err != nil || len(doc.Content) == 0 || doc.Content[0].Kind != yaml.MappingNode {
-		return triggerUnknown, nil
+		return triggerUnknown, nil, false
 	}
 	root := doc.Content[0]
 	var on *yaml.Node
@@ -85,7 +87,7 @@ func workflowTriggers(f *File) (string, []tagPattern) {
 		}
 	}
 	if on == nil {
-		return triggerUnknown, nil
+		return triggerUnknown, nil, false
 	}
 	events := map[string]*yaml.Node{}
 	switch on.Kind {
@@ -98,6 +100,17 @@ func workflowTriggers(f *File) (string, []tagPattern) {
 	case yaml.MappingNode:
 		for i := 0; i+1 < len(on.Content); i += 2 {
 			events[on.Content[i].Value] = on.Content[i+1]
+		}
+	}
+	versionInput := false
+	if wd, ok := events["workflow_dispatch"]; ok && wd != nil && wd.Kind == yaml.MappingNode {
+		if inputs := mapGet(wd, "inputs"); inputs != nil && inputs.Kind == yaml.MappingNode {
+			for i := 0; i+1 < len(inputs.Content); i += 2 {
+				id := strings.ToLower(inputs.Content[i].Value)
+				if strings.Contains(id, "version") || (strings.Contains(id, "release") && strings.Contains(id, "tag")) {
+					versionInput = true
+				}
+			}
 		}
 	}
 	var tags []tagPattern
@@ -122,22 +135,22 @@ func workflowTriggers(f *File) (string, []tagPattern) {
 	_, release := events["release"]
 	switch {
 	case len(tags) > 0 || release:
-		return triggerTag, tags
+		return triggerTag, tags, versionInput
 	case hasBranch:
-		return triggerBranch, nil
+		return triggerBranch, nil, versionInput
 	}
 	if _, ok := events["workflow_call"]; ok {
-		return triggerReusable, nil
+		return triggerReusable, nil, versionInput
 	}
 	for _, e := range []string{"pull_request", "pull_request_target", "schedule", "merge_group"} {
 		if _, ok := events[e]; ok {
-			return triggerBranch, nil
+			return triggerBranch, nil, versionInput
 		}
 	}
 	if _, ok := events["workflow_dispatch"]; ok {
-		return triggerManual, nil
+		return triggerManual, nil, versionInput
 	}
-	return triggerUnknown, nil
+	return triggerUnknown, nil, false
 }
 
 func seqOrScalar(n *yaml.Node) []*yaml.Node {
@@ -165,15 +178,22 @@ var (
 	helmInstallRe    = regexp.MustCompile(`helm\s+(?:upgrade\s+--install|install|upgrade|template|pull|show\s+\w+)\s+(?:[^\s]+\s+)?([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)`)
 	registryVarRe    = regexp.MustCompile(`(?i)(^|_)(registry|hub|image_?repo(sitory)?|image_?namespace|docker_?repo|ko_docker_repo|container_?registry|image_?prefix|oci_?repo)$`)
 	ldflagsVersionRe = regexp.MustCompile(`-X\s*=?\s*['"]?[\w./-]+\.(?:[A-Za-z]*[Vv]ersion)=([^\s'"]+)`)
+	// versionArgRe matches a version passed as an argument to a release
+	// command ("$VERSION", "${{ inputs.version }}", --version v1.2.3).
+	versionArgRe = regexp.MustCompile(`(?i)(?:^|[\s="'/])(?:--?(?:app-)?version[= ]+\S+|\$\{?\{?(?:inputs\.)?version\}?\}?|"[^"]*version[^"]*")`)
+	// releaseActionRe matches commands that publish images.
+	releaseActionRe = regexp.MustCompile(`(?i)\b(push|promote|publish|release|upload|tag)[a-z-]*\b`)
 )
 
+func trimLeftSpace(s string) string { return strings.TrimSpace(s) }
+
 func detectWorkflow(st *scanState, f *File) {
-	trigger, tags := workflowTriggers(f)
+	trigger, tagPats, versionInput := workflowTriggers(f)
 	ctx := pathContext(f.Path)
 	if ctx == ctxDocs {
 		ctx = ctxNone
 	}
-	for _, t := range tags {
+	for _, t := range tagPats {
 		if strings.HasPrefix(t.pattern, "!") {
 			continue
 		}
@@ -193,6 +213,11 @@ func detectWorkflow(st *scanState, f *File) {
 	if trigger == triggerTag {
 		base = domain.ConfidenceHigh
 	}
+	// A release workflow (tag trigger, or a manual promotion whose dispatch
+	// input names a version) that pushes/promotes an image together with a
+	// version argument publishes release-tagged images even though the tag is
+	// a shell variable on the same line (crossplane's promote-images).
+	promotesRelease := trigger == triggerTag || (trigger == triggerManual && versionInput)
 	for i, line := range lines {
 		n := i + 1
 		trim := strings.TrimSpace(line)
@@ -220,7 +245,12 @@ func detectWorkflow(st *scanState, f *File) {
 				st.emit(KindRegistry, r, confFor(ctx, base), "workflow.registry-login", attrs(nil), f.Evidence(at))
 			}
 		}
+		promoteLine := promotesRelease && versionArgRe.MatchString(el) && releaseActionRe.MatchString(el)
 		for _, r := range findImageRefs(el) {
+			if promoteLine && !r.Partial && !r.OCI {
+				st.imageRefRelease(f, n, r, "workflow", ctx, trigger, base)
+				continue
+			}
 			st.imageRef(f, n, r, "workflow", ctx, trigger, base)
 		}
 		if m := helmPushRe.FindStringSubmatch(el); m != nil {
@@ -242,8 +272,14 @@ func detectWorkflow(st *scanState, f *File) {
 		if chartReleaserRe.MatchString(line) {
 			st.emit(KindBuildTool, "chart-releaser", base, "workflow.chart-releaser", attrs(nil), f.Evidence(n))
 			if st.info.Repo.IsGitHub() {
+				slug := st.info.Repo.Slug()
 				u := "https://" + strings.ToLower(st.info.Repo.Owner) + ".github.io/" + st.info.Repo.Name
 				st.emit(KindHelmRepo, u, domain.ConfidenceMedium, "workflow.chart-releaser-pages", attrs(nil), f.Evidence(n))
+				// chart-releaser writes index.yaml to the gh-pages branch; the
+				// same index is reachable on raw.githubusercontent.com even
+				// when the *.github.io host is not.
+				st.emit(KindHelmRepo, "https://raw.githubusercontent.com/"+slug+"/gh-pages", domain.ConfidenceMedium,
+					"workflow.chart-releaser-pages-raw", attrs(map[string]string{"pagesIndex": "true"}), f.Evidence(n))
 			}
 		}
 		if cosignSignRe.MatchString(line) {
@@ -361,6 +397,17 @@ func (st *scanState) registryAssignment(f *File, n int) bool {
 
 // imageRef turns a found registry reference into candidates.
 func (st *scanState) imageRef(f *File, n int, r foundRef, source, ctx, trigger string, base domain.Confidence) {
+	st.imageRefWithClass(f, n, r, source, ctx, trigger, base, "", "")
+}
+
+// imageRefRelease records an image reference from a release publish/promote
+// line: the release tag is a variable argument of the same command, so the
+// reference itself carries no tag but still names a release channel.
+func (st *scanState) imageRefRelease(f *File, n int, r foundRef, source, ctx, trigger string, base domain.Confidence) {
+	st.imageRefWithClass(f, n, r, source, ctx, trigger, base, tagRelease, tmplTag)
+}
+
+func (st *scanState) imageRefWithClass(f *File, n int, r foundRef, source, ctx, trigger string, base domain.Confidence, forceClass, forceTmpl string) {
 	conf := confFor(ctx, base)
 	attrs := map[string]string{"files": f.Path, "sources": source, "contexts": ctx, "triggers": trigger}
 	isChart := r.OCI || strings.Contains("/"+r.Path+"/", "/charts/") || strings.Contains("/"+r.Path+"/", "/helm/")
@@ -386,6 +433,9 @@ func (st *scanState) imageRef(f *File, n int, r foundRef, source, ctx, trigger s
 	}
 	if trigger == triggerBranch && (class == tagUnresolved || class == tagNone) {
 		class = tagSnapshot
+	}
+	if forceClass != "" {
+		class, tmpl = forceClass, forceTmpl
 	}
 	attrs["classes"] = class
 	attrs["tagTemplate"] = tmpl

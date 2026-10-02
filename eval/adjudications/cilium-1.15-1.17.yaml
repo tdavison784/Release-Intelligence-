@@ -1,0 +1,30 @@
+case: cilium-1.15-1.17
+reviewedAt: "2026-10-01"
+method: >-
+    Sample-based human adjudication (G9): every change matching a notExpected
+    entry plus a sample of unmatched changes, each read against the case's
+    cited upstream documents. Dataset false positives are confirmed or
+    overturned; unmatched samples get true-positive / false-positive /
+    uncertain verdicts. Verdicts feed labeledPrecision and the false-action
+    rate.
+adjudications:
+  - changeId: chg-3a5561927dcf
+    verdict: false-positive
+    reason: "the 1.16 notes list metrics deprecations/renames under upgrade notes, but a metrics rename is monitoring maintenance (dashboards), not upgrade work — the dataset says so and we stand by it"
+    # output was: Metrics `policy_regeneration_total` and `policy_regeneration_time_stats_seconds` have been deprecate
+  - changeId: chg-afada784050c
+    verdict: false-positive
+    reason: "Envoy NPDS metrics rename; monitoring maintenance (dataset verdict, REPORT.md)"
+    # output was: `envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout` -> `envoy_cilium_npds_init_fetch_tim
+  - changeId: chg-7edb48946d87
+    verdict: false-positive
+    reason: "doublewrite_identity metrics rename; monitoring maintenance"
+    # output was: `doublewrite_identity_crd_only_count` has been renamed to `doublewrite_identity_crd_only_total`
+  - changeId: chg-8d79d4a5dd2e
+    verdict: uncertain
+    reason: "new Helm value enableNonDefaultDenyPolicies — feature addition; upgrade-brief relevance is a policy call the dataset has not taken"
+    # output was: New Helm value `enableNonDefaultDenyPolicies`
+  - changeId: chg-14b1e65948bd
+    verdict: uncertain
+    reason: "new Helm values under authentication.* — same shape as above"
+    # output was: 4 new Helm values under `authentication.*`

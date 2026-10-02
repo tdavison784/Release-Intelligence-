@@ -1,0 +1,183 @@
+product: kube-prometheus-stack
+order: 6
+wave: 1
+repository: github.com/prometheus-community/helm-charts
+onboarding:
+  startedAt: "2026-10-01T13:25:27Z"
+  finishedAt: "2026-10-01T13:52:40Z"
+  minutes: 27                     # wall-clock, agent time (research, one generic construct with tests, authoring, checks, edges)
+discovery:
+  proposal: docs/onboarding/discovery/kube-prometheus-stack.proposed.yaml
+  report: docs/onboarding/discovery/kube-prometheus-stack.report.md
+# Every source and artifact of the FINAL definition, with where it came from.
+sources:
+  - {id: git-tags, origin: discovered, note: "proposal id `tags`; tagPrefix kube-prometheus-stack- was already right (discovery keyed it to the -id argument and the tag family matched)"}
+  - {id: helm-index, origin: manual, note: "the shared gh-pages index as a second versions source; discovery used it only as a chart channel for one sibling"}
+  - {id: github-release-notes, origin: manual, note: "one GitHub release per chart tag (scoped What's Changed); discovery reported release-notes not-found"}
+  - {id: operator-release-notes, origin: manual, note: "post-onboarding (eval-found gap): the operator's own release notes at the appVersion pin via the new {{.ArtifactVersionOf}} construct; validated 16/16 across 91.3.0-91.8.2 and the era boundaries 44.0.0, 47.0.0, 69.0.0, 70.0.0, 90.0.0, 91.0.0 (a pinned operator release exists at every chart tag of the window); classify declares the operator's [CHANGE]/[FEATURE]/[ENHANCEMENT]/[BUGFIX] taxonomy"}
+  - {id: upgrade-md, origin: manual, note: "UPGRADE.md (>= 70.0.0), section 'From NN.x to NN+1.x' by releaseKinds major"}
+  - {id: upgrade-readme, origin: manual, note: "same sections in the chart README before 70.0.0"}
+  - {id: github-advisories, origin: discovered, note: "proposal id advisories (kept; near-empty for a chart monorepo, the only upstream security channel)"}
+artifacts:
+  - {id: chart, origin: discovered-modified, note: "proposal kube-prometheus-stack-chart, template {{.Version}} validated via ghcr OCI; helm-repo canonical + gh-pages + helm-git channels added, contents ignoreKeys, exceptions for 3 never-indexed tags"}
+  - {id: crds, origin: discovered-modified, note: "proposal path charts/kube-prometheus-stack/charts/crds/crds was correct (validated); availability >= 48.0.0 added"}
+  - {id: crds-legacy, origin: manual, note: "the crds/ directory before the subchart (< 48.0.0)"}
+  - {id: prometheus-operator-image, origin: manual, note: "Chart.yaml appVersion via the new field strategy (discovery proposed the operator image, dropped: its tag is not the chart version)"}
+  - {id: kube-state-metrics-chart, origin: discovered-modified, note: "proposed as an independent artifact of the monorepo; now the dependency pin read from Chart.yaml (availability >= 74.0.0, exact-pin era)"}
+  - {id: prometheus-node-exporter-chart, origin: discovered-modified, note: "same (availability >= 72.0.0)"}
+  - {id: grafana-chart, origin: manual, note: "not in this monorepo (ghcr.io/grafana-community); pin read from Chart.yaml (availability >= 90.0.0, oci era)"}
+  - {id: prometheus-image, origin: discovered-modified, note: "proposed and dropped as template-versioned; now the values.yaml default tag via field"}
+  - {id: alertmanager-image, origin: discovered-modified, note: "same"}
+discoveryRejected:
+  - {id: "43 sibling charts as artifacts (independent)", reason: "a chart monorepo is not one product: discovery proposed every charts/* of the repository (alertmanager, jiralert, prometheus-*, ...) as independent artifacts of kube-prometheus-stack, each 'unverifiable'; they are separate products"}
+  - {id: "~25 exporter images as template-versioned artifacts", reason: "image tags read from values.yaml were probed at the chart version (absent); their real tags are per-release pins, represented by the field strategy instead (only the stack's own prometheus/alertmanager kept as artifacts)"}
+  - {id: "channels ghcr.io/prometheus-community/charts/prom-label-proxy/<chart>", reason: "resolver bug: a sibling chart's OCI namespace prepended to every other chart"}
+  - {id: "name: helm-charts", reason: "the proposal named the product after the repository; the product is the chart"}
+relationships:
+  # Default `ri check` (5 releases for this tag population) plus an explicit
+  # run over the era boundaries: 10.0.0 44.0.0 47.0.0 48.0.0 69.0.0 70.0.0
+  # 72.0.0 74.0.0 90.0.0 91.0.0.
+  historicalReleasesChecked: [10.0.0, 44.0.0, 47.0.0, 48.0.0, 69.0.0, 70.0.0, 72.0.0, 74.0.0, 90.0.0, 91.0.0, 91.6.0, 91.7.0, 91.7.1, 91.8.0, 91.8.2]
+  initialFailures: 0              # first complete draft, default check: 0 failing, 0 unverifiable
+  initialFailuresExtended: 0      # the era-boundary run also passed first time: the availability windows came from research (git history of Chart.yaml), not from check failures
+  finalFailures: 0
+  manualInterventions:
+    - {subject: github-release-notes/classify, change: "skip ^\\[(?:CI|Docs?|repo|chore)\\]; feature verb Provision; breaking split into rename/remove/no-longer and disable/enable ... by default", reason: "reading the sample edge: two [CI] items leaked into notable changes and the bare word 'default' flagged anything"}
+    - {subject: chart/helm-values, change: "ignoreKeys prometheus.prometheusSpec.image.tag, alertmanager.alertmanagerSpec.image.tag", reason: "the artifact diff reports those bumps with registry evidence; not twice (ingress-nginx precedent)"}
+  unverifiable: []                # every channel of every subject answered in the final run
+constructs:
+  new:
+    - name: version:field
+      kind: "version relation `version.strategy: field` + `field` (YAML path: dotted keys, [name=value] list selectors) + `from` (repo-file/http locator rendered at the release ref)"
+      justification: >-
+        The mirror of lookup: lookup finds the artifact whose index field matches the release
+        (operator products use it for "the chart whose appVersion is my version"); field reads the
+        version FROM a file of the release — required whenever the product is an aggregator that
+        pins sub-components per release. Here it yields probe-able artifact instances with upstream
+        evidence (Chart.yaml L9 for a dependency pin, values.yaml for an image tag), which a
+        content snapshot cannot: the edge then states "kube-state-metrics chart 8.4.2 → 8.6.0
+        [verified]" instead of diffing text. Catalog gains the strategy + path validation
+        (catalog.SplitYAMLPath), normalize the path walker over yaml.Node
+        (normalize.ReadYAMLPath, ErrNoMatch semantics), ingest the resolution with the document as
+        evidence, plus JSON Schema and unit tests in all three packages.
+      otherProducts:
+        - prometheus-operator (order 24, wave 3: the chart-side of the appVersion join between these two products)
+        - loki-stack (same monorepo family: loki/promtail/grafana dependency pins; well known, not in the plan)
+        - bitnami application charts (app image tag pinned in values.yaml, common dependency; well known)
+        - vault-helm (appVersion is the Vault version; vault already models the reverse lookup — the chart product would use field)
+    - name: field:artifacts.version.from
+      kind: "definition field: the locator the field strategy reads (repository, ref, path; release-context templates)"
+      justification: "the document half of version:field; stats counts the parent and each leaf separately"
+      otherProducts: ["same as version:field"]
+    - name: field:artifacts.version.from.kind
+      kind: "definition field: locator kind of the document the field strategy reads"
+      justification: "the document half of version:field; stats counts each leaf separately. from is a repo-file/http locator rendered at the release ref"
+      otherProducts: ["same as version:field"]
+    - name: field:artifacts.version.from.path
+      kind: "definition field: path of the document (Chart.yaml, values.yaml) with release-context templates"
+      justification: "each pin lives in a named file at the release ref; the path is the join key between artifact and evidence line"
+      otherProducts: ["same as version:field"]
+    - name: field:artifacts.version.from.ref
+      kind: "definition field: ref the document is read at ({{.Tag}})"
+      justification: "pins move with the chart tag, so the ref is the release tag; without it the pin would be read from the default branch and drift"
+      otherProducts: ["same as version:field"]
+    - name: field:artifacts.version.from.repository
+      kind: "definition field: repository the document is read from (the chart monorepo)"
+      justification: "the aggregator's pins live in the product repository itself, unlike lookup whose index is a registry"
+      otherProducts: ["same as version:field"]
+    - name: field:artifacts.channels.glob
+      kind: "definition field: glob selecting entries in a helm-repo index channel"
+      justification: "the gh-pages index of the monorepo lists every sibling chart; the channel needs kube-prometheus-stack-*.tgz to select its own entries (mirror of the tagPrefix idea on tags)"
+      otherProducts: ["loki-stack and any helm monorepo product (grafana charts moved to a monorepo too)"]
+    - name: field:sources.locator.chart
+      kind: "definition field: chart selector on a versions/note source inside a chart monorepo"
+      justification: "git-tags of prometheus-community/helm-charts carries every chart's tag family; the versions source needs chart=kube-prometheus-stack to keep its own tags (tagPrefix keeps the version shape, chart keeps the product)"
+      otherProducts: ["any product whose canonical channel is a chart in a multi-chart repository"]
+    - name: template-var:ArtifactVersionOf
+      kind: "template variable {{.ArtifactVersionOf \"artifact-id\"}} in source locators and extracts: renders another artifact's resolved version, so a source follows a pinned component (reading the component's own notes at its pinned tag). The followed artifact resolves before sources are consulted (strategy template/field/pattern only — derivable from the release alone, so no circularity); a follow that fails becomes the source's skipped/unavailable status, never a wrong locator"
+      justification: >-
+        The render-side mirror of version:field/pattern: those read a component pin out of
+        the release's own files; this renders the resolved pin into a source locator. It
+        closes the loop an aggregator needs — the chart's own notes (What's Changed,
+        UPGRADE.md) state THAT the operator was bumped, but its behavioural changes live
+        only in the operator's release body at the pinned tag, which the eval dataset's
+        standing misses (kube-prometheus-stack-90-91 E4/E5, important and minor, since its
+        first run) measured. Catalog gains the reference scanner (double-quoted literal
+        argument, statically checkable), validation (unknown artifact ids, unresolvable
+        strategies lookup/independent, and any use outside source templates rejected —
+        self-references included), ingest a pinned pre-resolution before the parallel
+        source/artifact fan-out with the resolution cached and reused by the followed
+        artifact (one from-document fetch, statuses and evidence recorded exactly once),
+        plus JSON Schema wording and unit tests in catalog and ingest.
+      otherProducts:
+        - flux (order 15): per-controller release notes at their kustomization pins — the *-controller pattern artifacts would each be followed by a notes source
+        - karpenter (order 7): the sigs.k8s.io/karpenter go.mod pin it recorded as a gap would be a version:pattern artifact whose upstream notes this construct then follows
+        - grafana (order 13) and the loki-stack family: aggregators whose sub-component pins are read with field can now also read the components' own notes at those pins
+  considered:
+    - {name: "chart-metadata snapshot diff (dependencies + appVersion as a content kind)", rejected: "would report pin changes as text diffs without versions, coordinates or probe verification; the artifact view subsumes it and reuses artifact diffing"}
+    - {name: "git-log {{.PrevTag}}..{{.Tag}} as release notes", rejected: "the range interleaves sibling-chart commits of the monorepo; the locator has no path filter and classify cannot negate a prefix (RE2); the per-tag GitHub release body is already scoped"}
+    - {name: "github-releases as the versions source", rejected: "listing monorepo releases pages through ~3500 of them (~35 API requests per run); git-tags is one clone/ls-remote"}
+    - {name: "prometheus-windows-exporter-chart artifact", rejected: "its dependency pin is a range (\"0.12.*\"), not a version; recorded as a gap, not forced"}
+    - {name: "CRD handling via the packed files/crds.bz2", rejected: "the plain YAMLs in charts/crds/crds are the same content, readable and diffable"}
+goChanges:
+  productSpecific: 0
+  generic:
+    - {file: internal/catalog/definition.go, purpose: "VersionField constant; VersionRelation.From locator"}
+    - {file: internal/catalog/yamlpath.go, purpose: "SplitYAMLPath: YAML path syntax (dotted keys, [field=value] selectors) shared with normalize"}
+    - {file: internal/catalog/validate.go, purpose: "field strategy validation (field path shape, from must be a single-document locator, no lookup leftovers); later: {{.ArtifactVersionOf}} reference validation (unknown ids, unresolvable strategies, artifact contexts rejected)"}
+    - {file: internal/catalog/yamlpath_test.go, purpose: "validation cases, schema round-trip, path parsing"}
+    - {file: internal/catalog/render.go, purpose: "post-onboarding: RenderContext.ArtifactVersions + the ArtifactVersionOf method (source templates follow a pinned artifact's resolved version) and the reference scanner (ReferencedArtifacts, SourceArtifactRefs)"}
+    - {file: internal/catalog/artifactrefs_test.go, purpose: "scanner, validation (unknown id, strategy, artifact contexts) and render tests for ArtifactVersionOf"}
+    - {file: schemas/product-definition.schema.json, purpose: "strategy enum + from locator + required-if rules; later: the ArtifactVersionOf placeholder in the template description"}
+    - {file: internal/normalize/yamlpath.go, purpose: "ReadYAMLPath: walk a YAML document along the path (merge keys resolved), scalar value + line, ErrNoMatch semantics"}
+    - {file: internal/normalize/yamlpath_test.go, purpose: "scalars, nesting, list selectors, error cases, quoted scalars"}
+    - {file: internal/ingest/artifacts.go, purpose: "resolveVersions case field: fetch the from document, read the path, missing path → missing artifact, evidence = the document with the line; later: resolutions carry their statuses and are cached per artifact (resolutionFor) so a followed artifact's resolution is reused, not recomputed"}
+    - {file: internal/ingest/pinned.go, purpose: "post-onboarding: pre-resolve the artifacts source templates follow before the parallel fan-out; pinned failure → the following source's skipped/unavailable/not-found status"}
+    - {file: internal/ingest/pinned_test.go, purpose: "follow at the pinned tag, per-release pins, resolution recorded once, unreachable/missing/not-applicable pins, extract-template follows, template-strategy follows"}
+    - {file: internal/ingest/parser.go, purpose: "Parser.ReadYAMLPath port"}
+    - {file: internal/ingest/fakes_test.go, purpose: "fake parser ReadYAMLPath"}
+    - {file: internal/ingest/fieldversion_test.go, purpose: "verified pin with line evidence, per-release pins, unreachable document, missing dependency"}
+    - {file: docs/ARCHITECTURE.md, purpose: "construct table row; later: the ArtifactVersionOf row + pinned pre-resolution in the upgrade data flow"}
+unreachableSources: []            # none: prometheus-community.github.io, raw.githubusercontent.com, ghcr.io (anonymous token), quay.io, api.github.com (60/h anonymous) and grafana.github.io all answered — the opposite of the historical *.github.io/quay/ghcr blocks other products hit
+ambiguousRelationships:
+  - "Tags 14.6.3, 18.0.4, 19.2.0 exist but have no index entry (1148 index versions vs 1151 stable tags): chart exceptions; the helm-git and OCI channels still see them."
+  - "Dependency pins were ranges before the Renovate switch (node-exporter exact from 72.0.0, grafana 73.0.0, kube-state-metrics 74.0.0): the pin artifacts stop there; Chart.lock (exact resolutions) existed only up to ~47.x."
+  - "appVersion carries a v since 44.0.0 (0.61.1-style before): the operator image artifact starts at 44.0.0; pre-44 quay tags unprobed."
+  - "The release body's What's Changed is generated over the compare window, which includes repository-level PRs ([CI] ...): classify skips them, but they are in the upstream notes."
+  - "Every chart major is declared 'breaking' by the README convention (CRD updates), but many X.0.0 sections only bump dependencies; the model reports what the section says, not the convention."
+  - "grafana dependency repository moved twice (grafana.github.io → grafana-community.github.io → oci://ghcr.io at 90.0.0); only the oci era is probed."
+representability: full             # of the release topology, with the field construct; the sub-chart pin *ranges* are the one deliberate cut
+gaps:
+  - "prometheus-windows-exporter: a dependency pin that is a semver range (\"0.12.*\") cannot be an artifact version; the component is invisible to the edge (only its values keys appear). Needs a 'constraint pin' notion or a resolution step."
+  - "Sub-chart pins before the exact era (< 72/73/74.0.0) are ranges resolved by Chart.lock (present ≤ 47.x): not represented; availability cuts the artifacts off."
+  - "Sub-component security: operator/grafana/prometheus CVEs live in the components' own advisories; this product cannot join them without a cross-product version join on the pinned versions (an impact-model question, G6/G7)."
+  - "thanos image default is pinned at two values keys (prometheusSpec.thanos, thanosRulerSpec): ambiguous as one artifact, so only the values diff reports it."
+  - "The chart's .tgz/.tgz.prov release assets have no channel kind for helm-chart artifacts (same gap ingress-nginx recorded); the index entry lists the URL."
+  - "git-log has no path filter and classify cannot negate a prefix: monorepo per-chart commit filtering is impossible without the GitHub API."
+  - "Discovery on a chart monorepo: the resolver proposes every sibling chart as an independent artifact and names the product after the repository; the tagPrefix (from -id) and the main chart artifact were right. A 'charts/* are separate products' rule and a dependency-pin candidate type are inputs for G3."
+sampleEdge:
+  from: 90.1.2
+  to: 91.8.2
+  summary: "1 breaking · 1 action required · 26 changes · 0 warnings"
+  evidenceRecords: 452
+  notes: >-
+    Chart-major crossing (path 90.2.0 → 91.0.0 → ... → 91.8.2, 8 backports
+    skipped). The migration item is UPGRADE.md "From 90.x to 91.x" (operator
+    v0.94.0, tightened ClusterRole, CRD-update commands) and the one breaking
+    item is "Disable prometheusScrape by default" (91.8.1). The artifact table
+    IS the aggregation topology: operator v0.93.1 → v0.94.1, kube-state-metrics
+    8.4.2 → 8.6.0, node-exporter 4.56.3 → 4.59.0, grafana 13.2.4 → 13.2.7,
+    prometheus v3.14.0 → v3.15.0-distroless, alertmanager v0.34.0 → v0.34.1,
+    all verified at their registries; 4 CRD schema diffs and 8 values changes
+    alongside. Within-major edge 91.7.1 → 91.8.2: 1 breaking · 0 action · 4
+    changes · 140 evidence records.
+notes: >-
+  The stress test this product was chosen for resolved into one generic
+  construct (field) plus configuration: the chart is the release (template
+  relation), the sub-components are per-release pins read out of the release's
+  own files, the CRDs are a contents snapshot behind an availability window,
+  and the upgrade guidance is a heading-selected section of a cumulative guide.
+  Zero check failures on the first run (research before authoring paid for
+  itself: every availability window came from the git history of Chart.yaml),
+  zero unverifiable subjects, and — unlike every earlier product — no blocked
+  hosts. 27 minutes, 6 sources, 9 artifacts, 0 product-specific Go lines.

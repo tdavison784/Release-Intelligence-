@@ -1,0 +1,157 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: loki
+name: loki
+homepage: https://github.com/grafana/loki
+versioning:
+  scheme: semver
+  tagPrefix: helm-loki-
+  tagPattern: ^helm-loki-(?P<version>\d+\.\d+\.\d+)$
+  lineage: linear
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/grafana/loki
+      tagPattern: ^helm-loki-(?P<version>\d+\.\d+\.\d+)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: grafana/loki
+    priority: 1
+  - id: changelog
+    roles:
+      - changelog
+    locator:
+      kind: repo-file
+      repository: github.com/grafana/loki
+      path: production/helm/loki/CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: ^\[?v?{{regexQuote .Version}}\]?(\s|$)
+    validatedAgainst:
+      - 7.0.0
+      - 7.1.0
+      - 7.2.0
+      - 7.3.0
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: grafana/loki
+artifacts:
+  - id: loki-chart
+    type: helm-chart
+    name: loki
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: ghcr.io/grafana-community/helm-charts/loki
+      - kind: helm-repo
+        url: https://grafana.github.io/helm-charts
+        chart: loki
+      - kind: helm-repo
+        url: https://grafana-community.github.io/helm-charts
+        chart: loki
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/grafana/loki
+          path: production/helm/loki/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/grafana/loki
+          path: production/helm/loki/Chart.yaml
+    validatedAgainst:
+      - 7.0.0
+      - 7.1.0
+      - 7.2.0
+      - 7.3.0
+  - id: loki-md-chart
+    type: helm-chart
+    name: loki.md
+    version:
+      strategy: lookup
+      field: appVersion
+      match: '{{.Tag}}'
+      select: latest
+    channels:
+      - kind: helm-repo
+        url: https://grafana.github.io/k8s-monitoring-helm
+        chart: loki.md
+      - kind: helm-git
+        repository: github.com/grafana/k8s-monitoring-helm
+        path: charts/k8s-monitoring/charts/feature-integrations/docs/integrations/loki.md
+        tagPattern: ^loki\.md-(?P<version>\d+\.\d+\.\d+)$
+    notes: 'Chart maintained in github.com/grafana/k8s-monitoring-helm with its own version; chart releases are found by appVersion. 0 of 324 chart-repository tags match ^loki\.md-(?P<version>\d+\.\d+\.\d+)$. Unverified by discovery (unverifiable: 7.0.0 unverifiable (no version index answered: helm-repo index https://grafana.github.io/k8s-monitoring-helm (chart loki.md): not-found; helm-git index github.com/grafana/k8s-monitoring-helm:charts/k8s-monitoring/charts/feature-integrations/docs/integrations/loki.md does not expose appVersion); 7.1.0 unverifiable (no version index answered: helm-repo index https://grafana.github.io/k8s-monitoring-helm (chart loki.md): not-found; helm-git index github.com/grafana/k8s-monitoring-helm:charts/k8s-monitoring/charts/feature-integrations/docs/integrations/loki.md does not expose appVersion); 7.2.0 unverifiable (no version index answered: helm-repo index https://grafana.github.io/k8s-monitoring-helm (chart loki.md): not-found; helm-git index github.com/grafana/k8s-monitoring-helm:charts/k8s-monitoring/charts/feature-integrations/docs/integrations/loki.md does not expose appVersion); 7.3.0 unverifiable (no version index answered: helm-repo index https://grafana.github.io/k8s-monitoring-helm (chart loki.md): not-found; helm-git index github.com/grafana/k8s-monitoring-helm:charts/k8s-monitoring/charts/feature-integrations/docs/integrations/loki.md does not expose appVersion)).'
+  - id: operator-hack-addon-grafana-gateway-ocp
+    type: manifest
+    name: addon_grafana_gateway_ocp.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/grafana/loki
+        path: operator/hack/addon_grafana_gateway_ocp.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 7.0.0
+      - 7.1.0
+      - 7.2.0
+      - 7.3.0
+  - id: operator-hack-addon-grafana-gateway-ocp-oauth
+    type: manifest
+    name: addon_grafana_gateway_ocp_oauth.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/grafana/loki
+        path: operator/hack/addon_grafana_gateway_ocp_oauth.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 7.0.0
+      - 7.1.0
+      - 7.2.0
+      - 7.3.0
+  - id: crds
+    type: crd
+    name: CustomResourceDefinitions
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-dir
+        repository: github.com/grafana/loki
+        path: operator/config/crd/bases
+        glob: '*.yaml'
+    contents:
+      - kind: crds
+    validatedAgainst:
+      - 7.0.0
+      - 7.1.0
+      - 7.2.0
+      - 7.3.0
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  validatedReleases:
+    - helm-loki-7.0.0
+    - helm-loki-7.1.0
+    - helm-loki-7.2.0
+    - helm-loki-7.3.0
+  notes: Proposed by automated discovery; relationship checks run against helm-loki-7.0.0, helm-loki-7.1.0, helm-loki-7.2.0, helm-loki-7.3.0.

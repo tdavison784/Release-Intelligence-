@@ -1,0 +1,48 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: terraform-provider-aws
+name: terraform-provider-aws
+homepage: https://github.com/hashicorp/terraform-provider-aws
+versioning:
+  scheme: semver
+  tagPrefix: v
+  lineage: linear
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/hashicorp/terraform-provider-aws
+  - id: changelog
+    roles:
+      - changelog
+    locator:
+      kind: repo-file
+      repository: github.com/hashicorp/terraform-provider-aws
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: ^\[?v?{{regexQuote .Version}}\]?(\s|$)
+    validatedAgainst:
+      - 6.64.0
+      - 6.65.0
+      - 6.66.0
+      - 6.67.0
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: hashicorp/terraform-provider-aws
+artifacts: []
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-01"
+  validatedReleases:
+    - v6.64.0
+    - v6.65.0
+    - v6.66.0
+    - v6.67.0
+  notes: Proposed by automated discovery; relationship checks run against v6.64.0, v6.65.0, v6.66.0, v6.67.0.

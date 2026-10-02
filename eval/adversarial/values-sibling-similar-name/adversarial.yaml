@@ -1,0 +1,24 @@
+# Attack: v2.0 removes metrics.prometheusRule.default; the customer sets the
+# similarly-named sibling metrics.prometheusRule.defaultLabels. A prefix- or
+# string-contains join confuses them; the segment-wise comparison must not.
+id: values-sibling-similar-name
+attacks: removed Helm key with a similarly-named sibling set by the customer
+expectation: >-
+  the sibling is not the removed key (keys compare segment-wise, docs/IMPACT.md
+  "relation"); no finding may claim the customer's key was removed, and with
+  the values dimension supplied the removed key is checked-and-clear
+edge:
+  changes:
+    - rule: values:removed
+      title: "The value metrics.prometheusRule.default was removed in v2.0.0"
+      subjects: [metrics.prometheusRule.default]
+      category: helm-values
+environment:
+  files: [values.yaml]
+expect:
+  present:
+    - rule: impact:values-unset
+      classification: not-affected
+  absent:
+    - rule: impact:values-removed
+    - subject: metrics.prometheusRule.defaultLabels

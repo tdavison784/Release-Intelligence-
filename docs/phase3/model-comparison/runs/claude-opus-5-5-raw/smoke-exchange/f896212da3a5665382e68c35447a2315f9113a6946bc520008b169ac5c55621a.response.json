@@ -1,0 +1,16 @@
+{
+  "format": "ri.dev/llm-exchange/response/v1",
+  "promptDigest": "sha256:f896212da3a5665382e68c35447a2315f9113a6946bc520008b169ac5c55621a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "generatedAt": "2026-10-02T01:35:33Z",
+  "output": {
+    "title": "ValidateCAA gate removal: no feature-gate setting visible, values incomplete",
+    "verdict": "undetermined",
+    "content": "The release notes say the deprecated `ValidateCAA` feature gate was removed in v1.18.0, and setting it now does nothing except print a warning log line. None of the 9 values keys listed (for example `replicaCount`, `webhook.timeoutSeconds`, `prometheus.servicemonitor.*`, `global.*`) sets a feature gate. However, the values dimension is only partial, and cert-manager is deployed through a Flux HelmRelease (helm.toolkit.fluxcd.io/v2), an Argo CD Application (argoproj.io/v1alpha1) and helmfile, so feature gates could be set somewhere this summary doesn't show. To settle it, check whether the HelmRelease values, the Application values, the helmfile values or the controller Deployment args set `ValidateCAA` anywhere; if one does, remove it to avoid the warning log line.",
+    "citations": [
+      "ev-853844eb542e"
+    ],
+    "confidence": "medium"
+  }
+}
