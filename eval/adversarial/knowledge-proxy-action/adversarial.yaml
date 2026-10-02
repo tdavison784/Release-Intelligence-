@@ -11,17 +11,17 @@ knowledge:
   minVerification: proxy
   facts:
     - level: proxy
-      subject: {family: helm-value, path: gateway.logLevel}
-      change: {type: default-changed, before: '"info"', after: '"debug"'}
-      exposure: {op: values-key, path: gateway.logLevel, state: unset}
-      consequence: {kind: workload-failure, statement: "Gateway logging flips to debug on upgrade."}
-      statement: "The default gateway.logLevel changed from info to debug."
-      anchors: ["The default value of gateway.logLevel changed from info to debug"]
+      subject: {family: helm-value, path: gateway.legacyAuth}
+      change: {type: removed}
+      exposure: {op: values-key, path: gateway.legacyAuth, state: set}
+      consequence: {kind: setting-ignored, statement: "gateway.legacyAuth is no longer read; the gateway falls back to the default authentication mode."}
+      statement: "The gateway.legacyAuth value was removed."
+      anchors: ["The gateway.legacyAuth value was removed"]
 edge:
   changes:
     - rule: note
-      title: "The default value of gateway.logLevel changed from info to debug"
-      subjects: [gateway.logLevel]
+      title: "The gateway.legacyAuth value was removed"
+      subjects: [gateway.legacyAuth]
       category: configuration
 environment:
   files: [values.yaml]
