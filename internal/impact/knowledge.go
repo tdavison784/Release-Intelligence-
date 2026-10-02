@@ -24,6 +24,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/knowledge"
 	"github.com/tdavison784/release-intelligence/internal/upgrade"
 )
 
@@ -570,4 +571,82 @@ func knowledgeText(f domain.VerifiedFact, class domain.ImpactClass, rule string,
 	}
 	d = append(d, v+").")
 	return title, strings.Join(d, "\n")
+}
+
+// --- which facts may be evaluated ---------------------------------------------------------
+
+// VerifyFacts returns the facts of the snapshot whose verification is proven
+// by the snapshot's own records: each passes VerifiedFact.Validate and
+// domain.ValidateFactRecords (a deterministic aspect rests on a confirming
+// validation, a human/proxy aspect on an accept/correct decision by a
+// reviewer of exactly that kind, a consensus aspect on agreeing independent
+// proposals). A fact file that claims a level its records do not prove — a
+// proxy decision dressed up as human, a basis that does not resolve — is
+// rejected, never evaluated. rejected explains each refusal.
+func VerifyFacts(s *knowledge.Snapshot) (facts []domain.VerifiedFact, rejected []string) {
+	if s == nil {
+		return nil, nil
+	}
+	rec := domain.FactRecords{
+		Validations: map[string]domain.ValidationResult{}, Decisions: map[string]domain.ReviewDecision{},
+		Items: map[string]domain.ReviewItem{}, Proposals: map[string]domain.SemanticProposal{},
+	}
+	for _, v := range s.Validations {
+		rec.Validations[v.ID] = v
+	}
+	for _, d := range s.Decisions {
+		rec.Decisions[d.ID] = d
+	}
+	for _, it := range s.ReviewItems {
+		rec.Items[it.ID] = it
+	}
+	for _, p := range s.Proposals {
+		rec.Proposals[p.ID] = p
+	}
+	for _, f := range s.Facts {
+		if err := f.Validate(); err != nil {
+			rejected = append(rejected, fmt.Sprintf("%s: %v", f.ID, err))
+			continue
+		}
+		if err := domain.ValidateFactRecords(f, rec); err != nil {
+			rejected = append(rejected, fmt.Sprintf("%s: verification not proven by its records: %v", f.ID, err))
+			continue
+		}
+		facts = append(facts, f)
+	}
+	sort.SliceStable(facts, func(i, j int) bool { return facts[i].ID < facts[j].ID })
+	return facts, rejected
+}
+
+// ReviewContexts maps each fact to the environment labels its human/proxy
+// decisions were reviewed with (ReviewItem.Context), for the transfer subset
+// of the evaluation (DESIGN.md §7): a link decided by a fact that was never
+// reviewed with that environment as context measures transfer.
+func ReviewContexts(s *knowledge.Snapshot) map[string][]string {
+	out := map[string][]string{}
+	if s == nil {
+		return out
+	}
+	items := map[string]domain.ReviewItem{}
+	for _, it := range s.ReviewItems {
+		items[it.ID] = it
+	}
+	decisions := map[string]domain.ReviewDecision{}
+	for _, d := range s.Decisions {
+		decisions[d.ID] = d
+	}
+	for _, f := range s.Facts {
+		for _, v := range f.Verification {
+			for _, id := range v.Basis {
+				d, ok := decisions[id]
+				if !ok {
+					continue
+				}
+				if it, ok := items[d.ReviewItemID]; ok && it.Context != nil && it.Context.Label != "" {
+					out[f.ID] = appendUnique(out[f.ID], it.Context.Label)
+				}
+			}
+		}
+	}
+	return out
 }

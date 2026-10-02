@@ -21,6 +21,11 @@ type ImpactOptions struct {
 	// Environment names the local inputs to parse (see env.Inputs). At least
 	// one must be set.
 	Environment env.Inputs
+	// Facts is verified knowledge to evaluate against the environment
+	// (LoadKnowledge); MinVerification keeps facts at or above the level
+	// ("" = human). Without facts the report is the knowledge-free join.
+	Facts           []domain.VerifiedFact
+	MinVerification domain.VerificationLevel
 }
 
 // Impact builds the UpgradeEdge for product from → to and joins it with the
@@ -49,7 +54,7 @@ func (a *App) ImpactParts(ctx context.Context, productID, from, to string, opts 
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("environment: %w", err)
 	}
-	rep, err := impact.Build(impact.Input{Edge: edge, Env: e, Now: a.now().UTC()})
+	rep, err := impact.Build(impact.Input{Edge: edge, Env: e, Now: a.now().UTC(), Facts: opts.Facts, MinVerification: opts.MinVerification})
 	if err != nil {
 		return nil, nil, nil, err
 	}
