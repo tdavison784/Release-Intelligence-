@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -478,6 +480,43 @@ func (i *Ingester) snapshotContent(r *run, ar *artifactRun, c catalog.Content, a
 		ar.snapshots = append(ar.snapshots, domain.Snapshot{ArtifactID: a.ID, Kind: domain.SnapshotImages, Images: &domain.ImageRefsSnapshot{Images: images}, Evidence: ids})
 		ar.facts = append(ar.facts, snapshotFact(fmt.Sprintf("images referenced by %s %s: %d (%s)", a.Name, version, len(images), rep)))
 		return fmt.Sprintf("%d image references (%s)", len(images), rep), evs, nil
+
+	case catalog.ContentLines:
+		re, err := regexp.Compile(c.Pattern)
+		if err != nil {
+			return "", nil, fmt.Errorf("pattern: %w", err)
+		}
+		seen := map[string]bool{}
+		var lines []string
+		for _, d := range docs {
+			for _, line := range strings.Split(string(d.Content), "\n") {
+				m := re.FindStringSubmatch(line)
+				if m == nil {
+					continue
+				}
+				kept := strings.TrimSpace(line)
+				if len(m) > 1 {
+					kept = strings.TrimSpace(m[1])
+				}
+				if kept != "" && !seen[kept] {
+					seen[kept] = true
+					lines = append(lines, kept)
+				}
+			}
+		}
+		sort.Strings(lines)
+		label := c.Label
+		if label == "" {
+			label = path.Base(docs[0].Path)
+			if label == "" || label == "." || label == "/" {
+				label = path.Base(docs[0].URI)
+			}
+		}
+		ar.evidence = append(ar.evidence, evs...)
+		ar.snapshots = append(ar.snapshots, domain.Snapshot{ArtifactID: a.ID, Kind: domain.SnapshotLines,
+			Lines: &domain.LinesSnapshot{Source: label, Pattern: c.Pattern, Lines: lines}, Evidence: ids})
+		ar.facts = append(ar.facts, snapshotFact(fmt.Sprintf("lines of %s %s matching %q: %d (%s)", label, version, c.Pattern, len(lines), rep)))
+		return fmt.Sprintf("%d lines matching the pattern (%s)", len(lines), rep), evs, nil
 	}
 	return "", nil, fmt.Errorf("unknown content kind %q", kind)
 }

@@ -213,7 +213,7 @@
             "additionalProperties": false,
             "required": ["kind"],
             "properties": {
-              "kind": {"enum": ["helm-values", "chart-metadata", "crds", "image-refs"]},
+              "kind": {"enum": ["helm-values", "chart-metadata", "crds", "image-refs", "lines"]},
               "locator": {"$ref": "#/$defs/locator", "description": "Where the content is read from. Kinds helm-repo, oci (a chart repository) and chart-tgz read the packaged chart archive (the published-artifact representation); http, repo-file and repo-dir read documents. When omitted, the artifact's first readable channel is used."},
               "compareWith": {"$ref": "#/$defs/locator", "description": "Alternate representation of the same content (e.g. the published chart archive vs the source tree), read for comparison only; a representation.divergence fact records when they differ so preferring one representation is never silent."},
               "availability": {"$ref": "#/$defs/constraint"},
@@ -222,7 +222,9 @@
                 "type": "array",
                 "items": {"type": "string", "minLength": 1},
                 "description": "helm-values only: dotted values keys (after stripPrefix) excluded from the snapshot, for keys rewritten by release tooling at build time (e.g. image hub/tag placeholders in source-tree values). An entry ending in .* also matches every key below it."
-              }
+              },
+              "pattern": {"type": "string", "description": "lines only: RE2 pattern applied to every line of the document; matching lines (or the first capture group) are kept, trimmed and de-duplicated. The two releases of an edge are compared as sets, so a statement that stays put is no change."},
+              "label": {"type": "string", "description": "lines only: names the document in the changes; default the base name of the document."}
             }
           }
         },

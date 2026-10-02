@@ -109,7 +109,7 @@ var channelKinds = map[domain.ArtifactType][]string{
 }
 
 var knownContent = map[string]bool{
-	ContentHelmValues: true, ContentChartMetadata: true, ContentCRDs: true, ContentImageRefs: true,
+	ContentHelmValues: true, ContentChartMetadata: true, ContentCRDs: true, ContentImageRefs: true, ContentLines: true,
 }
 
 var knownCategories = func() map[domain.Category]bool {
@@ -305,6 +305,16 @@ func Validate(d *ProductDefinition) ValidationReport {
 				}
 			}
 			v.constraint(cp+".availability", c.Availability)
+			switch {
+			case c.Kind == ContentLines && strings.TrimSpace(c.Pattern) == "":
+				v.errf(cp+".pattern", "required for %s contents", ContentLines)
+			case c.Kind == ContentLines:
+				if _, err := regexp.Compile(c.Pattern); err != nil {
+					v.errf(cp+".pattern", "invalid regular expression: %v", err)
+				}
+			case c.Pattern != "" || c.Label != "":
+				v.errf(cp+".pattern", "pattern and label are only supported for %s contents", ContentLines)
+			}
 			if c.StripPrefix != "" && c.Kind != ContentHelmValues {
 				v.errf(cp+".stripPrefix", "only supported for %s contents", ContentHelmValues)
 			}

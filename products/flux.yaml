@@ -409,6 +409,17 @@ artifacts:
         locator:
           kind: http
           url: "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/install.yaml"
+      # What the CRD descriptions say about their own fields: removal and
+      # deprecation notices ("Note: The `Updated` template field has been
+      # removed. Use `Changed` instead.", "Deprecated: ... Will be removed in
+      # v1."). They have no schema structure, so a field dropped from a text
+      # contract (a commit message template) shows up nowhere else.
+      - kind: lines
+        label: install.yaml
+        locator:
+          kind: http
+          url: "https://github.com/fluxcd/flux2/releases/download/{{.Tag}}/install.yaml"
+        pattern: '(?i)\b(?:has|have) been removed\b|^\s*Deprecated:|\bwill be removed\b'
   # the second OCI artifact of the generated manifests (workflow job added
   # between v2.0.0 and v2.1.0): the flux pull/OCI-install distribution
   - id: flux-manifests-oci

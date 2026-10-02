@@ -121,6 +121,26 @@ Charts published only to a registry (Karpenter on ECR Public) declare
 `contents: [helm-values, chart-metadata]` with no locator: the artifact's `oci`
 channel serves the packaged chart (representation `published-oci-chart`).
 
+## Statements the artifact makes about itself (`lines`)
+
+Some upstream facts have no structure: a CRD field description that says it "has been removed", a source file that
+rejects a retired flag, a documentation page that lists the tested operand versions. A `lines` content keeps the
+lines of a document matching a declared pattern as a snapshot (`Snapshot.lines`: source label, pattern, sorted
+trimmed lines) and `upgrade.Build` diffs the two releases as sets: `lines:added` / `lines:removed`, one computed
+change per line (category `other`, subject = the line, evidence = the snapshot documents of both releases), at most 25
+per direction plus one summary. A line both releases have is no change, however often the statement is repeated.
+
+```yaml
+contents:
+  - kind: lines
+    label: install.yaml
+    locator: {kind: http, url: "https://github.com/o/r/releases/download/{{.Tag}}/install.yaml"}
+    pattern: '(?i)\b(?:has|have) been removed\b|^\s*Deprecated:'
+```
+
+The impact join treats these changes as not-yet-joined (unknown with a specific reason). One lines content per
+artifact (snapshots are keyed by artifact and kind).
+
 ## Definition surface
 
 ```yaml

@@ -143,6 +143,7 @@ const (
 	SnapshotHelmValues SnapshotKind = "helm-values" // flattened default values of a chart
 	SnapshotCRDs       SnapshotKind = "crds"        // summary of CRDs shipped by a release
 	SnapshotImages     SnapshotKind = "image-refs"  // images referenced by a manifest/chart
+	SnapshotLines      SnapshotKind = "lines"       // the lines of a document that match a declared pattern
 )
 
 // Snapshot is a deterministic, structured view of an artifact used to compute
@@ -153,6 +154,7 @@ type Snapshot struct {
 	Values     *ValuesSnapshot    `json:"values,omitempty"`
 	CRDs       *CRDSnapshot       `json:"crds,omitempty"`
 	Images     *ImageRefsSnapshot `json:"images,omitempty"`
+	Lines      *LinesSnapshot     `json:"lines,omitempty"`
 	Evidence   []EvidenceID       `json:"evidence"`
 }
 
@@ -207,6 +209,21 @@ type CRDFieldSchema struct {
 	Enum []string `json:"enum,omitempty"`
 	// Required reports that the parent schema lists this property in required.
 	Required bool `json:"required,omitempty"`
+}
+
+// LinesSnapshot is the set of lines of a document (a source file, a generated
+// manifest, a documentation page) that match the pattern a product definition
+// declares: the statements the artifact makes about itself (removal and
+// deprecation notices, annotated comments, version lists). Two releases are
+// compared as sets, so a statement that stays put is no change.
+type LinesSnapshot struct {
+	// Source is the label the changes name the document by (the content's
+	// label, else the document's base name).
+	Source string `json:"source"`
+	// Pattern is the RE2 pattern the lines matched.
+	Pattern string `json:"pattern"`
+	// Lines are the matching lines, trimmed, de-duplicated and sorted.
+	Lines []string `json:"lines"`
 }
 
 // ImageRefsSnapshot lists container images referenced by an artifact.

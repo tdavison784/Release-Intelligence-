@@ -292,6 +292,16 @@
       },
       "additionalProperties": false
     },
+    "LinesSnapshot": {
+      "type": "object",
+      "required": ["source", "pattern", "lines"],
+      "properties": {
+        "source": {"type": "string"},
+        "pattern": {"type": "string"},
+        "lines": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
     "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
     "NoteItem": {
       "type": "object",
@@ -495,10 +505,16 @@
         "values": {"$ref": "#/$defs/ValuesSnapshot"},
         "crds": {"$ref": "#/$defs/CRDSnapshot"},
         "images": {"$ref": "#/$defs/ImageRefsSnapshot"},
+        "lines": {"$ref": "#/$defs/LinesSnapshot"},
         "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
       },
       "additionalProperties": false,
-      "oneOf": [{"required": ["values"]}, {"required": ["crds"]}, {"required": ["images"]}],
+      "oneOf": [
+        {"required": ["values"]},
+        {"required": ["crds"]},
+        {"required": ["images"]},
+        {"required": ["lines"]}
+      ],
       "allOf": [
         {
           "if": {"properties": {"kind": {"const": "helm-values"}}, "required": ["kind"]},
@@ -511,10 +527,14 @@
         {
           "if": {"properties": {"kind": {"const": "image-refs"}}, "required": ["kind"]},
           "then": {"required": ["images"]}
+        },
+        {
+          "if": {"properties": {"kind": {"const": "lines"}}, "required": ["kind"]},
+          "then": {"required": ["lines"]}
         }
       ]
     },
-    "SnapshotKind": {"type": "string", "enum": ["helm-values", "crds", "image-refs"]},
+    "SnapshotKind": {"type": "string", "enum": ["helm-values", "crds", "image-refs", "lines"]},
     "SourceRole": {
       "type": "string",
       "enum": ["versions", "release-notes", "changelog", "upgrade-guide", "compatibility", "security"]
