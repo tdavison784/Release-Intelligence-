@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-e3b200083804",
+    "candidateId": "sc-1007e5d829a0",
+    "product": "flux",
+    "questionType": "classification",
+    "question": "Is fact vf-1bc7f356d92e (Storage version of `imageupdateautomations.image.toolkit.fluxcd.io` changes v1beta2 → v1) still correct? Reject to retract it; correct to supersede it.",
+    "proposed": {
+      "subject": {
+        "family": "gvk",
+        "product": "flux",
+        "group": "image.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "ImageUpdateAutomation"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "gvk",
+          "product": "flux",
+          "group": "image.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "ImageUpdateAutomation"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "image.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "ImageUpdateAutomation"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImageUpdateAutomation objects stay stored as v1beta2 until rewritten; a storage version migration must be run and status.storedVersions updated before a later release removes v1beta2.",
+        "remediation": "Re-write all ImageUpdateAutomation objects and update status.storedVersions on the CRD.",
+        "severity": "medium"
+      },
+      "statement": "Storage version of `imageupdateautomations.image.toolkit.fluxcd.io` changes v1beta2 → v1"
+    },
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "auto-approved",
+        "consensus-cross-model",
+        "consensus-same-model",
+        "policy-general"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T16:07:21.769251-05:00"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-459f7672041e",
+    "candidateId": "sc-664f60a3392a",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Content-Type Auto-Detection: In v3, the `Content-Type` header is not auto-detected anymore when it is not set by the backend\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Responses whose backend does not set Content-Type no longer get an auto-detected Content-Type header unless the ContentType middleware is used.",
+        "remediation": "Use the ContentType middleware to enable Content-Type auto-detection.",
+        "severity": "medium"
+      },
+      "statement": "In v3, Traefik no longer auto-detects the Content-Type header when the backend doesn't set it; the ContentType middleware must be used to enable auto-detection."
+    },
+    "proposals": [
+      "sp-567938771dbb",
+      "sp-98d732e12b95"
+    ],
+    "validations": [
+      "val-0d5b2d4b7d57",
+      "val-1b8ffcbcb51c",
+      "val-ad35ebda34da"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:55:02Z"
+  }
+}

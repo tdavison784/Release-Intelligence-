@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-dc5fa98fcdb4",
+    "candidateId": "sc-8f899185ace7",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"More results caching is enabled by default: The TSDB index type has support for caching results for 'stats' and 'volume' queries which are now enabled by…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "loki.query_range.results_cache",
+              "state": "unset"
+            },
+            {
+              "op": "gvk-in-use",
+              "version": "v1",
+              "kind": "LokiStack"
+            }
+          ]
+        }
+      },
+      "statement": "Results caching for 'stats', 'volume', 'label', and 'series' queries in the TSDB index type is now enabled by default, caching to the results_cache configured in the query_range config section using an in-memory cache by default."
+    },
+    "proposals": [
+      "sp-1048491ea11d",
+      "sp-57223ead0bd4"
+    ],
+    "validations": [
+      "val-3738d455c637",
+      "val-6ac17b56bcad",
+      "val-fcf22cf921ab"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T16:14:40Z"
+  }
+}

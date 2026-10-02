@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d6efd7771fa1",
+    "candidateId": "sc-b5337b9186fc",
+    "proposalId": "sp-581b2914bcc6",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1alpha1",
+        "kind": "ScrapeConfig",
+        "path": "spec.ovhcloudSDConfigs[].service"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ovhcloudSDConfigs[].service",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.ovhcloudSDConfigs[].service",
+                  "state": "not-equals",
+                  "values": [
+                    "\"DedicatedServer\"",
+                    "\"VPS\""
+                  ]
+                }
+              ]
+            }
+          ],
+          "group": "monitoring.coreos.com",
+          "version": "v1alpha1",
+          "kind": "ScrapeConfig"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "A ScrapeConfig whose spec.ovhcloudSDConfigs[].service is set to a value other than \"DedicatedServer\" or \"VPS\" is rejected by the API server, since the field is now enum-constrained where it previously had no such restriction.",
+        "remediation": "Set spec.ovhcloudSDConfigs[].service to one of the allowed values \"DedicatedServer\" or \"VPS\" (or remove the ovhcloud SD config) before applying or updating ScrapeConfig resources against the new release.",
+        "severity": "medium"
+      },
+      "statement": "In the monitoring.coreos.com/v1alpha1 schema of scrapeconfigs.monitoring.coreos.com, the allowed values of spec.ovhcloudSDConfigs[].service changed: no enum values were removed and \\\"DedicatedServer\\\" and \\\"VPS\\\" were added, so the field is now restricted to those two values and any other value is rejected by the API server."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

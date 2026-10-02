@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5649bc6e8c1a",
+    "candidateId": "sc-3bc79c41ad32",
+    "proposalId": "sp-af46b2470745",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "version": "v2",
+        "kind": "CompositeResourceDefinition",
+        "path": "spec.scope"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"Namespaced\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "apiextensions.crossplane.io",
+          "version": "v2",
+          "kind": "CompositeResourceDefinition"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Composite resources become namespaced by default in v2; existing v1 XRDs continue to work in LegacyCluster mode but v2 XRDs do not support claims.",
+        "severity": "high"
+      },
+      "statement": "Crossplane v2 makes composite resources (XRs) namespaced by default, with a new `scope` field on CompositeResourceDefinition (XRD) that defaults to `Namespaced` in v2 API and XR machinery moved under `spec.crossplane`; v1-style XRDs in `LegacyCluster` mode remain backward compatible without claims support in v2."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

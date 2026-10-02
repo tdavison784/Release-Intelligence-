@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-2c08b9087e61",
+    "candidateId": "sc-3e5ed0e52781",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Store for retrieving remote schema: Previously LogCLI used to fetch remote schema from the store configured in `-boltdb.shipper.shared-store` when…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "LogCLI used the store from -boltdb.shipper.shared-store to fetch remote schema; the store for remote schema is now configured with -schema-store.",
+        "remediation": "Set -schema-store to the store used for retrieving remote schema."
+      },
+      "statement": "LogCLI no longer takes the remote schema store from -boltdb.shipper.shared-store when -remote-schema is true; the new -schema-store flag replaces it."
+    },
+    "proposals": [
+      "sp-dcb90d1f916b"
+    ],
+    "validations": [
+      "val-4809bcec3e1b",
+      "val-7615c0bc1d2b"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T16:17:52Z"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-75776c6e79ac",
+    "candidateId": "sc-e51e65327713",
+    "proposalId": "sp-df702e4f7c6e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "prometheus-metric-names"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"crossplane_composition_controllers_*, crossplane_composition_watches_*, crossplane_composition_run_function_*\"",
+        "after": "\"engine_controllers_*, engine_watches_*, function_run_function_*\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether dashboards, alerts or scrapers query the old metric names"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metrics are exposed under new names; anything referencing the old metric names (dashboards, alerts) must be updated to the new names.",
+        "severity": "low"
+      },
+      "statement": "Prometheus metric name prefixes were renamed: crossplane_composition_controllers_* to engine_controllers_*, crossplane_composition_watches_* to engine_watches_*, and crossplane_composition_run_function_* to function_run_function_*."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

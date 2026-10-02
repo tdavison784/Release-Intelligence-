@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-46bc76a72704",
+    "candidateId": "sc-3efe98dc525f",
+    "proposalId": "sp-315ebba74c83",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "version": "v1alpha1",
+        "kind": "ManagedResourceDefinition"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment manages CRDs separately from the Crossplane release or relies on bundled CRD installation"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If CRDs are managed separately from the release, the ManagedResourceDefinition CRD must be installed before upgrading; without it, the new resource type will not be available.",
+        "severity": "high"
+      },
+      "statement": "A new CRD for ManagedResourceDefinition (managedresourcedefinitions.apiextensions.crossplane.io/v1alpha1) was added and must be installed before upgrading if CRDs are managed separately from the release."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

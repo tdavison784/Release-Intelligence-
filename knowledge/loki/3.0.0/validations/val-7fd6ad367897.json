@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7fd6ad367897",
+    "candidateId": "sc-3014cea247c8",
+    "proposalId": "sp-774963b38d06",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "http-error-response-formatting"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"HTTP error response bodies included unwanted newlines\"",
+        "after": "\"HTTP error response bodies do not include unwanted newlines\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "image-in-use",
+              "name": "grafana/loki",
+              "state": "out-of-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "HTTP error response bodies from Loki will no longer include the unwanted newlines that were present in versions prior to 3.0.0, which may affect clients that were adapted to or dependent on the buggy format.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 fixes a regression that was adding newlines to HTTP error response bodies, which broke client integrations."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

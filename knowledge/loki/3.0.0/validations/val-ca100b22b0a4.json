@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ca100b22b0a4",
+    "candidateId": "sc-297ce1bc839b",
+    "proposalId": "sp-7d1adc7b0096",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-frontend.encoding"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"protobuf\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "-frontend.encoding",
+          "state": "equals",
+          "values": [
+            "\"protobuf\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "With -frontend.encoding=protobuf, requests are no longer wrapped but sent as pure Protobuf from frontend v2 via scheduler to querier."
+      },
+      "statement": "When -frontend.encoding=protobuf is set, Loki frontend v2 now sends pure Protobuf requests via the scheduler to the querier instead of wrapping them."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

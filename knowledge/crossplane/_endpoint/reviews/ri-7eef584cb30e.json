@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7eef584cb30e",
+    "candidateId": "sc-ace4f1a895e7",
+    "product": "crossplane",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Composition v1 schema: 1 default changed: `spec.mode`\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Compositions that leave spec.mode unset now default to Pipeline instead of Resources, so they are interpreted differently.",
+        "remediation": "Set spec.mode explicitly (e.g. Resources) on Compositions that rely on the old default, or verify they work as Pipeline.",
+        "severity": "medium"
+      },
+      "statement": "The default of Composition spec.mode (apiextensions.crossplane.io/v1) changed from \"Resources\" to \"Pipeline\" for objects that leave it unset."
+    },
+    "proposals": [
+      "sp-1ff4e93b4ac8",
+      "sp-d9ae4d165bbc"
+    ],
+    "validations": [
+      "val-3694ffccb3de",
+      "val-3824f142132b",
+      "val-42a397ec3376",
+      "val-790c2a1f359a",
+      "val-96c37ebf585e",
+      "val-a68b667c833c",
+      "val-b220a40b4373",
+      "val-d491cd8ecdb3"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T21:00:50Z"
+  }
+}

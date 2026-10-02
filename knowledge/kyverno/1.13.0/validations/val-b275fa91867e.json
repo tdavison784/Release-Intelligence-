@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b275fa91867e",
+    "candidateId": "sc-e4cde6647bbd",
+    "proposalId": "sp-f24453dbedaa",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.rules[].generate.foreach"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v1",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2beta1",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v1",
+              "kind": "Policy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2beta1",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Existing ClusterPolicy and Policy resources continue to function unchanged; the foreach field is optional and enables new functionality for advanced resource generation scenarios."
+      },
+      "statement": "The foreach field is added to the generate rule specification in ClusterPolicy and Policy resources (all API versions), allowing generation of multiple target resources by iterating over sub-elements defined via JMESPath expressions."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

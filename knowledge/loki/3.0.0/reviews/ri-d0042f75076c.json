@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-d0042f75076c",
+    "candidateId": "sc-767b68dac593",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"loki: Helm: Use `/ingester/shutdown` for `preStop` hook in write pods\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Deployment"
+            },
+            {
+              "op": "values-key",
+              "path": "write",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Helm chart for Loki 3.0.0 uses `/ingester/shutdown` for the preStop hook in write pods."
+    },
+    "proposals": [
+      "sp-20d6a536ce0c",
+      "sp-970ee4cb5685"
+    ],
+    "validations": [
+      "val-019b9fd6d15c",
+      "val-5678a4fd785c",
+      "val-61ccd71605fe",
+      "val-9f52af49b576",
+      "val-d152705f0403"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-refuted"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:56:54Z"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-239775f96723",
+    "candidateId": "sc-40aecbe6e0b2",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Metrics namespace: Some Loki metrics started with the prefix `cortex_`. In this release they will be changed so they start with `loki_`. To keep them at…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Listed metrics are exposed with the `loki_` prefix instead of `cortex_`, so queries, dashboards or alerts using the old names will not match unless metrics_namespace is set to `cortex`.",
+        "remediation": "Set metrics_namespace to `cortex` to keep old names, or update dashboards and alerts.",
+        "severity": "medium"
+      },
+      "statement": "Some Loki metrics' prefix changes from `cortex_` to `loki_` by default (metrics_namespace default `loki`); set `metrics_namespace` to `cortex` to keep the old prefix."
+    },
+    "proposals": [
+      "sp-0853079bf53a",
+      "sp-6cad1d7df6b3"
+    ],
+    "validations": [
+      "val-98e4c7454724",
+      "val-aa529d8200a8",
+      "val-d7d43cb0057a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T21:01:13Z"
+  }
+}

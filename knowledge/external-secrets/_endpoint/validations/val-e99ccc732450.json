@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e99ccc732450",
+    "candidateId": "sc-79f4401150ed",
+    "proposalId": "sp-d803cea66fac",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterExternalSecret"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ClusterExternalSecret objects stay stored as v1beta1 until rewritten; a storage version migration (re-write all objects) and an update of status.storedVersions must be run before a later release removes v1beta1.",
+        "remediation": "Run a storage version migration: re-write all ClusterExternalSecret objects so they are stored as v1, then update status.storedVersions to drop v1beta1, before upgrading to a later release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of clusterexternalsecrets.external-secrets.io changes from v1beta1 to v1 (in chart 0.16.0 the CRD no longer marks v1beta1 as storage, true → false), so existing ClusterExternalSecret objects stay stored as v1beta1 until a storage version migration (re-write all objects) is run and status.storedVersions is updated, which must happen before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

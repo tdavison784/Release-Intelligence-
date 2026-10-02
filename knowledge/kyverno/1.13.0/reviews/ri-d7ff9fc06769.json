@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-d7ff9fc06769",
+    "candidateId": "sc-194c2ca12ce9",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Removal of insecure configuration for exceptions: In prior versions, policy exceptions were allowed in all namespaces\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "After upgrading to 1.13.0 with default configuration, policy exceptions are disabled, so existing PolicyException resources stop being honoured and no longer exempt resources from policies until the operator follows the upgrade guidance to re-enable exceptions and configure the allowed namespace.",
+        "remediation": "Follow the Kyverno 1.13 upgrade guidance linked from the release notes to re-enable policy exceptions and configure the namespace in which exceptions may be created (CVE-2024-48921).",
+        "severity": "high"
+      },
+      "statement": "Kyverno 1.13.0 changes the defaults so that policy exceptions are disabled and can only be created in a specified namespace (CVE-2024-48921); environments relying on policy exceptions must follow the upgrade guidance to preserve prior behavior."
+    },
+    "proposals": [
+      "sp-0f777c2c4070",
+      "sp-5997671a5368",
+      "sp-a598eae1d622",
+      "sp-f4a5b4102d3b"
+    ],
+    "validations": [
+      "val-14645c95575c",
+      "val-2540009ee89e",
+      "val-34d1ed25b1a7",
+      "val-b2c19bd23654",
+      "val-bbcb48ba6ae3"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T21:00:01Z"
+  }
+}

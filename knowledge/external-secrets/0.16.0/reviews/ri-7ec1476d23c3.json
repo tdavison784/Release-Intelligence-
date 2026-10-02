@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7ec1476d23c3",
+    "candidateId": "sc-8b9acf590523",
+    "product": "external-secrets",
+    "release": "0.16.0",
+    "questionType": "applicability",
+    "question": "For \"CRDs installed separately: If CRDs are installed separately, the first step you need to do is bump the crds: Verify no error occurs\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.16.1"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether CRDs are installed separately from the external-secrets Helm chart or application manifests"
+            }
+          ]
+        }
+      },
+      "statement": "When CRDs are installed separately, operators must first apply the v0.16.1 CRDs bundle before upgrading external-secrets to v0.16.1."
+    },
+    "proposals": [
+      "sp-09c3af643459",
+      "sp-2c06164b7e5b",
+      "sp-700aee37b2b1",
+      "sp-e8f341c5bb97"
+    ],
+    "validations": [
+      "val-07002de54d8b",
+      "val-10356291754d",
+      "val-473c03f532b4",
+      "val-6657e396f2be",
+      "val-aeaeb55d56d0",
+      "val-b27f385ab09a",
+      "val-d7a66d734145"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:52:58Z"
+  }
+}

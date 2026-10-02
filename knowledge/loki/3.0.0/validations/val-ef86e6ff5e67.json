@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ef86e6ff5e67",
+    "candidateId": "sc-3d0c8e3479ab",
+    "proposalId": "sp-0835c18edc10",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "loki",
+        "name": "wal-enablement-for-max-transfer-retries-removal"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators upgrading to 3.0.0 must enable WAL replay to replace the removed max_transfer_retries mechanism; optionally enable flush_on_shutdown to flush ingester data to long-term storage on shutdowns.",
+        "severity": "high"
+      },
+      "statement": "Loki 3.0.0 recommends enabling WAL and optionally enabling flush_on_shutdown to handle the removal of max_transfer_retries configuration."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

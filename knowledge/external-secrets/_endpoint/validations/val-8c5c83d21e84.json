@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8c5c83d21e84",
+    "candidateId": "sc-159bff8514d4",
+    "proposalId": "sp-9ba5d43761f8",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "SecretStore"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "gvk",
+          "product": "external-secrets",
+          "group": "external-secrets.io",
+          "version": "v1",
+          "kind": "SecretStore"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "kind": "SecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing SecretStore objects stay stored as v1beta1 until rewritten; the operator must run a storage version migration (re-write all objects) and update status.storedVersions before the later release that removes v1beta1 — doing nothing leaves objects still stored in v1beta1 going into that removal.",
+        "remediation": "Run a storage version migration (re-write all SecretStore objects) and update status.storedVersions to drop v1beta1 before upgrading to the later release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the secretstores.external-secrets.io CRD changes from v1beta1 to v1 (spec.versions[name=v1beta1].storage: true → false between 0.15.0 and 0.16.0), so existing SecretStore objects stay stored as v1beta1 until rewritten, and a storage version migration plus a status.storedVersions update must be completed before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/deprecated",
+        "detail": "gvk deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/deprecated",
+        "detail": "gvk deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

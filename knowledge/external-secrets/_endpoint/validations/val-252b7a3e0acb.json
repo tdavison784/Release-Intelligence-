@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-252b7a3e0acb",
+    "candidateId": "sc-967b47c048f1",
+    "proposalId": "sp-f15c14b4c0d7",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "SecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.provider.fake.data",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.provider.fake.data[].value",
+                  "state": "unset"
+                }
+              ],
+              "group": "external-secrets.io",
+              "version": "v1beta1",
+              "kind": "SecretStore"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.provider.fake.data",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.provider.fake.data[].value",
+                  "state": "unset"
+                }
+              ],
+              "group": "external-secrets.io",
+              "version": "v1beta1",
+              "kind": "ClusterSecretStore"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "external-secrets.io/v1beta1 SecretStore objects (and, per the same rendered diff, ClusterSecretStore objects) whose spec.provider.fake.data[] entries omit value are rejected by the tightened CRD schema validation.",
+        "remediation": "Add a value to every spec.provider.fake.data[] entry in external-secrets.io/v1beta1 SecretStore (and ClusterSecretStore) objects before applying them against the release carrying the tightened schema.",
+        "severity": "medium"
+      },
+      "statement": "Between external-secrets 0.15.0 and 0.16.0 the required list for spec.provider.fake.data items in the external-secrets.io/v1beta1 SecretStore schema changed from [key] to [key,value] (the same diff shows the identical change for ClusterSecretStore), so objects that omit spec.provider.fake.data[].value are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

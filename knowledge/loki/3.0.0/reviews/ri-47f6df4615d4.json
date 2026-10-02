@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-47f6df4615d4",
+    "candidateId": "sc-23b472cbf6b3",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`querier.worker-parallelism` CLI flag and its corresponding yaml setting are now removed as it does not offer additional value to already existing…\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments configured with querier.worker-parallelism via CLI flag or YAML will have this setting ignored in Loki 3.0.0; the configuration key no longer exists to control worker parallelism.",
+        "remediation": "Replace querier.worker-parallelism configuration with querier.max-concurrent to control the maximum concurrent requests processed by queriers.",
+        "severity": "high"
+      },
+      "statement": "The querier.worker-parallelism CLI flag and YAML configuration setting are removed in Loki 3.0.0."
+    },
+    "proposals": [
+      "sp-546d70411482",
+      "sp-936f238d2f21"
+    ],
+    "validations": [
+      "val-4d1192185448",
+      "val-9eb9e111299d"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:55:15Z"
+  }
+}

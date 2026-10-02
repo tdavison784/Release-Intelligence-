@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-dea9205a3df2",
+    "candidateId": "sc-33ac5d9ad65e",
+    "product": "flux",
+    "questionType": "classification",
+    "question": "Is fact vf-6b42bbdfb00a (HelmRepository v1 schema: 1 field now required: `status.artifact.digest`) still correct? Reject to retract it; correct to supersede it.",
+    "proposed": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "HelmRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "HelmRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmRepository objects using the source.toolkit.fluxcd.io/v1 schema that omit status.artifact.digest are rejected.",
+        "remediation": "Before upgrading, check HelmRepository objects (source.toolkit.fluxcd.io/v1) for status.artifact.digest and ensure the field is populated so objects are not rejected by the new schema.",
+        "severity": "medium"
+      },
+      "statement": "HelmRepository v1 schema: 1 field now required: `status.artifact.digest`"
+    },
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "auto-approved",
+        "consensus-cross-model",
+        "consensus-same-model",
+        "policy-general"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T16:07:21.912412-05:00"
+  }
+}

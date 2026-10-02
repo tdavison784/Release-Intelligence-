@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b004bd596da6",
+    "candidateId": "sc-46ac425d220e",
+    "proposalId": "sp-ce884f5cce83",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "write_dedupe_cache"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "write_dedupe_cache",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data",
+                  "state": "exists",
+                  "pattern": "write_dedupe_cache"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The write dedupe cache setting continues to function but is scheduled for removal in a future Loki release as it is no longer required by tsdb and boltdb-shipper indexes.",
+        "severity": "low"
+      },
+      "statement": "The write dedupe cache configuration is deprecated in Loki 3.0.0 as it is not required by newer single store indexes (tsdb and boltdb-shipper)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/deprecated",
+        "detail": "config-key deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/deprecated",
+        "detail": "config-key deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

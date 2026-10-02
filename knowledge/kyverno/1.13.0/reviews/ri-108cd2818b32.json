@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-108cd2818b32",
+    "candidateId": "sc-2b542f503c9f",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Default exception settings: the Helm chart values of the prior versions enabled exceptions by default for all namespaces\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Policy exceptions are no longer enabled by default in all namespaces. Users who relied on that will see exceptions stop applying outside the namespaces they configure.",
+        "remediation": "Explicitly configure the namespaces where policy exceptions should be enabled.",
+        "severity": "medium"
+      },
+      "statement": "The chart's default no longer enables policy exceptions in all namespaces (CVE-2024-48921), so users who relied on exceptions in all namespaces are affected."
+    },
+    "proposals": [
+      "sp-267caaac6151",
+      "sp-2d701b3b6dd7",
+      "sp-6d0f08b84ef0",
+      "sp-b24045833d4d"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal"
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:56:07Z"
+  }
+}

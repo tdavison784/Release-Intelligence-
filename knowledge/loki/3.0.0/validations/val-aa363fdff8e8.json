@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-aa363fdff8e8",
+    "candidateId": "sc-4a54abe944ff",
+    "proposalId": "sp-b10e185b12ab",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "storage"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "storage.type",
+              "state": "equals",
+              "values": [
+                "\"boltdb\""
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "storage",
+              "state": "matches",
+              "pattern": "boltdb"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "BoltDB storage backend is deprecated and scheduled for removal in a future Loki release."
+      },
+      "statement": "The BoltDB storage backend is deprecated in Loki 3.0.0 and scheduled for removal in a future release."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/deprecated",
+        "detail": "config-key deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/deprecated",
+        "detail": "config-key deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

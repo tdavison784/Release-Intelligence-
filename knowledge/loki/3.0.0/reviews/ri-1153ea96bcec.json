@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-1153ea96bcec",
+    "candidateId": "sc-3d0c8e3479ab",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"A. (Preferred) Enable the WAL and rely on the new ingester to replay the WAL\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators upgrading to 3.0.0 must enable WAL replay to replace the removed max_transfer_retries mechanism; optionally enable flush_on_shutdown to flush ingester data to long-term storage on shutdowns.",
+        "severity": "high"
+      },
+      "statement": "Loki 3.0.0 recommends enabling WAL and optionally enabling flush_on_shutdown to handle the removal of max_transfer_retries configuration."
+    },
+    "proposals": [
+      "sp-0835c18edc10",
+      "sp-70fb0d0c58ff"
+    ],
+    "validations": [
+      "val-df32125a2f59",
+      "val-ef86e6ff5e67"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T16:17:14Z"
+  }
+}

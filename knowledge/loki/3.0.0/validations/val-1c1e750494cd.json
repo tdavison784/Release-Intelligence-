@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1c1e750494cd",
+    "candidateId": "sc-895e84ff5606",
+    "proposalId": "sp-cb4effc9a76d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "schemaConfig"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"tsdb and v13 schema\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the environment has already explicitly configured tsdb schema and v13 schema versions"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Loki will not start during the upgrade if the environment does not have tsdb and v13 schema configured, as structured metadata is now enabled by default.",
+        "severity": "critical"
+      },
+      "statement": "Structured metadata is enabled by default in Loki 3.0.0 and requires tsdb storage backend and v13 schema configuration; Loki will not start without these."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/now-required",
+        "detail": "config-key now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/now-required",
+        "detail": "config-key now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

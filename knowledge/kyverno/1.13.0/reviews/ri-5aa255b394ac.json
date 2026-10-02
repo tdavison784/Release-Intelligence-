@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-5aa255b394ac",
+    "candidateId": "sc-f1a212791fb5",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Shallow evaluation of Variables: Kyverno performs nested variable substitution by default, this may not be desirable in certain situations\", what happens, and is that review or action? proposed: none",
+    "proposed": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Existing policies keep nested variable substitution unless they adopt the new notation; using `{{- ... }}` limits substitution to one pass so Kyverno does not attempt to resolve `{{ }}` content inside the substituted data (e.g. an HCL string from a ConfigMap).",
+        "remediation": "Where substituted rule data contains `{{ }}` that Kyverno must not resolve, use the `{{- ... }}` declaration (e.g. `{{- hcl }}`) for shallow substitution.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds a `{{- ... }}` notation for shallow (one-time) variable substitution, letting a policy substitute rule data (e.g. an HCL string defined in a ConfigMap) without Kyverno attempting to resolve the nested `{{ }}` variables inside it."
+    },
+    "proposals": [
+      "sp-561d1d379df3",
+      "sp-d170af0a0cbb",
+      "sp-f65128342c88"
+    ],
+    "validations": [
+      "val-0d7e442200f6",
+      "val-2a3f1360b850",
+      "val-c6f2a23670de",
+      "val-dbd3524eda65",
+      "val-f715298caac5",
+      "val-f7cad01fb7fa"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:54:58Z"
+  }
+}

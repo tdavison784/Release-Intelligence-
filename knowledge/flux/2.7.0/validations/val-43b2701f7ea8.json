@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-43b2701f7ea8",
+    "candidateId": "sc-2df51b6789d6",
+    "proposalId": "sp-d11e146fa2eb",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "flux-diff-ks-force-enabled-annotation"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators run `flux diff ks` against Kustomization resources that carry the `force: enabled` annotation"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Running `flux diff ks` on resources annotated with `force: enabled` may give different output than before, because the command now handles this annotation.",
+        "remediation": "Check `flux diff ks` output for resources annotated with `force: enabled` after upgrading the CLI.",
+        "severity": "low"
+      },
+      "statement": "In Flux 2.7.0, the `flux diff ks` CLI command handles the `force: enabled` annotation."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

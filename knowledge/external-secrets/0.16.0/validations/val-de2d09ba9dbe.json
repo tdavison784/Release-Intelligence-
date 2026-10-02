@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-de2d09ba9dbe",
+    "candidateId": "sc-dd35e147bb75",
+    "proposalId": "sp-698d34e644d2",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "remove-v1alpha1-stored-versions"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether status.storedVersions of the four external-secrets CRDs in the live cluster contains v1alpha1"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "A pre-upgrade check must be run; if any of the four CRDs still lists v1alpha1 in status.storedVersions, v1alpha1 must be removed from the stored versions and that status persisted before upgrading.",
+        "remediation": "Run the kubectl storedVersions check from the 0.16 guide; if it reports NOT SAFE, remove v1alpha1 from the stored versions and persist the status.",
+        "severity": "high"
+      },
+      "statement": "Before upgrading to 0.16, verify that status.storedVersions of the externalsecrets, clusterexternalsecrets, secretstores and clustersecretstores CRDs no longer contains v1alpha1, and remove it if present, because 0.16 drops the v1alpha1 CRD versions."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

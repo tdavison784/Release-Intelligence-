@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ffd56ba9cbd1",
+    "candidateId": "sc-9f0855592cff",
+    "proposalId": "sp-aee243ea4e12",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--registry"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--registry",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Package installation commands that rely on the --registry flag to specify a default registry will fail in Crossplane v2.0.0; fully qualified package URLs must be provided explicitly.",
+        "severity": "high"
+      },
+      "statement": "Crossplane v2.0.0 removes the --registry CLI flag, requiring users to always specify fully qualified URLs when installing packages instead of relying on a default registry value."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

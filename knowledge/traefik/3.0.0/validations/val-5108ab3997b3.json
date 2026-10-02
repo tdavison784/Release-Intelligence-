@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5108ab3997b3",
+    "candidateId": "sc-f89eaa0e2fb3",
+    "proposalId": "sp-dce63a5af5ef",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "traefik",
+        "path": "logs.access.addInternals"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "metrics.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "tracing.addInternals",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "metrics.addInternals",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "tracing.addInternals",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Observability data (access logs, metrics, and tracing) for internal routers and services will no longer be collected and exposed unless the addInternals option is explicitly configured for each observability component."
+      },
+      "statement": "Observability for internal routers or services (e.g., ping@internal) is disabled by default in v3; users must explicitly set the addInternals option for AccessLogs, Metrics, or Tracing to re-enable it."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "restatement:values:added",
+        "detail": "computed change chg-32a167190055 names helm-value:traefik|path=logs.access.addInternals"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "restatement:values:added",
+        "detail": "computed change chg-32a167190055 states the same added: \"New Helm value `logs.access.addInternals`\""
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-3bdc943d6be1",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/traefik/traefik-helm-chart/blob/v28.1.0/traefik/values.yaml",
+        "locator": "traefik/values.yaml",
+        "excerpt": "# Default values for Traefik",
+        "contentDigest": "sha256:d5ea1c15d2a7625c9fe4ed0c44ad8a8a71bbdc6b3ba897e0d8ae94939d398f43",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      },
+      {
+        "id": "ev-bb4a9dd096f3",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/traefik/traefik-helm-chart/blob/v27.0.2/traefik/values.yaml",
+        "locator": "traefik/values.yaml",
+        "excerpt": "# Default values for Traefik",
+        "contentDigest": "sha256:f617f8230a0cb52320157b6b3f9968fbad6884686016f205ab35b8192287694c",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:56:10Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

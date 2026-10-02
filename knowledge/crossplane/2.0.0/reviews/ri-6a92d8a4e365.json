@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-6a92d8a4e365",
+    "candidateId": "sc-af36bd24681f",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "questionType": "applicability",
+    "question": "For \"Go module path is now `github.com/crossplane/crossplane/v2`: As this release is a major version bump that has breaking changes, the rules for Go modules…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "crossplane",
+              "state": "in-range",
+              "range": ">=2.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "cross-product-context-gap",
+              "needed": "whether the environment has Go code that imports crossplane or crossplane-runtime as a module dependency"
+            }
+          ]
+        }
+      },
+      "statement": "The Go module path for Crossplane and Crossplane Runtime has changed from `github.com/crossplane/crossplane` and `github.com/crossplane/crossplane-runtime` to include a `v2` suffix: `github.com/crossplane/crossplane/v2` and `github.com/crossplane/crossplane-runtime/v2`; all import statements in code must be updated."
+    },
+    "proposals": [
+      "sp-2d6ff7bd34b5",
+      "sp-99ed6f6b75f0"
+    ],
+    "validations": [
+      "val-1a61f752d46d",
+      "val-4b5f6cba93c7",
+      "val-a19ddacf0adb",
+      "val-ca04324bc24c"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:56:55Z"
+  }
+}

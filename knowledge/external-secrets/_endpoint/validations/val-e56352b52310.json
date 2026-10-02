@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e56352b52310",
+    "candidateId": "sc-a975e3461f85",
+    "proposalId": "sp-22bcad81f73e",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "storage-version-migration",
+        "component": "clustersecretstores.external-secrets.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterSecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ClusterSecretStore objects stay stored as v1beta1 until rewritten; a storage version migration (re-write all objects) and update of status.storedVersions must be done before a later release removes v1beta1.",
+        "remediation": "Re-write all ClusterSecretStore objects and update status.storedVersions on the CRD before a later release removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the clustersecretstores.external-secrets.io CRD moves from v1beta1 to v1, so existing ClusterSecretStore objects remain stored as v1beta1 until rewritten and a storage version migration is needed before v1beta1 is removed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

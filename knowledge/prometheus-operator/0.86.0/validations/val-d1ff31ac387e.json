@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d1ff31ac387e",
+    "candidateId": "sc-71cf6ab4b713",
+    "proposalId": "sp-b4ef48190d0c",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "kind": "PodMonitor",
+        "path": "status"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "monitoring.coreos.com",
+              "version": "v1",
+              "kind": "PodMonitor"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "monitoring.coreos.com",
+              "version": "v1",
+              "kind": "ServiceMonitor"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "monitoring.coreos.com",
+              "version": "v1alpha1",
+              "kind": "ScrapeConfig"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "monitoring.coreos.com",
+              "version": "v1",
+              "kind": "PrometheusRule"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "monitoring.coreos.com",
+              "version": "v1",
+              "kind": "Probe"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Configuration resources (ServiceMonitor, PodMonitor, ScrapeConfig, PrometheusRule, Probe) now have an optional status subresource when the StatusForConfigurationResources feature gate is enabled; existing manifests without status fields continue to work."
+      },
+      "statement": "The status subresource is added to ServiceMonitor, PodMonitor, ScrapeConfig, PrometheusRule, and Probe custom resources, controlled by the StatusForConfigurationResources feature gate."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

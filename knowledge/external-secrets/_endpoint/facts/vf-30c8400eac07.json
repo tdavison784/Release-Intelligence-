@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-30c8400eac07",
+    "product": "external-secrets",
+    "candidates": [
+      "sc-f7e1d73d8b1e"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterSecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[].value",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterSecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ClusterSecretStore objects using the external-secrets.io/v1beta1 schema whose spec.provider.fake.data[] entries omit value are rejected, because value is now in the required list of each fake data item.",
+        "remediation": "Set spec.provider.fake.data[].value in every data entry of fake-provider ClusterSecretStore objects (it is now required alongside key).",
+        "severity": "medium"
+      },
+      "statement": "ClusterSecretStore v1beta1 schema: 1 field now required: `spec.provider.fake.data[].value`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-19941aceb967",
+          "val-594448fe51b8",
+          "val-78c8d6b24998",
+          "val-a2cac925e175",
+          "val-bf344109e288",
+          "val-c817c49cd343",
+          "val-d7e7033866ff",
+          "val-f71380e96f1e"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "consensus",
+        "basis": [
+          "sp-77bf72d6bb58",
+          "sp-78b0936d568c"
+        ],
+        "consensus": "cross-model"
+      },
+      {
+        "aspect": "applicability",
+        "level": "consensus",
+        "basis": [
+          "sp-78b0936d568c",
+          "sp-d7a3be6c2173"
+        ],
+        "consensus": "same-model"
+      },
+      {
+        "aspect": "consequence",
+        "level": "consensus",
+        "basis": [
+          "sp-77bf72d6bb58",
+          "sp-d7a3be6c2173"
+        ],
+        "consensus": "cross-model"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9fd85560a485",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/external-secrets/external-secrets/releases/download/helm-chart-0.16.0/external-secrets-0.16.0.tgz",
+        "locator": "external-secrets/templates/crds/clustersecretstore.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clustersecretstores.external-secrets.io spec.versions[name=v1beta1].schema.openAPIV3Schema.properties.spec.properties.provider.properties.fake.properties.data.items.required",
+        "excerpt": "0.15.0 → 0.16.0: field-changed CustomResourceDefinition/clustersecretstores.external-secrets.io spec.versions[name=v1beta1].schema.openAPIV3Schema.properties.spec.properties.provider.properties.fake.properties.data.items.required: [\"key\"] → [\"key\",\"value\"]",
+        "contentDigest": "sha256:799c77196d04a8cb0428719414515e7d06af6ece72e12356b9cade9c97a0f46e",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:3881092262a5e2cffdd7664d8da3136f49a96fc8b5c0e45ac30db56f0d4fc9f1",
+          "flags": [
+            "template",
+            "external-secrets",
+            "chart.tgz",
+            "--namespace",
+            "external-secrets",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "external-secrets",
+            "version": "0.15.0",
+            "digest": "sha256:77d9b37e332be6aa04cb09404ef24566f3520eb3132f00ace3909e6b77118eb3",
+            "outputDigest": "sha256:bfc9b21e547391b3b4fd3f43b706bc5ca99c3613c2da7855eb88ab4f173c9356"
+          },
+          "toArtifact": {
+            "name": "external-secrets",
+            "version": "0.16.0",
+            "digest": "sha256:3881092262a5e2cffdd7664d8da3136f49a96fc8b5c0e45ac30db56f0d4fc9f1",
+            "outputDigest": "sha256:799c77196d04a8cb0428719414515e7d06af6ece72e12356b9cade9c97a0f46e"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clustersecretstores.external-secrets.io",
+          "path": "spec.versions[name=v1beta1].schema.openAPIV3Schema.properties.spec.properties.provider.properties.fake.properties.data.items.required",
+          "change": "field-changed",
+          "before": "[\"key\"]",
+          "after": "[\"key\",\"value\"]"
+        },
+        "retrievedAt": "2026-10-02T16:10:24Z"
+      },
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "status": "active",
+    "autoApproved": true,
+    "createdAt": "2026-10-02T21:00:28Z"
+  }
+}

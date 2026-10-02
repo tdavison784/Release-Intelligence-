@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-89b8f12a827f",
+    "candidateId": "sc-9ced2812bde0",
+    "proposalId": "sp-0070808026fc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1",
+        "kind": "PodMonitor",
+        "path": "status"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "monitoring.coreos.com",
+          "version": "v1",
+          "kind": "PodMonitor"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence for operators: the new status field is a read-only status subresource that is updated only when the \"StatusForConfigurationResources\" feature gate is enabled and is under active development; existing PodMonitor resources and configurations are unaffected.",
+        "severity": "low"
+      },
+      "statement": "The PodMonitor v1 schema (monitoring.coreos.com) adds a read-only status subresource with status.bindings[] (group, name, namespace, resource) and status.bindings[].conditions[] (type, status, message, reason, lastTransitionTime, observedGeneration), which is populated only when the \"StatusForConfigurationResources\" feature gate is enabled."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

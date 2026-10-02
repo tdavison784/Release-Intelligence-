@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-115bfd6b5576",
+    "candidateId": "sc-46f2a499bf2f",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"loki: Helm: Allow the definition of resources for GrafanaAgent pods\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Deployment"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "grafanaAgent",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "agents",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "The Loki Helm chart now allows defining resource requests and limits for GrafanaAgent pods."
+    },
+    "proposals": [
+      "sp-788186088b0d",
+      "sp-d6954577eaa8"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:59:26Z"
+  }
+}

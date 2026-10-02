@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-f3f59d0d699f",
+    "candidateId": "sc-3e5ed0e52781",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Store for retrieving remote schema: Previously LogCLI used to fetch remote schema from the store configured in `-boltdb.shipper.shared-store` when…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "component": "logcli",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-remote-schema",
+              "component": "logcli",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "-schema-store",
+          "component": "logcli",
+          "state": "set"
+        }
+      },
+      "statement": "LogCLI no longer takes the remote schema store from -boltdb.shipper.shared-store when -remote-schema is true; the new -schema-store flag replaces it."
+    },
+    "proposals": [
+      "sp-dcb90d1f916b"
+    ],
+    "validations": [
+      "val-4809bcec3e1b",
+      "val-7615c0bc1d2b"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T16:17:52Z"
+  }
+}

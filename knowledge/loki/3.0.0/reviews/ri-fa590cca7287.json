@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-fa590cca7287",
+    "candidateId": "sc-69152174e9e5",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The following embedded cache metrics are removed\", what happens, and is that review or action? proposed: superseded-upstream",
+    "proposed": {
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The three querier_cache_* metrics are no longer emitted; anything relying on them must use loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds, which instrument requests to the configured cache (embeddedcache, memcached or redis).",
+        "remediation": "Update dashboards and alerts to the loki_cache_* metrics."
+      },
+      "statement": "The embedded cache metrics querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total are removed in favour of loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds."
+    },
+    "proposals": [
+      "sp-b98efd010970",
+      "sp-d51d7ddef32c"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:53:32Z"
+  }
+}

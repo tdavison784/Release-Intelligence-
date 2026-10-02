@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f566a08c49f6",
+    "candidateId": "sc-9a0c088f99f9",
+    "proposalId": "sp-68b2d987f792",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "loki",
+        "path": "querier.query_timeout"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "loki",
+          "path": "limits_config.query_timeout"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "querier.query_timeout",
+          "state": "set"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "limits_config.query_timeout",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `querier.query_timeout` configuration key is no longer honored; environments must move this setting to `limits_config.query_timeout`.",
+        "severity": "high"
+      },
+      "statement": "The `query_timeout` configuration key is removed from the `querier` YAML section and must now be configured under `limits_config` instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

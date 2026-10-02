@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-644b698af4c6",
+    "candidateId": "sc-e98ebd2741c8",
+    "proposalId": "sp-626c25427a47",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "storage-version-migration",
+        "component": "cleanuppolicies.kyverno.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "version": "v2beta1",
+          "kind": "CleanupPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing CleanupPolicy objects remain stored as v2beta1 until rewritten; a storage version migration and a status.storedVersions update are needed before a later release removes v2beta1.",
+        "remediation": "Re-write all CleanupPolicy objects and update status.storedVersions of the CRD before a later release removes v2beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the cleanuppolicies.kyverno.io CRD changes from v2beta1 to v2 (1.12.6 → 1.13.0), so existing CleanupPolicy objects stay stored as v2beta1 until a storage version migration is run."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

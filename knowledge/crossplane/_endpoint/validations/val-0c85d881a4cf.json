@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0c85d881a4cf",
+    "candidateId": "sc-d5050bdcb468",
+    "proposalId": "sp-d19f25b35b09",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "version": "v1",
+        "kind": "Composition",
+        "path": "spec.mode"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"Resources\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.mode",
+              "state": "equals",
+              "values": [
+                "\"Resources\""
+              ]
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "version": "v1",
+          "kind": "Composition"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Composition resources with spec.mode set to 'Resources' will be rejected by the API server because this enum value is no longer allowed.",
+        "severity": "high"
+      },
+      "statement": "The allowed enum value \"Resources\" for spec.mode in Composition resources is removed and will be rejected by the API server."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}
