@@ -49,10 +49,10 @@ bgpControlPlane:
   # plane (see manifests/bgp-advertisement.yaml); the legacy metallb-bgp
   # `bgp:` block was never used on this cluster.
   enabled: true
-# TLS visibility secrets: neither tls.secretsBackend (deprecated in v1.17.0)
-# nor its replacement tls.readSecretsOnlyFromSecretsNamespace is set; the
-# 1.16 chart default `local` backend reads them from kube-system, where
-# manifests/historian-scrape-cnp.yaml keeps its certificate.
+# TLS visibility: tls.secretsBackend (deprecated in v1.17.0), its replacement
+# readSecretsOnlyFromSecretsNamespace, tls.secretSync.* and upgradeCompatibility
+# are all unset (chart defaults); manifests/historian-scrape-cnp.yaml keeps its
+# terminatingTLS certificate in kube-system.
 hubble:
   enabled: true
   relay:

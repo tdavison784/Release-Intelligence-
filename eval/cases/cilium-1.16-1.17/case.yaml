@@ -85,15 +85,23 @@ expected:
       - url: https://github.com/cilium/cilium/blob/1.16.0/install/kubernetes/cilium/values.yaml
         quote: 'secretsBackend: local'   # verbatim since 2026-10-02 (eval/CHANGELOG.md); the key sits under tls: (values.yaml line 2360 at 1.16.0)
     semantics:
-      subject: {family: helm-value, product: cilium, path: tls.secretsBackend}
-      change:
-        type: deprecated
-        replacedBy: {family: helm-value, product: cilium, path: tls.readSecretsOnlyFromSecretsNamespace}
-      consequence:
-        kind: deprecation
-        exposedClass: review-required
-        statement: the v1.17 chart still honours tls.secretsBackend when tls.readSecretsOnlyFromSecretsNamespace is unset (k8s → false, local → true; templates/_helpers.tpl at v1.17.0), but the key is deprecated in favour of the new one.
-        remediation: set tls.readSecretsOnlyFromSecretsNamespace (false keeps the k8s behaviour) and drop tls.secretsBackend
+      - subject: {family: helm-value, product: cilium, path: tls.secretsBackend}
+        change:
+          type: deprecated
+          replacedBy: {family: helm-value, product: cilium, path: tls.readSecretsOnlyFromSecretsNamespace}
+        consequence:
+          kind: deprecation
+          exposedClass: review-required
+          statement: the v1.17 chart still honours tls.secretsBackend when tls.readSecretsOnlyFromSecretsNamespace is unset (k8s → false, local → true; templates/_helpers.tpl at v1.17.0), but the key is deprecated in favour of the new one.
+          remediation: set tls.readSecretsOnlyFromSecretsNamespace (false keeps the k8s behaviour) and drop tls.secretsBackend
+      - subject: {family: helm-value, product: cilium, path: tls.secretSync.enabled}
+        change: {type: added, after: 'true'}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: clusters that set neither tls.secretSync.enabled nor upgradeCompatibility (<= 1.16) get the new-cluster default — the operator copies every Secret referenced by a TLS-intercepting CiliumNetworkPolicy into the cilium-secrets namespace and Envoy receives it via SDS (new Namespace, Roles and RoleBindings), and the agent reads policy secrets only from that namespace.
+          remediation: verify TLS interception after the upgrade, or keep the old mode with upgradeCompatibility 1.16 / tls.secretSync.enabled false
+        note: added 2026-10-02, motivated by pipeline output (render-4); same upstream bullet as the deprecation (upgrade.rst v1.17.0, tls-visibility.rst v1.17.0)
   - id: E5
     title: Helm default hubble.tls.auto.certValidityDuration lowered from 1095 days to 365 days
     kind: helm-values

@@ -222,3 +222,9 @@ and in `semantics.consequence.exposedClass`.
   - E4, E5 and E7 are environment-wide `values-key` / `image-in-use` leaves, or
     resource-scoped `field` leaves, never mixed inside one scope.
 - No `undecidedImpact` links. Every link is decidable from the fixture as written.
+
+## 2026-10-02 relabel (groundtruth-4, motivated by pipeline output: render-4)
+
+- E7 not-affected → informational: the cluster stores kyverno.io/v2beta1 PolicyExceptions (a version 1.13
+  drops) and is shielded by the Helm post-upgrade migrate-resources hook (DESIGN.md §1.3 overlap). The hook
+  runs only once E5's kubectl image is mirrored. See eval/CHANGELOG.md "2026-10-02 (d)".
