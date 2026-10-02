@@ -109,12 +109,24 @@ accepts the `Pattern` form):
 | `not-visible-in-render` | the subject is in neither render, the render failed, or the family has no rendered shape (inconclusive — not wrong) |
 | `render-not-applicable` | the change is not render-verifiable (runtime-only) |
 
-- **Renderability** (`renderability.go`, R12): each family × change class maps to `render-verifiable`
+- **Renderability** (R12, data in the domain: `domain.RenderabilityOf`, `AssessRenderability`,
+  `EffectiveRenderability`; `internal/render` delegates): each family × change kind maps to `render-verifiable`
   (resources, RBAC, images, args, env vars, ports, labels, annotations, API versions),
   `partially-render-verifiable` (defaults, feature activation, cross-resource relationships) or
   `not-render-verifiable` (runtime behaviour, protocol semantics, migrations, performance).
   `RenderedClasses` lists the structural classes eligible for auto-approval under the default policy
   (R10) — the knowledge lane's `AutoApproveRenderVerifiable` consults candidate renderability.
+  `domain.EffectiveRenderability(candidate, validations)` is what routing should use: the candidate's
+  own assessment, else that of an assertion whose subject and change a render **confirmed** — never a
+  model claim alone. (The table lives in the domain because `internal/knowledge` cannot import this
+  package: render imports knowledge for the Validator port.)
+- **Wiring:** `app.RenderValidator(kubeVersion)` returns the validator to register beside the validate
+  lane's `semvalidate.Validators()` in `ri knowledge validate`.
+- **Prompt evidence** (`EdgeRenderedChanges`, semantic lane addendum): the edge's release-level rendered
+  changes as citable `rendered-diff` evidence, correlated with the edge changes; `ForChanges(memberIDs)`
+  selects what a candidate restates, `Undocumented()` the rendered changes no entry mentions (review
+  material). It refuses any pair whose renders are not release scope, so customer values cannot reach
+  a prompt (`TestEnvironmentRendersNeverReachPromptsOrKnowledge`).
 
 ## `rendered-change` leaf (`EvaluateRenderedChange`, DESIGN §1.3)
 
@@ -128,15 +140,37 @@ matching `cond.Group/Kind/Name` differ between the From and To renders the way `
 (changed / unchanged / added / removed), with the To value in `cond.Values` when given (JSON, string,
 or image-tag equality)?
 
-- **true** — any pair shows it; evidence cites that pair's rendered-diff records.
-- **false** — every pair rendered successfully with complete values and shows something else. This is
-  evidence, and it requires completeness: a failed or values-incomplete pair keeps the leaf unknown,
-  because an absence of change there decides nothing.
-- **unknown** — reason `environment-visibility-gap`: no renders, a failed render, incomplete values,
-  the object or path absent from both renders.
+- **true** — any pair shows it (even one with incomplete values: a true backed by rendered evidence
+  stands); `Matches` holds one `rendered-change` match citing that pair's environment-scope records.
+- **false** — every pair rendered successfully with complete values and none is in the asked state —
+  including an object or path absent from both renders. It carries a `Checks` entry (dimension
+  `render`, objects compared) and `Examined` state records per side (DESIGN rule 4: every false carries
+  a check). A failed or values-incomplete pair keeps the leaf unknown: an absence of change there
+  decides nothing.
+- **unknown** — reason `environment-visibility-gap`, `Needed` says why: no renders, a failed render,
+  incomplete values, or a condition naming one object (`Name`) that is absent while the release name
+  was *assumed* (object names derive from it).
+
+The result's fields mirror `impact.ConditionResult` (applicability lane) one to one, so the
+`impact.RenderedChangeEvaluator` adapter is a field copy:
+
+```go
+type renderEvaluator struct{ pairs []*render.Pair }
+
+func (r renderEvaluator) EvaluateRenderedChange(c domain.Condition, _ *env.Environment, _ *domain.UpgradeEdge) impact.ConditionResult {
+	x := render.EvaluateRenderedChange(c, r.pairs)
+	return impact.ConditionResult{Value: impact.Truth(x.Value), Matches: x.Matches, Checks: x.Checks,
+		Examined: x.Examined, Reason: x.Reason, Needed: x.Needed, Records: x.Evidence}
+}
+// impact.Input{…, Render: renderEvaluator{pairs: renderDiff.EnvironmentPairs()}}
+```
 
 The leaf concludes nothing about consequences: a render difference alone never produces ACTION
 REQUIRED (R11) — that classification is the trust ladder's, above this predicate.
+`TestRenderDeltaAloneNeverYieldsAction` follows "RBAC verb removed" from the render through validation
+and routing: one model call ⇒ no fact (review); two agreeing calls without an action request ⇒ an
+auto-approved consensus fact, untrusted, capped at REVIEW; only PO-2 (every agreeing call requests
+action-required) yields `ConsensusAction` — "ACTION REQUIRED · model consensus", always audited.
 
 ## Evaluation (R16, R17)
 
@@ -147,9 +181,13 @@ every blind-authoring caveat and every correction the comparison forced. The run
 `go test ./internal/app -run TestEvalRenderCases -v` (skips without helm/network) and
 reports per case: pairs rendered/failed (render success rate), recall (expectations
 matched) and, where the expectations aim at the whole delta, precision (changes
-explained). Committed comparisons live in `eval/render/results/`; the current one:
-release level 14/14 precision, 15/16 recall (one marked known gap: CRD fields), the
-kustomize overlay failing exactly as authored. The pipeline-level R17 metrics (UNKNOWN
+explained). Committed comparisons live in `eval/render/results/`; the current one
+(2026-10-02): release level precision 14/14, recall 14/15 (R12, a real diff-model gap:
+a role new under its name is one `resource-added` record, so its permissions are not
+emitted as `rbac-permission-added`), the `servicemonitor` and `crds.enabled` variants
+2/2 each, the kustomize overlay failing exactly as authored. cert-manager ships its
+CRDs as a gated template (`crds.enabled`, default false), so they appear only in the
+variant. The pipeline-level R17 metrics (UNKNOWN
 → decided due to render, ACTION strengthened, false ACTION delta, applicability
 before/after) wait on the applicability lane's wiring.
 
@@ -176,3 +214,12 @@ ClusterRole/Binding split into `dns01-`/`http01-` roles. Customer repo: Argo 15 
 (values INCOMPLETE via `valuesFrom`), Helmfile prod 11 (`targetPort` pinned ⇒ no Service change),
 dev 14; the Kustomize overlay fails explicitly (`kustomize-dependency`: the fixture references files
 outside the overlay dir — the customer's deployer would fail the same way).
+
+## Live results (ingress-nginx controller-v1.11.5 → controller-v1.12.0, chart 4.11.5 → 4.12.0)
+
+Chart defaults: 8 rendered changes (18 objects on both sides, 42 chart-metadata stamps suppressed),
+7 correlated with changelog entries: the controller's `--enable-metrics=false` argument disappears
+("Metrics: Disable by default" — the default moved into the binary), `runAsGroup` is now set explicitly
+on the controller and both admission Jobs ("Chart: Explicitly set `runAsGroup`"), the controller image
+bump, and the admission webhook certgen image moving **v1.5.2 → v1.5.0** (a downgrade, also on the edge).
+Undocumented: the controller ConfigMap loses its `data` (`allow-snippet-annotations: "false"`).
