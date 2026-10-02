@@ -1,0 +1,55 @@
+# Traefik Proxy v2.11.2, deployed from manifests kept in git (rendered once
+# from the upstream chart, then hand-maintained). All static configuration is
+# passed as CLI arguments; there is no traefik.yml file.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik
+  namespace: traefik
+  labels:
+    app.kubernetes.io/name: traefik
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: traefik
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: traefik
+    spec:
+      serviceAccountName: traefik
+      containers:
+        - name: traefik
+          image: docker.io/library/traefik:v2.11.2
+          args:
+            - --entrypoints.web.address=:8000/tcp
+            - --entrypoints.websecure.address=:8443/tcp
+            - --entrypoints.websecure.http.tls=true
+            - --entrypoints.websecure.http3
+            - --entrypoints.websecure.http3.advertisedport=443
+            - --experimental.http3=true
+            - --providers.kubernetescrd
+            - --providers.kubernetescrd.allowcrossnamespace=false
+            - --providers.kubernetesingress
+            - --experimental.kubernetesgateway=true
+            - --providers.kubernetesgateway
+            - --metrics.prometheus=true
+            - --ping=true
+            - --log.level=INFO
+            - --accesslog=true
+            - --api.dashboard=true
+          ports:
+            - name: web
+              containerPort: 8000
+              protocol: TCP
+            - name: websecure
+              containerPort: 8443
+              protocol: TCP
+            - name: websecure-udp
+              containerPort: 8443
+              protocol: UDP
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 8080
