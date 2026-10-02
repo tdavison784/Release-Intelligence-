@@ -1,0 +1,21 @@
+# Alerting on Kyverno policy failures, evaluated by the Prometheus Operator
+# (kube-prometheus-stack). Routes alerts per namespace owner, so it groups by
+# the resource_namespace label of kyverno_policy_results_total.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kyverno-policy-failures
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: kyverno.policies
+      rules:
+        - alert: KyvernoPolicyFailuresByNamespace
+          expr: sum by (resource_namespace, policy_name) (increase(kyverno_policy_results_total{rule_result="fail"}[1h])) > 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Kyverno policy {{ $labels.policy_name }} failing in {{ $labels.resource_namespace }}"
