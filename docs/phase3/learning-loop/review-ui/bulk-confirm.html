@@ -30,6 +30,7 @@
   --g-A: #7c93ff; --g-B: #fb923c; --g-C: #b794f6; --g-D: #2dd4bf; color-scheme: dark;
 }
 * { box-sizing: border-box; }
+input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
 html { font-size: 15px; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; }
 a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
@@ -43,18 +44,21 @@ h4 { margin: .2rem 0 .8rem; font-size: 1rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
 
-.bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: .6rem 1.25rem; }
+.bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: .55rem max(1.25rem, calc((100vw - 1180px) / 2 + 1.25rem)); }
 .sticky { position: sticky; top: 0; z-index: 20; box-shadow: var(--shadow); }
 .bar-row { display: flex; align-items: center; gap: .75rem; }
 .brand { font-weight: 700; color: var(--text); letter-spacing: -.01em; } .brand span { color: var(--accent); font-weight: 600; }
 .reviewer { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: var(--muted); }
 .reviewer input { width: 12rem; }
-.tiles { display: flex; gap: .6rem; margin: .6rem 0; overflow-x: auto; padding-bottom: 2px; }
-.tile { display: flex; flex-direction: column; min-width: 8.5rem; padding: .45rem .8rem; border: 1px solid var(--border); border-radius: var(--r);
+.tiles { display: flex; gap: .5rem; margin: .5rem 0 .1rem; overflow-x: auto; padding-bottom: 2px; }
+.tile { display: flex; flex-direction: row; align-items: baseline; gap: .5rem; padding: .3rem .75rem; border: 1px solid var(--border); border-radius: var(--r);
   background: var(--surface); color: var(--text); text-decoration: none !important; transition: transform .1s, border-color .1s; }
 .tile:hover { border-color: var(--accent); transform: translateY(-1px); }
-.tile b { font-size: 1.35rem; line-height: 1.1; } .tile span { font-size: .75rem; color: var(--muted); white-space: nowrap; }
+.tile b { font-size: 1.2rem; line-height: 1.1; } .tile span { font-size: .78rem; color: var(--muted); white-space: nowrap; }
 .tile.accent b { color: var(--accent); } .tile.warn b { color: var(--warn); }
+.filterbox { margin: 0 0 .8rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: .5rem .9rem; }
+.filterbox summary { cursor: pointer; font-weight: 600; font-size: .85rem; color: var(--muted); }
+.filterbox .filters { margin-top: .7rem; }
 .filters { display: flex; flex-wrap: wrap; gap: .5rem .75rem; align-items: end; font-size: .78rem; color: var(--muted); }
 .filters label { display: flex; flex-direction: column; gap: .15rem; }
 
@@ -87,7 +91,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .toggle:focus-visible { outline: 2px solid var(--focus); border-radius: 6px; }
 .chev { display: inline-block; transition: transform .18s; color: var(--muted); font-size: 1.2rem; width: 1rem; }
 .card.open .chev { transform: rotate(90deg); }
-.q { display: flex; flex-direction: column; min-width: 0; } .title { font-weight: 650; } .question { color: var(--muted); font-size: .88rem; }
+.q { display: flex; flex-direction: column; min-width: 0; } .title { font-weight: 650; font-size: 1.02rem; } .qtext { color: var(--muted); font-size: .88rem; }
 .meta { grid-column: 2; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
 .open { font-size: .8rem; margin-left: auto; }
 .detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
@@ -105,7 +109,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 .badge.rel-contradicted-by-render { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
 .badge.rel-not-visible-in-render { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 
-.hero { margin: .2rem 0 1rem; } .id { font-size: .75rem; }
+.hero { margin: .2rem 0 1rem; } .hero h1.question { font-size: 1.5rem; font-weight: 700; margin: .5rem 0 .3rem; } .id { font-size: .75rem; }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: .9rem 1rem; margin: .7rem 0; }
 .card .panel { box-shadow: none; }
 .detail-body { padding: .3rem 0 .6rem; }
@@ -172,7 +176,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
      </p>
   
   <div class="summary">
-    <span class="badge ok">4 will be recorded</span>
+    <span class="badge ok">6 will be recorded</span>
     
     
   </div>
@@ -214,6 +218,22 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
         <td><span class="badge ok">record</span></td>
       </tr>
     
+      <tr class="plan-ok">
+        <td><a href="/items/ri-e29e3988e040" target="_blank" rel="noopener"><code>ri-e29e3988e…</code></a></td>
+        <td>Default of --acme-http01-solver-nameservers changed</td>
+        <td><span class="badge prio-normal">normal</span></td>
+        <td><span class="muted">—</span></td>
+        <td><span class="badge ok">record</span></td>
+      </tr>
+    
+      <tr class="plan-ok">
+        <td><a href="/items/ri-9aba206b43e2" target="_blank" rel="noopener"><code>ri-9aba206b4…</code></a></td>
+        <td>Default of --max-concurrent-challenges changed</td>
+        <td><span class="badge prio-normal">normal</span></td>
+        <td><span class="muted">—</span></td>
+        <td><span class="badge ok">record</span></td>
+      </tr>
+    
     </tbody>
   </table>
 
@@ -223,10 +243,10 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
     <input type="hidden" name="started" value="2026-10-01T09:00:00Z">
     <input type="hidden" name="return" value="/">
     
-    <input type="hidden" name="item" value="ri-9cdea0ac1732"><input type="hidden" name="item" value="ri-bbf01d9230ed"><input type="hidden" name="item" value="ri-a1825d704299"><input type="hidden" name="item" value="ri-8791ac038acb">
+    <input type="hidden" name="item" value="ri-9cdea0ac1732"><input type="hidden" name="item" value="ri-bbf01d9230ed"><input type="hidden" name="item" value="ri-a1825d704299"><input type="hidden" name="item" value="ri-8791ac038acb"><input type="hidden" name="item" value="ri-e29e3988e040"><input type="hidden" name="item" value="ri-9aba206b43e2">
     <label class="reviewer">Reviewer <input type="text" name="reviewer" value="dana" required></label>
     <div class="buttons">
-      <button class="btn ok" type="submit" name="confirm" value="1" >Record 4 decisions</button>
+      <button class="btn ok" type="submit" name="confirm" value="1" >Record 6 decisions</button>
       
       <button class="btn" type="submit" name="recheck" value="1">Re-check</button>
       <a class="btn ghost" href="/">Cancel</a>

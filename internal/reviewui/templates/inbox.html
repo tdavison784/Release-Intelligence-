@@ -12,6 +12,12 @@
   <nav class="tiles" aria-label="Inbox counts">
     {{range .Tiles}}<a class="tile {{.Tone}}" href="{{.Href}}" title="{{.Hint}}"><b>{{.Count}}</b><span>{{.Label}}</span></a>{{end}}
   </nav>
+</header>
+
+<main class="page">
+  {{template "flashes" .Flashes}}
+  <details class="filterbox" id="filterbox" {{if .Filter.Active}}open{{end}}>
+    <summary>Filters{{if .Filter.Active}} <span class="badge accent">active</span>{{end}}</summary>
   <form class="filters" method="get" action="/" id="filters">
     <label>Status
       <select name="status">
@@ -39,10 +45,7 @@
     <button class="btn" type="submit">Filter</button>
     {{if .Filter.Active}}<a class="btn ghost" href="/">Reset</a>{{end}}
   </form>
-</header>
-
-<main class="page">
-  {{template "flashes" .Flashes}}
+  </details>
   <div class="toolbar">
     <label class="check"><input type="checkbox" id="selectall"> Select all {{.Total}} in this filter</label>
     <div class="spacer"></div>
@@ -60,7 +63,7 @@
           <span class="chev" aria-hidden="true">›</span>
           <span class="q">
             <span class="title">{{.Row.Title}}</span>
-            <span class="question">{{.Row.Item.Question}}</span>
+            <span class="qtext">{{.Row.Item.Question}}</span>
           </span>
         </button>
         <div class="meta">

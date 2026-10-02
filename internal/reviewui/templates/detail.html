@@ -115,7 +115,7 @@
   </section>
 
   <section class="panel decide" id="decide-{{.Item.ID}}">
-    <h3>Decide <span class="muted small">— human decision · started {{.Started}}</span></h3>
+    <h3>Decide <span class="muted small">— recorded as a human decision</span></h3>
     {{if not .Editable}}
       <p class="flash flash-warn">This item is {{label .Item.Status}}; no further decision can be added.</p>
     {{else}}
@@ -123,7 +123,7 @@
       <input type="hidden" name="started" value="{{.Started}}">
       <input type="hidden" name="return" value="{{.Return}}">
       <div class="row">
-        <label class="reviewer">Reviewer <input type="text" name="reviewer" value="{{.Reviewer}}" required placeholder="your name"></label>
+        {{if .Inline}}<input type="hidden" name="reviewer" value="{{.Reviewer}}">{{else}}<label class="reviewer">Reviewer <input type="text" name="reviewer" value="{{.Reviewer}}" required placeholder="your name"></label>{{end}}
         <label class="grow">Reason <span class="muted small">(required for reject, need more evidence)</span>
           <textarea name="reason" rows="2" placeholder="Why? Cite the evidence.">{{formVal .Form "reason"}}</textarea></label>
       </div>
@@ -153,7 +153,7 @@
       <input type="hidden" name="return" value="{{$.Return}}">
       <h4>Correct the assertion <span class="muted small">— pre-filled with the proposal; the original is kept in the decision</span></h4>
       <div class="row">
-        <label class="reviewer">Reviewer <input type="text" name="reviewer" value="{{$.Reviewer}}" required></label>
+        {{if $.Inline}}<input type="hidden" name="reviewer" value="{{$.Reviewer}}">{{else}}<label class="reviewer">Reviewer <input type="text" name="reviewer" value="{{$.Reviewer}}" required></label>{{end}}
         <label class="grow">Reason (required) <textarea name="reason" rows="2">{{formVal $.Form "reason"}}</textarea></label>
       </div>
       {{if .HasSubject}}<fieldset><legend>Subject</legend><div class="grid">

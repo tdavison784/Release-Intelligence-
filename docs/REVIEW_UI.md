@@ -8,7 +8,7 @@ lets a proxy pose as a human.
 ```
 ri review serve -demo                 # fixture items, in-memory (nothing persisted)
 ri review serve -addr 127.0.0.1:8484 -reviewer dana -demo
-ri review serve -knowledge knowledge/ # file-backed queue: arrives with the knowledge lane
+ri review serve -knowledge knowledge/ # the learning loop's file-backed queue (knowledge.NewQueue over NewFileStore)
 ```
 
 Stdlib only (`net/http`, `html/template`, `embed`); hand-written CSS with design tokens and about 200
@@ -110,3 +110,19 @@ including the refusals (correct without change, proxy kind, missing reviewer, bl
 HTML snapshots with the CSS inlined (open in a browser, no server needed):
 `docs/phase3/learning-loop/review-ui/{inbox,item-disagreement,item-rendered-delta,bulk-confirm}.html`
 (the inbox snapshot is the collapsed list; the cards expand only with the live server's JS).
+
+## Browser verification
+
+The JS behaviour is exercised in real headless Firefox with Selenium (not part of `go test`, which needs no browser):
+
+```
+python3 -m venv /tmp/riv && /tmp/riv/bin/pip install selenium
+ri review serve -demo -addr 127.0.0.1:18485 &
+MOZ_NO_REMOTE=1 /tmp/riv/bin/python docs/phase3/learning-loop/review-ui/e2e_firefox.py http://127.0.0.1:18485 /tmp/shots
+```
+
+`e2e_firefox.py` asserts: expand/collapse (click, Enter), expand/collapse all, select, shift-click range, select-all, the bulk bar,
+the bulk confirmation → record → flash, the bulk-accept guard, inline reject arming (no submit without a reason), `j`/`k`/`Enter`/`x`/`a`/`r`/`c`/`?`
+shortcuts, the live class-follows-kind readout, theme toggle. `shots_firefox.py` captures the item sections. Screenshots (light and dark,
+inbox, expanded card, bulk bar, confirmation, guard, item page, proposals matrix, rendered delta, correct form, narrow window) are in
+`docs/phase3/learning-loop/review-ui/screenshots/`. `MOZ_NO_REMOTE=1` keeps the test Firefox from attaching to a running one.
