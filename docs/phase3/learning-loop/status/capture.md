@@ -87,3 +87,35 @@ falseActionRate 0.00, unsupported 0, pipelineFailures 0. Deltas:
     duplicate heuristic keys on category + subject set, so identical subjects on different CRDs count as duplicates
     (the same evaluator limitation reported in capture-1). Decision for the commander (accept via `-update` or key
     duplicates on CRD identity).
+
+## capture-3 (branch p3ll/capture-3): the 6 "not in the edge" links of LOOP-DIAGNOSIS stage 0
+Each fact is captured because the upstream artifact states it; nothing was motivated by an eval expectation, no case
+or result was edited, `ri eval -update` not run. One generic construct was added: **`contents: lines`** (a snapshot of
+the lines of a document matching a declared RE2 pattern, diffed as sets between the releases: `lines:added` /
+`lines:removed`, one computed change per line, ≤ 25 per direction + one summary; ARTIFACTS.md, ARCHITECTURE constructs
+table, catalog validation, JSON schema, schemagen, tests in catalog/ingest/upgrade). Everything else is configuration.
+
+| link | upstream statement | capture |
+|---|---|---|
+| crossplane E8 | `cmd/crossplane/core/core.go` retires flags in error/log messages and comments ("… flag will be removed", "… removed support for … returns an error when you enable them") | new artifact `core-flags` with a `lines` content (pattern on the retirement wording): 5 lines added/removed in the edge, incl. the `--enable-composition-webhook-schema-validation` error |
+| external-secrets E7 | the commit subject "feat: make kubernetes auth prefer service account tokens over secrets (#4596)"; the v0.16.0 release body is a hand-written upgrade guide, so the commit-log source (declared a *fallback* of the release body) never ran | `commit-log` is now read for every release (no `fallbackGroup`); +37 changes for the edge (also picks up E8's RBAC commit) |
+| flux E5 | the CRD description in `install.yaml`: "Note: The `Updated` template field has been removed. Use `Changed` instead." | `lines` content on `install-bundle` (pattern: "has/have been removed", "Deprecated:", "will be removed") — 4 line changes in the edge |
+| kyverno E10 | the website's per-minor branch carries the table "Kyverno Version / Kubernetes Min / Kubernetes Max" | three `compatibility` sources (one per page era: `<= 1.12`, `1.13–1.16`, `1.17`) with `markdown-table` columns minimum/maximum, ref `release-{{.Major}}-{{.Minor}}-0`. Edge: "Kubernetes minimum ≥ 1.26 → ≥ 1.28", "maximum ≤ 1.29 → ≤ 1.31". **Gap, recorded in the definition:** from 1.18 the matrix is no longer a table in the page, so releases ≥ 1.18 have no window. **Captured, not matched:** the case's matcher wants one sentence naming 1.28 and 1.31, the differ reports min and max as two changes (a combined "supported window" change would be a compat-differ decision, not done) |
+| prometheus-operator E3 | `pkg/operator/defaults.go`: the default Alertmanager/Thanos version constants and the Prometheus version list whose last entry is the default | new artifact `operand-defaults` with a `lines` content: `"v3.6.0",` added in the edge |
+| prometheus-operator E8 | CHANGELOG 0.86.0 bullet "[ENHANCEMENT] Add `app.kubernetes.io/managed-by: prometheus-operator` label …" — folded away because the section opens with `> [!NOTE]` callouts | existing `extract.listItems: true` on the changelog source (same mechanism as Karpenter's upgrade guide): 19 → 38 changes for the edge |
+
+### Eval before/after
+Base = `p3-learning-loop` 7d39b28 (offline, copy of the warm state); after = this branch merged with it.
+Gates: unchanged verdicts (the base already fails applicabilityAccuracy 0.49 and falseActionRate 0.06 — pre-existing).
+- recall 0.95 → **0.98**, criticalRecall 0.98 → **1.00** (0 critical missed), importantRecall 0.95 → 0.97; missed 9 → 4.
+- crossplane-1.20-2.0: E8 now found (critical), recall 0.90 → 1.00. external-secrets-0.15-0.16: E7, E8 found (recall
+  0.78 → 1.00; changes 71 → 108 from the commit log, precision 0.64 → 0.67). flux-2.6-2.7: E5 found. 
+  prometheus-operator-0.85-0.86: E8 found; changes 19 → 38 and **one more false positive** (the adjudicated
+  "config-reloader init container port rename" bullet, now an item of its own instead of being folded into the callout
+  item) — the only `eval/results` regression (`falsePositives 1 → 2`); decision for the commander (accept via
+  `-update`).
+- kyverno-1.12-1.13: +2 changes (the window), no new matched item (see above).
+- applicabilityAccuracy 0.49 → 0.49, affected links hit 20/75 → 20/75, ACTION findings 17 → 17: none of the six links
+  moves to a decided class — they leave stage 0 and now wait for the knowledge loop (unknown/not-joined), as intended.
+- precision/volume: changes 3768 → 3839 (+71), unknown rate 0.79 → 0.80, raw precision 0.73 → 0.74, labeled precision
+  unchanged 0.58.
