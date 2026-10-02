@@ -193,7 +193,7 @@ func TestInboxFilters(t *testing.T) {
 	_, a := r.get("/")
 	_, b := r.get("/?product=argo-cd")
 	for _, body := range []string{a, b} {
-		contains(t, body, "<b>9</b><span>Pending</span>", "<b>1</b><span>Needs more evidence</span>", "<b>1</b><span>Deferred</span>", "<b>2</b><span>Model disagreement</span>")
+		contains(t, body, "<b>10</b><span>Pending</span>", "<b>1</b><span>Needs more evidence</span>", "<b>1</b><span>Deferred</span>", "<b>2</b><span>Model disagreement</span>")
 	}
 }
 
@@ -213,7 +213,7 @@ func TestItemPageShowsEveryG8Element(t *testing.T) {
 		`rel="noopener noreferrer"`, "The default value of Certificate.spec.privateKey.rotationPolicy is now Always",
 		"Proposed assertion", "behavior-change → review-required",
 		"claude-opus-5-5", "claude-sonnet-5-5", "glm-5.3-flash", // per-model proposals side by side
-		"agree-disagree", "disagree · 3 variants", "agree · 3 models",
+		"agree-disagree", "disagree · 3 variants", "consensus · cross-model · 3 calls", "call-claude-opus-5-5-", "single call",
 		"Validation results", "semvalidate.crd@v1", "out-confirmed", "out-inconclusive",
 		"Environment context", "illustration only",
 		"Previous related decisions",
@@ -240,7 +240,7 @@ func TestPerAspectAgreementIsHighlighted(t *testing.T) {
 	_, body := r.get("/items/" + r.id("RBAC default policy"))
 	contains(t, body, "m-disagree", "disagree · 2 variants", "g-A", "g-B", "as-proposed")
 	_, body = r.get("/items/" + r.id("Default of --max-concurrent-challenges"))
-	contains(t, body, "m-agree", "agree · 2 models")
+	contains(t, body, "m-agree", "consensus · cross-model · 2 calls")
 	lacks(t, body, "m-disagree")
 }
 
@@ -497,4 +497,67 @@ type failingQueue struct{ *DemoQueue }
 
 func (failingQueue) Decide(context.Context, []domain.ReviewDecision) ([]knowledge.DecisionOutcome, error) {
 	return nil, errors.New("store unavailable")
+}
+
+// --- PO-1 / PO-2: consensus is separate calls; models may request action-required ---------------
+
+func TestFixtureCallsAreSeparate(t *testing.T) {
+	q := NewDemoQueue()
+	calls := map[string]bool{}
+	for _, p := range q.proposals {
+		if p.Provenance.CallID == "" || calls[p.Provenance.CallID] {
+			t.Errorf("proposal %s: call id %q missing or reused", p.ID, p.Provenance.CallID)
+		}
+		calls[p.Provenance.CallID] = true
+	}
+	// the same-model example: two separate calls of one model
+	id := q.ItemIDByTitle("Default of --txt-prefix")
+	it, _ := q.ItemRecord(id)
+	a, b := q.proposals[it.Proposals[0]], q.proposals[it.Proposals[1]]
+	if a.Provenance.Model != b.Provenance.Model || !domain.SeparateCalls(a, b) {
+		t.Errorf("want two separate calls of one model, got %s/%s", a.Provenance.Model, b.Provenance.Model)
+	}
+}
+
+func TestConsensusScopeIsLabelledPerAspectAndInTheInbox(t *testing.T) {
+	r := newRig(t)
+	_, same := r.get("/items/" + r.id("Default of --txt-prefix"))
+	contains(t, same, "consensus · same-model · 2 calls", "call-claude-opus-5-5-")
+	lacks(t, same, "cross-model")
+	_, cross := r.get("/items/" + r.id("Default of --max-concurrent-challenges"))
+	contains(t, cross, "consensus · cross-model · 2 calls")
+	// disagreeing aspects: each answer group is labelled
+	_, dis := r.get("/items/" + r.id("rotationPolicy"))
+	contains(t, dis, "same-model consensus · 2 calls", "single call") // opus + sonnet share a family; glm is alone
+	// inbox badges
+	_, inbox := r.get("/")
+	contains(t, inbox, "consensus · same-model · 2 calls", "consensus · cross-model · 2 calls", "models disagree")
+	_, all := r.get("/?status=all")
+	contains(t, all, "single call") // an item with one call
+}
+
+func TestRequestedClassAndConsensusActionAreShown(t *testing.T) {
+	r := newRig(t)
+	_, body := r.get("/items/" + r.id("RSA keys below 2048"))
+	contains(t, body, "Consensus requests ACTION REQUIRED", "ACTION REQUIRED · model consensus", "requests action-required",
+		"cross-model", "Consensus never produces NOT AFFECTED", "sampled into human review")
+	// a review-required suggestion is shown, but is no ACTION banner
+	_, rot := r.get("/items/" + r.id("rotationPolicy"))
+	contains(t, rot, "review-required")
+	lacks(t, rot, "Consensus requests ACTION REQUIRED", "requests action-required")
+	_, other := r.get("/items/" + r.id("Default of --max-concurrent-challenges"))
+	lacks(t, other, "Consensus requests ACTION REQUIRED")
+}
+
+func TestConsensusActionItemNeedsAnOpenBeforeBulkAccept(t *testing.T) {
+	r := newRig(t)
+	act := r.id("RSA keys below 2048")
+	ids := append(r.routine()[:2], act)
+	_, body, _ := r.post("/bulk", bulkForm("accept", ids))
+	contains(t, body, "1 blocked", "high priority")
+	r.get("/items/" + act)
+	st, _, _ := r.post("/bulk", bulkForm("accept", ids, "confirm", "1"))
+	if st != 303 {
+		t.Fatal(st)
+	}
 }

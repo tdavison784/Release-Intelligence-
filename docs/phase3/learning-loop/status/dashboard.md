@@ -75,4 +75,17 @@ scope, exclude-blocked, atomic on queue refusal, correct/proxy refused).
   Decide heading, a redundant reviewer field in every inline form (now the header's), and inline forms now refuse early when no reviewer name is set.
   Screenshots: `docs/phase3/learning-loop/review-ui/screenshots/` (light + dark, narrow window).
 - Still untested in a browser: Safari/Chrome specifics, touch input, very large inboxes (hundreds of cards).
-- **Waiting for** the commander's "contract-3 merged" note for the PO-1/PO-2 UI bits (listed above).
+
+
+## dashboard-3: PO-1 / PO-2 (contract-3 merged)
+- **Fixtures fixed**: every demo proposal now has its own `Provenance.CallID` (`call-<model>-<n>`, part of the proposal id), a test asserts all
+  call ids are distinct. New examples: **same-model consensus** (txt-prefix: two separate Opus calls), **cross-model consensus** (opus + glm; note
+  `ModelFamily` makes opus + sonnet the same family, so that pair is labelled same-model), and a **consensus-ACTION audit item** (RSA < 2048 rejected:
+  opus + glm both `requested action-required`, action-eligible kind, no refutation, high priority).
+- **UI**: proposals matrix is now "by call" with call id and requested class per column, consensus scope per aspect row (and a legend per
+  answer group when they disagree), and a "Consensus requests ACTION REQUIRED · model consensus" banner (reports PO-2 condition (b)+(d) from the
+  proposals/validations; (a) and (c) are the pipeline's). Inbox badge: "consensus · cross-model|same-model · N calls" / "single call" / "models disagree".
+- **CONTRACT-CHANGE(dashboard)**: `knowledge.InboxRow.Calls int` (additive; filled in `reviewQueue.Inbox` from distinct `Provenance.CallID`s) so the inbox
+  can label consensus by separate calls rather than distinct models (two Opus calls are a consensus; `Models` alone says "1 model").
+- Decisions are untouched: a consensus-ACTION audit decision is a normal human decision; the UI never sets or caps a class.
+- Firefox script updated (10 pending cards), screenshots refreshed incl. `23-consensus-action-*`, `24-same-model-consensus-*`.

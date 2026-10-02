@@ -230,6 +230,10 @@ type InboxRow struct {
 	Title        string // candidate title
 	Disagreement bool
 	Models       []string
+	// Calls is the number of separate model calls (distinct provenance call
+	// ids) behind the item's proposals (PO-1: consensus = separate calls).
+	// CONTRACT-CHANGE(dashboard): additive; the review UI labels agreement by it.
+	Calls int
 }
 
 // ReviewContext is everything one review decision needs (G8).

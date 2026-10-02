@@ -42,14 +42,15 @@
 
   {{if .Cols}}
   <section class="panel">
-    <h3>Proposals by model <span class="muted small">— never merged; same letter = same answer</span></h3>
+    <h3>Proposals by call <span class="muted small">— never merged; same letter = same answer; consensus = two separate calls agree</span></h3>
+    {{if .ConsensusAction}}<div class="flash flash-warn consensus-action" role="note"><b>Consensus requests ACTION REQUIRED</b> · {{.ConsensusScope}} — separate calls agree on an action-eligible consequence and every agreeing call requested action-required. A fact built on this would render as <b>ACTION REQUIRED · model consensus</b> (not “verified”), and every such fact is sampled into human review: this is that review. Consensus never produces NOT AFFECTED.</div>{{end}}
     <div class="scroll">
     <table class="matrix">
-      <thead><tr><th>Aspect</th><th>Proposed</th>{{range .Cols}}<th><b>{{.Model}}</b><br><span class="muted small">{{.Provider}} · {{.Confidence}}</span></th>{{end}}</tr></thead>
+      <thead><tr><th>Aspect</th><th>Proposed</th>{{range .Cols}}<th><b>{{.Model}}</b><br><span class="muted small">{{.Provider}} · {{.Confidence}}</span><br><span class="muted small mono" title="separate stateless call">{{.CallID}}</span>{{if .Requested}}<br><span class="badge req-{{.Requested}}" title="the class this call suggested or requested">{{if eq .Requested "action-required"}}requests {{end}}{{.Requested}}</span>{{end}}</th>{{end}}</tr></thead>
       <tbody>
       {{range .Matrix}}
         <tr class="m-{{.Status}}">
-          <th scope="row">{{.Aspect}}<div class="agree-chip agree-{{.Status}}">{{.StatusText}}</div></th>
+          <th scope="row">{{.Aspect}}<div class="agree-chip agree-{{.Status}}">{{.StatusText}}</div>{{if eq .Status "disagree"}}{{range .Legend}}<div class="legend small muted"><b>{{.Letter}}</b> {{.Text}}</div>{{end}}{{end}}</th>
           <td>{{if .Proposed}}<pre class="wrap">{{.Proposed}}</pre>{{else}}<span class="muted">—</span>{{end}}</td>
           {{range .Cells}}
             <td class="{{if .Group}}g g-{{.Group}}{{end}}{{if .AsProposed}} as-proposed{{end}}">

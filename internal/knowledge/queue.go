@@ -74,7 +74,7 @@ func (q *reviewQueue) Inbox(ctx context.Context, f InboxFilter) (*Inbox, error) 
 		if f.Severity != "" && (it.Proposed.Consequence == nil || it.Proposed.Consequence.Severity != f.Severity) {
 			continue
 		}
-		var models []string
+		var models, calls []string
 		confOK := f.Confidence == ""
 		modelOK := f.Model == ""
 		for _, id := range it.Proposals {
@@ -83,6 +83,7 @@ func (q *reviewQueue) Inbox(ctx context.Context, f InboxFilter) (*Inbox, error) 
 				continue
 			}
 			models = appendUnique(models, p.Provenance.Model)
+			calls = appendUnique(calls, p.Provenance.CallID)
 			confOK = confOK || p.Provenance.Confidence == f.Confidence
 			modelOK = modelOK || p.Provenance.Model == f.Model
 		}
@@ -139,7 +140,7 @@ func (q *reviewQueue) Inbox(ctx context.Context, f InboxFilter) (*Inbox, error) 
 			}
 		}
 		sort.Strings(models)
-		rows = append(rows, InboxRow{Item: it, Title: c.Title, Disagreement: disagree, Models: models})
+		rows = append(rows, InboxRow{Item: it, Title: c.Title, Disagreement: disagree, Models: models, Calls: len(calls)})
 	}
 	sort.Slice(rows, func(i, j int) bool {
 		a, b := rows[i].Item, rows[j].Item

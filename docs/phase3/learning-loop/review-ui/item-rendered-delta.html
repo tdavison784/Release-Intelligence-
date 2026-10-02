@@ -165,6 +165,11 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
 .loading { padding: 1rem; color: var(--muted); }
 @media (max-width: 760px) { .page { padding: .8rem; } .sbs { grid-template-columns: 1fr; } .aspects { grid-template-columns: 1fr; } .reviewer input { width: 8rem; } .card-head { grid-template-columns: auto 1fr; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+.badge.req-action-required { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.badge.req-review-required { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.legend { text-transform: none; font-weight: 400; } .legend b { color: var(--text); }
+.consensus-action { margin: 0 0 .8rem; }
 </style>
 </head>
 <body>
@@ -237,14 +242,15 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
 
   
   <section class="panel">
-    <h3>Proposals by model <span class="muted small">— never merged; same letter = same answer</span></h3>
+    <h3>Proposals by call <span class="muted small">— never merged; same letter = same answer; consensus = two separate calls agree</span></h3>
+    
     <div class="scroll">
     <table class="matrix">
-      <thead><tr><th>Aspect</th><th>Proposed</th><th><b>claude-opus-5-5</b><br><span class="muted small">anthropic · medium</span></th><th><b>claude-sonnet-5-5</b><br><span class="muted small">anthropic · medium</span></th></tr></thead>
+      <thead><tr><th>Aspect</th><th>Proposed</th><th><b>claude-opus-5-5</b><br><span class="muted small">anthropic · medium</span><br><span class="muted small mono" title="separate stateless call">call-claude-opus-5-5-004</span></th><th><b>claude-sonnet-5-5</b><br><span class="muted small">anthropic · medium</span><br><span class="muted small mono" title="separate stateless call">call-claude-sonnet-5-5-005</span></th></tr></thead>
       <tbody>
       
         <tr class="m-agree">
-          <th scope="row">subject<div class="agree-chip agree-agree">agree · 2 models</div></th>
+          <th scope="row">subject<div class="agree-chip agree-agree">consensus · same-model · 2 calls</div></th>
           <td><pre class="wrap">product-relationship · cert-manager · ingress-nginx</pre></td>
           
             <td class="g g-A as-proposed">
@@ -260,7 +266,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
         </tr>
       
         <tr class="m-agree">
-          <th scope="row">change<div class="agree-chip agree-agree">agree · 2 models</div></th>
+          <th scope="row">change<div class="agree-chip agree-agree">consensus · same-model · 2 calls</div></th>
           <td><pre class="wrap">requirement-changed: → &gt;=1.12.0</pre></td>
           
             <td class="g g-A as-proposed">
@@ -276,7 +282,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
         </tr>
       
         <tr class="m-agree">
-          <th scope="row">applicability<div class="agree-chip agree-agree">agree · 2 models</div></th>
+          <th scope="row">applicability<div class="agree-chip agree-agree">consensus · same-model · 2 calls</div></th>
           <td><pre class="wrap">exposed when all of:
   product-version `ingress-nginx` out-of-range &gt;=1.12.0
   values-key `ingressShim.defaultIssuerKind` set</pre></td>
@@ -349,7 +355,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
     <h3>Decide <span class="muted small">— recorded as a human decision</span></h3>
     
     <form class="actions" method="post" action="/items/ri-bbf01d9230ed/decision" data-item="ri-bbf01d9230ed">
-      <input type="hidden" name="started" value="2026-10-02T03:31:01.458612Z">
+      <input type="hidden" name="started" value="2026-10-02T03:35:47.015722Z">
       <input type="hidden" name="return" value="/">
       <div class="row">
         <label class="reviewer">Reviewer <input type="text" name="reviewer" value="" required placeholder="your name"></label>
@@ -378,7 +384,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
     
     <form class="correct" method="post" action="/items/ri-bbf01d9230ed/decision" id="correct-ri-bbf01d9230ed" hidden>
       <input type="hidden" name="action" value="correct">
-      <input type="hidden" name="started" value="2026-10-02T03:31:01.458612Z">
+      <input type="hidden" name="started" value="2026-10-02T03:35:47.015722Z">
       <input type="hidden" name="return" value="/">
       <h4>Correct the assertion <span class="muted small">— pre-filled with the proposal; the original is kept in the decision</span></h4>
       <div class="row">

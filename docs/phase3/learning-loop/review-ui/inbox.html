@@ -165,6 +165,11 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
 .loading { padding: 1rem; color: var(--muted); }
 @media (max-width: 760px) { .page { padding: .8rem; } .sbs { grid-template-columns: 1fr; } .aspects { grid-template-columns: 1fr; } .reviewer input { width: 8rem; } .card-head { grid-template-columns: auto 1fr; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+.badge.req-action-required { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.badge.req-review-required { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.legend { text-transform: none; font-weight: 400; } .legend b { color: var(--text); }
+.consensus-action { margin: 0 0 .8rem; }
 </style>
 </head>
 <body>
@@ -180,7 +185,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
     <button class="btn ghost" type="button" id="helpbtn" aria-label="Keyboard shortcuts">?</button>
   </div>
   <nav class="tiles" aria-label="Inbox counts">
-    <a class="tile accent" href="/?status=pending" title="open questions"><b>9</b><span>Pending</span></a><a class="tile warn" href="/?disagreement=yes&amp;status=pending" title="proposals disagree on an aspect"><b>2</b><span>Model disagreement</span></a><a class="tile " href="/?question=semantic-mapping&amp;status=pending" title="what changed, exactly?"><b>7</b><span>Needs semantic mapping</span></a><a class="tile " href="/?question=applicability&amp;status=pending" title="who is exposed?"><b>0</b><span>Applicability</span></a><a class="tile " href="/?status=needs-evidence" title="waiting for evidence"><b>1</b><span>Needs more evidence</span></a><a class="tile " href="/?status=deferred" title="parked"><b>1</b><span>Deferred</span></a>
+    <a class="tile accent" href="/?status=pending" title="open questions"><b>10</b><span>Pending</span></a><a class="tile warn" href="/?disagreement=yes&amp;status=pending" title="proposals disagree on an aspect"><b>2</b><span>Model disagreement</span></a><a class="tile " href="/?question=semantic-mapping&amp;status=pending" title="what changed, exactly?"><b>7</b><span>Needs semantic mapping</span></a><a class="tile " href="/?question=applicability&amp;status=pending" title="who is exposed?"><b>0</b><span>Applicability</span></a><a class="tile " href="/?status=needs-evidence" title="waiting for evidence"><b>1</b><span>Needs more evidence</span></a><a class="tile " href="/?status=deferred" title="parked"><b>1</b><span>Deferred</span></a>
   </nav>
 </header>
 
@@ -217,7 +222,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
   </form>
   </details>
   <div class="toolbar">
-    <label class="check"><input type="checkbox" id="selectall"> Select all 9 in this filter</label>
+    <label class="check"><input type="checkbox" id="selectall"> Select all 10 in this filter</label>
     <div class="spacer"></div>
     <button class="btn ghost" type="button" id="expandall">Expand all</button>
     <button class="btn ghost" type="button" id="collapseall">Collapse all</button>
@@ -241,12 +246,35 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">consequence</span>
           <span class="badge sev-high">high</span>
           <span class="badge prio-high">high priority</span>
-          <span class="badge agree-disagree" title="claude-opus-5-5, claude-sonnet-5-5, glm-5.3-flash">models disagree</span>
+          <span class="badge agree-disagree" title="claude-opus-5-5, claude-sonnet-5-5, glm-5.3-flash · 3 separate call(s)">models disagree</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-9cdea0ac1732?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
       </div>
       <div class="detail" id="d-ri-9cdea0ac1732" role="region"><div class="detail-inner"></div></div>
+    </li>
+  
+    <li class="card" data-id="ri-d1f6b449f374" tabindex="-1">
+      <div class="card-head">
+        <input type="checkbox" class="sel" name="item" value="ri-d1f6b449f374" form="bulkform" aria-label="Select ri-d1f6b449f374" >
+        <button type="button" class="toggle" aria-expanded="false" aria-controls="d-ri-d1f6b449f374" data-detail="/items/ri-d1f6b449f374/detail?return=%2F">
+          <span class="chev" aria-hidden="true">›</span>
+          <span class="q">
+            <span class="title">RSA keys below 2048 bits are rejected</span>
+            <span class="qtext">Audit: two separate model calls agree this is ACTION REQUIRED. Is a Certificate with an RSA key below 2048 bits really rejected, and is that action-eligible?</span>
+          </span>
+        </button>
+        <div class="meta">
+          <span class="badge">cert-manager v1.18.0</span>
+          <span class="badge soft">consequence</span>
+          <span class="badge sev-high">high</span>
+          <span class="badge prio-high">high priority</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, glm-5.3-flash · 2 separate call(s)">consensus · cross-model · 2 calls</span>
+          <span class="badge st-accent">pending</span>
+          <a class="open" href="/items/ri-d1f6b449f374?return=%2F" title="Open as a page (deep link)">open ↗</a>
+        </div>
+      </div>
+      <div class="detail" id="d-ri-d1f6b449f374" role="region"><div class="detail-inner"></div></div>
     </li>
   
     <li class="card" data-id="ri-bbf01d9230ed" tabindex="-1">
@@ -264,7 +292,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">relationship</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5 · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-bbf01d9230ed?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -287,7 +315,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-disagree" title="claude-opus-5-5, claude-sonnet-5-5, glm-5.3-flash">models disagree</span>
+          <span class="badge agree-disagree" title="claude-opus-5-5, claude-sonnet-5-5, glm-5.3-flash · 3 separate call(s)">models disagree</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-a1825d704299?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -310,7 +338,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5 · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-8791ac038acb?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -333,7 +361,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, glm-5.3-flash · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-e29e3988e040?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -356,7 +384,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, glm-5.3-flash · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-9aba206b43e2?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -379,7 +407,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5 · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-7f40ce1000e1?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -402,7 +430,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, glm-5.3-flash · 2 separate call(s)">consensus · cross-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-25372eecd80f?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -425,7 +453,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
           <span class="badge soft">semantic mapping</span>
           
           <span class="badge prio-normal">normal priority</span>
-          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5">models agree · 2</span>
+          <span class="badge agree-agree" title="claude-opus-5-5 · 2 separate call(s)">consensus · same-model · 2 calls</span>
           <span class="badge st-accent">pending</span>
           <a class="open" href="/items/ri-ea853dfe5b45?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
@@ -437,7 +465,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
 </main>
 
 <form id="bulkform" class="bulkbar" method="post" action="/bulk" hidden>
-  <input type="hidden" name="started" value="2026-10-02T03:31:01.455826Z">
+  <input type="hidden" name="started" value="2026-10-02T03:35:47.011985Z">
   <input type="hidden" name="return" value="/">
   <input type="hidden" name="reviewer" value="" id="bulk-reviewer">
   <div class="bulk-count"><b id="bulkcount">0</b> selected</div>

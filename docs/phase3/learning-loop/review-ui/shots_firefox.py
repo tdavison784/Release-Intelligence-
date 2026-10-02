@@ -14,6 +14,10 @@ try:
             d.get(l); src=d.page_source
             if "Rendered delta" in src:
                 d.execute_script("document.getElementById('rendered').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/20-rendered-delta-{theme}.png")
+            if "Consensus requests ACTION REQUIRED" in src:
+                d.execute_script("document.querySelector('.consensus-action').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/23-consensus-action-{theme}.png")
+            if "consensus · same-model · 2 calls" in src and "m-disagree" not in src:
+                d.execute_script("document.querySelector('table.matrix').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/24-same-model-consensus-{theme}.png")
             if "disagree · 3 variants" in src:
                 d.execute_script("document.querySelector('table.matrix').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/21-proposals-matrix-{theme}.png")
                 d.execute_script("document.querySelector('.decide').scrollIntoView()"); time.sleep(.3); d.save_screenshot(f"{out}/22-decide-{theme}.png")

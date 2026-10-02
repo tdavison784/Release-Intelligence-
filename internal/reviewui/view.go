@@ -138,6 +138,7 @@ type rowView struct {
 	Href      string
 	Severity  string
 	Agreement string // disagree | agree | single
+	AgreeText string // "models disagree" | "consensus · cross-model · 2 calls" | "single call"
 }
 
 func newRowView(row knowledge.InboxRow, back string) rowView {
@@ -145,13 +146,19 @@ func newRowView(row knowledge.InboxRow, back string) rowView {
 	if c := row.Item.Proposed.Consequence; c != nil && c.Severity != "" {
 		v.Severity = string(c.Severity)
 	}
+	// PO-1: consensus is two SEPARATE calls agreeing, from any models; the
+	// scope (cross-model | same-model) only labels it.
 	switch {
 	case row.Disagreement:
-		v.Agreement = "disagree"
-	case len(row.Models) >= 2:
-		v.Agreement = "agree"
+		v.Agreement, v.AgreeText = "disagree", "models disagree"
+	case row.Calls >= 2:
+		scope := "same-model"
+		if len(row.Models) >= 2 {
+			scope = "cross-model"
+		}
+		v.Agreement, v.AgreeText = "agree", fmt.Sprintf("consensus · %s · %d calls", scope, row.Calls)
 	default:
-		v.Agreement = "single"
+		v.Agreement, v.AgreeText = "single", "single call"
 	}
 	return v
 }
@@ -191,7 +198,11 @@ type matrixCell struct {
 	AsProposed   bool
 }
 
-type matrixCol struct{ Model, Provider, Confidence, ID string }
+type matrixCol struct {
+	Model, Provider, Confidence, ID, CallID string
+	// Requested is the class the model suggested or REQUESTED (PO-2).
+	Requested string
+}
 
 type matrixRow struct {
 	Aspect     domain.Aspect
@@ -200,7 +211,11 @@ type matrixRow struct {
 	Proposed   string
 	Cells      []matrixCell
 	Asked      bool // the question verifies this aspect
+	// Legend labels each answer group: "A cross-model consensus · 2 calls · B single call".
+	Legend []groupLegend
 }
+
+type groupLegend struct{ Letter, Text string }
 
 // correctionView is the pre-filled edit form (per aspect).
 type correctionView struct {
@@ -227,6 +242,11 @@ type itemView struct {
 	Correction  *correctionView // nil when the question states nothing to correct
 	Editable    bool            // the item can still be decided
 	Disagrees   bool
+	// ConsensusAction: separate calls agree on an action-eligible consequence
+	// and every agreeing proposal REQUESTED action-required (PO-2 (b)). The UI
+	// only reports the request; the fact's other conditions are the pipeline's.
+	ConsensusAction bool
+	ConsensusScope  string
 
 	Reviewer string
 	Started  string
@@ -279,7 +299,7 @@ func (v *itemView) buildMatrix(rc *knowledge.ReviewContext, asked []domain.Aspec
 	props := slices.Clone(rc.Proposals)
 	sort.SliceStable(props, func(i, j int) bool { return props[i].Provenance.Model < props[j].Provenance.Model })
 	for _, p := range props {
-		v.Cols = append(v.Cols, matrixCol{p.Provenance.Model, p.Provider, string(p.Provenance.Confidence), p.ID})
+		v.Cols = append(v.Cols, matrixCol{p.Provenance.Model, p.Provider, string(p.Provenance.Confidence), p.ID, p.Provenance.CallID, string(p.SuggestedClass)})
 	}
 	agree := map[domain.Aspect]knowledge.AspectAgreement{}
 	for _, a := range rc.Agreement {
@@ -329,18 +349,69 @@ func (v *itemView) buildMatrix(rc *knowledge.ReviewContext, asked []domain.Aspec
 		if !any && !row.Asked && row.Proposed == "" {
 			continue
 		}
+		// groups: the proposals behind each answer, to label consensus (PO-1)
+		groups := map[string][]domain.SemanticProposal{}
+		for _, p := range props {
+			if d := digestOf[p.ID]; d != "" {
+				groups[d] = append(groups[d], p)
+			}
+		}
+		consensus := 0
+		for i, d := range digests {
+			g := groups[d]
+			letter := string(rune('A' + i))
+			if n := distinctCalls(g); n >= 2 {
+				consensus++
+				row.Legend = append(row.Legend, groupLegend{letter, fmt.Sprintf("%s consensus · %d calls", domain.ConsensusScopeOf(g), n)})
+			} else {
+				row.Legend = append(row.Legend, groupLegend{letter, "single call"})
+			}
+		}
 		switch {
 		case len(digests) >= 2:
 			row.Status, row.StatusText = "disagree", fmt.Sprintf("disagree · %d variants", len(digests))
-		case len(models) >= 2:
-			row.Status, row.StatusText = "agree", fmt.Sprintf("agree · %d models", len(models))
-		case len(models) == 1:
-			row.Status, row.StatusText = "single", "single model"
+		case consensus == 1:
+			g := groups[digests[0]]
+			row.Status, row.StatusText = "agree", fmt.Sprintf("consensus · %s · %d calls", domain.ConsensusScopeOf(g), distinctCalls(g))
+			if a == domain.AspectConsequence {
+				v.noteConsequenceConsensus(g)
+			}
+		case len(models) >= 1:
+			row.Status, row.StatusText = "single", "single call"
 		default:
 			row.Status, row.StatusText = "none", "no model committed"
 		}
 		v.Matrix = append(v.Matrix, row)
 	}
+}
+
+// distinctCalls counts the separate calls behind a group of proposals.
+func distinctCalls(ps []domain.SemanticProposal) int {
+	seen := map[string]bool{}
+	for _, p := range ps {
+		seen[p.Provenance.CallID] = true
+	}
+	return len(seen)
+}
+
+// noteConsequenceConsensus records PO-2 condition (b) for the agreeing group:
+// an action-eligible consequence that every agreeing proposal requested as
+// action-required, with no validation refuting anything (d).
+func (v *itemView) noteConsequenceConsensus(g []domain.SemanticProposal) {
+	for _, p := range g {
+		if p.SuggestedClass != domain.ImpactActionRequired || p.Assertion.Consequence == nil || !p.Assertion.Consequence.Kind.ActionEligible() {
+			return
+		}
+	}
+	for _, val := range v.Ctx.Validations {
+		for _, c := range val.Checks {
+			if c.Outcome == domain.OutcomeRefuted {
+				return
+			}
+		}
+	}
+	v.ConsensusAction = true
+	v.ConsensusScope = string(domain.ConsensusScopeOf(g))
 }
 
 func newCorrectionView(a domain.SemanticAssertion, form url.Values) *correctionView {

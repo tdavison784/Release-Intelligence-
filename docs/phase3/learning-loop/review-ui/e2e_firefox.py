@@ -20,7 +20,7 @@ try:
     d.find_element(By.CSS_SELECTOR, "#filterbox summary").click(); time.sleep(.3); shot("01b-filters-open")
     d.find_element(By.CSS_SELECTOR, "#filterbox summary").click()
     cards = d.find_elements(By.CSS_SELECTOR, ".card")
-    ok(len(cards) == 9, f"9 pending cards ({len(cards)})")
+    ok(len(cards) == 10, f"10 pending cards ({len(cards)})")
     # expand first card
     cards[0].find_element(By.CSS_SELECTOR, ".toggle").click()
     W.until(lambda x: cards[0].find_element(By.CSS_SELECTOR, ".detail-inner").get_attribute("data-loaded") == "1")
@@ -31,9 +31,9 @@ try:
     ok("open" not in cards[0].get_attribute("class"), "card collapses")
     # expand all / collapse all
     d.find_element(By.ID, "expandall").click()
-    W.until(lambda x: len(d.find_elements(By.CSS_SELECTOR, ".card.open")) == 9)
-    W.until(lambda x: len(d.find_elements(By.CSS_SELECTOR, ".detail-inner[data-loaded='1']")) == 9)
-    ok(True, "expand all opens 9")
+    W.until(lambda x: len(d.find_elements(By.CSS_SELECTOR, ".card.open")) == 10)
+    W.until(lambda x: len(d.find_elements(By.CSS_SELECTOR, ".detail-inner[data-loaded='1']")) == 10)
+    ok(True, "expand all opens 10")
     d.find_element(By.ID, "collapseall").click(); time.sleep(.3)
     ok(len(d.find_elements(By.CSS_SELECTOR, ".card.open")) == 0, "collapse all")
     # selection
@@ -45,7 +45,7 @@ try:
     ok(n == 4, f"shift-click range selects 4 ({n})")
     shot("03-bulk-bar")
     d.find_element(By.ID, "selectall").click()
-    ok(int(d.find_element(By.ID, "bulkcount").text) == 9, "select all in filter = 9")
+    ok(int(d.find_element(By.ID, "bulkcount").text) == 10, "select all in filter = 10")
     d.find_element(By.ID, "selectall").click()
     ok(int(d.find_elements(By.CSS_SELECTOR, ".sel:checked").__len__()) == 0 and not d.find_element(By.ID, "bulkform").is_displayed(), "deselect all hides bar")
     # keyboard
