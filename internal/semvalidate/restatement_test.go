@@ -154,7 +154,25 @@ func TestRestatementIgnoresReRootedCharts(t *testing.T) {
 	to := newRel("v1.24.0").values("chart-base", "base", plain...)
 	in := input(from, to, assertion(helmSubject("global.platform"), change(domain.ChangeKindAdded, "", "")))
 	in.Edge = edgeOf(t, from, to)
-	if got := run(t, restatementValidator{}, in); got[domain.AspectChange] != domain.OutcomeInconclusive || got[domain.AspectSubject] != domain.OutcomeInconclusive {
-		t.Errorf("re-rooted chart: %v", got)
+	if got := run(t, restatementValidator{}, in); got[domain.AspectChange] != domain.OutcomeInconclusive || got[domain.AspectSubject] != domain.OutcomeConfirmed {
+		t.Errorf("re-rooted chart (the key exists, the diff is unreliable): %v", got)
+	}
+}
+
+// the differ renders "no default" as "(none)": that is the asserted null
+func TestRestatementDefaultRemovedIsNull(t *testing.T) {
+	obj := `{"consolidateAfter":"0s"}`
+	from := newRel("v0.37.8").crds("crds", crd("nodepools.karpenter.sh", "karpenter.sh", "NodePool", crdVer("v1", true, true, fld("spec.disruption", "object", obj))))
+	to := newRel("v1.0.0").crds("crds", crd("nodepools.karpenter.sh", "karpenter.sh", "NodePool", crdVer("v1", true, true, fld("spec.disruption", "object", ""))))
+	s := crdSubject("karpenter.sh", "NodePool", "spec.disruption")
+	in := input(from, to, assertion(s, change(domain.ChangeKindDefaultChanged, obj, "null")))
+	in.Edge = edgeOf(t, from, to)
+	if got := run(t, restatementValidator{}, in); got[domain.AspectChange] != domain.OutcomeConfirmed {
+		t.Errorf("default removed: %v", got)
+	}
+	in = input(from, to, assertion(s, change(domain.ChangeKindDefaultChanged, obj, `"5s"`)))
+	in.Edge = edgeOf(t, from, to)
+	if got := run(t, restatementValidator{}, in); got[domain.AspectChange] != domain.OutcomeRefuted {
+		t.Errorf("wrong after: %v", got)
 	}
 }

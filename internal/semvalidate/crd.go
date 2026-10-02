@@ -373,12 +373,17 @@ func fieldChange(views []fieldView, id string, subj *domain.Subject, chg *domain
 		// a move between API versions (the old path stays in the old version,
 		// the new path exists in the new one) is real but not a per-schema rename
 		oldKept, newOnly := "", ""
-		for _, v := range views {
-			if v.tOK && oldKept == "" {
-				oldKept = v.name
-			}
-			if _, ok := resolvePath(v.tv, newPath); ok && !v.tOK {
-				newOnly = v.name
+		if tc != nil {
+			for i := range tc.Versions {
+				v := &tc.Versions[i]
+				_, hasOld := resolvePath(v, subj.Path)
+				_, hasNew := resolvePath(v, newPath)
+				if hasOld && oldKept == "" {
+					oldKept = v.Name
+				}
+				if hasNew && !hasOld {
+					newOnly = v.Name
+				}
 			}
 		}
 		if oldKept != "" && newOnly != "" && oldKept != newOnly {

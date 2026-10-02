@@ -48,10 +48,7 @@ func (restatementValidator) Validate(_ context.Context, in knowledge.ValidationI
 		return nil, nil
 	}
 	subj, chg := in.Assertion.Subject, in.Assertion.Change
-	if subj.Family == domain.SubjectHelmValue && valuesDriftMentions(in, subj) {
-		v := inconclusive("restatement:key-root", "the values of a chart holding %s are rooted differently at the two releases, so the computed key diff is not reliable", subj.Path)
-		return build(in, ProducerRestatement, map[domain.Aspect]verdict{domain.AspectSubject: v, domain.AspectChange: v}, evidenceSet{}), nil
-	}
+	rerooted := subj.Family == domain.SubjectHelmValue && valuesDriftMentions(in, subj)
 	var mentions []stated
 	for _, c := range in.Edge.Changes {
 		if c.Provenance.Method != domain.MethodComputed {
@@ -77,6 +74,16 @@ func (restatementValidator) Validate(_ context.Context, in knowledge.ValidationI
 		}
 	}
 	first := mentions[0]
+	if rerooted {
+		// The key is named by the diff, so it exists; but a chart whose keys
+		// changed root makes the diff read a move as a removal plus an addition.
+		ev.add(resolve(first.change.Evidence, in.Edge.Evidence)...)
+		rule := "restatement:" + first.change.Provenance.Rule
+		return build(in, ProducerRestatement, map[domain.Aspect]verdict{
+			domain.AspectSubject: confirmed(rule, "computed change %s names %s", first.change.ID, subj.Key()),
+			domain.AspectChange:  inconclusive("restatement:key-root", "the values of a chart holding %s are rooted differently at the two releases, so the computed key diff is not reliable", subj.Path),
+		}, ev), nil
+	}
 	if match != nil && len(contra) > 0 && subj.Name == "" {
 		ev.add(resolve(match.change.Evidence, in.Edge.Evidence)...)
 		v := inconclusive("restatement:ambiguous", "computed diffs disagree about this subject (%s); name the chart in the subject", strings.Join(first3(contra), "; "))
@@ -126,10 +133,10 @@ func agrees(chg *domain.ChangeSpec, m stated) (agree bool, why string) {
 		return false, ""
 	}
 	if m.kind == domain.ChangeKindDefaultChanged || (m.kind == domain.ChangeKindValueChanged && m.before != nil) {
-		if chg.Before != nil && m.before != nil && !sameValue(*chg.Before, *m.before) {
+		if chg.Before != nil && m.before != nil && !sameDefault(*chg.Before, *m.before) {
 			return false, "the computed before is " + *m.before + ", not " + *chg.Before
 		}
-		if chg.After != nil && m.after != nil && !sameValue(*chg.After, *m.after) {
+		if chg.After != nil && m.after != nil && !sameDefault(*chg.After, *m.after) {
 			return false, "the computed after is " + *m.after + ", not " + *chg.After
 		}
 	}
@@ -336,4 +343,13 @@ func valuesDriftMentions(in knowledge.ValidationInput, subj *domain.Subject) boo
 		}
 	}
 	return false
+}
+
+// sameDefault compares an asserted default with a computed one; the differ
+// renders "no default" as "(none)", which is the asserted null.
+func sameDefault(asserted, computed string) bool {
+	if strings.TrimSpace(computed) == "(none)" {
+		return canonJSON(asserted) == "null"
+	}
+	return sameValue(asserted, computed)
 }

@@ -229,6 +229,12 @@ func TestCRDCrossVersionMovesAreInconclusive(t *testing.T) {
 	if got := run(t, crdValidator{}, input(from, to, assertion(crdSubject("karpenter.sh", "NodePool", "spec.disruption.expireAfter"), c))); got[domain.AspectChange] != domain.OutcomeInconclusive {
 		t.Errorf("field moved between versions: %v", got)
 	}
+	// the same move stated for the old version only
+	vs := crdSubject("karpenter.sh", "NodePool", "spec.disruption.expireAfter")
+	vs.Version = "v1beta1"
+	if got := run(t, crdValidator{}, input(from, to, assertion(vs, c))); got[domain.AspectChange] != domain.OutcomeInconclusive {
+		t.Errorf("field moved between versions, versioned subject: %v", got)
+	}
 	// a value that was never allowed anywhere is still refuted
 	bogus := assertion(crdSubject("karpenter.sh", "NodePool", "spec.disruption.consolidationPolicy"), change(domain.ChangeKindValueChanged, `"Nope"`, `"WhenEmptyOrUnderutilized"`))
 	if got := run(t, crdValidator{}, input(from, to, bogus)); got[domain.AspectChange] != domain.OutcomeRefuted {

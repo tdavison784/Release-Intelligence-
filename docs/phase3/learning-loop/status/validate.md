@@ -78,3 +78,12 @@ The `rendered-diff` validator is skipped as instructed (render lane paused).
 | restatement | change | 76 | 6 | 91 |
 | values | subject | 64 | 17 | 3 |
 | values | change | 45 | 16 | 23 |
+
+## validate-4: validator audit (branch p3ll/validate-4)
+Full write-up: `docs/phase3/learning-loop/VALIDATOR-AUDIT.md`; tooling in `scripts/validator-audit/`.
+- Found 4 false and 8 ambiguous confirmations (Istio `defaults.` re-rooting, multi-chart keys) and 18+13 validator-gap
+  refutations; all fixed generically (`internal/semvalidate`, regression tests listed in the audit). After the fix every
+  automatically checkable confirmation (407/414) re-checks true; 7 read by hand. 32 true confirmations are now
+  inconclusive (the cost of caution).
+- Reported, not changed: `products/istio.yaml` needs a stripPrefix era for ≤ 1.23; Cilium CRD snapshot lacks
+  runtime-generated CRDs; `rendered-diff` refutes storage-version moves.
