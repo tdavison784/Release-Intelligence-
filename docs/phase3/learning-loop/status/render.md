@@ -56,11 +56,39 @@ cert-manager v1.17.0 → v1.18.0, `--kubernetes 1.31`:
   `kustomize-dependency` failure (the fixture references files outside the overlay dir, rejected by
   kustomize's default load restrictor — the customer's deployer would fail the same way).
 
+- **(b) evidence + rendered-diff validator + renderability** — `internal/render`:
+  - `evidence.go`: `Pair.Evidence(change, valuesShown)` — `EvidenceRenderedDiff` records (upstream-ok,
+    never environment values unless `--show-values`; secrets/credentials always digests), plus state
+    records (`Pair.stateEvidence`) so unchanged/absent paths have evidence too.
+  - `validator.go`: `render.rendered-diff@v1`, a `knowledge.Validator` over release-level (chart-default)
+    pairs via `Engine.ReleasePairs(kubeVersion)`: sets `RenderRelation` (confirmed-by-render requires a
+    confirmed check, no refuted check and cited rendered evidence; refuted-by-render on a decisive
+    mismatch; render-not-applicable for unpinned/unsupported), `Renderability` per subject.
+    `Validate` rejects environment-scope renders (they may back impact findings, never knowledge).
+  - `renderability.go` + `inventory.go`: renderability table (`RenderedClasses` maps each
+    semantic family/subject class to render-verifiable | partially | not, with why), `AssessRenderability`,
+    subject inventory (`Occurrence`) resolving where in the render a subject lives.
+  - tests: `inventory_test.go`, `validator_test.go` (golden streams; confirm/refute/inconclusive/error;
+    the environment-render rejection; the renderability table).
+- **(c) `EvaluateRenderedChange` + `ri impact --render`** — the minimum workflow:
+  - `evaluate.go`: the `rendered-change` leaf (DESIGN.md §1.3) as a tri-state —
+    `RenderedChangeResult{Value true|false|unknown, Detail, Reason environment-visibility-gap,
+    Evidence, Targets}` over the environment's render pairs. Any pair showing the change ⇒ true; all
+    pairs complete-and-otherwise ⇒ false; failed/incomplete/absent ⇒ unknown (an absence decides
+    nothing). Path syntax: the diff's `[]` patterns and keyed selectors, quoted map keys, port
+    protocol suffixes (`ports[port=443/TCP]`). Evidence is environment-scope only (R5); the leaf never
+    classifies consequences (R11).
+  - `internal/app/render.go`: `RenderDiffEdge` (impact reuses its edge + loaded environment);
+    `cmd/ri/impact.go`: `--render` — text appends the rendered section, `-o json` wraps the report
+    (`{...impact report..., "render": …}`). Offline every target fails explicitly (R13).
+  - tests: `evaluate_test.go`, `cmd/ri/impact_render_test.go`.
+
 ## Next
 
-(b) evidence + `rendered-diff` validator (sets contract `RenderRelation`), renderability table; (c)
-`EvaluateRenderedChange` + `ri impact --render`; (d) auto-approval policy + metrics; (e) `eval/render/`
-cases; docs/RENDER.md.
+(d) auto-approval policy + metrics (knowledge lane's `AutoApproveRenderVerifiable` landed the routing
+side — verify it demands the right render relation and wire `RenderedClasses` in if not); (e)
+`eval/render/` cases (authored from upstream sources before running the renderer, R16); docs/RENDER.md
+(path syntax, `ri render diff`, `ri impact --render`, evidence policy).
 
 ## Decisions (why)
 
@@ -88,4 +116,35 @@ See "Files touched outside ownership" — all additive, marked `CONTRACT-CHANGE(
 
 ## Tests
 
-`go build ./... && go vet ./... && go test ./...` green.
+`go build ./... && go vet ./... && go test ./...` green except one pre-existing failure:
+`internal/reviewui TestFixturesAreValidDomainRecords` (dashboard demo proposals lack
+`provenance.callId`, contract-3) — present on the merge base 6647e61, not touched by this lane
+(dashboard lane owns `internal/reviewui`).
+
+## GLM handoff log
+
+ glm-render (GLM-5.3) continued the lane while its Claude agent was paused. Commits ab5b31c, 118c068,
+638055a, 5140da0 (`[glm-handoff]` prefix):
+
+- Banked the paused agent's WIP as ab5b31c before touching anything.
+- (b) tests: `inventory_test.go`, `validator_test.go` (golden streams; environment-render rejection;
+  renderability table).
+- (c) `evaluate.go` `EvaluateRenderedChange` + `evaluate_test.go`; `ri impact --render`
+  (`app.RenderDiffEdge`, `cmd/ri/impact.go` `--render`, JSON wrap) + `impact_render_test.go`.
+  **RENDER EVALUATOR READY** — the applicability lane can adapt
+  `render.EvaluateRenderedChange(cond, pairs) RenderedChangeResult` (tri-state + evidence + targets).
+- Cleaned `internal/app/testdata/e2e/state/store` (gitignored) that an earlier manual run wrote into
+  the recording; `TestE2EFixtureHygiene` enforces its absence.
+
+Uncertainties for the returning agent:
+
+- The applicability lane's condition evaluator has not landed; the seam is unilaterally chosen (a
+  standalone tri-state in `internal/render`, not a `ConditionResult`). Confirm the signature with that
+  lane before building on it.
+- (d): knowledge lane's `AutoApproveRenderVerifiable` exists — check whether it requires a
+  confirmed-by-render relation (and a complete-values render) before auto-approving; `RenderedClasses`
+  in `renderability.go` is the data source it should consult.
+- `recordedState(t)` in `cmd/ri` scrubs PATH (hermetic offline replays), so the impact-render test
+  sees `renderer-unavailable` for kustomize; a machine with kubectl on PATH sees `kustomize-dependency`
+  instead. The test accepts either (R13 wants an explicit failure, not a specific reason).
+- (e) and docs/RENDER.md are untouched — the remaining work.
