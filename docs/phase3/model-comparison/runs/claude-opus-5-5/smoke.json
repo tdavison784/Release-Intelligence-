@@ -1,0 +1,3805 @@
+{
+  "schemaVersion": "ri.dev/impact-report/v1alpha1",
+  "product": {
+    "id": "cert-manager",
+    "name": "cert-manager"
+  },
+  "from": {
+    "tag": "v1.17.0",
+    "version": "1.17.0"
+  },
+  "to": {
+    "tag": "v1.18.0",
+    "version": "1.18.0"
+  },
+  "environment": {
+    "kubernetes": "1.28",
+    "files": [
+      {
+        "path": "internal/env/testdata/customer-repo/.github/workflows/mirror.yaml",
+        "digest": "sha256:495adb34bc62977e23f65eae56289dcaeb8f9f3f3ce0d2043e3cc71f7cb78868"
+      },
+      {
+        "path": "internal/env/testdata/customer-repo/apps/cert-manager-argocd.yaml",
+        "digest": "sha256:9bedcbb56147bd5266828eb6d920e43f5e40bc1b7dec971658697b36854c7312"
+      },
+      {
+        "path": "internal/env/testdata/customer-repo/base/certificate.yaml",
+        "digest": "sha256:06339df1a599d70b0e4c622d41630dd9cb4de8514e7c0d67d3a990f650d3a434"
+      },
+      {
+        "path": "internal/env/testdata/customer-repo/base/deployment.yaml",
+        "digest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+      },
+      {
+        "path": "internal/env/testdata/customer-repo/base/namespace.yaml",
+        "digest": "sha256:01d103b70c0c8c3e1b4d13f62b82c3761a5a535817153b5ea2aec2dbcb30b07b"
+      },
+      {
+        "path": "internal/env/testdata/customer-repo/clusters/dev/values-cert-manager.yaml",
+        "digest": "sha256:a20b528b47151d40c1296e56fabf4cb7935cd27f04fca8c3fea64b0ede7287d8"
+      },
+      {
+        "path": "internal/env/testdata/customer-repo/clusters/prod/values-cert-manager.yaml",
+        "digest": "sha256:3dc2435c9a131ab168b9f1f3279505e9a272e78a6a3982e8b46b9841626c92ad"
+      },
+      {
+        "path": "internal/env/testdata/customer-repo/crds/certificates.cert-manager.io.yaml",
+        "digest": "sha256:878adaf53ac492b0f32bf288bdec5e20897a8314968661cbaabae69872d86614"
+      },
+      {
+        "path": "internal/env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml",
+        "digest": "sha256:a885a7dc47b955389a3ea80de2316e1231ddd9d2ed01ace33a82fde8a6edfcda"
+      },
+      {
+        "path": "internal/env/testdata/customer-repo/helmfile.yaml",
+        "digest": "sha256:4fb414cd631d8b9e11f2dc0fb1a36149356b7d94be31d2ca438cab0d1965cc31"
+      },
+      {
+        "path": "internal/env/testdata/customer-repo/kustomize/kustomization.yaml",
+        "digest": "sha256:23938e45483df782e8ecf9a3b6f67808612029ac6b0255380b294bfdf6ccc625"
+      },
+      {
+        "path": "internal/env/testdata/customer-repo/terraform/main.tf",
+        "digest": "sha256:413269160df56b49638692294ef950bfd96733f6811183984defd81de40c4ac4"
+      }
+    ],
+    "valuesKeys": 9,
+    "manifestDocs": 6,
+    "apiVersions": 5,
+    "crds": 1,
+    "manifestPaths": 45,
+    "images": 5,
+    "warnings": [
+      "skipped internal/env/testdata/customer-repo/charts/vendored: a Helm chart source tree (its values and templates are chart inputs, not customer environment)",
+      "helmfile helmfile.yaml: templating (go templates, environments) is not evaluated; releases are inventoried from the literal file",
+      "kustomization kustomize/kustomization.yaml is not built with kustomize: its resources are inventoried as plain manifests, patches and transformers are not applied",
+      "repo mode found 2 values files; all are applied, the last one wins per key",
+      "HelmRelease cert-manager uses spec.valuesFrom, which references cluster objects; those values are not readable from files"
+    ]
+  },
+  "summary": {
+    "upstreamChanges": 51,
+    "affectEnvironment": 10,
+    "actionRequired": 1,
+    "reviewRequired": 3,
+    "informational": 6,
+    "notAffected": 3,
+    "unknown": 45,
+    "suggestedReview": 6
+  },
+  "findings": [
+    {
+      "id": "imp-7e9a11c2834d",
+      "classification": "action-required",
+      "severity": "high",
+      "rule": "impact:kubernetes-below-range",
+      "title": "Cluster Kubernetes 1.28 is below the supported range 1.29–1.33 of v1.18.0",
+      "detail": "v1.18.0 requires Kubernetes 1.29–1.33; the cluster runs 1.28, which is also already outside the source release's range (v1.17.0): the exclusion is pre-existing — this upgrade does not cause it, but the upgrade is still blocked. Plan the cluster upgrade at or above 1.29 before upgrading v1.18.0. The chart's kubeVersion constraint itself admits 1.28; the narrower supported range is the project's tested-matrix statement (Helm will not refuse the install).",
+      "matches": [
+        {
+          "kind": "kubernetes",
+          "subject": "1.28",
+          "evidence": [
+            "ev-7ed6c5e2142e"
+          ]
+        }
+      ],
+      "upstreamEvidence": [
+        "ev-94a8abc4e147",
+        "ev-904e0ae133bd"
+      ],
+      "environmentEvidence": [
+        "ev-7ed6c5e2142e"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:kubernetes-below-range",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-123e6594ecd5",
+      "classification": "review-required",
+      "severity": "medium",
+      "rule": "impact:image-changed",
+      "title": "Image you reference moves quay.io/jetstack/cert-manager-controller:v1.17.0 → quay.io/jetstack/cert-manager-controller:v1.18.0",
+      "detail": "The release publishes quay.io/jetstack/cert-manager-controller:v1.18.0 (was quay.io/jetstack/cert-manager-controller:v1.17.0). Your environment pins the old reference; update it (or your mirror) to pick up v1.18.0.",
+      "matches": [
+        {
+          "kind": "image",
+          "subject": "quay.io/jetstack/cert-manager-controller:v1.17.0",
+          "evidence": [
+            "ev-1ab18674b87c"
+          ]
+        }
+      ],
+      "upstreamEvidence": [
+        "ev-87e79b56b7a6",
+        "ev-e3abe417763b"
+      ],
+      "environmentEvidence": [
+        "ev-1ab18674b87c"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:image-changed",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-a137dded3ed6",
+      "classification": "review-required",
+      "severity": "medium",
+      "rule": "impact:image-changed",
+      "title": "Image you reference moves quay.io/jetstack/cert-manager-webhook:v1.17.0 → quay.io/jetstack/cert-manager-webhook:v1.18.0",
+      "detail": "The release publishes quay.io/jetstack/cert-manager-webhook:v1.18.0 (was quay.io/jetstack/cert-manager-webhook:v1.17.0). Your environment pins the old reference; update it (or your mirror) to pick up v1.18.0.",
+      "matches": [
+        {
+          "kind": "image",
+          "subject": "quay.io/jetstack/cert-manager-webhook:v1.17.0",
+          "evidence": [
+            "ev-1c75b2a1b39a"
+          ]
+        }
+      ],
+      "upstreamEvidence": [
+        "ev-6048662cc28a",
+        "ev-4ada24bd69ce"
+      ],
+      "environmentEvidence": [
+        "ev-1c75b2a1b39a"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:image-changed",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-0dae408f0c17",
+      "classification": "review-required",
+      "severity": "medium",
+      "rule": "impact:values-new-key",
+      "title": "Your values already set global.rbac.disableHTTPChallengesRole, which v1.18.0 introduces",
+      "detail": "A key your values file already set (previously ignored by the chart) becomes live with this release, or sits directly under/over a newly added section. Check that the value you set is what you intend the new key to have.",
+      "changeId": "chg-0d81e035fa84",
+      "changeTitle": "New Helm value `global.rbac.disableHTTPChallengesRole`",
+      "changeCategory": "helm-values",
+      "matches": [
+        {
+          "kind": "values-key",
+          "subject": "global.rbac.disableHTTPChallengesRole",
+          "evidence": [
+            "ev-0d7337268c56"
+          ]
+        }
+      ],
+      "upstreamEvidence": [
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2"
+      ],
+      "environmentEvidence": [
+        "ev-0d7337268c56"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:values-new-key",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-d076732b11f9",
+      "classification": "informational",
+      "severity": "low",
+      "rule": "impact:security-fix",
+      "title": "Security fix ships with v1.18.0: Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp`",
+      "detail": "The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: GHSA-mh63-6h87-95cp.",
+      "changeId": "chg-6db1e2247a3e",
+      "changeTitle": "Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp`",
+      "changeCategory": "security",
+      "upstreamEvidence": [
+        "ev-695a6d7c7c6e"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:security-fix",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-8d52c4440ee1",
+      "classification": "informational",
+      "severity": "low",
+      "rule": "impact:security-fix",
+      "title": "Security fix ships with v1.18.0: Bump `go-jose` dependency to address `CVE-2025-27144`",
+      "detail": "The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: CVE-2025-27144.",
+      "changeId": "chg-4da7f0d97cf0",
+      "changeTitle": "Bump `go-jose` dependency to address `CVE-2025-27144`",
+      "changeCategory": "security",
+      "upstreamEvidence": [
+        "ev-8a902cdb88e1"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:security-fix",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-b5e9107c69be",
+      "classification": "informational",
+      "severity": "low",
+      "rule": "impact:security-fix",
+      "title": "Security fix ships with v1.18.0: Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77`",
+      "detail": "The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: GHSA-hcg3-q754-cr77.",
+      "changeId": "chg-b5b5a645584a",
+      "changeTitle": "Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77`",
+      "changeCategory": "security",
+      "upstreamEvidence": [
+        "ev-8e895983c9dd"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:security-fix",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-8d30fe09df0f",
+      "classification": "informational",
+      "severity": "low",
+      "rule": "impact:security-fix",
+      "title": "Security fix ships with v1.18.0: Bump `golang.org/x/oauth2` to patch `CVE-2025-22868`",
+      "detail": "The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: CVE-2025-22868.",
+      "changeId": "chg-fb783ed69ea8",
+      "changeTitle": "Bump `golang.org/x/oauth2` to patch `CVE-2025-22868`",
+      "changeCategory": "security",
+      "upstreamEvidence": [
+        "ev-c6232bc5c8d4"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:security-fix",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-bbdff364a353",
+      "classification": "informational",
+      "severity": "low",
+      "rule": "impact:security-fix",
+      "title": "Security fix ships with v1.18.0: Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`)",
+      "detail": "The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: CVE-2025-22870.",
+      "changeId": "chg-1b9f0e5312e3",
+      "changeTitle": "Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`)",
+      "changeCategory": "security",
+      "upstreamEvidence": [
+        "ev-bfe1f4f54646",
+        "ev-cb5102bd647d"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:security-fix",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-6cae808def98",
+      "classification": "informational",
+      "severity": "low",
+      "rule": "impact:values-pinned",
+      "title": "You pin `prometheus.servicemonitor.targetPort`; its default change in v1.18.0 does not apply to you",
+      "detail": "You set prometheus.servicemonitor.targetPort explicitly. Helm keeps your value and discards the new default; your deployment does not change. Re-check the value against the new defaults when you next edit it.",
+      "changeId": "chg-917796919822",
+      "changeTitle": "Default of Helm value `prometheus.servicemonitor.targetPort` changed: 9402 → \"http-metrics\"",
+      "changeCategory": "helm-values",
+      "matches": [
+        {
+          "kind": "values-key",
+          "subject": "prometheus.servicemonitor.targetPort",
+          "evidence": [
+            "ev-428bed0f921a"
+          ]
+        }
+      ],
+      "upstreamEvidence": [
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2"
+      ],
+      "environmentEvidence": [
+        "ev-428bed0f921a"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:values-pinned",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-c01afd290322",
+      "classification": "unknown",
+      "rule": "impact:insufficient-visibility",
+      "title": "Cannot evaluate the openshift supported constraint without the cluster version",
+      "detail": "The target declares openshift supported = 4.16 → 4.20. Applicability is decided against the running cluster version; no input collects it (ri impact supports --kubernetes).",
+      "upstreamEvidence": [
+        "ev-94a8abc4e147",
+        "ev-904e0ae133bd"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:insufficient-visibility",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "openshift cluster version not supplied"
+      ]
+    },
+    {
+      "id": "imp-dacd1e3d112b",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: ACME Certificate Profiles: cert-manager now supports the selection of ACME certificate profiles, allowing users to request different categories of certificates…",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-2ded9f339c1b",
+      "changeTitle": "ACME Certificate Profiles: cert-manager now supports the selection of ACME certificate profiles, allowing users to request different categories of certificates…",
+      "changeCategory": "other",
+      "upstreamEvidence": [
+        "ev-50f787991f0d"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-9bcf04959e54",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: ACME E2E Tests: Upgraded Pebble to `v2.7.0` and modified the ACME tests to match latest Pebble behavior",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-c16c394a6f4e",
+      "changeTitle": "ACME E2E Tests: Upgraded Pebble to `v2.7.0` and modified the ACME tests to match latest Pebble behavior",
+      "changeCategory": "other",
+      "upstreamEvidence": [
+        "ev-ea4a77b80f71"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-eef2b0d0d72f",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.…",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-e4f5f001ae5f",
+      "changeTitle": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.…",
+      "changeCategory": "other",
+      "changeBreaking": true,
+      "upstreamEvidence": [
+        "ev-110340e9c914"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ],
+      "suggestedClassification": "review-required"
+    },
+    {
+      "id": "imp-6156cd00b09b",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Add config to the Vault issuer to allow the server-name to be specified when validating the certificates the Vault server presents",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-97f684f77202",
+      "changeTitle": "Add config to the Vault issuer to allow the server-name to be specified when validating the certificates the Vault server presents",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-30d2c387f95f"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-80754ea19305",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Add support for `ACME profiles extension`",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-52e7feadeebb",
+      "changeTitle": "Add support for `ACME profiles extension`",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-7be235e771a3"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-16163701185e",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Added `app.kubernetes.io/managed-by: cert-manager` label to the created Let's Encrypt account keys",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-d9fe8c32d182",
+      "changeTitle": "Added `app.kubernetes.io/managed-by: cert-manager` label to the created Let's Encrypt account keys",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-1d4a9d664d8c"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-6432f469b85a",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_se…",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-439b545a803d",
+      "changeTitle": "Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_se…",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-e8facc7cba98"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ],
+      "suggestedClassification": "review-required"
+    },
+    {
+      "id": "imp-588f3cf5a260",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Added ingress-shim option `--extra-certificate-annotations`, which sets a list of annotation keys to be copied from Ingress-like to resulting Certificate object",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-b88b2edac71d",
+      "changeTitle": "Added ingress-shim option `--extra-certificate-annotations`, which sets a list of annotation keys to be copied from Ingress-like to resulting Certificate object",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-dde3ce032096"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-2577b5434545",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Added the `ciss` short name for the cert-manager `ClusterIssuer` resource",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-84cabfbb8fd6",
+      "changeTitle": "Added the `ciss` short name for the cert-manager `ClusterIssuer` resource",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-41698084a48b"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-3a0f812fe693",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Added the `iss` short name for the cert-manager `Issuer` resource",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-41a3f902edaa",
+      "changeTitle": "Added the `iss` short name for the cert-manager `Issuer` resource",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-38243747b200"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-62fb5ea91b14",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-0dbf738dde76",
+      "changeTitle": "Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-861cb2d69752"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ],
+      "suggestedClassification": "review-required"
+    },
+    {
+      "id": "imp-d09df14ed530",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Allow customizing signature algorithm",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-d2f4ed0306f9",
+      "changeTitle": "Allow customizing signature algorithm",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-87995aee2ded"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-5cbc5860638d",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Cache the full DNS response and handle TTL expiration in `FindZoneByFqdn`",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-32628a6d20cf",
+      "changeTitle": "Cache the full DNS response and handle TTL expiration in `FindZoneByFqdn`",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-d4918828336e"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-4abadd43d378",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Cert-manager now uses a local fork of the `golang.org/x/crypto/acme` package",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-e47680a7d710",
+      "changeTitle": "Cert-manager now uses a local fork of the `golang.org/x/crypto/acme` package",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-4fcf47388827"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-9b9d6ebd596f",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Certificate v1 schema: 1 field added: `spec.signatureAlgorithm`",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-644b13d0eb78",
+      "changeTitle": "Certificate v1 schema: 1 field added: `spec.signatureAlgorithm`",
+      "changeCategory": "crd-schema",
+      "upstreamEvidence": [
+        "ev-60054fcf0986",
+        "ev-9b6164ce0df7"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "diff rule crd:fields-added has no join rule; whether the change applies to the environment cannot be decided deterministically"
+      ]
+    },
+    {
+      "id": "imp-2512f0e1bfab",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-4e9435eae99e",
+      "changeTitle": "Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security",
+      "changeCategory": "bugfix",
+      "upstreamEvidence": [
+        "ev-4faa7ca81b54"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ],
+      "suggestedClassification": "review-required"
+    },
+    {
+      "id": "imp-d47a0151a796",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: ClusterIssuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-20e84ac6af3b",
+      "changeTitle": "ClusterIssuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`",
+      "changeCategory": "crd-schema",
+      "upstreamEvidence": [
+        "ev-60054fcf0986",
+        "ev-9b6164ce0df7"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "diff rule crd:fields-added has no join rule; whether the change applies to the environment cannot be decided deterministically"
+      ]
+    },
+    {
+      "id": "imp-d1ff8cfc0c11",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Copy annotations from Ingress or Gateway to the Certificate: We've added a new configuration option to the cert-manager controller: `--extra-certificate-annota…",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-28807f7d13a6",
+      "changeTitle": "Copy annotations from Ingress or Gateway to the Certificate: We've added a new configuration option to the cert-manager controller: `--extra-certificate-annota…",
+      "changeCategory": "other",
+      "upstreamEvidence": [
+        "ev-da53ded48367"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-cf65d5550490",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Fix AWS Route53 error detection for not-found errors during deletion of DNS records",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-ead91108ed55",
+      "changeTitle": "Fix AWS Route53 error detection for not-found errors during deletion of DNS records",
+      "changeCategory": "bugfix",
+      "upstreamEvidence": [
+        "ev-23e99dfde8d0"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-6a432c6ae078",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Fix behavior when running with `--namespace=<namespace>`: limit the scope of cert-manager to a single namespace and disable cluster-scoped controllers",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-d4b4bd898c29",
+      "changeTitle": "Fix behavior when running with `--namespace=<namespace>`: limit the scope of cert-manager to a single namespace and disable cluster-scoped controllers",
+      "changeCategory": "bugfix",
+      "upstreamEvidence": [
+        "ev-ef5237d47ade"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-dc9dc7badd15",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are…",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-cfb8af1d193a",
+      "changeTitle": "Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are…",
+      "changeCategory": "bugfix",
+      "upstreamEvidence": [
+        "ev-a8c04d9f0485"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ],
+      "suggestedClassification": "review-required"
+    },
+    {
+      "id": "imp-4ad48d81f45a",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Fix issuing of certificates via DNS01 challenges on Cloudflare after a breaking change to the Cloudflare API",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-4c931993832d",
+      "changeTitle": "Fix issuing of certificates via DNS01 challenges on Cloudflare after a breaking change to the Cloudflare API",
+      "changeCategory": "bugfix",
+      "upstreamEvidence": [
+        "ev-b8d6f16e3c8c"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-a5b1ba142174",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Fix some comments",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-f59541363a4f",
+      "changeTitle": "Fix some comments",
+      "changeCategory": "other",
+      "upstreamEvidence": [
+        "ev-19fb20ff3c32"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-876104412381",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Fixed the `certmanager_certificate_renewal_timestamp_seconds` metric help text indicating that the metric is relative to expiration time, rather than Unix…",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-b4e583f378a3",
+      "changeTitle": "Fixed the `certmanager_certificate_renewal_timestamp_seconds` metric help text indicating that the metric is relative to expiration time, rather than Unix…",
+      "changeCategory": "bugfix",
+      "upstreamEvidence": [
+        "ev-2a805da381d1"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-8a7fc92bee74",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Fixing the service account template to incorporate boolean values for the annotations",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-087a5ce2a6b6",
+      "changeTitle": "Fixing the service account template to incorporate boolean values for the annotations",
+      "changeCategory": "bugfix",
+      "upstreamEvidence": [
+        "ev-7a3fdefaaff7"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-a1b97b044ae9",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Issuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-8d5050bf3851",
+      "changeTitle": "Issuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`",
+      "changeCategory": "crd-schema",
+      "upstreamEvidence": [
+        "ev-60054fcf0986",
+        "ev-9b6164ce0df7"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "diff rule crd:fields-added has no join rule; whether the change applies to the environment cannot be decided deterministically"
+      ]
+    },
+    {
+      "id": "imp-7b3e3b95c782",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: OperatorHub Packages Discontinued: We no longer publish OperatorHub packages for cert-manager",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-cdbe001f21d8",
+      "changeTitle": "OperatorHub Packages Discontinued: We no longer publish OperatorHub packages for cert-manager",
+      "changeCategory": "other",
+      "upstreamEvidence": [
+        "ev-c3d5e62490c3"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-6cef2397667c",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Order v1 schema: 1 field added: `spec.profile`",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-f20b516e3351",
+      "changeTitle": "Order v1 schema: 1 field added: `spec.profile`",
+      "changeCategory": "crd-schema",
+      "upstreamEvidence": [
+        "ev-60054fcf0986",
+        "ev-9b6164ce0df7"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "diff rule crd:fields-added has no join rule; whether the change applies to the environment cannot be decided deterministically"
+      ]
+    },
+    {
+      "id": "imp-011cd8669b4b",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Patch the `third_party/forked/acme` package with support for the ACME profiles extension",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-45dd175c7717",
+      "changeTitle": "Patch the `third_party/forked/acme` package with support for the ACME profiles extension",
+      "changeCategory": "other",
+      "upstreamEvidence": [
+        "ev-8ec1fdd0d15f"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-ddbd62c6e0a7",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Promote the `AdditionalCertificateOutputFormats` feature to GA, making additional formats always enabled",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-f5081ab1602e",
+      "changeTitle": "Promote the `AdditionalCertificateOutputFormats` feature to GA, making additional formats always enabled",
+      "changeCategory": "other",
+      "upstreamEvidence": [
+        "ev-bc29bf53aa1b"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-028f41821942",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Promote the `UseDomainQualifiedFinalizer` feature to GA",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-8965c94210f9",
+      "changeTitle": "Promote the `UseDomainQualifiedFinalizer` feature to GA",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-8f6e397ae33c"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-f2783ab830b0",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Quote nodeSelector values in Helm Chart",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-43064cdbc5dc",
+      "changeTitle": "Quote nodeSelector values in Helm Chart",
+      "changeCategory": "bugfix",
+      "upstreamEvidence": [
+        "ev-565f3761f656"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-2296b2feb6ec",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Remove deprecated feature gate `ValidateCAA`. Setting this feature gate is now a no-op which does nothing but print a warning log line",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-5fb4b939f1c4",
+      "changeTitle": "Remove deprecated feature gate `ValidateCAA`. Setting this feature gate is now a no-op which does nothing but print a warning log line",
+      "changeCategory": "removal",
+      "upstreamEvidence": [
+        "ev-853844eb542e"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-d6d05ea04a58",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Set the default `revisionHistoryLimit` to 1 for the CertificateRequest revisions",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-10df74aec3a3",
+      "changeTitle": "Set the default `revisionHistoryLimit` to 1 for the CertificateRequest revisions",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-330bb03a882f"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ],
+      "suggestedClassification": "review-required"
+    },
+    {
+      "id": "imp-b4f8e50f42af",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Skip Gateway TLS listeners in `Passthrough` mode",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-fcb00045737f",
+      "changeTitle": "Skip Gateway TLS listeners in `Passthrough` mode",
+      "changeCategory": "bugfix",
+      "upstreamEvidence": [
+        "ev-1861adfd42be"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-32ee0f64dc00",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Switched `service/servicemon` definitions to use port names instead of numbers",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-5aff8644f14a",
+      "changeTitle": "Switched `service/servicemon` definitions to use port names instead of numbers",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-0bb0d885678d"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-19acd0659637",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always`",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-fa4ce35f9a12",
+      "changeTitle": "The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always`",
+      "changeCategory": "feature",
+      "upstreamEvidence": [
+        "ev-cf14b14073be"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-355ebba8a382",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPo…",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-0e1cdbe373a9",
+      "changeTitle": "The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPo…",
+      "changeCategory": "other",
+      "changeBreaking": true,
+      "upstreamEvidence": [
+        "ev-c92478af13c4"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-3acf8d10d51e",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`: The default value for the `Certificate` resource's `revisionHistoryLimit` field is now…",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-a3c2e0538ac2",
+      "changeTitle": "The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`: The default value for the `Certificate` resource's `revisionHistoryLimit` field is now…",
+      "changeCategory": "other",
+      "changeBreaking": true,
+      "upstreamEvidence": [
+        "ev-04b3e69b5e24"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-e7712fe0b726",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Update kind images to include the Kubernetes 1.33 node image",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-f3e38054e249",
+      "changeTitle": "Update kind images to include the Kubernetes 1.33 node image",
+      "changeCategory": "other",
+      "upstreamEvidence": [
+        "ev-eb95ba454b0b"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-0c5968c3e566",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Upgrade Go to `v1.24.4`",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-f08a6600b1b4",
+      "changeTitle": "Upgrade Go to `v1.24.4`",
+      "changeCategory": "other",
+      "upstreamEvidence": [
+        "ev-5744baed396c"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-b417e2c569ad",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: Use `slices.Contains` to simplify code",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-a7dfa60ad5b1",
+      "changeTitle": "Use `slices.Contains` to simplify code",
+      "changeCategory": "other",
+      "upstreamEvidence": [
+        "ev-885e61843b3a"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-1a0e1393ecc9",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. > 📖 Read Release 1.18 notes for more information.",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-a726b336f865",
+      "changeTitle": "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. > 📖 Read Release 1.18 notes for more information.",
+      "changeCategory": "migration",
+      "changeBreaking": true,
+      "changeActionRequired": true,
+      "upstreamEvidence": [
+        "ev-9a2f8d3ec5e9"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-bbe863f802bd",
+      "classification": "unknown",
+      "rule": "impact:not-joined",
+      "title": "Not evaluated for this environment: We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information.",
+      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
+      "changeId": "chg-c2b61b098891",
+      "changeTitle": "We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information.",
+      "changeCategory": "migration",
+      "changeBreaking": true,
+      "changeActionRequired": true,
+      "upstreamEvidence": [
+        "ev-bbe29a5fdc19"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:not-joined",
+        "confidence": "high"
+      },
+      "neededToDetermine": [
+        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
+      ]
+    },
+    {
+      "id": "imp-d55868f8741c",
+      "classification": "not-affected",
+      "rule": "impact:compatibility-satisfied",
+      "title": "Cluster Kubernetes 1.28 satisfies the kubernetes chart-kubeVersion constraint (≥ 1.22)",
+      "detail": "The cluster version is inside what v1.18.0 declares (kubernetes chart-kubeVersion = ≥ 1.22), so this constraint requires nothing from you.",
+      "upstreamEvidence": [
+        "ev-6bed763e6e6f",
+        "ev-4a1dd653bec2"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:compatibility-satisfied",
+        "confidence": "high"
+      },
+      "checks": [
+        {
+          "dimension": "cluster-version",
+          "platform": "kubernetes",
+          "facts": 1,
+          "subjects": [
+            ">= 1.22.0-0"
+          ],
+          "evidence": [
+            "ev-7ed6c5e2142e"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "imp-727b3ebf1ec7",
+      "classification": "not-affected",
+      "rule": "impact:image-not-referenced",
+      "title": "Your environment does not reference `quay.io/jetstack/cert-manager-acmesolver`",
+      "detail": "The release moves this image quay.io/jetstack/cert-manager-acmesolver:v1.17.0 → quay.io/jetstack/cert-manager-acmesolver:v1.18.0; neither repository is among the 5 image reference(s) your environment supplies.",
+      "upstreamEvidence": [
+        "ev-439b6d009ff2",
+        "ev-89d04dc6df9c"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:image-not-referenced",
+        "confidence": "high"
+      },
+      "checks": [
+        {
+          "dimension": "images",
+          "facts": 5,
+          "subjects": [
+            "quay.io/jetstack/cert-manager-acmesolver:v1.17.0",
+            "quay.io/jetstack/cert-manager-acmesolver:v1.18.0"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "imp-c016ed034f61",
+      "classification": "not-affected",
+      "rule": "impact:image-not-referenced",
+      "title": "Your environment does not reference `quay.io/jetstack/cert-manager-cainjector`",
+      "detail": "The release moves this image quay.io/jetstack/cert-manager-cainjector:v1.17.0 → quay.io/jetstack/cert-manager-cainjector:v1.18.0; neither repository is among the 5 image reference(s) your environment supplies.",
+      "upstreamEvidence": [
+        "ev-9d38fd42cffc",
+        "ev-e3cf67af11a6"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:image-not-referenced",
+        "confidence": "high"
+      },
+      "checks": [
+        {
+          "dimension": "images",
+          "facts": 5,
+          "subjects": [
+            "quay.io/jetstack/cert-manager-cainjector:v1.17.0",
+            "quay.io/jetstack/cert-manager-cainjector:v1.18.0"
+          ]
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-904e0ae133bd",
+      "kind": "document",
+      "sourceId": "supported-releases",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md",
+      "locator": "L307",
+      "excerpt": "| Release      | Release Date | EOL          | Compatible Kubernetes versions | Compatible OpenShift versions |\n| [1.17][]     | Feb 03, 2025 | Oct 07, 2025 | 1.29 → 1.33                    | 4.16 → 4.20                   |",
+      "contentDigest": "sha256:2d1aa5f5dd48b1baadc10dd7381d9ce6f2848567f21069109b37bda5f417bf9e",
+      "retrievedAt": "2026-10-01T05:39:17Z"
+    },
+    {
+      "id": "ev-60054fcf0986",
+      "kind": "structured",
+      "sourceId": "crds",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml",
+      "excerpt": "# Copyright 2022 The cert-manager Authors.",
+      "contentDigest": "sha256:af6faeb6b75a13a70d0ac7f5db2b5b694f8cb9023c54bfbafd4d7d2fd95846d3",
+      "representation": "release-asset",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-717ddb6f40cd",
+      "kind": "structured",
+      "sourceId": "helm-chart",
+      "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml",
+      "locator": "deploy/charts/cert-manager/values.yaml",
+      "excerpt": "# +docs:section=Global",
+      "contentDigest": "sha256:7ec69688c8da46d802f4937e30bcbe0dd9f5b1ed5d040e013206bc2c9a7c7bfb",
+      "representation": "source-tree",
+      "retrievedAt": "2026-10-01T05:39:17Z"
+    },
+    {
+      "id": "ev-4a1dd653bec2",
+      "kind": "structured",
+      "sourceId": "helm-chart",
+      "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/Chart.template.yaml",
+      "locator": "L23",
+      "excerpt": "kubeVersion: \">= 1.22.0-0\"",
+      "contentDigest": "sha256:cfbb039df2146182a768109612a728b199f4f4e5db5d469538f0134a4919d0c0",
+      "representation": "source-tree",
+      "retrievedAt": "2026-10-01T05:39:17Z"
+    },
+    {
+      "id": "ev-87e79b56b7a6",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml",
+      "locator": "L13047",
+      "excerpt": "image: \"quay.io/jetstack/cert-manager-controller:v1.17.0\"",
+      "contentDigest": "sha256:ea3b9018be5ac6afb462570d0c0445d4a561c18d1d321cf4051d6ee134d60e67",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-6048662cc28a",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml",
+      "locator": "L13129",
+      "excerpt": "image: \"quay.io/jetstack/cert-manager-webhook:v1.17.0\"",
+      "contentDigest": "sha256:ea3b9018be5ac6afb462570d0c0445d4a561c18d1d321cf4051d6ee134d60e67",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-9d38fd42cffc",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml",
+      "locator": "L12984",
+      "excerpt": "image: \"quay.io/jetstack/cert-manager-cainjector:v1.17.0\"",
+      "contentDigest": "sha256:ea3b9018be5ac6afb462570d0c0445d4a561c18d1d321cf4051d6ee134d60e67",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-439b6d009ff2",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml",
+      "locator": "L13053",
+      "excerpt": "- --acme-http01-solver-image=quay.io/jetstack/cert-manager-acmesolver:v1.17.0",
+      "contentDigest": "sha256:ea3b9018be5ac6afb462570d0c0445d4a561c18d1d321cf4051d6ee134d60e67",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-30d2c387f95f",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L325-L325 (v1.18.0 › Feature)",
+      "excerpt": "- Add config to the Vault issuer to allow the server-name to be specified when validating the certificates the Vault server presents. ([`#7663`](https://github.com/cert-manager/cert-manager/pull/7663), [`@ThatsMrTalbot`](https://github.com/ThatsMrTalbot))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-1d4a9d664d8c",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L326-L326 (v1.18.0 › Feature)",
+      "excerpt": "- Added `app.kubernetes.io/managed-by: cert-manager` label to the created Let's Encrypt account keys ([`#7577`](https://github.com/cert-manager/cert-manager/pull/7577), [`@terinjokes`](https://github.com/terinjokes))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-e8facc7cba98",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L327-L327 (v1.18.0 › Feature)",
+      "excerpt": "- Added certificate issuance and expiration time metrics (`certmanager_certificate_not_before_timestamp_seconds`, `certmanager_certificate_not_after_timestamp_seconds`). ([`#7612`](https://github.com/cert-manager/cert-manager/pull/7612), [`@solidDoWant`](https://github.com/solidDoWant))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-dde3ce032096",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L328-L328 (v1.18.0 › Feature)",
+      "excerpt": "- Added ingress-shim option `--extra-certificate-annotations`, which sets a list of annotation keys to be copied from Ingress-like to resulting Certificate object ([`#7083`](https://github.com/cert-manager/cert-manager/pull/7083), [`@k0da`](https://github.com/k0da))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-38243747b200",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L329-L329 (v1.18.0 › Feature)",
+      "excerpt": "- Added the `iss` short name for the cert-manager `Issuer` resource",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-41698084a48b",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L330-L330 (v1.18.0 › Feature)",
+      "excerpt": "- Added the `ciss` short name for the cert-manager `ClusterIssuer` resource ([`#7373`](https://github.com/cert-manager/cert-manager/pull/7373), [`@SgtCoDFish`](https://github.com/SgtCoDFish))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-861cb2d69752",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L331-L331 (v1.18.0 › Feature)",
+      "excerpt": "- Adds the `global.rbac.disableHTTPChallengesRole` helm value to disable HTTP-01 ACME challenges. This allows cert-manager to drop its permission to create pods, improving security when HTTP-01 challenges are not required. ([`#7666`](https://github.com/cert-manager/cert-manager/pull/7666), [`@ali-hamza-noor`](https://github.com/ali-hamza-noor))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-87995aee2ded",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L332-L332 (v1.18.0 › Feature)",
+      "excerpt": "- Allow customizing signature algorithm ([`#7591`](https://github.com/cert-manager/cert-manager/pull/7591), [`@tareksha`](https://github.com/tareksha))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-d4918828336e",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L333-L333 (v1.18.0 › Feature)",
+      "excerpt": "- Cache the full DNS response and handle TTL expiration in `FindZoneByFqdn` ([`#7596`](https://github.com/cert-manager/cert-manager/pull/7596), [`@ThatsIvan`](https://github.com/ThatsIvan))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-4fcf47388827",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L334-L334 (v1.18.0 › Feature)",
+      "excerpt": "- Cert-manager now uses a local fork of the `golang.org/x/crypto/acme` package ([`#7752`](https://github.com/cert-manager/cert-manager/pull/7752), [`@wallrj`](https://github.com/wallrj))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-7be235e771a3",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L335-L335 (v1.18.0 › Feature)",
+      "excerpt": "- Add support for [`ACME profiles extension`](https://datatracker.ietf.org/doc/draft-aaron-acme-profiles/). ([`#7777`](https://github.com/cert-manager/cert-manager/pull/7777), [`@wallrj`](https://github.com/wallrj))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-8f6e397ae33c",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L336-L336 (v1.18.0 › Feature)",
+      "excerpt": "- Promote the `UseDomainQualifiedFinalizer` feature to GA. ([`#7735`](https://github.com/cert-manager/cert-manager/pull/7735), [`@jsoref`](https://github.com/jsoref))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-0bb0d885678d",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L337-L337 (v1.18.0 › Feature)",
+      "excerpt": "- Switched `service/servicemon` definitions to use port names instead of numbers. ([`#7727`](https://github.com/cert-manager/cert-manager/pull/7727), [`@jcpunk`](https://github.com/jcpunk))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-cf14b14073be",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L338-L338 (v1.18.0 › Feature)",
+      "excerpt": "- The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always`. ([`#7723`](https://github.com/cert-manager/cert-manager/pull/7723), [`@wallrj`](https://github.com/wallrj))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-330bb03a882f",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L339-L339 (v1.18.0 › Feature)",
+      "excerpt": "- Set the default `revisionHistoryLimit` to 1 for the CertificateRequest revisions ([`#7758`](https://github.com/cert-manager/cert-manager/pull/7758), [`@ali-hamza-noor`](https://github.com/ali-hamza-noor))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-19fb20ff3c32",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L343-L343 (v1.18.0 › Documentation)",
+      "excerpt": "- Fix some comments ([`#7620`](https://github.com/cert-manager/cert-manager/pull/7620), [`@teslaedison`](https://github.com/teslaedison))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-8a902cdb88e1",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L347-L347 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Bump `go-jose` dependency to address `CVE-2025-27144`. ([`#7606`](https://github.com/cert-manager/cert-manager/pull/7606), [`@SgtCoDFish`](https://github.com/SgtCoDFish))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-c6232bc5c8d4",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L348-L348 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Bump `golang.org/x/oauth2` to patch `CVE-2025-22868`.",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-8e895983c9dd",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L349-L349 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77`.",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-695a6d7c7c6e",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L350-L350 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp`. ([`#7638`](https://github.com/cert-manager/cert-manager/pull/7638), [`@NicholasBlaskey`](https://github.com/NicholasBlaskey))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-4faa7ca81b54",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L351-L351 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security. ([`#7767`](https://github.com/cert-manager/cert-manager/pull/7767), [`@sspreitzer`](https://github.com/sspreitzer))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-23e99dfde8d0",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L352-L352 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Fix AWS Route53 error detection for not-found errors during deletion of DNS records. ([`#7690`](https://github.com/cert-manager/cert-manager/pull/7690), [`@wallrj`](https://github.com/wallrj))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-ef5237d47ade",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L353-L353 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Fix behavior when running with `--namespace=<namespace>`: limit the scope of cert-manager to a single namespace and disable cluster-scoped controllers. ([`#7678`](https://github.com/cert-manager/cert-manager/pull/7678), [`@tsaarni`](https://github.com/tsaarni))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-a8c04d9f0485",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L354-L354 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are instead added to the `ipAddresses` field as expected. ([`#7081`](https://github.com/cert-manager/cert-manager/pull/7081), [`@johnjcool`](https://github.com/johnjcool))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-b8d6f16e3c8c",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L355-L355 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Fix issuing of certificates via DNS01 challenges on Cloudflare after a breaking change to the Cloudflare API ([`#7549`](https://github.com/cert-manager/cert-manager/pull/7549), [`@LukeCarrier`](https://github.com/LukeCarrier))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-2a805da381d1",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L356-L356 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Fixed the `certmanager_certificate_renewal_timestamp_seconds` metric help text indicating that the metric is relative to expiration time, rather than Unix epoch time. ([`#7609`](https://github.com/cert-manager/cert-manager/pull/7609), [`@solidDoWant`](https://github.com/solidDoWant))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-7a3fdefaaff7",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L357-L357 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Fixing the service account template to incorporate boolean values for the annotations. ([`#7698`](https://github.com/cert-manager/cert-manager/pull/7698), [`@ali-hamza-noor`](https://github.com/ali-hamza-noor))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-565f3761f656",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L358-L358 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Quote nodeSelector values in Helm Chart ([`#7579`](https://github.com/cert-manager/cert-manager/pull/7579), [`@tobiasbp`](https://github.com/tobiasbp))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-1861adfd42be",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L359-L359 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Skip Gateway TLS listeners in `Passthrough` mode. ([`#6986`](https://github.com/cert-manager/cert-manager/pull/6986), [`@vehagn`](https://github.com/vehagn))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-bfe1f4f54646",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L360-L360 (v1.18.0 › Bug or Regression)",
+      "excerpt": "- Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. ([`#7619`](https://github.com/cert-manager/cert-manager/pull/7619), [`@depandabot[bot]`](https://github.com/apps/dependabot))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-ea4a77b80f71",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L364-L364 (v1.18.0 › Other (Cleanup or Flake))",
+      "excerpt": "- ACME E2E Tests: Upgraded Pebble to `v2.7.0` and modified the ACME tests to match latest Pebble behavior. ([`#7771`](https://github.com/cert-manager/cert-manager/pull/7771), [`@wallrj`](https://github.com/wallrj))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-8ec1fdd0d15f",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L365-L365 (v1.18.0 › Other (Cleanup or Flake))",
+      "excerpt": "- Patch the `third_party/forked/acme` package with support for the ACME profiles extension. ([`#7776`](https://github.com/cert-manager/cert-manager/pull/7776), [`@wallrj`](https://github.com/wallrj))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-bc29bf53aa1b",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L366-L366 (v1.18.0 › Other (Cleanup or Flake))",
+      "excerpt": "- Promote the `AdditionalCertificateOutputFormats` feature to GA, making additional formats always enabled. ([`#7744`](https://github.com/cert-manager/cert-manager/pull/7744), [`@erikgb`](https://github.com/erikgb))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-853844eb542e",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L367-L367 (v1.18.0 › Other (Cleanup or Flake))",
+      "excerpt": "- Remove deprecated feature gate `ValidateCAA`. Setting this feature gate is now a no-op which does nothing but print a warning log line ([`#7553`](https://github.com/cert-manager/cert-manager/pull/7553), [`@SgtCoDFish`](https://github.com/SgtCoDFish))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-cb5102bd647d",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L368-L368 (v1.18.0 › Other (Cleanup or Flake))",
+      "excerpt": "- Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. ([`#7619`](https://github.com/cert-manager/cert-manager/pull/7619), [`@depandabot[bot]`](https://github.com/apps/dependabot))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-eb95ba454b0b",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L369-L369 (v1.18.0 › Other (Cleanup or Flake))",
+      "excerpt": "- Update kind images to include the Kubernetes 1.33 node image ([`#7787`](https://github.com/cert-manager/cert-manager/pull/7787), [`@wallrj`](https://github.com/wallrj))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-5744baed396c",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L370-L370 (v1.18.0 › Other (Cleanup or Flake))",
+      "excerpt": "- Upgrade Go to `v1.24.4` ([`#7785`](https://github.com/cert-manager/cert-manager/pull/7785), [`@wallrj`](https://github.com/wallrj))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-885e61843b3a",
+      "kind": "document",
+      "sourceId": "website-release-notes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L371-L371 (v1.18.0 › Other (Cleanup or Flake))",
+      "excerpt": "- Use `slices.Contains` to simplify code ([`#7753`](https://github.com/cert-manager/cert-manager/pull/7753), [`@cuinix`](https://github.com/cuinix))",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-c3d5e62490c3",
+      "kind": "document",
+      "sourceId": "website-major-themes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L16-L26 (Major Themes › OperatorHub Packages Discontinued)",
+      "excerpt": "### OperatorHub Packages Discontinued\n\nWe no longer publish OperatorHub packages for cert-manager.\nWhy? Because the cert-manager maintainers no longer have the time or resources to maintain and test those packages.\ncert-manager `v1.16.5` is the last release on OperatorHub.\n\n> ℹ️ [cert-manager `v1.16.5` for RedHat OpenShift OperatorHub](https://github.com/redhat-openshift-ecosystem/community-operators-prod/tree/main/operators/cert-manager/1.16.5).\n>\n> ℹ️ [cert-manager `v1.16.5` for `operatorhub.io`](https://github.com/k8s-operatorhub/community-operators/tree/main/operators/cert-manager/…",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-110340e9c914",
+      "kind": "document",
+      "sourceId": "website-major-themes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L28-L89 (Major Themes › ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes)",
+      "excerpt": "### ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes\n\n> ⚠️ Breaking change\n\nWe have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\nThis security feature ensures that the challenge path (which is an exact path)\nis not misinterpreted as a regular expression or some other Ingress-specific\n(`ImplementationSpecific`) parsing.\nThis allows HTTP01 challenges to be solved when using standards compliant\nIngress controllers such as Cilium.\n\nThis change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controlle…",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-50f787991f0d",
+      "kind": "document",
+      "sourceId": "website-major-themes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L91-L107 (Major Themes › ACME Certificate Profiles)",
+      "excerpt": "### ACME Certificate Profiles\n\ncert-manager now supports the selection of ACME certificate profiles, allowing\nusers to request different categories of certificates from their ACME\nCertificate Authority.\nThis enhancement leverages the latest [ACME protocol extension for certificate profiles (IETF draft)][rfc] and is supported by Let's Encrypt and other providers.\nFor example, Let's Encrypt offers the [`tlsserver`][tlsserver] profile for\nstandard server certificates and the [`shortlived`][shortlived] profile for\nshort-lived six-day certificates.\nThese new options provide users with greater flexi…",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-c92478af13c4",
+      "kind": "document",
+      "sourceId": "website-major-themes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L109-L148 (Major Themes › The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`)",
+      "excerpt": "### The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`\n\n> ⚠️ Breaking change\n\nWe have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`.\n\nWhy? Because the old default was unintuitive and insecure.\nFor example, if a private key is exposed, users may (reasonably) assume that\nre-issuing a certificate (e.g. using `cmctl renew`) will generate a new private\nkey, but it won't unless the user has explicitly set `rotationPolicy: Always` on the Certificate resource.\n\nThis change is feature gated and is enabled by default…",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-04b3e69b5e24",
+      "kind": "document",
+      "sourceId": "website-major-themes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L151-L160 (Major Themes › The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`)",
+      "excerpt": "### The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`\n\n> ⚠️ Potentially breaking change\n\nThe default value for the `Certificate` resource's `revisionHistoryLimit` field is now set to 1.\nThis ensures that old `CertificateRequest` revisions are automatically garbage collected, improving resource management and reducing clutter in clusters.\nPreviously, if not specified, no limit was applied, potentially leading to an accumulation of stale `CertificateRequest` resources.\nWith this update, users no longer need to manually configure the revision history limit to benefit fro…",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-da53ded48367",
+      "kind": "document",
+      "sourceId": "website-major-themes",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+      "locator": "L162-L166 (Major Themes › Copy annotations from Ingress or Gateway to the Certificate)",
+      "excerpt": "### Copy annotations from Ingress or Gateway to the Certificate\n\nWe've added a new configuration option to the cert-manager controller: `--extra-certificate-annotations`, which allows you to specify annotation keys to be copied from an Ingress or Gateway resource to the resulting Certificate object.\nRead [Annotated Ingress resource: Copy annotations to the Certificate](../../usage/ingress.md#copy-annotations-to-the-certificate ), and\n[Annotated Gateway resource: Copy annotations to the Certificate](../../usage/gateway.md#copy-annotations-to-the-certificate), to learn more.",
+      "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-9a2f8d3ec5e9",
+      "kind": "document",
+      "sourceId": "upgrade-guide",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md",
+      "locator": "L8-L10",
+      "excerpt": "1. We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`.\n\n   > 📖 Read [Release 1.18 notes](../release-notes/release-notes-1.18.md) for more information..",
+      "contentDigest": "sha256:b912bc94a476c562fe0ac9b77e0af0c4974bc90e9a994e84b5dcb41bcaf37e03",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-bbe29a5fdc19",
+      "kind": "document",
+      "sourceId": "upgrade-guide",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md",
+      "locator": "L12-L14",
+      "excerpt": "1. We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`.\n\n   > 📖 Read [Release 1.18 notes](../release-notes/release-notes-1.18.md) for more information..",
+      "contentDigest": "sha256:b912bc94a476c562fe0ac9b77e0af0c4974bc90e9a994e84b5dcb41bcaf37e03",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-94a8abc4e147",
+      "kind": "document",
+      "sourceId": "supported-releases",
+      "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/README.md",
+      "locator": "L306",
+      "excerpt": "| Release      | Release Date | EOL          | Compatible Kubernetes versions | Compatible OpenShift versions |\n| [1.18][]     | Jun 10, 2025 | Mar 10, 2026 | 1.29 → 1.33                    | 4.16 → 4.20                   |",
+      "contentDigest": "sha256:2d1aa5f5dd48b1baadc10dd7381d9ce6f2848567f21069109b37bda5f417bf9e",
+      "retrievedAt": "2026-10-01T05:39:17Z"
+    },
+    {
+      "id": "ev-9b6164ce0df7",
+      "kind": "structured",
+      "sourceId": "crds",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.crds.yaml",
+      "excerpt": "# Copyright 2022 The cert-manager Authors.",
+      "contentDigest": "sha256:6c8d7fc0e16acf6a50a61b3ff2827d0a3ef95300de8f7fd1d2aa5f55b600a6ab",
+      "representation": "release-asset",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-7a67f12867b2",
+      "kind": "structured",
+      "sourceId": "helm-chart",
+      "uri": "https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml",
+      "locator": "deploy/charts/cert-manager/values.yaml",
+      "excerpt": "# +docs:section=Global",
+      "contentDigest": "sha256:dc315b31797c80f06c2d0302a5050307ff94e0bd83a7c681d0956fc4dc3e2224",
+      "representation": "source-tree",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-6bed763e6e6f",
+      "kind": "structured",
+      "sourceId": "helm-chart",
+      "uri": "https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/Chart.template.yaml",
+      "locator": "L23",
+      "excerpt": "kubeVersion: \">= 1.22.0-0\"",
+      "contentDigest": "sha256:cfbb039df2146182a768109612a728b199f4f4e5db5d469538f0134a4919d0c0",
+      "representation": "source-tree",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-e3abe417763b",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml",
+      "locator": "L13151",
+      "excerpt": "image: \"quay.io/jetstack/cert-manager-controller:v1.18.0\"",
+      "contentDigest": "sha256:b77844d683952ce529ea5f4ec249d32851a75a2819662ecc1d171ee218a51c56",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-4ada24bd69ce",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml",
+      "locator": "L13233",
+      "excerpt": "image: \"quay.io/jetstack/cert-manager-webhook:v1.18.0\"",
+      "contentDigest": "sha256:b77844d683952ce529ea5f4ec249d32851a75a2819662ecc1d171ee218a51c56",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-e3cf67af11a6",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml",
+      "locator": "L13088",
+      "excerpt": "image: \"quay.io/jetstack/cert-manager-cainjector:v1.18.0\"",
+      "contentDigest": "sha256:b77844d683952ce529ea5f4ec249d32851a75a2819662ecc1d171ee218a51c56",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    },
+    {
+      "id": "ev-89d04dc6df9c",
+      "kind": "release-asset",
+      "sourceId": "install-manifest",
+      "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.yaml",
+      "locator": "L13157",
+      "excerpt": "- --acme-http01-solver-image=quay.io/jetstack/cert-manager-acmesolver:v1.18.0",
+      "contentDigest": "sha256:b77844d683952ce529ea5f4ec249d32851a75a2819662ecc1d171ee218a51c56",
+      "retrievedAt": "2026-10-01T05:39:18Z"
+    }
+  ],
+  "environmentEvidence": [
+    {
+      "id": "ev-7ed6c5e2142e",
+      "kind": "input",
+      "uri": "flag:--kubernetes",
+      "excerpt": "1.28",
+      "contentDigest": "sha256:630030ff9b4030db5627434a7591f5e9202d0af9acdc8bca8bff5c563c386ff5"
+    },
+    {
+      "id": "ev-1ab18674b87c",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/.github/workflows/mirror.yaml",
+      "locator": "L12",
+      "excerpt": "image: quay.io/jetstack/cert-manager-controller:v1.17.0",
+      "contentDigest": "sha256:495adb34bc62977e23f65eae56289dcaeb8f9f3f3ce0d2043e3cc71f7cb78868"
+    },
+    {
+      "id": "ev-1c75b2a1b39a",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/.github/workflows/mirror.yaml",
+      "locator": "L16",
+      "excerpt": "image: quay.io/jetstack/cert-manager-webhook:v1.17.0",
+      "contentDigest": "sha256:495adb34bc62977e23f65eae56289dcaeb8f9f3f3ce0d2043e3cc71f7cb78868"
+    },
+    {
+      "id": "ev-0d7337268c56",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/clusters/prod/values-cert-manager.yaml",
+      "locator": "$.global.rbac.disableHTTPChallengesRole (L11)",
+      "excerpt": "global.rbac.disableHTTPChallengesRole: true",
+      "contentDigest": "sha256:3dc2435c9a131ab168b9f1f3279505e9a272e78a6a3982e8b46b9841626c92ad"
+    },
+    {
+      "id": "ev-428bed0f921a",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/clusters/prod/values-cert-manager.yaml",
+      "locator": "$.prometheus.servicemonitor.targetPort (L8)",
+      "excerpt": "prometheus.servicemonitor.targetPort: 9402",
+      "contentDigest": "sha256:3dc2435c9a131ab168b9f1f3279505e9a272e78a6a3982e8b46b9841626c92ad"
+    },
+    {
+      "id": "ev-023b4c7e81aa",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/clusters/dev/values-cert-manager.yaml",
+      "locator": "$.replicaCount (L4)",
+      "excerpt": "replicaCount: 1",
+      "contentDigest": "sha256:a20b528b47151d40c1296e56fabf4cb7935cd27f04fca8c3fea64b0ede7287d8"
+    },
+    {
+      "id": "ev-9a0d8be362a5",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/clusters/prod/values-cert-manager.yaml",
+      "locator": "$.prometheus.servicemonitor.enabled (L7)",
+      "excerpt": "prometheus.servicemonitor.enabled: true",
+      "contentDigest": "sha256:3dc2435c9a131ab168b9f1f3279505e9a272e78a6a3982e8b46b9841626c92ad"
+    },
+    {
+      "id": "ev-7d1a84add803",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/apps/cert-manager-argocd.yaml",
+      "locator": "$.spec.source.helm.values.prometheus.servicemonitor.enabled (L15)",
+      "excerpt": "prometheus.servicemonitor.enabled: true",
+      "contentDigest": "sha256:9bedcbb56147bd5266828eb6d920e43f5e40bc1b7dec971658697b36854c7312"
+    },
+    {
+      "id": "ev-704283b66791",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/apps/cert-manager-argocd.yaml",
+      "locator": "$.spec.source.helm.values.replicaCount (L15)",
+      "excerpt": "replicaCount: 3",
+      "contentDigest": "sha256:9bedcbb56147bd5266828eb6d920e43f5e40bc1b7dec971658697b36854c7312"
+    },
+    {
+      "id": "ev-2a1739c44392",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/apps/cert-manager-argocd.yaml",
+      "locator": "$.spec.source.helm.valuesObject.webhook.timeoutSeconds (L22)",
+      "excerpt": "webhook.timeoutSeconds: 10",
+      "contentDigest": "sha256:9bedcbb56147bd5266828eb6d920e43f5e40bc1b7dec971658697b36854c7312"
+    },
+    {
+      "id": "ev-fea9c3758c25",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml",
+      "locator": "$.spec.values.global.leaderElection.namespace (L21)",
+      "excerpt": "global.leaderElection.namespace: \"cert-manager\"",
+      "contentDigest": "sha256:a885a7dc47b955389a3ea80de2316e1231ddd9d2ed01ace33a82fde8a6edfcda"
+    },
+    {
+      "id": "ev-8e41e6dd36e9",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml",
+      "locator": "$.spec.values.replicaCount (L18)",
+      "excerpt": "replicaCount: 2",
+      "contentDigest": "sha256:a885a7dc47b955389a3ea80de2316e1231ddd9d2ed01ace33a82fde8a6edfcda"
+    },
+    {
+      "id": "ev-e537823e55ee",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/base/namespace.yaml",
+      "locator": "L1",
+      "excerpt": "apiVersion: v1 / kind: Namespace",
+      "contentDigest": "sha256:01d103b70c0c8c3e1b4d13f62b82c3761a5a535817153b5ea2aec2dbcb30b07b"
+    },
+    {
+      "id": "ev-4d28c6f3778f",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "L4",
+      "excerpt": "apiVersion: apps/v1 / kind: Deployment",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    },
+    {
+      "id": "ev-6d596b149fe2",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/apps/cert-manager-argocd.yaml",
+      "locator": "L4",
+      "excerpt": "apiVersion: argoproj.io/v1alpha1 / kind: Application",
+      "contentDigest": "sha256:9bedcbb56147bd5266828eb6d920e43f5e40bc1b7dec971658697b36854c7312"
+    },
+    {
+      "id": "ev-78740c0787f0",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/base/certificate.yaml",
+      "locator": "L3",
+      "excerpt": "apiVersion: cert-manager.io/v1 / kind: Certificate",
+      "contentDigest": "sha256:06339df1a599d70b0e4c622d41630dd9cb4de8514e7c0d67d3a990f650d3a434"
+    },
+    {
+      "id": "ev-2c5f2e228766",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/crds/certificates.cert-manager.io.yaml",
+      "locator": "L4",
+      "excerpt": "CustomResourceDefinition certificates.cert-manager.io",
+      "contentDigest": "sha256:878adaf53ac492b0f32bf288bdec5e20897a8314968661cbaabae69872d86614"
+    },
+    {
+      "id": "ev-ebe3710acf56",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml",
+      "locator": "L4",
+      "excerpt": "apiVersion: helm.toolkit.fluxcd.io/v2 / kind: HelmRelease",
+      "contentDigest": "sha256:a885a7dc47b955389a3ea80de2316e1231ddd9d2ed01ace33a82fde8a6edfcda"
+    },
+    {
+      "id": "ev-3c9f3a17ddb1",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/apps/cert-manager-argocd.yaml",
+      "locator": "$.spec.source.targetRevision (L13)",
+      "excerpt": "targetRevision: v1.17.0",
+      "contentDigest": "sha256:9bedcbb56147bd5266828eb6d920e43f5e40bc1b7dec971658697b36854c7312"
+    },
+    {
+      "id": "ev-7f094f94259b",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml",
+      "locator": "$.spec.chart.spec.chart (L12)",
+      "excerpt": "chart: cert-manager",
+      "contentDigest": "sha256:a885a7dc47b955389a3ea80de2316e1231ddd9d2ed01ace33a82fde8a6edfcda"
+    },
+    {
+      "id": "ev-bdfa0422a5c6",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml",
+      "locator": "$.spec.chart.spec.version (L13)",
+      "excerpt": "version: 1.*",
+      "contentDigest": "sha256:a885a7dc47b955389a3ea80de2316e1231ddd9d2ed01ace33a82fde8a6edfcda"
+    },
+    {
+      "id": "ev-38afa74ea56f",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "$.metadata.annotations[meta.helm.sh/release-name] (L14)",
+      "excerpt": "meta.helm.sh/release-name: cert-manager",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    },
+    {
+      "id": "ev-35316d10a461",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "$.metadata.annotations[helm.sh/chart] (L16)",
+      "excerpt": "helm.sh/chart: cert-manager-v1.17.0",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    },
+    {
+      "id": "ev-7fe7a2ede859",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/helmfile.yaml",
+      "locator": "$.releases[] (L5)",
+      "excerpt": "chart: jetstack/cert-manager version: v1.17.0",
+      "contentDigest": "sha256:4fb414cd631d8b9e11f2dc0fb1a36149356b7d94be31d2ca438cab0d1965cc31"
+    },
+    {
+      "id": "ev-dd4cf16cb190",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "$.metadata.labels[app.kubernetes.io/name] (L10)",
+      "excerpt": "app.kubernetes.io/name: cert-manager",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    },
+    {
+      "id": "ev-818a2369a552",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "$.metadata.labels[app.kubernetes.io/instance] (L11)",
+      "excerpt": "app.kubernetes.io/instance: cert-manager",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    },
+    {
+      "id": "ev-ed0f8d9c8290",
+      "kind": "local-file",
+      "uri": "internal/env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "$.metadata.labels[app.kubernetes.io/version] (L12)",
+      "excerpt": "app.kubernetes.io/version: v1.17.0",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    }
+  ],
+  "warnings": [
+    "Security advisories were not fully retrieved (github-advisories: unavailable — fetch https://api.github.com/repos/cert-manager/cert-manager/security-advisories?per_page=100&state=published: not in cache (offline mode)); advisory matching may be incomplete",
+    "2 artifacts of v1.18.0 only expected (not observed or referenced): helm-chart, startupapicheck-image",
+    "skipped internal/env/testdata/customer-repo/charts/vendored: a Helm chart source tree (its values and templates are chart inputs, not customer environment)",
+    "helmfile helmfile.yaml: templating (go templates, environments) is not evaluated; releases are inventoried from the literal file",
+    "kustomization kustomize/kustomization.yaml is not built with kustomize: its resources are inventoried as plain manifests, patches and transformers are not applied",
+    "repo mode found 2 values files; all are applied, the last one wins per key",
+    "HelmRelease cert-manager uses spec.valuesFrom, which references cluster objects; those values are not readable from files"
+  ],
+  "generatedAt": "2026-10-02T01:22:18.318496Z",
+  "definitionDigest": "sha256:26e937deab5a1c19a11c19f112b61b73a187c12bc5ab18c24f5ed65a4305c0c8",
+  "enrichments": [
+    {
+      "id": "enr-56a30bd3a007",
+      "kind": "not-applicable",
+      "title": "ACME certificate profile selection is opt-in, not configured",
+      "content": "The change adds the ability to select ACME certificate profiles such as tlsserver or shortlived. Selection is a new capability, and the environment summary shows no Issuer or ClusterIssuer configuration choosing a profile.",
+      "relatesTo": [
+        "imp-dacd1e3d112b"
+      ],
+      "citations": [
+        "ev-50f787991f0d"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-7a5f9c712e8d",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:70620ef75b3311747983843077cd2def5a58965b4b453caf74cd26308f17fb28",
+        "inputEvidence": [
+          "ev-50f787991f0d",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-5f40696c6963",
+      "kind": "not-applicable",
+      "title": "E2E test Pebble upgrade does not reach this environment",
+      "content": "The change upgrades Pebble to v2.7.0 in cert-manager's own ACME end-to-end tests. It is a test-only cleanup and does not touch the deployed components, values, manifests or CRDs in this environment.",
+      "relatesTo": [
+        "imp-9bcf04959e54"
+      ],
+      "citations": [
+        "ev-ea4a77b80f71"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-d3ec3c18a5b1",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:f97a1f7c0bfd1192bf0ff790bb9b696c60f686e582d21b43ccb41df71e279f2d",
+        "inputEvidence": [
+          "ev-ea4a77b80f71",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-77635c584f49",
+      "kind": "plausibly-applies",
+      "title": "Breaking HTTP01 Ingress PathType change may affect challenge solving",
+      "content": "v1.18.0 changes the PathType for ACME HTTP01 Ingress-based challenges to Exact, flagged as a breaking change incompatible with certain setups. The environment uses cert-manager.io/v1 Certificate resources and sets global.rbac.disableHTTPChallengesRole, but the summary does not show whether HTTP01 Ingress solvers are configured. Inspect your issuers for HTTP01 Ingress solvers, the value of global.rbac.disableHTTPChallengesRole, and whether your Ingress controller handles PathType Exact.",
+      "relatesTo": [
+        "imp-eef2b0d0d72f"
+      ],
+      "citations": [
+        "ev-110340e9c914"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-370cc5390a7d",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:d26124637a33c9af0c15a7c8f4a9e7fa876ccf3634d7dce643a5acdd50dfa774",
+        "inputEvidence": [
+          "ev-110340e9c914",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-da16b15daa3b",
+      "kind": "not-applicable",
+      "title": "Optional Vault issuer server-name setting not visible here",
+      "content": "The change adds an optional Vault issuer configuration for the server name used when validating the Vault server's certificate. The environment summary shows no Issuer or ClusterIssuer resources and no Vault-related keys, and the setting only acts when configured.",
+      "relatesTo": [
+        "imp-6156cd00b09b"
+      ],
+      "citations": [
+        "ev-30d2c387f95f"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-602290915bb3",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:03b43e71409a30b6ee486158a9452b7b16a9680c9d35ab0d3b75c5f9d3276d1d",
+        "inputEvidence": [
+          "ev-30d2c387f95f",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-ec4c996c368a",
+      "kind": "not-applicable",
+      "title": "ACME profiles support is opt-in and not configured",
+      "content": "The change adds support for the ACME profiles extension, a new capability rather than a change to existing behaviour. The environment summary shows no Issuer or ClusterIssuer configuration selecting a profile.",
+      "relatesTo": [
+        "imp-80754ea19305"
+      ],
+      "citations": [
+        "ev-7be235e771a3"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-7e79477ea814",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:9c85e55e503e0200b9f3eb03538a270866e9c352e266524c1563e989d3492a57",
+        "inputEvidence": [
+          "ev-7be235e771a3",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-bdb821dd3e0d",
+      "kind": "undetermined",
+      "title": "Unknown whether Let's Encrypt ACME account keys are used",
+      "content": "The change adds the app.kubernetes.io/managed-by: cert-manager label to Let's Encrypt account keys cert-manager creates. The environment summary shows Certificate resources but no Issuer or ClusterIssuer configuration, so whether a Let's Encrypt ACME issuer is used is unknown. Check your issuers and whether anything selects Secrets by that label.",
+      "relatesTo": [
+        "imp-16163701185e"
+      ],
+      "citations": [
+        "ev-1d4a9d664d8c"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-b1e35d387742",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:96580feb2f68b88b1c3f4e0dea4168a753a103927664cf4c92499639a8c80c21",
+        "inputEvidence": [
+          "ev-1d4a9d664d8c",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-1616a3492523",
+      "kind": "plausibly-applies",
+      "title": "New certificate timestamp metrics reach the enabled ServiceMonitor scrape",
+      "content": "v1.18.0 adds certmanager_certificate_not_before_timestamp_seconds and certmanager_certificate_not_after_timestamp_seconds. The environment sets prometheus.servicemonitor.enabled and has cert-manager.io/v1 Certificate manifests, so these series will plausibly be scraped. Inspect whether dashboards or alerts should use them and whether the added series matter for your monitoring.",
+      "relatesTo": [
+        "imp-6432f469b85a"
+      ],
+      "citations": [
+        "ev-e8facc7cba98"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-ebcb7b26905b",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:5f075bc721689ca0647294864b4a1e2e5db322cacbf98afc87516255378dc4d0",
+        "inputEvidence": [
+          "ev-e8facc7cba98",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-1a5a6a9bd6e5",
+      "kind": "not-applicable",
+      "title": "Opt-in ingress-shim annotation option not configured here",
+      "content": "The change adds an optional ingress-shim option, --extra-certificate-annotations. No visible values key sets it, and the environment's manifests contain no Ingress-like resources, only Namespace, Deployment, Argo CD Application, Certificate and Flux HelmRelease.",
+      "relatesTo": [
+        "imp-588f3cf5a260"
+      ],
+      "citations": [
+        "ev-dde3ce032096"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-b4509fedf4fb",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:47634b081757c79fb15bbeef2989c67eb126e13bae72612f8d2fb779a81fbee4",
+        "inputEvidence": [
+          "ev-dde3ce032096",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-1dee3e2914fe",
+      "kind": "not-applicable",
+      "title": "New ciss short name is additive and changes nothing",
+      "content": "The change only adds the ciss short name for the ClusterIssuer resource. It is additive for kubectl usage and does not alter the values, manifests or the certificates.cert-manager.io CRD shown for this environment.",
+      "relatesTo": [
+        "imp-2577b5434545"
+      ],
+      "citations": [
+        "ev-41698084a48b"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-64f387301f79",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:a9c6bf0bcb9c7d6dbee0d19fe45787a07cc3aef42ea9479e663085f6fa813f55",
+        "inputEvidence": [
+          "ev-41698084a48b",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-7be10bc6cfde",
+      "kind": "not-applicable",
+      "title": "New iss short name is additive and changes nothing",
+      "content": "The change only adds the iss short name for the Issuer resource. It is additive for kubectl usage and does not alter the values, manifests or the certificates.cert-manager.io CRD shown for this environment.",
+      "relatesTo": [
+        "imp-3a0f812fe693"
+      ],
+      "citations": [
+        "ev-38243747b200"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-6a11fc68186c",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:d8a6a7029d1993b09afa34735349b85e4685a6c50d226b08501354d317612146",
+        "inputEvidence": [
+          "ev-38243747b200",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-0701cc629b13",
+      "kind": "plausibly-applies",
+      "title": "Environment sets the new global.rbac.disableHTTPChallengesRole value",
+      "content": "v1.18.0 adds the global.rbac.disableHTTPChallengesRole helm value, which disables HTTP-01 ACME challenges and drops cert-manager's permission to create pods. The environment's values set global.rbac.disableHTTPChallengesRole, so this change directly applies. Inspect its value and confirm none of your issuers need HTTP-01 challenges before upgrading.",
+      "relatesTo": [
+        "imp-62fb5ea91b14"
+      ],
+      "citations": [
+        "ev-861cb2d69752"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-e35e9743a94d",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:d097eea4e3505bf5389f85986ab02b0821f94730998bd2a872de1ff2c7926525",
+        "inputEvidence": [
+          "ev-861cb2d69752",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-36c9ee40ad5d",
+      "kind": "not-applicable",
+      "title": "Customizable signature algorithm is an unused new option",
+      "content": "The change allows customizing the signature algorithm, which is a new capability. Nothing in the environment summary's values keys or manifests shows this option being set.",
+      "relatesTo": [
+        "imp-d09df14ed530"
+      ],
+      "citations": [
+        "ev-87995aee2ded"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-8106fc909726",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:bda763d4d93550750a4c61d1e57e4084b87557d92e219ab0d466f2fc9ae9cb44",
+        "inputEvidence": [
+          "ev-87995aee2ded",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-02eb00568158",
+      "kind": "undetermined",
+      "title": "DNS zone lookup caching change; DNS01 usage unknown",
+      "content": "The change caches the full DNS response and handles TTL expiration in FindZoneByFqdn. The excerpt does not say which flows use this, and the environment summary shows no issuer or DNS01 solver configuration. Check whether your issuers use DNS01 challenges.",
+      "relatesTo": [
+        "imp-5cbc5860638d"
+      ],
+      "citations": [
+        "ev-d4918828336e"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-1f310817f135",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:9e67ad69f2b96fb41863bbc9ab888bc7339ae1b381b599fcdd51e8b44e2d95be",
+        "inputEvidence": [
+          "ev-d4918828336e",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-2552f5d0e886",
+      "kind": "undetermined",
+      "title": "Internal ACME package fork; ACME issuer usage unknown",
+      "content": "cert-manager now uses a local fork of the golang.org/x/crypto/acme package. The excerpt states no behavioural change, and the environment summary shows no Issuer or ClusterIssuer configuration, so whether ACME is used here and whether anything changes for it is not stated.",
+      "relatesTo": [
+        "imp-4abadd43d378"
+      ],
+      "citations": [
+        "ev-4fcf47388827"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-73f745644c20",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:c337d9ab785e3a5f99f3fc36ba1bb0ef78a76b9ca15a67d0ddd92a670fbd99e1",
+        "inputEvidence": [
+          "ev-4fcf47388827",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-058e58dabf95",
+      "kind": "plausibly-applies",
+      "title": "HTTP01 Ingress pathType switch to Exact may affect challenges",
+      "content": "The Ingress pathType cert-manager uses changes from ImplementationSpecific to Exact. The environment uses cert-manager.io/v1 Certificate resources and sets global.rbac.disableHTTPChallengesRole, but the summary does not show whether Ingress-based HTTP01 solving is in use. Inspect your issuers for Ingress HTTP01 solvers, the value of global.rbac.disableHTTPChallengesRole, and your Ingress controller's handling of pathType Exact.",
+      "relatesTo": [
+        "imp-2512f0e1bfab"
+      ],
+      "citations": [
+        "ev-4faa7ca81b54"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-77f3163cf1b3",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:5a8a7a5aab19c08df7c1b81d2e8ba9eb14697d1a135e4e3ae1562aa068349bd2",
+        "inputEvidence": [
+          "ev-4faa7ca81b54",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-ebc62282c518",
+      "kind": "not-applicable",
+      "title": "Opt-in annotation copying option not set in this environment",
+      "content": "The change adds the controller option --extra-certificate-annotations to copy specified annotation keys from Ingress or Gateway resources to Certificates. The visible values keys do not include it, and the manifests show no Ingress or Gateway resources. The option only takes effect when configured.",
+      "relatesTo": [
+        "imp-d1ff8cfc0c11"
+      ],
+      "citations": [
+        "ev-da53ded48367"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-52921cdc0ef5",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:4241573eac8c47ef5eba3548bb4c8574dcbfe8431ca376106202e4ade15d40d9",
+        "inputEvidence": [
+          "ev-da53ded48367",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-5c9262943d1f",
+      "kind": "undetermined",
+      "title": "Route53 DNS01 usage is not visible in the environment",
+      "content": "The fix concerns AWS Route53 not-found error detection when deleting DNS records. The environment summary shows no Issuer or ClusterIssuer configuration, so whether a Route53 solver is used is unknown. Check your issuers for a Route53 DNS01 solver.",
+      "relatesTo": [
+        "imp-cf65d5550490"
+      ],
+      "citations": [
+        "ev-23e99dfde8d0"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-78cbee8f04d8",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:08156324960dcf3daafc3467dbf66ee86f3ecb5a558c484d9d6bdb344397d309",
+        "inputEvidence": [
+          "ev-23e99dfde8d0",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-863e1dc9a014",
+      "kind": "undetermined",
+      "title": "Unknown whether cert-manager runs with --namespace here",
+      "content": "The fix changes behaviour only when cert-manager runs with --namespace, limiting it to one namespace and disabling cluster-scoped controllers. The environment sets global.leaderElection.namespace, but the summary does not show the controller arguments or any key setting the --namespace scope. Check whether your cert-manager deployment passes --namespace.",
+      "relatesTo": [
+        "imp-6a432c6ae078"
+      ],
+      "citations": [
+        "ev-ef5237d47ade"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-5822cef1010d",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:6541578b00901b2fda576e311808704e9bb8755527e52eba4df21c0684d72e71",
+        "inputEvidence": [
+          "ev-ef5237d47ade",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-dbeb0c630311",
+      "kind": "plausibly-applies",
+      "title": "IP commonName handling change may alter issued Certificate SANs",
+      "content": "v1.18.0 stops adding IP addresses in commonName to the DNS subjectAlternativeName list and adds them to ipAddresses instead. The environment's manifests include cert-manager.io/v1 Certificate resources, but the summary does not show their commonName values. Inspect those Certificates for an IP address in commonName and whether consumers rely on it appearing as a DNS SAN.",
+      "relatesTo": [
+        "imp-dc9dc7badd15"
+      ],
+      "citations": [
+        "ev-a8c04d9f0485"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-3ae7552789b5",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:0e71d5b41bf5be8e1d4c96b42d14853f1e8a4e39c67c2f38f006371e34987454",
+        "inputEvidence": [
+          "ev-a8c04d9f0485",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-f0a15ba3e127",
+      "kind": "undetermined",
+      "title": "Cloudflare DNS01 usage not visible in the environment",
+      "content": "The fix concerns DNS01 challenges on Cloudflare after a Cloudflare API breaking change. The environment summary shows no Issuer or ClusterIssuer configuration, so whether a Cloudflare DNS01 solver is used is unknown. Check your issuers for a Cloudflare DNS01 solver.",
+      "relatesTo": [
+        "imp-4ad48d81f45a"
+      ],
+      "citations": [
+        "ev-b8d6f16e3c8c"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-fee4641eaf76",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:5d66b6a8b8cbd19eeb724ce1ab0421c296a92ba5aedcba462df460bc9d9627f4",
+        "inputEvidence": [
+          "ev-b8d6f16e3c8c",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-c79d847706df",
+      "kind": "not-applicable",
+      "title": "Code comment fixes do not reach the environment",
+      "content": "The change is listed under Documentation as fixing some comments. It does not touch any values key, manifest, CRD or deployed behaviour shown for this environment.",
+      "relatesTo": [
+        "imp-a5b1ba142174"
+      ],
+      "citations": [
+        "ev-19fb20ff3c32"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-b6509f36b5e5",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:35775d217675455a48df6a24ce1a19570586f16ab2c15b4814332d6db3affd3c",
+        "inputEvidence": [
+          "ev-19fb20ff3c32",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-0adea79b4cd2",
+      "kind": "not-applicable",
+      "title": "Metric help text fix does not change scraped values",
+      "content": "The change only corrects the help text of certmanager_certificate_renewal_timestamp_seconds to say it is Unix epoch time. Although prometheus.servicemonitor.enabled is set, the excerpt describes a documentation-string fix, not a change to the metric's values or name.",
+      "relatesTo": [
+        "imp-876104412381"
+      ],
+      "citations": [
+        "ev-2a805da381d1"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-1aa396c80311",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:341b06a0081c53be0744065f980bd4250385b1f083ab4965f5e4d9b0c33c2eea",
+        "inputEvidence": [
+          "ev-2a805da381d1",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-314d0e59a561",
+      "kind": "undetermined",
+      "title": "Service account annotation values not visible in partial values",
+      "content": "The fix changes how the Helm chart's service account template renders boolean annotation values. The visible values keys include no service account annotations, but the values dimension is only partial, so their use cannot be ruled out. Check your Helm values for service account annotations with boolean values.",
+      "relatesTo": [
+        "imp-8a7fc92bee74"
+      ],
+      "citations": [
+        "ev-7a3fdefaaff7"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-6c6f1a746298",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:b0e3ebb0ab4088b7474269140746d76e549b81ea4fb4d65e8f8940e0a12d9366",
+        "inputEvidence": [
+          "ev-7a3fdefaaff7",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-d3b495ccfcc4",
+      "kind": "not-applicable",
+      "title": "OperatorHub discontinuation does not affect this Helm-based install",
+      "content": "cert-manager no longer publishes OperatorHub packages, with v1.16.5 the last release there. The environment's installed products show cert-manager installed from the cert-manager Helm chart via a Flux HelmRelease, an Argo CD Application and helmfile, not via OperatorHub. The installation path shown is not affected.",
+      "relatesTo": [
+        "imp-7b3e3b95c782"
+      ],
+      "citations": [
+        "ev-c3d5e62490c3"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-3513183d7d70",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:8091865bae3a779c704a2cfac3beb449c1d817155c130274b2c14a43f3e8fbd4",
+        "inputEvidence": [
+          "ev-c3d5e62490c3",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-f9cab463cd58",
+      "kind": "not-applicable",
+      "title": "Internal ACME fork patch for an opt-in profiles feature",
+      "content": "The change patches cert-manager's internal third_party/forked/acme package to support the ACME profiles extension. It is an internal building block for a new capability, and nothing in the environment summary configures ACME profiles.",
+      "relatesTo": [
+        "imp-011cd8669b4b"
+      ],
+      "citations": [
+        "ev-8ec1fdd0d15f"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-886571aa14f7",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:7dabb93ca7e37a23a4936d1ecb794e5aa1cb615ed58da25b1c1869ab3ff13db7",
+        "inputEvidence": [
+          "ev-8ec1fdd0d15f",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-6fa38f53972c",
+      "kind": "undetermined",
+      "title": "Unknown whether Certificates use additional output formats",
+      "content": "The AdditionalCertificateOutputFormats feature is promoted to GA and additional formats are always enabled. The environment has cert-manager.io/v1 Certificate manifests, but the summary does not show whether they request additional output formats or whether this feature gate is set. Check your Certificates and controller feature-gate settings.",
+      "relatesTo": [
+        "imp-ddbd62c6e0a7"
+      ],
+      "citations": [
+        "ev-bc29bf53aa1b"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-d0a79e5daf99",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:204203b77219805037c51674ac8fc1fc39f9c779abe0ccc003488d68fde5d6df",
+        "inputEvidence": [
+          "ev-bc29bf53aa1b",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-7a1863c5b8d3",
+      "kind": "undetermined",
+      "title": "Finalizer feature GA; excerpt does not describe its effect",
+      "content": "The UseDomainQualifiedFinalizer feature is promoted to GA. The excerpt does not say what the feature changes or which resources it touches, and the environment summary shows no feature-gate settings. The release notes for this feature are needed to judge whether it affects the cert-manager.io/v1 Certificate resources in use.",
+      "relatesTo": [
+        "imp-028f41821942"
+      ],
+      "citations": [
+        "ev-8f6e397ae33c"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-f08fee68e48e",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:2af60a342f3fa264920a43629a17d852996b89d29cb8fe2985f550971fde672c",
+        "inputEvidence": [
+          "ev-8f6e397ae33c",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-357d4f5212cc",
+      "kind": "undetermined",
+      "title": "nodeSelector usage not visible in partial Helm values",
+      "content": "The fix quotes nodeSelector values in the Helm chart. The visible values keys include no nodeSelector key, but the values dimension is only partial, so its use cannot be ruled out. Check your Helm values for nodeSelector entries.",
+      "relatesTo": [
+        "imp-f2783ab830b0"
+      ],
+      "citations": [
+        "ev-565f3761f656"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-f360b1f3fc62",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:bda470a7b87564bb1e89ce3a2eaeba2c6d7dcf4943486fc499a2b234d20f80ca",
+        "inputEvidence": [
+          "ev-565f3761f656",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-4e9918634c07",
+      "kind": "undetermined",
+      "title": "Unknown whether the ValidateCAA feature gate is set",
+      "content": "The deprecated ValidateCAA feature gate is removed; setting it is now a no-op that only logs a warning. The environment summary shows no feature-gate settings and the values dimension is partial. Check your controller feature-gate configuration for ValidateCAA.",
+      "relatesTo": [
+        "imp-2296b2feb6ec"
+      ],
+      "citations": [
+        "ev-853844eb542e"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-193b56139615",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:f896212da3a5665382e68c35447a2315f9113a6946bc520008b169ac5c55621a",
+        "inputEvidence": [
+          "ev-853844eb542e",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    },
+    {
+      "id": "enr-5bfa66efb26f",
+      "kind": "plausibly-applies",
+      "title": "New CertificateRequest revisionHistoryLimit default affects existing Certificates",
+      "content": "v1.18.0 sets the default revisionHistoryLimit for CertificateRequest revisions to 1. The environment has cert-manager.io/v1 Certificate manifests, and the summary does not show whether they set revisionHistoryLimit explicitly. Inspect those Certificates for revisionHistoryLimit and whether any process relies on retaining older CertificateRequest revisions.",
+      "relatesTo": [
+        "imp-d6d05ea04a58"
+      ],
+      "citations": [
+        "ev-330bb03a882f"
+      ],
+      "provenance": {
+        "method": "ai",
+        "producer": "impact-enrich@v1",
+        "rule": "cand:cand-eb70e9a0b990",
+        "confidence": "medium",
+        "model": "claude-opus-5-5",
+        "modelVersion": "claude-opus-5-5",
+        "promptVersion": "impact-enrich/v1",
+        "promptDigest": "sha256:f5d0ce88661b52c965041c5e665caa10cc4645f7e273d5a00f30d1dbd554864f",
+        "inputEvidence": [
+          "ev-330bb03a882f",
+          "ev-023b4c7e81aa",
+          "ev-0d7337268c56",
+          "ev-9a0d8be362a5",
+          "ev-428bed0f921a",
+          "ev-7d1a84add803",
+          "ev-704283b66791",
+          "ev-2a1739c44392",
+          "ev-fea9c3758c25",
+          "ev-8e41e6dd36e9",
+          "ev-e537823e55ee",
+          "ev-4d28c6f3778f",
+          "ev-6d596b149fe2",
+          "ev-78740c0787f0",
+          "ev-2c5f2e228766",
+          "ev-ebe3710acf56",
+          "ev-3c9f3a17ddb1",
+          "ev-7f094f94259b",
+          "ev-bdfa0422a5c6",
+          "ev-38afa74ea56f",
+          "ev-35316d10a461",
+          "ev-7fe7a2ede859",
+          "ev-dd4cf16cb190",
+          "ev-818a2369a552",
+          "ev-ed0f8d9c8290"
+        ],
+        "generatedAt": "2026-10-02T01:22:18Z"
+      }
+    }
+  ],
+  "enrichmentRun": {
+    "producer": "impact-enrich@v1",
+    "promptVersion": "impact-enrich/v1",
+    "candidateGroups": 41,
+    "requests": 30,
+    "accepted": 30,
+    "clusters": 0,
+    "clusteredChanges": 0,
+    "duplicatesConsolidated": 0
+  }
+}

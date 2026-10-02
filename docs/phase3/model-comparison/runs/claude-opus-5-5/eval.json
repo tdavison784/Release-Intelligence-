@@ -1,0 +1,490 @@
+{
+  "results": [
+    {
+      "caseId": "cert-manager-1.17-1.18",
+      "product": "cert-manager",
+      "from": "v1.17.0",
+      "to": "v1.18.0",
+      "metrics": {
+        "expected": 4,
+        "found": 4,
+        "expectedCritical": 3,
+        "expectedImportant": 1,
+        "missedCritical": 0,
+        "missedImportant": 0,
+        "missedMinor": 0,
+        "changes": 51,
+        "matchedChanges": 8,
+        "falsePositives": 0,
+        "duplicateGroups": 2,
+        "unsupported": 0,
+        "classificationScored": 0,
+        "classificationMatched": 0,
+        "actionFindings": 1,
+        "falseActionFindings": 0,
+        "actionFindingsUnsupported": 0,
+        "unknownFindings": 45,
+        "evidenceCovered": 8
+      },
+      "env": {
+        "impactLinks": 2,
+        "impactLinksHit": 0,
+        "notAffectedLinks": 0,
+        "notAffectedViolations": 0,
+        "findings": 58,
+        "findingsExpected": 3,
+        "findingsFound": 2,
+        "findingsFalsePositives": 0,
+        "unsupported": 0
+      },
+      "matches": [
+        {
+          "expectedId": "E1",
+          "title": "Certificate private key rotationPolicy default changed from Never to Always",
+          "kind": "behaviour-change",
+          "importance": "critical",
+          "found": true,
+          "actualClass": "action-required",
+          "findingIds": [
+            "imp-19acd0659637",
+            "imp-355ebba8a382",
+            "imp-1a0e1393ecc9"
+          ],
+          "hits": [
+            {
+              "changeId": "chg-a726b336f865",
+              "changeTitle": "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. \u003e 📖 Read Release 1.18 notes for more information.",
+              "matchedBy": "text:(?i)rotationPolicy",
+              "evidence": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md"
+            },
+            {
+              "changeId": "chg-0e1cdbe373a9",
+              "changeTitle": "The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPo…",
+              "matchedBy": "text:(?i)rotationPolicy",
+              "evidence": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+            },
+            {
+              "changeId": "chg-fa4ce35f9a12",
+              "changeTitle": "The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always`",
+              "matchedBy": "text:(?i)rotationPolicy",
+              "evidence": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+            }
+          ]
+        },
+        {
+          "expectedId": "E2",
+          "title": "Certificate RevisionHistoryLimit default changed from nil to 1",
+          "kind": "behaviour-change",
+          "importance": "critical",
+          "found": true,
+          "actualClass": "action-required",
+          "findingIds": [
+            "imp-d6d05ea04a58",
+            "imp-3acf8d10d51e",
+            "imp-bbe863f802bd"
+          ],
+          "hits": [
+            {
+              "changeId": "chg-c2b61b098891",
+              "changeTitle": "We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. \u003e 📖 Read Release 1.18 notes for more information.",
+              "matchedBy": "text:(?i)RevisionHistoryLimit",
+              "evidence": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md"
+            },
+            {
+              "changeId": "chg-a3c2e0538ac2",
+              "changeTitle": "The default value of `Certificate.Spec.RevisionHistoryLimit` is now `1`: The default value for the `Certificate` resource's `revisionHistoryLimit` field is now…",
+              "matchedBy": "text:(?i)RevisionHistoryLimit",
+              "evidence": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+            },
+            {
+              "changeId": "chg-10df74aec3a3",
+              "changeTitle": "Set the default `revisionHistoryLimit` to 1 for the CertificateRequest revisions",
+              "matchedBy": "text:(?i)RevisionHistoryLimit",
+              "evidence": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+            }
+          ]
+        },
+        {
+          "expectedId": "E3",
+          "title": "ACME HTTP01 challenge paths now use PathType Exact; incompatible with ingress-nginx \u003e= 1.12 defaults and OpenShift Routes",
+          "kind": "compatibility",
+          "importance": "critical",
+          "found": true,
+          "actualClass": "unknown",
+          "findingIds": [
+            "imp-eef2b0d0d72f"
+          ],
+          "hits": [
+            {
+              "changeId": "chg-e4f5f001ae5f",
+              "changeTitle": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.…",
+              "matchedBy": "text:(?i)PathType.?`?Exact|HTTP01.*PathType|PathType.*HTTP01",
+              "evidence": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+            },
+            {
+              "changeId": "chg-e4f5f001ae5f",
+              "changeTitle": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.…",
+              "matchedBy": "text:(?i)strict-validate-path-type",
+              "evidence": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+            }
+          ]
+        },
+        {
+          "expectedId": "E4",
+          "title": "OperatorHub packages remain discontinued (last publish v1.16.5)",
+          "kind": "artifact",
+          "importance": "important",
+          "found": true,
+          "actualClass": "unknown",
+          "findingIds": [
+            "imp-7b3e3b95c782"
+          ],
+          "hits": [
+            {
+              "changeId": "chg-cdbe001f21d8",
+              "changeTitle": "OperatorHub Packages Discontinued: We no longer publish OperatorHub packages for cert-manager",
+              "matchedBy": "text:(?i)OperatorHub|OLM",
+              "evidence": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md"
+            }
+          ]
+        }
+      ],
+      "duplicates": [
+        {
+          "key": "near:crd-schema|spec.acme.profile,spec.vault.serverName",
+          "changeIds": [
+            "chg-20e84ac6af3b",
+            "chg-8d5050bf3851"
+          ],
+          "titles": [
+            "ClusterIssuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`",
+            "Issuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`"
+          ]
+        },
+        {
+          "key": "subjects:crd-schema|spec.acme.profile,spec.vault.serverName",
+          "changeIds": [
+            "chg-20e84ac6af3b",
+            "chg-8d5050bf3851"
+          ],
+          "titles": [
+            "ClusterIssuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`",
+            "Issuer v1 schema: 2 fields added: `spec.acme.profile`, `spec.vault.serverName`"
+          ]
+        }
+      ],
+      "envImpact": [
+        {
+          "expectedId": "E1",
+          "relevance": "review",
+          "hit": false,
+          "why": "the environment's Certificate manifests never set spec.privateKey.rotationPolicy, so re-issuance will start rotating private keys"
+        },
+        {
+          "expectedId": "E3",
+          "relevance": "action-required",
+          "hit": false,
+          "why": "HTTP01 challenges are solved via ingress-nginx v1.12.1, whose strict-validate-path-type default rejects Exact paths containing dots"
+        }
+      ],
+      "envFindings": [
+        {
+          "id": "F1",
+          "matcher": "subject:prometheus.servicemonitor.targetPort",
+          "found": true,
+          "findingIds": [
+            "imp-6cae808def98"
+          ],
+          "actualClass": "informational"
+        },
+        {
+          "id": "F2",
+          "matcher": "subject:global.rbac.disableHTTPChallengesRole",
+          "found": true,
+          "findingIds": [
+            "imp-0dae408f0c17"
+          ],
+          "actualClass": "review-required"
+        },
+        {
+          "id": "F3",
+          "matcher": "rule:impact:kubernetes-in-range",
+          "found": false
+        }
+      ],
+      "confusion": {
+        "classes": [
+          "action-required",
+          "review-required",
+          "informational",
+          "not-affected",
+          "unknown"
+        ],
+        "rows": [
+          [
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            3
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "labelled": 4,
+        "weightedMiss": 11
+      },
+      "adjudicated": {
+        "datasetTrue": 0,
+        "datasetFalse": 0,
+        "humanTrue": 0,
+        "humanFalse": 0,
+        "uncertain": 0
+      },
+      "allChangeIds": [
+        "chg-a726b336f865",
+        "chg-c2b61b098891",
+        "chg-e4f5f001ae5f",
+        "chg-0e1cdbe373a9",
+        "chg-a3c2e0538ac2",
+        "chg-5fb4b939f1c4",
+        "chg-644b13d0eb78",
+        "chg-20e84ac6af3b",
+        "chg-8d5050bf3851",
+        "chg-f20b516e3351",
+        "chg-917796919822",
+        "chg-0d81e035fa84",
+        "chg-6db1e2247a3e",
+        "chg-4da7f0d97cf0",
+        "chg-b5b5a645584a",
+        "chg-fb783ed69ea8",
+        "chg-1b9f0e5312e3",
+        "chg-97f684f77202",
+        "chg-52e7feadeebb",
+        "chg-d9fe8c32d182",
+        "chg-439b545a803d",
+        "chg-b88b2edac71d",
+        "chg-84cabfbb8fd6",
+        "chg-41a3f902edaa",
+        "chg-0dbf738dde76",
+        "chg-d2f4ed0306f9",
+        "chg-32628a6d20cf",
+        "chg-e47680a7d710",
+        "chg-8965c94210f9",
+        "chg-10df74aec3a3",
+        "chg-5aff8644f14a",
+        "chg-fa4ce35f9a12",
+        "chg-4e9435eae99e",
+        "chg-ead91108ed55",
+        "chg-d4b4bd898c29",
+        "chg-cfb8af1d193a",
+        "chg-4c931993832d",
+        "chg-b4e583f378a3",
+        "chg-087a5ce2a6b6",
+        "chg-43064cdbc5dc",
+        "chg-fcb00045737f",
+        "chg-2ded9f339c1b",
+        "chg-c16c394a6f4e",
+        "chg-28807f7d13a6",
+        "chg-f59541363a4f",
+        "chg-cdbe001f21d8",
+        "chg-45dd175c7717",
+        "chg-f5081ab1602e",
+        "chg-f3e38054e249",
+        "chg-f08a6600b1b4",
+        "chg-a7dfa60ad5b1"
+      ]
+    }
+  ],
+  "aggregate": {
+    "entries": 1,
+    "pipelineFailures": 0,
+    "expected": 4,
+    "found": 4,
+    "missedCritical": 0,
+    "missedImportant": 0,
+    "missedMinor": 0,
+    "changes": 51,
+    "matchedChanges": 8,
+    "falsePositives": 0,
+    "duplicateGroups": 2,
+    "unsupported": 0,
+    "recall": 1,
+    "criticalRecall": 1,
+    "foundCritical": 3,
+    "importantRecall": 1,
+    "foundImportant": 1,
+    "precision": 1,
+    "labeledPrecision": 0,
+    "adjudicatedTrue": 0,
+    "adjudicatedFalse": 0,
+    "falseActionRate": 0,
+    "actionFindings": 1,
+    "falseActionFindings": 0,
+    "actionFindingsUnsupported": 0,
+    "applicabilityAccuracy": 0,
+    "classificationScored": 0,
+    "classificationAccuracy": 0,
+    "unknownRate": 0.7758620689655172,
+    "unknownFindings": 45,
+    "findingsTotal": 58,
+    "evidenceCoverage": 1,
+    "evidenceCovered": 8,
+    "duplicateRate": 0.0392156862745098,
+    "duplicatedChanges": 2,
+    "confusion": {
+      "classes": [
+        "action-required",
+        "review-required",
+        "informational",
+        "not-affected",
+        "unknown"
+      ],
+      "rows": [
+        [
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          3
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "labelled": 4,
+      "weightedMiss": 11
+    },
+    "suggestionPrecision": 0,
+    "suggestionRecall": 0,
+    "envEntries": 1,
+    "impactLinks": 2,
+    "impactLinksHit": 0,
+    "impactAccuracy": 0,
+    "notAffectedLinks": 0,
+    "notAffectedViolations": 0,
+    "findingsExpected": 3,
+    "findingsFound": 2,
+    "findingsFalsePositives": 0
+  },
+  "gates": [
+    {
+      "name": "criticalRecall",
+      "kind": "minimum",
+      "threshold": 0.95,
+      "actual": 1,
+      "pass": true,
+      "detail": "3 critical items, 0 missed"
+    },
+    {
+      "name": "importantRecall",
+      "kind": "minimum",
+      "threshold": 0.9,
+      "actual": 1,
+      "pass": true,
+      "detail": "1 important items, 0 missed"
+    },
+    {
+      "name": "applicabilityAccuracy",
+      "kind": "minimum",
+      "threshold": 0.8,
+      "actual": 0,
+      "pass": false,
+      "detail": "2 applicability decisions (affected 2, not-affected 0)"
+    },
+    {
+      "name": "falseActionRate",
+      "kind": "maximum-exclusive",
+      "threshold": 0.05,
+      "actual": 0,
+      "pass": true,
+      "detail": "1 action-required findings, 0 wrong"
+    },
+    {
+      "name": "actionFindingEvidence",
+      "kind": "minimum",
+      "threshold": 1,
+      "actual": 1,
+      "pass": true,
+      "detail": "1 action-required findings, 0 with unresolving provenance"
+    },
+    {
+      "name": "unsupported",
+      "kind": "maximum-absolute",
+      "threshold": 0,
+      "actual": 0,
+      "pass": true,
+      "detail": "0 unsupported conclusions"
+    },
+    {
+      "name": "pipelineFailures",
+      "kind": "maximum-absolute",
+      "threshold": 0,
+      "actual": 0,
+      "pass": true,
+      "detail": "0 entries failed to execute (counted separately from reasoning misses)"
+    }
+  ],
+  "diffs": [
+    {
+      "caseId": "cert-manager-1.17-1.18",
+      "field": "findingsFound",
+      "from": 3,
+      "to": 2,
+      "regression": true,
+      "improvement": false
+    }
+  ],
+  "compared": true
+}

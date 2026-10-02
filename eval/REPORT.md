@@ -650,3 +650,29 @@ ri eval -update            # after review: rewrite eval/results (never case.yaml
                            # recording harness spelled it (paths are part of the digest)
 go test ./internal/eval    # offline: replayed entry, adversarial pack, routine gate, mechanics
 ```
+
+# Phase 3 follow-up: is the suggestion precision GLM's or the layer's? (2026-10-01)
+
+The Phase 3 enrichment benchmark was re-run unchanged with Claude models in place of GLM-5.3-Flash
+(same binary, prompts, promptVersion, validator, fixture and eval). Two answering arms were used: a
+stateless `claude -p` call per prompt (the GLM-comparable arm) and an agent-harness arm. Full method,
+deviations and data: [docs/phase3/model-comparison/](../docs/phase3/model-comparison/README.md); tables and
+reading: [RESULTS.md](../docs/phase3/model-comparison/RESULTS.md).
+
+- **T1 funnel (report-4, digest-comparable, 41 candidates / 20 prompts)**: GLM 14 accepted / 2 refused
+  (schema) / 4 pending → 9 suggestions. Stateless Claude: 20/0/0 for every model → Opus 3, Sonnet 3,
+  Haiku 12 suggestions (agent arm: 5 / 4 / 15). No forbidden-content refusal from any model.
+- **Answer**: precision is a **model** property (its threshold for plausibly-applies; same-judge PE
+  precision 7–60% across runs, n=3–15), while the set of findings worth a look is a **layer/fixture**
+  property (the same two findings in every run: `global.rbac.disableHTTPChallengesRole` and the breaking
+  HTTP01 `PathType: Exact`). The published 62–69% does not reproduce for GLM under the new judge (22% PE /
+  11% SRE, n=9), so it belongs to the original proxy reviewers; only same-judge comparisons carry over.
+- **Recommendation**: default `claude-sonnet-5-5`, plus a layer rule rendering `undetermined` answers on
+  breaking changes as review suggestions (on this fixture it adds exactly the HTTP01 item, which stateless
+  Sonnet/Opus left as a note); cheap fallback stays `glm-5.3-flash`.
+- **Eval caveat**: `ri eval -enriched` run from the repo root misses every cached answer (path spelling is
+  part of the digest), for GLM's committed cache too. Use the internal/app invocation under
+  § Reproducing. With it, `suggestionPrecision` is structurally 0 (n=1) for any model that flags the HTTP01
+  item, because its label is action-required and a suggestion can only be review-required.
+- **Pending**: the Codex answerers and the cross-family judge (quota until 2026-10-03). Until then every
+  Claude row in T4 is judged by a Claude judge (self-family).
