@@ -60,3 +60,10 @@ Branch `p3ll/render`, worktree `.claude/worktrees/render`. Owns `internal/render
    confirms or contradicts in the changelogs.
 
 Model: Sonnet.
+
+## Addendum: rendered diffs feed the proposal prompts
+
+The `semantic` lane will include your release-level rendered changes as citable EVIDENCE in proposal
+prompts. Expose `func EdgeRenderedChanges(...)` (or similar) returning per-change annotated rendered diffs
+as `domain.Evidence` records (locator = object GVK/ns/name + field path, excerpt = before → after, URI =
+the chart package + template source) — release-level only.

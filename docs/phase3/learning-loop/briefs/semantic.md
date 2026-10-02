@@ -27,3 +27,14 @@ via the `knowledge.Proposer` port only).
   counts, failures, agreement.
 
 Model: Opus.
+
+## Addendum (product owner, 2026-10-01): rendered diffs as prompt evidence
+
+When the `render` lane's release-level (chart-default) rendered diff is available for the edge, include
+the rendered changes that the candidate plausibly restates (the render lane's deterministic annotation)
+as additional EVIDENCE records in the prompt, citable like any other evidence. This gives models a live
+representation of what actually changes to confirm or reject the changelog's claim. Rules: only
+release-level renders (chart defaults) — never customer-values renders; model confidence stays capped at
+`medium` by contract (the confidence gain is realised by the `rendered-diff` validator confirming the
+aspect deterministically, not by the model self-reporting higher confidence); measure the effect
+(proposal accuracy with vs without render evidence) as a prompt-version comparison.
