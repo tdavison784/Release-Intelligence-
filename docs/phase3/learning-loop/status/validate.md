@@ -53,3 +53,28 @@ The `rendered-diff` validator is skipped as instructed (render lane paused).
   `env-var` and `feature-gate` have table rows or none but no artifact validator yet (the render lane's
   rendered-diff would prove them), so those canonical conditions stay inconclusive until it lands.
 - No files outside `internal/semvalidate`, `docs/SEMVALIDATE.md` and this file were touched.
+
+## validate-3: `ri knowledge validate` (branch p3ll/validate-3)
+- `internal/app/knowledge_validate.go` (`ValidateKnowledge`, report), `cmd/ri/knowledge_validate.go`, and a 5-line
+  hunk in `cmd/ri/knowledge.go` (dispatch + usage; the old "not wired" error stays for candidates/propose). Tests:
+  `internal/app/knowledge_validate_test.go` (fixture store: confirm + refute a plausible non-existent path, an
+  erroring validator recorded as unavailable, idempotent second run, unresolved candidate skipped, shared results).
+- Design note: a stored candidate has no from-release, so the command takes `-edge p:from:to,…` and matches stored
+  candidates to the edges by regenerating the edges' candidate ids (deterministic).
+- Dry run on a scratch copy of `.ri/semantic-run-v2/knowledge` (original untouched, verified 0 `val-*` files there):
+  519 candidates, 1122 proposals (381 abstain/no subject+change), 1366 results written, 40 shared; second run 0 written.
+
+| validator | aspect | confirmed | refuted | inconclusive |
+|---|---|---:|---:|---:|
+| rendered-diff | subject | 3 | 0 | 576 |
+| rendered-diff | change | 0 | 3 | 576 |
+| canonical | applicability | 15 | 0 | 359 |
+| canonical | consequence | 40 | 0 | 53 |
+| compat | subject / change | 3 / 0 | 0 / 2 | 20 / 21 |
+| crd | subject | 68 | 5 | 13 |
+| crd | change | 33 | 21 | 32 |
+| image | subject / change | 1 / 0 | 0 / 1 | 2 / 2 |
+| restatement | subject | 97 | 0 | 76 |
+| restatement | change | 76 | 6 | 91 |
+| values | subject | 64 | 17 | 3 |
+| values | change | 45 | 16 | 23 |

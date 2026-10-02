@@ -115,6 +115,33 @@ type EnvMetrics struct {
 	FindingsFP       int `json:"findingsFalsePositives"` // findings matching notExpectedFindings
 	// Unsupported findings (chains do not resolve / change does not exist).
 	Unsupported int `json:"unsupported"`
+	// Undecided links (environment.undecidedImpact): links whose honest
+	// answer is UNKNOWN. UndecidedHonest counts those the engine answered
+	// honestly — no AFFECTED and no NOT-AFFECTED finding on any change the
+	// item's matchers select (docs/phase3/learning-loop/UNDECIDED-SCORING.md).
+	// Reported, never gated.
+	UndecidedLinks  int `json:"undecidedLinks,omitempty"`
+	UndecidedHonest int `json:"undecidedHonest,omitempty"`
+}
+
+// UnknownHonesty is undecided links answered honestly / undecided links (0
+// when there are none). Vacuous on its own: an engine that decides nothing
+// scores 1.0, so it is always read next to applicability accuracy and the
+// affected-link hit rate.
+func (m EnvMetrics) UnknownHonesty() float64 {
+	return ratio(m.UndecidedLinks, m.UndecidedHonest)
+}
+
+// UndecidedAudit is the scoring of one undecided link.
+type UndecidedAudit struct {
+	ExpectedID string               `json:"expectedId"`
+	Reason     domain.UnknownReason `json:"reason"`
+	// Honest: no AFFECTED and no NOT-AFFECTED finding joins the item's changes.
+	Honest bool `json:"honest"`
+	// Overclaims are the findings that broke honesty (affected or not-affected).
+	Overclaims []string `json:"overclaims,omitempty"`
+	// Facts are the verified facts behind those findings (transfer subset).
+	Facts []string `json:"facts,omitempty"`
 }
 
 // ImpactAccuracy is links hit / links (0 when no links).
@@ -237,6 +264,7 @@ type EntryResult struct {
 	Duplicates             []DupAudit         `json:"duplicates,omitempty"`
 	UnsupportedConclusions []UnsupportedAudit `json:"unsupportedConclusions,omitempty"`
 	EnvImpact              []EnvImpactAudit   `json:"envImpact,omitempty"`
+	EnvUndecided           []UndecidedAudit   `json:"envUndecided,omitempty"`
 	EnvFindings            []FindingAudit     `json:"envFindings,omitempty"`
 	EnvFalsePos            []FPAudit          `json:"envFalsePositives,omitempty"`
 	// Suggestions is the enriched-run scoring (opt-in `-enriched`; nil for
@@ -670,6 +698,29 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 		em.ImpactLinks++
 		if audit.Hit {
 			em.ImpactLinksHit++
+		}
+	}
+	// undecided links: honest iff the engine claims neither AFFECTED nor
+	// NOT-AFFECTED on any change the item's matchers select (UNKNOWN or no
+	// finding at all is honest). Same attribution as the links above.
+	for _, l := range c.Environment.UndecidedImpact {
+		audit := UndecidedAudit{ExpectedID: l.Expected, Reason: l.Reason}
+		for _, f := range report.Findings {
+			if f.ChangeID == "" || expIDForChange[f.ChangeID] != l.Expected {
+				continue
+			}
+			if f.Classification.Affected() || f.Classification == domain.ImpactNotAffected {
+				audit.Overclaims = append(audit.Overclaims, f.ID)
+				if f.Knowledge != nil {
+					audit.Facts = appendUniqueString(audit.Facts, f.Knowledge.Fact)
+				}
+			}
+		}
+		audit.Honest = len(audit.Overclaims) == 0
+		res.EnvUndecided = append(res.EnvUndecided, audit)
+		em.UndecidedLinks++
+		if audit.Honest {
+			em.UndecidedHonest++
 		}
 	}
 	// strengthen the per-item actual class from the joined findings (the

@@ -46,3 +46,19 @@ Most facts then need a human only for the consequence: subject+change are proven
 edge's own diff, and the exposure condition follows from the canonical table. A model proposal that names a
 plausible but non-existent path, the wrong default, or an old key that was not renamed is refuted instead of
 reaching a reviewer as "inconclusive".
+
+## `ri knowledge validate`
+
+```text
+ri [-offline] [-state DIR] knowledge validate -dir knowledge -edge product:from:to[,…] [-kubernetes 1.31] [-o text|json]
+```
+
+Runs `app.Validators()` (the six above plus the render lane's `rendered-diff` over release-level renders) for every
+proposal of the store against the ingested From/To releases and the edge. A stored candidate records only its target
+release, so the edges it came from are named with `-edge`; a candidate that none of them produces is skipped, never
+validated against a guess (the first listed edge wins when two produce the same candidate id). Results are written
+through the file store and are idempotent: ids are content-derived and `CheckedAt` is the candidate's own creation
+time, so a second run writes nothing. A result is a function of (candidate, validator, assertion), so proposals that
+assert the same thing share one result. A validator that errors is recorded as an explicit inconclusive result with
+rule `<validator>:unavailable`; a validator with no opinion on a family stores nothing and is counted as not
+applicable. The report tallies confirmed / refuted / inconclusive per validator and aspect.

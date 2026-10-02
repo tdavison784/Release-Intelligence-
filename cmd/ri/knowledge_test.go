@@ -109,7 +109,7 @@ func TestKnowledgeCLIRouteProxyDecideMetricsExport(t *testing.T) {
 			t.Fatalf("knowledge %s = %v, semantic %s = %v; want the same command", sub, kErr, sub, semErr)
 		}
 	}
-	if _, err := kcli(t, "knowledge", "validate"); err == nil || !strings.Contains(err.Error(), "validate lane") {
+	if _, err := kcli(t, "knowledge", "validate"); err == nil || !strings.Contains(err.Error(), "-edge") {
 		t.Fatalf("validate = %v", err)
 	}
 }

@@ -3,6 +3,30 @@
 **State: done** (branch `p3ll/applicability`; contract, contract-2 and contract-3 merged).
 `go build ./... && go vet ./... && go test ./...` green. Schemas regenerated (`go run ./internal/domain/schemagen`).
 
+## applicability-2 (branch `p3ll/applicability-2`, from p3-learning-loop @ e7cc4e7) — done
+
+Product-owner decision: adopt `unknownHonesty` (docs/phase3/learning-loop/UNDECIDED-SCORING.md) as a
+**reported, not gated** metric. `reasonAgreement`: later. `eval/gates.yaml` untouched.
+
+- `internal/eval/compare.go` `scoreReport`: per `environment.undecidedImpact` link, honest iff no AFFECTED and no
+  NOT-AFFECTED finding joins a change the item's matchers select (same `expIDForChange` attribution as the decided
+  links); `EnvMetrics.UndecidedLinks` / `UndecidedHonest` (+ `UnknownHonesty()`), per-link `EnvUndecided` audits naming
+  the overclaiming findings and the facts behind them.
+- `AggregateResults`: `undecidedLinks`, `undecidedHonest`, `unknownHonesty`. Undecided links never enter
+  `applicabilityAccuracy` (pinned by test).
+- Transfer subset (`levels.go`): undecided links whose overclaim rests on a fact reviewed with that environment are
+  excluded; `TransferMetrics.UnknownHonesty`; per-level `LevelReport.UnknownHonesty`.
+- Report: one line next to applicability accuracy and the affected-link hit rate, "reported, not gated", with the
+  vacuity note ("vacuous — no affected link was decided …" when nothing is hit); a per-level/transfer block in the
+  `-knowledge` panel.
+- Test `undecided_test.go`: honest (UNKNOWN), dishonest-affected (REVIEW), dishonest-clear (NOT AFFECTED), the
+  emit-nothing vacuous case, aggregation, rendering, transfer exclusion.
+- Docs: `eval/FORMAT.md` (scoring of undecided links); `internal/eval/case.go` comment (groundtruth-owned file,
+  comment only).
+- Live (offline, warm cache): **unknownHonesty 1.00 (10/10)**, next to applicability accuracy 0.47 and affected links
+  18/73. No regressions. Gated numbers are identical to `p3-learning-loop` built alone; the failing
+  falseActionRate gate (2/15) is pre-existing on the integration branch, not from this change.
+
 ## Done
 
 - **Condition evaluator** (`internal/impact/condition.go`): `EvaluateCondition` / `EvaluateConditionWith`, three-valued
