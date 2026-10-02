@@ -10,7 +10,8 @@
 # settings, no session persistence — nothing shared between prompts. The response file records
 # the model that answered and the exact version from the CLI envelope (`modelUsage` keys), so
 # provenance is `provider: anthropic`, served model as reported. The full envelope is kept next
-# to the response (*.claude-p.json) for audit (usage, cost).
+# to the response (*.claude-p.json) for audit (usage, cost). The envelope's session_id is the
+# response's callId: every call is its own session, so two answers are checkably separate calls.
 #
 # A refused or failed call is never retried and never fabricated: the request stays pending and the
 # failure is logged to <exchange-dir>/exchange.log. Re-running answers only what is still pending.
@@ -43,9 +44,10 @@ answer_one() {
   echo "$out" >"${req%.request.json}.claude-p.json"
   version=$(jq -r '.modelUsage | keys | join(",")' <<<"$out")
   [ -n "$version" ] || version=$model
+  # callId: the CLI session id — one fresh session per call (PO-1: separate calls are checkable)
   jq -n --arg d "$(jq -r .promptDigest "$req")" --arg m "$model" --arg t "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-    --arg v "$version" --argjson o "$(jq -c .structured_output <<<"$out")" \
-    '{format:"ri.dev/llm-exchange/response/v1",promptDigest:$d,model:$m,modelVersion:$v,generatedAt:$t,output:$o}' >"$resp.tmp" &&
+    --arg v "$version" --arg c "$(jq -r '.session_id // empty' <<<"$out")" --argjson o "$(jq -c .structured_output <<<"$out")" \
+    '{format:"ri.dev/llm-exchange/response/v1",promptDigest:$d,model:$m,modelVersion:$v,generatedAt:$t,callId:$c,output:$o}' >"$resp.tmp" &&
     mv "$resp.tmp" "$resp"
   echo "OK $model $(basename "$req")" >>"$LOG"
 }

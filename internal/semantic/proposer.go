@@ -96,7 +96,7 @@ func (p *LLMProposer) Propose(ctx context.Context, req knowledge.ProposalRequest
 	}
 	prop, err := ProposalFromAnswer(req.Candidate, req.Task, ans, AnswerMeta{
 		Provider: p.provider, Model: resp.Model, ModelVersion: resp.ModelVersion,
-		PromptVersion: pr.PromptVersion, PromptDigest: digest, Input: pr.Input, KnownFacts: pr.KnownFacts,
+		PromptVersion: pr.PromptVersion, PromptDigest: digest, CallID: resp.CallID, Input: pr.Input, KnownFacts: pr.KnownFacts,
 		GeneratedAt: gen,
 	})
 	if err != nil {

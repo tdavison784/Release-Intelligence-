@@ -14,8 +14,8 @@ import (
 // consequence's statement/remediation.
 //
 // What the schema cannot express at all: an exposed class (it follows from
-// the consequence kind, deterministically), an action-required or
-// not-affected class suggestion, a high confidence, a subject product (it is
+// the consequence kind, deterministically), a not-affected suggestion, an
+// action-required request outside a consequence task (PO-2), a high confidence, a subject product (it is
 // the candidate's), a citation id that was not shown (per-request enum).
 //
 // Transport notes (docs/phase3/model-comparison/RESULTS.md): the Anthropic
@@ -153,8 +153,19 @@ func aspectSchema(a domain.Aspect) obj {
 	return obj{"anyOf": []any{as, undeterminedSchema()}}
 }
 
-// suggestableClasses are the only classes a model may suggest.
-var suggestableClasses = []domain.ImpactClass{domain.ImpactReviewRequired, domain.ImpactInformational, domain.ImpactUnknown}
+// suggestableClasses are the classes a model may suggest for a task. PO-2
+// (docs/phase3/learning-loop/DECISIONS.md): action-required is a REQUEST,
+// valid only with an asserted action-eligible consequence in the same
+// proposal, so it is offered only to tasks that answer the consequence. It
+// takes effect only through separate-call consensus or human verification.
+// not-affected is never a model's to suggest.
+func suggestableClasses(task domain.ProposalTask) []domain.ImpactClass {
+	out := []domain.ImpactClass{domain.ImpactReviewRequired, domain.ImpactInformational, domain.ImpactUnknown}
+	if containsAspect(domain.TaskAspects(task), domain.AspectConsequence) {
+		out = append([]domain.ImpactClass{domain.ImpactActionRequired}, out...)
+	}
+	return out
+}
 
 // answerConfidences are the only confidences a model may report (the
 // contract caps model confidence at medium; offering "high" and silently
@@ -184,7 +195,7 @@ func answerSchema(task domain.ProposalTask, citations []string, known []string) 
 		required = append(required, "duplicateOf", "reason")
 	} else {
 		props["statement"] = str()
-		props["suggestedClass"] = enum(strEnum(suggestableClasses))
+		props["suggestedClass"] = enum(strEnum(suggestableClasses(task)))
 		required = append(required, "statement")
 		for _, a := range domain.TaskAspects(task) {
 			props[string(a)] = aspectSchema(a)

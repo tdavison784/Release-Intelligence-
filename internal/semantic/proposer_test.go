@@ -80,10 +80,10 @@ func TestProposeRefusals(t *testing.T) {
 		answer string
 		want   string
 	}{
-		"hallucinated citation":        {fullAnswer(c, func(m map[string]any) { m["citations"] = []any{"ev-000000000000"} }), "did not show"},
-		"no citation for an assertion": {fullAnswer(c, func(m map[string]any) { m["citations"] = []any{} }), "must cite evidence"},
-		"model emits action-required":  {fullAnswer(c, func(m map[string]any) { m["suggestedClass"] = "action-required" }), "schema"},
-		"model emits not-affected":     {fullAnswer(c, func(m map[string]any) { m["suggestedClass"] = "not-affected" }), "schema"},
+		"hallucinated citation":                                          {fullAnswer(c, func(m map[string]any) { m["citations"] = []any{"ev-000000000000"} }), "did not show"},
+		"no citation for an assertion":                                   {fullAnswer(c, func(m map[string]any) { m["citations"] = []any{} }), "must cite evidence"},
+		"action-required request without an action-eligible consequence": {fullAnswer(c, func(m map[string]any) { m["suggestedClass"] = "action-required" }), "action-eligible consequence"},
+		"model emits not-affected":                                       {fullAnswer(c, func(m map[string]any) { m["suggestedClass"] = "not-affected" }), "schema"},
 		"model states an exposed class": {fullAnswer(c, func(m map[string]any) {
 			m["consequence"].(map[string]any)["exposedClass"] = "action-required"
 		}), "schema"},
@@ -211,7 +211,7 @@ func TestProposeTransportOutcomes(t *testing.T) {
 		t.Fatal(err)
 	}
 	resp := llm.ExchangeResponse{Format: llm.ExchangeResponseFormat, PromptDigest: xr.PromptDigest, Model: "claude-haiku-4-5",
-		ModelVersion: "claude-haiku-4-5-20251001", GeneratedAt: t0, Output: json.RawMessage(fullAnswer(c, nil))}
+		ModelVersion: "claude-haiku-4-5-20251001", GeneratedAt: t0, CallID: "session-abc", Output: json.RawMessage(fullAnswer(c, nil))}
 	out, _ := json.Marshal(resp)
 	if err := os.WriteFile(filepath.Join(dir, xr.ResponseFile), out, 0o644); err != nil {
 		t.Fatal(err)
@@ -220,7 +220,7 @@ func TestProposeTransportOutcomes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if prop.Provenance.ModelVersion != "claude-haiku-4-5-20251001" || !prop.Provenance.GeneratedAt.Equal(t0) {
+	if prop.Provenance.ModelVersion != "claude-haiku-4-5-20251001" || !prop.Provenance.GeneratedAt.Equal(t0) || prop.Provenance.CallID != "session-abc" {
 		t.Errorf("provenance must come from the response: %+v", prop.Provenance)
 	}
 
@@ -284,5 +284,43 @@ func TestProposeNullIsAValue(t *testing.T) {
 	}
 	if *p.Assertion.Change.Before != "null" || *p.Assertion.Change.After != "1" {
 		t.Errorf("nil → 1 must encode as null → 1, got %v → %v", p.Assertion.Change.Before, p.Assertion.Change.After)
+	}
+}
+
+// PO-2: a model may REQUEST action-required with an action-eligible
+// consequence; the request is recorded, never a classification. Outside a
+// consequence task the request is not even expressible.
+func TestProposeActionRequest(t *testing.T) {
+	c := rotationCandidate(t)
+	p, err := propose(t, c, domain.TaskFull, fullAnswer(c, func(m map[string]any) {
+		m["suggestedClass"] = "action-required"
+		m["consequence"] = map[string]any{"determination": "asserted", "kind": "workload-failure", "statement": "Challenges fail."}
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.SuggestedClass != domain.ImpactActionRequired || p.Assertion.Consequence.ExposedClass != domain.ImpactActionRequired || p.Provenance.Confidence == domain.ConfidenceHigh {
+		t.Errorf("request = %+v", p)
+	}
+	ans := `{"statement":"","subject":{"determination":"undetermined","reason":"r"},"change":{"determination":"undetermined","reason":"r"},` +
+		`"confidence":"low","citations":[],"suggestedClass":"action-required"}`
+	if _, err := propose(t, c, domain.TaskSemanticMapping, ans); err == nil || !strings.Contains(err.Error(), "schema") {
+		t.Errorf("semantic-mapping cannot request action-required: %v", err)
+	}
+}
+
+// Every Complete is a separate call: two answers from one model have
+// distinct call ids, hence distinct proposals (PO-1).
+func TestSeparateCallsAreDistinctProposals(t *testing.T) {
+	c := rotationCandidate(t)
+	f := &llm.Fake{Model: "claude-opus-5-5", Respond: func(llm.Request) (string, error) { return fullAnswer(c, nil), nil }}
+	p := NewLLMProposer(f, "anthropic", "claude-opus-5-5", ProposerOptions{})
+	a, err1 := p.Propose(context.Background(), knowledge.ProposalRequest{Candidate: c, Task: domain.TaskFull})
+	b, err2 := p.Propose(context.Background(), knowledge.ProposalRequest{Candidate: c, Task: domain.TaskFull})
+	if err1 != nil || err2 != nil {
+		t.Fatal(err1, err2)
+	}
+	if a.ID == b.ID || !domain.SeparateCalls(*a, *b) {
+		t.Errorf("two calls must be two proposals: %s %s", a.ID, b.ID)
 	}
 }

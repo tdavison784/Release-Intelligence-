@@ -167,9 +167,12 @@ type AnswerMeta struct {
 	ModelVersion  string
 	PromptVersion string
 	PromptDigest  string
-	Input         []domain.EvidenceID // evidence ids shown
-	KnownFacts    []string            // fact ids shown (duplicate task)
-	GeneratedAt   time.Time
+	// CallID identifies the one stateless call that answered (provider/CLI
+	// envelope; PO-1). Required: separate calls must be checkable.
+	CallID      string
+	Input       []domain.EvidenceID // evidence ids shown
+	KnownFacts  []string            // fact ids shown (duplicate task)
+	GeneratedAt time.Time
 }
 
 // ProposalFromAnswer turns a decoded answer into a proposal and validates it
@@ -190,14 +193,15 @@ func ProposalFromAnswer(c domain.SemanticCandidate, task domain.ProposalTask, a 
 	if m.GeneratedAt.IsZero() {
 		return nil, fmt.Errorf("generation time unknown")
 	}
+	if strings.TrimSpace(m.CallID) == "" {
+		return nil, fmt.Errorf("the answer carries no call id (provider/CLI envelope); separate calls must be checkable (PO-1)")
+	}
 	conf := domain.Confidence(a.Confidence)
 	if conf != domain.ConfidenceMedium && conf != domain.ConfidenceLow {
 		return nil, fmt.Errorf("confidence %q refused: a model reports low or medium", a.Confidence)
 	}
-	switch domain.ImpactClass(a.SuggestedClass) {
-	case "", domain.ImpactReviewRequired, domain.ImpactInformational, domain.ImpactUnknown:
-	default:
-		return nil, fmt.Errorf("suggestedClass %q refused: a model may suggest review-required, informational or unknown only", a.SuggestedClass)
+	if !containsString(append([]string{""}, strEnum(suggestableClasses(task))...), a.SuggestedClass) {
+		return nil, fmt.Errorf("suggestedClass %q refused for task %s (a model never suggests not-affected; action-required is a request that needs an asserted action-eligible consequence)", a.SuggestedClass, task)
 	}
 	if err := checkLengths(a); err != nil {
 		return nil, err
@@ -292,6 +296,7 @@ func ProposalFromAnswer(c domain.SemanticCandidate, task domain.ProposalTask, a 
 		ModelVersion:  m.ModelVersion,
 		PromptVersion: m.PromptVersion,
 		PromptDigest:  m.PromptDigest,
+		CallID:        m.CallID,
 		InputEvidence: append([]domain.EvidenceID(nil), m.Input...),
 		GeneratedAt:   &gen,
 	}

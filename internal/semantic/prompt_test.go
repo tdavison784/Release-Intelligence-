@@ -18,7 +18,7 @@ func TestPromptContentAndStance(t *testing.T) {
 		t.Fatal(err)
 	}
 	sys, user := pr.Request.System, pr.Request.Messages[0].Content
-	for _, want := range []string{"semantic-full/v1", "untrusted data", "Undetermined is a normal, cheap", "never suggests mandatory", "canonical", "behavior-change"} {
+	for _, want := range []string{"semantic-full/v1", "untrusted data", "Undetermined is a normal, cheap", "never \"not affected\"", "canonical", "behavior-change"} {
 		if !strings.Contains(strings.ToLower(sys), strings.ToLower(want)) {
 			t.Errorf("system prompt lacks %q", want)
 		}

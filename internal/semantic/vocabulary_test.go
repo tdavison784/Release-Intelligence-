@@ -76,7 +76,7 @@ func TestAnswerSchemaShape(t *testing.T) {
 		}
 		s := string(raw)
 		// the structured-output dialect: no length bounds, no recursion
-		for _, forbidden := range []string{"maxLength", "minLength", "maxItems", "minItems", "minimum", "maximum", `"exposedClass"`, `"action-required"`, `"not-affected"`} {
+		for _, forbidden := range []string{"maxLength", "minLength", "maxItems", "minItems", "minimum", "maximum", `"exposedClass"`, `"not-affected"`} {
 			if strings.Contains(s, forbidden) {
 				t.Errorf("task %s schema contains %s", task, forbidden)
 			}
@@ -87,6 +87,12 @@ func TestAnswerSchemaShape(t *testing.T) {
 		var m map[string]any
 		if err := json.Unmarshal(raw, &m); err != nil {
 			t.Fatal(err)
+		}
+		if sc, ok := m["properties"].(map[string]any)["suggestedClass"].(map[string]any); ok {
+			ar := contains(toStrings(sc["enum"].([]any)), "action-required")
+			if ar != containsAspect(domain.TaskAspects(task), domain.AspectConsequence) {
+				t.Errorf("task %s: action-required offered=%v (only with a consequence, PO-2)", task, ar)
+			}
 		}
 		conf := m["properties"].(map[string]any)["confidence"].(map[string]any)["enum"].([]any)
 		if len(conf) != 2 || conf[0] != "medium" || conf[1] != "low" {
@@ -144,4 +150,12 @@ func TestRequestSchemaNarrowsCitations(t *testing.T) {
 			t.Errorf("citations %s: valid=%v, want %v (%v)", cites, err == nil, ok, err)
 		}
 	}
+}
+
+func toStrings(xs []any) []string {
+	out := make([]string, len(xs))
+	for i, x := range xs {
+		out[i], _ = x.(string)
+	}
+	return out
 }

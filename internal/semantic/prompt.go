@@ -70,8 +70,8 @@ Rules
 - confidence: "medium" when the evidence states the asserted aspects directly, "low" otherwise.
 - statement: one plain sentence rendering what you assert (empty when you assert nothing). It is shown to
   engineers, never parsed.
-- suggestedClass (optional): review-required, informational or unknown. A model never suggests mandatory
-  action or "not affected"; those are decided from verified knowledge and the customer's environment.
+- suggestedClass (optional): what class an exposed environment should get — review-required, informational
+  or unknown%s. Never "not affected": clearing is decided from verified knowledge only.
 `
 
 var taskText = map[domain.ProposalTask]string{
@@ -94,7 +94,14 @@ subject changed the same way, possibly restated in other words or another source
 // systemPrompt renders the system prompt of a task.
 func systemPrompt(task domain.ProposalTask, version string) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, coreRules, version, taskText[task])
+	actionNote := ""
+	if containsAspect(domain.TaskAspects(task), domain.AspectConsequence) {
+		actionNote = `; or action-required, which is a REQUEST: allowed only together with
+  an asserted action-eligible consequence (upgrade-blocked, resource-rejected, setting-ignored, permission-lost,
+  workload-failure, migration-required) whose statement the evidence supports. It takes effect only if
+  separate independent answers agree or an engineer confirms it; request it only when you would defend it`
+	}
+	fmt.Fprintf(&b, coreRules, version, taskText[task], actionNote)
 	if task == domain.TaskDuplicate {
 		b.WriteString("- reason: one or two sentences: why it is (or is not) the same change.\n")
 		return b.String()
