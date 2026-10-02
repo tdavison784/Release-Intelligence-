@@ -760,6 +760,12 @@ func (ev *evaluator) textLine(c domain.Condition, r *env.Resource) ConditionResu
 	incomplete := 0
 	var withheldAt []string
 	for _, b := range blocks {
+		if f, ok := factByElement(r, b.Path); ok && f.Withheld != "" {
+			// the field's value is withheld, so its lines are too, whatever
+			// the line-level redaction decided (a credential-named key's
+			// text never decides anything)
+			b.Withheld, b.Lines = len(b.Lines), nil
+		}
 		for _, ln := range b.Match(re) {
 			hits = append(hits, domain.ImpactMatch{Kind: domain.MatchTextLine, Subject: fmt.Sprintf("%s: %s line %d", resourceLabel(r), b.Path, ln.N), Evidence: []domain.EvidenceID{ln.Evidence}})
 		}
