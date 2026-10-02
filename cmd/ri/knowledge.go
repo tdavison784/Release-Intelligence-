@@ -60,10 +60,17 @@ func (c *cli) knowledgeRoute(args []string) error {
 	release := fs.String("release", "", "only this release")
 	auto := fs.Bool("auto-approve", true, "auto-approve: render-verifiable candidates (consensus on the non-rendered aspects) and consensus-action facts (PO-2)")
 	audit := fs.Int("audit-every", 5, "sample one in N auto-approved facts into human review (0 = none; action-eligible ones are always audited)")
+	envLabel := fs.String("env-label", "", "eval case id of the environment the reviewer will be shown (recorded as the item's context; omit for environment-free items)")
+	envDigest := fs.String("env-digest", "", "optional digest of that environment")
 	if _, err := parse(fs, args); err != nil {
 		return err
 	}
 	opts := knowledge.RouteOptions{AuditEvery: *audit, Now: time.Now}
+	if *envLabel != "" {
+		opts.Environment = &domain.EnvironmentContext{Label: *envLabel, Digest: *envDigest}
+	} else if *envDigest != "" {
+		return fmt.Errorf("%w: -env-digest needs -env-label", app.ErrUsage)
+	}
 	if *auto {
 		opts.Policy = knowledge.DefaultAutoApprove
 	}

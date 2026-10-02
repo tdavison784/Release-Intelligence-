@@ -208,6 +208,7 @@ func AssembleContext(snap *Snapshot, id string) (*ReviewContext, error) {
 		}
 	}
 	rc.Agreement = Agreements(rc.Proposals)
+	rc.Render = RenderEvidenceOf(cand.ID, snap.Validations) // CONTRACT-CHANGE(render)
 
 	// related: same subject key, or a candidate sharing a member
 	subjects := map[string]bool{}

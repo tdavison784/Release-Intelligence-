@@ -1,0 +1,137 @@
+id: cert-manager-1.16-1.17--eu-platform
+transferOf: cert-manager-1.16-1.17
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md
+  - https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md
+  - https://github.com/cert-manager/cert-manager/blob/v1.16.0/deploy/charts/cert-manager/values.yaml
+  - https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml
+  - https://github.com/cert-manager/cert-manager/blob/v1.16.0/internal/controller/feature/features.go
+  - https://github.com/cert-manager/cert-manager/blob/v1.17.0/internal/controller/feature/features.go
+  - https://github.com/cert-manager/cert-manager/blob/v1.16.0/deploy/crds/crd-certificates.yaml
+  - https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/crds/crd-certificates.yaml
+  - https://github.com/cert-manager/website/blob/master/content/docs/configuration/selfsigned.md
+  - https://github.com/cert-manager/cert-manager/pull/7368
+environment:
+  description: >-
+    eu-platform, the staging tier of a multi-tenant shared platform in the EU,
+    runs Kubernetes 1.31 with cert-manager 1.16 installed with the official
+    Helm chart. The platform runs a single-tier private PKI for tenant
+    workloads: a self-signed root CA Certificate (platform-root-ca, isCA,
+    4096-bit RSA key) that is signed by its own private key through a
+    SelfSigned ClusterIssuer (the cert-manager bootstrapping pattern) and that
+    directly backs the tenant-ca ClusterIssuer signing tenant Certificates.
+    The events-broker tenant Certificate has an ECDSA leaf key and consumes
+    JKS and PKCS12 keystores whose passwords are supplied with the
+    pre-existing passwordSecretRef mechanism. Under the platform
+    change-freeze policy the controller featureGates values key pins the two
+    gates promoted to beta in cert-manager 1.17 (NameConstraints,
+    UseDomainQualifiedFinalizer) to false; ValidateCAA has never been enabled
+    on this cluster. Container logs are shipped by the platform Fluent Bit
+    DaemonSet, whose parser and grep configuration lives in a central
+    ConfigMap owned by the logging team outside this repository.
+  kubernetes: "1.31"
+  expectedImpact:
+    - expected: E1
+      relevance: review
+      why: >-
+        the root Certificate platform-root-ca is signed by the SelfSigned
+        issuer with the certificate's own 4096-bit RSA key, so the fixture
+        itself shows the deciding input: upstream PR 7368 says "The algorithm
+        is decided by the **signer**. For SelfSigned, that's the same as the
+        cert being issued", and the release notes say "The CA and SelfSigned
+        issuers now use SHA-512 when signing with RSA keys 4096 bits and
+        above ... be sure to check that your systems support the new hash
+        algorithms" — every re-issued certificate in this PKI (the root and
+        the tenant leaves it signs, including the ECDSA leaf) carries
+        SHA-512 signatures after the upgrade, and whether the consumers of
+        this staging PKI accept SHA-512 is exactly a review, not an action.
+      exposure:
+        op: resource
+        group: cert-manager.io
+        kind: Certificate
+        of:
+          - {op: field, path: spec.privateKey.algorithm, state: equals, values: ['"RSA"']}
+          - {op: field, path: spec.privateKey.size, state: equals, values: ['3072', '4096', '8192']}
+          - {op: ref, path: spec.issuerRef, of: [{op: field, path: spec.selfSigned, state: set}]}
+      environmentEvidence: [manifests/pki.yaml#L13-L29, manifests/pki.yaml#L4-L9]
+    - expected: E2
+      relevance: not-affected
+      why: >-
+        the cluster manages the controller feature-gate list but has never
+        enabled ValidateCAA — the gate is absent from the featureGates values
+        key (values.yaml#L8) and is Alpha/default-false at both v1.16.0 and
+        v1.17.0 (features.go), so the 1.17 deprecation warning ("In 1.17,
+        enabling this feature gate will print a warning") and the v1.18
+        removal change nothing here.
+      exposure: {op: feature-gate, name: ValidateCAA, state: unset, path: featureGates}
+      environmentEvidence: values.yaml#L4-L8
+    - expected: E3
+      relevance: not-affected
+      why: >-
+        both promoted gates are explicitly pinned off in the featureGates
+        values key — the escape hatch: the chart renders the key verbatim to
+        --feature-gates (deployment.yaml: "if .Values.featureGates ... --
+        feature-gates={{ .Values.featureGates }}"), and an explicit
+        NameConstraints=false,UseDomainQualifiedFinalizer=false overrides the
+        new beta defaults (v1.17.0 features.go: "NameConstraints: {Default:
+        true, PreRelease: featuregate.Beta}", "UseDomainQualifiedFinalizer:
+        {Default: true, PreRelease: featuregate.Beta}"), so the default flip
+        does not change this cluster's behaviour.
+      exposure:
+        op: all
+        of:
+          - {op: feature-gate, name: NameConstraints, state: disabled, path: featureGates}
+          - {op: feature-gate, name: UseDomainQualifiedFinalizer, state: disabled, path: featureGates}
+      environmentEvidence: values.yaml#L8
+    - expected: E4
+      relevance: informational
+      why: >-
+        the events-broker Certificate already supplies both keystore
+        passwords with the pre-existing passwordSecretRef mechanism; v1.17
+        only ADDS a mutually exclusive literal password field (v1.17.0 CRD:
+        "Password provides a literal password used to encrypt the JKS
+        keystore. Mutually exclusive with passwordSecretRef."), so nothing
+        breaks or changes — this is know-only information (a possible future
+        simplification) for a cluster that actively uses keystores.
+      exposure:
+        op: any
+        of:
+          - op: resource
+            group: cert-manager.io
+            kind: Certificate
+            of: [{op: field, path: spec.keystores.jks.passwordSecretRef, state: set}]
+          - op: resource
+            group: cert-manager.io
+            kind: Certificate
+            of: [{op: field, path: spec.keystores.pkcs12.passwordSecretRef, state: set}]
+      environmentEvidence: manifests/tenant-certificates.yaml#L27-L37
+  undecidedImpact:
+    - expected: E5
+      reason: environment-visibility-gap
+      needed: >-
+        the Fluent Bit parser/grep configuration applied to cert-manager
+        container logs (the central ConfigMap platform-fluent-bit-config,
+        owned by the logging team in the platform-config repository)
+      why: >-
+        the release notes say "Potentially BREAKING: Log messages that were
+        not structured have now been replaced with structured logs. If you
+        were matching on specific log strings, this could break your setup",
+        and whether anything greps literal cert-manager log strings is
+        decided by the central Fluent Bit parsers, which are not part of
+        this repository's fixtures — the honest answer is UNKNOWN.
+      environmentEvidence: [manifests/log-shipper.yaml#L1-L4, manifests/log-shipper.yaml#L27-L29]
+  notExpectedFindings:
+    - title: no Helm values key is removed by this upgrade
+      match: {rule: impact:values-removed}
+      why: >-
+        diffed the chart values at tags v1.16.0 and v1.17.0: every removed
+        line is a comment (the featureGates example list); the only addition
+        is the hidden `enabled: true` dependency placeholder at the end of
+        the v1.17.0 file.
+    - title: no CRD is removed by this upgrade
+      match: {rule: impact:crd-removed}
+      why: >-
+        deploy/crds at v1.16.0 and v1.17.0 ship the same six CRD manifests
+        (certificaterequests, certificates, challenges, clusterissuers,
+        issuers, orders).

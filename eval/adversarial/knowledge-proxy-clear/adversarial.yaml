@@ -1,0 +1,33 @@
+# Attack: the same proxy fact, now with a FALSE exposure condition (the
+# customer pins the old default), trying to CLEAR the change. Consensus and
+# proxy knowledge never clears: the honest verdict is UNKNOWN.
+id: knowledge-proxy-clear
+attacks: proxy fact with false exposure trying to clear the change
+expectation: >-
+  unknown (impact:knowledge-undecided); never not-affected — untrusted
+  knowledge never clears a change (docs/ACTION_CLASSIFICATION.md §8)
+knowledge:
+  minVerification: proxy
+  facts:
+    - level: proxy
+      subject: {family: helm-value, path: gateway.logLevel}
+      change: {type: default-changed, before: '"info"', after: '"debug"'}
+      exposure: {op: values-key, path: gateway.logLevel, state: unset}
+      consequence: {kind: behavior-change, statement: "Gateway logging flips to debug on upgrade."}
+      statement: "The default gateway.logLevel changed from info to debug."
+      anchors: ["The default value of gateway.logLevel changed from info to debug"]
+edge:
+  changes:
+    - rule: note
+      title: "The default value of gateway.logLevel changed from info to debug"
+      subjects: [gateway.logLevel]
+      category: configuration
+environment:
+  files: [values.yaml]
+expect:
+  present:
+    - rule: impact:knowledge-undecided
+      classification: unknown
+  absent:
+    - rule: impact:knowledge-clear
+    - classification: not-affected

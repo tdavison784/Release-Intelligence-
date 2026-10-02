@@ -77,6 +77,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); }
 
 .page { max-width: 1180px; margin: 0 auto; padding: 1.1rem 1.25rem 7rem; } .page.narrow { max-width: 880px; }
 .toolbar { display: flex; align-items: center; gap: .5rem; margin-bottom: .6rem; }
+.truncated { font-size: .84rem; color: var(--warn); background: var(--warn-soft); border: 1px solid var(--border); border-radius: 8px; padding: .5rem .9rem; margin: 0 0 .8rem; }
 .flash { padding: .6rem .9rem; border-radius: 8px; margin: .4rem 0; border: 1px solid var(--border); background: var(--surface); }
 .flash-ok { background: var(--ok-soft); border-color: var(--ok); } .flash-error { background: var(--danger-soft); border-color: var(--danger); }
 .flash-warn { background: var(--warn-soft); border-color: var(--warn); }
@@ -170,9 +171,17 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
 .badge.req-review-required { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
 .legend { text-transform: none; font-weight: 400; } .legend b { color: var(--text); }
 .consensus-action { margin: 0 0 .8rem; }
+
+/* demo mode: a persistent, unmistakable banner above everything (both themes) */
+:root { --demo-h: 0px; } body.demo { --demo-h: 2rem; }
+.demo-banner { position: sticky; top: 0; z-index: 60; height: var(--demo-h); display: flex; align-items: center; justify-content: center;
+  background: #b42318; color: #fff; font-weight: 800; letter-spacing: .08em; font-size: .82rem; text-transform: uppercase; text-align: center; }
+body.demo .sticky { top: var(--demo-h); }
+.badge.fixture { background: #fff3bf; color: #7a4b00; border: 1px dashed #b7791f; text-transform: uppercase; font-size: .65rem; letter-spacing: .05em; margin: 0 .3rem .2rem 0; }
 </style>
 </head>
-<body>
+<body class="demo">
+<div class="demo-banner" role="alert">DEMO DATA — fixtures, not real upstream evidence</div>
 
 <header class="bar sticky">
   <div class="bar-row">
@@ -203,7 +212,7 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
 
   <section class="panel">
     <h3>Upstream statement</h3>
-    <blockquote class="statement">Webhook rejects small RSA keys.</blockquote>
+    <span class="badge fixture" title="invented fixture text">fixture</span><blockquote class="statement">Webhook rejects small RSA keys.</blockquote>
     <p class="muted small">cert-manager v1.18.0 · configuration · 1 restating member · grouping single</p>
   </section>
 
@@ -213,11 +222,11 @@ kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--borde
     
       <li>
         <div class="ev-head">
-          <span class="badge soft">document</span>
+          <span class="badge soft">document</span> <span class="badge fixture" title="invented fixture text; the URL is not a real citation">fixture</span>
           <a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.18.0" target="_blank" rel="noopener noreferrer">https://github.com/cert-manager/cert-manager/releases/tag/v1.18.0</a>
           <code>## Breaking changes</code>
         </div>
-        <blockquote class="excerpt">Certificates whose private key is RSA smaller than 2048 bits are now rejected by the webhook.</blockquote>
+        <span class="badge fixture">fixture excerpt</span><blockquote class="excerpt">Certificates whose private key is RSA smaller than 2048 bits are now rejected by the webhook.</blockquote>
         <div class="muted small">
           digest sha256:rsa11… · retrieved 2026-10-01 09:00 UTC
            · cited by claude-opus-5-5, glm-5.3-flash
@@ -356,7 +365,7 @@ remediation: Raise spec.privateKey.size to 2048 or more.</pre>
     <h3>Decide <span class="muted small">— recorded as a human decision</span></h3>
     
     <form class="actions" method="post" action="/items/ri-d1f6b449f374/decision" data-item="ri-d1f6b449f374">
-      <input type="hidden" name="started" value="2026-10-02T03:35:47.015015Z">
+      <input type="hidden" name="started" value="2026-10-02T05:55:19.341409Z">
       <input type="hidden" name="return" value="/">
       <div class="row">
         <label class="reviewer">Reviewer <input type="text" name="reviewer" value="" required placeholder="your name"></label>
@@ -385,7 +394,7 @@ remediation: Raise spec.privateKey.size to 2048 or more.</pre>
     
     <form class="correct" method="post" action="/items/ri-d1f6b449f374/decision" id="correct-ri-d1f6b449f374" hidden>
       <input type="hidden" name="action" value="correct">
-      <input type="hidden" name="started" value="2026-10-02T03:35:47.015015Z">
+      <input type="hidden" name="started" value="2026-10-02T05:55:19.341409Z">
       <input type="hidden" name="return" value="/">
       <h4>Correct the assertion <span class="muted small">— pre-filled with the proposal; the original is kept in the decision</span></h4>
       <div class="row">

@@ -1,6 +1,7 @@
 package knowledge
 
 import (
+	"encoding/json"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -47,7 +48,7 @@ func scanKnowledge(dir string, caseIDs []string) ([]string, error) {
 		if err != nil {
 			return err
 		}
-		s := string(b)
+		s := stripEnvironmentContext(b)
 		for _, re := range forbiddenPatterns {
 			if re.MatchString(s) {
 				bad = append(bad, p+": matches "+re.String())
@@ -61,6 +62,24 @@ func scanKnowledge(dir string, caseIDs []string) ([]string, error) {
 		return nil
 	})
 	return bad, err
+}
+
+// stripEnvironmentContext drops reviewItem.context from a record before it is
+// scanned. That field is the one place a case id is allowed: it names the
+// environment shown to the reviewer (the transfer measurement needs the id),
+// and says nothing about what the case expects.
+func stripEnvironmentContext(b []byte) string {
+	var rec map[string]any
+	if json.Unmarshal(b, &rec) != nil {
+		return string(b)
+	}
+	if it, ok := rec["reviewItem"].(map[string]any); ok {
+		delete(it, "context")
+		if out, err := json.Marshal(rec); err == nil {
+			return string(out)
+		}
+	}
+	return string(b)
 }
 
 func TestKnowledgeDirectoryNeverReferencesEvalCases(t *testing.T) {
@@ -110,5 +129,22 @@ func TestFixturesPassTheIntegrityScan(t *testing.T) {
 	bad, err := scanKnowledge(dir, caseIDs(t, filepath.Join("..", "..")))
 	if err != nil || len(bad) != 0 {
 		t.Fatalf("%v %v", bad, err)
+	}
+}
+
+func TestItemContextMayNameACaseButNothingElseMay(t *testing.T) {
+	dir := t.TempDir()
+	rec := func(name, body string) {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	rec("ok.json", `{"kind":"review-item","reviewItem":{"question":"q","context":{"label":"cert-manager-1.17-1.18"}}}`)
+	if bad, _ := scanKnowledge(dir, []string{"cert-manager-1.17-1.18"}); len(bad) != 0 {
+		t.Fatalf("context label flagged: %v", bad)
+	}
+	rec("bad.json", `{"kind":"review-item","reviewItem":{"question":"as in cert-manager-1.17-1.18","context":{"label":"x"}}}`)
+	if bad, _ := scanKnowledge(dir, []string{"cert-manager-1.17-1.18"}); len(bad) != 1 {
+		t.Fatalf("case id outside context not flagged: %v", bad)
 	}
 }

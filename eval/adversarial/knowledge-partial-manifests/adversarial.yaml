@@ -1,0 +1,37 @@
+# Attack: the same default-change fact, but the customer's manifest stream is
+# PARTIAL (a truncated document). A would-be false must not become a clear:
+# under partial visibility the fact's verdict is UNKNOWN.
+id: knowledge-partial-manifests
+attacks: fact whose condition needs manifests that are only partially supplied
+expectation: >-
+  unknown (impact:knowledge-undecided, environment-visibility-gap); never
+  impact:knowledge-clear — partial data must not clear a change
+knowledge:
+  facts:
+    - level: human
+      subject: {family: crd-field, group: cert-manager.io, kind: Certificate, path: spec.privateKey.rotationPolicy}
+      change: {type: default-changed, before: '"Never"', after: '"Always"'}
+      exposure:
+        op: resource
+        group: cert-manager.io
+        kind: Certificate
+        of:
+          - {op: field, path: spec.privateKey.rotationPolicy, state: set}
+      consequence: {kind: behavior-change, statement: "Private keys of Certificates without an explicit rotationPolicy rotate on every renewal."}
+      statement: "The default Certificate spec.privateKey.rotationPolicy changed from Never to Always."
+      anchors: ["The default value of the Certificate rotationPolicy field changed from Never to Always"]
+edge:
+  changes:
+    - rule: note
+      title: "The default value of the Certificate rotationPolicy field changed from Never to Always"
+      subjects: [spec.privateKey.rotationPolicy]
+      category: configuration
+environment:
+  files: [manifests/broken.yaml]
+expect:
+  present:
+    - rule: impact:knowledge-undecided
+      classification: unknown
+  absent:
+    - rule: impact:knowledge-clear
+    - rule: impact:knowledge-exposed

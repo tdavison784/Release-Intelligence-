@@ -1,0 +1,74 @@
+# Prometheus Operator v0.85.0, installed from the v0.85.0 bundle.yaml
+# Deployment (namespace moved to "monitoring"). The team enabled the
+# StatusForConfigurationResources feature gate at v0.85.0 to get
+# ServiceMonitor status bindings. RBAC is NOT taken from bundle.yaml: it is
+# kept in-house in operator-rbac.yaml (a copy of the v0.85.0 example
+# ClusterRole), so a bundle upgrade does not touch it.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-operator
+  namespace: monitoring
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-operator
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/name: prometheus-operator
+    app.kubernetes.io/version: 0.85.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/name: prometheus-operator
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: prometheus-operator
+      labels:
+        app.kubernetes.io/component: controller
+        app.kubernetes.io/name: prometheus-operator
+        app.kubernetes.io/version: 0.85.0
+    spec:
+      automountServiceAccountToken: true
+      serviceAccountName: prometheus-operator
+      containers:
+        - name: prometheus-operator
+          image: quay.io/prometheus-operator/prometheus-operator:v0.85.0
+          args:
+            - --kubelet-service=kube-system/kubelet
+            - --prometheus-config-reloader=quay.io/prometheus-operator/prometheus-config-reloader:v0.85.0
+            - --kubelet-endpoints=true
+            - --kubelet-endpointslice=false
+            - --feature-gates=StatusForConfigurationResources=true
+          env:
+            - name: GOGC
+              value: "30"
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            limits:
+              cpu: 200m
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+      nodeSelector:
+        kubernetes.io/os: linux
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault

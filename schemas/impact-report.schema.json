@@ -181,7 +181,16 @@
     },
     "EnvironmentDimension": {
       "type": "string",
-      "enum": ["values", "manifests", "crds", "images", "cluster-version", "products", "render"]
+      "enum": [
+        "values",
+        "manifests",
+        "crds",
+        "images",
+        "cluster-version",
+        "products",
+        "from-version",
+        "render"
+      ]
     },
     "Evidence": {
       "type": "object",
@@ -483,6 +492,15 @@
         },
         {
           "if": {
+            "properties": {
+              "classification": {"enum": ["unknown"]}
+            },
+            "required": ["classification"]
+          },
+          "then": {"required": ["unknownReason"]}
+        },
+        {
+          "if": {
             "allOf": [
               {
                 "properties": {
@@ -572,6 +590,11 @@
         "manifest-field",
         "image",
         "kubernetes",
+        "product",
+        "text-line",
+        "reference",
+        "from-version",
+        "absence",
         "rendered-change"
       ]
     },
@@ -789,7 +812,9 @@
         "toArtifact": {"$ref": "#/$defs/RenderArtifact"},
         "object": {"type": "string"},
         "path": {"type": "string"},
-        "change": {"type": "string"}
+        "change": {"type": "string"},
+        "before": {"type": "string"},
+        "after": {"type": "string"}
       },
       "additionalProperties": false
     },

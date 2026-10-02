@@ -1,0 +1,457 @@
+id: external-secrets-0.15-0.16
+product: external-secrets
+from: v0.15.0
+to: v0.16.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0
+  - https://github.com/external-secrets/external-secrets/releases/tag/v0.15.1
+  - https://github.com/external-secrets/external-secrets/releases/tag/v0.15.0
+  - https://github.com/external-secrets/external-secrets/releases/tag/v0.17.0
+  - https://github.com/external-secrets/external-secrets/compare/v0.15.0...v0.16.0
+  - https://github.com/external-secrets/external-secrets/issues/4633
+  - https://github.com/external-secrets/external-secrets/issues/4662
+  - https://github.com/external-secrets/external-secrets/pull/4635
+  - https://github.com/external-secrets/external-secrets/pull/4596
+  - https://github.com/external-secrets/external-secrets/pull/4572
+  - https://github.com/external-secrets/external-secrets/pull/4570
+  - https://github.com/external-secrets/external-secrets/blob/main/docs/introduction/stability-support.md
+  - https://github.com/external-secrets/external-secrets/blob/v0.16.0/docs/introduction/stability-support.md
+  - https://github.com/external-secrets/external-secrets/blob/v0.16.0/docs/guides/templating.md
+  - https://github.com/external-secrets/external-secrets/blob/v0.16.0/docs/guides/templating-v1.md
+  - https://github.com/external-secrets/external-secrets/blob/v0.15.0/deploy/crds/bundle.yaml
+  - https://github.com/external-secrets/external-secrets/blob/v0.16.0/deploy/crds/bundle.yaml
+  - https://github.com/external-secrets/external-secrets/blob/v0.16.1/deploy/crds/bundle.yaml
+  - https://github.com/external-secrets/external-secrets/blob/helm-chart-0.15.0/deploy/charts/external-secrets/values.yaml
+  - https://github.com/external-secrets/external-secrets/blob/helm-chart-0.16.0/deploy/charts/external-secrets/values.yaml
+  - https://github.com/external-secrets/external-secrets/blob/helm-chart-0.16.1/deploy/charts/external-secrets/values.yaml
+  - https://github.com/external-secrets/external-secrets/blob/helm-chart-0.16.0/deploy/charts/external-secrets/Chart.yaml
+  - https://github.com/external-secrets/external-secrets/blob/helm-chart-0.15.0/deploy/charts/external-secrets/templates/rbac.yaml
+  - https://github.com/external-secrets/external-secrets/blob/helm-chart-0.16.0/deploy/charts/external-secrets/templates/rbac.yaml
+  - https://github.com/external-secrets/external-secrets/blob/helm-chart-0.16.0/deploy/charts/external-secrets/templates/validatingwebhook.yaml
+  - https://github.com/external-secrets/external-secrets/blob/v0.16.0/hack/helm.generate.sh
+  - https://github.com/external-secrets/external-secrets/blob/v0.15.0/cmd/controller/webhook.go
+  - https://github.com/external-secrets/external-secrets/blob/v0.16.0/cmd/controller/webhook.go
+  - https://github.com/external-secrets/external-secrets/blob/v0.15.0/pkg/template/engine.go
+  - https://github.com/external-secrets/external-secrets/blob/v0.16.0/pkg/template/engine.go
+  - https://github.com/external-secrets/external-secrets/blob/v0.15.0/apis/externalsecrets/v1beta1/secretstore_fake_types.go
+  - https://github.com/external-secrets/external-secrets/blob/v0.16.0/pkg/provider/vault/auth_kubernetes.go
+  - https://github.com/external-secrets/external-secrets/blob/v0.16.0/pkg/controllers/secretstore/client_manager.go
+  - https://github.com/external-secrets/external-secrets/blob/v0.16.0/cmd/controller/root.go
+expected:
+  - id: E1
+    title: ExternalSecret external-secrets.io/v1alpha1 is no longer served (removed with the conversion webhooks)
+    kind: removal
+    importance: critical
+    actionRequired: true       # every ExternalSecret manifest must be on v1beta1/v1 before the upgrade
+    classification: not-affected   # this environment's link; generic reading: action-required
+    match:
+      - text: '(?i)ExternalSecret/v1alpha1'
+      - text: '(?i)\bExternalSecrets?\b.{0,60}\bv1alpha1\b|\bv1alpha1\b.{0,60}\bExternalSecrets?\b'
+    evidence:
+      - url: https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0
+        quote: "Removal of Conversion Webhooks and `SecretStore/v1alpha1`, `ExternalSecret/v1alpha1`  and their cluster counterparts"
+      - url: https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0
+        quote: "Make sure you are not using any `v1alpha1` resources across all of your infrastructure."
+    references:
+      - https://github.com/external-secrets/external-secrets/issues/4633
+      - https://github.com/external-secrets/external-secrets/pull/4635
+    semantics:
+      subject: {family: gvk, product: external-secrets, group: external-secrets.io, version: v1alpha1, kind: ExternalSecret}
+      change:
+        type: removed
+        replacedBy: {family: gvk, product: external-secrets, group: external-secrets.io, version: v1, kind: ExternalSecret}
+      consequence:
+        kind: resource-rejected
+        exposedClass: action-required
+        statement: external-secrets.io/v1alpha1 is no longer a served version of the ExternalSecret CRD, so applying (kubectl, Helm, GitOps sync) any ExternalSecret manifest written at v1alpha1 fails after the CRDs are upgraded.
+        remediation: Rewrite ExternalSecret manifests to external-secrets.io/v1beta1 (still served in v0.16) or v1 before upgrading.
+        severity: critical
+  - id: E2
+    title: SecretStore and ClusterSecretStore external-secrets.io/v1alpha1 are no longer served
+    kind: removal
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)SecretStore/v1alpha1'
+      - text: '(?i)\b(Cluster)?SecretStores?\b.{0,60}\bv1alpha1\b|\bv1alpha1\b.{0,60}\b(Cluster)?SecretStores?\b'
+    evidence:
+      - url: https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0
+        quote: "Removal of Conversion Webhooks and `SecretStore/v1alpha1`, `ExternalSecret/v1alpha1`  and their cluster counterparts"
+      - url: https://github.com/external-secrets/external-secrets/issues/4633
+        quote: "Remove ExternalSecret/v1alpha1, SecretStore/v1alpha1"
+    references:
+      - https://github.com/external-secrets/external-secrets/pull/4635
+    semantics:
+      - subject: {family: gvk, product: external-secrets, group: external-secrets.io, version: v1alpha1, kind: SecretStore}
+        change:
+          type: removed
+          replacedBy: {family: gvk, product: external-secrets, group: external-secrets.io, version: v1, kind: SecretStore}
+        consequence:
+          kind: resource-rejected
+          exposedClass: action-required
+          statement: external-secrets.io/v1alpha1 is no longer a served version of the SecretStore CRD, so applying a SecretStore manifest written at v1alpha1 fails after the CRDs are upgraded.
+          remediation: Rewrite SecretStore manifests to external-secrets.io/v1beta1 or v1 before upgrading.
+          severity: critical
+      - subject: {family: gvk, product: external-secrets, group: external-secrets.io, version: v1alpha1, kind: ClusterSecretStore}
+        change:
+          type: removed
+          replacedBy: {family: gvk, product: external-secrets, group: external-secrets.io, version: v1, kind: ClusterSecretStore}
+        consequence:
+          kind: resource-rejected
+          exposedClass: action-required
+          statement: external-secrets.io/v1alpha1 is no longer a served version of the ClusterSecretStore CRD, so applying a ClusterSecretStore manifest written at v1alpha1 fails after the CRDs are upgraded.
+          remediation: Rewrite ClusterSecretStore manifests to external-secrets.io/v1beta1 or v1 before upgrading.
+          severity: critical
+  - id: E3
+    title: Remove v1alpha1 from status.storedVersions of the ExternalSecret/SecretStore CRDs before upgrading
+    kind: migration-step
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)storedVersions'
+      - text: '(?i)stored versions'
+    evidence:
+      - url: https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0
+        quote: "Make sure there are no storedVersions on v1alpha1 for `externalsecrets`, `clusterexternalsecrets`, `secretstores` and `clustersecretstores` crds:"
+      - url: https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0
+        quote: "If that command returns not safe, remove v1alpha1 from your stored versions. Make sure this status is persisted after you verify these commands."
+      - url: https://github.com/external-secrets/external-secrets/issues/4662#issuecomment-2807122943
+        quote: "The CustomResourceDefinition \"clusterexternalsecrets.external-secrets.io\" is invalid: status.storedVersions[1]: Invalid value: \"v1\": must appear in spec.versions"
+    references:
+      - https://github.com/external-secrets/external-secrets/issues/4662
+    semantics:
+      subject: {family: migration, product: external-secrets, name: remove-v1alpha1-from-crd-stored-versions}
+      change: {type: migration-required}
+      consequence:
+        kind: migration-required
+        exposedClass: action-required
+        statement: The v0.16 CRDs no longer list v1alpha1 in spec.versions; while v1alpha1 is still recorded in a CRD's status.storedVersions the API server rejects the CRD update (status.storedVersions must appear in spec.versions), so the CRD upgrade fails.
+        remediation: Run the pre-upgrade check from the v0.16.0 release notes and patch status.storedVersions of the externalsecrets, secretstores, clustersecretstores and clusterexternalsecrets CRDs to drop v1alpha1 (after confirming every object is stored at v1beta1).
+        severity: critical
+  - id: E4
+    title: Template engine v1 removed; engineVersion only accepts v2
+    kind: breaking
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)`?v1`? templating engine'
+      - text: '(?i)templat\w* engine (version )?`?v1\b|Template/v1'
+      - text: '(?i)engineVersion'
+    evidence:
+      - url: https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0
+        quote: "Removal of `v1` templating engine"
+      - url: https://github.com/external-secrets/external-secrets/blob/v0.16.0/pkg/template/engine.go
+        quote: "return nil, fmt.Errorf(\"unsupported template engine version: %s\", version)"
+      - url: https://github.com/external-secrets/external-secrets/issues/4633
+        quote: "Remove Template/v1"
+    references:
+      - https://github.com/external-secrets/external-secrets/issues/4633
+    semantics:
+      subject: {family: crd-field, product: external-secrets, group: external-secrets.io, kind: ExternalSecret, path: spec.target.template.engineVersion}
+      change: {type: validation-tightened, before: '"v1"'}
+      consequence:
+        kind: resource-rejected
+        exposedClass: action-required
+        statement: The v0.16 CRD schema only accepts engineVersion v2, so re-applying an ExternalSecret with engineVersion v1 is rejected, and the controller no longer has a v1 engine ("unsupported template engine version"), so its target Secret stops being rendered.
+        remediation: Rewrite the template for engine v2 (drop the `| toString` conversions, see the "Migrating from v1" guide) and set engineVersion v2 before upgrading.
+        severity: high
+      note: before is the value that stops being accepted (enum [v1, v2] -> [v2] at v1beta1)
+  - id: E5
+    title: Fake provider ValueMap removed from SecretStore/ClusterSecretStore
+    kind: crd-schema
+    importance: minor
+    actionRequired: true
+    classification: not-affected   # this environment's link; generic reading: action-required
+    match:
+      - text: '(?i)ValueMaps?'
+    evidence:
+      - url: https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0
+        quote: "Removal of `ValueMaps` from Fake Secret Store"
+      - url: https://github.com/external-secrets/external-secrets/blob/v0.15.0/apis/externalsecrets/v1beta1/secretstore_fake_types.go
+        quote: "Deprecated: ValueMap is deprecated and is intended to be removed in the future, use the `value` field instead."
+    semantics:
+      - subject: {family: crd-field, product: external-secrets, group: external-secrets.io, kind: SecretStore, path: 'spec.provider.fake.data[].valueMap'}
+        change: {type: removed}
+        consequence:
+          kind: setting-ignored
+          exposedClass: action-required
+          statement: valueMap is no longer part of the fake provider schema, so valueMap entries are pruned and the keys they served stop resolving for ExternalSecrets using that store.
+          remediation: Replace valueMap entries with `value` (a JSON string for map-shaped data).
+          severity: medium
+      - subject: {family: crd-field, product: external-secrets, group: external-secrets.io, kind: ClusterSecretStore, path: 'spec.provider.fake.data[].valueMap'}
+        change: {type: removed}
+        consequence:
+          kind: setting-ignored
+          exposedClass: action-required
+          statement: valueMap is no longer part of the fake provider schema, so valueMap entries are pruned and the keys they served stop resolving for ExternalSecrets using that store.
+          remediation: Replace valueMap entries with `value` (a JSON string for map-shaped data).
+          severity: medium
+  - id: E6
+    title: Chart default crds.conversion.enabled changed from true to false; conversion webhooks no longer served
+    kind: helm-values
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - subject: 'crds.conversion.enabled'
+      - text: '(?i)crds\.conversion\.enabled'
+      - text: '(?i)remov\w* (of )?conversion webhooks?'
+    evidence:
+      - url: https://github.com/external-secrets/external-secrets/blob/helm-chart-0.16.0/deploy/charts/external-secrets/values.yaml
+        quote: "# -- Conversion is disabled by default as we stopped supporting v1alpha1.\n    enabled: false"
+      - url: https://github.com/external-secrets/external-secrets/blob/helm-chart-0.15.0/deploy/charts/external-secrets/values.yaml
+        quote: "# -- If webhook is set to false this also needs to be set to false otherwise the kubeapi will be hammered because the conversion is looking for a webhook endpoint.\n    enabled: true"
+      - url: https://github.com/external-secrets/external-secrets/issues/4662#issuecomment-2832614353
+        quote: "We removed webhooks configs because there is no conversion webhooks anymore 🙂 if that config is kept, things would break even harder."
+      - url: https://github.com/external-secrets/external-secrets/issues/4662#issuecomment-2802723146
+        quote: "Error: UPGRADE FAILED: failed to create resource: Internal error occurred: conversion webhook for external-secrets.io/v1, Kind=ExternalSecret failed: the server could not find the requested resource"
+    references:
+      - https://github.com/external-secrets/external-secrets/issues/4662#issuecomment-2807456936
+    semantics:
+      subject: {family: helm-value, product: external-secrets, path: crds.conversion.enabled}
+      change: {type: default-changed, before: 'true', after: 'false'}
+      consequence:
+        kind: workload-failure
+        exposedClass: action-required
+        statement: With crds.conversion.enabled still true the chart renders the CRDs with a Webhook conversion strategy pointing at the ESO webhook, which in v0.16 no longer serves conversion; the API server's conversion calls fail ("conversion webhook for external-secrets.io/v1, Kind=ExternalSecret failed") and ExternalSecret/SecretStore requests at a non-storage version fail.
+        remediation: Remove the crds.conversion.enabled override (or set it to false) so the v0.16 chart renders the CRDs without a conversion webhook.
+        severity: critical
+      note: the hazard is the explicitly kept OLD value; environments that leave the key unset get the safe new default (exposure is values-key equals true, not the canonical unset)
+  - id: E7
+    title: Vault Kubernetes auth with serviceAccountRef now prefers a TokenRequest token over the service account's legacy token Secret
+    kind: behaviour-change
+    importance: important
+    actionRequired: true       # verify the Vault role accepts the bound token's issuer/audience
+    classification: review-required
+    match:
+      - text: '(?i)kubernetes auth prefer service account tokens'
+      - text: '(?i)prefer (calling a )?`?TokenAPI|vault.{0,40}TokenRequest|TokenRequest.{0,40}vault'
+    evidence:
+      - url: https://github.com/external-secrets/external-secrets/pull/4596
+        quote: "On clusters that still contains Secrets for Service Account Tokens, vault kubernetes auth _prefers_ them. That should not be the case."
+      - url: https://github.com/external-secrets/external-secrets/pull/4596
+        quote: "Invert evaluation logic so that we prefer calling a `TokenAPI` request."
+      - url: https://github.com/external-secrets/external-secrets/blob/v0.16.0/pkg/provider/vault/auth_kubernetes.go
+        quote: "// note: this is a massive change from vault perspective: the `iss` claim will very likely change."
+    semantics:
+      - subject: {family: crd-field, product: external-secrets, group: external-secrets.io, kind: ClusterSecretStore, path: spec.provider.vault.auth.kubernetes.serviceAccountRef}
+        change: {type: behavior-changed}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: When the referenced ServiceAccount still lists a legacy token Secret, ESO now logs in to Vault with a short-lived TokenRequest JWT instead of that Secret's token; the iss (and audience) of the presented JWT changes, which a Vault Kubernetes auth role/config validating the legacy issuer will reject.
+          remediation: Check the Vault Kubernetes auth config (issuer, disable_iss_validation) and role audience against a TokenRequest-issued token before upgrading.
+          severity: medium
+      - subject: {family: crd-field, product: external-secrets, group: external-secrets.io, kind: SecretStore, path: spec.provider.vault.auth.kubernetes.serviceAccountRef}
+        change: {type: behavior-changed}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: When the referenced ServiceAccount still lists a legacy token Secret, ESO now logs in to Vault with a short-lived TokenRequest JWT instead of that Secret's token; the iss (and audience) of the presented JWT changes, which a Vault Kubernetes auth role/config validating the legacy issuer will reject.
+          remediation: Check the Vault Kubernetes auth config (issuer, disable_iss_validation) and role audience against a TokenRequest-issued token before upgrading.
+          severity: medium
+  - id: E8
+    title: Chart RBAC now drops ClusterSecretStore/ClusterExternalSecret/PushSecret/ClusterPushSecret permissions when the matching process* value is false
+    kind: behaviour-change
+    importance: minor
+    actionRequired: false
+    classification: not-affected   # this environment's link; generic reading: review-required
+    match:
+      - text: '(?i)Exclude unused resources from rbac'
+      - text: '(?i)\bprocess(ClusterStore|ClusterExternalSecret|PushSecret|ClusterPushSecret)\b.{0,80}\b(rbac|permissions?)\b'
+    evidence:
+      - url: https://github.com/external-secrets/external-secrets/pull/4572
+        quote: "Based on the configuration, even if (for example) `processClusterExternalSecret` is set to `false` the controller is assigned permissions to manage ClusterExternalSecret resources. This is highly undesired in clusters with multiple installed ES instances."
+      - url: https://github.com/external-secrets/external-secrets/blob/helm-chart-0.16.0/deploy/charts/external-secrets/templates/rbac.yaml
+        quote: "{{- if .Values.processPushSecret }}\n    - \"pushsecrets\"\n    {{- end }}"
+    semantics:
+      - subject: {family: helm-value, product: external-secrets, path: processClusterStore}
+        change: {type: behavior-changed}
+        consequence: &rbacNarrowed
+          kind: behavior-change
+          exposedClass: review-required
+          statement: A process* value set to false now also removes that kind from the controller ClusterRole and from the aggregate-to-view/edit/admin ClusterRole, so anything (a second controller instance, users bound to the aggregated roles) that relied on those grants loses them.
+          remediation: Confirm nothing relies on the dropped grants, or keep the process* value true.
+          severity: medium
+      - subject: {family: helm-value, product: external-secrets, path: processClusterExternalSecret}
+        change: {type: behavior-changed}
+        consequence: *rbacNarrowed
+      - subject: {family: helm-value, product: external-secrets, path: processPushSecret}
+        change: {type: behavior-changed}
+        consequence: *rbacNarrowed
+      - subject: {family: helm-value, product: external-secrets, path: processClusterPushSecret}
+        change: {type: behavior-changed}
+        consequence: *rbacNarrowed
+  - id: E9
+    title: v0.16.0 install manifests/CRD bundle break non-Helm upgrades (conversion webhook config); install v0.16.1 instead
+    kind: artifact
+    importance: important
+    actionRequired: true
+    classification: not-affected   # this environment's link; generic reading: action-required
+    match:
+      - text: '(?i)not be an easy upgrade'
+      - text: '(?i)webhookClientConfig'
+      - text: '(?i)`?0\.16\.1`? as opposed to `?0\.16\.0'
+    evidence:
+      - url: https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0
+        quote: "it is known v0.16.0 will not be an easy upgrade if you're not consuming from our official sources via helm."
+      - url: https://github.com/external-secrets/external-secrets/releases/tag/v0.16.0
+        quote: "Use `0.16.1` as opposed to `0.16.0` on your installation path. That should be fixed on this release"
+      - url: https://github.com/external-secrets/external-secrets/issues/4662#issuecomment-2807128817
+        quote: "This is a known issue on the manifests from `v0.16.0`."
+    semantics:
+      subject: {family: migration, product: external-secrets, name: install-crds-from-v0.16.1-bundle-not-v0.16.0}
+      change: {type: migration-required}
+      consequence:
+        kind: upgrade-blocked
+        exposedClass: action-required
+        statement: 'The v0.16.0 CRD bundle still declares a Webhook conversion for the ExternalSecret/SecretStore CRDs that v0.16 no longer serves, so CRDs installed outside the Helm chart (kubectl apply of the bundle, kustomize) fail to apply ("spec.conversion.webhookClientConfig: Forbidden") or leave a dangling conversion webhook.'
+        remediation: When CRDs are installed separately, apply the v0.16.1 bundle and upgrade to v0.16.1 instead of v0.16.0.
+        severity: high
+notExpected:
+  - title: dependency bumps of the docs/e2e toolchains
+    match: [{text: '(?i)bump .* in /(hack/api-docs|e2e)\b'}]
+  - title: documentation-only pull requests listed in the GitHub release body
+    match: [{text: '(?i)^docs?(\(.+\))?:'}]
+environment:
+  description: >-
+    Production cluster on Kubernetes 1.32. External Secrets Operator v0.15.0
+    installed with the Helm chart 0.15.0 (release external-secrets in namespace
+    external-secrets), with installCRDs: true so the chart owns the CRDs, and
+    every process* reconciler value explicitly true (PushSecret is in use). The
+    values file still pins crds.conversion.enabled: true, carried over from the
+    0.9.x era. ESO was first installed in 2021 (v0.3.x), and the installed CRDs
+    for externalsecrets, secretstores and clustersecretstores still record
+    v1alpha1 in status.storedVersions. Manifests: the payments team's
+    SecretStore is still written at external-secrets.io/v1alpha1; every
+    ExternalSecret and both ClusterSecretStores are at v1beta1. One
+    ExternalSecret (billing) still uses template engineVersion v1. The
+    vault-backend ClusterSecretStore authenticates with Vault's Kubernetes auth
+    via serviceAccountRef vault-auth, whose ServiceAccount still lists a legacy
+    service-account-token Secret (the cluster was built on Kubernetes 1.21). The
+    fake-smoke ClusterSecretStore used by smoke tests sets only data[].value.
+    Secrets come from an external HashiCorp Vault v1.18.3 cluster. The
+    controller image is mirrored at ghcr.io/external-secrets/external-secrets:v0.15.0.
+  kubernetes: "1.32"
+  expectedImpact:
+    - expected: E1
+      relevance: not-affected
+      why: every ExternalSecret manifest is already at external-secrets.io/v1beta1 (migrated in 2023), so no v1alpha1 ExternalSecret is applied; the v1alpha1 storedVersions entry on the CRD is E3's concern, not a manifest using the removed version
+      exposure: {op: gvk-in-use, group: external-secrets.io, version: v1alpha1, kind: ExternalSecret}
+      environmentEvidence:
+        - manifests/externalsecrets.yaml#L4-L5
+        - manifests/externalsecrets.yaml#L26-L27
+        - manifests/externalsecrets.yaml#L52-L53
+        - manifests/externalsecrets.yaml#L85-L86
+    - expected: E2
+      relevance: action-required
+      why: the payments SecretStore payments-aws is still written at external-secrets.io/v1alpha1, which v0.16 no longer serves; the next GitOps sync of that manifest fails until it is rewritten to v1beta1/v1 (the two ClusterSecretStores are already on v1beta1)
+      exposure:
+        op: any
+        of:
+          - {op: gvk-in-use, group: external-secrets.io, version: v1alpha1, kind: SecretStore}
+          - {op: gvk-in-use, group: external-secrets.io, version: v1alpha1, kind: ClusterSecretStore}
+      environmentEvidence: manifests/secretstores.yaml#L5-L9
+    - expected: E3
+      relevance: action-required
+      why: the installed externalsecrets, secretstores and clustersecretstores CRDs still list v1alpha1 in status.storedVersions (ESO installed at v0.3.x), so the Helm upgrade's CRD update is rejected until the stored versions are patched; clusterexternalsecrets only records v1beta1
+      exposure:
+        op: resource
+        group: apiextensions.k8s.io
+        kind: CustomResourceDefinition
+        of:
+          - {op: field, path: 'status.storedVersions[]', state: equals, values: ['"v1alpha1"']}
+      environmentEvidence:
+        - crds/external-secrets-crds.yaml#L61-L63
+        - crds/external-secrets-crds.yaml#L118-L120
+        - crds/external-secrets-crds.yaml#L175-L177
+    - expected: E4
+      relevance: action-required
+      why: ExternalSecret billing/billing-grafana-datasource sets spec.target.template.engineVersion v1 with v1-style `| toString` templates; v0.16 rejects v1 and no longer renders it
+      exposure:
+        op: any
+        of:
+          - op: resource
+            group: external-secrets.io
+            kind: ExternalSecret
+            of: [{op: field, path: spec.target.template.engineVersion, state: equals, values: ['"v1"']}]
+          - op: resource
+            group: external-secrets.io
+            kind: ClusterExternalSecret
+            of: [{op: field, path: spec.externalSecretSpec.target.template.engineVersion, state: equals, values: ['"v1"']}]
+      environmentEvidence: manifests/externalsecrets.yaml#L52-L73
+    - expected: E5
+      relevance: not-affected
+      why: the only fake-provider store (ClusterSecretStore fake-smoke) uses data[].value entries exclusively; no SecretStore or ClusterSecretStore sets valueMap
+      exposure:
+        op: any
+        of:
+          - op: resource
+            group: external-secrets.io
+            kind: SecretStore
+            of: [{op: field, path: 'spec.provider.fake.data[].valueMap', state: set}]
+          - op: resource
+            group: external-secrets.io
+            kind: ClusterSecretStore
+            of: [{op: field, path: 'spec.provider.fake.data[].valueMap', state: set}]
+      environmentEvidence: manifests/secretstores.yaml#L44-L60
+    - expected: E6
+      relevance: action-required
+      why: the values file explicitly keeps crds.conversion.enabled true; with chart 0.16.0 the CRDs keep a Webhook conversion pointing at a webhook that no longer serves /convert, which is exactly the failure the maintainers asked about in issue 4662 (the pin over the changed default is the hazard, not a safe overlap)
+      exposure: {op: values-key, path: crds.conversion.enabled, state: equals, values: ['true']}
+      environmentEvidence: values.yaml#L10-L14
+    - expected: E7
+      relevance: review
+      why: ClusterSecretStore vault-backend uses Vault Kubernetes auth with serviceAccountRef vault-auth, and that ServiceAccount still lists the legacy token Secret vault-auth-token, so v0.15 logged in with the legacy token and v0.16 will present a TokenRequest JWT instead; whether Vault accepts it depends on the Vault auth config, which the fixture does not carry
+      exposure:
+        op: any
+        of:
+          - op: resource
+            group: external-secrets.io
+            kind: ClusterSecretStore
+            of:
+              - op: ref
+                path: spec.provider.vault.auth.kubernetes.serviceAccountRef
+                kind: ServiceAccount
+                of: [{op: field, path: 'secrets[].name', state: set}]
+          - op: resource
+            group: external-secrets.io
+            kind: SecretStore
+            of:
+              - op: ref
+                path: spec.provider.vault.auth.kubernetes.serviceAccountRef
+                kind: ServiceAccount
+                of: [{op: field, path: 'secrets[].name', state: set}]
+      environmentEvidence:
+        - manifests/secretstores.yaml#L24-L40
+        - manifests/vault-auth.yaml#L5-L11
+    - expected: E8
+      relevance: not-affected
+      why: all four process* values are explicitly true, so the v0.16 chart renders the same controller and aggregated ClusterRole grants as before
+      exposure:
+        op: any
+        of:
+          - {op: values-key, path: processClusterStore, state: equals, values: ['false']}
+          - {op: values-key, path: processClusterExternalSecret, state: equals, values: ['false']}
+          - {op: values-key, path: processPushSecret, state: equals, values: ['false']}
+          - {op: values-key, path: processClusterPushSecret, state: equals, values: ['false']}
+      environmentEvidence: values.yaml#L16-L21
+    - expected: E9
+      relevance: not-affected
+      why: CRDs are installed and upgraded by the Helm chart (installCRDs true), the path the release notes call safe; the broken v0.16.0 CRD bundle/kustomize path is not used (the conversion pin is E6's concern)
+      exposure: {op: values-key, path: installCRDs, state: equals, values: ['false']}
+      environmentEvidence: values.yaml#L7-L8
+  expectedFindings:
+    - id: F1
+      match:
+        rule: impact:kubernetes-in-range
+        classification: informational
+      why: the stability-support table lists Kubernetes 1.32 for 0.16.x (as for 0.15.x); the 1.32 cluster is inside the tested version and should be confirmed, not flagged
+  notExpectedFindings:
+    - title: no CRD removed by this upgrade
+      match: {rule: impact:crd-removed}
+      why: the v0.16.0 CRD bundle contains exactly the CRDs of the v0.15.0 bundle (only versions inside them changed)

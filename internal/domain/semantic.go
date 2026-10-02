@@ -1168,6 +1168,12 @@ type RenderProvenance struct {
 	Object       string          `json:"object,omitempty"` // <group>/<version>/<kind>/<namespace>/<name>
 	Path         string          `json:"path,omitempty"`   // field path inside the object ("" = the whole object)
 	Change       string          `json:"change,omitempty"` // rendered change class, e.g. "rbac-permission-removed"
+	// Before/After are the JSON-encoded values at Path in the source and
+	// target renders ("" = absent). Set on release-scope records (chart
+	// defaults) and on environment records only when values are shown;
+	// never for sensitive values. CONTRACT-CHANGE(render).
+	Before string `json:"before,omitempty"`
+	After  string `json:"after,omitempty"`
 }
 
 // RenderArtifact identifies one rendered endpoint of a rendered diff.

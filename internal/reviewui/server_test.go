@@ -648,3 +648,47 @@ func TestConsensusActionItemNeedsAnOpenBeforeBulkAccept(t *testing.T) {
 		t.Fatal(st)
 	}
 }
+
+// --- demo mode: fixtures are never mistaken for upstream evidence --------------------------------
+
+func TestDemoModeBannerAndFixtureTags(t *testing.T) {
+	for _, demo := range []bool{true, false} {
+		q := NewDemoQueue()
+		srv := httptest.NewServer(NewServer(q, Options{Now: func() time.Time { return now }, Logf: t.Logf, Demo: demo}))
+		r := &rig{t: t, q: q, srv: srv, c: newRig(t).c}
+		id := r.id("rotationPolicy")
+		_, bulk, _ := r.post("/bulk", bulkForm("defer", r.routine()[:2]))
+		pages := map[string]string{}
+		pages["inbox"] = func() string { _, b := r.get("/"); return b }()
+		pages["item"] = func() string { _, b := r.get("/items/" + id); return b }()
+		pages["detail"] = func() string { _, b := r.get("/items/" + id + "/detail"); return b }()
+		pages["bulk confirm"] = bulk
+		pages["error"] = func() string { _, b := r.get("/items/ri-nope"); return b }()
+		for name, body := range pages {
+			if demo {
+				if name != "detail" {
+					contains(t, body, "DEMO DATA — fixtures, not real upstream evidence", `class="demo-banner"`, `<body class="demo">`)
+				}
+				if name == "item" || name == "detail" {
+					contains(t, body, "fixture excerpt", `class="badge fixture"`)
+				}
+			} else {
+				lacks(t, body, "DEMO DATA", "demo-banner", "fixture excerpt", "badge fixture")
+			}
+		}
+		srv.Close()
+	}
+	// both themes ship the banner style
+	r := newRig(t)
+	_, css := r.get("/static/app.css")
+	contains(t, css, ".demo-banner", "body.demo .sticky", ".badge.fixture")
+}
+
+func TestInboxLimitShowsTheTruncationNotice(t *testing.T) {
+	q := NewDemoQueue()
+	srv := httptest.NewServer(NewServer(q, Options{Now: func() time.Time { return now }, Logf: t.Logf, Demo: true, InboxLimit: 3}))
+	defer srv.Close()
+	r := &rig{t: t, q: q, srv: srv, c: newRig(t).c}
+	_, body := r.get("/")
+	contains(t, body, "Showing the first 3 of 10 matching items", "Select all 3 shown")
+}

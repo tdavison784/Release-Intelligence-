@@ -29,7 +29,10 @@ installed CRDs, an image list, a cluster version and a product inventory
 (`--inventory`: which other products run, at which versions). It is deterministic, and
 every finding cites two provenance chains — the upstream evidence of the
 change and the environment evidence (file, line, excerpt) that matched
-([docs/IMPACT.md](docs/IMPACT.md)).
+([docs/IMPACT.md](docs/IMPACT.md)). With `--knowledge <dir>` it also
+evaluates verified release-level facts of the learning loop against the
+environment (`--min-verification`, default `human`), and every UNKNOWN says
+why it is unknown.
 
 ```
 $ ri upgrade cert-manager v1.17.0 v1.18.0

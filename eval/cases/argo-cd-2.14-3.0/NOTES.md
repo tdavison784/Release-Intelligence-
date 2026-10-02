@@ -27,3 +27,12 @@ tested-kubernetes-versions.md at v3.0.0.
   (default exclusions naming CertificateRequest) has a concrete, checkable
   relevance claim — a cross-product interaction the join cannot see (no rule
   reads Argo CD's exclusion list), so the E3 link is an expected honest miss.
+
+## Semantic labels and corrections (2026-10-01, groundtruth lane)
+
+Authored blind from the upstream sources above (no pipeline output read); corrections are listed with before/after values in eval/CHANGELOG.md.
+
+- All nine items carry `semantics`. RBAC items use the `rbac-permission` family (`applications/update`, `applications/delete`, `logs/get`) with `permission-lost`; the removed argocd-cm keys use `config-key` (component `argocd-cm`).
+- E1 exposure: a policy.csv line granting `applications, update|delete` AND no line granting `update/*|delete/*` (a line-level approximation of "per role" — the condition language has no per-role correlation), AND the documented escape hatch `server.rbac.disableApplicationFineGrainedRBACInheritance: "false"` absent. E2 follows the guide's Detection section verbatim (no `policy.default` or a custom one, no `logs, get` grant, enforce flag not "true").
+- E3: the new default exclusions ship in the install manifest's argocd-cm (manifests/base/config/argocd-cm.yaml at v3.0.0), not in code, so the exposure is "cert-manager / Cilium / Kyverno present" AND argocd-cm does not override `resource.exclusions`. The fixture supplies no argocd-cm, so a deterministic evaluator can only decide the override clause from a complete-manifests declaration; the relevance (review) is unchanged.
+- E8: bundled Helm 3.16.3 → 3.17.1 from hack/tool-versions.sh at both tags.

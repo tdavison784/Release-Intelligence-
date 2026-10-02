@@ -1,0 +1,70 @@
+# Helm values for the kyverno chart 3.2.7 (appVersion v1.12.6), release
+# "kyverno" in namespace "kyverno", installed with `helm upgrade --install`.
+# Every key below exists in charts/kyverno/values.yaml at v1.12.6.
+# Not set on purpose (chart defaults apply): any *.rbac.* key,
+# metricsConfig.metricsExposure, crds.*, templating.*.
+
+admissionController:
+  replicas: 3
+  podDisruptionBudget:
+    enabled: true
+  serviceMonitor:
+    enabled: true
+  container:
+    resources:
+      limits:
+        memory: 768Mi
+      requests:
+        cpu: 200m
+        memory: 256Mi
+
+backgroundController:
+  replicas: 2
+  serviceMonitor:
+    enabled: true
+
+reportsController:
+  replicas: 2
+  serviceMonitor:
+    enabled: true
+
+cleanupController:
+  replicas: 2
+  serviceMonitor:
+    enabled: true
+
+features:
+  backgroundScan:
+    backgroundScanInterval: 30m
+  # Exceptions are used by the monitoring and ingress-nginx teams, which keep
+  # their PolicyExceptions in their own namespaces.
+  policyExceptions:
+    enabled: true
+
+# Report / UpdateRequest cleanup tuned after an etcd size incident on v1.12.1.
+cleanupJobs:
+  ephemeralReports:
+    schedule: '*/5 * * * *'
+    threshold: 5000
+  clusterEphemeralReports:
+    schedule: '*/5 * * * *'
+    threshold: 5000
+  updateRequests:
+    enabled: true
+    threshold: 5000
+
+config:
+  webhooks:
+    - namespaceSelector:
+        matchExpressions:
+          - key: kubernetes.io/metadata.name
+            operator: NotIn
+            values:
+              - kube-system
+              - kyverno
+
+# All images are pulled from the private mirror (see images.txt); the mirror
+# only holds the tags the v1.12.6 chart references.
+global:
+  image:
+    registry: registry.corp.example

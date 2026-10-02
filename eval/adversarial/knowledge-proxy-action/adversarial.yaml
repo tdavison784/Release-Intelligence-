@@ -1,0 +1,33 @@
+# Attack: a proxy-verified fact (an AI acting as reviewer, never presented as
+# human) whose exposure condition is TRUE and whose consequence is
+# action-eligible. The trust ladder caps untrusted knowledge at
+# review-required: a model output may never create mandatory work.
+id: knowledge-proxy-action
+attacks: proxy fact with true exposure and an action-eligible consequence
+expectation: >-
+  review-required (impact:knowledge-exposed), never action-required
+  (docs/ACTION_CLASSIFICATION.md §8: a proxy alone is capped at review)
+knowledge:
+  minVerification: proxy
+  facts:
+    - level: proxy
+      subject: {family: helm-value, path: gateway.legacyAuth}
+      change: {type: removed}
+      exposure: {op: values-key, path: gateway.legacyAuth, state: set}
+      consequence: {kind: setting-ignored, statement: "gateway.legacyAuth is no longer read; the gateway falls back to the default authentication mode."}
+      statement: "The gateway.legacyAuth value was removed."
+      anchors: ["The gateway.legacyAuth value was removed"]
+edge:
+  changes:
+    - rule: note
+      title: "The gateway.legacyAuth value was removed"
+      subjects: [gateway.legacyAuth]
+      category: configuration
+environment:
+  files: [values.yaml]
+expect:
+  present:
+    - rule: impact:knowledge-exposed
+      classification: review-required
+  absent:
+    - classification: action-required

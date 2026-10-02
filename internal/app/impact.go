@@ -8,6 +8,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/env"
 	"github.com/tdavison784/release-intelligence/internal/impact"
+	"github.com/tdavison784/release-intelligence/internal/render"
 )
 
 // ErrNoEnvironmentInput marks `ri impact` invocations without any environment
@@ -21,6 +22,25 @@ type ImpactOptions struct {
 	// Environment names the local inputs to parse (see env.Inputs). At least
 	// one must be set.
 	Environment env.Inputs
+	// Facts is verified knowledge to evaluate against the environment
+	// (LoadKnowledge); MinVerification keeps facts at or above the level
+	// ("" = human). Without facts the report is the knowledge-free join.
+	Facts           []domain.VerifiedFact
+	MinVerification domain.VerificationLevel
+	// Render, when set, renders the From and To releases with the
+	// environment's configuration before the join (`ri impact --render`):
+	// rendered-change conditions of facts are decided against those renders
+	// (environment pairs only, never the chart-default pair), and the
+	// rendered delta is returned beside the report (ImpactRun.Render).
+	Render *RenderOptions
+}
+
+// ImpactRun is everything one `ri impact` run produced.
+type ImpactRun struct {
+	Report *domain.ImpactReport
+	Edge   *domain.UpgradeEdge
+	Env    *env.Environment
+	Render *RenderDiffResult // nil without opts.Render
 }
 
 // Impact builds the UpgradeEdge for product from → to and joins it with the
@@ -35,23 +55,41 @@ func (a *App) Impact(ctx context.Context, productID, from, to string, opts Impac
 // (`EnrichImpact`) needs: the report, the edge it was built from and the
 // parsed environment. The report alone is identical to Impact's.
 func (a *App) ImpactParts(ctx context.Context, productID, from, to string, opts ImpactOptions) (*domain.ImpactReport, *domain.UpgradeEdge, *env.Environment, error) {
+	r, err := a.ImpactRun(ctx, productID, from, to, opts)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return r.Report, r.Edge, r.Env, nil
+}
+
+// ImpactRun is ImpactParts plus the rendered delta (opts.Render).
+func (a *App) ImpactRun(ctx context.Context, productID, from, to string, opts ImpactOptions) (*ImpactRun, error) {
 	if opts.Environment.Empty() {
-		return nil, nil, nil, ErrNoEnvironmentInput
+		return nil, ErrNoEnvironmentInput
 	}
 	edge, err := a.Upgrade(ctx, productID, from, to, UpgradeOptions{Policy: opts.Policy})
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 	if opts.Environment.ProductHints == nil {
 		opts.Environment.ProductHints = env.HintsFromCatalog(a.Catalog)
 	}
 	e, err := env.Load(opts.Environment)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("environment: %w", err)
+		return nil, fmt.Errorf("environment: %w", err)
 	}
-	rep, err := impact.Build(impact.Input{Edge: edge, Env: e, Now: a.now().UTC()})
-	if err != nil {
-		return nil, nil, nil, err
+	in := impact.Input{Edge: edge, Env: e, Now: a.now().UTC(), Facts: opts.Facts, MinVerification: opts.MinVerification}
+	run := &ImpactRun{Edge: edge, Env: e}
+	if opts.Render != nil {
+		ro := *opts.Render
+		ro.Env = e
+		if run.Render, err = a.RenderDiffEdge(ctx, edge, ro); err != nil {
+			return nil, err
+		}
+		in.Render = render.ConditionEvaluator{Pairs: run.Render.EnvironmentPairs()}
 	}
-	return rep, edge, e, nil
+	if run.Report, err = impact.Build(in); err != nil {
+		return nil, err
+	}
+	return run, nil
 }

@@ -1,0 +1,78 @@
+# Two Compositions for XBucket. The claims still use the original patch &
+# transform Composition; the Pipeline copy was produced with
+# `crossplane beta convert pipeline-composition` and is not yet selected.
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xbuckets-aws-pt
+  labels:
+    provider: aws
+    mode: patch-and-transform
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1alpha1
+    kind: XBucket
+  mode: Resources
+  writeConnectionSecretsToNamespace: crossplane-system
+  resources:
+    - name: bucket
+      base:
+        apiVersion: s3.aws.upbound.io/v1beta1
+        kind: Bucket
+        spec:
+          forProvider:
+            region: eu-west-1
+      patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.region
+          toFieldPath: spec.forProvider.region
+        - type: ToCompositeFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: status.bucketName
+      connectionDetails:
+        - name: bucketName
+          type: FromFieldPath
+          fromFieldPath: metadata.annotations[crossplane.io/external-name]
+        - name: region
+          type: FromFieldPath
+          fromFieldPath: spec.forProvider.region
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xbuckets-aws-pipeline
+  labels:
+    provider: aws
+    mode: pipeline
+spec:
+  compositeTypeRef:
+    apiVersion: platform.example.org/v1alpha1
+    kind: XBucket
+  mode: Pipeline
+  writeConnectionSecretsToNamespace: crossplane-system
+  pipeline:
+    - step: patch-and-transform
+      functionRef:
+        name: crossplane-contrib-function-patch-and-transform
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        resources:
+          - name: bucket
+            base:
+              apiVersion: s3.aws.upbound.io/v1beta1
+              kind: Bucket
+              spec:
+                forProvider:
+                  region: eu-west-1
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.region
+                toFieldPath: spec.forProvider.region
+            connectionDetails:
+              - name: bucketName
+                type: FromFieldPath
+                fromFieldPath: metadata.annotations[crossplane.io/external-name]
+              - name: region
+                type: FromFieldPath
+                fromFieldPath: spec.forProvider.region

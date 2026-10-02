@@ -60,9 +60,11 @@ func TestRenderDeltaAloneNeverYieldsAction(t *testing.T) {
 			t.Fatalf("1. the render validator checked %s; it must judge only subject and change", c.Aspect)
 		}
 	}
-	cand.Renderability = domain.EffectiveRenderability(cand, vs)
-	if cand.Renderability != domain.RenderVerifiable {
-		t.Fatalf("renderability %q", cand.Renderability)
+	// routing derives the renderability from the render confirmation itself
+	// (knowledge.RouteWith → domain.EffectiveRenderability); the candidate as
+	// stored states none
+	if cand.Renderability != "" || domain.EffectiveRenderability(cand, vs) != domain.RenderVerifiable {
+		t.Fatalf("renderability: stored %q, effective %q", cand.Renderability, domain.EffectiveRenderability(cand, vs))
 	}
 	proposal := func(call string, class domain.ImpactClass) domain.SemanticProposal {
 		at := fixedNow
@@ -116,5 +118,38 @@ func TestRenderDeltaAloneNeverYieldsAction(t *testing.T) {
 	}
 	if (domain.KnowledgeRef{Verification: r.Fact.Level(), ConsensusAction: true}).ActionLabel() != "model consensus" {
 		t.Error("4. consensus ACTION must be labelled model consensus")
+	}
+}
+
+// The review context carries the validator's release-level render evidence
+// with before/after values (R18) — what the dashboard's Rendered delta panel
+// shows.
+func TestRenderEvidenceReachesReviewContext(t *testing.T) {
+	up := domain.NewEvidence(domain.EvidenceDocument, "notes", "https://example.org/n", "L1", "widgets update removed", "sha256:n", fixedNow)
+	cand := domain.SemanticCandidate{Product: "demo", Release: "1.1.0", Grouping: "single", Category: domain.CategoryRemoval,
+		Title: "t", Evidence: []domain.Evidence{up}, Producer: "test@v1", CreatedAt: fixedNow,
+		Members: []domain.CandidateMember{{ChangeID: "chg-w", Computed: true}}}
+	cand.ID = domain.CandidateID(cand.Product, cand.Release, cand.Members)
+	vs, err := NewValidator(&fixedPairs{p: goldenReleasePair(t)}).Validate(context.Background(), knowledge.ValidationInput{
+		Candidate: cand, Now: fixedNow,
+		Edge: &domain.UpgradeEdge{Product: domain.ProductRef{ID: "demo"}, From: domain.Version{Semver: "1.0.0"}, To: domain.Version{Semver: "1.1.0"}},
+		Assertion: domain.SemanticAssertion{
+			Subject: &domain.Subject{Family: domain.SubjectRBACPermission, Product: "demo", Group: "demo.example.org", Name: "widgets/update"},
+			Change:  &domain.ChangeSpec{Type: domain.ChangeKindRemoved}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	re := knowledge.RenderEvidenceOf(cand.ID, vs)
+	if re == nil || re.Relation != domain.RenderConfirmed {
+		t.Fatalf("render evidence: %+v", re)
+	}
+	found := false
+	for _, e := range re.Evidence {
+		if e.Render.Change == string(RBACPermissionRemoved) && e.Render.Before == `"demo.example.org/widgets:update"` && e.Render.After == "" {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("no rbac-permission-removed record with its before value among %d records", len(re.Evidence))
 	}
 }

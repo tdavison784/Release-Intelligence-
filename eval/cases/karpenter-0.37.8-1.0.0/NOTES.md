@@ -40,3 +40,12 @@ Authored blind on 2026-10-01 from the upstream documents below.
   are note-derived): the v1beta1 manifests make the operator relevance of
   E1/E2 real, but the expected findings are limited to the chart values,
   image and cluster-version rules the join vocabulary actually has.
+
+## Semantic labels and corrections (2026-10-01, groundtruth lane)
+
+Authored blind from the upstream sources above (no pipeline output read); corrections are listed with before/after values in eval/CHANGELOG.md.
+
+- E1 is labelled as `deprecated` + `replacedBy` on the three v1beta1 GVKs (still served via conversion webhooks in 1.0, not served from 1.1.0) with consequence `migration-required` (the v1 Migration Upgrade Procedure).
+- E2 is `validation-tightened` on `spec.disruption.consolidationPolicy` (before "WhenUnderutilized", after "WhenEmptyOrUnderutilized").
+- E7 lists every subject the item bundles: the env vars the guide names and the Helm keys the cited values.yaml files show removed (`logConfig`, `assumeRoleARN`, `assumeRoleDuration`), plus the Drift gate; the link exposure covers both channels (D9).
+- E10: `topologySpreadConstraints[].whenUnsatisfiable` ScheduleAnyway → DoNotSchedule and `controller.metrics.port` 8000 → 8080, from the values.yaml at both tags.

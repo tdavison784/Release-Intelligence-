@@ -1,0 +1,11 @@
+# Karpenter chart values for the ci-buildfarm cluster, as installed at v0.37.8.
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::440287321118:role/ci-buildfarm-karpenter-controller
+settings:
+  clusterName: ci-buildfarm
+  interruptionQueue: ci-buildfarm
+  featureGates:
+    # AMI name-globs made drift roll GPU nodes mid-build; node rotation is
+    # driven by the NodePool's expireAfter instead.
+    drift: false

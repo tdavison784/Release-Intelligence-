@@ -37,6 +37,8 @@ func (c *cli) impact(args []string) error {
 	policy := fs.String("policy", "", "path policy override: minor-lineage|all")
 	showNotAffected := fs.Bool("show-not-affected", false, "also list the not-affected verdicts with their evaluation records (the summary always counts them)")
 	showUnknown := fs.Bool("show-unknown", false, "list every UNKNOWN finding instead of the collapsed per-reason summary (the summary always counts them; JSON always carries everything)")
+	knowledgeDir := fs.String("knowledge", "", "directory of verified knowledge (the knowledge/ record tree): facts are evaluated against the environment (impact:knowledge-* findings)")
+	minVerification := fs.String("min-verification", "", "with -knowledge: use facts verified at least at this level: deterministic|human|consensus|proxy (default human; consensus and proxy facts never clear a change)")
 	doRender := fs.Bool("render", false, "render the source and target releases with the customer's configuration (--values/--repo, or chart defaults without them) and diff the manifests: what actually changes for this environment, each rendered change correlated with the changelog entries that mention it")
 	rf := addRenderFlags(fs)
 	ef := enrichFlagsFor("impact", fs)
@@ -62,26 +64,39 @@ func (c *cli) impact(args []string) error {
 	if err != nil {
 		return err
 	}
+	if *knowledgeDir != "" {
+		lvl, err := app.ParseVerificationLevel(*minVerification)
+		if err != nil {
+			return err
+		}
+		ks, err := app.LoadKnowledge(*knowledgeDir)
+		if err != nil {
+			return err
+		}
+		for _, w := range ks.Warnings {
+			fmt.Fprintf(c.err, "knowledge: %s\n", w)
+		}
+		in.Facts, in.MinVerification = ks.Facts, lvl
+	} else if *minVerification != "" {
+		return fmt.Errorf("%w: -min-verification needs -knowledge", app.ErrUsage)
+	}
+	if *doRender {
+		in.Render = &app.RenderOptions{
+			ValuesFiles: splitList(*values), Repo: *repo, Overlays: splitList(*rf.overlays),
+			ReleaseName: *rf.releaseName, Namespace: *rf.namespace, KubeVersion: *kubernetes,
+			APIVersions: splitList(*rf.apiVersions),
+			Release:     *rf.chartDefaults || (*values == "" && *repo == "" && *rf.overlays == ""),
+		}
+	}
 	a, err := c.newApp()
 	if err != nil {
 		return err
 	}
-	rep, edge, e, err := a.ImpactParts(c.ctx, pos[0], pos[1], pos[2], in)
+	irun, err := a.ImpactRun(c.ctx, pos[0], pos[1], pos[2], in)
 	if err != nil {
 		return err
 	}
-	var rres *app.RenderDiffResult
-	if *doRender {
-		rres, err = a.RenderDiffEdge(c.ctx, edge, app.RenderOptions{
-			ValuesFiles: splitList(*values), Repo: *repo, Env: e, Overlays: splitList(*rf.overlays),
-			ReleaseName: *rf.releaseName, Namespace: *rf.namespace, KubeVersion: *kubernetes,
-			APIVersions: splitList(*rf.apiVersions),
-			Release:     *rf.chartDefaults || (*values == "" && *repo == "" && *rf.overlays == ""),
-		})
-		if err != nil {
-			return err
-		}
-	}
+	rep, edge, e, rres := irun.Report, irun.Edge, irun.Env, irun.Render
 	if *ef.candidates {
 		printImpactCandidates(c.err, rep, edge, e, impactenrich.Candidates(rep, edge, impactenrich.CandidateOptions{}))
 	}

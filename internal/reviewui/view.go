@@ -670,6 +670,7 @@ func funcs() template.FuncMap {
 			}
 			return "muted"
 		},
+		"demo":      func() bool { return false }, // replaced per server (Options.Demo)
 		"hasPrefix": strings.HasPrefix,
 	}
 }

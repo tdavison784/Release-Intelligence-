@@ -1,0 +1,109 @@
+# ClusterPolicies applied from the platform team's GitOps repository
+# (written against the kyverno.io/v1 schema served by v1.12.6). These are
+# ALL the Kyverno policies in the cluster; there are no namespaced Policies.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-team-label
+  annotations:
+    policies.kyverno.io/title: Require team label
+spec:
+  validationFailureAction: Enforce
+  validationFailureActionOverrides:
+    - action: Audit
+      namespaces:
+        - sandbox
+  background: true
+  rules:
+    - name: check-team-label
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+                - StatefulSet
+      validate:
+        message: "The label `team` is required."
+        pattern:
+          metadata:
+            labels:
+              team: "?*"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged-containers
+  annotations:
+    policies.kyverno.io/title: Disallow privileged containers
+spec:
+  validationFailureAction: Enforce
+  background: true
+  failurePolicy: Ignore
+  webhookTimeoutSeconds: 5
+  rules:
+    - name: privileged-containers
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Privileged mode is disallowed."
+        pattern:
+          spec:
+            =(initContainers):
+              - =(securityContext):
+                  =(privileged): "false"
+            containers:
+              - =(securityContext):
+                  =(privileged): "false"
+---
+# Copies the registry pull secret into every new namespace and keeps it in
+# sync. Only new namespaces are targeted (no generateExisting anywhere).
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: sync-registry-credentials
+spec:
+  rules:
+    - name: clone-regcred
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+      generate:
+        apiVersion: v1
+        kind: Secret
+        name: regcred
+        namespace: "{{request.object.metadata.name}}"
+        synchronize: true
+        clone:
+          namespace: platform-secrets
+          name: regcred
+---
+# Default-deny NetworkPolicy for every new namespace.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-default-deny
+spec:
+  rules:
+    - name: default-deny
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+      generate:
+        apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        name: default-deny
+        namespace: "{{request.object.metadata.name}}"
+        synchronize: true
+        data:
+          spec:
+            podSelector: {}
+            policyTypes:
+              - Ingress
+              - Egress

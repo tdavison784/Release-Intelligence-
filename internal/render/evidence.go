@@ -41,6 +41,14 @@ func (p *Pair) Evidence(c Change, showValues bool) domain.Evidence {
 		rp.FromArtifact.Version, rp.ToArtifact.Version = p.From, p.To
 	}
 	rp.Object, rp.Path, rp.Change = c.Object.String(), c.Path, string(c.Class)
+	if show && !c.Sensitive {
+		if c.Before != nil {
+			rp.Before = *c.Before
+		}
+		if c.After != nil {
+			rp.After = *c.After
+		}
+	}
 	ev.Render = &rp
 	// the id covers the render scope and digests, so an environment record
 	// can never collide with a release record of the same excerpt

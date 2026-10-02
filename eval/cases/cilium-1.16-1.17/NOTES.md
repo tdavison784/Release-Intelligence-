@@ -31,3 +31,11 @@ Researched blind (no Release Intelligence output consulted) on 2026-10-01.
 - The environment sets tls.secretsBackend: k8s (not local) so the fixture
   exercises the "agent reads secrets cluster-wide" half of the deprecation,
   which is the security-relevant direction upstream calls out.
+
+## Semantic labels and corrections (2026-10-01, groundtruth lane)
+
+Authored blind from the upstream sources above (no pipeline output read); corrections are listed with before/after values in eval/CHANGELOG.md.
+
+- All eleven items carry `semantics` (this case is also the base of a transfer environment). E4 corrected to review, same grounds as cilium-1.15-1.17 E8 (D8).
+- E1 (Consul) is labelled on the `kvstore` key of cilium-config (`validation-tightened`, before "consul"); E7 (IPsec single key) as a protocol-behavior change with consequence behavior-change — upstream states the removal but no failure mode, and the key format lives in a Secret.
+- E10: an agent started with an unknown flag fails to start, hence `workload-failure`.

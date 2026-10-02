@@ -21,6 +21,14 @@ expected:
     evidence:
       - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md
         quote: "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`."
+    semantics:
+      subject: {family: crd-field, product: cert-manager, group: cert-manager.io, kind: Certificate, path: spec.privateKey.rotationPolicy}
+      change: {type: default-changed, before: '"Never"', after: '"Always"'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: Certificates that do not set rotationPolicy get a new private key on every re-issuance instead of reusing the stored one.
+        remediation: set spec.privateKey.rotationPolicy explicitly (Never keeps the old behaviour) where key reuse is relied on
   - id: E2
     title: Certificate RevisionHistoryLimit default changed from nil to 1
     kind: behaviour-change
@@ -32,6 +40,13 @@ expected:
     evidence:
       - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md
         quote: "We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`."
+    semantics:
+      subject: {family: crd-field, product: cert-manager, group: cert-manager.io, kind: Certificate, path: spec.revisionHistoryLimit}
+      change: {type: default-changed, before: 'null', after: '1'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: Certificates that do not set revisionHistoryLimit keep only the latest CertificateRequest; older revisions are garbage-collected.
   - id: E3
     title: ACME HTTP01 challenge paths now use PathType Exact; incompatible with ingress-nginx >= 1.12 defaults and OpenShift Routes
     kind: compatibility
@@ -45,7 +60,16 @@ expected:
       - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md
         quote: "We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`. … This change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controller."
       - url: https://github.com/kubernetes/ingress-nginx/pull/11819
-        quote: "strict-validate-path-type gets enabled by default (ingress-nginx >= 1.12.0), which rejects the challenge paths cert-manager 1.18 creates."
+        quote: "Enables strict path validation … Also makes validation enabled by default"   # verbatim since 2026-10-02 (was a paraphrase; eval/CHANGELOG.md)
+    semantics:
+      subject: {family: product-relationship, product: cert-manager, name: ingress-nginx}
+      change: {type: requirement-changed, after: '<1.12.0 || >=1.12.6, <1.13.0 || >=1.13.2'}
+      consequence:
+        kind: workload-failure
+        exposedClass: action-required
+        statement: ACME HTTP01 challenges served through ingress-nginx fail — its admission webhook rejects the solver Ingress ("path ... cannot be used with pathType Exact"), so HTTP01 certificates stop being issued and renewed.
+        remediation: disable the ACMEHTTP01IngressPathTypeExact feature gate, set strict-validate-path-type false in ingress-nginx, or upgrade ingress-nginx to v1.12.6+/v1.13.2+
+      note: the range is the default-configuration window (strict-validate-path-type on by default from 1.12.0, fixed in 1.12.6/1.13.2); ingress-nginx >= 1.8.0 with the option enabled explicitly is exposed too
   - id: E4
     title: OperatorHub packages remain discontinued (last publish v1.16.5)
     kind: artifact
@@ -56,6 +80,14 @@ expected:
     evidence:
       - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md
         quote: "We no longer publish OperatorHub packages for cert-manager."
+    semantics:
+      subject: {family: migration, product: cert-manager, name: operatorhub-olm-install-discontinued}
+      change: {type: migration-required}
+      consequence:
+        kind: migration-required
+        exposedClass: action-required
+        statement: installations managed through OperatorHub/OLM receive no new cert-manager versions (the last published package is v1.16.5), so they cannot upgrade to v1.18 by that channel.
+        remediation: migrate the installation to the Helm chart or the static manifests
 notExpected:
   - title: dependency bumps in test-only or build-only paths
     match: [{text: '(?i)bump .* in /(test|hack)'}]
@@ -74,9 +106,33 @@ environment:
     - expected: E1
       relevance: review        # Certificates do not set rotationPolicy, so they inherit the new Always default
       why: the environment's Certificate manifests never set spec.privateKey.rotationPolicy, so re-issuance will start rotating private keys
+      exposure:
+        op: resource
+        group: cert-manager.io
+        kind: Certificate
+        of: [{op: field, path: spec.privateKey.rotationPolicy, state: unset}]
+      overlap:
+        op: resource
+        group: cert-manager.io
+        kind: Certificate
+        of: [{op: field, path: spec.privateKey.rotationPolicy, state: set}]
+      environmentEvidence: manifests/certificate.yaml#L5-L21
     - expected: E3
       relevance: action-required
       why: HTTP01 challenges are solved via ingress-nginx v1.12.1, whose strict-validate-path-type default rejects Exact paths containing dots
+      exposure:
+        op: all
+        of:
+          - {op: product-version, name: ingress-nginx, state: in-range, range: '>=1.12.0, <1.12.6 || >=1.13.0, <1.13.2'}
+          - op: any
+            of:
+              - {op: resource, group: cert-manager.io, kind: ClusterIssuer, of: [{op: field, path: 'spec.acme.solvers[].http01.ingress', state: set}]}
+              - {op: resource, group: cert-manager.io, kind: Issuer, of: [{op: field, path: 'spec.acme.solvers[].http01.ingress', state: set}]}
+          - op: not
+            of: [{op: feature-gate, name: ACMEHTTP01IngressPathTypeExact, state: disabled, path: config.featureGates}]
+          - op: not
+            of: [{op: resource, kind: ConfigMap, of: [{op: field, path: 'data["strict-validate-path-type"]', state: equals, values: ['"false"']}]}]
+      environmentEvidence: [inventory.yaml#L2-L3, manifests/certificate.yaml#L23-L36, values.yaml]
   expectedFindings:            # impact findings the join should emit for THIS environment
     - id: F1
       match:

@@ -22,6 +22,11 @@ type Report struct {
 	// regressions" line so CI logs say what was checked).
 	Diffs    []Delta `json:"diffs,omitempty"`
 	Compared bool    `json:"compared,omitempty"`
+	// Levels is the per-verification-level panel of `ri eval -knowledge`
+	// (DESIGN.md §7); absent without -knowledge.
+	Levels []LevelReport `json:"levels,omitempty"`
+	// KnowledgeWarnings lists knowledge records refused while loading.
+	KnowledgeWarnings []string `json:"knowledgeWarnings,omitempty"`
 }
 
 // HasGateFailure reports whether any hard gate failed.
@@ -68,6 +73,10 @@ func RenderText(w io.Writer, rep Report) error {
 	}
 	if agg.Confusion != nil && agg.Confusion.Labelled > 0 {
 		renderConfusion(w, agg.Confusion)
+	}
+	RenderLevels(w, rep.Levels)
+	for _, kw := range rep.KnowledgeWarnings {
+		fmt.Fprintf(w, "knowledge: %s\n", kw)
 	}
 	if len(rep.Gates) > 0 {
 		if err := RenderGates(w, rep.Gates); err != nil {

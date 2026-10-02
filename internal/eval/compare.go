@@ -213,6 +213,9 @@ type EnvImpactAudit struct {
 	Hit        bool     `json:"hit"`
 	FindingIDs []string `json:"findingIds,omitempty"`
 	Why        string   `json:"why,omitempty"`
+	// Facts are the verified facts (vf-…) behind the knowledge findings that
+	// hit the link (transfer reporting, DESIGN.md §7); empty without -knowledge.
+	Facts []string `json:"facts,omitempty"`
 }
 
 // EntryResult is the scored outcome of one dataset entry.
@@ -251,6 +254,9 @@ type EntryResult struct {
 	// AllChangeIDs lists every change id of the edge (adjudication coverage
 	// audit).
 	AllChangeIDs []string `json:"allChangeIds,omitempty"`
+	// Knowledge counts the knowledge findings of the entry (nil without any;
+	// `ri eval -knowledge`).
+	Knowledge *KnowledgeCounts `json:"knowledge,omitempty"`
 	// actionFindings is the per-finding wrongness audit used by the
 	// adjudication pass (not serialised; the counts are).
 	actionFindings []ActionFindingRecord
@@ -266,6 +272,7 @@ func ScoreEntry(c *Case, edge *domain.UpgradeEdge, report *domain.ImpactReport, 
 	if runErr != nil {
 		res.Error = runErr.Error()
 	}
+	res.Knowledge = knowledgeCounts(report)
 	res.Metrics.Expected = len(c.Expected)
 	for _, e := range c.Expected {
 		switch e.Importance {
@@ -647,6 +654,11 @@ func scoreReport(res *EntryResult, c *Case, edge *domain.UpgradeEdge, report *do
 		ids := findingsFor(l.Expected)
 		audit.Hit = len(ids) > 0
 		audit.FindingIDs = ids
+		for _, f := range report.Findings {
+			if f.Knowledge != nil && f.Classification.Affected() && f.ChangeID != "" && expIDForChange[f.ChangeID] == l.Expected {
+				audit.Facts = appendUniqueString(audit.Facts, f.Knowledge.Fact)
+			}
+		}
 		res.EnvImpact = append(res.EnvImpact, audit)
 		if l.Relevance == RelevanceNotAffected {
 			em.NotAffectedLinks++
@@ -816,4 +828,13 @@ func classForRelevance(rel string) string {
 		return ClassNotAffected
 	}
 	return ""
+}
+
+func appendUniqueString(xs []string, s string) []string {
+	for _, x := range xs {
+		if x == s {
+			return xs
+		}
+	}
+	return append(xs, s)
 }

@@ -24,6 +24,22 @@ confusions, not end-to-end recall. The pack:
 | `dedup-three-sources` | the same fact stated by three sources | the evaluator's duplicate detection must group them |
 | `runtime-dependent-unknown` | a behaviour change static config cannot prove | UNKNOWN (`impact:not-joined`), never action, never not-affected |
 
+The `knowledge-*` fixtures attack the verified-knowledge join
+(`impact.Build` with facts, DESIGN.md §4): each declares hand-built facts
+(the `knowledge:` section; never derived from eval expectations) and asserts
+what the trust ladder and the condition language allow the join to conclude:
+
+| directory | attack | contract |
+|---|---|---|
+| `knowledge-proxy-action` | a proxy-verified fact with true exposure and an action-eligible consequence | a proxy is capped at review-required (`impact:knowledge-exposed`), never ACTION REQUIRED |
+| `knowledge-proxy-clear` | the same proxy fact with false exposure, trying to clear | untrusted knowledge never clears: UNKNOWN (`impact:knowledge-undecided`), never not-affected |
+| `knowledge-wrong-kind` | a fact about `Certificate` whose condition a same-group `CertificateRequest` with an identical field path could satisfy | conditions are kind-scoped; with healthy manifests and no Certificates the fact clears with checks, never exposed |
+| `knowledge-withheld-secret` | the deciding condition reads a withheld ConfigMap value | a withheld value decides nothing: UNKNOWN, never exposed, never clear |
+| `knowledge-partial-manifests` | the condition needs manifests supplied only partially | partial visibility never clears: UNKNOWN |
+| `knowledge-chart-version-inventory` | a cross-product version condition "decided" by a chart version (Argo CD Application, chart 4.12.1) | a chart version is never the app version: UNKNOWN (`cross-product-context-gap`) |
+| `knowledge-missing-product-inventory` | the product missing from an inventory that does not declare itself complete | missing from a non-complete inventory is never "not installed": UNKNOWN, never clear |
+| `knowledge-deprecation-true` | exposure true, consequence a deprecation | the class follows the consequence kind (review-required), never action |
+
 Two further attacks are covered in unit tests only (`adversarial_test.go`):
 
 - **upstream doc unavailable** — a pipeline that cannot run is an execution
@@ -38,4 +54,9 @@ Fixture vocabulary: `edge.changes[].rule` is the upstream diff rule
 note-derived changes); `expect.present`/`expect.absent` are finding matchers
 (`rule`, `classification`, `subject` — all set fields must match, exactly
 like the dataset's finding matchers); `expect.duplicateGroups` asserts the
-evaluator's duplicate grouping over the fixture's changes.
+evaluator's duplicate grouping over the fixture's changes. A `knowledge:`
+section adds hand-built verified facts (`level`, `subject`, `change`,
+`exposure`/`overlap` in the §1.3 condition language, `consequence`,
+`anchors` naming the fixture's own change titles, optional
+`minVerification`); the harness builds valid `VerifiedFact`s from it, so a
+fixture fact that would not validate fails the test.

@@ -1,0 +1,21 @@
+# Identity ESO presents to Vault's Kubernetes auth method (ClusterSecretStore
+# vault-backend, serviceAccountRef vault-auth). The cluster was built on
+# Kubernetes 1.21; the long-lived token Secret created for this account then
+# was kept when the cluster was upgraded and is still listed on the account.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault-auth
+  namespace: external-secrets
+secrets:
+  - name: vault-auth-token
+---
+# Token data omitted from the export.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-auth-token
+  namespace: external-secrets
+  annotations:
+    kubernetes.io/service-account.name: vault-auth
+type: kubernetes.io/service-account-token
