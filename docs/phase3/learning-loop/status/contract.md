@@ -178,3 +178,36 @@ PO-3 and PO-4 are recorded in DECISIONS.md (verbatim in substance, from the comm
 **Docs:** DESIGN §1.4 and §4; ACTION_CLASSIFICATION §5 and §8; IMPACT.md values table.
 
 **Tests:** `go build`, `go vet` and `go test ./...` pass; goldens unchanged.
+
+---
+
+## contract-5 (branch `p3ll/contract-5`, from `p3-learning-loop` @ 9d5126a) — done
+
+These answer the proxy lane's two open contract questions.
+
+**Prose-only corrections.** A `correct` decision that changes only the consequence
+`Statement`/`Remediation` is now valid.
+- It is labelled exactly `[corrected, improved-statement]`. `improved-statement` is a new
+  `FeedbackLabel`. It is not a `wrong-*` label, so it is not a model error for the typed-accuracy
+  metrics.
+- A typed correction may add `improved-statement` only when the prose also changed.
+- A change only to `SemanticAssertion.Statement` is still refused.
+- Original and Corrected are both kept. The fact id is unchanged (digests exclude prose), and the fact
+  takes the corrected prose.
+- **I chose a new label rather than `wrong-consequence`.** Reusing `wrong-consequence` would charge
+  models with an error in the G15 accuracy metrics when the typed consequence was right.
+
+**`Provenance.Provider`.** AI-only, optional, and forbidden on deterministic provenance.
+`ProviderName()` reads either this field or the legacy `Rule "provider:<name>"`. On a proposal it must
+agree with `SemanticProposal.Provider`.
+
+**Follow-ups:**
+- **dashboard:** `internal/reviewui/decision.go` still refuses a correction whose digest is unchanged.
+  It should accept consequence-prose-only edits and label them `[corrected, improved-statement]`.
+- **knowledge:** if the FileStore treats a fact's prose as immutable under the same id, it must accept
+  the corrected prose from an `improved-statement` decision.
+- **proxy, semantic:** set `Provenance.Provider` when writing.
+- **metrics:** report prose edits separately.
+
+**Docs:** DESIGN §2.2, §2.5 and §7; schemas regenerated (new label enum; `provider` on provenance).
+**Tests:** `go build`, `go vet` and `go test ./...` pass; goldens unchanged.

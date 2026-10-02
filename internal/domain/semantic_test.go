@@ -1472,3 +1472,104 @@ func TestRefinementRules(t *testing.T) {
 		})
 	}
 }
+
+// --- contract-5: prose-only corrections and Provenance.Provider -----------------------
+
+func TestProseOnlyCorrection(t *testing.T) {
+	item := validItem(validCandidate())
+	better := func() *SemanticAssertion {
+		a := rotationAssertion()
+		a.Consequence.Statement = "private keys are regenerated on every renewal; consumers pinning the public key break"
+		a.Consequence.Remediation = "set rotationPolicy: Never explicitly where keys are pinned"
+		return &a
+	}
+	correct := func(d *ReviewDecision, c *SemanticAssertion, labels ...FeedbackLabel) {
+		d.Action, d.Corrected, d.Reason, d.Labels = ActionCorrect, c, "clearer statement", labels
+	}
+	cases := []struct {
+		name string
+		mut  func(*ReviewDecision)
+		want string
+	}{
+		{"statement/remediation improved", func(d *ReviewDecision) { correct(d, better(), LabelCorrected, LabelImprovedStatement) }, ""},
+		{"prose-only labelled wrong-consequence", func(d *ReviewDecision) { correct(d, better(), LabelCorrected, LabelWrongConsequence) }, "exactly [corrected, improved-statement]"},
+		{"prose-only labelled corrected only", func(d *ReviewDecision) { correct(d, better(), LabelCorrected) }, "exactly [corrected, improved-statement]"},
+		{"only the assertion's own statement changed", func(d *ReviewDecision) {
+			a := rotationAssertion()
+			a.Statement = "reworded"
+			correct(d, &a, LabelCorrected, LabelImprovedStatement)
+		}, "or the consequence statement/remediation"},
+		{"typed change plus better prose", func(d *ReviewDecision) {
+			c := better()
+			c.Consequence.Kind, c.Consequence.ExposedClass = ConsequenceWorkloadFailure, ImpactActionRequired
+			correct(d, c, LabelCorrected, LabelWrongConsequence, LabelImprovedStatement)
+		}, ""},
+		{"improved-statement on a typed change without prose change", func(d *ReviewDecision) {
+			c := rotationAssertion()
+			c.Consequence = &Consequence{Kind: ConsequenceNone, ExposedClass: ImpactInformational, Statement: c.Consequence.Statement}
+			c.Consequence.Statement = rotationAssertion().Consequence.Statement
+			correct(d, &c, LabelCorrected, LabelWrongConsequence, LabelImprovedStatement)
+		}, "requires the consequence statement/remediation to change"},
+		{"improved-statement on accept", func(d *ReviewDecision) { d.Labels = []FeedbackLabel{LabelAccepted, LabelImprovedStatement} }, "exactly [accepted]"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			d := validDecision(item)
+			tc.mut(&d)
+			expectErr(t, d.Validate(), tc.want)
+		})
+	}
+	// a prose-only correction verifies the consequence aspect of a fact
+	// that carries the improved prose (same digests, same fact id)
+	cand := validCandidate()
+	v := validValidation(cand)
+	d := validDecision(item)
+	correct(&d, better(), LabelCorrected, LabelImprovedStatement)
+	f := validFact(cand, v, d)
+	f.Assertion = *better()
+	f.ID = VerifiedFactID(f.Product, f.Release, f.Assertion)
+	if f.ID != VerifiedFactID(f.Product, f.Release, rotationAssertion()) {
+		t.Fatal("prose must not change the fact id")
+	}
+	expectErr(t, f.Validate(), "")
+	expectErr(t, ValidateFactBasis(f, map[string]ValidationResult{v.ID: v}, map[string]ReviewDecision{d.ID: d}, map[string]ReviewItem{item.ID: item}), "")
+}
+
+func TestProvenanceProvider(t *testing.T) {
+	ai := aiProvenance("claude-opus-5-5", upEvidence().ID)
+	if ai.ProviderName() != "" {
+		t.Fatalf("no provider stated, got %q", ai.ProviderName())
+	}
+	legacy := ai
+	legacy.Rule = "provider:anthropic"
+	if legacy.ProviderName() != "anthropic" {
+		t.Fatalf("legacy rule provider = %q", legacy.ProviderName())
+	}
+	explicit := legacy
+	explicit.Provider = "zai"
+	if explicit.ProviderName() != "zai" {
+		t.Fatal("the explicit field wins over the legacy rule")
+	}
+	expectErr(t, explicit.Validate(), "")
+	det := Provenance{Method: MethodComputed, Producer: "impact@v1", Confidence: ConfidenceHigh, Provider: "anthropic"}
+	expectErr(t, det.Validate(), "must not carry model/prompt fields")
+
+	cand := validCandidate()
+	rehash := func(p *SemanticProposal) { p.ID = ProposalID(p.CandidateID, p.Task, p.Provider, p.Provenance) }
+	for _, tc := range []struct {
+		name string
+		mut  func(*SemanticProposal)
+		want string
+	}{
+		{"provider recorded on provenance", func(p *SemanticProposal) { p.Provenance.Provider = p.Provider; rehash(p) }, ""},
+		{"old record, provider in rule", func(p *SemanticProposal) { p.Provenance.Rule = "provider:" + p.Provider; rehash(p) }, ""},
+		{"provenance names another provider", func(p *SemanticProposal) { p.Provenance.Provider = "anthropic"; rehash(p) }, "differs from the proposal's provider"},
+		{"legacy rule names another provider", func(p *SemanticProposal) { p.Provenance.Rule = "provider:anthropic"; rehash(p) }, "differs from the proposal's provider"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := validProposal(cand)
+			tc.mut(&p)
+			expectErr(t, p.Validate(), tc.want)
+		})
+	}
+}
