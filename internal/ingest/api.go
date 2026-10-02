@@ -155,11 +155,11 @@ type RelationshipReport struct {
 	// produced from (DefinitionDigest()). A saved report whose digest differs
 	// from the current definition is a stale drift baseline; reports saved
 	// before this field existed leave it empty ("unrecorded").
-	DefinitionDigest string `json:"definitionDigest,omitempty"`
-	Releases []string              `json:"releases"`
-	Checks   []RelationshipCheck   `json:"checks"`
-	Summary  []RelationshipSummary `json:"summary"`
-	Evidence []domain.Evidence     `json:"evidence,omitempty"`
+	DefinitionDigest string                `json:"definitionDigest,omitempty"`
+	Releases         []string              `json:"releases"`
+	Checks           []RelationshipCheck   `json:"checks"`
+	Summary          []RelationshipSummary `json:"summary"`
+	Evidence         []domain.Evidence     `json:"evidence,omitempty"`
 }
 
 // CheckRelationships verifies, for each given release, that every declared
