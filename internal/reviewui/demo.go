@@ -110,6 +110,9 @@ func (q *DemoQueue) Inbox(_ context.Context, f knowledge.InboxFilter) (*knowledg
 		switch it.Status {
 		case domain.ReviewPending:
 			in.Counts.Pending++
+			if it.Routing.Priority == domain.PriorityHigh {
+				in.Counts.HighPriority++
+			}
 			if row.Disagreement {
 				in.Counts.ModelDisagreement++
 			}
@@ -224,6 +227,9 @@ func (q *DemoQueue) matches(it domain.ReviewItem, row knowledge.InboxRow, f know
 		if !ok {
 			return false
 		}
+	}
+	if f.Priority != "" && it.Routing.Priority != f.Priority {
+		return false
 	}
 	if f.Reviewer != "" {
 		ok := false

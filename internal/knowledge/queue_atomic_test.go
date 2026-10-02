@@ -101,3 +101,29 @@ func TestDecideRetryAfterAStoreFailureCompletesOnce(t *testing.T) {
 		}
 	}
 }
+
+// CONTRACT-CHANGE(dashboard): InboxFilter.Priority and InboxCounts.HighPriority.
+func TestInboxPriorityFilterAndHighCounter(t *testing.T) {
+	s, _, _ := batchOfTwo(t) // two normal-priority items
+	c := fixtureCandidate()
+	full := rotationAssertion(domain.ConsequenceBehaviorChange)
+	prop := domain.SemanticAssertion{}
+	mergeAspect(&prop, partOf(full, domain.AspectConsequence), domain.AspectConsequence)
+	high := newItem(c, domain.QuestionClassification, prop, domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityHigh}, nil, nil, t0)
+	mustPut(t, s, high)
+	q := NewQueue(s, nil)
+	ctx := context.Background()
+	for pri, want := range map[domain.ReviewPriority]int{domain.PriorityHigh: 1, domain.PriorityNormal: 2, domain.PriorityLow: 0, "": 3} {
+		in, err := q.Inbox(ctx, InboxFilter{Priority: pri})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(in.Items) != want || in.Matches != want {
+			t.Errorf("priority %q: %d items (%d matches), want %d", pri, len(in.Items), in.Matches, want)
+		}
+		// the counters ignore the priority filter
+		if in.Counts.Pending != 3 || in.Counts.HighPriority != 1 {
+			t.Errorf("priority %q: counts %+v", pri, in.Counts)
+		}
+	}
+}

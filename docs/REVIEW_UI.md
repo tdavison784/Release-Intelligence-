@@ -21,7 +21,7 @@ Without JavaScript the inbox lists the items, each links to its page, and every 
 
 | Route | What |
 |---|---|
-| `GET /` | inbox: the G7 counters (clickable) and every G7 filter (status, product, release, subject type, question type, severity, confidence, model, model agreement, evidence source, reviewer) |
+| `GET /` | inbox: the G7 counters (clickable) and every G7 filter (status, product, release, subject type, question type, severity, confidence, **route priority**, model, model agreement, evidence source, reviewer; `?priority=high|normal|low`). A red **High priority N** chip in the header (pending items of priority high; independent of the status and priority filters) links to `?status=pending&priority=high` |
 | `GET /items/{id}` | the item page (deep link): everything of G8 |
 | `GET /items/{id}/detail` | the same detail as an HTML fragment (inline expansion) |
 | `POST /items/{id}/decision` | one decision: `accept`, `reject`, `correct`, `need-more-evidence`, `defer` |
@@ -143,3 +143,9 @@ inbox, expanded card, bulk bar, confirmation, guard, item page, proposals matrix
 The fixtures pair invented excerpts with real-looking GitHub URLs, so with `-demo` (`Options.Demo`) every page — inbox, item, bulk confirmation, error, in
 both themes, and below the sticky header — carries a red **DEMO DATA — fixtures, not real upstream evidence** banner, and the upstream statement, each
 evidence record and each excerpt is tagged **fixture**. Without `-demo` (the knowledge store) none of it renders. `TestDemoModeBannerAndFixtureTags`.
+
+## Proxy decisions
+
+A decision by an AI proxy settles an item like any decision: the item leaves `pending` (and the counters), is found under status *decided*, and its page
+lists the decision as `proxy` and offers no further decision. The UI never records a proxy decision itself. (`TestProxyDecidedItemsLeavePendingAndAreMarked`.)
+Reviewing a large high-priority queue: the inbox shows at most `-limit` rows (default 200) with a "first N of M" notice, highest priority first.

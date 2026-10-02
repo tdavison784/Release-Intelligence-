@@ -28,6 +28,7 @@ type enumView struct {
 	QuestionTypes    []domain.QuestionType
 	WrongLabels      []domain.FeedbackLabel
 	Statuses         []domain.ReviewStatus
+	Priorities       []domain.ReviewPriority
 }
 
 func enums() enumView {
@@ -36,6 +37,7 @@ func enums() enumView {
 		Severities:    domain.AllImpactSeverities,
 		Confidences:   []domain.Confidence{domain.ConfidenceHigh, domain.ConfidenceMedium, domain.ConfidenceLow},
 		QuestionTypes: domain.QuestionTypes,
+		Priorities:    []domain.ReviewPriority{domain.PriorityHigh, domain.PriorityNormal, domain.PriorityLow},
 		Statuses: []domain.ReviewStatus{domain.ReviewPending, domain.ReviewNeedsEvidence, domain.ReviewDeferred,
 			domain.ReviewDecided, domain.ReviewSuperseded},
 	}
@@ -54,7 +56,7 @@ func enums() enumView {
 
 type filterForm struct {
 	Product, Release, Subject, Question, Severity, Confidence string
-	Model, Disagreement, Source, Reviewer                     string
+	Model, Disagreement, Source, Reviewer, Priority           string
 	Status                                                    []string // selected; "all" = every status
 }
 
@@ -62,7 +64,7 @@ func (f filterForm) HasStatus(s string) bool { return slices.Contains(f.Status, 
 
 // Active reports whether anything but the default status is filtered.
 func (f filterForm) Active() bool {
-	return f.Product+f.Release+f.Subject+f.Question+f.Severity+f.Confidence+f.Model+f.Disagreement+f.Source+f.Reviewer != "" ||
+	return f.Product+f.Release+f.Subject+f.Question+f.Severity+f.Confidence+f.Model+f.Disagreement+f.Source+f.Reviewer+f.Priority != "" ||
 		!(len(f.Status) == 1 && f.Status[0] == string(domain.ReviewPending))
 }
 
@@ -71,12 +73,18 @@ func parseFilter(q url.Values, limit int) (knowledge.InboxFilter, filterForm) {
 	form := filterForm{
 		Product: g("product"), Release: g("release"), Subject: g("subject"), Question: g("question"),
 		Severity: g("severity"), Confidence: g("confidence"), Model: g("model"), Disagreement: g("disagreement"),
-		Source: g("source"), Reviewer: g("reviewer"),
+		Source: g("source"), Reviewer: g("reviewer"), Priority: g("priority"),
 	}
 	f := knowledge.InboxFilter{
 		Product: domain.ProductID(form.Product), Release: form.Release, SubjectType: domain.SubjectFamily(form.Subject),
 		QuestionType: domain.QuestionType(form.Question), Severity: domain.ImpactSeverity(form.Severity),
 		Confidence: domain.Confidence(form.Confidence), Model: form.Model, Source: form.Source, Reviewer: form.Reviewer, Limit: limit,
+	}
+	switch domain.ReviewPriority(form.Priority) {
+	case domain.PriorityHigh, domain.PriorityNormal, domain.PriorityLow:
+		f.Priority = domain.ReviewPriority(form.Priority)
+	default:
+		form.Priority = ""
 	}
 	switch form.Disagreement {
 	case "yes":
@@ -125,6 +133,7 @@ func tiles(c knowledge.InboxCounts) []tile {
 	}
 	return []tile{
 		{"Pending", href("status", "pending"), "open questions", c.Pending, "accent"},
+		{"High priority", href("status", "pending", "priority", "high"), "route priority high, pending", c.HighPriority, "danger"},
 		{"Model disagreement", href("status", "pending", "disagreement", "yes"), "proposals disagree on an aspect", c.ModelDisagreement, "warn"},
 		{"Needs semantic mapping", href("status", "pending", "question", "semantic-mapping"), "what changed, exactly?", c.NeedsSemanticMapping, ""},
 		{"Applicability", href("status", "pending", "question", "applicability"), "who is exposed?", c.ApplicabilityQuestions, ""},

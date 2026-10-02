@@ -116,6 +116,9 @@ func (q *reviewQueue) Inbox(ctx context.Context, f InboxFilter) (*Inbox, error) 
 		switch it.Status {
 		case domain.ReviewPending:
 			inbox.Counts.Pending++
+			if it.Routing.Priority == domain.PriorityHigh {
+				inbox.Counts.HighPriority++
+			}
 			if disagree {
 				inbox.Counts.ModelDisagreement++
 			}
@@ -129,6 +132,9 @@ func (q *reviewQueue) Inbox(ctx context.Context, f InboxFilter) (*Inbox, error) 
 			inbox.Counts.NeedsMoreEvidence++
 		case domain.ReviewDeferred:
 			inbox.Counts.Deferred++
+		}
+		if f.Priority != "" && it.Routing.Priority != f.Priority {
+			continue
 		}
 		if len(f.Status) > 0 {
 			ok := false

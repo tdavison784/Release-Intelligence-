@@ -211,7 +211,10 @@ type InboxFilter struct {
 	Source       string // upstream evidence URI substring
 	Status       []domain.ReviewStatus
 	Reviewer     string
-	Limit        int
+	// Priority filters on the item's route priority (high | normal | low).
+	// CONTRACT-CHANGE(dashboard): additive.
+	Priority domain.ReviewPriority
+	Limit    int
 }
 
 // Inbox is the dashboard's landing view.
@@ -233,6 +236,10 @@ type InboxCounts struct {
 	ApplicabilityQuestions int
 	NeedsMoreEvidence      int
 	Deferred               int
+	// HighPriority counts pending items of route priority high
+	// (CONTRACT-CHANGE(dashboard): additive). Like the other counters it is
+	// independent of the status and priority filters.
+	HighPriority int
 }
 
 // InboxRow is one line of the inbox.

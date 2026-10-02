@@ -692,3 +692,58 @@ func TestInboxLimitShowsTheTruncationNotice(t *testing.T) {
 	_, body := r.get("/")
 	contains(t, body, "Showing the first 3 of 10 matching items", "Select all 3 shown")
 }
+
+// --- dashboard-6: the route-priority filter, and proxy-decided items ---------------------------------
+
+func TestPriorityFilterAndCounter(t *testing.T) {
+	r := newRig(t)
+	_, all := r.get("/")
+	contains(t, all, "<b>2</b><span>High priority</span>", `href="/?priority=high&amp;status=pending"`, `name="priority"`)
+	for _, tc := range []struct {
+		q         string
+		want, not []string
+	}{
+		{"priority=high", []string{"rotationPolicy", "RSA keys below 2048"}, []string{"HTTP01 solver", "Default of --"}},
+		{"priority=normal", []string{"HTTP01 solver", "Default of --"}, []string{"rotationPolicy", "RSA keys below 2048"}},
+		{"priority=low&status=all", []string{"Ambient data plane", "Default retention changed"}, []string{"rotationPolicy"}},
+		{"priority=bogus", []string{"rotationPolicy", "HTTP01 solver"}, nil}, // an unknown value is ignored
+	} {
+		st, body := r.get("/?status=pending&" + tc.q)
+		if st != 200 {
+			t.Fatal(st)
+		}
+		contains(t, body, tc.want...)
+		lacks(t, body, tc.not...)
+		// the counters do not move with the priority filter
+		contains(t, body, "<b>2</b><span>High priority</span>", "<b>10</b><span>Pending</span>")
+	}
+	_, f := r.get("/?priority=high")
+	contains(t, f, `<option value="high" selected>`, "active") // the filter panel opens with it applied
+}
+
+// A decision by an AI proxy settles the item like any decision: it leaves
+// "pending" (and the counters), is found under "decided", and says "proxy" on the item page.
+func TestProxyDecidedItemsLeavePendingAndAreMarked(t *testing.T) {
+	r := newRig(t)
+	id := r.id("Default of --max-concurrent-challenges")
+	it, _ := r.q.ItemRecord(id)
+	orig := it.Proposed
+	prov := r.q.proposals[it.Proposals[0]].Provenance
+	d := domain.ReviewDecision{ReviewItemID: id, Action: domain.ActionAccept, Labels: []domain.FeedbackLabel{domain.LabelAccepted}, Original: &orig,
+		Reviewer: "opus-proxy", ReviewerKind: domain.ReviewerProxy, ProxyProvenance: &prov, StartedAt: now.Add(-time.Minute), DecidedAt: now}
+	d.ID = domain.DecisionID(d.ReviewItemID, d.Reviewer, d.DecidedAt)
+	if _, err := r.q.Decide(context.Background(), []domain.ReviewDecision{d}); err != nil {
+		t.Fatal(err)
+	}
+	_, pending := r.get("/")
+	lacks(t, pending, "Default of --max-concurrent-challenges")
+	contains(t, pending, "<b>9</b><span>Pending</span>")
+	_, decided := r.get("/?status=decided")
+	contains(t, decided, "Default of --max-concurrent-challenges")
+	_, page := r.get("/items/" + id)
+	contains(t, page, "opus-proxy", "(proxy)", "no further decision can be added")
+	// and a human cannot re-decide it from the UI
+	if st, _, _ := r.post("/items/"+id+"/decision", decisionForm("accept")); st != 409 {
+		t.Errorf("%d", st)
+	}
+}

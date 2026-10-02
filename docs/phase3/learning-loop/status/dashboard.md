@@ -130,3 +130,12 @@ scope, exclude-blocked, atomic on queue refusal, correct/proxy refused).
   without `-demo`. Test: `TestDemoModeBannerAndFixtureTags`.
 - `ri review serve -limit N` (3 lines) so the truncation notice is demonstrable (`TestInboxLimitShowsTheTruncationNotice`; snapshot `inbox-truncated.html`).
 - Screenshots and HTML snapshots re-taken (all 25 PNGs carry the banner); the Firefox script still passes.
+
+## dashboard-6 (branch `p3ll/dashboard-6`): route-priority filter
+- `?priority=high|normal|low` filter (select in the filters panel, active-state aware) and a clickable red **High priority N** chip.
+- **CONTRACT-CHANGE(dashboard)** (additive, `internal/knowledge`): `InboxFilter.Priority`, `InboxCounts.HighPriority` (pending + high; independent of the
+  status/priority filters, like the other counters); implemented in `reviewQueue.Inbox` (`TestInboxPriorityFilterAndHighCounter`) and in the demo queue.
+- Proxy awareness: proxy-decided items are `decided` and so already hidden from pending; pinned by `TestProxyDecidedItemsLeavePendingAndAreMarked` (no behaviour change).
+- For the ~211 high items: the inbox default limit is 200 (a "first 200 of 211" notice shows; select-all/bulk cover the shown rows) — run with `-limit 500` to see all.
+  Bulk accept of high-priority items still requires opening each item first (the guard).
+- Screenshots `30-high-priority-filter-{light,dark}.png`.
