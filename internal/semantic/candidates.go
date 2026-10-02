@@ -103,8 +103,31 @@ type unit struct {
 	chart    string   // computed values:*: the subchart named in the title ("(chart cni)")
 }
 
+// CandidateOptions add optional, deterministic context to candidates.
+type CandidateOptions struct {
+	// RenderedEvidence returns the release-level rendered-diff evidence the
+	// given member changes restate (render.EdgeRendered.ForChanges: the
+	// render lane's deterministic correlation). It is appended to the
+	// candidate's evidence, so proposals may cite it like any other record.
+	// Only chart-default (scope release) renders are accepted; anything else
+	// is dropped and recorded as a skip, never shown to a model.
+	RenderedEvidence func(memberIDs []string) []domain.Evidence
+}
+
+// SkipEnvironmentRender records rendered evidence refused because its
+// render carries customer configuration (or no render provenance).
+const SkipEnvironmentRender = "environment-render-refused"
+
 // BuildCandidates is Candidates with the record of what was skipped and why.
 func BuildCandidates(edge *domain.UpgradeEdge, now time.Time) CandidateReport {
+	return BuildCandidatesWith(edge, now, CandidateOptions{})
+}
+
+// BuildCandidatesWith is BuildCandidates with optional context (rendered
+// evidence, DESIGN.md product-owner addendum). Candidate ids are
+// member-derived, so a render-augmented candidate has the id of the plain
+// one: write it to its own store when comparing with and without renders.
+func BuildCandidatesWith(edge *domain.UpgradeEdge, now time.Time, opts CandidateOptions) CandidateReport {
 	var rep CandidateReport
 	if edge == nil {
 		return rep
@@ -279,6 +302,13 @@ func BuildCandidates(edge *domain.UpgradeEdge, now time.Time) CandidateReport {
 	for _, cl := range clusters {
 		sort.SliceStable(cl.members, func(i, j int) bool { return cl.members[i].idx < cl.members[j].idx })
 		cand := buildCandidate(edge, cl.members, cl.rules, evByID, now)
+		if opts.RenderedEvidence != nil {
+			var skipped string
+			cand.Evidence, skipped = withRendered(cand, opts.RenderedEvidence(memberIDsOf(cand)))
+			if skipped != "" {
+				rep.Skipped = append(rep.Skipped, Skip{ChangeID: cand.Members[0].ChangeID, Reason: SkipEnvironmentRender, Detail: skipped})
+			}
+		}
 		if err := cand.Validate(); err != nil {
 			for _, u := range cl.members {
 				rep.Skipped = append(rep.Skipped, Skip{ChangeID: u.c.ID, Reason: SkipInvalid, Detail: oneLine(err.Error())})
@@ -355,6 +385,38 @@ func buildCandidate(edge *domain.UpgradeEdge, us []*unit, rules map[string]bool,
 		Producer:  CandidateProducer,
 		CreatedAt: now.UTC().Truncate(time.Second),
 	}
+}
+
+func memberIDsOf(c domain.SemanticCandidate) []string {
+	ids := make([]string, len(c.Members))
+	for i, m := range c.Members {
+		ids[i] = m.ChangeID
+	}
+	return ids
+}
+
+// withRendered appends release-scope rendered evidence (deduplicated) and
+// names what it refused.
+func withRendered(c domain.SemanticCandidate, evs []domain.Evidence) ([]domain.Evidence, string) {
+	out := c.Evidence
+	have := map[domain.EvidenceID]bool{}
+	for _, e := range out {
+		have[e.ID] = true
+	}
+	var refused []string
+	for _, e := range evs {
+		switch {
+		case e.Render == nil || e.Render.Scope != domain.RenderRelease || e.Render.Validate() != nil:
+			refused = append(refused, string(e.ID))
+		case !have[e.ID]:
+			have[e.ID] = true
+			out = append(out, e)
+		}
+	}
+	if len(refused) > 0 {
+		return out, "not release-scope rendered evidence: " + strings.Join(refused, ", ")
+	}
+	return out, ""
 }
 
 // leadSentence is the statement a title leads with: release-note titles

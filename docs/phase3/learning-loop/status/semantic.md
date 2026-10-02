@@ -84,8 +84,18 @@ no cross-model measurement exists yet (needs GLM/Codex). See `runs/semantic-v2/R
 
 ## Next
 
-- Rendered-diff addendum: plumbing ready (render evidence enters through the candidate's evidence;
-  prompt version `+rendered`); waits for the render lane (its work sits unmerged on `p3ll/render`).
+- Rendered-diff addendum: **wired** now that render-2 is merged. `BuildCandidatesWith(…,
+  CandidateOptions{RenderedEvidence: render.EdgeRendered.ForChanges})` attaches release-scope rendered
+  evidence to the candidates it correlates with; environment renders are refused and recorded
+  (`environment-render-refused`); prompts showing it are `semantic-<task>/v1+rendered`;
+  `ri semantic propose -render [-kubernetes V]`. A render failure is reported and the run proceeds
+  without render evidence (never "no change"). Smoke on cert-manager v1.17.0→v1.18.0: 14 rendered
+  changes reach the seam, but the render correlation links them only to image artifacts and one
+  joined values diff, none of them a candidate member, so 0 candidates gain evidence. The with/without
+  measurement needs edges where correlation reaches prose or no-join members (render-lane input).
+  Candidate ids are member-derived, so a `-render` run must use its own `-out` store.
+  Render-lane note: offline, a missing chart makes `EdgeRenderedChanges` say "a  render carries
+  customer configuration" (empty scope checked before status); the real cause is chart-unavailable.
 - Commander decision requested: import `.ri/semantic-run-v2/knowledge` into the committed
   `knowledge/` tree (or keep per-run scratch stores), and route `ri knowledge candidates|propose`
   through the semantic subcommands (stub drop listed above).

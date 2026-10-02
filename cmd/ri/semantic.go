@@ -9,6 +9,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/knowledge"
 	"github.com/tdavison784/release-intelligence/internal/llm"
+	"github.com/tdavison784/release-intelligence/internal/render"
 	"github.com/tdavison784/release-intelligence/internal/semantic"
 )
 
@@ -82,6 +83,8 @@ func (c *cli) semanticPropose(args []string) error {
 	max := fs.Int("max", 0, "only the first N candidates (0 = all)")
 	parallel := fs.Int("parallel", 4, "concurrent requests per model")
 	output := fs.String("o", "text", "output format: text|json")
+	withRender := fs.Bool("render", false, "add release-level (chart-default) rendered-diff evidence to candidates (prompt version +rendered); use a separate -out store to compare with a run without it")
+	kube := fs.String("kubernetes", "", "Kubernetes version for -render (chart kubeVersion gates)")
 	pos, err := parse(fs, args)
 	if err != nil {
 		return err
@@ -109,7 +112,18 @@ func (c *cli) semanticPropose(args []string) error {
 	if err != nil {
 		return err
 	}
-	cands := semantic.Candidates(edge, edge.GeneratedAt)
+	var copts semantic.CandidateOptions
+	if *withRender {
+		er, rerr := render.EdgeRenderedChanges(c.ctx, a.RenderEngine().ReleasePairs(*kube), edge)
+		if rerr != nil {
+			// never "no change": the run proceeds without render evidence, and says so
+			fmt.Fprintf(c.err, "semantic: no rendered evidence for this edge: %v\n", rerr)
+		} else {
+			copts.RenderedEvidence = er.ForChanges
+			fmt.Fprintf(c.err, "semantic: %d release-level rendered change(s) available as evidence\n", len(er.Evidence))
+		}
+	}
+	cands := semantic.BuildCandidatesWith(edge, edge.GeneratedAt, copts).Candidates
 	if *max > 0 && len(cands) > *max {
 		cands = cands[:*max]
 	}

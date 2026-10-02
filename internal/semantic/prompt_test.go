@@ -90,3 +90,46 @@ func TestArtifactContextIsFilteredPathsOnly(t *testing.T) {
 		t.Error("context shows key paths, never values")
 	}
 }
+
+// The render addendum through candidate generation: release-scope rendered
+// evidence attaches to the candidate whose members it restates and becomes
+// citable; environment-scope renders never reach a candidate (or a prompt).
+func TestBuildCandidatesWithRenderedEvidence(t *testing.T) {
+	rel := domain.NewEvidence(domain.EvidenceStructured, "render", "https://example.io/widget/templates/rbac.yaml", "rules[0]", "verbs: [get]", "", t0)
+	rel.Render = &domain.RenderProvenance{Scope: domain.RenderRelease, Tool: "helm", ToolVersion: "v3.17.2", ChartDigest: "sha256:abc"}
+	env := domain.NewEvidence(domain.EvidenceStructured, "render", "https://example.io/widget/templates/rbac.yaml", "rules[1]", "verbs: [list]", "", t0)
+	env.Render = &domain.RenderProvenance{Scope: domain.RenderEnvironment, Tool: "helm", ToolVersion: "v3.17.2", ChartDigest: "sha256:abc", ValuesDigest: "sha256:customer"}
+	rep := BuildCandidatesWith(rotationEdge(), t0, CandidateOptions{RenderedEvidence: func(ids []string) []domain.Evidence {
+		if contains(ids, "chg-helm") {
+			return []domain.Evidence{rel, env}
+		}
+		return nil
+	}})
+	helm := candidateFor(t, rep.Candidates, "chg-helm")
+	if err := helm.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	var got []domain.EvidenceID
+	for _, e := range helm.Evidence {
+		if e.Render != nil {
+			got = append(got, e.ID)
+		}
+	}
+	if len(got) != 1 || got[0] != rel.ID {
+		t.Fatalf("rendered evidence on the candidate = %v, want only the release-scope record", got)
+	}
+	refused := false
+	for _, s := range rep.Skipped {
+		refused = refused || (s.Reason == SkipEnvironmentRender && strings.Contains(s.Detail, string(env.ID)))
+	}
+	if !refused {
+		t.Error("the environment render must be refused and recorded")
+	}
+	if other := candidateFor(t, rep.Candidates, "chg-guide"); len(other.Evidence) != 3 {
+		t.Errorf("unrelated candidates get no rendered evidence: %d records", len(other.Evidence))
+	}
+	pr, err := BuildPrompt(knowledge.ProposalRequest{Candidate: helm, Task: domain.TaskFull}, "m")
+	if err != nil || pr.PromptVersion != "semantic-full/v1+rendered" || strings.Contains(pr.Request.Messages[0].Content, "customer") {
+		t.Fatalf("prompt %v %v", pr.PromptVersion, err)
+	}
+}

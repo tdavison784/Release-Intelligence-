@@ -133,8 +133,12 @@ semantic.ArtifactContext(toRelease, cand)                               // key/s
 
 `knowledge.Proposer` is the only seam: a typed model (a "System One" proposer, a Codex-backed one)
 implements it by producing an `Answer` and calling `ProposalFromAnswer`, sharing every check. Rendered
-release-level evidence (render-lane addendum) enters through the candidate's evidence (only
-`scope: release` renders validate) and marks the prompt version `+rendered`.
+release-level evidence (render-lane addendum) enters through the candidate's evidence:
+`BuildCandidatesWith(edge, now, CandidateOptions{RenderedEvidence: er.ForChanges})` with
+`er := render.EdgeRenderedChanges(…)` (or `ri semantic propose -render [-kubernetes V]`). Only
+`scope: release` (chart-default) renders are accepted; anything else is refused and recorded. Prompts
+showing it carry the version `+rendered`. Candidate ids are member-derived, so compare with/without
+renders in separate `-out` stores.
 
 ## Multi-model runs without API keys
 
