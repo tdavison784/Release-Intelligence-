@@ -32,18 +32,21 @@ type ModelRun struct {
 	FailureReasons  []string       `json:"failureReasons,omitempty"`
 }
 
-// AspectAgreementStat is agreement on one aspect among the models that
-// asserted it for the same candidate and task (equal AspectDigest).
+// AspectAgreementStat is agreement on one aspect among the answers that
+// asserted it for the same candidate and task (equal AspectDigest). Every
+// separate call is one answer (PO-1), so two calls of the same model are a
+// pair, labelled "model|model".
 type AspectAgreementStat struct {
 	Aspect domain.Aspect `json:"aspect"`
-	// Compared counts candidate×task pairs where ≥2 models asserted the aspect.
+	// Compared counts candidate×task pairs where ≥2 answers asserted the aspect.
 	Compared int `json:"compared"`
-	// AllAgree counts those where every asserting model has the same digest.
+	// AllAgree counts those where every asserting answer has the same digest.
 	AllAgree int `json:"allAgree"`
 	// Pairwise maps "modelA|modelB" to [agree, compared].
 	Pairwise map[string][2]int `json:"pairwise"`
-	// SameFamily is true when every compared model is of one family
-	// (domain.ModelFamily): such agreement is not independent.
+	// SameFamily is true when every compared answer is of one model family
+	// (domain.ModelFamily); same-model agreement is the case PO-1 made
+	// measurable, so it is reported, not hidden.
 	SameFamily bool `json:"sameFamily"`
 }
 
@@ -92,8 +95,13 @@ func Summarize(ncands int, props []domain.SemanticProposal, fails []knowledge.Pr
 		rep.Models = append(rep.Models, *runs[k])
 	}
 
-	// agreement per aspect over candidate×task groups
-	type group map[string]string // model → aspect digest
+	// agreement per aspect over candidate×task groups. Every separate call
+	// is its own answer (PO-1: two calls of one model are a comparable pair,
+	// labelled "model|model"); provider+model+call id keys the answer, the
+	// model labels it. Two answers of one model with the same call id are
+	// by definition not separate calls and stay one answer.
+	type answer struct{ model, digest string }
+	type group map[string]answer
 	byKey := map[string]map[domain.Aspect]group{}
 	for _, p := range props {
 		k := p.CandidateID + "|" + string(p.Task)
@@ -104,7 +112,8 @@ func Summarize(ncands int, props []domain.SemanticProposal, fails []knowledge.Pr
 			if byKey[k][a] == nil {
 				byKey[k][a] = group{}
 			}
-			byKey[k][a][p.Provenance.Model] = p.Assertion.AspectDigest(a)
+			id := p.Provider + "|" + p.Provenance.Model + "|" + p.Provenance.CallID
+			byKey[k][a][id] = answer{p.Provenance.Model, p.Assertion.AspectDigest(a)}
 		}
 	}
 	for _, a := range domain.Aspects {
@@ -115,25 +124,25 @@ func Summarize(ncands int, props []domain.SemanticProposal, fails []knowledge.Pr
 				continue
 			}
 			st.Compared++
-			models := make([]string, 0, len(g))
+			keys := make([]string, 0, len(g))
 			digests := map[string]bool{}
-			for m, d := range g {
-				models = append(models, m)
-				digests[d] = true
+			for k, an := range g {
+				keys = append(keys, k)
+				digests[an.digest] = true
 			}
-			sort.Strings(models)
+			sort.Strings(keys)
 			if len(digests) == 1 {
 				st.AllAgree++
 			}
-			for i := range models {
-				if domain.ModelFamily(models[i]) != domain.ModelFamily(models[0]) {
+			for i := range keys {
+				if domain.ModelFamily(g[keys[i]].model) != domain.ModelFamily(g[keys[0]].model) {
 					st.SameFamily = false
 				}
-				for j := i + 1; j < len(models); j++ {
-					pk := models[i] + "|" + models[j]
+				for j := i + 1; j < len(keys); j++ {
+					pk := g[keys[i]].model + "|" + g[keys[j]].model
 					v := st.Pairwise[pk]
 					v[1]++
-					if g[models[i]] == g[models[j]] {
+					if g[keys[i]].digest == g[keys[j]].digest {
 						v[0]++
 					}
 					st.Pairwise[pk] = v

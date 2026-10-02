@@ -61,3 +61,31 @@ func TestWriteRecordsAndSummary(t *testing.T) {
 		}
 	}
 }
+
+// PO-1: two separate calls of the SAME model are a comparable pair; the
+// agreement report must count them (labelled model|model), not collapse
+// them into one answer.
+func TestSummaryCountsSameModelSeparateCalls(t *testing.T) {
+	cands := Candidates(rotationEdge(), t0)
+	c := candidateFor(t, cands, "chg-guide")
+	f := &llm.Fake{Model: "claude-sonnet-5-5", Respond: func(llm.Request) (string, error) {
+		return fullAnswer(c, nil), nil // identical answers: agreement must be 1/1
+	}}
+	ps := []knowledge.Proposer{ // same model asked twice: two separate calls
+		NewLLMProposer(f, "anthropic", "claude-sonnet-5-5", ProposerOptions{}),
+		NewLLMProposer(f, "anthropic", "claude-sonnet-5-5", ProposerOptions{}),
+	}
+	props, _ := ProposeAllWith(context.Background(), cands, ps, []domain.ProposalTask{domain.TaskFull}, ProposeOptions{Clock: func() time.Time { return t0 }})
+	if len(props) != 2 || !domain.SeparateCalls(props[0], props[1]) {
+		t.Fatalf("two separate calls expected: %d proposals", len(props))
+	}
+	rep := Summarize(len(cands), props, nil)
+	for _, a := range rep.Agreement {
+		if a.Compared != 1 || a.AllAgree != 1 {
+			t.Errorf("aspect %s: %+v (two same-model calls both count)", a.Aspect, a)
+		}
+		if v := a.Pairwise["claude-sonnet-5-5|claude-sonnet-5-5"]; v != [2]int{1, 1} {
+			t.Errorf("aspect %s: same-model pair = %v", a.Aspect, v)
+		}
+	}
+}
