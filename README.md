@@ -72,6 +72,12 @@ in the release's install manifest, at a specific line. `[expected]` means
 nothing could confirm the artifact, so it is never presented as verified.
 Full examples are in [`internal/app/testdata/e2e/golden/`](internal/app/testdata/e2e/golden).
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** the
+> `✗ github-releases … HTTP 403`, `✗ controller-image … unavailable: quay.io` and
+> `[expected]`/`[referenced]` lines above are the output of a network-restricted
+> sandbox run. With network access GitHub, quay.io and the Helm repositories
+> answer, those lines are `✓`, and artifacts shown as `[referenced]` or `[expected]` here verify directly at their registries. HTTP 429 is shown as `throttled`.
+
 ## Core ideas
 
 - **Product first.** A product publishes many artifacts per release: VCS

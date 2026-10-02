@@ -1,5 +1,7 @@
 # Grafana (OSS) release-channel research (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** the checks and probes were re-run live; the live `ri check` outcomes are unchanged. Any unreachable host recorded below was a transient anonymous rate limit or an anonymous-auth refusal, not a block of this product's channels (details: docs/rerun/REPORT.md, per-product table). The original text below is kept as the record of 2026-10-01.
+
 Legend: [200] = fetched with HTTP 200 / successful git operation in this sandbox. UNVERIFIED = could not be checked here.
 `RAW` = `https://raw.githubusercontent.com/grafana/grafana`. Product: **Grafana OSS**
 (the open-source visualization/observability platform, `github.com/grafana/grafana`);

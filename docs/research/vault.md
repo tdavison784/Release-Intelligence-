@@ -1,5 +1,7 @@
 # HashiCorp Vault release-channel map (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** helm.releases.hashicorp.com (366 chart versions), developer.hashicorp.com, www.vaultproject.io, discuss.hashicorp.com, checkpoint-api.hashicorp.com, endoflife.date, registry.terraform.io, go.hashi.co and releases.hashicorp.com answer; api.github.com shows 0 repository advisories. The helm-repo channel (declared first) validates for 7 releases; `ghcr.io` token → 403 as before (no Vault image published there). The original text below is kept as the record of 2026-10-01.
+
 Scope: product `vault` (github.com/hashicorp/vault, "UP"), chart repository github.com/hashicorp/vault-helm ("HELM"), docs content repository github.com/hashicorp/web-unified-docs ("DOCS").
 Method: `git ls-remote`, blobless clones, raw.githubusercontent.com (HTTP 200 checked), releases.hashicorp.com, Docker Hub tag API and registry manifests, `HEAD` probes. Snapshots: vault tags up to v2.1.1 (2026-09-16), DOCS `main`, HELM tags up to v0.34.1.
 

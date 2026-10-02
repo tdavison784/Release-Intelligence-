@@ -555,5 +555,44 @@ func renderMarkdown(w io.Writer, rep *Report) error {
 			fmt.Fprintln(w, "- "+m)
 		}
 	}
+	io.WriteString(w, markdownCorrections)
 	return nil
 }
+
+// markdownCorrections is the dated correction log of this generated report.
+// It is static text in the generator, not hand edits to docs/ONBOARDING.md,
+// so it survives regeneration. Append new entries; never rewrite old ones.
+const markdownCorrections = `
+## Corrections
+
+Phase 1 and most of Phase 2 ran in a network-restricted sandbox. The statements
+below were true of that run only; the original text above and in the records is
+kept as the historical record.
+
+**Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):**
+
+- *Introduction ("the unverifiable ones are only those behind unreachable hosts")
+  and the "Unreachable sources" / "unverifiable" columns*: recorded from the
+  sandbox. Live, unverifiable checks fell to 0 for cert-manager (12), ingress-nginx
+  (47) and postgresql (15); remaining unverifiable subjects are falco (a genuine
+  digest mismatch: falco-9.0.0.tgz was re-published after its index entry) and
+  minio (anonymous pulls of minio/minio are denied). karpenter's HTTP 429s were
+  throttling, not unavailability, and its checks all validate on the sequential
+  re-run after the throttling fixes. The saved check reports for argo-cd
+  (v3.4.1 in place of the never-published v3.4.0 release), cert-manager,
+  crossplane, external-secrets, ingress-nginx, karpenter, postgresql,
+  redis, terraform-provider-aws, traefik, vault, istio, strimzi and
+  kube-prometheus-stack — 14 products — were replaced by the live runs, so
+  the validated / unverifiable counts above reflect them.
+- *` + "`locator:helm-git`" + ` (vault): "helm.releases.hashicorp.com is blocked from the
+  sandbox"*: it answers (366 chart versions) and the helm-repo channel declared
+  first validates; helm-git remains as the fallback. Likewise the notes that call
+  charts.crossplane.io, charts.external-secrets.io, kubernetes.github.io,
+  charts.jetstack.io, quay.io or api.github.com blocked.
+- *` + "`field:sources.locator.url`" + ` (postgresql): "the host is blocked"*:
+  www.postgresql.org answers; the security page could be read directly.
+- *Argo CD "v3.4.0 exception"*: v3.4.0 is a git tag that was never a GitHub
+  release; the definition's exception wording was corrected.
+- *ingress-nginx*: the live run found that ` + "`controller-chroot:v1.10.0`" + ` was never
+  published (exception added to the definition).
+`
