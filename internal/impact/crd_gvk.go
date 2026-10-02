@@ -323,6 +323,199 @@ func (g gvkLines) lines(uses []env.GVKUsage) []string {
 	return out
 }
 
+// resourceField is one full-depth field fact with the resource that sets it.
+type resourceField struct {
+	res  *env.Resource
+	fact env.FieldFact
+}
+
+// removedPathsInResources looks for the removed schema paths in the
+// full-depth resource facts (sequences descended, "[]" syntax — the syntax of
+// the CRD schema paths, so no marker stripping is needed) of the matched GVK
+// usages. ok is false — undecidable, the caller keeps its review — unless the
+// manifests parsed completely and every document of the usages is covered by
+// a resource with field facts (a CRD definition document of the GVK stages
+// the usage entry too, but a schema is not a resource of the kind and can
+// never set the field); absence in a partial inventory is not knowledge.
+// setters lists the facts at or below a removed path.
+func (b *builder) removedPathsInResources(uses []env.GVKUsage, subjects []string) ([]resourceField, bool) {
+	if len(uses) == 0 || b.env.Health(string(domain.DimensionManifests)) != env.HealthOK {
+		return nil, false
+	}
+	ix := envEvidenceIndex(b.env)
+	var setters []resourceField
+	for _, u := range uses {
+		covered := map[env.DocumentRef]bool{}
+		for i := range b.env.Resources {
+			r := &b.env.Resources[i]
+			if r.Group != u.Group || r.Version != u.Version || r.Kind != u.Kind {
+				continue
+			}
+			if len(r.Fields) == 0 {
+				return nil, false
+			}
+			covered[r.Doc] = true
+			for _, f := range r.Fields {
+				if f.Withheld == "oversize" {
+					return nil, false // a truncated subtree could hide the path
+				}
+				for _, s := range subjects {
+					if rel := relate(s, f.Path); rel == relExact || rel == relSubjectAncestor {
+						setters = append(setters, resourceField{res: r, fact: f})
+						break
+					}
+				}
+			}
+		}
+		defDocs := crdDefinitionDocs(b.env, ix, u.Group, u.Kind)
+		for _, d := range u.Documents {
+			if !covered[d] && !defDocs[d] {
+				return nil, false
+			}
+		}
+	}
+	return setters, true
+}
+
+// crdDefinitionDocs returns the documents that define installed CRDs of the
+// group/kind: a CRD document stages the GVK usage entry of every version it
+// serves, yet it is the schema definition, not a resource of the kind — it
+// cannot set a field of the kind it defines, so it must not block a coverage
+// decision. Any CRD of the group/kind qualifies: one document is one
+// resource, and a CustomResourceDefinition is never a resource of its own kind.
+func crdDefinitionDocs(e *env.Environment, ix evIndex, group, kind string) map[env.DocumentRef]bool {
+	out := map[env.DocumentRef]bool{}
+	for i := range e.CRDs {
+		c := &e.CRDs[i]
+		if c.Group != group || c.Kind != kind {
+			continue
+		}
+		for _, id := range c.Evidence {
+			ev, ok := ix[id]
+			if !ok || ev.Kind != domain.EvidenceLocalFile {
+				continue
+			}
+			line := 0
+			fmt.Sscanf(ev.Locator, "L%d", &line)
+			out[env.DocumentRef{File: ev.URI, StartLine: line}] = true
+		}
+	}
+	return out
+}
+
+// usageOfResources narrows a GVK usage entry to the documents of the given
+// setters (the why-block names the exposed resources only).
+func usageOfResources(u env.GVKUsage, setters []resourceField) env.GVKUsage {
+	docs := map[env.DocumentRef]bool{}
+	names := map[env.ResourceName]bool{}
+	for _, st := range setters {
+		docs[st.res.Doc] = true
+		names[env.ResourceName{Name: st.res.Name, Namespace: st.res.Namespace}] = true
+	}
+	out := u
+	out.Names, out.Documents = nil, nil
+	for _, n := range u.Names {
+		if names[n] {
+			out.Names = append(out.Names, n)
+		}
+	}
+	for _, d := range u.Documents {
+		if docs[d] {
+			out.Documents = append(out.Documents, d)
+		}
+	}
+	if len(out.Documents) == 0 {
+		return u
+	}
+	return out
+}
+
+func capList(xs []string, n int) []string {
+	if len(xs) <= n {
+		return xs
+	}
+	return append(append([]string{}, xs[:n]...), fmt.Sprintf("+%d more", len(xs)-n))
+}
+
+// appendUniqueField appends f unless the same field fact (path, line,
+// evidence) is already listed: several removed sub-paths can relate to one set
+// field (a set list leaf `spec.resources` relates to every removed
+// `spec.resources[].…` path), and the why-block must list it once.
+func appendUniqueField(fs []env.ManifestField, f env.ManifestField) []env.ManifestField {
+	for _, x := range fs {
+		if x.Path == f.Path && x.Line == f.Line && sameEvidence(x.Evidence, f.Evidence) {
+			return fs
+		}
+	}
+	return append(fs, f)
+}
+
+func sameEvidence(a, b []domain.EvidenceID) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// usageSettingFields narrows a GVK usage entry to the documents that contain
+// the given field facts, so a why-block names the resources that actually set
+// the matched fields, not every resource of the GVK. A field belongs to the
+// resource document of its file with the greatest start line at or before the
+// field's line. When no field can be placed (no line or file evidence), the
+// entry is returned unchanged.
+func usageSettingFields(e *env.Environment, ix evIndex, u env.GVKUsage, fs []env.ManifestField) env.GVKUsage {
+	docs := map[env.DocumentRef]bool{}
+	names := map[env.ResourceName]bool{}
+	for _, f := range fs {
+		file := ""
+		for _, id := range f.Evidence {
+			if ev, ok := ix[id]; ok && ev.Kind == domain.EvidenceLocalFile {
+				file = ev.URI
+				break
+			}
+		}
+		if file == "" || f.Line <= 0 {
+			return u
+		}
+		var owner *env.Resource
+		for i := range e.Resources {
+			r := &e.Resources[i]
+			if r.Doc.File != file || r.Doc.StartLine > f.Line {
+				continue
+			}
+			if owner == nil || r.Doc.StartLine > owner.Doc.StartLine {
+				owner = r
+			}
+		}
+		if owner == nil {
+			return u
+		}
+		docs[owner.Doc] = true
+		names[env.ResourceName{Name: owner.Name, Namespace: owner.Namespace}] = true
+	}
+	out := u
+	out.Names, out.Documents = nil, nil
+	for _, n := range u.Names {
+		if names[n] {
+			out.Names = append(out.Names, n)
+		}
+	}
+	for _, d := range u.Documents {
+		if docs[d] {
+			out.Documents = append(out.Documents, d)
+		}
+	}
+	if len(out.Documents) == 0 {
+		return u
+	}
+	return out
+}
+
 // fieldSetsPhrase renders the matched field paths of one GVK with their lines
 // ("spec.secretName (L7), spec.dnsNames (L9)"), capped like the titles.
 func fieldSetsPhrase(fs []env.ManifestField) string {
@@ -759,7 +952,7 @@ func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 				if rel == relNone {
 					continue
 				}
-				hit = append(hit, f)
+				hit = appendUniqueField(hit, f)
 				matches = appendUniqueMatches(matches, domain.ImpactMatch{
 					Kind: domain.MatchManifestField, Subject: f.Path, Evidence: f.Evidence,
 				})
@@ -777,7 +970,7 @@ func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 			matches = appendUniqueMatches(matches, domain.ImpactMatch{
 				Kind: domain.MatchAPIVersion, Subject: groupVersionOf(u) + " " + u.Kind, Evidence: u.Evidence,
 			})
-			lines = append(lines, g.line(u, fieldSetsPhrase(hit)))
+			lines = append(lines, g.line(usageSettingFields(b.env, g.ix, u, hit), fieldSetsPhrase(hit)))
 		}
 	}
 	if len(matches) == 0 {
@@ -808,6 +1001,54 @@ func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 		b.add(RuleCRDFieldRemoved, domain.ImpactActionRequired, domain.SeverityHigh, conf,
 			fmt.Sprintf("Your manifests set %s, pruned from the CRD schema in %s", codeList(paths, 3), toTag),
 			detail, c, matches, c.Evidence...)
+		return
+	}
+	// Only sections above the removed paths are set. The flattened manifest
+	// paths stop at sequences, but the resource facts descend into them: when
+	// they cover every document of the matched GVKs, they decide whether any
+	// element sets a removed path (action, exactly like an exact match) or
+	// none does (checked, clear) instead of leaving it to review.
+	if setters, ok := b.removedPathsInResources(uses, c.Subjects); ok {
+		if len(setters) == 0 {
+			title := fmt.Sprintf("No resource of %s sets the removed field(s) %s", strings.Join(apiVersionStrings(uses), ", "), codeList(c.Subjects, 3))
+			detail := fmt.Sprintf("Pruned schema fields only affect resources that set them. Your manifests set the section(s) above them (%s); every element of those sections was inspected and none sets the removed path or below it.", strings.Join(over, ", "))
+			b.verdict(RuleCRDFieldUnset, domain.ImpactNotAffected, c.ID, title, detail, c, c.Evidence,
+				[]domain.ImpactCheck{b.manifestsCheck(c.Subjects)})
+			return
+		}
+		var paths []string
+		var deepMatches []domain.ImpactMatch
+		var deepLines []string
+		for _, st := range setters {
+			paths = appendUnique(paths, st.fact.Path)
+			deepMatches = appendUniqueMatches(deepMatches, domain.ImpactMatch{
+				Kind: domain.MatchManifestField, Subject: st.fact.Path, Evidence: st.fact.Evidence,
+			})
+		}
+		for _, u := range uses {
+			var setBy []string
+			for _, st := range setters {
+				if st.res.Group == u.Group && st.res.Version == u.Version && st.res.Kind == u.Kind {
+					setBy = appendUnique(setBy, fmt.Sprintf("%s (L%d)", st.fact.Path, st.fact.Line))
+				}
+			}
+			if len(setBy) == 0 {
+				continue
+			}
+			deepMatches = appendUniqueMatches(deepMatches, domain.ImpactMatch{
+				Kind: domain.MatchAPIVersion, Subject: groupVersionOf(u) + " " + u.Kind, Evidence: u.Evidence,
+			})
+			deepLines = append(deepLines, g.line(usageOfResources(u, setters), strings.Join(capList(setBy, 3), ", ")))
+		}
+		conf := domain.ConfidenceHigh
+		if uncertain {
+			conf = domain.ConfidenceMedium
+		}
+		b.add(RuleCRDFieldRemoved, domain.ImpactActionRequired, domain.SeverityHigh, conf,
+			fmt.Sprintf("Your manifests set %s, pruned from the CRD schema in %s", codeList(paths, 3), toTag),
+			fmt.Sprintf("Fields no longer in the schema are pruned from stored objects and rejected or dropped in manifests. Remove them from your resources.\nYou set: %s.\n%s",
+				strings.Join(paths, ", "), strings.Join(deepLines, "\n")),
+			c, deepMatches, c.Evidence...)
 		return
 	}
 	title := fmt.Sprintf("You set a section above the removed path(s) %s, pruned from the CRD schema in %s", codeList(c.Subjects, 3), toTag)
