@@ -1,0 +1,60 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-b7d427d7918a",
+  "promptDigest": "sha256:e4f661135b202ef31c835448aaeebc62166e35cb0e6d47d374bd9225719cc04b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "f25ab656-5355-4813-91e4-1c795b078987",
+  "startedAt": "2026-10-02T15:55:12.006Z",
+  "decidedAt": "2026-10-02T15:55:27.679Z",
+  "durationMs": 14778,
+  "costUSD": 0.106236,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-a25845551580] says the behaviour changes only when there are DestinationRules on the same host whose exportTo attributes are \"totally different\". The proposed exposure is broader than that: it flags every environment where any DestinationRule sets spec.exportTo, even when that host has only one rule. A rule with exportTo set is needed for exposure but not enough on its own. Whether two rules for the same host have disjoint exportTo cannot be checked by a single-resource condition, so it is added as an undecidable operand. The opt-out value in the overlap is also corrected from a quoted literal to plain `false`, which is what [ev-a25845551580] tells users to set in the pilot deployment.",
+    "citations": [
+      "ev-a25845551580"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Exposed environments have at least one networking.istio.io DestinationRule that sets spec.exportTo, and also have another DestinationRule for the same host whose exportTo is totally different. In 1.24.0, istiod (pilot) stops merging such rules. Environments that set ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false on the pilot deployment keep the old merging behaviour.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "group": "networking.istio.io",
+              "kind": "DestinationRule",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.exportTo",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether two or more DestinationRules target the same host with totally different (non-overlapping) exportTo values; this needs a comparison across resources that a single-resource condition cannot express"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+          "state": "equals",
+          "values": [
+            "false"
+          ],
+          "component": "pilot"
+        }
+      }
+    }
+  }
+}

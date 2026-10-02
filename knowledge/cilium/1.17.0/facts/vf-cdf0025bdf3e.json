@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-cdf0025bdf3e",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-fa67f8206886"
+        ],
+        "statementKeys": [
+          "sk-8addedab6b30"
+        ],
+        "changeIds": [
+          "chg-f45934d69b41"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-30c676d7c5e6"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--cluster",
+        "component": "hubble"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators or automation run Hubble CLI commands (e.g. hubble observe) with the --cluster flag and depend on its previous filtering results"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The `--cluster` flag now returns a different set of flows, including those from nodes outside the specified cluster name (both incoming and outgoing), whereas previously it only showed flows emitted from nodes within that cluster. Existing queries using this flag will see different results.",
+        "severity": "medium"
+      },
+      "statement": "the `--cluster` behavior changed to show flows emitted from nodes outside of the provided cluster name (either coming from or going to the target cluster)"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-4a00e35c665a"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-4a00e35c665a"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-4ec7a0cac3ef"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-c680a2bb5501"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-868456a7673f",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L474-L480 (1.17 Upgrade Notes › Hubble CLI)",
+        "excerpt": "* the `--cluster` behavior changed to show flows emitted from nodes outside of\n  the provided cluster name (either coming from or going to the target cluster).\n  This change brings consistency between the `--cluster` and `--namespace`\n  flags and removed the incompatibility between the `--cluster` and\n  `--node-name` flags. The previous behavior of `--cluster foo` can be\n  reproduced with `--node-name foo/` (shows all flows emitted from a node in\n  cluster `foo`).",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:00:45.351Z"
+  }
+}

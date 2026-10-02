@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-ef06374f3bf2",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "anchors": [
+      {
+        "release": "0.46.0",
+        "evidenceKeys": [
+          "ek-dfe0633683a9"
+        ],
+        "statementKeys": [
+          "sk-0f2a159d6c79"
+        ],
+        "changeIds": [
+          "chg-ee85931083d3"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-5fc2da42c29c"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-regardingobject"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any scripts or tooling list Kubernetes events using a regardingObject field-selector that targets the Pod"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kubernetes events for Pod restarts now have the Kafka resource as the regardingObject instead of the Pod; field-selectors filtering by Pod regardingObject will no longer match these events.",
+        "severity": "medium"
+      },
+      "statement": "Kubernetes events for Pod restarts no longer have the Pod as the `regardingObject`. If you are using `regardingObject` as a `field-selector` for listing events…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-7d07bcd42bd3"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-7d07bcd42bd3"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-347bfaf9942d"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-03a58ee34253"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-2dffc916b09a",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+        "locator": "L49-L50 (0.46.0 › Major changes, deprecations and removals)",
+        "excerpt": "* Kubernetes events for Pod restarts no longer have the Pod as the `regardingObject`.\n  If you are using `regardingObject` as a `field-selector` for listing events you must update the selector to specify the Kafka resource instead.",
+        "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+        "retrievedAt": "2026-10-02T02:58:54Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T15:52:41.711Z"
+  }
+}

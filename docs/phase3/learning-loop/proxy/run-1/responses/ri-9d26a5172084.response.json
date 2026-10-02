@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-9d26a5172084",
+  "promptDigest": "sha256:4c79a09fbdb495f482351d62fc6317f3188814cccdae14c22bcdad211a64e796",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "c2ae6294-01dd-4cb4-9aa7-5089154c0d61",
+  "startedAt": "2026-10-02T15:51:55.460Z",
+  "decidedAt": "2026-10-02T15:52:05.047Z",
+  "durationMs": 8583,
+  "costUSD": 0.090148,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-cfdd6703f154] is a one-line bug-fix changelog entry saying an error message now includes the cluster URL instead of the full cluster object. It does not name the operation, setting or resource that produces this error. The proposed exposure checks argo-cd's own version (>=3.0.0). That leaf is meant for another product's version, and this check would flag every environment that upgrades, not just the ones that hit the error. Whether an environment sees the changed message depends on which errors actually happen at runtime, and no configuration shows that, so the exposure should be undecidable.",
+    "citations": [
+      "ev-cfdd6703f154"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In Argo CD 3.0.0, a cluster-related error message shows the cluster URL instead of the full cluster object. Which environments are exposed depends on whether that error happens at runtime, and the evidence does not say which operation produces it, so exposure cannot be decided from configuration.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which Argo CD operation emits the cluster error message, and whether the environment hits that error path at runtime (and parses its content)"
+        }
+      }
+    }
+  }
+}

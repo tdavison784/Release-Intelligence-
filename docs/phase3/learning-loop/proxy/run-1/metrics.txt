@@ -1,0 +1,70 @@
+Learning-loop metrics
+
+Facts: 105 active, 0 retracted; anchors/fact 1.0
+  by level:  consensus 9, proxy 96
+  by family: cli-flag 14, config-key 4, crd-field 22, env-var 4, feature-gate 2, gvk 3, helm-value 20, product-relationship 1, protocol-behavior 35
+  auto-validation rate 0%; auto-approved 9, audited 0, agreement 0%
+  consensus ACTION: 0 facts, 0 audited, agreement 0%
+
+Review: 1179 items; repeat-pattern rate 67%
+  per question: applicability 262, classification 4, consequence 358, evidence-sufficiency 268, semantic-mapping 287
+  per product:  argo-cd 343, cert-manager 205, cilium 241, istio 235, karpenter 78, strimzi 77
+  per release:  argo-cd@ 1, argo-cd@3.0.0 342, cert-manager@ 14, cert-manager@1.17.0 88, cert-manager@1.18.0 103, cilium@ 10, cilium@1.16.0 111, cilium@1.17.0 120, istio@1.24.0 235, karpenter@ 14, karpenter@1.0.0 64, strimzi@0.46.0 77
+  individual 940 decisions: accept 400, correct 121, reject 42, need-evidence 323, defer 54; median 8s, p90 12s
+  batch        0 decisions: accept 0, correct 0, reject 0, need-evidence 0, defer 0; median -, p90 -, 0 batches
+
+Agreement across distinct models:
+  subject        full             236 candidates, agreement 43%
+      claude-haiku-4-5|claude-opus-5-5  39%
+      claude-haiku-4-5|claude-sonnet-5-5  44%
+      claude-haiku-4-5|glm-5.3  53%
+      claude-opus-5-5|claude-sonnet-5-5  59%
+      claude-opus-5-5|glm-5.3  55%
+      claude-sonnet-5-5|glm-5.3  52%
+  change         full             282 candidates, agreement 66%
+      claude-haiku-4-5|claude-opus-5-5  60%
+      claude-haiku-4-5|claude-sonnet-5-5  68%
+      claude-haiku-4-5|glm-5.3  71%
+      claude-opus-5-5|claude-sonnet-5-5  73%
+      claude-opus-5-5|glm-5.3  73%
+      claude-sonnet-5-5|glm-5.3  73%
+  applicability  full             145 candidates, agreement 23%
+      claude-haiku-4-5|claude-opus-5-5  18%
+      claude-haiku-4-5|claude-sonnet-5-5  29%
+      claude-haiku-4-5|glm-5.3  19%
+      claude-opus-5-5|claude-sonnet-5-5  46%
+      claude-opus-5-5|glm-5.3  34%
+      claude-sonnet-5-5|glm-5.3  33%
+  consequence    full             238 candidates, agreement 28%
+      claude-haiku-4-5|claude-opus-5-5  26%
+      claude-haiku-4-5|claude-sonnet-5-5  34%
+      claude-haiku-4-5|glm-5.3  19%
+      claude-opus-5-5|claude-sonnet-5-5  62%
+      claude-opus-5-5|glm-5.3  65%
+      claude-sonnet-5-5|glm-5.3  45%
+
+Per model (decisions vs proposals; FP/FN vs final facts):
+  anthropic/claude-haiku-4-5: 460 proposals, as-is 213, corrected 89, rejected 147, insufficient 0, abstained 241, grounded 99%
+      subject        FP 33  FN 5
+      change         FP 21  FN 2
+      applicability  FP 59  FN 7
+      consequence    FP 34  FN 4
+      task full             460 proposals, as-is 213, corrected 89, rejected 147
+  anthropic/claude-opus-5-5: 147 proposals, as-is 95, corrected 1, rejected 48, insufficient 0, abstained 104, grounded 100%
+      subject        FP 10  FN 4
+      change         FP 10  FN 0
+      applicability  FP 11  FN 7
+      consequence    FP 6  FN 6
+      task full             147 proposals, as-is 95, corrected 1, rejected 48
+  anthropic/claude-sonnet-5-5: 515 proposals, as-is 252, corrected 32, rejected 112, insufficient 0, abstained 423, grounded 99%
+      subject        FP 23  FN 5
+      change         FP 16  FN 1
+      applicability  FP 20  FN 54
+      consequence    FP 33  FN 13
+      task full             515 proposals, as-is 252, corrected 32, rejected 112
+  zai/glm-5.3: 138 proposals, as-is 96, corrected 4, rejected 58, insufficient 0, abstained 71, grounded 100%
+      subject        FP 8  FN 1
+      change         FP 3  FN 0
+      applicability  FP 12  FN 0
+      consequence    FP 12  FN 0
+      task full             138 proposals, as-is 96, corrected 4, rejected 58

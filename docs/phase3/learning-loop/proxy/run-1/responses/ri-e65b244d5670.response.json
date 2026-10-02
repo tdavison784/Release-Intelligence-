@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e65b244d5670",
+  "promptDigest": "sha256:7c9f4cd91acdb4a8342691424d4deeeb5153bbdb68b2a82755293dda17cee6a2",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d2494e3f-fa2b-4b6e-b64d-9ee52bdd1b9f",
+  "startedAt": "2026-10-02T16:01:55.034Z",
+  "decidedAt": "2026-10-02T16:02:07.687Z",
+  "durationMs": 11745,
+  "costUSD": 0.10364,
+  "output": {
+    "action": "correct",
+    "reason": "The validator checking the CRD artifacts [ev-8998581760b8, ev-451bd6a12e72] confirms that only the object-level default of spec.metadataOptions changed, with httpPutResponseHopLimit going from 2 to 1. It refuted the claim that the default of the nested field spec.metadataOptions.httpPutResponseHopLimit changed: that default is still 2. The proposed statement says every object that leaves httpPutResponseHopLimit unset now gets 1, but only objects that leave spec.metadataOptions unset entirely get 1. Nothing in the evidence says anything fails or is rejected, so behavior-change (review) is still the right kind. Only the statement needs correcting.",
+    "citations": [
+      "ev-8998581760b8",
+      "ev-451bd6a12e72"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In the karpenter.k8s.aws/v1beta1 EC2NodeClass schema, the default for spec.metadataOptions as a whole changed: a v1beta1 EC2NodeClass that leaves spec.metadataOptions unset now gets httpPutResponseHopLimit 1 instead of 2 (httpEndpoint enabled, httpProtocolIPv6 disabled and httpTokens required are unchanged). This is a behavior change for review.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "medium",
+        "statement": "A v1beta1 EC2NodeClass that leaves spec.metadataOptions unset now gets the default httpPutResponseHopLimit 1 instead of 2. Objects that set spec.metadataOptions keep the field-level default of 2 for httpPutResponseHopLimit.",
+        "remediation": "If you rely on hop limit 2, set spec.metadataOptions explicitly, including httpPutResponseHopLimit: 2."
+      }
+    }
+  }
+}

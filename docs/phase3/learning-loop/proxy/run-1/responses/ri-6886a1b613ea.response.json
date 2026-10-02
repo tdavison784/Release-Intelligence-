@@ -1,0 +1,22 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-6886a1b613ea",
+  "promptDigest": "sha256:6514ffa49a2576b0f46e8a4a8704bfec740a7b5662dcea025284c41fe3be66e1",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d73c011e-3555-43b9-a36b-3cc2e017a2d3",
+  "startedAt": "2026-10-02T12:58:09.326Z",
+  "decidedAt": "2026-10-02T12:58:19.188Z",
+  "durationMs": 8896,
+  "costUSD": 0.050935999999999995,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "[ev-793f1f2f3e70] is the only prose source, and it bundles three separate changes into one bullet: (1) Cilium now uses the port in the etcd configuration instead of the service's port when the address is a Kubernetes service DNS name, (2) service-DNS-to-ClusterIP translation is now turned on automatically for etcd, and (3) the `etcd.operator` `kvstore-opt` option is now a no-op and has been removed. These need different subjects, change types and exposure conditions, so they can't be written as one typed assertion. The excerpt also doesn't say where `etcd.operator` is configured. The values validator, using [ev-28e0ccb5774a] and [ev-39a22d88e2f5], found that `etcd.operator.kvstore-opt` is not a Helm values key in either release, so P1's helm-value subject is wrong. To proceed, the bundle should be split into one item per change, with evidence for each, such as the kvstore-opt or agent-flag definitions and the PR, showing the configuration surface and the old and new behaviour.",
+    "citations": [
+      "ev-793f1f2f3e70",
+      "ev-28e0ccb5774a",
+      "ev-39a22d88e2f5"
+    ],
+    "confidence": "medium"
+  }
+}

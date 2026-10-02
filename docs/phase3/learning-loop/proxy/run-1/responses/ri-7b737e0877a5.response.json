@@ -1,0 +1,105 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-7b737e0877a5",
+  "promptDigest": "sha256:dceb179ec634f3fd361862bf6788759dca53047079a240963233b0bd739c5fa9",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b6b2d56e-92d4-47b0-96c8-3d0083509ed6",
+  "startedAt": "2026-10-02T13:00:38.391Z",
+  "decidedAt": "2026-10-02T13:00:55.574Z",
+  "durationMs": 16382,
+  "costUSD": 0.10505600000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c143ccbe6259] says only that the `sidecar.istio.io/enableCoreDump` annotation was removed, so any workload that still sets it is exposed. The proposed condition only checks Pod objects. That misses workloads that set the annotation in a pod template, such as a Deployment, StatefulSet, DaemonSet, Job or CronJob, which is how it is usually set in manifests. I widened the condition to cover pod templates too. The evidence does not say where the annotation lives, so confidence is low.",
+    "citations": [
+      "ev-c143ccbe6259"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The `sidecar.istio.io/enableCoreDump` annotation was removed in Istio 1.24.0. Exposed environments are those where a Pod, or the pod template of a Deployment, StatefulSet, DaemonSet, Job or CronJob, still sets this annotation. The `samples/proxy-coredump` sample shows the preferred ways to enable core dumps.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "kind": "Pod",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"sidecar.istio.io/enableCoreDump\"]",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "apps",
+              "kind": "Deployment",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.metadata.annotations[\"sidecar.istio.io/enableCoreDump\"]",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "apps",
+              "kind": "StatefulSet",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.metadata.annotations[\"sidecar.istio.io/enableCoreDump\"]",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "apps",
+              "kind": "DaemonSet",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.metadata.annotations[\"sidecar.istio.io/enableCoreDump\"]",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "batch",
+              "kind": "Job",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.metadata.annotations[\"sidecar.istio.io/enableCoreDump\"]",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "batch",
+              "kind": "CronJob",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.jobTemplate.spec.template.metadata.annotations[\"sidecar.istio.io/enableCoreDump\"]",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

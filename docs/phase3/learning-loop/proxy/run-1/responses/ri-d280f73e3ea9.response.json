@@ -1,0 +1,81 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d280f73e3ea9",
+  "promptDigest": "sha256:dc31bcd4f4d24f6bb4c6457a860c541200789d03f0439291db7affb09c3921ca",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "465debd7-db65-4b5e-a5e1-bc69a9358a0c",
+  "startedAt": "2026-10-02T15:58:51.374Z",
+  "decidedAt": "2026-10-02T15:59:06.776Z",
+  "durationMs": 14497,
+  "costUSD": 0.102492,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-528ec6ff2f80] describes a new opt-in pod annotation `sidecar.istio.io/native-side` that only has an effect when it is set to true or false on a pod. In that case it overrides ENABLE_NATIVE_SIDECARS. Whether a workload carries this annotation can be read from its manifests, so an `undecidable`/evidence-gap condition is the wrong choice and would flag every environment. The exposure should instead match workloads whose pod (or pod template) sets the annotation.",
+    "citations": [
+      "ev-528ec6ff2f80"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "A new pod annotation `sidecar.istio.io/native-side` (true/false) controls native sidecar injection per pod and takes precedence over ENABLE_NATIVE_SIDECARS. Only environments whose pods or pod templates set this annotation are affected.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "kind": "Pod",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"sidecar.istio.io/native-side\"]",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "apps",
+              "kind": "Deployment",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.metadata.annotations[\"sidecar.istio.io/native-side\"]",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "apps",
+              "kind": "StatefulSet",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.metadata.annotations[\"sidecar.istio.io/native-side\"]",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "apps",
+              "kind": "DaemonSet",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.metadata.annotations[\"sidecar.istio.io/native-side\"]",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

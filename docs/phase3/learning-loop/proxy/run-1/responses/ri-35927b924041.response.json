@@ -1,0 +1,63 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-35927b924041",
+  "promptDigest": "sha256:02e08e5b69dfac641097bbe4a22eaec5fb5be4f20329263b18400c5baa5784a5",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ad900557-15df-495f-b357-62edee3069f1",
+  "startedAt": "2026-10-02T12:51:35.763Z",
+  "decidedAt": "2026-10-02T12:51:47.405Z",
+  "durationMs": 10716,
+  "costUSD": 0.102288,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-fa8f791f1c11] says the default Cilium Operator K8s client rate limit rose to 100 QPS *and* 200 Burst, and that each can be set with its own flag (--operator-k8s-client-qps and --operator-k8s-client-burst). The proposed exposure only checks whether the QPS flag is unset. It misses environments that set QPS but leave Burst unset, which still get the new burst default. Its overlap also counts those environments as shielded. So exposure should be \"either flag unset\", and overlap should be \"both flags set\". The evidence does not name the corresponding Helm values, so the condition cannot cover them.",
+    "citations": [
+      "ev-fa8f791f1c11"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The Cilium Operator's Kubernetes client rate limit is now configured separately from the agent's, with a new default of 100 QPS/200 Burst. Exposed: any environment that does not explicitly set both --operator-k8s-client-qps and --operator-k8s-client-burst on the operator. Environments that set both are shielded.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--operator-k8s-client-qps",
+              "component": "operator",
+              "state": "unset"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--operator-k8s-client-burst",
+              "component": "operator",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--operator-k8s-client-qps",
+              "component": "operator",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--operator-k8s-client-burst",
+              "component": "operator",
+              "state": "set"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

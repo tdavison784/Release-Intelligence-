@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2609c8ef85a8",
+    "reviewItemId": "ri-fabe13409625",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "image",
+        "product": "argo-cd",
+        "name": "quay.io/argoproj/argocd"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "Argo CD container images are now signed with cosign, and SLSA Level 3 provenance is generated for container images and CLI binaries; no operator action is required."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:5e6aae394e4c0b2c33a754785a6dc031d174e8707629f560b876b37f4c6f5a47",
+      "inputEvidence": [
+        "ev-ad50caeacfe2",
+        "ev-6ea7d1aa2ac2",
+        "ev-b9fde9c8ce58"
+      ],
+      "generatedAt": "2026-10-02T16:05:09.245Z",
+      "callId": "05a6c5e2-9b6c-4892-be7a-5b3f8042042d"
+    },
+    "reason": "[ev-ad50caeacfe2] is a standing release-notes section. It says the images \"are signed by cosign\" and provenance \"is generated\", but it never says this is new in 3.0.0 or changed from before, so it states no change. The image quay.io/argoproj/argocd was not added: the image validator refuted \"added\" because the image is referenced in both the v2.14.5 and v3.0.0 install manifests [ev-b9fde9c8ce58][ev-6ea7d1aa2ac2]. Changing the subject to a signing behaviour would not help, because the evidence does not show that signing started in this release.",
+    "startedAt": "2026-10-02T16:05:02.25Z",
+    "decidedAt": "2026-10-02T16:05:09.245Z"
+  }
+}

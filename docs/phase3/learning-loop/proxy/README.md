@@ -81,4 +81,5 @@ bin/ri knowledge proxy-report -ledger <ledger.jsonl>       # decisions, per-mode
 ## Runs
 
 - `run-1/`: every pending non-high item of `knowledge/` (2026-10-02). It holds `ledger.jsonl`,
-  `responses/` (the verdicts with call metadata), `requests.tar.gz` (the exact prompts) and `REPORT.md`.
+  `responses/` (the verdicts with call metadata), `requests.tar.gz` (the exact prompts), `proxy-report.{txt,json}`,
+  `metrics.txt` and `REPORT.md`. Prompt v1. Later runs use `proxy-review/v2`, which states the correction length limits.

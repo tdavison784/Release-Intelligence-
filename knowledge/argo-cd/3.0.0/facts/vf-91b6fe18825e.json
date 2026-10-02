@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-91b6fe18825e",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-b91a3c2cb4b3"
+        ],
+        "statementKeys": [
+          "sk-001fb1095986"
+        ],
+        "changeIds": [
+          "chg-78396fa7908b"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-819834200127"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions.ignoreResourceStatusField",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"crd\"",
+        "after": "\"all\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"resource.compareoptions\"]",
+                      "state": "unset"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"resource.compareoptions\"]",
+                      "state": "none",
+                      "pattern": "ignoreResourceStatusField"
+                    }
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "ignoreResourceStatusField.*crd"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Status field differences are no longer detected by default for all resources; previously only custom resources had status fields ignored by default.",
+        "remediation": "If you rely on detecting status field differences, set ignoreResourceStatusField to 'crd' in the argocd-cm ConfigMap's resource.compareoptions to preserve v2 behavior.",
+        "severity": "medium"
+      },
+      "statement": "Ignoring status field from differences by default: By default, the compare options to ignore the status field has been changed from `crd` to `all` resources"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-6261edceaf30"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-6261edceaf30"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-0f77e1568bf2"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-e8077eebe8b5"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-c5faeec10a04",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L419-L437 (v2.14 to 3.0 › Other changes › Ignoring status field from differences by default)",
+        "excerpt": "### Ignoring status field from differences by default\n\nBy default, the compare options to ignore the status field has been changed from `crd` to `all` resources.\n\nThis means that differences won't be detected anymore for fields that are part of the status.\n\nIf you rely on the status field being part of your desired state, the `ignoreResourceStatusField` setting can be used to preserve the v2 default.\n\n```yaml\napiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: argocd-cm\ndata:\n  resource.compareoptions: |\n    ignoreResourceStatusField: crd\n```\n\nMore details for ignored resource updates in the [Dif…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:05:20.149Z"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-160859ed5462",
+  "promptDigest": "sha256:198b75a4842f2254beca48bc1085fe6d79b6e0cc06206756486afa7d97f1b34b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d73e94a6-5262-4c39-ade4-9022c2d6354d",
+  "startedAt": "2026-10-02T12:48:02.697Z",
+  "decidedAt": "2026-10-02T12:48:09.719Z",
+  "durationMs": 5959,
+  "costUSD": 0.089448,
+  "output": {
+    "action": "correct",
+    "reason": "The release note [ev-cd466139dded] says the new `tenantID` option is for AzureDNS when using managed identities. The CRD schemas show that `spec.acme.solvers[].dns01.azureDNS.tenantID` already existed in v1.16.0 [ev-84061d76ea1b], so that field is not new. The field that is new in v1.17.0 is `spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID` [ev-60054fcf0986]. The subject should be that managedIdentity field, and the change type stays \"added\".",
+    "citations": [
+      "ev-cd466139dded",
+      "ev-60054fcf0986",
+      "ev-84061d76ea1b"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "cert-manager 1.17.0 adds an optional `tenantID` field to the AzureDNS DNS01 solver's managed identity configuration (spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID on Issuer), so users can set the tenant ID when using managed identities.",
+      "subject": {
+        "determination": "asserted",
+        "family": "crd-field",
+        "group": "cert-manager.io",
+        "kind": "Issuer",
+        "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "added"
+      }
+    },
+    "labels": [
+      "wrong-subject"
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-26ff7d86a057",
+  "promptDigest": "sha256:2523b1704c54e8f665935c1fcfe7e107ad89134bbebcabd236ba1e25917845b3",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "45b6c873-280b-4a52-9b57-4a61fb7bbc3a",
+  "startedAt": "2026-10-02T12:50:04.420Z",
+  "decidedAt": "2026-10-02T12:50:21.579Z",
+  "durationMs": 16372,
+  "costUSD": 0.093584,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-fa8f791f1c11] says the agent and operator Kubernetes clients \"now have separately configurable rate limits\" and tells users to configure the operator's limit with `--operator-k8s-client-qps`. That reads as the operator flag being added in this release, not as an existing flag changing behaviour. The text also ties the flag to Cilium Operator, so the subject should name that component. The evidence does not give the old default, so the higher 100 QPS default cannot be recorded as a default change. The proposed `after` value (\"\\\"100\\\"\") is also not a literal from the text.",
+    "citations": [
+      "ev-fa8f791f1c11"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-change-type",
+      "wrong-subject"
+    ],
+    "correction": {
+      "statement": "Cilium Operator gains the `--operator-k8s-client-qps` flag, so its Kubernetes client rate limit can be set separately from Cilium Agent's (new operator default 100 QPS/200 Burst).",
+      "subject": {
+        "determination": "asserted",
+        "family": "cli-flag",
+        "name": "--operator-k8s-client-qps",
+        "component": "operator"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "added"
+      }
+    }
+  }
+}

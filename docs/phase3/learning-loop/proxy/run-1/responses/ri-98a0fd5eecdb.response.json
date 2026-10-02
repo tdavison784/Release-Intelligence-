@@ -1,0 +1,119 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-98a0fd5eecdb",
+  "promptDigest": "sha256:bca3c1aaf11e3cc8b4f6793d5fcb17ccd53d5da4844c5b6482c8344d41da3e73",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "0807a96f-9cec-4b28-bc42-65199e293fb9",
+  "startedAt": "2026-10-02T13:04:37.201Z",
+  "decidedAt": "2026-10-02T13:04:59.496Z",
+  "durationMs": 21545,
+  "costUSD": 0.124076,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-790b038b82b7] says DestinationRule certificates are now honoured instead of Metadata certificates for MESH_EXTERNAL services, and that setting PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES to `false` reverts this. That means only environments with MESH_EXTERNAL services whose DestinationRules carry TLS settings, and that have not set the variable to false, are exposed. The proposed exposure ('not equals false' alone) is too broad: it flags every environment, including ones with no MESH_EXTERNAL services or no DestinationRule TLS. Its literal '\"false\"' also includes the quote characters, so it would never match a plain false value. The evidence does not name the exact DestinationRule certificate fields, so I used the presence of the tls block (top-level or port-level) as the closest stand-in.",
+    "citations": [
+      "ev-790b038b82b7"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Istio now honours DestinationRule certificates instead of Metadata certificates for MESH_EXTERNAL services. This affects environments that have a MESH_EXTERNAL ServiceEntry and a DestinationRule with TLS settings, unless PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES is set to false. Setting the variable to false keeps the old behaviour.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "group": "networking.istio.io",
+              "kind": "ServiceEntry",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.location",
+                  "state": "equals",
+                  "values": [
+                    "MESH_EXTERNAL"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.trafficPolicy.tls",
+                      "state": "set"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.trafficPolicy.portLevelSettings[].tls",
+                      "state": "set"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "env-var",
+                  "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+                  "state": "equals",
+                  "values": [
+                    "false"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "group": "networking.istio.io",
+              "kind": "ServiceEntry",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.location",
+                  "state": "equals",
+                  "values": [
+                    "MESH_EXTERNAL"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "env-var",
+              "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

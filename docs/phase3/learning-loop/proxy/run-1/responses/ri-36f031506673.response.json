@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-36f031506673",
+  "promptDigest": "sha256:cd44d44a72466429c039972984efb96b7d51ed86589d0b1e045358417a966ed8",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "1fb7158e-2ac8-4580-9f96-0b2d7ac8550d",
+  "startedAt": "2026-10-02T12:51:45.316Z",
+  "decidedAt": "2026-10-02T12:51:57.250Z",
+  "durationMs": 10956,
+  "costUSD": 0.061568000000000005,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-18ac53d77b4b] only says that istio-clean-iptables now removes kube-virt-related rules it used to leave behind. Nothing fails, gets rejected or stops being honoured, so behavior-change (review) is the right kind. However, the note gives no impact at all, so \"medium\" severity overstates this bugfix; low fits better.",
+    "citations": [
+      "ev-18ac53d77b4b"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Istio 1.24.0 the istio-clean-iptables tool removes kube-virt-related iptables rules that it previously left in place; the cleanup still works but now removes more rules than before.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "statement": "The istio-clean-iptables tool will now remove kube-virt-related iptables rules, whereas previously such rules were not being removed.",
+        "severity": "low",
+        "remediation": "No action required; check that cleanup runs that previously left kube-virt-related rules in place now remove them as expected."
+      }
+    }
+  }
+}

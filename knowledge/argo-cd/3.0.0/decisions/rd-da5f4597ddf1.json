@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-da5f4597ddf1",
+    "reviewItemId": "ri-d0c74de6524b",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Resources of the listed kinds are excluded from Argo CD by default, so they are no longer tracked or managed unless resource.exclusions is overridden or removed in the configMap.",
+        "remediation": "Override or remove resource.exclusions in argocd-cm to preserve v2 behavior.",
+        "severity": "medium"
+      },
+      "statement": "The Argo CD manifest now ships a default resource.exclusions in argocd-cm that excludes high-churn controller-created kinds (Endpoints, EndpointSlice, Lease, Kyverno reports, Cilium identities, etc.); it can be overridden or removed to preserve v2 behavior."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:76312d16365f0b65286b90586bff2360747a6437e9d6ea36f1e29a4fd03a9ad6",
+      "inputEvidence": [
+        "ev-3437aa882db2"
+      ],
+      "generatedAt": "2026-10-02T15:58:45.841Z",
+      "callId": "a19c2f7e-215c-4777-bd4b-2f87b0ae6ec7"
+    },
+    "reason": "[ev-3437aa882db2] says the Argo CD manifest now ships a default `resource.exclusions` in argocd-cm that excludes the listed high-churn kinds for performance reasons. It also says these defaults can be overridden or removed to restore the v2 behaviour. That is a changed default, and the evidence does not say anything fails, is rejected or must be migrated, so behavior-change (review) fits. The statement that these kinds are no longer tracked unless the exclusions are overridden matches the excerpt, and so does the remediation.",
+    "startedAt": "2026-10-02T15:58:39.135Z",
+    "decidedAt": "2026-10-02T15:58:45.841Z"
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-339e1f2b2a41",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-813fb4d13a56"
+        ],
+        "statementKeys": [
+          "sk-44d1e64b021f"
+        ],
+        "changeIds": [
+          "chg-ab677b7fc4b4"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-5c66197e4890"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.renewBeforePercentage"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.renewBeforePercentage",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates that set renewBeforePercentage now follow the field's spec. The evidence does not say what the old behaviour was or how renewal timing changes, so check renewal behaviour for these Certificates.",
+        "remediation": "Review Certificates that set spec.renewBeforePercentage and confirm their renewal timing matches the field's spec.",
+        "severity": "low"
+      },
+      "statement": "Fix the behavior of `renewBeforePercentage` to comply with its spec"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-d121ea7f09c7"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-d121ea7f09c7"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-6763d072959b"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-8d28542a6b6f"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-cae85181502c",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+        "locator": "L212-L212 (v1.17.0 › Bug or Regression)",
+        "excerpt": "- Fix the behavior of `renewBeforePercentage` to comply with its spec ([#7421](https://github.com/cert-manager/cert-manager/pull/7421), [@adam-sroka](https://github.com/adam-sroka))",
+        "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T15:57:52.526Z"
+  }
+}

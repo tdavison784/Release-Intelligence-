@@ -1,0 +1,65 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-7fe2d8243177",
+  "promptDigest": "sha256:060d31a1656bf5d421c9b49ebe1daaad492e01487e0e1d7d7745b7a9183f0577",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "56d17305-bff3-4c5e-849a-4b682e15faea",
+  "startedAt": "2026-10-02T13:01:20.082Z",
+  "decidedAt": "2026-10-02T13:01:41.791Z",
+  "durationMs": 20983,
+  "costUSD": 0.122972,
+  "output": {
+    "action": "correct",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "reason": "[ev-63314a5fae82] says the new behaviour is the 3.0 default, and you keep the v2 behaviour by setting `ignoreDifferencesOnResourceUpdates` to false in `resource.compareoptions` in argocd-cm. So the exposed environments are the ones that do NOT set that key, including ones with no `resource.compareoptions` at all. The proposed condition (`resource.compareoptions` is set) gets this backwards: it misses installs that never set `resource.compareoptions`, which are exposed, and it flags installs that already pinned the key, which are protected. The change only matters if system-level `ignoreDifferences` customizations already exist. The evidence doesn't name the argocd-cm keys that hold them, so that part has to stay undecidable.",
+    "citations": [
+      "ev-63314a5fae82"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "Exposed: Argo CD installations whose argocd-cm `resource.compareoptions` does not set `ignoreDifferencesOnResourceUpdates` (including when `resource.compareoptions` is absent) and that have system-level `ignoreDifferences` customizations. Under the 3.0 default, changes to those ignored fields stop generating application diffs. Protected (overlap): installations that set `ignoreDifferencesOnResourceUpdates` explicitly in `resource.compareoptions`.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "name": "argocd-cm",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"resource.compareoptions\"]",
+                  "state": "none",
+                  "pattern": "ignoreDifferencesOnResourceUpdates"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether system-level ignoreDifferences customizations are configured (the evidence does not name the argocd-cm keys that carry them)"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "kind": "ConfigMap",
+          "name": "argocd-cm",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "ignoreDifferencesOnResourceUpdates"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-64af8bc2dfcc",
+    "reviewItemId": "ri-b10b075d670f",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-services-matching-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_services_matching_total\"",
+        "after": "\"lbipam_services_matching\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-services-matching-metric"
+        }
+      },
+      "statement": "The Prometheus metric `lbipam_services_matching_total` has been renamed to `lbipam_services_matching` in Cilium 1.17.0."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-services-matching-total"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_services_matching_total\"",
+        "after": "\"lbipam_services_matching\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-services-matching"
+        }
+      },
+      "statement": "The Cilium metric `lbipam_services_matching_total` has been renamed to `lbipam_services_matching` in 1.17.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:473ade206d4f48da4d4cc4dcb425eec0621dfcf9129b7320488ac21d281e61d5",
+      "inputEvidence": [
+        "ev-dc171b318f79"
+      ],
+      "generatedAt": "2026-10-02T15:54:43.404Z",
+      "callId": "512acf69-e579-4b19-8acc-483212cfb828"
+    },
+    "reason": "[ev-dc171b318f79] says directly that the metric `lbipam_services_matching_total` was renamed to `lbipam_services_matching`, so \"renamed\" is the right change type. The proposal is wrong because replacedBy has the same identity as the subject, which makes the rename say nothing. Its before/after values also contain extra quote characters. The corrected subject names the old metric and replacedBy names the new one, both in kebab-case built from the evidence's own words. No family covers metrics, so protocol-behavior is only the closest fit and confidence is low.",
+    "startedAt": "2026-10-02T15:54:34.726Z",
+    "decidedAt": "2026-10-02T15:54:43.404Z"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-82f1ced4b5d9",
+  "promptDigest": "sha256:edd0042f3fa8530499f3d403aec01b936681baa34925fee79083f67e428db47a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "e4a0c2a0-8bc5-4e05-926b-e5827e3699d1",
+  "startedAt": "2026-10-02T13:01:49.563Z",
+  "decidedAt": "2026-10-02T13:02:01.596Z",
+  "durationMs": 11044,
+  "costUSD": 0.148256,
+  "output": {
+    "action": "correct",
+    "reason": "The upgrade note [ev-fbe2aedc4ddc] explains how Local Redirect Policy already behaves with socket-based load-balancing. Traffic from node-local backends to the frontend is sent back to the node-local backends, and this is on by default. The note then gives a new way to turn this off: set the `skipRedirectFromBackend` flag to `true`. Nowhere does it say what the field did before, so it gives no basis for calling this a behavior change. The CRD validator confirms that spec.skipRedirectFromBackend appears only in the target release's CiliumLocalRedirectPolicy schema [ev-313ddc646740, ev-b059d552dcc2], which means this field was added. The subject is right, but the change type should be \"added\", not \"behavior-changed\".",
+    "citations": [
+      "ev-fbe2aedc4ddc",
+      "ev-313ddc646740",
+      "ev-b059d552dcc2"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "CiliumLocalRedirectPolicy gains a new field, spec.skipRedirectFromBackend. When it is set to true, a policy stops the default redirect (with socket-based load-balancing) of traffic from policy-selected node-local backends to the policy's frontend back to the node-local backends.",
+      "subject": {
+        "family": "crd-field",
+        "determination": "asserted",
+        "group": "cilium.io",
+        "kind": "CiliumLocalRedirectPolicy",
+        "path": "spec.skipRedirectFromBackend"
+      },
+      "change": {
+        "type": "added",
+        "determination": "asserted"
+      }
+    },
+    "labels": [
+      "wrong-change-type"
+    ]
+  }
+}

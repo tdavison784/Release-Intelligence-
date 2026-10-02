@@ -18,8 +18,7 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
 
 ## Next
 
-- Step 4: run on all pending non-high items (952: 684 + 268 evidence-sufficiency) → `proxy/run-1/`.
-- Step 6: report.
+- Steps 4 and 6: done (below).
 - Step 5 (shadow pass on high items in `proxy-shadow/`): **waiting for the commander**.
 
 ## Decisions taken (local)
@@ -73,19 +72,20 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
 - Uncertain: nothing new. The two open contract questions (prose-only corrections; Provenance.Provider)
   remain with the commander. Step 5 (shadow) still waits for the commander.
 
-## Run-1 state (2026-10-02 08:05 CDT): PAUSED at the account session limit
+## Run-1: DONE (2026-10-02 11:05 CDT): see [proxy/run-1/REPORT.md](../proxy/run-1/REPORT.md)
 
-- About 560 of 952 non-high items were decided as proxy. The ledger is `proxy/run-1/ledger.jsonl`; the exchange
-  directory `.ri/proxy-run-1` is gitignored and holds a `STOP` file.
-- About 8 calls failed with "session limit" (`<item>.failed`, ledger stage `call`). These calls never reached the
-  model, so re-running them is not a blind retry. To resume after the 10:50 CDT reset: delete the `*.failed`
-  markers whose text says "session limit", `rm .ri/proxy-run-1/STOP`, and re-run `scripts/proxy-review.sh` with
-  the same arguments.
-- Refusals so far (recorded, not retried):
-  - **Prose-only corrections** (≈5): the proxy fixed a consequence statement or remediation (for example an
-    invented `--log-format` flag) but kept the kind. The aspect digests exclude prose, so `ReviewDecision.Validate`
-    refuses them as no-op corrections. A human on the dashboard would hit the same wall. **Contract question
-    for the commander:** should a prose-only correction be allowed?
-  - 1 statement longer than 400 characters: the v1 prompt did not state the length limits — fixed in v2 (see the handoff log).
-- Still to do: finish step 4, write the step 6 REPORT.md (`ri knowledge proxy-report`), commit
-  responses/requests. Step 5 waits for the commander.
+- 952 items. 940 proxy decisions recorded (accept 400, correct 121, reject 42, need-more-evidence 323, defer 54).
+  12 verdicts were refused at recording; those items stay pending and were not retried. 96 proxy-level facts.
+- The 7 session-limit call failures were retried after the reset and decided. Those calls had never reached the
+  model, so the retry was not blind. The ledger keeps both lines.
+- Cost $60.10 CLI-reported; about 34 min of active calling at 4 in parallel.
+- I reviewed the GLM handoff work (prompt v2, the stated correction limits, the test) and kept it: the limits
+  match `semantic.checkLengths`, and run-1 kept its v1 requests on disk.
+- Open for the commander:
+  - **Prose-only corrections** account for 11 of the 12 refusals. Should a consequence statement/remediation
+    correction with an unchanged digest be allowed?
+  - `Provenance.Provider`.
+  - 3 proxy facts with an action-eligible consequence. They are capped at REVIEW by the ladder; a human look is
+    suggested.
+- Step 5 (shadow pass on the high items, in a copy at `proxy-shadow/`) **waits for the commander**: "the product
+  owner has finished the high items".

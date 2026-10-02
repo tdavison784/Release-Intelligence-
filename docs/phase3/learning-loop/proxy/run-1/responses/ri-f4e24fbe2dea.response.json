@@ -1,0 +1,63 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f4e24fbe2dea",
+  "promptDigest": "sha256:e6c5b907efd2b8dabe65417ef89b7ce8c81717dbc62dc2ad0f7d84a448a3706a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "f7018088-f8bc-4f2c-b083-7c4d1bdebec2",
+  "startedAt": "2026-10-02T16:03:51.638Z",
+  "decidedAt": "2026-10-02T16:04:09.984Z",
+  "durationMs": 17542,
+  "costUSD": 0.11637999999999998,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-736cdc5fc0d2] says that on Linux kernels 6.6 or newer Cilium now attaches its tc BPF programs with tcx links by default, and that setting `bpf.enableTCX=false` keeps the old attachment mode. So environments that set the value to false do not get the switch. The proposed exposure never checks bpf.enableTCX, so it also flags those shielded environments, which makes it too broad. The key exists only in the target release's values [ev-28e0ccb5774a, ev-39a22d88e2f5], so an environment upgrading without setting it uses the new default. The switch itself happens on every 6.6+ kernel with the default setting. Third-party tc BPF users are what makes the switch risky, but the switch happens either way, so I dropped the undecidable operand instead of making exposure depend on it.",
+    "citations": [
+      "ev-736cdc5fc0d2",
+      "ev-28e0ccb5774a",
+      "ev-39a22d88e2f5"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In Cilium 1.16.0, on Linux kernels 6.6 or newer, Cilium attaches its tc BPF programs with tcx BPF links by default. Environments on such kernels that do not set bpf.enableTCX=false are exposed to the switch. Environments that set bpf.enableTCX=false keep the old-style tc BPF attachment.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "linux",
+              "state": "in-range",
+              "range": ">=6.6.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "bpf.enableTCX",
+                  "state": "equals",
+                  "values": [
+                    "false"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "bpf.enableTCX",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      }
+    }
+  }
+}
