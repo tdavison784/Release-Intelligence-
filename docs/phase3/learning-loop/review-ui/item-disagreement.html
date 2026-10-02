@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ri-9cdea0ac1732 · Release Intelligence review</title>
+<script>try{var t=localStorage.getItem("ri-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<style>/* Review UI — hand-written, no build step. Design tokens first. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #f0f2f5; --border: #dfe3e8; --text: #1b1f24; --muted: #66707c;
+  --accent: #3b5bdb; --accent-soft: #e7ecff; --ok: #1f8a4c; --ok-soft: #e3f5ea; --warn: #b7791f; --warn-soft: #fdf3dc;
+  --danger: #c92a2a; --danger-soft: #fde8e8; --focus: #3b5bdb;
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  --r: 10px; --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --g-A: #3b5bdb; --g-B: #c2410c; --g-C: #7c3aed; --g-D: #0f766e;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1216; --surface: #171b21; --surface-2: #1e242c; --border: #2a313b; --text: #e6e9ee; --muted: #929cab;
+    --accent: #7c93ff; --accent-soft: #232b4d; --ok: #4cc482; --ok-soft: #142c20; --warn: #e0b04a; --warn-soft: #33290f;
+    --danger: #ff7b7b; --danger-soft: #3a1717; --focus: #7c93ff; --shadow: 0 1px 2px rgba(0,0,0,.4);
+    --g-A: #7c93ff; --g-B: #fb923c; --g-C: #b794f6; --g-D: #2dd4bf; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1216; --surface: #171b21; --surface-2: #1e242c; --border: #2a313b; --text: #e6e9ee; --muted: #929cab;
+  --accent: #7c93ff; --accent-soft: #232b4d; --ok: #4cc482; --ok-soft: #142c20; --warn: #e0b04a; --warn-soft: #33290f;
+  --danger: #ff7b7b; --danger-soft: #3a1717; --focus: #7c93ff; --shadow: 0 1px 2px rgba(0,0,0,.4);
+  --g-A: #7c93ff; --g-B: #fb923c; --g-C: #b794f6; --g-D: #2dd4bf; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { font-size: 15px; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; }
+a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+code, pre, .mono { font-family: var(--mono); font-size: .86em; }
+code { background: var(--surface-2); padding: .1em .35em; border-radius: 5px; }
+pre { margin: 0; } pre.wrap { white-space: pre-wrap; word-break: break-word; }
+h1 { font-size: 1.55rem; line-height: 1.25; margin: .2rem 0 .4rem; letter-spacing: -.01em; }
+h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 .6rem; font-weight: 650; }
+h4 { margin: .2rem 0 .8rem; font-size: 1rem; }
+.muted { color: var(--muted); } .small { font-size: .82rem; } .spacer { flex: 1; } .grow { flex: 1; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+
+.bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: .6rem 1.25rem; }
+.sticky { position: sticky; top: 0; z-index: 20; box-shadow: var(--shadow); }
+.bar-row { display: flex; align-items: center; gap: .75rem; }
+.brand { font-weight: 700; color: var(--text); letter-spacing: -.01em; } .brand span { color: var(--accent); font-weight: 600; }
+.reviewer { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: var(--muted); }
+.reviewer input { width: 12rem; }
+.tiles { display: flex; gap: .6rem; margin: .6rem 0; overflow-x: auto; padding-bottom: 2px; }
+.tile { display: flex; flex-direction: column; min-width: 8.5rem; padding: .45rem .8rem; border: 1px solid var(--border); border-radius: var(--r);
+  background: var(--surface); color: var(--text); text-decoration: none !important; transition: transform .1s, border-color .1s; }
+.tile:hover { border-color: var(--accent); transform: translateY(-1px); }
+.tile b { font-size: 1.35rem; line-height: 1.1; } .tile span { font-size: .75rem; color: var(--muted); white-space: nowrap; }
+.tile.accent b { color: var(--accent); } .tile.warn b { color: var(--warn); }
+.filters { display: flex; flex-wrap: wrap; gap: .5rem .75rem; align-items: end; font-size: .78rem; color: var(--muted); }
+.filters label { display: flex; flex-direction: column; gap: .15rem; }
+
+input[type=text], input:not([type]), select, textarea {
+  font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: .35rem .55rem; min-width: 0; }
+textarea { width: 100%; resize: vertical; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+.btn { font: inherit; font-weight: 600; font-size: .85rem; padding: .4rem .85rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); cursor: pointer; text-decoration: none !important; display: inline-block; transition: background .1s, transform .05s; }
+.btn:hover { background: var(--surface-2); } .btn:active { transform: translateY(1px); }
+.btn.ghost { background: transparent; } .btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.ok { background: var(--ok); border-color: var(--ok); color: #fff; } .btn.ok:hover { filter: brightness(1.08); }
+.btn.danger { color: var(--danger); border-color: var(--danger); } .btn.danger:hover { background: var(--danger-soft); }
+.btn.armed { outline: 3px solid var(--focus); outline-offset: 2px; }
+.check { display: inline-flex; align-items: center; gap: .35rem; font-size: .85rem; }
+
+.page { max-width: 1180px; margin: 0 auto; padding: 1.1rem 1.25rem 7rem; } .page.narrow { max-width: 880px; }
+.toolbar { display: flex; align-items: center; gap: .5rem; margin-bottom: .6rem; }
+.flash { padding: .6rem .9rem; border-radius: 8px; margin: .4rem 0; border: 1px solid var(--border); background: var(--surface); }
+.flash-ok { background: var(--ok-soft); border-color: var(--ok); } .flash-error { background: var(--danger-soft); border-color: var(--danger); }
+.flash-warn { background: var(--warn-soft); border-color: var(--warn); }
+.empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+
+.cards { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); box-shadow: var(--shadow); }
+.card.focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft), var(--shadow); }
+.card.selected { background: var(--accent-soft); }
+.card-head { display: grid; grid-template-columns: auto 1fr; gap: .2rem .7rem; align-items: start; padding: .7rem .9rem; }
+.toggle { all: unset; cursor: pointer; display: flex; gap: .55rem; align-items: baseline; min-width: 0; }
+.toggle:focus-visible { outline: 2px solid var(--focus); border-radius: 6px; }
+.chev { display: inline-block; transition: transform .18s; color: var(--muted); font-size: 1.2rem; width: 1rem; }
+.card.open .chev { transform: rotate(90deg); }
+.q { display: flex; flex-direction: column; min-width: 0; } .title { font-weight: 650; } .question { color: var(--muted); font-size: .88rem; }
+.meta { grid-column: 2; display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+.open { font-size: .8rem; margin-left: auto; }
+.detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
+.card.open .detail { grid-template-rows: 1fr; }
+.detail-inner { overflow: hidden; min-height: 0; }
+.card.open .detail-inner { border-top: 1px solid var(--border); padding: 0 .9rem; }
+
+.badge { display: inline-block; font-size: .72rem; font-weight: 650; padding: .08rem .5rem; border-radius: 999px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); white-space: nowrap; }
+.badge.soft { background: transparent; } .badge.accent, .badge.st-accent { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.badge.ok, .badge.st-ok, .badge.agree-agree, .badge.out-confirmed { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.badge.warn, .badge.st-warn, .badge.prio-high, .badge.out-inconclusive, .badge.sev-medium { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.badge.danger, .badge.agree-disagree, .badge.sev-critical, .badge.sev-high, .badge.out-refuted { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.badge.agree-single, .badge.st-muted, .badge.prio-low { opacity: .85; }
+.badge.rel-confirmed-by-render { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.badge.rel-contradicted-by-render { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.badge.rel-not-visible-in-render { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+
+.hero { margin: .2rem 0 1rem; } .id { font-size: .75rem; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: .9rem 1rem; margin: .7rem 0; }
+.card .panel { box-shadow: none; }
+.detail-body { padding: .3rem 0 .6rem; }
+.count { background: var(--surface-2); border-radius: 999px; padding: 0 .45rem; font-size: .72rem; }
+blockquote { margin: .3rem 0; padding: .45rem .8rem; border-left: 3px solid var(--accent); background: var(--surface-2); border-radius: 0 7px 7px 0; }
+.excerpt { font-size: .88rem; }
+.statement { font-size: 1.02rem; }
+.evidence { list-style: none; padding: 0; margin: 0; display: grid; gap: .6rem; } .ev-head { display: flex; gap: .5rem; flex-wrap: wrap; align-items: baseline; word-break: break-all; }
+.aspects { display: grid; grid-template-columns: 9rem 1fr; gap: .4rem .8rem; margin: 0; } .aspects dt { font-weight: 650; text-transform: capitalize; } .aspects dd { margin: 0; }
+.scroll { overflow-x: auto; }
+.matrix { border-collapse: separate; border-spacing: 0; width: 100%; font-size: .86rem; }
+.matrix th, .matrix td { text-align: left; vertical-align: top; padding: .5rem .6rem; border-bottom: 1px solid var(--border); min-width: 11rem; }
+.matrix thead th { position: sticky; top: 0; background: var(--surface); }
+.matrix tbody th { text-transform: capitalize; min-width: 8rem; }
+.agree-chip { display: inline-block; margin-top: .25rem; font-size: .7rem; font-weight: 650; padding: .05rem .45rem; border-radius: 999px; text-transform: none; }
+.agree-chip.agree-agree { background: var(--ok-soft); color: var(--ok); } .agree-chip.agree-disagree { background: var(--danger-soft); color: var(--danger); }
+.agree-chip.agree-single, .agree-chip.agree-none { background: var(--surface-2); color: var(--muted); }
+tr.m-disagree td.g { box-shadow: inset 3px 0 0 var(--danger); }
+td.g .grp { display: inline-grid; place-items: center; width: 1.25rem; height: 1.25rem; border-radius: 5px; color: #fff; font-size: .72rem; font-weight: 700; margin-bottom: .25rem; }
+td.g-A .grp { background: var(--g-A); } td.g-B .grp { background: var(--g-B); } td.g-C .grp { background: var(--g-C); } td.g-D .grp { background: var(--g-D); }
+td.as-proposed::after { content: "= proposed"; display: block; font-size: .68rem; color: var(--muted); margin-top: .25rem; }
+.val { margin: .4rem 0 .8rem; } .checks { border-collapse: collapse; font-size: .86rem; width: 100%; } .checks th { text-align: left; padding: .25rem .6rem .25rem 0; text-transform: capitalize; width: 8rem; } .checks td { padding: .25rem .6rem .25rem 0; }
+.related { padding-left: 1.1rem; margin: 0; }
+.rendered { border-left: 4px solid var(--accent); }
+.delta { margin: .6rem 0; } .sbs { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .4rem; }
+.side { border: 1px solid var(--border); border-radius: 8px; padding: .4rem .6rem; background: var(--surface-2); } .side-h { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.side.src { box-shadow: inset 3px 0 0 var(--danger); } .side.dst { box-shadow: inset 3px 0 0 var(--ok); }
+.env { border-left: 4px solid var(--warn); }
+
+.actions .row, .correct .row { display: flex; gap: .8rem; flex-wrap: wrap; align-items: flex-start; margin-bottom: .5rem; }
+.buttons { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .6rem; }
+.labelbox { display: flex; flex-wrap: wrap; gap: .3rem 1rem; margin: .4rem 0; }
+.more { margin: .3rem 0; } .more summary, .labels summary { cursor: pointer; color: var(--muted); font-size: .85rem; }
+.correct { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border); }
+.correct fieldset { border: 1px solid var(--border); border-radius: 8px; margin: .6rem 0; padding: .6rem .8rem; }
+.correct legend { font-weight: 650; padding: 0 .4rem; } .correct label { display: block; font-size: .8rem; color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .5rem .8rem; } .grid input, .grid select { width: 100%; }
+.correct input, .correct select { margin-top: .15rem; } .correct textarea { margin-top: .15rem; }
+.classbox { align-self: end; font-size: .88rem; color: var(--text); }
+
+.bulkbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; padding: .7rem 1.25rem;
+  background: var(--surface); border-top: 1px solid var(--border); box-shadow: 0 -6px 20px rgba(0,0,0,.12); }
+.bulkbar[hidden] { display: none; } .bulk-count { font-size: .95rem; }
+.bulkbar .labels { position: relative; } .bulkbar .labelbox { position: absolute; bottom: 2.2rem; background: var(--surface); border: 1px solid var(--border); padding: .6rem; border-radius: 8px; width: 20rem; box-shadow: var(--shadow); }
+.plan { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+.plan th, .plan td { padding: .5rem .7rem; text-align: left; border-bottom: 1px solid var(--border); }
+.plan-blocked { background: var(--danger-soft); } .plan-invalid { background: var(--warn-soft); }
+.summary { display: flex; gap: .5rem; margin: .8rem 0; }
+.help { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.45); display: grid; place-items: center; } .help[hidden] { display: none; }
+.help-card { background: var(--surface); border-radius: 12px; padding: 1.2rem 1.5rem; max-width: 34rem; box-shadow: var(--shadow); }
+.help dl { display: grid; grid-template-columns: 9rem 1fr; gap: .3rem 1rem; } .help dd { margin: 0; }
+kbd { font-family: var(--mono); font-size: .78rem; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 5px; padding: 0 .35rem; background: var(--surface-2); }
+.loading { padding: 1rem; color: var(--muted); }
+@media (max-width: 760px) { .page { padding: .8rem; } .sbs { grid-template-columns: 1fr; } .aspects { grid-template-columns: 1fr; } .reviewer input { width: 8rem; } .card-head { grid-template-columns: auto 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="bar sticky">
+  <div class="bar-row">
+    <a class="brand" href="/">Release Intelligence <span>review</span></a>
+    <div class="spacer"></div>
+    <button class="btn ghost" type="button" id="theme" aria-label="Toggle light/dark theme">◐</button>
+    <button class="btn ghost" type="button" id="helpbtn" aria-label="Keyboard shortcuts">?</button>
+  </div>
+</header>
+<main class="page item-page" data-id="ri-9cdea0ac1732">
+  <p><a class="back" href="/">← Inbox</a></p>
+  
+  <section class="hero">
+    <div class="meta">
+      <span class="badge">cert-manager v1.18.0</span>
+      <span class="badge soft">consequence</span>
+      <span class="badge prio-high">high priority</span>
+      <span class="badge st-accent">pending</span>
+      <code class="id">ri-9cdea0ac1732</code>
+    </div>
+    <h1 class="question">If a Certificate with rotationPolicy unset does nothing during the upgrade, what happens — and is that review or action?</h1>
+    <p class="muted">The default privateKey.rotationPolicy is now Always</p>
+  </section>
+  
+<div class="detail-body" data-id="ri-9cdea0ac1732">
+  
+  
+
+  <section class="panel">
+    <h3>Upstream statement</h3>
+    <blockquote class="statement">Upgrading 1.17 → 1.18: rotationPolicy defaults to Always.</blockquote>
+    <p class="muted small">cert-manager v1.18.0 · configuration · 1 restating member · grouping single</p>
+  </section>
+
+  <section class="panel">
+    <h3>Evidence <span class="count">2</span></h3>
+    <ul class="evidence">
+    
+      <li>
+        <div class="ev-head">
+          <span class="badge soft">document</span>
+          <a href="https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md#L21-L30" target="_blank" rel="noopener noreferrer">https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md</a>
+          <code>L21-L30</code>
+        </div>
+        <blockquote class="excerpt">The default value of Certificate.spec.privateKey.rotationPolicy is now Always. Existing Certificates that do not set the field will have their private key rotated on every renewal.</blockquote>
+        <div class="muted small">
+          digest sha256:upg11… · retrieved 2026-10-01 09:00 UTC
+           · cited by claude-opus-5-5, claude-sonnet-5-5, glm-5.3-flash
+          
+        </div>
+      </li>
+    
+      <li>
+        <div class="ev-head">
+          <span class="badge soft">structured</span>
+          <a href="https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/crds/cert-manager.io_certificates.yaml#L612" target="_blank" rel="noopener noreferrer">https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/crds/cert-manager.io_certificates.yaml</a>
+          <code>L612</code>
+        </div>
+        <blockquote class="excerpt">rotationPolicy: description: … Defaults to `Always`.</blockquote>
+        <div class="muted small">
+          digest sha256:crd11… · retrieved 2026-10-01 09:00 UTC
+          
+          
+        </div>
+      </li>
+    
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h3>Proposed assertion <span class="muted small">— what you accept or correct</span></h3>
+    
+    <dl class="aspects">
+      <dt>subject</dt><dd><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.rotationPolicy</pre></dd><dt>change</dt><dd><pre class="wrap">default-changed: &#34;Never&#34; → &#34;Always&#34;</pre></dd><dt>applicability</dt><dd><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
+  field `spec.privateKey.rotationPolicy` unset
+shielded (overlap) when resource cert-manager.io/Certificate where:
+  field `spec.privateKey.rotationPolicy` set</pre></dd><dt>consequence <span class="badge accent">verifies</span></dt><dd><pre class="wrap">behavior-change → review-required · high
+Private keys are regenerated on every renewal; pinned keys (TLS pinning, HPKP-style allow lists) break.</pre></dd>
+    </dl>
+    
+    <p class="muted small">Routing: review, high priority · signals <span class="badge soft">models-disagree</span> <span class="badge soft">high-impact</span> <span class="badge soft">validation-confirmed</span> </p>
+  </section>
+
+  
+  <section class="panel">
+    <h3>Proposals by model <span class="muted small">— never merged; same letter = same answer</span></h3>
+    <div class="scroll">
+    <table class="matrix">
+      <thead><tr><th>Aspect</th><th>Proposed</th><th><b>claude-opus-5-5</b><br><span class="muted small">anthropic · medium</span></th><th><b>claude-sonnet-5-5</b><br><span class="muted small">anthropic · medium</span></th><th><b>glm-5.3-flash</b><br><span class="muted small">zai · low</span></th></tr></thead>
+      <tbody>
+      
+        <tr class="m-agree">
+          <th scope="row">subject<div class="agree-chip agree-agree">agree · 3 models</div></th>
+          <td><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.rotationPolicy</pre></td>
+          
+            <td class="g g-A as-proposed">
+              <span class="grp">A</span><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.rotationPolicy</pre>
+              
+            </td>
+          
+            <td class="g g-A as-proposed">
+              <span class="grp">A</span><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.rotationPolicy</pre>
+              
+            </td>
+          
+            <td class="g g-A as-proposed">
+              <span class="grp">A</span><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.rotationPolicy</pre>
+              
+            </td>
+          
+        </tr>
+      
+        <tr class="m-agree">
+          <th scope="row">change<div class="agree-chip agree-agree">agree · 3 models</div></th>
+          <td><pre class="wrap">default-changed: &#34;Never&#34; → &#34;Always&#34;</pre></td>
+          
+            <td class="g g-A as-proposed">
+              <span class="grp">A</span><pre class="wrap">default-changed: &#34;Never&#34; → &#34;Always&#34;</pre>
+              
+            </td>
+          
+            <td class="g g-A as-proposed">
+              <span class="grp">A</span><pre class="wrap">default-changed: &#34;Never&#34; → &#34;Always&#34;</pre>
+              
+            </td>
+          
+            <td class="g g-A as-proposed">
+              <span class="grp">A</span><pre class="wrap">default-changed: &#34;Never&#34; → &#34;Always&#34;</pre>
+              
+            </td>
+          
+        </tr>
+      
+        <tr class="m-disagree">
+          <th scope="row">applicability<div class="agree-chip agree-disagree">disagree · 2 variants</div></th>
+          <td><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
+  field `spec.privateKey.rotationPolicy` unset
+shielded (overlap) when resource cert-manager.io/Certificate where:
+  field `spec.privateKey.rotationPolicy` set</pre></td>
+          
+            <td class="g g-B as-proposed">
+              <span class="grp">B</span><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
+  field `spec.privateKey.rotationPolicy` unset
+shielded (overlap) when resource cert-manager.io/Certificate where:
+  field `spec.privateKey.rotationPolicy` set</pre>
+              
+            </td>
+          
+            <td class="g g-B as-proposed">
+              <span class="grp">B</span><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
+  field `spec.privateKey.rotationPolicy` unset
+shielded (overlap) when resource cert-manager.io/Certificate where:
+  field `spec.privateKey.rotationPolicy` set</pre>
+              
+            </td>
+          
+            <td class="g g-A">
+              <span class="grp">A</span><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
+  field `spec.privateKey.rotationPolicy` unset</pre>
+              
+            </td>
+          
+        </tr>
+      
+        <tr class="m-disagree">
+          <th scope="row">consequence<div class="agree-chip agree-disagree">disagree · 3 variants</div></th>
+          <td><pre class="wrap">behavior-change → review-required · high
+Private keys are regenerated on every renewal; pinned keys (TLS pinning, HPKP-style allow lists) break.</pre></td>
+          
+            <td class="g g-B as-proposed">
+              <span class="grp">B</span><pre class="wrap">behavior-change → review-required · high
+Private keys are regenerated on every renewal; pinned keys (TLS pinning, HPKP-style allow lists) break.</pre>
+              
+            </td>
+          
+            <td class="g g-C">
+              <span class="grp">C</span><pre class="wrap">workload-failure → action-required · critical
+Pinned keys stop matching after renewal and clients refuse the certificate.</pre>
+              
+            </td>
+          
+            <td class="g g-A">
+              <span class="grp">A</span><pre class="wrap">behavior-change → review-required · medium
+Keys rotate on renewal.</pre>
+              
+            </td>
+          
+        </tr>
+      
+      </tbody>
+    </table>
+    </div>
+  </section>
+  
+
+  
+
+  <section class="panel">
+    <h3>Validation results <span class="count">1</span></h3>
+    
+    
+      <div class="val">
+        <div class="val-head"><code>semvalidate.crd@v1</code> <span class="muted small">checked claude-opus-5-5's assertion</span></div>
+        <table class="checks"><tbody>
+        <tr><th>subject</th><td><span class="badge out-confirmed">confirmed</span></td><td><code>crd-schema:field</code></td><td>Certificate.spec.privateKey.rotationPolicy exists in v1.18.0 CRD</td></tr><tr><th>change</th><td><span class="badge out-confirmed">confirmed</span></td><td><code>crd-schema:default</code></td><td>default Never (v1.17.4) → Always (v1.18.0)</td></tr><tr><th>applicability</th><td><span class="badge out-inconclusive">inconclusive</span></td><td><code>canonical:crd-field/default-changed</code></td><td>stated condition differs from the canonical one (overlap branch)</td></tr>
+        </tbody></table>
+      </div>
+    
+  </section>
+
+  
+  <section class="panel env">
+    <h3>Environment context <span class="badge warn">illustration only</span></h3>
+    <p>illustration: platform-prod (values digest 41c9) <code>sha256:41c9</code></p>
+    <p class="muted small">Recorded with your decision so transfer can be measured. Knowledge stays release-level: the fact will not name this environment.</p>
+  </section>
+  
+
+  <section class="panel">
+    <h3>Previous related decisions <span class="count">0</span></h3>
+    <p class="muted">None for this subject.</p>
+    <ul class="related">
+    
+    
+    </ul>
+  </section>
+
+  <section class="panel decide" id="decide-ri-9cdea0ac1732">
+    <h3>Decide <span class="muted small">— human decision · started 2026-10-02T03:22:53.643772Z</span></h3>
+    
+    <form class="actions" method="post" action="/items/ri-9cdea0ac1732/decision" data-item="ri-9cdea0ac1732">
+      <input type="hidden" name="started" value="2026-10-02T03:22:53.643772Z">
+      <input type="hidden" name="return" value="/">
+      <div class="row">
+        <label class="reviewer">Reviewer <input type="text" name="reviewer" value="" required placeholder="your name"></label>
+        <label class="grow">Reason <span class="muted small">(required for reject, need more evidence)</span>
+          <textarea name="reason" rows="2" placeholder="Why? Cite the evidence."></textarea></label>
+      </div>
+      <details class="more"><summary>Labels &amp; duplicate</summary>
+        <div class="labelbox">
+          <label class="check"><input type="checkbox" name="label" value="wrong-subject" > wrong-subject</label><label class="check"><input type="checkbox" name="label" value="wrong-change-type" > wrong-change-type</label><label class="check"><input type="checkbox" name="label" value="wrong-applicability" > wrong-applicability</label><label class="check"><input type="checkbox" name="label" value="wrong-consequence" > wrong-consequence</label><label class="check"><input type="checkbox" name="label" value="wrong-classification" > wrong-classification</label>
+        </div>
+        <div class="row">
+          <label>Reject as <select name="outcome"><option value="rejected">rejected</option><option value="duplicate">duplicate of a known fact</option></select></label>
+          <label>Duplicate of <input type="text" name="duplicate_of" placeholder="vf-…" value=""></label>
+        </div>
+      </details>
+      <div class="buttons">
+        <button type="submit" name="action" value="accept" class="btn ok" data-key="a" data-needs-reason="0"><u>A</u>ccept</button>
+        <button type="submit" name="action" value="reject" class="btn danger" data-key="r" data-needs-reason="1"><u>R</u>eject</button>
+        <button type="button" class="btn" data-key="c" data-correct="1"><u>C</u>orrect…</button>
+        <button type="submit" name="action" value="need-more-evidence" class="btn" data-key="e" data-needs-reason="1">Need more <u>e</u>vidence</button>
+        <button type="submit" name="action" value="defer" class="btn" data-key="d" data-needs-reason="0"><u>D</u>efer</button>
+        <span class="armed-hint small muted" aria-live="polite"></span>
+      </div>
+    </form>
+
+    
+    <form class="correct" method="post" action="/items/ri-9cdea0ac1732/decision" id="correct-ri-9cdea0ac1732" hidden>
+      <input type="hidden" name="action" value="correct">
+      <input type="hidden" name="started" value="2026-10-02T03:22:53.643772Z">
+      <input type="hidden" name="return" value="/">
+      <h4>Correct the assertion <span class="muted small">— pre-filled with the proposal; the original is kept in the decision</span></h4>
+      <div class="row">
+        <label class="reviewer">Reviewer <input type="text" name="reviewer" value="" required></label>
+        <label class="grow">Reason (required) <textarea name="reason" rows="2"></textarea></label>
+      </div>
+      <fieldset><legend>Subject</legend><div class="grid">
+        <label>Family <select name="c_subject_family"><option selected>crd-field</option><option >helm-value</option><option >gvk</option><option >feature-gate</option><option >image</option><option >config-key</option><option >rbac-permission</option><option >cli-flag</option><option >env-var</option><option >compatibility-boundary</option><option >api-endpoint</option><option >protocol-behavior</option><option >terraform-attribute</option><option >product-relationship</option><option >migration</option></select></label>
+        <label>Product <input name="c_subject_product" value="cert-manager"></label>
+        <label>Group <input name="c_subject_group" value="cert-manager.io"></label>
+        <label>Version <input name="c_subject_version" value=""></label>
+        <label>Kind <input name="c_subject_kind" value="Certificate"></label>
+        <label>Path <input name="c_subject_path" value="spec.privateKey.rotationPolicy"></label>
+        <label>Name <input name="c_subject_name" value=""></label>
+        <label>Component <input name="c_subject_component" value=""></label>
+      </div></fieldset>
+      <fieldset><legend>Change</legend><div class="grid">
+        <label>Type <select name="c_change_type"><option >added</option><option >removed</option><option >renamed</option><option selected>default-changed</option><option >value-changed</option><option >behavior-changed</option><option >deprecated</option><option >now-required</option><option >validation-tightened</option><option >requirement-changed</option><option >migration-required</option></select></label>
+        <label>Before <span class="muted small">(JSON scalar, e.g. "Never")</span> <input name="c_change_before" value="&#34;Never&#34;"></label>
+        <label>After <input name="c_change_after" value="&#34;Always&#34;"></label>
+      </div>
+      <label>Replaced by <span class="muted small">(subject JSON, renamed / deprecated / removed only)</span><textarea name="c_change_replacedby" rows="3" class="mono"></textarea></label></fieldset>
+      <fieldset><legend>Applicability</legend>
+        <label>Exposure condition <span class="muted small">(JSON, DESIGN §1.3)</span><textarea name="c_app_exposure" rows="8" class="mono">{
+  &#34;op&#34;: &#34;resource&#34;,
+  &#34;of&#34;: [
+    {
+      &#34;op&#34;: &#34;field&#34;,
+      &#34;path&#34;: &#34;spec.privateKey.rotationPolicy&#34;,
+      &#34;state&#34;: &#34;unset&#34;
+    }
+  ],
+  &#34;group&#34;: &#34;cert-manager.io&#34;,
+  &#34;kind&#34;: &#34;Certificate&#34;
+}</textarea></label>
+        <label>Overlap condition <span class="muted small">(optional; shielded state)</span><textarea name="c_app_overlap" rows="5" class="mono">{
+  &#34;op&#34;: &#34;resource&#34;,
+  &#34;of&#34;: [
+    {
+      &#34;op&#34;: &#34;field&#34;,
+      &#34;path&#34;: &#34;spec.privateKey.rotationPolicy&#34;,
+      &#34;state&#34;: &#34;set&#34;
+    }
+  ],
+  &#34;group&#34;: &#34;cert-manager.io&#34;,
+  &#34;kind&#34;: &#34;Certificate&#34;
+}</textarea></label></fieldset>
+      <fieldset><legend>Consequence</legend><div class="grid">
+        <label>Kind <select name="c_cons_kind" class="kind"><option value="upgrade-blocked" data-class="action-required" >upgrade-blocked</option><option value="resource-rejected" data-class="action-required" >resource-rejected</option><option value="setting-ignored" data-class="action-required" >setting-ignored</option><option value="behavior-change" data-class="review-required" selected>behavior-change</option><option value="permission-lost" data-class="action-required" >permission-lost</option><option value="workload-failure" data-class="action-required" >workload-failure</option><option value="migration-required" data-class="action-required" >migration-required</option><option value="deprecation" data-class="review-required" >deprecation</option><option value="none" data-class="informational" >none</option></select></label>
+        <label>Severity <select name="c_cons_severity"><option value="">—</option><option >critical</option><option selected>high</option><option >medium</option><option >low</option></select></label>
+        <div class="classbox">Class that follows: <b class="class-out">review-required</b><div class="muted small">the class follows the kind; the trust ladder may still cap it</div></div>
+      </div>
+      <label>Statement <span class="muted small">(what exactly fails if nothing is done)</span><textarea name="c_cons_statement" rows="2">Private keys are regenerated on every renewal; pinned keys (TLS pinning, HPKP-style allow lists) break.</textarea></label>
+      <label>Remediation <textarea name="c_cons_remediation" rows="2"></textarea></label></fieldset>
+      <label>Assertion statement <span class="muted small">(prose; never compared)</span><input name="c_statement" value="Certificate.spec.privateKey.rotationPolicy default Never → Always"></label>
+      <p class="muted small">Labels: <code>corrected</code> plus a <code>wrong-*</code> label per changed aspect (set automatically unless you tick labels in the form above).</p>
+      <button class="btn ok" type="submit">Record correction</button>
+    </form>
+    
+    
+  </section>
+</div>
+
+</main>
+
+<div id="help" class="help" hidden role="dialog" aria-label="Keyboard shortcuts">
+  <div class="help-card">
+    <h2>Keyboard shortcuts</h2>
+    <dl>
+      <dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>next / previous question</dd>
+      <dt><kbd>Enter</kbd> / <kbd>o</kbd></dt><dd>expand / collapse the focused question</dd>
+      <dt><kbd>x</kbd></dt><dd>select the focused question for a bulk action</dd>
+      <dt><kbd>a</kbd></dt><dd>accept — then <kbd>Enter</kbd> to confirm</dd>
+      <dt><kbd>r</kbd></dt><dd>reject — type the reason, <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to confirm</dd>
+      <dt><kbd>c</kbd></dt><dd>correct — opens the edit form</dd>
+      <dt><kbd>e</kbd></dt><dd>need more evidence — reason, <kbd>Ctrl</kbd>+<kbd>Enter</kbd></dd>
+      <dt><kbd>d</kbd></dt><dd>defer — then <kbd>Enter</kbd> to confirm</dd>
+      <dt><kbd>/</kbd></dt><dd>focus the filters</dd>
+      <dt><kbd>?</kbd></dt><dd>this help</dd>
+    </dl>
+    <p class="muted">Nothing is submitted by a single key: actions are armed first, then confirmed.</p>
+  </div>
+</div>
+
+</body>
+</html>
+

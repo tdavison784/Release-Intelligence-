@@ -23,6 +23,9 @@
 //	ri knowledge route|decide|review-fact|export|metrics
 //	                                    the learning loop's store, review queue,
 //	                                    feedback dataset and metrics
+//	ri review serve [-addr A] [-demo]   engineering review UI (learning loop):
+//	                                    inbox, evidence, accept/reject/correct,
+//	                                    bulk review
 //
 // Global flags (before the command): -products DIR, -state DIR, -offline,
 // -refresh, -v.
@@ -60,6 +63,7 @@ Commands:
   stats [product ...]               measure onboarding: constructs, effort, discovery, validation
   eval [entries ...]                score the validation dataset (eval/cases) against the pipeline
   knowledge <subcommand>            the learning loop: route, decide, export, metrics (ri knowledge help)
+  review serve                      engineering review UI for the learning loop (-demo for fixtures)
 
 Global flags:
 `
@@ -153,6 +157,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return c.eval(cmdArgs)
 	case "knowledge":
 		return c.knowledge(cmdArgs)
+	case "review":
+		return c.review(cmdArgs)
 	default:
 		fs.Usage()
 		return fmt.Errorf("%w: unknown command %q", app.ErrUsage, cmd)

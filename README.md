@@ -124,6 +124,7 @@ ri knowledge route                              # learning loop: route candidate
 ri knowledge decide -reviewer me <review-item>  # record a decision (proxy: -reviewer-kind proxy -proxy-* provenance)
 ri knowledge metrics [-o json]                  # agreement, per-model accuracy, review cost, fact counts
 ri knowledge export -o feedback.jsonl           # the human-feedback dataset
+ri review serve -demo                           # engineering review UI for the learning loop (docs/REVIEW_UI.md)
 ```
 
 Global flags go before the command:
