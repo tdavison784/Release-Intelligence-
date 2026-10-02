@@ -354,11 +354,15 @@ func (q *reviewQueue) Decide(ctx context.Context, ds []domain.ReviewDecision) ([
 	for _, it := range work.ReviewItems {
 		its[it.ID] = it
 	}
+	pmap := map[string]domain.SemanticProposal{}
+	for _, p := range work.Proposals {
+		pmap[p.ID] = p
+	}
 	for _, f := range append(append([]domain.VerifiedFact(nil), facts...), touched...) {
 		if err := f.Validate(); err != nil {
 			return nil, err
 		}
-		if err := domain.ValidateFactBasis(f, vals, decs, its); err != nil {
+		if err := domain.ValidateFactRecords(f, domain.FactRecords{Validations: vals, Decisions: decs, Items: its, Proposals: pmap}); err != nil {
 			return nil, err
 		}
 	}

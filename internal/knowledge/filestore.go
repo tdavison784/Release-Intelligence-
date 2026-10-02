@@ -176,7 +176,7 @@ func (s *FileStore) checkFact(f domain.VerifiedFact) error {
 		}
 	}
 	snap, err := s.loadLocked(Query{Product: f.Product, Kinds: []domain.RecordKind{
-		domain.RecordValidation, domain.RecordDecision, domain.RecordReviewItem}})
+		domain.RecordValidation, domain.RecordDecision, domain.RecordReviewItem, domain.RecordProposal}})
 	if err != nil {
 		return err
 	}
@@ -192,7 +192,12 @@ func (s *FileStore) checkFact(f domain.VerifiedFact) error {
 	for _, i := range snap.ReviewItems {
 		is[i.ID] = i
 	}
-	if err := domain.ValidateFactBasis(f, vs, ds, is); err != nil {
+	ps := map[string]domain.SemanticProposal{}
+	for _, p := range snap.Proposals {
+		ps[p.ID] = p
+	}
+	// ValidateFactRecords (not ValidateFactBasis): consensus facts rest on proposals
+	if err := domain.ValidateFactRecords(f, domain.FactRecords{Validations: vs, Decisions: ds, Items: is, Proposals: ps}); err != nil {
 		return fmt.Errorf("knowledge: fact %s fails basis verification: %w", f.ID, err)
 	}
 	return nil
@@ -234,6 +239,7 @@ func mutableChange(old, next domain.KnowledgeRecord) error {
 		a.Anchors, b.Anchors = nil, nil
 		a.Candidates, b.Candidates = nil, nil
 		a.Verification, b.Verification = nil, nil
+		a.AutoApproved, b.AutoApproved = false, false
 		if reflect.DeepEqual(a, b) {
 			return nil
 		}
@@ -253,7 +259,9 @@ func mutableFields(k domain.RecordKind) string {
 
 // levelNotWeaker reports whether n is at least as trusted as o.
 func levelNotWeaker(n, o domain.VerificationLevel) bool {
-	rank := map[domain.VerificationLevel]int{domain.VerifiedDeterministic: 0, domain.VerifiedHuman: 1, domain.VerifiedProxy: 2}
+	// deterministic and human are equally trusted (domain.AtLeast); consensus
+	// and proxy are weaker, in that order.
+	rank := map[domain.VerificationLevel]int{domain.VerifiedDeterministic: 0, domain.VerifiedHuman: 0, domain.VerifiedConsensus: 1, domain.VerifiedProxy: 2}
 	return rank[n] <= rank[o]
 }
 

@@ -37,10 +37,16 @@ type Minted struct {
 // question verifies, with two guards: a value a validator confirmed stays
 // deterministic when a reviewer decides the same value, and a proxy never
 // overrides an aspect a trusted level already holds.
-func candidateState(vs []domain.ValidationResult, items map[string]domain.ReviewItem, ds []domain.ReviewDecision) map[domain.Aspect]aspectState {
+func candidateState(seed map[domain.Aspect]aspectState, vs []domain.ValidationResult, items map[string]domain.ReviewItem, ds []domain.ReviewDecision) map[domain.Aspect]aspectState {
 	validated := stateFromValidations(vs)
 	state := map[domain.Aspect]aspectState{}
+	for x, v := range seed {
+		state[x] = v
+	}
 	for x, v := range validated {
+		if cur, ok := state[x]; ok && cur.digest != v.digest {
+			continue // a re-reviewed fact keeps its value unless a decision changes it
+		}
 		state[x] = v
 	}
 	ordered := append([]domain.ReviewDecision(nil), ds...)
@@ -139,7 +145,12 @@ func buildFact(c domain.SemanticCandidate, state map[domain.Aspect]aspectState, 
 			add(e)
 		}
 	}
+	auto := true
+	for _, v := range ver {
+		auto = auto && (v.Level == domain.VerifiedDeterministic || v.Level == domain.VerifiedConsensus)
+	}
 	f := &domain.VerifiedFact{
+		AutoApproved: auto,
 		ID:           domain.VerifiedFactID(c.Product, c.Release, a),
 		Product:      c.Product,
 		Release:      c.Release,
@@ -264,7 +275,12 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 	if !have {
 		ds = append(ds, d)
 	}
-	state := candidateState(vs, candItems, ds)
+	var seed map[domain.Aspect]aspectState
+	target, isReview := factReviewTarget(item, facts)
+	if isReview {
+		seed = seedFromFact(facts[target])
+	}
+	state := candidateState(seed, vs, candItems, ds)
 	for _, x := range domain.Aspects {
 		if _, ok := state[x]; !ok {
 			out.Open = append(out.Open, x)
@@ -287,6 +303,12 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 		if old.Status != domain.FactActive {
 			return out, nil // a retracted or superseded fact is never revived
 		}
+		if isReview && target == old.ID && d.Action == domain.ActionAccept && old.AutoApproved {
+			// an audit confirmation of an auto-approved fact measures it; it does
+			// not upgrade it (the marker means no reviewer decided it)
+			out.Fact = &old
+			return out, nil
+		}
 		merged := old
 		for _, an := range f.Anchors {
 			merged.Anchors = addAnchor(merged.Anchors, an)
@@ -300,6 +322,10 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 			ver = append(ver, v)
 		}
 		merged.Verification = ver
+		merged.AutoApproved = true
+		for _, v := range ver {
+			merged.AutoApproved = merged.AutoApproved && (v.Level == domain.VerifiedDeterministic || v.Level == domain.VerifiedConsensus)
+		}
 		f = &merged
 	}
 	if target, ok := factReviewTarget(item, facts); ok && d.Action == domain.ActionCorrect && target != f.ID {
@@ -310,6 +336,15 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 	}
 	out.Fact = f
 	return out, nil
+}
+
+// seedFromFact turns a fact's verification back into per-aspect state.
+func seedFromFact(f domain.VerifiedFact) map[domain.Aspect]aspectState {
+	out := map[domain.Aspect]aspectState{}
+	for _, v := range f.Verification {
+		out[v.Aspect] = aspectState{part: partOf(f.Assertion, v.Aspect), digest: f.Assertion.AspectDigest(v.Aspect), level: v.Level, basis: append([]string(nil), v.Basis...)}
+	}
+	return out
 }
 
 func verIndex(vs []domain.AspectVerification, x domain.Aspect) int {

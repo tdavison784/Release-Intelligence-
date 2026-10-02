@@ -449,5 +449,61 @@ func factMetrics(s *Snapshot) FactMetrics {
 	if fm.Active > 0 {
 		fm.AnchorsPerFact = float64(anchors) / float64(fm.Active)
 	}
+	auditAutoApproved(s, &fm)
 	return fm
+}
+
+// auditAutoApproved measures auto-approval against human review (R19): the
+// auto-approved facts, how many a reviewer was sampled onto (a fact-review
+// item with a human decision), and how often the verdict agreed (accept
+// agrees; reject or correct disagrees). Per subject family as well.
+func auditAutoApproved(s *Snapshot, fm *FactMetrics) {
+	items := map[string]domain.ReviewItem{}
+	for _, it := range s.ReviewItems {
+		items[it.ID] = it
+	}
+	verdict := map[string]domain.DecisionAction{} // fact id → latest human verdict
+	when := map[string]int64{}
+	for _, d := range s.Decisions {
+		it, ok := items[d.ReviewItemID]
+		if !ok || d.ReviewerKind != domain.ReviewerHuman || it.Proposed.Validate(true) != nil {
+			continue
+		}
+		if d.Action != domain.ActionAccept && d.Action != domain.ActionCorrect && d.Action != domain.ActionReject {
+			continue
+		}
+		id := domain.VerifiedFactID(it.Product, it.Release, it.Proposed)
+		if t := d.DecidedAt.UnixNano(); t >= when[id] {
+			verdict[id], when[id] = d.Action, t
+		}
+	}
+	famTotal, famAgree := map[domain.SubjectFamily]int{}, map[domain.SubjectFamily]int{}
+	agree := 0
+	for _, f := range s.Facts {
+		if !f.AutoApproved {
+			continue
+		}
+		fm.AutoApproved++
+		v, ok := verdict[f.ID]
+		if !ok {
+			continue
+		}
+		fm.AutoApprovedAudited++
+		fam := domain.SubjectFamily("")
+		if f.Assertion.Subject != nil {
+			fam = f.Assertion.Subject.Family
+		}
+		famTotal[fam]++
+		if v == domain.ActionAccept {
+			agree++
+			famAgree[fam]++
+		}
+	}
+	if fm.AutoApprovedAudited > 0 {
+		fm.AutoApprovalAgreement = float64(agree) / float64(fm.AutoApprovedAudited)
+		fm.AutoApprovalAgreementBy = map[domain.SubjectFamily]float64{}
+		for fam, n := range famTotal {
+			fm.AutoApprovalAgreementBy[fam] = float64(famAgree[fam]) / float64(n)
+		}
+	}
 }

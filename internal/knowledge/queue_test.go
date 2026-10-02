@@ -137,7 +137,7 @@ func TestRejectRetractsAFactReview(t *testing.T) {
 		t.Fatalf("status = %s", rec.Fact.Status)
 	}
 	// re-deriving never revives it
-	if _, err := RouteStore(ctx, s, nil, Query{}); err != nil {
+	if _, err := RouteStore(ctx, s, RouteOptions{}, Query{}); err != nil {
 		t.Fatal(err)
 	}
 	rec, _ = s.Get(ctx, fid)
