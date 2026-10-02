@@ -70,12 +70,100 @@
     "crds": 1,
     "manifestPaths": 45,
     "images": 5,
+    "products": [
+      {
+        "product": "cert-manager",
+        "catalog": true,
+        "version": "1.17.0",
+        "rawVersion": "v1.17.0",
+        "versionOf": "chart",
+        "source": "detected-argo",
+        "evidence": [
+          "ev-c20cbc61dfd4"
+        ]
+      },
+      {
+        "product": "cert-manager",
+        "catalog": true,
+        "rawVersion": "1.*",
+        "versionOf": "chart",
+        "source": "detected-flux",
+        "evidence": [
+          "ev-ee99f1ca859c",
+          "ev-92b6d0c8ca23"
+        ]
+      },
+      {
+        "product": "cert-manager",
+        "catalog": true,
+        "version": "1.17.0",
+        "rawVersion": "v1.17.0",
+        "versionOf": "chart",
+        "source": "detected-helm",
+        "evidence": [
+          "ev-724ff3a30893",
+          "ev-c70b33befb31"
+        ]
+      },
+      {
+        "product": "cert-manager",
+        "catalog": true,
+        "version": "1.17.0",
+        "rawVersion": "v1.17.0",
+        "versionOf": "chart",
+        "source": "detected-helmfile",
+        "evidence": [
+          "ev-0a8e098a79e7"
+        ]
+      },
+      {
+        "product": "cert-manager",
+        "catalog": true,
+        "version": "1.17.0",
+        "rawVersion": "v1.17.0",
+        "versionOf": "app",
+        "source": "detected-image",
+        "evidence": [
+          "ev-514080d44846",
+          "ev-dc7ff0b974f9",
+          "ev-7c0c579f46d5",
+          "ev-c7b1f7efbd0a",
+          "ev-35b56d51dbe8"
+        ]
+      },
+      {
+        "product": "cert-manager",
+        "catalog": true,
+        "version": "1.17.0",
+        "rawVersion": "v1.17.0",
+        "versionOf": "app",
+        "source": "detected-label",
+        "evidence": [
+          "ev-5c8929e61e1b",
+          "ev-1ac395537657",
+          "ev-089c1592f9cb"
+        ]
+      },
+      {
+        "product": "kubernetes",
+        "version": "1.28",
+        "rawVersion": "1.28",
+        "versionOf": "app",
+        "source": "declared",
+        "note": "from --kubernetes",
+        "evidence": [
+          "ev-7ed6c5e2142e"
+        ]
+      }
+    ],
+    "productsHealth": "partial",
     "warnings": [
       "skipped ../env/testdata/customer-repo/charts/vendored: a Helm chart source tree (its values and templates are chart inputs, not customer environment)",
       "helmfile helmfile.yaml: templating (go templates, environments) is not evaluated; releases are inventoried from the literal file",
       "kustomization kustomize/kustomization.yaml is not built with kustomize: its resources are inventoried as plain manifests, patches and transformers are not applied",
       "repo mode found 2 values files; all are applied, the last one wins per key",
-      "HelmRelease cert-manager uses spec.valuesFrom, which references cluster objects; those values are not readable from files"
+      "HelmRelease cert-manager uses spec.valuesFrom, which references cluster objects; those values are not readable from files",
+      "detected-flux \"cert-manager\": version \"1.*\" is not a parsable version; kept as stated, it cannot be range-checked"
     ]
   },
   "summary": {
@@ -2080,6 +2168,30 @@
       "contentDigest": "sha256:495adb34bc62977e23f65eae56289dcaeb8f9f3f3ce0d2043e3cc71f7cb78868"
     },
     {
+      "id": "ev-0a8e098a79e7",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/helmfile.yaml",
+      "locator": "$.releases[] (L5)",
+      "excerpt": "chart: jetstack/cert-manager version: v1.17.0",
+      "contentDigest": "sha256:4fb414cd631d8b9e11f2dc0fb1a36149356b7d94be31d2ca438cab0d1965cc31"
+    },
+    {
+      "id": "ev-dc7ff0b974f9",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/kustomize/kustomization.yaml",
+      "locator": "L10",
+      "excerpt": "image: quay.io/jetstack/cert-manager-controller:v1.17.0",
+      "contentDigest": "sha256:23938e45483df782e8ecf9a3b6f67808612029ac6b0255380b294bfdf6ccc625"
+    },
+    {
+      "id": "ev-35b56d51dbe8",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/terraform/main.tf",
+      "locator": "L15",
+      "excerpt": "image: quay.io/jetstack/cert-manager-webhook:v1.17.0",
+      "contentDigest": "sha256:413269160df56b49638692294ef950bfd96733f6811183984defd81de40c4ac4"
+    },
+    {
       "id": "ev-694d57a19d89",
       "kind": "local-file",
       "uri": "../env/testdata/customer-repo/clusters/prod/values-cert-manager.yaml",
@@ -2094,6 +2206,78 @@
       "locator": "$.prometheus.servicemonitor.targetPort (L8)",
       "excerpt": "prometheus.servicemonitor.targetPort: 9402",
       "contentDigest": "sha256:3dc2435c9a131ab168b9f1f3279505e9a272e78a6a3982e8b46b9841626c92ad"
+    },
+    {
+      "id": "ev-c20cbc61dfd4",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/apps/cert-manager-argocd.yaml",
+      "locator": "$.spec.source.targetRevision (L13)",
+      "excerpt": "targetRevision: v1.17.0",
+      "contentDigest": "sha256:9bedcbb56147bd5266828eb6d920e43f5e40bc1b7dec971658697b36854c7312"
+    },
+    {
+      "id": "ev-724ff3a30893",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "$.metadata.annotations[meta.helm.sh/release-name] (L14)",
+      "excerpt": "meta.helm.sh/release-name: cert-manager",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    },
+    {
+      "id": "ev-c70b33befb31",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "$.metadata.annotations[helm.sh/chart] (L16)",
+      "excerpt": "helm.sh/chart: cert-manager-v1.17.0",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    },
+    {
+      "id": "ev-5c8929e61e1b",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "$.metadata.labels[app.kubernetes.io/name] (L10)",
+      "excerpt": "app.kubernetes.io/name: cert-manager",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    },
+    {
+      "id": "ev-1ac395537657",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "$.metadata.labels[app.kubernetes.io/instance] (L11)",
+      "excerpt": "app.kubernetes.io/instance: cert-manager",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    },
+    {
+      "id": "ev-089c1592f9cb",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "$.metadata.labels[app.kubernetes.io/version] (L12)",
+      "excerpt": "app.kubernetes.io/version: v1.17.0",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    },
+    {
+      "id": "ev-7c0c579f46d5",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/base/deployment.yaml",
+      "locator": "L23",
+      "excerpt": "image: quay.io/jetstack/cert-manager-controller:v1.17.0",
+      "contentDigest": "sha256:b5038ccbc7589b243fdec3e386b3f31489c7830889cf0cc2d2c045d5d24303b9"
+    },
+    {
+      "id": "ev-ee99f1ca859c",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml",
+      "locator": "$.spec.chart.spec.chart (L12)",
+      "excerpt": "chart: cert-manager",
+      "contentDigest": "sha256:a885a7dc47b955389a3ea80de2316e1231ddd9d2ed01ace33a82fde8a6edfcda"
+    },
+    {
+      "id": "ev-92b6d0c8ca23",
+      "kind": "local-file",
+      "uri": "../env/testdata/customer-repo/flux/cert-manager-helmrelease.yaml",
+      "locator": "$.spec.chart.spec.version (L13)",
+      "excerpt": "version: 1.*",
+      "contentDigest": "sha256:a885a7dc47b955389a3ea80de2316e1231ddd9d2ed01ace33a82fde8a6edfcda"
     }
   ],
   "warnings": [
@@ -2103,7 +2287,8 @@
     "helmfile helmfile.yaml: templating (go templates, environments) is not evaluated; releases are inventoried from the literal file",
     "kustomization kustomize/kustomization.yaml is not built with kustomize: its resources are inventoried as plain manifests, patches and transformers are not applied",
     "repo mode found 2 values files; all are applied, the last one wins per key",
-    "HelmRelease cert-manager uses spec.valuesFrom, which references cluster objects; those values are not readable from files"
+    "HelmRelease cert-manager uses spec.valuesFrom, which references cluster objects; those values are not readable from files",
+    "detected-flux \"cert-manager\": version \"1.*\" is not a parsable version; kept as stated, it cannot be range-checked"
   ],
   "generatedAt": "2026-10-01T12:00:00Z",
   "definitionDigest": "sha256:26e937deab5a1c19a11c19f112b61b73a187c12bc5ab18c24f5ed65a4305c0c8"

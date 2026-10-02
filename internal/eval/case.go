@@ -338,7 +338,7 @@ func (c *Case) Validate() error {
 const EnvironmentDir = "environment"
 
 // envFileNames are the optional files/directories of an environment fixture.
-var envFileNames = []string{"values.yaml", "manifests", "crds", "images.txt"}
+var envFileNames = []string{"values.yaml", "manifests", "crds", "images.txt", "inventory.yaml"}
 
 // HasEnvironmentFiles reports whether the case directory actually contains
 // environment input files. The environment is only joinable when there is

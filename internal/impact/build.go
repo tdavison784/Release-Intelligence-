@@ -118,6 +118,11 @@ func build(in Input) (*domain.ImpactReport, error) {
 		GeneratedAt:   now.UTC(),
 	}
 	b.rep.Environment = environmentSummary(in.Env)
+	for _, p := range b.rep.Environment.Products {
+		for _, id := range p.Evidence {
+			b.locCited[id] = true // the inventory is part of the local evidence chain
+		}
+	}
 	b.rep.Warnings = append(append([]string{}, in.Edge.Warnings...), in.Env.Warnings...)
 	b.rep.DefinitionDigest = in.Edge.DefinitionDigest
 
@@ -152,6 +157,15 @@ func environmentSummary(e *env.Environment) domain.ImpactEnvironment {
 	}
 	for _, f := range e.Files {
 		s.Files = append(s.Files, domain.ImpactFile{Path: f.Path, Digest: f.Digest})
+	}
+	if h := e.Health(env.DimProducts); h != env.HealthAbsent {
+		s.ProductsHealth = string(h)
+		for _, p := range e.Products {
+			s.Products = append(s.Products, domain.ImpactProduct{
+				Product: p.Product, Catalog: p.Catalog, Version: p.Version, RawVersion: p.RawVersion,
+				VersionOf: p.VersionOf, Source: p.Source, Note: p.Note, Conflict: p.Conflict, Evidence: p.Evidence,
+			})
+		}
 	}
 	return s
 }
