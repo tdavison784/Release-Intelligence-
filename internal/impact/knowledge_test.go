@@ -471,3 +471,25 @@ func TestKnowledgeConsensusActionPO2(t *testing.T) {
 		t.Errorf("consensus-action without inventory: %s/%s", f.Classification, f.UnknownReason)
 	}
 }
+
+func TestRenderKnowledgeFindings(t *testing.T) {
+	eb, c := http01Edge()
+	anchor := domain.NewChangeAnchor(c, lookupOf(eb.edge))
+	en := condEnv(t, "- product: ingress-nginx\n  version: v1.12.1\n", nil)
+	r := buildWith(t, eb.edge, en, []domain.VerifiedFact{consensusFact(t, http01Assertion(), true, anchor)}, domain.VerifiedConsensus)
+	var b strings.Builder
+	if err := RenderText(&b, r, RenderOptions{ShowUnknown: true}); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(b.String(), "consensus-verified, cross-model) — ACTION REQUIRED · model consensus") {
+		t.Errorf("consensus ACTION not labelled in text:\n%s", b.String())
+	}
+	r = buildWith(t, eb.edge, condEnv(t, "", nil), []domain.VerifiedFact{fact(t, http01Assertion(), domain.VerifiedHuman, anchor)}, "")
+	b.Reset()
+	if err := RenderText(&b, r, RenderOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(b.String(), "verified knowledge could not decide (cross-product-context-gap)") {
+		t.Errorf("undecided knowledge not grouped with its reason:\n%s", b.String())
+	}
+}
