@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-cc6836574e12",
+    "candidateId": "sc-22be35218702",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "NameConstraints"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "NameConstraints",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "NameConstraints",
+              "state": "enabled"
+            },
+            {
+              "op": "feature-gate",
+              "name": "NameConstraints",
+              "state": "disabled"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that leave the NameConstraints feature gate unset will have the CA NameConstraints feature enabled by default after upgrading to cert-manager 1.17.0, turning the feature on without any configuration change.",
+        "remediation": "Set the NameConstraints feature gate explicitly if the previous default (disabled) is required.",
+        "severity": "low"
+      },
+      "statement": "The CA `NameConstraints` feature gate in cert-manager is promoted to Beta and is now enabled by default in 1.17.0, where it was previously not enabled by default."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-619c0cea3aa4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:62fea45198f45f320e3cc0ccddca620b37371e14ac2c7027dd7586475df35b28",
+      "inputEvidence": [
+        "ev-619c0cea3aa4"
+      ],
+      "generatedAt": "2026-10-02T11:30:51Z",
+      "callId": "37929ade-7652-476d-8b13-f05992b88fda"
+    }
+  }
+}

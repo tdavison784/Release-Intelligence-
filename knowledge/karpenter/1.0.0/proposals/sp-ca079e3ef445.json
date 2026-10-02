@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ca079e3ef445",
+    "candidateId": "sc-eedb90bededa",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "kind": "NodePool",
+        "path": "spec.disruption.expireAfter"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "karpenter",
+          "group": "karpenter.sh",
+          "kind": "NodePool",
+          "path": "spec.template.spec.expireAfter"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption.expireAfter",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.template.spec.expireAfter",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "statement": "In Karpenter 1.0.0, the NodePool ExpireAfter field moved from spec.disruption to spec.template.spec and is now a drift-able field."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The excerpt states the field moved and is now drift-able, but does not state what happens to an existing NodePool that still sets spec.disruption.expireAfter after upgrading (whether it is rejected, the value is ignored, or the manifest must be edited), and the target release still serves karpenter.sh/v1beta1 NodePool where the old path exists in the schema.",
+    "suggestedClass": "unknown",
+    "citations": [
+      "ev-1253ff5bd0a5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b67f7e878886418149f960ba00593e95170c872313a7233b79d99c75d212ef91",
+      "inputEvidence": [
+        "ev-1253ff5bd0a5"
+      ],
+      "generatedAt": "2026-10-02T11:41:23Z",
+      "callId": "28832826-3403-4b1a-b3ba-7dbd4f9ea7b3"
+    }
+  }
+}

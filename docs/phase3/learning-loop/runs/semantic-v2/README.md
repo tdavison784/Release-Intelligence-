@@ -133,3 +133,66 @@ calls (both calls 5 of 6/5).
 
 Artifacts: `same-model/reports/report{1,2}.txt`, `same-model/ex-{1,2}/exchange.log` (in
 `.ri/semantic-run-v2/`), `analysis-same-model.txt`, `analyze_same.py` (in this dir).
+
+## Cross-model measurement: GLM-5.3 via Z.AI (2026-10-02)
+
+The commander authorised it (product owner: MISSION G3 names GLM). `glm-5.3` answered the same 147
+candidates as Opus (cert-manager ×2, karpenter, strimzi), with the same `semantic-full/v1` prompts
+through the same file exchange. Each answer is one stateless `claude -p --model glm-5.3` call against
+Z.AI's Anthropic-compatible gateway (`scripts/semantic-exchange.sh <dir> "" 6 zai`, runner in
+`glm/glmrun.sh`). Proposals record provider `zai`, model/modelVersion `glm-5.3`, and the CLI
+session id as call id (138 proposals, 138 distinct call ids). The token is read inside the script
+and exported into each call's environment only. A scan of every run file, the committed records and
+the logs found it nowhere.
+
+Outcome: 147/147 answered (mean 82 s per call). **138 proposals, 9 refusals** (6 %, typed-contract
+violations; Opus 0, Sonnet ~1 %, Haiku ~11 %). Full abstention 17, all four aspects asserted 67,
+confidence medium 108 / low 30, `action-required` requests 12. Cost: Z.AI billing is not visible
+to the CLI. Its envelope figure ($19.80) is an Anthropic-price *estimate*, not what Z.AI charges.
+Prompts carried only upstream evidence, as for every model (checked: no environment data, local
+paths or eval references in any prompt sent).
+
+**Per aspect, both asserted, on the 138 candidates GLM answered** (`analysis-cross-model.txt`,
+`analyze_cross.py`; scope from `domain.ModelFamily`):
+
+| pair | scope | subject | change | applicability | consequence |
+|---|---|---|---|---|---|
+| opus ↔ glm | **cross-model** | 39/71 (55 %) | 68/93 (73 %) | 17/50 (34 %) | 50/77 (65 %) |
+| sonnet ↔ glm | **cross-model** | 37/71 (52 %) | 61/83 (73 %) | 8/24 (33 %) | 29/65 (45 %) |
+| haiku ↔ glm | **cross-model** | 31/58 (53 %) | 56/79 (71 %) | 10/54 (19 %) | 13/68 (19 %) |
+| opus ↔ sonnet | same-model (cross-tier) | 40/67 (60 %) | 57/78 (73 %) | 11/23 (48 %) | 37/60 (62 %) |
+| haiku ↔ sonnet | same-model (cross-tier) | 21/57 (37 %) | 46/70 (66 %) | 5/22 (23 %) | 22/53 (42 %) |
+| haiku ↔ opus | same-model (cross-tier) | 22/55 (40 %) | 45/75 (60 %) | 7/38 (18 %) | 15/59 (25 %) |
+| sonnet ↔ sonnet | same-model (separate calls; strimzi only) | 2/11 | 9/16 | 1/11 | 7/13 |
+
+**Subject agreement by family class** (exact / same family):
+
+| pair | scope | structured | free-form names |
+|---|---|---|---|
+| opus ↔ glm | cross-model | 25/31 exact, 31/31 family | 14/40 exact, 32/40 family |
+| sonnet ↔ glm | cross-model | 24/36, 34/36 | 13/35, 27/35 |
+| haiku ↔ glm | cross-model | 24/37, 32/37 | 7/21, 18/21 |
+| opus ↔ sonnet | same-model | 28/30, 30/30 | 12/37, 30/37 |
+| haiku ↔ sonnet | same-model | 19/35, 29/35 | 2/22, 13/22 |
+
+Per family: crd-field 9–12/14, feature-gate 8/8–9, helm-value and cli-flag near-total. Free-form
+families are low for every pair: protocol-behavior 1–11 of 13–27, migration 0/8 for every GLM pair.
+
+Reading:
+- **Cross-model agreement is as high as the best same-family pair.** GLM↔Opus and GLM↔Sonnet match
+  Opus↔Sonnet on change (73 %) and come close on subject (52–55 % vs 60 %). GLM↔Opus has the
+  highest consequence agreement of any pair (65 %). Correlated errors inside one family therefore
+  do not inflate Claude-only agreement much on this subset. Applicability is lower cross-model
+  (33–34 % vs 48 %), mostly through optional overlap/version details.
+- **Free-form subject names stay the bottleneck regardless of scope** (31–37 % exact even when the
+  family matches). With decision (c) in force, those subjects route to human review.
+- **Complete four-aspect cross-model agreement**: GLM+Opus on 10 candidates, GLM+Sonnet on 5. The
+  rotationPolicy default change (the MISSION demo) is agreed by GLM, Opus and Sonnet on all four
+  aspects (crd-field default-changed Never→Always, `resource{field unset}`, behavior-change). No
+  candidate has a cross-model agreement on an `action-required` request, so this data would mint no
+  PO-2 consensus-ACTION fact.
+- Haiku is the outlier in every pairing (lowest agreement, most refusals, most action requests).
+
+GLM proposals are committed in `knowledge/` beside the Claude ones; GLM's 9 refusals are in
+`failures/`; per-edge reports, the exchange log and the runner are in `glm/`; full artifacts
+(requests, responses, envelopes, cache) are in the gitignored `.ri/semantic-run-v2/glm/`.
