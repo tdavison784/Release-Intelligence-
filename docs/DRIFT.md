@@ -74,6 +74,35 @@ rather than `artifact-missing` unless a second declared channel (a mirror,
 `ghcr`, `gcr`) answers with a clean 404. That is the honest reading of what
 upstream said.
 
+### Why it was unreachable (fetch states)
+
+`internal/fetch` distinguishes the reasons a resource is unavailable. All of them
+are still `unavailable` to callers (`errors.Is(err, fetch.ErrUnavailable)`), but
+the detail, and for rate limits the source state, say why:
+
+| Reason | Trigger | Source state | Notes |
+|---|---|---|---|
+| throttled | HTTP 429, 503 + `Retry-After`, GitHub quota (403 + `X-RateLimit-Remaining: 0`) | `throttled` | retried with `Retry-After` (capped at 30s, else exponential 1s/2s/4s, 3 retries), later requests to the host wait; reachable, retry later |
+| authentication required | HTTP 401 | `unavailable` | detail carries the `WWW-Authenticate` challenge |
+| forbidden | HTTP 403 (not a rate limit) | `unavailable` | the host answered and refused (egress policy, denied anonymous pull) |
+| DNS resolution failed | name does not resolve | `unavailable` | |
+| plain unreachable | connection refused, timeout, TLS | `unavailable` | |
+
+`throttled` is treated like `unavailable` everywhere a verdict is made: never
+drift, never "missing". Per-host concurrency is bounded (6 by default, 2 for
+`public.ecr.aws`, which answered 429 to bursts while sequential reads were
+fine) so a run does not provoke the throttling it then has to report.
+
+## Stale baselines
+
+`ri check -o json` records the `definitionDigest` of the definition it ran
+against. `ri drift` compares it with the current definition and prints
+`baseline.digestState` in the report: `current`, `stale` (the definition was
+edited after the baseline was saved, so the baseline describes an older
+definition: re-run `ri check` and replace it) or `unrecorded` (saved before
+digests existed). It is a property of the baseline, never an event: it does not
+change the verdict or the exit code.
+
 ## Proposals
 
 Each drift event may carry a `proposal`: an annotated YAML fragment in

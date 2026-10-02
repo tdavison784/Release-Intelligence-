@@ -163,6 +163,7 @@ type world struct {
 	advEv      map[string][]domain.Evidence
 	errs       map[string]error // per key, any capability
 	down       map[string]bool  // per locator kind
+	downAs     map[string]error // optional error returned for a down kind (default: plain unavailable)
 	calls      map[string]int
 }
 
@@ -171,6 +172,9 @@ func (w *world) enter(kind, key string) error {
 	defer w.mu.Unlock()
 	w.calls[key]++
 	if w.down[kind] {
+		if err := w.downAs[kind]; err != nil {
+			return err
+		}
 		return unavailable(key)
 	}
 	if err, ok := w.errs[key]; ok {

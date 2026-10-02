@@ -8,6 +8,7 @@ import (
 
 	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
+	"github.com/tdavison784/release-intelligence/internal/fetch"
 	"github.com/tdavison784/release-intelligence/internal/sources"
 )
 
@@ -70,6 +71,30 @@ func TestIngestReleaseArtifacts(t *testing.T) {
 				if len(st) == 0 || st[0].Kind != catalog.LocatorHelmRepo || !strings.Contains(st[0].Detail, "2 with appVersion v1.2.0; selected 0.5.1") {
 					t.Errorf("chart statuses: %+v", st)
 				}
+			},
+		},
+		{
+			// A rate limited registry is "throttled", not "unavailable", and a
+			// registry that wants credentials says so (docs/rerun/REPORT.md D3).
+			name:    "registry throttled",
+			release: "1.2.0",
+			setup: func(w *world, _ *catalog.ProductDefinition) {
+				w.down[catalog.LocatorOCI] = true
+				w.downAs = map[string]error{catalog.LocatorOCI: &fetch.Error{URL: "u", Status: 429, Err: fetch.ErrThrottled, Detail: "retry after 5s"}}
+			},
+			want: map[string]want{
+				"controller-image": {status: domain.ArtifactReferenced, detail: []string{"(oci: throttled)"}},
+			},
+		},
+		{
+			name:    "registry requires authentication",
+			release: "1.2.0",
+			setup: func(w *world, _ *catalog.ProductDefinition) {
+				w.down[catalog.LocatorOCI] = true
+				w.downAs = map[string]error{catalog.LocatorOCI: &fetch.Error{URL: "u", Status: 401, Err: fetch.ErrAuthRequired}}
+			},
+			want: map[string]want{
+				"controller-image": {status: domain.ArtifactReferenced, detail: []string{"(oci: unavailable, authentication required)"}},
 			},
 		},
 		{

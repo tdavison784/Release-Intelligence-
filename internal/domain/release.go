@@ -82,6 +82,7 @@ const (
 	SourcePartial     SourceState = "partial"
 	SourceNotFound    SourceState = "not-found"   // reachable, but nothing for this version
 	SourceUnavailable SourceState = "unavailable" // unreachable / blocked / auth required
+	SourceThrottled   SourceState = "throttled"   // reachable but rate limited (429); retrying later is expected to work
 	SourceSkipped     SourceState = "skipped"     // not applicable or disabled
 	SourceError       SourceState = "error"
 )

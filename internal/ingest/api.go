@@ -150,7 +150,12 @@ const MinValidations = 3
 
 // RelationshipReport is the historical validation result for a definition.
 type RelationshipReport struct {
-	Product  domain.ProductID      `json:"product"`
+	Product domain.ProductID `json:"product"`
+	// DefinitionDigest identifies the definition revision the report was
+	// produced from (DefinitionDigest()). A saved report whose digest differs
+	// from the current definition is a stale drift baseline; reports saved
+	// before this field existed leave it empty ("unrecorded").
+	DefinitionDigest string `json:"definitionDigest,omitempty"`
 	Releases []string              `json:"releases"`
 	Checks   []RelationshipCheck   `json:"checks"`
 	Summary  []RelationshipSummary `json:"summary"`
