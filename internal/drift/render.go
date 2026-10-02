@@ -31,6 +31,14 @@ func RenderText(w io.Writer, rep *Report) error {
 	}
 	fmt.Fprintf(w, "%s: drift check — newest releases vs the baseline\n", rep.Product)
 	fmt.Fprintf(w, "Baseline: %s, cutoff %s\n", baseline, cutoff)
+	switch rep.Baseline.DigestState {
+	case DigestStale:
+		fmt.Fprintf(w, "  ! stale baseline: the definition changed since this report was saved (baseline %s, current %s); "+
+			"it describes an older definition. Re-run `ri check -o json` and replace it.\n",
+			shortDigest(rep.Baseline.DefinitionDigest), shortDigest(rep.DefinitionDigest))
+	case DigestUnrecorded:
+		fmt.Fprintf(w, "  · baseline records no definition digest: whether it still matches the definition is unknown.\n")
+	}
 	if len(rep.Checked) == 0 {
 		fmt.Fprintf(w, "Checked: no releases newer than the baseline; nothing to re-validate.\n")
 	} else {
@@ -113,4 +121,12 @@ func oneLine(s string) string {
 		return s[:157] + "…"
 	}
 	return s
+}
+
+func shortDigest(d string) string {
+	d = strings.TrimPrefix(d, "sha256:")
+	if len(d) > 12 {
+		d = d[:12]
+	}
+	return d
 }

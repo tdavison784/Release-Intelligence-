@@ -236,3 +236,37 @@ shell (soft-404 claim not re-tested for body text).
 ## 10. Reproduce
 `go build -o bin/ri ./cmd/ri`; per-product fresh state; `ri -state <tmp> -refresh check -versions <baseline releases> -o json <id>`;
 `python3 docs/rerun/compare.py`, `python3 docs/rerun/report_tables.py`, `docs/rerun/probe-claims.sh`. Raw stderr/exit codes in `docs/rerun/raw/`.
+
+## 11. Phase 12 follow-up (2026-10-02, same day, branch `p3ll/phase12-fix`)
+
+The report's recommendations were executed after it was written. Status:
+
+1. **Done — baselines replaced (now 14).** The 12 from recommendation 1 landed first
+   (`b838d98`, `bf9889a`), then karpenter (was held for 429s) and argo-cd (was held for
+   D2; checked with `3.4.1` in place of the never-published `3.4.0` release) were re-run
+   with the fixed pipeline and their baselines replaced too. All 14 re-runs live in
+   `docs/rerun/phase12/` (fresh per-product state, same `-versions` sets, post-fix binary):
+   **every subject validates — 0 failed, 0 unverifiable, 0 throttled.** Karpenter's 429s
+   were rate limiting, as suspected: sequential reads with backoff and per-host limits
+   answer 200. The replaced baselines now record `definitionDigest` (new in the check
+   output), which the stale-baseline check compares against.
+2. **Done — definitions.** ingress-nginx chroot exception for 1.10.0 (D1) and argo-cd
+   exception wording + known-release policy (D2) in `bf9889a`; vault `helm-repo` declared
+   primary (helm-git stays fallback) and crossplane/external-secrets canonical chart
+   channels first, with dated provenance notes, in `65cdb8f`.
+3. **Done — pipeline.** `cb81c58`: distinct `throttled` state with Retry-After backoff and
+   per-host concurrency, 401-auth / 403-egress / 000-DNS reasons in `unavailable` details,
+   stale-baseline digest check.
+4. **Done — docs corrections.** Dated 2026-10-02 correction notes in README,
+   FINDINGS.md, phase2 PLAN/OUTCOMES and all 30 `docs/research/*.md` (originals kept as
+   the 2026-10-01 record); ONBOARDING.md regenerated from the live baselines with a
+   Corrections section that is part of the stats renderer, not hand edits.
+   *Not done here:* the FLEET.md note about the gate baseline (D5) — FLEET.md is the
+   commander's file.
+5. **Still open:** recommendation 5 unchanged (kube-prometheus-stack old-binary control,
+   drift against an artificially older baseline, body-level claim verification).
+
+Reproduce: `go build -o bin/ri ./cmd/ri`; per-product fresh state;
+`ri -state <tmp> -refresh check -versions <phase12 releases> -o json <id>`; raw stderr in
+`docs/rerun/phase12/<id>.stderr` (all empty — no warnings). argo-cd's release set differs
+from its old baseline only by `3.4.0` → `3.4.1` (the D2 decision).

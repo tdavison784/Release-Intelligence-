@@ -1,5 +1,7 @@
 # PostgreSQL release-channel research (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** www.postgresql.org (security, versioning, release docs), git.postgresql.org, apt/yum.postgresql.org, ftp.postgresql.org (range GET 206) and the GitHub archive/codeload tarballs answer. Confirmed: postgres/postgres has 0 GitHub releases and 0 advisories. The original text below is kept as the record of 2026-10-01.
+
 Legend: [200] = fetched with HTTP 200 / successful git operation in this sandbox. UNVERIFIED = could not be checked here (egress policy or inferred).
 `RAW` = `https://raw.githubusercontent.com/postgres/postgres` (GitHub mirror of the canonical `git.postgresql.org` repository).
 

@@ -53,7 +53,26 @@ representability. Data-quality cross-checks reconcile records against
 definitions; the only standing notes are the documented "migrated after they
 appeared" adoptions.
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** the G2 per-product columns "unverifiable", "unreachable sources" and
+> the relationship-validation counts were measured in a network-restricted
+> sandbox. Re-measured with network access: unverifiable checks fell to 0 for
+> cert-manager (12), ingress-nginx (47) and postgresql (15); only falco (digest
+> mismatch) and minio (anonymous pulls denied) keep unverifiable checks;
+> karpenter's HTTP 429s were throttling, cleared by the sequential re-run after
+> the throttling fixes. The saved baselines for 14 products (argo-cd with
+> v3.4.1, karpenter, ingress-nginx included) were replaced by the live runs.
+> G9 (`ri eval`) is unaffected: live, warm-cache
+> offline and stored results are identical. The zero-product-specific-Go-code
+> and construct-reuse numbers do not depend on reachability.
+
 ## G3 — Discovery
+
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** seven proposals (crossplane, external-secrets, falco, flux,
+> ingress-nginx, linkerd, prometheus-operator) carried "Unverified by discovery
+> (... HTTP 403 ...)" statuses that were sandbox rate limits; run live with the
+> same binary they become `historically-validated`. The headline wrong-proposal
+> and share-found numbers below are computed against final definitions and do
+> not change.
 
 `ri discover` proposes a definition with a five-status honesty vocabulary
 (historically-validated / discovered / inferred / unverified / exception;

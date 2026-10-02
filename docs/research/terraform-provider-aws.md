@@ -1,5 +1,7 @@
 # Terraform AWS Provider release-channel map (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** the checks and probes were re-run live; the live `ri check` outcomes are unchanged. Any unreachable host recorded below was a transient anonymous rate limit or an anonymous-auth refusal, not a block of this product's channels (details: docs/rerun/REPORT.md, per-product table). The original text below is kept as the record of 2026-10-01.
+
 Scope: product `terraform-provider-aws` (github.com/hashicorp/terraform-provider-aws, "UP"). There is no
 second repository: guides, changelog, registry manifest and release tooling all live in this one repo
 (unlike Vault's vault-helm / web-unified-docs split).

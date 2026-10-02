@@ -90,6 +90,8 @@ func describeBaseline(in Input) Baseline {
 		b.Source = BaselineSavedCheck
 		b.Path = in.BaselinePath
 		b.Releases = append([]string(nil), in.Baseline.Releases...)
+		b.DefinitionDigest = in.Baseline.DefinitionDigest
+		b.DigestState = digestState(in.Baseline.DefinitionDigest, ingest.DefinitionDigest(in.Definition))
 	case len(validatedReleaseList(in.Definition)) > 0 || len(provenanceReleases(in.Definition)) > 0:
 		b.Source = BaselineDefinition
 		b.Releases = provenanceReleases(in.Definition)
@@ -97,4 +99,17 @@ func describeBaseline(in Input) Baseline {
 		b.Source = BaselineNone
 	}
 	return b
+}
+
+// digestState compares a saved baseline's definition digest with the current
+// definition's.
+func digestState(baseline, current string) string {
+	switch {
+	case baseline == "":
+		return DigestUnrecorded
+	case baseline == current:
+		return DigestCurrent
+	default:
+		return DigestStale
+	}
 }

@@ -145,7 +145,7 @@ func VersionListFailed(def *catalog.ProductDefinition, vl *ingest.VersionList, n
 				ev.Explanation = fmt.Sprintf("versions source %s answered but no tag matches the declared convention: the upstream tag convention changed (or the repository moved away)", src.ID)
 				ev.Baseline = "canonical releases were previously listed from " + src.ID
 				ev.Proposal = &Proposal{Action: "re-research the tag convention (versioning.tagPattern / tagPrefix) and the canonical repository"}
-			case domain.SourceUnavailable:
+			case domain.SourceUnavailable, domain.SourceThrottled:
 				ev.Kind, ev.Status, ev.Severity = KindUnverifiable, StatusUnverifiable, SeverityLow
 				ev.Explanation = fmt.Sprintf("versions source %s is unreachable: the canonical channel cannot be checked, so drift cannot be determined", src.ID)
 			case domain.SourceOK, domain.SourcePartial, domain.SourceSkipped:

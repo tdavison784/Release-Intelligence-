@@ -280,7 +280,7 @@ func (r *renderer) sourceSymbol(es []domain.SourceStatus) (string, string) {
 		switch s.State {
 		case domain.SourceOK, domain.SourcePartial:
 			anyOK = true
-		case domain.SourceUnavailable, domain.SourceError:
+		case domain.SourceUnavailable, domain.SourceThrottled, domain.SourceError:
 			anyBad = true
 		}
 	}

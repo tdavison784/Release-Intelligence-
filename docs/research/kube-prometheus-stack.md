@@ -1,5 +1,7 @@
 # kube-prometheus-stack release-channel map (research date 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** the checks and probes were re-run live; the live `ri check` outcomes are unchanged. Any unreachable host recorded below was a transient anonymous rate limit or an anonymous-auth refusal, not a block of this product's channels (details: docs/rerun/REPORT.md, per-product table). The original text below is kept as the record of 2026-10-01.
+
 Scope: the **Helm chart** `kube-prometheus-stack` as published by the chart *monorepository*
 `github.com/prometheus-community/helm-charts` (~44 charts, one tag family per chart, one shared
 `gh-pages` Helm repository). The product is deliberately chart-centric: the chart version is the

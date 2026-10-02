@@ -129,7 +129,22 @@ type Baseline struct {
 	// Cutoff is the newest baseline release; checked releases are newer than
 	// it ("" when there is no baseline at all).
 	Cutoff string `json:"cutoff,omitempty"`
+	// DefinitionDigest is the definition revision the saved report was
+	// produced from, and DigestState compares it with the current definition:
+	// "current" (same revision), "stale" (the definition changed since the
+	// baseline was saved, so the baseline describes an older definition) or
+	// "unrecorded" (a report saved before digests were recorded). Staleness
+	// is a property of the baseline, not an event: it never counts as drift.
+	DefinitionDigest string `json:"definitionDigest,omitempty"`
+	DigestState      string `json:"digestState,omitempty"`
 }
+
+// Baseline digest states.
+const (
+	DigestCurrent    = "current"
+	DigestStale      = "stale"
+	DigestUnrecorded = "unrecorded"
+)
 
 // Baseline sources.
 const (

@@ -1,5 +1,7 @@
 # Istio release-channel research (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** blob.istio.io (Helm index), registry.istio.io (token flow → 200), gcr.io/istio-release (has 1.30.5 and only 1.31.0-alpha tags: the migration claim is confirmed) and api.github.com (14 advisories) answer. The GitHub release object for 1.31.1 exists with `draft=false`, `prerelease=false` and 34 assets. quay.io `/v2/` answers its normal 401 token challenge. The original text below is kept as the record of 2026-10-01.
+
 Legend: [200] = fetched with HTTP 200 / successful git op in this sandbox. UNVERIFIED = could not be checked here (proxy-blocked or inferred).
 `RAW` = `https://raw.githubusercontent.com`. `IO` = repo `istio/istio.io`. `ISTIO` = repo `istio/istio`. `RB` = repo `istio/release-builder`.
 

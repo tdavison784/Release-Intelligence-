@@ -1,5 +1,7 @@
 # MinIO release-channel research (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** unchanged upstream: `dl.min.io/server/minio/release/**` still 410, `docker.io` and `quay.io` `minio/minio` still deny anonymous pulls (401 with a valid token); mirror.gcr.io answers HTTP 200. The original text below is kept as the record of 2026-10-01.
+
 Legend: [200] = fetched with HTTP 200 / successful git operation in this sandbox. UNVERIFIED = could not be checked here (egress policy or inferred).
 `RAW` = `https://raw.githubusercontent.com/minio/minio`. Canonical git and canonical everything is `github.com/minio/minio` itself.
 

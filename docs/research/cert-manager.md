@@ -1,5 +1,7 @@
 # cert-manager release channel map (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** every host listed below as blocked/UNVERIFIED answered from a machine with network access: api.github.com (releases API; 3 published security advisories), github.com HTML, quay.io (controller and startupapicheck manifests v1.18.0 → 200; all six images validate directly), charts.jetstack.io, artifacthub.io, cert-manager.io docs, api.osv.dev, vuln.go.dev. Still refused: `storage.googleapis.com/cert-manager-release` (403, a private staging bucket as stated). Confirmed live: the v1.18.0 GitHub release has exactly `cert-manager.yaml` and `cert-manager.crds.yaml` and no `.sha256` asset. The original text below is kept as the record of 2026-10-01.
+
 Scope: product `cert-manager` (github.com/cert-manager/cert-manager), docs (github.com/cert-manager/website), release tooling (github.com/cert-manager/release = "cmrel").
 Method: `git ls-remote`, shallow clones at tags, raw.githubusercontent.com (HTTP 200 checked), GitHub release-asset downloads (HEAD/GET).
 Snapshots read: website `master` @ fba4f5c (2026-09-30); cert-manager tags v1.21.2 / v1.21.0 / v1.20.4 / v1.20.0 / v1.19.6 / v1.18.6 / v1.17.4 / v1.16.5 / v1.15.5 / v1.14.7 / v1.13.6; cmrel `master` @ 09eb29d (2026-09-27).

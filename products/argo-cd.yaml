@@ -210,9 +210,13 @@ artifacts:
     exceptions:
       - versions: [3.4.0]
         reason: >-
-          The v3.4.0 GitHub release has no assets at all (argocd-linux-amd64
-          and cli_checksums.txt return 404; v3.4.1 has them). Found by
-          `ri check argo-cd` on 2026-10-01.
+          v3.4.0 exists only as a git tag (plus rc1..rc7): it was never
+          published as a GitHub release, so its assets (argocd-linux-amd64,
+          cli_checksums.txt) 404 because the release object itself 404s
+          (api releases/tags/v3.4.0 -> 404; the release list jumps from
+          v3.4.0-rc7 to v3.4.1, which has 11 assets). Found by `ri check
+          argo-cd` on 2026-10-01; corrected 2026-10-02 after the live re-run
+          (docs/rerun/REPORT.md D2).
     channels:
       - kind: http
         url: https://github.com/argoproj/argo-cd/releases/download/{{.Tag}}/argocd-linux-amd64

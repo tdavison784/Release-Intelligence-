@@ -1,5 +1,7 @@
 # Redis release-channel research (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** download.redis.io and api.github.com (47 advisories) answer; `git.redis.io` still does not connect (the GitHub mirror remains the declared source). The original text below is kept as the record of 2026-10-01.
+
 Legend: [200] = fetched with HTTP 200 / successful git operation in this sandbox. UNVERIFIED = could not be checked here (egress policy or inferred).
 `RAW` = `https://raw.githubusercontent.com/redis/redis`. Canonical git is `git.redis.io/redis.git` (UNVERIFIED: host blocked, `000` on CONNECT); `github.com/redis/redis` is the mirror the definition uses (mirror semantics like PostgreSQL).
 

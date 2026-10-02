@@ -1,5 +1,7 @@
 # Actions Runner Controller release-channel research (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** the checks and probes were re-run live; the live `ri check` outcomes are unchanged. Any unreachable host recorded below was a transient anonymous rate limit or an anonymous-auth refusal, not a block of this product's channels (details: docs/rerun/REPORT.md, per-product table). The original text below is kept as the record of 2026-10-01.
+
 Legend: [200] = fetched with HTTP 200 / successful git operation in this sandbox. Product: Actions
 Runner Controller (ARC), the Kubernetes operator for self-hosted GitHub Actions runners. Canonical
 repository `github.com/actions/actions-runner-controller`, default branch **`master`** (there is no

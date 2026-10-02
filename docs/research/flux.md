@@ -1,5 +1,7 @@
 # Flux (flux2) release-channel map (research date 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** the checks and probes were re-run live; the live `ri check` outcomes are unchanged. Any unreachable host recorded below was a transient anonymous rate limit or an anonymous-auth refusal, not a block of this product's channels (details: docs/rerun/REPORT.md, per-product table). The original text below is kept as the record of 2026-10-01.
+
 Scope: **`github.com/fluxcd/flux2`** — the user-facing Flux v2 product: the `flux` CLI
 (goreleaser), the generated install manifests that bundle the controllers, and the release
 metadata that pins them. Flux v2 is an **aggregator**: the six (since 2.7, seven) controllers
