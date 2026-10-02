@@ -1022,6 +1022,42 @@ func containerName(r *env.Resource, element string) string {
 	return ""
 }
 
+var containerNamePath = regexp.MustCompile(`(?:^|\.)(?:containers|initContainers|ephemeralContainers)\[\]\.name$`)
+
+// containersNamed returns the evidence of every workload container of that
+// name in the supplied manifests (a condition's Component).
+func (ev *evaluator) containersNamed(name string) []domain.EvidenceID {
+	var out []domain.EvidenceID
+	for i := range ev.env.Resources {
+		for _, f := range ev.env.Resources[i].Fields {
+			if !f.Container && f.Withheld == "" && containerNamePath.MatchString(f.Path) && plainValue(f.Value) == name {
+				out = appendUnique(out, f.Evidence...)
+			}
+		}
+	}
+	return out
+}
+
+// componentAbsent decides a cli-flag / env-var / feature-gate leaf whose named
+// component has no workload in the supplied manifests. Absence is not
+// knowledge: Helm-installed controllers are rarely among the manifests a
+// customer supplies, so a missing workload means "not shown", not "not
+// running" — unknown (environment-visibility-gap). Only when the manifests are
+// declared complete (`--manifests-complete`) and parsed healthily is the
+// workload genuinely absent: false (nothing runs that could be exposed), with
+// a check citing the declaration.
+func (ev *evaluator) componentAbsent(c domain.Condition) ConditionResult {
+	if ok, _ := ev.dimOK(domain.DimensionManifests); ok && ev.env.ManifestsDeclaredComplete {
+		chk := ev.check(domain.DimensionManifests, len(ev.env.Resources), c, ev.env.ManifestsCompleteEvidence...)
+		return falseResult(domain.DimensionManifests, chk, ev.env.ManifestsCompleteEvidence...)
+	}
+	r := unknownResult(domain.UnknownEnvironmentVisibilityGap, fmt.Sprintf(
+		"the manifests of the %s workload (no container named %q is among the supplied manifests, which are not declared complete; supply its Deployment/DaemonSet, or pass --manifests-complete if nothing else runs)",
+		c.Component, c.Component))
+	r.deps = []domain.EnvironmentDimension{domain.DimensionManifests}
+	return r
+}
+
 // flagUse is one observed command-line flag.
 type flagUse struct {
 	r        *env.Resource
@@ -1101,6 +1137,13 @@ func (ev *evaluator) cliFlag(c domain.Condition) ConditionResult {
 		facts = append(facts, vfact{subject: fmt.Sprintf("%s: %s --%s", resourceLabel(u.r), u.element, u.name), value: u.value,
 			withheld: u.withheld, evidence: u.evidence, kind: domain.MatchManifestField})
 	}
+	if c.Component != "" {
+		present := ev.containersNamed(c.Component)
+		if len(present) == 0 {
+			return ev.componentAbsent(c)
+		}
+		examined = appendUnique(examined, present...)
+	}
 	var absence []domain.ImpactMatch
 	if len(examined) > 0 {
 		absence = []domain.ImpactMatch{{Kind: domain.MatchAbsence, Subject: "no workload container passes --" + want, Evidence: examined}}
@@ -1144,6 +1187,13 @@ func (ev *evaluator) envVar(c domain.Condition) ConditionResult {
 			}
 			facts = append(facts, vf)
 		}
+	}
+	if c.Component != "" {
+		present := ev.containersNamed(c.Component)
+		if len(present) == 0 {
+			return ev.componentAbsent(c)
+		}
+		examined = appendUnique(examined, present...)
 	}
 	var absence []domain.ImpactMatch
 	if len(examined) > 0 {
@@ -1244,6 +1294,15 @@ func (ev *evaluator) featureGate(c domain.Condition) ConditionResult {
 		default:
 			off = append(off, o.match)
 		}
+	}
+	if c.Component != "" {
+		present := ev.containersNamed(c.Component)
+		if len(present) == 0 && len(obs) == 0 && len(unparsable) == 0 {
+			// nothing states the gate and the named component's workload is
+			// not in the manifests: silence is not absence
+			return ev.componentAbsent(c)
+		}
+		examined = appendUnique(examined, present...)
 	}
 	decideFalse := func(evs []domain.EvidenceID) ConditionResult {
 		var r ConditionResult
