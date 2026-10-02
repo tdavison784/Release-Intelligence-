@@ -1,0 +1,33 @@
+# Attack: a fact whose exposure condition is TRUE (the customer leaves
+# gateways.gatewayClass unset, the values dimension supplied) but whose
+# consequence is a DEPRECATION. True exposure does not escalate the class:
+# the class follows the consequence kind (review-required), never
+# action-required.
+id: knowledge-deprecation-true
+attacks: fact whose condition is true but whose consequence is a deprecation
+expectation: >-
+  exposed at the deprecation's own class: review-required
+  (impact:knowledge-exposed), never action-required
+knowledge:
+  facts:
+    - level: human
+      subject: {family: helm-value, path: gateways.gatewayClass}
+      change: {type: deprecated}
+      exposure: {op: values-key, path: gateways.gatewayClass, state: unset}
+      consequence: {kind: deprecation, statement: "The gateways.gatewayClass value is ignored and will be removed."}
+      statement: "The gateways.gatewayClass value is deprecated."
+      anchors: ["The gateways.gatewayClass value is deprecated"]
+edge:
+  changes:
+    - rule: note
+      title: "The gateways.gatewayClass value is deprecated"
+      subjects: [gateways.gatewayClass]
+      category: configuration
+environment:
+  files: [values.yaml]
+expect:
+  present:
+    - rule: impact:knowledge-exposed
+      classification: review-required
+  absent:
+    - classification: action-required

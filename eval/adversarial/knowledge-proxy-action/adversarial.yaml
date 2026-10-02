@@ -1,0 +1,33 @@
+# Attack: a proxy-verified fact (an AI acting as reviewer, never presented as
+# human) whose exposure condition is TRUE and whose consequence is
+# action-eligible. The trust ladder caps untrusted knowledge at
+# review-required: a model output may never create mandatory work.
+id: knowledge-proxy-action
+attacks: proxy fact with true exposure and an action-eligible consequence
+expectation: >-
+  review-required (impact:knowledge-exposed), never action-required
+  (docs/ACTION_CLASSIFICATION.md §8: a proxy alone is capped at review)
+knowledge:
+  minVerification: proxy
+  facts:
+    - level: proxy
+      subject: {family: helm-value, path: gateway.logLevel}
+      change: {type: default-changed, before: '"info"', after: '"debug"'}
+      exposure: {op: values-key, path: gateway.logLevel, state: unset}
+      consequence: {kind: workload-failure, statement: "Gateway logging flips to debug on upgrade."}
+      statement: "The default gateway.logLevel changed from info to debug."
+      anchors: ["The default value of gateway.logLevel changed from info to debug"]
+edge:
+  changes:
+    - rule: note
+      title: "The default value of gateway.logLevel changed from info to debug"
+      subjects: [gateway.logLevel]
+      category: configuration
+environment:
+  files: [values.yaml]
+expect:
+  present:
+    - rule: impact:knowledge-exposed
+      classification: review-required
+  absent:
+    - classification: action-required

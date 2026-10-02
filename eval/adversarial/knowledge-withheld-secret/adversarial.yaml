@@ -1,0 +1,38 @@
+# Attack: a fact whose deciding condition reads a withheld value (the
+# sensitive password field of the creds ConfigMap). A join that read the
+# withheld text could conclude equals (exposed) or not-equals (clear); the
+# honest verdict is UNKNOWN — a withheld value decides nothing.
+id: knowledge-withheld-secret
+attacks: fact whose deciding condition reads a withheld ConfigMap value
+expectation: >-
+  unknown (impact:knowledge-undecided, environment-visibility-gap); never
+  impact:knowledge-exposed and never impact:knowledge-clear
+knowledge:
+  facts:
+    - level: human
+      subject: {family: config-key, path: data.password, component: creds}
+      change: {type: behavior-changed}
+      exposure:
+        op: resource
+        kind: ConfigMap
+        name: creds
+        of:
+          - {op: field, path: data.password, state: equals, values: ['"hunter2"']}
+      consequence: {kind: workload-failure, statement: "Registry authentication uses the new password."}
+      statement: "The controller now authenticates registry pulls with the password of the creds ConfigMap."
+      anchors: ["The controller now authenticates registry pulls with the password of the creds ConfigMap"]
+edge:
+  changes:
+    - rule: note
+      title: "The controller now authenticates registry pulls with the password of the creds ConfigMap"
+      subjects: [data.password]
+      category: configuration
+environment:
+  files: [manifests/creds.yaml]
+expect:
+  present:
+    - rule: impact:knowledge-undecided
+      classification: unknown
+  absent:
+    - rule: impact:knowledge-exposed
+    - rule: impact:knowledge-clear
