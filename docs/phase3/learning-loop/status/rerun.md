@@ -73,3 +73,11 @@ Uncertainties / judgement calls, for the commander:
 - Recommendation 5 items remain open, as before.
 - Commit subjects carry the required `[glm-handoff] ` prefix; co-author line follows the FLEET.md
   convention with this agent's model name (`GLM-5.3`).
+
+## phase12-fix: Claude review after the GLM handoff (2026-10-02)
+Reviewed the six `[glm-handoff]` commits: the 14 baselines equal the phase12 outputs (0 fail, 0 unverifiable, `definitionDigest`
+recorded), ONBOARDING.md equals `ri stats -o markdown`, doc corrections are dated notes; no code or definitions were changed by the
+handoff. Verified: `go build/vet/test ./...` pass; `ri drift` over all 28 products live: 0 events (14 baselines `current`, 14
+legacy `unrecorded`); `ri eval`: no regressions, identical to `p3-learning-loop` (applicabilityAccuracy 0.476 and
+falseActionRate 0.059 gates fail on both: pre-existing, not caused by this lane). Outputs: `docs/rerun/phase12-drift/`,
+`phase12-eval*.txt`. D5 note for FLEET.md is left to the commander.
