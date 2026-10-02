@@ -42,6 +42,9 @@ func (a *App) ImpactParts(ctx context.Context, productID, from, to string, opts 
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	if opts.Environment.ProductHints == nil {
+		opts.Environment.ProductHints = env.HintsFromCatalog(a.Catalog)
+	}
 	e, err := env.Load(opts.Environment)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("environment: %w", err)

@@ -25,7 +25,8 @@ verdict). Nothing in the design is tied to one ecosystem.
 
 A second question builds on it: **which of those changes matter to YOUR
 environment?** `ri impact` joins the edge with local Helm values, manifests,
-installed CRDs, an image list and a cluster version. It is deterministic, and
+installed CRDs, an image list, a cluster version and a product inventory
+(`--inventory`: which other products run, at which versions). It is deterministic, and
 every finding cites two provenance chains — the upstream evidence of the
 change and the environment evidence (file, line, excerpt) that matched
 ([docs/IMPACT.md](docs/IMPACT.md)).

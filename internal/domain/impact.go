@@ -229,8 +229,30 @@ type ImpactEnvironment struct {
 	CRDs          int `json:"crds"`
 	ManifestPaths int `json:"manifestPaths"`
 	Images        int `json:"images"`
+	// Products is the product inventory (which products run at which
+	// versions); omitted when the products dimension is absent. Entries of one
+	// product that state different versions are all kept, each naming the
+	// others in Conflict. Evidence ids resolve in ImpactReport.EnvironmentEvidence.
+	Products []ImpactProduct `json:"products,omitempty"`
+	// ProductsHealth is the state of the products dimension: "absent" (no
+	// inventory supplied or detected — NOT "no other products"), "ok" or
+	// "partial". Omitted when absent.
+	ProductsHealth string `json:"productsHealth,omitempty"`
 	// Warnings report degraded parsing (unparsable documents, caps hit, ...).
 	Warnings []string `json:"warnings,omitempty"`
+}
+
+// ImpactProduct is one product-inventory entry of the environment.
+type ImpactProduct struct {
+	Product    string       `json:"product"`
+	Catalog    bool         `json:"catalog,omitempty"` // Product is a products/<id>.yaml id
+	Version    string       `json:"version,omitempty"` // normalized semver; "" when unparsable or unstated
+	RawVersion string       `json:"rawVersion,omitempty"`
+	VersionOf  string       `json:"versionOf,omitempty"` // "app" | "chart"
+	Source     string       `json:"source"`              // declared | detected-helm | detected-argo | detected-flux | detected-image | ...
+	Note       string       `json:"note,omitempty"`
+	Conflict   string       `json:"conflict,omitempty"` // other entries of this product that state a different version
+	Evidence   []EvidenceID `json:"evidence,omitempty"`
 }
 
 // ImpactReport is the result of joining an UpgradeEdge with an environment:

@@ -113,7 +113,7 @@ func environmentInputs(c *Case) (env.Inputs, error) {
 }
 
 // DirInputs builds env.Inputs from a directory laid out like a case
-// environment (values.yaml, manifests/, crds/, images.txt).
+// environment (values.yaml, manifests/, crds/, images.txt, inventory.yaml).
 func DirInputs(dir, kubernetes string) (env.Inputs, error) {
 	var in env.Inputs
 	in.KubernetesVersion = kubernetes
@@ -129,6 +129,8 @@ func DirInputs(dir, kubernetes string) (env.Inputs, error) {
 			in.Manifests = append(in.Manifests, p)
 		case "crds":
 			in.CRDs = append(in.CRDs, p)
+		case "inventory.yaml":
+			in.Inventory = p
 		case "images.txt":
 			imgs, err := readImagesFile(p)
 			if err != nil {

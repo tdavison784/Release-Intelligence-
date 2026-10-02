@@ -37,6 +37,7 @@ const (
 	DimManifests  = "manifests"
 	DimCRDs       = "crds"
 	DimImages     = "images"
+	// DimProducts (the product inventory) is declared in inventory.go.
 )
 
 // dimensionOrder is the fixed reporting order of the dimensions.
@@ -101,11 +102,19 @@ type Inputs struct {
 	// files are loaded first, explicit entries after them (so an explicit
 	// values file wins per-key), and a file named by both is loaded once.
 	Repo string
+	// Inventory is a declared product inventory file (YAML list of {product,
+	// version, note?}). In repo mode <Repo>/inventory.yaml is picked up when
+	// Inventory is empty.
+	Inventory string
+	// ProductHints let images be recognised as catalog products (see
+	// HintsFromCatalog); without them only declared and Helm/Argo/Flux
+	// detections populate the inventory.
+	ProductHints []ProductHint
 }
 
 // Empty reports whether no input was given at all.
 func (in Inputs) Empty() bool {
-	return in.KubernetesVersion == "" && len(in.ValuesFiles) == 0 && len(in.Manifests) == 0 && len(in.CRDs) == 0 && len(in.Images) == 0 && strings.TrimSpace(in.Repo) == ""
+	return in.KubernetesVersion == "" && len(in.ValuesFiles) == 0 && len(in.Manifests) == 0 && len(in.CRDs) == 0 && len(in.Images) == 0 && strings.TrimSpace(in.Repo) == "" && strings.TrimSpace(in.Inventory) == ""
 }
 
 // SuppliedInputs records which environment inputs were given on the command
@@ -211,6 +220,9 @@ type Environment struct {
 	// Installed is the best-effort identification of the installed
 	// product/chart(s), each with the mechanism that grounded it.
 	Installed []InstalledProduct
+	// Products is the product inventory (declared + detected, conflicts kept
+	// visible); see ProductInstance and Environment.Product.
+	Products []ProductInstance
 
 	// RepoRoot is the repository directory of repo mode ("" otherwise) and
 	// Discovered lists every file the walk classified, with its evidence.
@@ -245,6 +257,10 @@ func (e *Environment) Health(dimension string) Health {
 }
 
 // Statuses returns the state of every input dimension in fixed order.
+//
+// The products dimension (DimProducts) is deliberately not listed: it is read
+// through Health/ProductsStatus, so the enrichment prompts that print these
+// statuses (and their committed answer caches) stay byte-identical.
 func (e *Environment) Statuses() []DimensionStatus {
 	out := make([]DimensionStatus, 0, len(dimensionOrder))
 	for _, d := range dimensionOrder {
@@ -268,6 +284,9 @@ type loader struct {
 	gvk         map[gvkKey]*gvkStage
 	installed   []InstalledProduct
 	repoFiles   int
+	// productsSupplied: an inventory file or a detected product backs the
+	// products dimension.
+	productsSupplied bool
 }
 
 // warnf records a warning on the Environment and attributes it to the input
@@ -385,6 +404,13 @@ func Load(in Inputs) (*Environment, error) {
 	})
 	l.finalizeGVK()
 	l.finalizeInstalled()
+	invFile := in.Inventory
+	if strings.TrimSpace(invFile) == "" {
+		invFile = repoInventory(in.Repo)
+	}
+	if err := l.loadProducts(invFile, in.ProductHints); err != nil {
+		return nil, err
+	}
 
 	// Supplied reflects anything that reached the loader: explicit inputs or
 	// repo-discovered files (the impact layer reads it for visibility rules).
@@ -404,7 +430,8 @@ func Load(in Inputs) (*Environment, error) {
 	}
 	l.env.health = map[string]Health{}
 	l.env.dimWarnings = l.dimWarnings
-	for _, d := range dimensionOrder {
+	supplied[DimProducts] = l.productsSupplied
+	for _, d := range append(append([]string{}, dimensionOrder...), DimProducts) {
 		switch {
 		case !supplied[d]:
 			l.env.health[d] = HealthAbsent

@@ -9,7 +9,8 @@ ri impact <product> <from> <to> \
   --values values.yaml \
   --manifests ./manifests \
   --crds ./crds \
-  --images images.txt
+  --images images.txt \
+  --inventory inventory.yaml
 ```
 
 or, pointing at a whole customer repository instead of individual files:
@@ -104,6 +105,7 @@ Parsed from local files only, deterministically, with per-fact evidence:
 | `--manifests` (files or directories) | one fact per document (`apiVersion`/`kind`, with the document's line); flattened field paths of each resource (`spec.secretTemplate.labels`, …); every `image:` scalar |
 | `--crds` (files or directories) | installed CustomResourceDefinitions: name, group, kind, versions with served/storage/deprecated/deprecationWarning, `spec.preserveUnknownFields`; their group/version pairs also feed the apiVersion inventory |
 | `--images` (list, or a file with one reference per line, `#` comments) | explicit image references (mirror lists) |
+| `--inventory` (YAML list) | the declared product inventory: which other products run here and at which versions (see below) |
 | `--repo` (directory) | all of the below, discovered by convention (see the repo-mode section) |
 
 Multi-document YAML streams are decoded with a real stream decoder
@@ -164,6 +166,58 @@ cross-cutting inventories:
   `.spec.values`) are flattened into the values inventory with the same path
   syntax as parsed values files — they ARE the customer's values, and the
   values rules join on them like any other file.
+
+### Product inventory (`Environment.Products`, `--inventory`)
+
+"Which products, at which versions, run here" is a first-class dimension
+(`products`), so release knowledge can state cross-product conditions
+("requires ingress-nginx >= 1.12.6", "Argo CD manages cert-manager
+resources") and the deterministic engine can evaluate them. Entries
+(`env.ProductInstance`) carry the product id (the `products/<id>.yaml` id when
+the name maps to the catalog, else the lower-cased name), the version
+(normalized — `v1.12.1` → `1.12.1`; a bare release line such as `1.16` stays
+a line and is never padded into a patch-level claim — with the raw text always
+kept), the source and per-entry evidence (file, locator, excerpt, digest):
+
+| Source | Grounded by |
+|---|---|
+| `declared` | `--kubernetes` (product `kubernetes`) and the inventory file |
+| `detected-helm` / `-argo` / `-flux` / `-helmfile` | the existing installed-product detection (`Environment.Installed`, unchanged); the version is a **chart** version (`versionOf: chart`), which may differ from the app version |
+| `detected-label` | `app.kubernetes.io/{name,version}` labels (app version) |
+| `detected-image` | an image whose repository is an OCI channel of a catalog product's `container-image` artifact (generic, driven by `products/*.yaml`; a mirror that keeps the path but changes the registry host matches by path and says so in `note`), at its tag |
+
+The inventory file is a YAML list of `{product, version, note?}`, given with
+`--inventory`, or picked up as `inventory.yaml` in `--repo` mode and in an
+eval environment fixture (`eval/cases/<id>/environment/inventory.yaml`).
+
+Sources are **never merged away**. When entries of one product state different
+versions (declared 1.12.6 vs an image at v1.12.1), all are kept, each names the
+others in `conflict`, the report renders `CONFLICT with …`, and the dimension is
+`partial` with a warning. A version that does not parse (`latest`, `1.*`, a
+branch) is kept as stated, warns and can never satisfy or violate a range.
+
+The products dimension is `absent` unless an inventory file was given or
+something was detected (`--kubernetes` alone does not make it supplied):
+absent means "no inventory supplied", **not** "no other products run here".
+Likewise, with a supplied inventory a product that is not listed is "not
+listed", not "not installed" — the engine decides what that licenses.
+
+Accessors for the engine: `Environment.Product(id)` (declared entry wins),
+`ProductInstances(id)` (all entries) and `ProductInRange(id, constraint)`,
+which evaluates "product present with version in range" through the repo's
+range representation (`domain.CompatibilityConstraint`, i.e.
+`upgrade.EvaluatePlatformConstraint`), at full semver precision when the
+entry has a full version and the constraint patch-level bounds. Its result
+separates `Present`, `Computable` (false for an unparsable/unstated version, an
+unevaluable constraint, or conflicting entries that disagree on the verdict)
+and `InRange`.
+
+The report carries the inventory additively (`environment.products`,
+`environment.productsHealth`, omitted when the dimension is absent; evidence
+ids resolve in `environmentEvidence`) and the text output lists it in the
+environment block. `Statuses()` deliberately does not list the dimension (it
+feeds the enrichment prompts and their committed answer caches); read it with
+`Health(env.DimProducts)` / `ProductsStatus()`.
 
 ## Repository mode (`--repo`)
 
