@@ -22,16 +22,26 @@ DESIGN §6: validations confirming every aspect → auto-verified fact; otherwis
 aspects (semantic-mapping / relationship / applicability / consequence), with signals and priority recorded.
 Aspects nobody proposed produce one `evidence-sufficiency` item on route `missing-evidence`.
 
-Auto-approval is a policy hook (`AutoApprovePolicy`). `AutoApproveRenderVerifiable` auto-approves candidates with
-`renderability: render-verifiable` whose open aspects have **consensus**: ≥2 agreeing proposals from independent
-model families (`domain.IndependentModels`; Opus + Sonnet count as one) and no validator refutation. Such facts are
-marked `autoApproved` and level `consensus` (capped like proxy by the trust ladder). `RouteOptions.AuditEvery`
-samples one in N auto-approved facts into human review (a fact-review item); auto-approved facts with an
-action-eligible consequence are **always** audited (PO-2, 100%). The audit decision is written before the fact is
-touched, and the R19 agreement metric is computed from those decision records. An audit **accept** upgrades the aspects
-the human verified to `human` (the `autoApproved` marker stays as history); a reject retracts the fact, a correction
-supersedes it. `FactMetrics` report auto-approval agreement
-per subject family (RENDER-MISSION R19).
+Auto-approval is a policy hook (`AutoApprovePolicy`, installed by `ri knowledge route` as `DefaultAutoApprove`; `Route()` alone
+stays the pure table). A policy counts only if, with the validator-confirmed aspects, it covers all four.
+
+- **Consensus (PO-1)** = ≥2 *separate* stateless calls agree on an aspect digest (`domain.SeparateCalls`; any models,
+  including two calls of the same model), no validator refuted it. Basis = one proposal per call; the aspect is labelled
+  `cross-model` or `same-model` (`domain.ConsensusScopeOf`), and `FactMetrics.ConsensusAgreementByScope` measures whether
+  same-model agreement is as reliable as cross-model against the human audit.
+- `AutoApproveRenderVerifiable` (RENDER-MISSION Goal 10): class render-verifiable, subject + change confirmed by the render
+  (`renderRelation: confirmed-by-render`), consensus on the rest.
+- `AutoApproveConsensusAction` (PO-2): ≥2 separate calls agree on an action-eligible consequence and all requested
+  `action-required`, other aspects validator-confirmed or consensus, nothing refuted → fact with `ConsensusAction`.
+  Models may request action-required; the ladder (applicability lane) still needs exposure TRUE with both evidence chains.
+  Consensus never produces NOT AFFECTED.
+
+Such facts are `autoApproved`, level `consensus`. `RouteOptions.AuditEvery` samples one in N auto-approved facts into
+human review (a fact-review item); `ConsensusAction` facts and auto-approved facts with an action-eligible consequence are
+**always** audited (100%). The audit decision is written before the fact is touched, and the R19 agreement metrics
+(overall, per family, per consensus scope, consensus-action) are computed from those decision records. An audit **accept**
+upgrades the aspects the human verified to `human` (the `autoApproved` marker stays as history; `ConsensusAction` stays
+while the fact's weakest aspect is still consensus); a reject retracts the fact, a correction supersedes it.
 
 ## Decisions → facts (`Queue.Decide`, `FactFromDecision`)
 

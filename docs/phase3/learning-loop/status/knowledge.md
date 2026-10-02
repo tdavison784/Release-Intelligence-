@@ -36,9 +36,9 @@
 2. The committed `knowledge/` directory does not exist yet (no data authored by this lane); the integrity test skips until it does.
 3. Consensus facts rest on `sp-` basis; `ValidateFactBasis` cannot verify them, only `ValidateFactRecords` (used everywhere here). Other lanes reading facts should do the same.
 
-## Pending contract-3 (PO-1/PO-2), not implemented yet
-- PO-1 changes what consensus means: ≥2 separate stateless calls agreeing (same model twice counts), labelled cross-model vs same-model, proposals carry a call id.
-  Impact here: `ConsensusAspects` (currently independent families via `domain.IndependentModels`), the `signals`/agreement "distinct models" logic in `route.go` (single-model rule),
-  and the model-grouping in `metrics.go`. To be adapted after p3ll/contract-3 merges.
-- PO-2: consensus-ACTION facts need every agreeing proposal's `SuggestedClass` = action-required; auto-sampling of these into human review reuses `RouteOptions.AuditEvery`/`OpenFactReview`
-  (the audit sample for ACTION-labelled facts should probably be higher or 100%). Nothing built contradicts this: routing stays opt-in policy, audit accept never upgrades.
+## contract-3 (PO-1/PO-2): implemented (knowledge-3)
+- Routing and consensus count separate calls (`Provenance.CallID`), not models; `ConsensusAspects` labels cross-model/same-model on `AspectVerification.Consensus`; basis = one proposal per call.
+- `buildFact` sets `ConsensusAction` (every aspect ≥ consensus, action-eligible consequence, every agreeing consequence proposal requested action-required, nothing refuted); merges recompute it.
+- Policies: `AutoApproveRenderVerifiable` (now requires subject+change `confirmed-by-render`), `AutoApproveConsensusAction`, `CombinePolicies`, `DefaultAutoApprove` (used by `ri knowledge route`). `RouteWith` honours a policy only if it completes all four aspects.
+- `AuditRequired` = ConsensusAction || (auto-approved ∧ action-eligible): always audited. Metrics: `ConsensusAgreementByScope`, `ConsensusAction{,Audited,Agreement}` from audit decisions; report prints them.
+- Not done here (other lanes): ladder/eval per-level `falseActionRate`/`actionFindingEvidence` (applicability), NOT AFFECTED stays trusted-only (impact/domain).

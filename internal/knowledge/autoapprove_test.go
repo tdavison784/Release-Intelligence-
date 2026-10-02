@@ -8,6 +8,29 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/domain"
 )
 
+// call returns p as the answer of a specific stateless call.
+func call(p domain.SemanticProposal, id string, class domain.ImpactClass) domain.SemanticProposal {
+	p.Provenance.CallID = id
+	p.SuggestedClass = class
+	p.ID = domain.ProposalID(p.CandidateID, p.Task, p.Provider, p.Provenance)
+	return p
+}
+
+func renderEvidence() domain.Evidence {
+	e := domain.NewEvidence(domain.EvidenceStructured, "render", "https://example/chart/templates/crd.yaml", "$.spec", "rotationPolicy: Always", "sha256:r", t0)
+	e.Render = &domain.RenderProvenance{Scope: domain.RenderRelease, Tool: "helm", ToolVersion: "v3.17.2", ChartDigest: "sha256:chart"}
+	return e
+}
+
+// renderConfirmed confirms subject and change by the render.
+func renderConfirmed(c domain.SemanticCandidate, a domain.SemanticAssertion) domain.ValidationResult {
+	v := validation(c, a, domain.AspectSubject, domain.AspectChange)
+	v.Evidence = []domain.Evidence{renderEvidence()}
+	v.RenderRelation = domain.RenderConfirmed
+	v.ID = domain.ValidationID(v.CandidateID, v.Validator, v.Assertion)
+	return v
+}
+
 func renderable(t *testing.T) (Store, domain.SemanticCandidate) {
 	t.Helper()
 	s := NewFileStore(t.TempDir())
@@ -17,43 +40,52 @@ func renderable(t *testing.T) (Store, domain.SemanticCandidate) {
 	return s, c
 }
 
-// CONTRACT-CHANGE(contract-3): PO-1 — consensus is two SEPARATE calls
-// agreeing, any models (the same model twice included); one call never counts
-// twice.
-func TestConsensusRequiresSeparateCalls(t *testing.T) {
+func TestConsensusIsSeparateCallsLabelledByScope(t *testing.T) {
 	c := fixtureCandidate()
 	a := rotationAssertion(domain.ConsequenceBehaviorChange)
-	same := []domain.SemanticProposal{proposal(c, "anthropic", "claude-opus-5-5", a), proposal(c, "anthropic", "claude-sonnet-5-5", a)}
-	if got := ConsensusAspects(same, nil); len(got) != 4 {
-		t.Fatalf("two separate Claude calls gave %d consensus aspects, want 4", len(got))
+	base := proposal(c, "anthropic", "claude-opus-5-5", a)
+
+	// two separate calls of the SAME model agree: same-model consensus (PO-1)
+	same := []domain.SemanticProposal{call(base, "c1", ""), call(base, "c2", "")}
+	got := ConsensusAspects(same, nil)
+	if len(got) != 4 || got[domain.AspectSubject].Consensus != domain.ConsensusSameModel {
+		t.Fatalf("same-model: %d aspects, scope %q", len(got), got[domain.AspectSubject].Consensus)
 	}
-	oneCall := proposal(c, "anthropic", "claude-opus-5-5", a)
-	replay := oneCall
-	replay.Provenance.PromptDigest = "sha256:replayed"
-	replay.ID = domain.ProposalID(replay.CandidateID, replay.Task, replay.Provider, replay.Provenance)
-	if got := ConsensusAspects([]domain.SemanticProposal{oneCall, replay}, nil); len(got) != 0 {
-		t.Fatalf("one call counted twice as consensus: %v", got)
+	// one call counted twice is not two calls
+	dup := []domain.SemanticProposal{call(base, "c1", ""), call(withDigest(base, "other"), "c1", "")}
+	if got := ConsensusAspects(dup, nil); len(got) != 0 {
+		t.Fatalf("one call twice counted as consensus: %v", got)
 	}
-	indep := []domain.SemanticProposal{proposal(c, "anthropic", "claude-sonnet-5-5", a), proposal(c, "zai", "glm-5.3-flash", a)}
-	if got := ConsensusAspects(indep, nil); len(got) != 4 {
-		t.Fatalf("independent agreement gave %d aspects, want 4", len(got))
+	// different model families: cross-model
+	cross := []domain.SemanticProposal{call(base, "c1", ""), call(proposal(c, "zai", "glm-5.3-flash", a), "c2", "")}
+	if got := ConsensusAspects(cross, nil); got[domain.AspectConsequence].Consensus != domain.ConsensusCrossModel {
+		t.Fatalf("cross-model label = %q", got[domain.AspectConsequence].Consensus)
 	}
-	// a validator refutation removes the aspect from consensus
+	// a validator refutation removes the aspect
 	v := validation(c, a, domain.AspectSubject)
 	v.Checks[0].Outcome = domain.OutcomeRefuted
 	v.ID = domain.ValidationID(v.CandidateID, v.Validator, v.Assertion)
-	if got := ConsensusAspects(indep, []domain.ValidationResult{v}); len(got) != 3 {
+	if got := ConsensusAspects(cross, []domain.ValidationResult{v}); len(got) != 3 {
 		t.Fatalf("refuted aspect still consensus: %d", len(got))
 	}
 }
 
-func TestAutoApprovalMintsMarkedFactAndAuditsASample(t *testing.T) {
+func withDigest(p domain.SemanticProposal, d string) domain.SemanticProposal {
+	p.Provenance.PromptDigest = "sha256:" + d
+	p.ID = domain.ProposalID(p.CandidateID, p.Task, p.Provider, p.Provenance)
+	return p
+}
+
+func TestRenderAutoApprovalMintsMarkedFactAndAuditsASample(t *testing.T) {
 	s, c := renderable(t)
 	ctx := context.Background()
 	a := rotationAssertion(domain.ConsequenceBehaviorChange)
-	mustPut(t, s, proposal(c, "anthropic", "claude-sonnet-5-5", a))
-	mustPut(t, s, proposal(c, "zai", "glm-5.3-flash", a))
-	sum, err := RouteStore(ctx, s, RouteOptions{Policy: AutoApproveRenderVerifiable, AuditEvery: 1, Now: func() time.Time { return t0.Add(time.Hour) }}, Query{})
+	base := proposal(c, "anthropic", "claude-sonnet-5-5", a)
+	mustPut(t, s, call(base, "call-1", ""))
+	mustPut(t, s, call(base, "call-2", "")) // two separate calls of one model
+	mustPut(t, s, renderConfirmed(c, a))
+	opts := RouteOptions{Policy: DefaultAutoApprove, AuditEvery: 1, Now: func() time.Time { return t0.Add(time.Hour) }}
+	sum, err := RouteStore(ctx, s, opts, Query{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,18 +94,18 @@ func TestAutoApprovalMintsMarkedFactAndAuditsASample(t *testing.T) {
 	}
 	snap, _ := s.Load(ctx, Query{})
 	f := snap.Facts[0]
-	if !f.AutoApproved || f.Level() != domain.VerifiedConsensus {
-		t.Fatalf("fact = auto %v level %s", f.AutoApproved, f.Level())
+	if !f.AutoApproved || f.Level() != domain.VerifiedConsensus || f.ConsensusAction {
+		t.Fatalf("fact = auto %v level %s action %v", f.AutoApproved, f.Level(), f.ConsensusAction)
 	}
-	// idempotent
-	if _, err := RouteStore(ctx, s, RouteOptions{Policy: AutoApproveRenderVerifiable, AuditEvery: 1}, Query{}); err != nil {
+	if f.AspectLevel(domain.AspectSubject) != domain.VerifiedDeterministic || f.Verification[3].Consensus != domain.ConsensusSameModel {
+		t.Fatalf("verification = %+v", f.Verification)
+	}
+	if _, err := RouteStore(ctx, s, opts, Query{}); err != nil { // idempotent
 		t.Fatal(err)
 	}
 
 	// the human audit accepts: the verified aspect is upgraded, the marker stays
 	q := NewQueue(s, nil)
-	item := snap.ReviewItems[0]
-	_ = item
 	snap, _ = s.Load(ctx, Query{})
 	it := snap.ReviewItems[0]
 	out, err := q.Decide(ctx, []domain.ReviewDecision{decision(it, "engineer-1", domain.ReviewerHuman, domain.ActionAccept, t0.Add(2*time.Hour))})
@@ -81,40 +113,98 @@ func TestAutoApprovalMintsMarkedFactAndAuditsASample(t *testing.T) {
 		t.Fatal(err)
 	}
 	af := out[0].Fact
-	if af == nil || !af.AutoApproved || af.AspectLevel(domain.AspectConsequence) != domain.VerifiedHuman || af.AspectLevel(domain.AspectSubject) != domain.VerifiedConsensus {
+	if af == nil || !af.AutoApproved || af.AspectLevel(domain.AspectConsequence) != domain.VerifiedHuman || af.AspectLevel(domain.AspectApplicability) != domain.VerifiedConsensus {
 		t.Fatalf("audit accept: %+v", af)
-	}
-	if rec, _ := s.Get(ctx, af.ID); rec.Fact.AspectLevel(domain.AspectConsequence) != domain.VerifiedHuman {
-		t.Fatal("upgrade not stored")
 	}
 	snap, _ = s.Load(ctx, Query{})
 	m := ComputeMetrics(snap).Facts
 	if m.AutoApproved != 1 || m.AutoApprovedAudited != 1 || m.AutoApprovalAgreement != 1 || m.AutoApprovalAgreementBy[domain.SubjectCRDField] != 1 {
 		t.Fatalf("audit metrics = %+v", m)
 	}
-	if m.ByLevel[domain.VerifiedConsensus] != 1 { // weakest aspect is still consensus
-		t.Fatalf("by level = %v", m.ByLevel)
+	if m.ConsensusAgreementByScope[domain.ConsensusSameModel] != 1 {
+		t.Fatalf("by scope = %v", m.ConsensusAgreementByScope)
 	}
-
 	// a later reject retracts it and counts as disagreement
 	if _, err := q.Decide(ctx, []domain.ReviewDecision{decision(it, "engineer-2", domain.ReviewerHuman, domain.ActionReject, t0.Add(3*time.Hour))}); err != nil {
 		t.Fatal(err)
 	}
 	snap, _ = s.Load(ctx, Query{})
 	m = ComputeMetrics(snap).Facts
-	if m.AutoApprovalAgreement != 0 || m.Retracted != 1 {
+	if m.AutoApprovalAgreement != 0 || m.Retracted != 1 || m.ConsensusAgreementByScope[domain.ConsensusSameModel] != 0 {
 		t.Fatalf("after reject: %+v", m)
 	}
 }
 
-func TestNotRenderVerifiableIsNeverAutoApproved(t *testing.T) {
+func TestRenderPolicyNeedsRenderConfirmationOfSubjectAndChange(t *testing.T) {
+	s, c := renderable(t)
+	a := rotationAssertion(domain.ConsequenceBehaviorChange)
+	base := proposal(c, "anthropic", "claude-sonnet-5-5", a)
+	mustPut(t, s, call(base, "call-1", ""))
+	mustPut(t, s, call(base, "call-2", ""))
+	// no render confirmation: consensus alone is not the render policy
+	sum, err := RouteStore(context.Background(), s, RouteOptions{Policy: AutoApproveRenderVerifiable}, Query{})
+	if err != nil || sum.Facts != 0 || sum.Items == 0 {
+		t.Fatalf("summary = %+v, %v", sum, err)
+	}
+}
+
+func TestConsensusActionFactIsAlwaysAudited(t *testing.T) {
 	s := NewFileStore(t.TempDir())
-	c := fixtureCandidate() // no renderability
+	c := fixtureCandidate() // not render-verifiable: only PO-2 can approve it
+	mustPut(t, s, c)
+	ctx := context.Background()
+	a := rotationAssertion(domain.ConsequenceSettingIgnored)
+	base := proposal(c, "anthropic", "claude-opus-5-5", a)
+	mustPut(t, s, call(base, "call-1", domain.ImpactActionRequired))
+	mustPut(t, s, call(proposal(c, "zai", "glm-5.3-flash", a), "call-2", domain.ImpactActionRequired))
+	sum, err := RouteStore(ctx, s, RouteOptions{Policy: DefaultAutoApprove, AuditEvery: 0}, Query{})
+	if err != nil || sum.Facts != 1 || len(sum.Audits) != 1 {
+		t.Fatalf("summary = %+v, %v (consensus-action facts are audited at 100%% even with sampling off)", sum, err)
+	}
+	snap, _ := s.Load(ctx, Query{})
+	f := snap.Facts[0]
+	if !f.ConsensusAction || !AuditRequired(f) || f.Verification[3].Consensus != domain.ConsensusCrossModel {
+		t.Fatalf("fact = %+v", f)
+	}
+	if m := ComputeMetrics(snap).Facts; m.ConsensusAction != 1 || m.ConsensusActionAudited != 0 {
+		t.Fatalf("metrics = %+v", m)
+	}
+	// the audit item: accept → consequence is human; consensusAction stays while other aspects are consensus
+	q := NewQueue(s, nil)
+	it := snap.ReviewItems[0]
+	out, err := q.Decide(ctx, []domain.ReviewDecision{decision(it, "e", domain.ReviewerHuman, domain.ActionAccept, t0.Add(2*time.Hour))})
+	if err != nil || out[0].Fact == nil || !out[0].Fact.ConsensusAction {
+		t.Fatalf("audit accept = %+v, %v", out, err)
+	}
+	snap, _ = s.Load(ctx, Query{})
+	if m := ComputeMetrics(snap).Facts; m.ConsensusActionAudited != 1 || m.ConsensusActionAgreement != 1 {
+		t.Fatalf("metrics = %+v", m)
+	}
+}
+
+func TestConsensusActionNeedsEveryAgreeingProposalToRequestAction(t *testing.T) {
+	s := NewFileStore(t.TempDir())
+	c := fixtureCandidate()
+	mustPut(t, s, c)
+	a := rotationAssertion(domain.ConsequenceSettingIgnored)
+	base := proposal(c, "anthropic", "claude-opus-5-5", a)
+	mustPut(t, s, call(base, "call-1", domain.ImpactActionRequired))
+	mustPut(t, s, call(base, "call-2", domain.ImpactReviewRequired)) // agrees on the digest, did not request action
+	sum, err := RouteStore(context.Background(), s, RouteOptions{Policy: DefaultAutoApprove}, Query{})
+	if err != nil || sum.Facts != 0 {
+		t.Fatalf("a consensus where one call asked only for review was auto-approved: %+v, %v", sum, err)
+	}
+}
+
+func TestNeverRenderableNeverActionIsNeverAutoApproved(t *testing.T) {
+	s := NewFileStore(t.TempDir())
+	c := fixtureCandidate()
 	mustPut(t, s, c)
 	a := rotationAssertion(domain.ConsequenceBehaviorChange)
-	mustPut(t, s, proposal(c, "anthropic", "claude-sonnet-5-5", a))
-	mustPut(t, s, proposal(c, "zai", "glm-5.3-flash", a))
-	sum, err := RouteStore(context.Background(), s, RouteOptions{Policy: AutoApproveRenderVerifiable}, Query{})
+	base := proposal(c, "anthropic", "claude-sonnet-5-5", a)
+	mustPut(t, s, call(base, "call-1", ""))
+	mustPut(t, s, call(base, "call-2", ""))
+	sum, err := RouteStore(context.Background(), s, RouteOptions{Policy: DefaultAutoApprove}, Query{})
 	if err != nil || sum.Facts != 0 || sum.Items == 0 {
 		t.Fatalf("summary = %+v, %v", sum, err)
 	}
@@ -132,21 +222,5 @@ func TestSampledForAudit(t *testing.T) {
 	}
 	if n < 60 || n > 140 {
 		t.Fatalf("1-in-4 sample picked %d of 400", n)
-	}
-}
-
-func TestActionEligibleAutoApprovalIsAlwaysAudited(t *testing.T) {
-	s, c := renderable(t)
-	ctx := context.Background()
-	a := rotationAssertion(domain.ConsequenceSettingIgnored)
-	mustPut(t, s, proposal(c, "anthropic", "claude-sonnet-5-5", a))
-	mustPut(t, s, proposal(c, "zai", "glm-5.3-flash", a))
-	sum, err := RouteStore(ctx, s, RouteOptions{Policy: AutoApproveRenderVerifiable, AuditEvery: 0}, Query{})
-	if err != nil || sum.Facts != 1 || len(sum.Audits) != 1 {
-		t.Fatalf("summary = %+v, %v (action-eligible must be audited at 100%% even with sampling off)", sum, err)
-	}
-	snap, _ := s.Load(ctx, Query{})
-	if !AuditRequired(snap.Facts[0]) {
-		t.Fatal("AuditRequired")
 	}
 }

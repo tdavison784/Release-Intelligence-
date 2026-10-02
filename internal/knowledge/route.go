@@ -16,6 +16,8 @@ type aspectState struct {
 	digest string
 	level  domain.VerificationLevel
 	basis  []string
+	// consensus labels a consensus-level aspect cross-model or same-model (PO-1).
+	consensus domain.ConsensusScope
 }
 
 // AutoApproval is what an AutoApprovePolicy returns: aspects it verifies
@@ -29,6 +31,8 @@ type AutoApprovedAspect struct {
 	Part  domain.SemanticAssertion // only the aspect is set
 	Level domain.VerificationLevel
 	Basis []string
+	// Consensus labels a consensus-level aspect (PO-1).
+	Consensus domain.ConsensusScope
 }
 
 // AutoApprovePolicy is the SEAM for automatic approval (e.g. render-verifiable
@@ -55,11 +59,20 @@ func RouteWith(policy AutoApprovePolicy, c domain.SemanticCandidate, ps []domain
 	agreement := Agreements(ps)
 	state := stateFromValidations(vs)
 	if policy != nil {
+		// a policy auto-approves a candidate or nothing: its aspects count only
+		// when, with the confirmed validations, they cover all four
 		if ap := policy(c, ps, vs, agreement); ap != nil {
+			withPolicy := map[domain.Aspect]aspectState{}
+			for x, st := range state {
+				withPolicy[x] = st
+			}
 			for x, a := range ap.Aspects {
-				if _, done := state[x]; !done && a.Part.Has(x) {
-					state[x] = aspectState{part: a.Part, digest: a.Part.AspectDigest(x), level: a.Level, basis: a.Basis}
+				if _, done := withPolicy[x]; !done && a.Part.Has(x) {
+					withPolicy[x] = aspectState{part: a.Part, digest: a.Part.AspectDigest(x), level: a.Level, basis: a.Basis, consensus: a.Consensus}
 				}
+			}
+			if len(withPolicy) == len(domain.Aspects) {
+				state = withPolicy
 			}
 		}
 	}
@@ -180,13 +193,23 @@ func Agreements(ps []domain.SemanticProposal) []AspectAgreement {
 
 func model(p domain.SemanticProposal) string { return p.Provenance.Model }
 
+// callKey identifies the stateless model call behind a proposal. Agreement is
+// counted across separate calls (PO-1: any models, including two calls of the
+// same model); a proposal without a call id (not valid, but be safe) counts as its own call.
+func callKey(p domain.SemanticProposal) string {
+	if p.Provenance.CallID != "" {
+		return p.Provenance.CallID
+	}
+	return p.ID
+}
+
 // signals derives the routing signals of the open aspects.
 func signals(ps []domain.SemanticProposal, vs []domain.ValidationResult, open []domain.Aspect, confirmed bool) (sig []domain.RoutingSignal, agree, disagree, highImpact, allUndetermined bool) {
-	models := map[string]bool{}
+	models := map[string]bool{} // separate calls that asserted something
 	asserted := false
 	for _, p := range ps {
 		if !p.Assertion.Empty() {
-			models[model(p)] = true
+			models[callKey(p)] = true
 			asserted = true
 		}
 		if c := p.Assertion.Consequence; c != nil && c.Kind.ActionEligible() {
@@ -210,7 +233,7 @@ func signals(ps []domain.SemanticProposal, vs []domain.ValidationResult, open []
 				if groups[d] == nil {
 					groups[d] = map[string]bool{}
 				}
-				groups[d][model(p)] = true
+				groups[d][callKey(p)] = true
 			}
 		}
 		if len(groups) == 0 {
@@ -239,7 +262,7 @@ func signals(ps []domain.SemanticProposal, vs []domain.ValidationResult, open []
 			sig = append(sig, domain.SignalModelsDisagree)
 		}
 	}
-	if len(models) < 2 && !allUndetermined {
+	if len(models) < 2 && !allUndetermined { // fewer than two separate calls answered
 		sig = append(sig, domain.SignalSingleModel)
 	}
 	if confirmed {
@@ -304,7 +327,7 @@ func pluralityValue(ps []domain.SemanticProposal, x domain.Aspect, refuted map[d
 		if groups[d] == nil {
 			groups[d] = &g{models: map[string]bool{}, first: p}
 		}
-		groups[d].models[model(p)] = true
+		groups[d].models[callKey(p)] = true
 	}
 	var best string
 	for d, gr := range groups {

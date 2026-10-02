@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
@@ -167,10 +168,57 @@ func buildFact(c domain.SemanticCandidate, state map[domain.Aspect]aspectState, 
 		Status:       domain.FactActive,
 		CreatedAt:    now,
 	}
+	f.ConsensusAction = consensusAction(*f, ps, vs)
 	if err := f.Validate(); err != nil {
 		return nil, err
 	}
 	return f, nil
+}
+
+// consensusAction decides PO-2: the fact may produce ACTION REQUIRED by model
+// consensus when every aspect is at consensus or better (and at least one is
+// consensus), the consequence is action-eligible, every agreeing proposal on a
+// consensus-verified consequence requested action-required, and no validator
+// refuted any aspect of it.
+func consensusAction(f domain.VerifiedFact, ps []domain.SemanticProposal, vs []domain.ValidationResult) bool {
+	if f.Level() != domain.VerifiedConsensus || f.Assertion.Consequence == nil || !f.Assertion.Consequence.Kind.ActionEligible() {
+		return false
+	}
+	if f.AspectLevel(domain.AspectConsequence) == domain.VerifiedConsensus {
+		byID := map[string]domain.SemanticProposal{}
+		for _, p := range ps {
+			byID[p.ID] = p
+		}
+		for _, v := range f.Verification {
+			if v.Aspect != domain.AspectConsequence {
+				continue
+			}
+			for _, id := range v.Basis {
+				if strings.HasPrefix(id, domain.ProposalIDPrefix) {
+					if p, ok := byID[id]; !ok || p.SuggestedClass != domain.ImpactActionRequired {
+						return false
+					}
+				}
+			}
+		}
+	}
+	for _, v := range vs {
+		for _, x := range domain.Aspects {
+			if v.Assertion.AspectDigest(x) == f.Assertion.AspectDigest(x) && refutesAspect(v, x) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func refutesAspect(v domain.ValidationResult, x domain.Aspect) bool {
+	for _, c := range v.Checks {
+		if c.Aspect == x && c.Outcome == domain.OutcomeRefuted {
+			return true
+		}
+	}
+	return false
 }
 
 // factReviewTarget returns the id of the fact an item re-reviews: an item
@@ -321,6 +369,7 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 			ver = append(ver, v)
 		}
 		merged.Verification = ver
+		merged.ConsensusAction = old.ConsensusAction && merged.Level() == domain.VerifiedConsensus
 		// the auto-approved marker is history: it stays after a human audit
 		// upgrades the aspects the reviewer verified. The audit itself is the
 		// decision record (written before the fact), which is what the R19
@@ -346,7 +395,7 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 func seedFromFact(f domain.VerifiedFact) map[domain.Aspect]aspectState {
 	out := map[domain.Aspect]aspectState{}
 	for _, v := range f.Verification {
-		out[v.Aspect] = aspectState{part: partOf(f.Assertion, v.Aspect), digest: f.Assertion.AspectDigest(v.Aspect), level: v.Level, basis: append([]string(nil), v.Basis...)}
+		out[v.Aspect] = aspectState{part: partOf(f.Assertion, v.Aspect), digest: f.Assertion.AspectDigest(v.Aspect), level: v.Level, basis: append([]string(nil), v.Basis...), consensus: v.Consensus}
 	}
 	return out
 }

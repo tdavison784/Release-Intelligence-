@@ -156,5 +156,5 @@ func SampledForAudit(factID string, every int) bool {
 // regardless of the sampling rate: its consequence is action-eligible, so
 // consensus (not a person) is what would stand behind mandatory work (PO-2).
 func AuditRequired(f domain.VerifiedFact) bool {
-	return f.AutoApproved && f.Assertion.Consequence != nil && f.Assertion.Consequence.Kind.ActionEligible()
+	return f.ConsensusAction || (f.AutoApproved && f.Assertion.Consequence != nil && f.Assertion.Consequence.Kind.ActionEligible())
 }
