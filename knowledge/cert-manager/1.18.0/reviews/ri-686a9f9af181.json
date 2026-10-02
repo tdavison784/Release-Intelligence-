@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-686a9f9af181",
+    "candidateId": "sc-292ab9525adb",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information.\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates without revisionHistoryLimit now keep only 1 revision, and all stale CertificateRequest resources are garbage collected on upgrade to 1.18.",
+        "remediation": "Explicitly set revisionHistoryLimit on Certificate resources if more CertificateRequest history must be retained.",
+        "severity": "medium"
+      },
+      "statement": "The default of Certificate spec.revisionHistoryLimit changed from nil to 1, so stale CertificateRequests are garbage collected on upgrade unless the field is set explicitly."
+    },
+    "proposals": [
+      "sp-515d6ecff980",
+      "sp-c1ce771ec6e3",
+      "sp-d223efe9991f",
+      "sp-e4bb086ea9b3"
+    ],
+    "validations": [
+      "val-483ea4e909c3",
+      "val-a70353975014",
+      "val-bd6cd42c89cb",
+      "val-f4317c4687ee"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "low",
+      "signals": [
+        "models-agree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T11:24:46Z"
+  }
+}

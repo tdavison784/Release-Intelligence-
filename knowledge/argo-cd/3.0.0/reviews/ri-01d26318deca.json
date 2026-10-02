@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-01d26318deca",
+    "candidateId": "sc-2998e289998d",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Empty Environment Variables in Plugins: In Argo CD 3.0, empty environment variables are now passed to config management plugins\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.source.plugin",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.source.plugin.env",
+                  "state": "set"
+                }
+              ],
+              "group": "argoproj.io",
+              "kind": "Application"
+            }
+          ]
+        }
+      },
+      "statement": "Empty environment variables are now passed to config management plugins in Argo CD 3.0, whereas previously they were not passed."
+    },
+    "proposals": [
+      "sp-6e2dd33ee826",
+      "sp-e9635222f161"
+    ],
+    "validations": [
+      "val-10d6c6bd5bd5",
+      "val-339fbb334998",
+      "val-8efadc4af4a9",
+      "val-af1dbc95623a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:04:39Z"
+  }
+}

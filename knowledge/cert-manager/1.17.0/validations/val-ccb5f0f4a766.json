@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ccb5f0f4a766",
+    "candidateId": "sc-22be35218702",
+    "proposalId": "sp-9c4234e22ceb",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "NameConstraints"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "NameConstraints",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "NameConstraints",
+              "state": "enabled"
+            },
+            {
+              "op": "feature-gate",
+              "name": "NameConstraints",
+              "state": "disabled"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "If the NameConstraints feature gate is not set explicitly, the CA NameConstraints feature is now on by default after the upgrade.",
+        "remediation": "Check whether the CA NameConstraints feature should be on. If not, set NameConstraints=false explicitly in the feature gates.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0 the CA NameConstraints feature gate is promoted to Beta and is now enabled by default."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/default-changed",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: fetch https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: not in cache (offline mode); oci channel: oci: get manifest quay.io/jetstack/charts/cert-manager:v1.16.0: fetch https://quay.io/v2/jetstack/charts/cert-manager/manifests/v1.16.0: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/default-changed",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: fetch https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: not in cache (offline mode); oci channel: oci: get manifest quay.io/jetstack/charts/cert-manager:v1.16.0: fetch https://quay.io/v2/jetstack/charts/cert-manager/manifests/v1.16.0: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

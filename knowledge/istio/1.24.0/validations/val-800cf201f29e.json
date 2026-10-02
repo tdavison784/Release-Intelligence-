@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-800cf201f29e",
+    "candidateId": "sc-829b983da47c",
+    "proposalId": "sp-c7b3c74173fd",
+    "validator": "semvalidate.values@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "global.waypoint.topologySpreadConstraints"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.waypoint.topologySpreadConstraints",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A new optional configuration value for Waypoint pod topologySpreadConstraints; no operational consequence if unused."
+      },
+      "statement": "Waypoint pod topologySpreadConstraints can now be configured via the Helm value global.waypoint.topologySpreadConstraints."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "helm-values:exists",
+        "detail": "global.waypoint.topologySpreadConstraints is a values key in the target release only of chart istiod"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "helm-values:added",
+        "detail": "global.waypoint.topologySpreadConstraints is absent from the source values and present in the target values"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-2139315891c3",
+        "kind": "structured",
+        "sourceId": "chart-istiod",
+        "uri": "https://github.com/istio/istio/blob/1.23.4/manifests/charts/istio-control/istio-discovery/values.yaml",
+        "locator": "manifests/charts/istio-control/istio-discovery/values.yaml",
+        "excerpt": "# \"defaults\" is a workaround for Helm limitations. Users should NOT set \".defaults\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:217a5d5592a8b23ac072f5061e18871f0f4ab35069779dc961f72dc5fa31174a",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T11:33:50Z"
+      },
+      {
+        "id": "ev-257bea760fce",
+        "kind": "structured",
+        "sourceId": "chart-istiod",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/manifests/charts/istio-control/istio-discovery/values.yaml",
+        "locator": "manifests/charts/istio-control/istio-discovery/values.yaml",
+        "excerpt": "# \"_internal_defaults_do_not_set\" is a workaround for Helm limitations. Users should NOT set \"._internal_defaults_do_not_set\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:f8511b9368491181e5237642da7dbce3dc08fcdab252fd72618038e0ef309b25",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:49Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

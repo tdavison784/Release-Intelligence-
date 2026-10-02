@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-d0c74de6524b",
+    "candidateId": "sc-17607957b9fd",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Default `resource.exclusions` configurations: Argo CD manifest now contains a default configuration for `resource.exclusions` in the `argocd-cm` to exclude…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Resources of the listed kinds are excluded from Argo CD by default, so they are no longer tracked or managed unless resource.exclusions is overridden or removed in the configMap.",
+        "remediation": "Override or remove resource.exclusions in argocd-cm to preserve v2 behavior.",
+        "severity": "medium"
+      },
+      "statement": "The Argo CD manifest now ships a default resource.exclusions in argocd-cm that excludes high-churn controller-created kinds (Endpoints, EndpointSlice, Lease, Kyverno reports, Cilium identities, etc.); it can be overridden or removed to preserve v2 behavior."
+    },
+    "proposals": [
+      "sp-1d4964ef0d8b",
+      "sp-92134ef55970"
+    ],
+    "validations": [
+      "val-50350e51b748",
+      "val-95a1b2faf7f9",
+      "val-c3cbdcfb547c",
+      "val-e2b763e19881"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:07:01Z"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-db61bc498ff0",
+    "candidateId": "sc-67c82540420a",
+    "proposalId": "sp-0bba7f8a4e4f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "argo-cd",
+        "name": "dex-sso-subject"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"RBAC subject derived from Dex `sub` claim\"",
+        "after": "\"RBAC subject derived from Dex `federated_claims.user_id` claim\""
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "RBAC policies referencing Dex `sub` claim values will no longer grant access after upgrade to 3.0.0 unless updated to use `federated_claims.user_id` values instead.",
+        "remediation": "Decode current `sub` claims in RBAC policies to obtain the corresponding `user_id` value, and update policy subjects to reference the new `federated_claims.user_id` claim. Upgrade CLI clients to obtain tokens with the new claims.",
+        "severity": "high"
+      },
+      "statement": "Argo CD 3.0.0 changes the Dex SSO RBAC subject from the `sub` claim to `federated_claims.user_id`; existing RBAC policies using the `sub` claim value must be updated to use the new claim value."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/behavior-changed",
+        "detail": "rbac-permission behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/behavior-changed",
+        "detail": "rbac-permission behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

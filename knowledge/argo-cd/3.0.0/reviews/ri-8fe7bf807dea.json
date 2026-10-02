@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-8fe7bf807dea",
+    "candidateId": "sc-91d1feb7a7d7",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Removed support for legacy repo config in argocd-cm: Before repositories were managed as Secrets, they were configured in the argocd-cm ConfigMap\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Repositories configured in argocd-cm (repositories, repository.credentials, helm.repositories) are no longer supported in Argo CD 3.0 and will not be honoured.",
+        "remediation": "Convert the repositories to Secrets following the documentation for declarative management of repositories.",
+        "severity": "high"
+      },
+      "statement": "Legacy repository configuration in the argocd-cm ConfigMap (repositories, repository.credentials, helm.repositories) is removed in Argo CD 3.0; repositories must be converted to Secrets."
+    },
+    "proposals": [
+      "sp-555ed06d0d61",
+      "sp-e50e99392d9c"
+    ],
+    "validations": [
+      "val-0d08513cfad9",
+      "val-6688200dc59e",
+      "val-8374169d0a52",
+      "val-b6b60ffba70b"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:04:05Z"
+  }
+}

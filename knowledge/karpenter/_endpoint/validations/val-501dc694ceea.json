@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-501dc694ceea",
+    "candidateId": "sc-95ddd86cb4d2",
+    "proposalId": "sp-abf83feaf64f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodeClaim"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "karpenter.sh",
+          "kind": "NodeClaim"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodeClaim objects stay stored as v1beta1 until rewritten, so the operator must run a storage version migration (re-write all NodeClaim objects) and update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "After this upgrade, run the storage version migration for nodeclaims.karpenter.sh: re-write all NodeClaim objects so they are stored at v1, then update status.storedVersions (drop v1beta1) before upgrading to the later release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the NodeClaim CRD (nodeclaims.karpenter.sh) changes from v1beta1 to v1, so existing NodeClaim objects stay stored as v1beta1 until rewritten, and a storage version migration (re-writing all objects) plus an update of status.storedVersions must be done before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/value-changed",
+        "detail": "gvk value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/value-changed",
+        "detail": "gvk value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

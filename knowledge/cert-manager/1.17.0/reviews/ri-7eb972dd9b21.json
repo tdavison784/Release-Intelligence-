@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7eb972dd9b21",
+    "candidateId": "sc-8fd875d322fd",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"BUGFIX: A change in v1.16.0 caused cert-manager's ACME ClusterIssuer to look in the wrong namespace for resources required for the issuance (e.g. credential…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, ACME ClusterIssuers look for resources needed for issuance (e.g. credential Secrets) in the correct namespace again, which fixes the v1.16.0 regression.",
+        "remediation": "No action is required. Check that ACME ClusterIssuer issuance works after upgrading from v1.16.0.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 fixes a regression introduced in v1.16.0 (also fixed in v1.16.1) where the ACME ClusterIssuer looked in the wrong namespace for resources it needs for issuance, such as credential Secrets."
+    },
+    "proposals": [
+      "sp-28240e9dd8b9",
+      "sp-3e7d8d04abf1",
+      "sp-44cd770f6749",
+      "sp-6239fb74b018"
+    ],
+    "validations": [
+      "val-1274403334f5",
+      "val-292be5048a64",
+      "val-2db0e13fd3d2",
+      "val-32af54aa4f76",
+      "val-405a00d03883",
+      "val-49b86dbec426",
+      "val-584bb66cc79a",
+      "val-922672468ee1",
+      "val-9d097c312f74",
+      "val-a25c6aeb9add",
+      "val-a73fbb33543f",
+      "val-ac598eb76ab4"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T11:19:59Z"
+  }
+}

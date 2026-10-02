@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-db1566f5ca63",
+    "candidateId": "sc-faffd3489419",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Ignoring all status updates and high churn mutations: Argo CD manifest now contains a default configuration for `resource.customizations.ignoreResourceUpdates`…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Watched resources' .status changes and common mutated resources will be ignored by default, reducing load on Argo CD; this changes behavior from v2.14 where these were processed.",
+        "remediation": "If v2 behavior is required, override or remove the resource.customizations.ignoreResourceUpdates configuration in the argocd-cm ConfigMap.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 adds a default configuration for resource.customizations.ignoreResourceUpdates in the argocd-cm ConfigMap that excludes common mutated resources and always ignores .status changes; the v2 behavior can be preserved by overriding or removing this configuration."
+    },
+    "proposals": [
+      "sp-6c26eacf590d",
+      "sp-9b47e51bb570"
+    ],
+    "validations": [
+      "val-106e643ea8b9",
+      "val-768282e95c4a",
+      "val-968d530d837f",
+      "val-d04dfa5e1373"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T05:59:33Z"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3ef637b4bc67",
+    "candidateId": "sc-0820732be8c4",
+    "proposalId": "sp-0899441f9741",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "strimzi",
+        "group": "kafka.strimzi.io",
+        "kind": "Kafka",
+        "path": "spec.kafka.template.pod.dnsPolicy"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kafka.strimzi.io",
+          "version": "v1beta2",
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Informational: this only adds new optional fields for configuring pod DNS via the template sections; the evidence states nothing is removed, rejected or changed for existing configurations, so an operator who does nothing is unaffected.",
+        "remediation": "None required; operators may optionally adopt the new dnsPolicy/dnsConfig template fields where DNS behaviour needs tuning.",
+        "severity": "low"
+      },
+      "statement": "Strimzi 0.46.0 added support to configure the pod `dnsPolicy` and `dnsConfig` through the `template` sections of its custom resources (e.g. spec.kafka.template.pod.dnsPolicy and spec.kafka.template.pod.dnsConfig in the Kafka CRD, with matching paths under the cruiseControl, entityOperator, jmxTrans and kafkaExporter template pod sections)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/strimzi-helm/strimzi-kafka-operator:0.45.0: fetch https://quay.io/v2/strimzi-helm/strimzi-kafka-operator/manifests/0.45.0: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://strimzi.io/charts/index.yaml: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/strimzi-helm/strimzi-kafka-operator:0.45.0: fetch https://quay.io/v2/strimzi-helm/strimzi-kafka-operator/manifests/0.45.0: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://strimzi.io/charts/index.yaml: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

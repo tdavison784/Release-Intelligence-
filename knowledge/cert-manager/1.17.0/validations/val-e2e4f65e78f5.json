@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e2e4f65e78f5",
+    "candidateId": "sc-34fb0eae6e1d",
+    "proposalId": "sp-ffe4616b0b77",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "acme-http01-solver-ipv6"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which ACME HTTP-01 challenges must be solved against endpoints that resolve to or are reached over IPv6 (DNS and endpoint addressing are runtime state not visible in configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ACME HTTP-01 solver operations involving IPv6 endpoints, which previously did not work correctly, now work after the upgrade; environments whose HTTP-01 solving involves IPv6 endpoints will see corrected behavior without any operator action.",
+        "remediation": "None required; if HTTP-01 challenges involving IPv6 endpoints were previously stuck, verify they now complete successfully after upgrading.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 fixes the ACME HTTP-01 solver so that it works for IPv6 endpoints, which it previously mishandled."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

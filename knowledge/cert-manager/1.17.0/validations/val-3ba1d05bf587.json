@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3ba1d05bf587",
+    "candidateId": "sc-d9778d71f629",
+    "proposalId": "sp-5f9ebeaff38b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "venafi-tpp-rsa-3072-enrollment"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"RSA 3072 bit key size for TPP certificate enrollment did not work\"",
+        "after": "\"RSA 3072 bit key size for TPP certificate enrollment works\""
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is a bug fix: TPP enrollment with RSA 3072-bit keys, which used to fail, now works. Operators do not need to do anything.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 upgrades the Venafi vCert library, which fixes a bug where TPP certificate enrollment with an RSA 3072-bit key did not work."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-8aef560bd5db",
+    "candidateId": "sc-3a1c52273250",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Cilium now respects the port specified as part of the etcd configuration, rather than defaulting it to that of the service when the address matches a…\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The etcd.operator kvstore-opt configuration value will be ignored and no longer has any effect; environments must rely on the new automatic behavior of respecting the port specified in etcd configuration.",
+        "remediation": "Remove the etcd.operator kvstore-opt setting from Helm values as it is now a no-op. Verify that etcd addresses include the correct port if non-standard ports are used, as Cilium will now respect the specified port rather than defaulting to the service port.",
+        "severity": "medium"
+      },
+      "statement": "The etcd.operator kvstore-opt Helm value option is now a no-op and has been removed; Cilium now respects the port in the etcd configuration and automatically enables Kubernetes service DNS name to ClusterIP translation for etcd."
+    },
+    "proposals": [
+      "sp-381c7b0aecca",
+      "sp-40ec2d0973b9"
+    ],
+    "validations": [
+      "val-0d14ce57eb6a",
+      "val-29d45f7fbec0",
+      "val-426583d01faf",
+      "val-cf08e8316c2d"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "single-model",
+        "validation-refuted"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:07:23Z"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-f63929a8b45c",
+    "candidateId": "sc-ee5a3d56460b",
+    "product": "karpenter",
+    "release": "1.0.0",
+    "questionType": "applicability",
+    "question": "For \"Breaking API (Manual Migration Needed): * Ubuntu is dropped as a first class supported AMI Family * `karpenter.sh/do-not-consolidate` (annotation)…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"karpenter.sh/do-not-consolidate\"]",
+                  "state": "set"
+                }
+              ],
+              "kind": "Node"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"karpenter.sh/do-not-evict\"]",
+                  "state": "set"
+                }
+              ],
+              "kind": "Node"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.tags[\"karpenter.sh/managed-by\"]",
+                  "state": "set"
+                }
+              ],
+              "kind": "Node"
+            }
+          ]
+        }
+      },
+      "statement": "In Karpenter 1.0.0, the annotations karpenter.sh/do-not-consolidate, karpenter.sh/do-not-evict, and the tag karpenter.sh/managed-by are removed; karpenter.sh/managed-by is replaced by eks:eks-cluster-name, and the disruption taint key changed from karpenter.sh/disruption=disrupting:NoSchedule to karpenter.sh/disrupted:NoSchedule."
+    },
+    "proposals": [
+      "sp-51db04cada1e",
+      "sp-80cfe61d9edd",
+      "sp-8bd17f5b2bd8",
+      "sp-9263a770d16c"
+    ],
+    "validations": [
+      "val-90b022da8a50",
+      "val-fce332f41bdb"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T11:32:13Z"
+  }
+}

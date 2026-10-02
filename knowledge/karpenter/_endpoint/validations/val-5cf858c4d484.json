@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5cf858c4d484",
+    "candidateId": "sc-42373ba011a8",
+    "proposalId": "sp-ac0a2a293490",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "karpenter.sh",
+              "kind": "NodePool"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether NodePool objects are still persisted in etcd at v1beta1 (CRD status.storedVersions still lists v1beta1)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodePool objects remain stored as v1beta1 until rewritten; a storage version migration (re-write all objects) and an update of status.storedVersions must be run before a later release removes v1beta1.",
+        "remediation": "Re-write all NodePool objects so they are stored as v1, then remove v1beta1 from the nodepools.karpenter.sh CRD status.storedVersions.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the nodepools.karpenter.sh CRD changes from v1beta1 to v1, so existing NodePool objects stay stored as v1beta1 until a storage version migration rewrites them and status.storedVersions is updated, before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

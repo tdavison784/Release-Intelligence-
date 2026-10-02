@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2365e2d57235",
+    "candidateId": "sc-1bfe9296b8d9",
+    "proposalId": "sp-7a06bc6038a1",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "crd-version-read"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"read CRDs from multiple versions\"",
+        "after": "\"read v1 CRDs where applicable\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "istio",
+              "state": "in-range",
+              "range": "<=1.21.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "apiextensions.k8s.io",
+              "version": "v1beta1",
+              "kind": "CustomResourceDefinition"
+            }
+          ]
+        }
+      },
+      "statement": "Istio components updated to read v1 CRDs where applicable; no impact for supported version skew, but unsupported clusters running Istio CRDs from 1.21 or older may be affected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

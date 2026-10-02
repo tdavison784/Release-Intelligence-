@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b448fcc7fe89",
+    "candidateId": "sc-a847d032ada6",
+    "proposalId": "sp-e8221c98dc16",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "base.enableCRDTemplates"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "base.enableCRDTemplates",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "base.enableCRDTemplates",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "CRD templating is now enabled by default in the base chart; previously it defaulted to disabled and required manual kubectl intervention to upgrade under certain install flag conditions.",
+        "remediation": "If the legacy behavior is required, explicitly set Values.base.enableCRDTemplates to false; prepare for this option's removal in a future release.",
+        "severity": "medium"
+      },
+      "statement": "The Helm value `base.enableCRDTemplates` now defaults to `true` instead of `false`, enabling templated CRD installation by default in the base chart and fixing a previous issue where certain install flags could require manual kubectl intervention."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest ghcr.io/istio/release/charts/base:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/base/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/istiod:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/istiod/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/gateway:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/gateway/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/cni:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/cni/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/ztunnel:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/ztunnel/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest ghcr.io/istio/release/charts/base:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/base/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/istiod:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/istiod/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/gateway:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/gateway/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/cni:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/cni/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/ztunnel:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/ztunnel/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

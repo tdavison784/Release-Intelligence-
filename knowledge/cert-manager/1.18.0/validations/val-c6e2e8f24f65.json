@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c6e2e8f24f65",
+    "candidateId": "sc-776fb106e1e1",
+    "proposalId": "sp-a51589487fe3",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "findzonebyfqdn-dns-caching"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether cert-manager performs FindZoneByFqdn DNS zone-discovery lookups at runtime (e.g. while solving DNS challenges) and the TTLs of the responses being cached"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DNS zone discovery via FindZoneByFqdn still works but now caches the full DNS response and expires cached entries according to TTL; the evidence describes no failure, rejection, or required operator step.",
+        "remediation": "No operator action is indicated by the evidence; the caching change is internal to DNS zone discovery.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, FindZoneByFqdn now caches the full DNS response and handles TTL expiration of the cached response during DNS zone discovery."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

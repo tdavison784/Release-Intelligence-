@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d8765f25c598",
+    "candidateId": "sc-1dc9088fb8f9",
+    "proposalId": "sp-e4c71a528580",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "v1-manifest-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "version": "v1beta1",
+              "kind": "NodePool"
+            },
+            {
+              "op": "gvk-in-use",
+              "version": "v1beta1",
+              "kind": "EC2NodeClass"
+            },
+            {
+              "op": "gvk-in-use",
+              "version": "v1beta1",
+              "kind": "NodeClaim"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators who do nothing leave their stored manifests on v1beta1; Karpenter will stop serving the v1beta1 API version and drop the conversion webhooks at v1.1.0, so all stored manifests must be migrated to v1 API versions on Karpenter v1.0+ following the v1 Migration Upgrade Procedure.",
+        "remediation": "Reference the v1 Migration Upgrade Procedure before upgrading to Karpenter 1.0.0+ and migrate all stored v1beta1 NodePool, EC2NodeClass, and NodeClaim manifests to v1 API versions while on Karpenter v1.0+, before the v1.1.0 release.",
+        "severity": "medium"
+      },
+      "statement": "Karpenter 1.0.0 introduces v1 APIs and conversion webhooks that serve the v1 version of previously applied v1beta1 NodePools, EC2NodeClasses, and NodeClaims, and requires operators to migrate all stored manifests to v1 API versions on Karpenter v1.0+ because Karpenter will stop serving the v1beta1 API version and drop the conversion webhooks at v1.1.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

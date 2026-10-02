@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6ced181ae081",
+    "candidateId": "sc-a1d88092526a",
+    "proposalId": "sp-007335b5c10a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "cluster.inClusterEnabled",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"false\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "cluster.inClusterEnabled",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Applications targeting the in-cluster cluster go to an Unknown state and cannot sync resources; new in-cluster Applications cannot be created; deleting an existing Application does not delete previously managed resources.",
+        "remediation": "Before upgrading, clean up or migrate existing in-cluster Applications; to clean up after migration, temporarily enable in-cluster.",
+        "severity": "high"
+      },
+      "statement": "With cluster.inClusterEnabled explicitly \"false\", in-cluster Applications become Unknown and cannot sync, new in-cluster Applications cannot be created, and deleting an Application no longer deletes its previously managed resources."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/behavior-changed",
+        "detail": "no canonical exposure condition for config-key behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

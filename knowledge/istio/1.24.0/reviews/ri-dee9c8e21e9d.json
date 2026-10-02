@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-dee9c8e21e9d",
+    "candidateId": "sc-cacb159a2363",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Added an experimental feature to enable lazily create subset of Envoy staistics\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Envoy statistics are now created lazily by default, which saves memory and CPU cycles when stats are not referenced; the previous behavior of creating all statistics upfront can be restored by setting ENABLE_DEFERRED_STATS_CREATION to false.",
+        "severity": "low"
+      },
+      "statement": "An experimental environment variable ENABLE_DEFERRED_STATS_CREATION was added to the agent Deployment to control lazy creation of Envoy statistics; the feature is enabled by default and can be disabled by setting it to false."
+    },
+    "proposals": [
+      "sp-45c7539999d0",
+      "sp-73b9e0538e32"
+    ],
+    "validations": [
+      "val-5540b26758ed",
+      "val-66530c94f503",
+      "val-6b1d3f1d8f5a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:07:55Z"
+  }
+}

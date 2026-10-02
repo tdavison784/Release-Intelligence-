@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d7f0cc645856",
+    "candidateId": "sc-c17c3673cf1d",
+    "proposalId": "sp-28abda984833",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "terminatingtls-ca-crt-loading"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cilium.io",
+              "version": "v2",
+              "kind": "CiliumNetworkPolicy"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--use-full-tls-context",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "--use-full-tls-context",
+          "state": "equals",
+          "values": [
+            "\"true\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ca.crt in the secret is no longer loaded for terminatingTLS, so Envoy no longer requires client certificates from pods under TLS termination.",
+        "remediation": "Set --use-full-tls-context=true to retain the old behaviour."
+      },
+      "statement": "In 1.16, L7 network policy with terminatingTLS no longer loads the ca.crt key from the secret, so Envoy no longer requires client certificates; set --use-full-tls-context=true to retain the old behaviour."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}
