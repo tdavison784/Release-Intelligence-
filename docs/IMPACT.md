@@ -29,6 +29,31 @@ cluster access, no network beyond what `ri upgrade` already needs, no LLM.
 Enrichment (`ri upgrade -enrich`) is a separate optional layer and is never
 part of it.
 
+## Verified knowledge in the join (`--knowledge`)
+
+`ri impact … --knowledge knowledge/` evaluates the verified, release-level
+facts of the learning loop (docs/phase3/learning-loop/DESIGN.md) against the
+environment: a fact attaches to the changes that restate it, and its
+exposure/overlap conditions decide the verdict (`impact:knowledge-exposed`,
+`-overlap`, `-clear` or `-undecided`), always under the trust ladder of
+[ACTION_CLASSIFICATION.md](ACTION_CLASSIFICATION.md) §8. `--min-verification
+deterministic|human|consensus|proxy` (default `human`) keeps facts at or above
+the level; facts whose verification their own records do not prove are refused
+with a warning, never evaluated. Without `--knowledge` the report is
+byte-identical to the knowledge-free join.
+
+`ri eval --knowledge knowledge/` runs the dataset once per verification level
+(`none`, `deterministic`, `human`, `consensus`, `proxy`) and reports each
+separately: applicability accuracy overall and on the **transfer subset**
+(links whose deciding facts were never reviewed with that case's environment
+as context), classification accuracy, unknown rate, and the ACTION REQUIRED
+quality per level with model-consensus ACTION findings counted separately. The
+pre-registered gates keep applying to the level named by `--min-verification`
+(default `human`); the consensus and proxy levels are reported and labelled,
+never gated on. The stored-snapshot comparison always uses the knowledge-free
+`none` run, so knowledge never masks a regression of the deterministic
+pipeline.
+
 ## The action-classification contract
 
 Every verdict uses the five-class vocabulary of
