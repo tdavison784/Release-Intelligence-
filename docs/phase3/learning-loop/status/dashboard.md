@@ -34,6 +34,9 @@
 
 ## Contract changes
 - `BatchID` / `BatchSize` were already in `domain.ReviewDecision` (contract lane) — nothing added.
+- `CONTRACT-CHANGE(dashboard)` (GLM handoff, in `internal/knowledge/api.go`): additive `Inbox.Matches int` — the filter's
+  full match count before `Limit` truncates `Items`. Set by the real queue and the reviewui `DemoQueue`. Lets the inbox say
+  "first N of M" and keeps *Select all* honest when a large filter is paginated; same additive pattern as `InboxRow.Calls`.
 - `CONTRACT-CHANGE(dashboard)` (in `internal/reviewui/rendered.go`, not in `internal/knowledge`): the render panel reads
   `reviewui.RenderedDelta` through the optional `RenderedDeltaSource` port. When the render lane adds render evidence to
   `knowledge.ReviewContext`, replace `renderedDelta()` in `server.go` to map that field into `RenderedDelta` (the view/templates
@@ -89,3 +92,34 @@ scope, exclude-blocked, atomic on queue refusal, correct/proxy refused).
   can label consensus by separate calls rather than distinct models (two Opus calls are a consensus; `Models` alone says "1 model").
 - Decisions are untouched: a consensus-ACTION audit decision is a normal human decision; the UI never sets or caps a class.
 - Firefox script updated (10 pending cards), screenshots refreshed incl. `23-consensus-action-*`, `24-same-model-consensus-*`.
+
+## dashboard-4 (GLM handoff): large inboxes are no longer silently partial
+- The open "very large inboxes (hundreds of cards)" gap had a real defect inside it: a filter matching more than
+  `Options.InboxLimit` (200) rendered a silent partial list — the toolbar said "Select all 200 in this filter" while the tiles
+  counted every match, so bulk select-all acted on only the visible subset with nothing saying so.
+- Fix: `knowledge.Inbox.Matches` (above); the inbox shows a *Showing the first N of M matching items* notice (highest priority
+  first, bulk covers what is shown) and *Select all N **shown*** wording when truncated. A `Queue` implementor that leaves
+  `Matches` at 0 cannot make the page claim truncation (fallback to `len(Items)`).
+- Tests: queue-side `Matches` vs `Items` (`TestInboxReportsMatchesBeyondTheLimit`), notice present/absent + honest wording
+  (`TestInboxSaysWhenTheListIsTruncated`, extended `TestInboxCountsAndDefaultFilter`), and a 400-item inbox through the real
+  handler/templates (`TestInboxHandlesHundredsOfItems`: exactly 200 cards, ids `…0199` present / `…0200` absent). Render time is
+  logged, not asserted (no flaky timing gates).
+- Docs: one paragraph in `docs/REVIEW_UI.md`.
+
+## GLM handoff log (GLM-5.3, 2026-10-01)
+- Context: took over the paused dashboard lane. Branch was clean at `de7c927` with status "done"; verified `go build ./...`,
+  `go vet ./...`, `go test ./...` green (also `-race -count=1` on `internal/reviewui`), gofmt clean, all screenshots/snapshots
+  present, before changing anything.
+- Did the dashboard-4 increment above (commit `941cb5f` + this status/doc commit). Nothing else looked unfinished: PO-1/PO-2 are
+  implemented, `-knowledge` is wired, the render panel stands behind its port awaiting the render lane.
+- Uncertainties / for the commander:
+  - `knowledge.Inbox.Matches` touches the knowledge lane's package (additive field + one line in `queue.go`); flagged as
+    `CONTRACT-CHANGE(dashboard)` here. The knowledge lane's own fakes (if any reimplement `Inbox`) should set it, but the UI's
+    fallback makes a missing value harmless.
+  - Browser-level gaps I could not close headlessly: Safari (needs "Allow Remote Automation" enabled by the user), Chrome (not
+    installed), touch input, and the *layout* of 200 rendered cards in a real browser (the 400-item test covers the server
+    render path only). The existing Firefox venv/scripts are in `docs/phase3/learning-loop/review-ui/`.
+  - The truncation notice's exact wording is mine, not the product owner's; easy to adjust if they want it different.
+  - Not done (deliberately): no `-limit` demo flag to preview truncation in `-demo` mode (demo has ~10 pending items); say the
+    word and it's a three-line addition to `cmd/ri/review.go`.
+- No worktrees other than this one were touched; no merge/rebase/push; every commit subject starts `[glm-handoff] `.

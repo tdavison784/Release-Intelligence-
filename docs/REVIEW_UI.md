@@ -33,6 +33,10 @@ severity, priority, an agreement indicator (models disagree / consensus · cross
 status. Clicking (or `Enter`) expands it **inline** with the full detail, fetched on demand; *Expand all /
 Collapse all* are in the toolbar. Light and dark themes follow `prefers-color-scheme` with a toggle.
 
+A filter matching more than 200 items shows the first 200 (priority order) with a *Showing the first N of M
+matching items* notice; *Select all* then covers the items shown, so a bulk action never silently skips the
+unseen rest — narrow the filters to reach them.
+
 ## The item (G8), top to bottom
 
 1. **The concrete question**, then the upstream statement.
