@@ -214,8 +214,8 @@ var identifier = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9]*$`)
 // mentions reports a whole-token occurrence of s in text (case-sensitive
 // for identifiers, which is how notes quote them).
 func mentions(text, s string) bool {
-	if s == "" {
-		return false
+	if !strings.ContainsFunc(s, func(r rune) bool { return r >= '0' && r <= '9' || r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' }) {
+		return false // "*", "-", "" name nothing: a wildcard permission or bare punctuation never counts as mentioned
 	}
 	idx := 0
 	for {
