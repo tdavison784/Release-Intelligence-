@@ -138,8 +138,12 @@ sources:
 
 artifacts:
   # --- Helm charts (version == appVersion == release version) ---------------
-  # Chart defaults are nested under "_internal_defaults_do_not_set" (users
-  # set the keys at top level), hence stripPrefix. Values are read from the
+  # Chart defaults are nested under a wrapper key (users set the keys at top
+  # level), hence stripPrefix. The wrapper is `defaults` up to 1.23 and
+  # `_internal_defaults_do_not_set` from 1.24.0 on (verified at 1.22.0, 1.23.0,
+  # 1.23.4 and 1.24.0): one content per era, selected by availability. A single
+  # prefix would leave every 1.23 key under `defaults.` and make the 1.23 -> 1.24
+  # values diff report each key as removed and added. Values are read from the
   # source tree at the tag, where image hub/tag are development placeholders
   # (e.g. gcr.io/istio-testing:latest) rewritten by release-builder, hence
   # ignoreKeys. Reading values from the published chart archive would remove
@@ -156,6 +160,12 @@ artifacts:
         chart: base
     contents:
       - kind: helm-values
+        availability: "< 1.24.0"
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/base/values.yaml}
+        stripPrefix: defaults
+        ignoreKeys: [global.hub, global.tag, hub, tag]
+      - kind: helm-values
+        availability: ">= 1.24.0"
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/base/values.yaml}
         stripPrefix: _internal_defaults_do_not_set
         ignoreKeys: [global.hub, global.tag, hub, tag]
@@ -171,6 +181,12 @@ artifacts:
         chart: istiod
     contents:
       - kind: helm-values
+        availability: "< 1.24.0"
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-control/istio-discovery/values.yaml}
+        stripPrefix: defaults
+        ignoreKeys: [global.hub, global.tag, hub, tag]
+      - kind: helm-values
+        availability: ">= 1.24.0"
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-control/istio-discovery/values.yaml}
         stripPrefix: _internal_defaults_do_not_set
         ignoreKeys: [global.hub, global.tag, hub, tag]
@@ -186,6 +202,12 @@ artifacts:
         chart: gateway
     contents:
       - kind: helm-values
+        availability: "< 1.24.0"
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/gateway/values.yaml}
+        stripPrefix: defaults
+        ignoreKeys: [global.hub, global.tag, hub, tag]
+      - kind: helm-values
+        availability: ">= 1.24.0"
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/gateway/values.yaml}
         stripPrefix: _internal_defaults_do_not_set
         ignoreKeys: [global.hub, global.tag, hub, tag]
@@ -201,6 +223,12 @@ artifacts:
         chart: cni
     contents:
       - kind: helm-values
+        availability: "< 1.24.0"
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-cni/values.yaml}
+        stripPrefix: defaults
+        ignoreKeys: [global.hub, global.tag, hub, tag]
+      - kind: helm-values
+        availability: ">= 1.24.0"
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/istio-cni/values.yaml}
         stripPrefix: _internal_defaults_do_not_set
         ignoreKeys: [global.hub, global.tag, hub, tag]
@@ -216,6 +244,12 @@ artifacts:
         chart: ztunnel
     contents:
       - kind: helm-values
+        availability: "< 1.24.0"
+        locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/ztunnel/values.yaml}
+        stripPrefix: defaults
+        ignoreKeys: [global.hub, global.tag, hub, tag]
+      - kind: helm-values
+        availability: ">= 1.24.0"
         locator: {kind: repo-file, repository: github.com/istio/istio, path: manifests/charts/ztunnel/values.yaml}
         stripPrefix: _internal_defaults_do_not_set
         ignoreKeys: [global.hub, global.tag, hub, tag]

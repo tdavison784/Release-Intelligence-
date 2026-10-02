@@ -60,3 +60,30 @@ falseActionRate 0.00, unsupported 0, pipelineFailures 0. Deltas:
 - Kafka support is compared per minor line; a line with only some patch versions supported counts as supported.
 - Strimzi E5 (3.8→4.0): the fact is now computed, but it needs a join rule on a non-values subject (operand version
   vs `spec.version`) — `applicability`/`contract` lanes.
+
+## capture-2 (branch p3ll/capture-2)
+- **Istio values eras** (`products/istio.yaml`): one `helm-values` content per era for each of the five charts —
+  `availability: "< 1.24.0"` with `stripPrefix: defaults`, `">= 1.24.0"` with `_internal_defaults_do_not_set` (wrapper
+  verified at upstream 1.22.0, 1.23.0, 1.23.4, 1.24.0). Existing constructs only (`contents.availability`,
+  `stripPrefix`); documented in the ARCHITECTURE constructs row. The 1.23→1.24 diff is now the real restructuring
+  (`pilot.*`/`cni.*` keys moved to the chart top level, `global.*` additions), no `defaults.*` removal/re-addition pairs.
+- **Cilium CRDs** (`products/cilium.yaml`): the `crds` artifact read only `crds/v2`; the generated manifests are one
+  directory per API version and `repo-dir` recurses, so the artifact now reads the parent
+  (`pkg/k8s/apis/cilium.io/client/crds`): 22 CRDs at 1.15.6, 1.16.1 and 1.17.0 instead of 10/11/11, now including
+  `CiliumLoadBalancerIPPool`, `CiliumBGP*`, `CiliumCIDRGroup`, `CiliumL2AnnouncementPolicy`, `CiliumPodIPPool`,
+  `CiliumEndpointSlice`. No gap left to record (verified against the upstream listings of all three tags).
+- **Eval before/after** (base = p3-learning-loop b102dd9 with a copy of the warm state, offline; after = this branch).
+  `ri eval -update` not run. Note the base already fails 2 hard gates (applicabilityAccuracy 0.486, falseActionRate
+  0.067 = 1 wrong of 15) — pre-existing, from lanes merged before this one.
+  - istio-1.23-1.24: changes 230 → 170, duplicate groups 26 → 10 (better), E1 now hit (`cni.* removed`: the
+    environment sets `cni.ambient.dnsCapture`, which the 1.24 chart reads at top level; matched by the pipeline, not
+    tuned). Confusion ACTION→NOTAFF 26→25 overall.
+  - gates: applicabilityAccuracy 0.486 → 0.495 (still < 0.80), falseActionRate 0.067 → 0.059 (1 wrong of 17 ACTION;
+    the wrong one is unchanged; still ≥ 0.05), recall/precision unchanged apart from raw precision 0.73, labeled
+    precision +2 true / −2 false; unsupported 0.
+  - cilium-1.15-1.17 / 1.16-1.17: +15 / +7 computed changes (the 12 newly captured CRDs), matched +2 (the
+    `CiliumLoadBalancerIPPool` field changes now exist as evidence for the expected items). **Two eval/results
+    regressions: duplicateGroups 8 → 10 and 4 → 6** — `status.conditions[]` is added to several CRDs and the evaluator's
+    duplicate heuristic keys on category + subject set, so identical subjects on different CRDs count as duplicates
+    (the same evaluator limitation reported in capture-1). Decision for the commander (accept via `-update` or key
+    duplicates on CRD identity).
