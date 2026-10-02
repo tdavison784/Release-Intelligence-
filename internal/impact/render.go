@@ -150,11 +150,24 @@ func (r *renderer) environmentSection() {
 	if env.Images > 0 {
 		parts = append(parts, fmt.Sprintf("images: %d", env.Images))
 	}
+	if len(env.Products) > 0 {
+		parts = append(parts, fmt.Sprintf("products: %d inventory entries (%s)", len(env.Products), env.ProductsHealth))
+	}
 	if len(parts) == 0 {
 		r.line("  (no environment facts)")
 	}
 	for _, p := range parts {
 		r.line("  %s", p)
+	}
+	for _, p := range env.Products {
+		line := fmt.Sprintf("    %s %s [%s]", p.Product, productVersionText(p), p.Source)
+		if p.VersionOf == "chart" {
+			line += " (chart version)"
+		}
+		if p.Conflict != "" {
+			line += r.paint(ansiYellow, " CONFLICT with "+p.Conflict)
+		}
+		r.line("%s", line)
 	}
 	for _, f := range env.Files {
 		r.line("  %s  %s", f.Path, r.paint(ansiDim, f.Digest))
@@ -627,4 +640,14 @@ func (r *renderer) evidenceLegend() {
 		e := r.upEv[id]
 		r.line("  %s  %s  %s  %s", id, e.Kind, e.URI, e.Locator)
 	}
+}
+
+func productVersionText(p domain.ImpactProduct) string {
+	switch {
+	case p.Version != "":
+		return p.Version
+	case p.RawVersion != "":
+		return p.RawVersion + " (unparsable)"
+	}
+	return "(version not stated)"
 }

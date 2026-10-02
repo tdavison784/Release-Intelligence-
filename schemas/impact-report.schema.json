@@ -284,6 +284,8 @@
         "crds": {"type": "integer"},
         "manifestPaths": {"type": "integer"},
         "images": {"type": "integer"},
+        "products": {"type": "array", "items": {"$ref": "#/$defs/ImpactProduct"}},
+        "productsHealth": {"type": "string"},
         "warnings": {"type": "array", "items": {"type": "string"}}
       },
       "additionalProperties": false
@@ -494,6 +496,22 @@
         "image",
         "kubernetes"
       ]
+    },
+    "ImpactProduct": {
+      "type": "object",
+      "required": ["product", "source"],
+      "properties": {
+        "product": {"type": "string"},
+        "catalog": {"type": "boolean"},
+        "version": {"type": "string"},
+        "rawVersion": {"type": "string"},
+        "versionOf": {"type": "string"},
+        "source": {"type": "string"},
+        "note": {"type": "string"},
+        "conflict": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}}
+      },
+      "additionalProperties": false
     },
     "ImpactReport": {
       "type": "object",

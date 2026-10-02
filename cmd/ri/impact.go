@@ -33,6 +33,7 @@ func (c *cli) impact(args []string) error {
 	manifests := fs.String("manifests", "", "comma-separated manifest files or directories (multi-document YAML)")
 	crds := fs.String("crds", "", "comma-separated CustomResourceDefinition files or directories")
 	images := fs.String("images", "", "comma-separated image references, or one file listing them (one per line)")
+	inventory := fs.String("inventory", "", "declared product inventory: a YAML list of {product, version, note?} (which other products run here, e.g. ingress-nginx 1.12.1); in --repo mode <repo>/inventory.yaml is used when present")
 	policy := fs.String("policy", "", "path policy override: minor-lineage|all")
 	showNotAffected := fs.Bool("show-not-affected", false, "also list the not-affected verdicts with their evaluation records (the summary always counts them)")
 	showUnknown := fs.Bool("show-unknown", false, "list every UNKNOWN finding instead of the collapsed per-reason summary (the summary always counts them; JSON always carries everything)")
@@ -51,6 +52,7 @@ func (c *cli) impact(args []string) error {
 	in := app.ImpactOptions{Policy: *policy}
 	in.Environment.KubernetesVersion = *kubernetes
 	in.Environment.Repo = *repo
+	in.Environment.Inventory = *inventory
 	in.Environment.ValuesFiles = splitList(*values)
 	in.Environment.Manifests = splitList(*manifests)
 	in.Environment.CRDs = splitList(*crds)
