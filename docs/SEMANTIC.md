@@ -21,9 +21,30 @@ changes that state the **same** change; the `grouping` field names every rule th
 | `title-jaccard` | same named subject + ≥0.5 lead-sentence token overlap |
 | `subject-named` | a computed diff whose subject a prose member names verbatim |
 
-Computed-diff rules with no deterministic join (`crd:added`, `images:added`, …) become candidates of
-their own — unknown by construction, not silently dropped. A change that cannot form a valid candidate
-is recorded as a skip (`invalid-candidate`) with the reason, never guessed into shape.
+**Members** are the changes the deterministic join leaves unknown by construction: non-routine
+note-derived changes that are not `impact:security-fix`, and computed diffs of rules with no join rule
+(`crd:added`, `crd:fields-added`, `crd:default-changed`, `images:added`, …), which become candidates of
+their own. A computed diff that *has* a join rule (`values:*`, `crd:fields-removed`, `images:*`) never
+starts a candidate but joins a prose cluster that names its subject verbatim (`subject-named`), so the
+resulting fact also explains it.
+
+Rules that keep clusters honest (DESIGN.md §2.1):
+
+- **never across distinct subjects or releases**: members must share the release and the *subject
+  signature* — the subject-like identifiers (key/field paths, flags, env vars, compound identifiers;
+  never bare values like `Always`) of the lead sentence of the title. Release-note titles that run on
+  into the body are compared by their lead sentence; a short label prefix (`DEPRECATION:`) is skipped.
+- `subject-named` joins only when exactly one prose cluster names the computed subject (every subject
+  key, or the section of a `values:section-removed`, and the kind of a CRD change), and that cluster is
+  named by one computed subject only (a subchart's key is another subject); ambiguity joins nothing.
+- the clustering is deliberately conservative: a missed join costs one extra review (the `duplicate`
+  task and reviewers catch it); a wrong join would attach a fact to a change it does not describe.
+
+Skips are recorded with a reason (`BuildCandidates(...).Skipped`): `routine`, `security-fix`,
+`umbrella` (`domain.IsUmbrella`: facts never attach to bundles), `multi-subject-computed` (a computed
+diff spanning several subject roots — one fact has one subject), `no-evidence`, `invalid-candidate`.
+Candidates are self-contained: `Text` carries every member's statement, computed members with rule and
+subjects, because a proposer sees only the candidate.
 
 **Hints** are the typed tokens a careful reader would underline before interpreting a note — code spans,
 dotted paths, CLI flags, env vars, API versions, version constraints — extracted deterministically and
@@ -91,21 +112,40 @@ ri semantic propose <product> <from> <to> -model M[,M2…] [-tasks full] [-llm-e
 through: the Messages API when `ANTHROPIC_API_KEY` is set (or an Anthropic-compatible gateway via
 `ANTHROPIC_BASE_URL`, e.g. Z.AI for GLM), the **file exchange** with `-llm-exchange DIR`, or the answer
 cache alone (`-llm-cache DIR`). With `-out DIR`, candidates, proposals and per-attempt failures are
-written in the knowledge/ layout (DESIGN.md §8) and import into the knowledge store. The run report
+written through the knowledge store (`knowledge.NewFileStore`, the knowledge/ layout of DESIGN.md §8);
+an existing candidate under the same id is kept (candidates are immutable; overlapping edges restate the
+same cluster). Failures are written per attempt to `<dir>/<product>/failures/` (not knowledge records). The run report
 prints per-model outcomes (asserted/undetermined per aspect, failures by kind) and per-aspect agreement
 between answers — pairwise, and whether every compared pair was one family (same-model agreement is now
 a measurable case, PO-1).
+
+## Go API
+
+```go
+semantic.Candidates(edge, now) / semantic.BuildCandidates(edge, now)   // clusters (+ skips)
+semantic.NewLLMProposer(client llm.Client, provider, model, opts)      // implements knowledge.Proposer
+semantic.ProposeAll(ctx, cands, proposers, tasks)                       // + ProposeAllWith(…, ProposeOptions)
+semantic.AnswerSchema(task)                                             // generic typed schema
+semantic.BuildPrompt(req, model)                                        // the exact request + evidence shown
+semantic.DecodeAnswer(task, text) / semantic.ProposalFromAnswer(...)    // the typed-answer path
+semantic.ArtifactContext(toRelease, cand)                               // key/schema paths, never values
+```
+
+`knowledge.Proposer` is the only seam: a typed model (a "System One" proposer, a Codex-backed one)
+implements it by producing an `Answer` and calling `ProposalFromAnswer`, sharing every check. Rendered
+release-level evidence (render-lane addendum) enters through the candidate's evidence (only
+`scope: release` renders validate) and marks the prompt version `+rendered`.
 
 ## Multi-model runs without API keys
 
 No API keys live in the environment; use the file exchange:
 
 ```
-ri semantic propose cert-manager v1.17.2 v1.18.0 -model claude-sonnet-5-5,claude-haiku-4-5 \
+ri semantic propose cert-manager v1.17.0 v1.18.0 -model claude-sonnet-5-5,claude-haiku-4-5 \
   -llm-exchange /tmp/sem-x -out /tmp/sem-out          # 1. writes requests, reports them pending
 scripts/semantic-exchange.sh /tmp/sem-x               # 2. answers every pending request, model from the request
 scripts/semantic-exchange.sh /tmp/sem-x claude-opus-5-5  # …or one model for all still-pending requests
-ri semantic propose cert-manager v1.17.2 v1.18.0 -model claude-sonnet-5-5,claude-haiku-4-5 \
+ri semantic propose cert-manager v1.17.0 v1.18.0 -model claude-sonnet-5-5,claude-haiku-4-5 \
   -llm-exchange /tmp/sem-x -out /tmp/sem-out          # 3. same command again ingests the answers
 ```
 

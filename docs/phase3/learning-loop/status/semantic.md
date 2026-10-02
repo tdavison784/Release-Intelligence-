@@ -1,6 +1,6 @@
 # Lane `semantic` — status
 
-Branch `p3ll/semantic` (base `p3-learning-loop` @ 6f0ccf5, merged in 9675572).
+Branch `p3ll/semantic` (base `p3-learning-loop` @ 1174492, knowledge-3 merged).
 
 ## Done
 
@@ -32,20 +32,29 @@ Branch `p3ll/semantic` (base `p3-learning-loop` @ 6f0ccf5, merged in 9675572).
   39 candidates / 52 changes / 43 members, skips {multi-subject-computed:2, security-fix:5};
   `propose -llm-exchange` writes requests + candidate records and reports them pending.
 
-## In progress / next
+## Claude agent resumed (after the GLM handoff)
 
-- The real multi-model run over the eval-case edges (brief said 8 cases; eval/cases now has 17 —
-  confirm scope with the commander). Commands ready (docs/SEMANTIC.md §multi-model runs);
-  deliberately NOT run during the GLM handoff: answering the exchange means live `claude -p` calls,
-  and the lane's Claude agent is paused in a usage-limit window this handoff must not drain.
-  Run for claude-sonnet-5-5 + claude-haiku-4-5 (opus if budget allows) when quota returns, then
-  report counts, failures, agreement.
-- Rendered-diff addendum: prompt plumbing ready (`+rendered` prompt-version suffix); the render lane
-  has not merged into p3-learning-loop yet, so no release-level rendered diffs to include. Measure
-  proposal accuracy with vs without render evidence once available.
-- Clustering observations from the smoke (candidates for tuning AFTER the real run measures them,
-  not before): possible missed joins — sc-87d161c59ee8 vs sc-95b8b6a5377b (PathType Exact, two
-  tellings of one change) and sc-292ab9525adb vs sc-8a2c665fc582 (revisionHistoryLimit default).
+- Reviewed every `[glm-handoff]` commit: 0e21a21/4d6ce5f are the paused agent's own work committed
+  verbatim; 0be37e9 (reviewui demo call id) and 1a28d64 (agreement keyed per call) are correct; the
+  docs were accurate apart from small errors, corrected (example versions, missing skip and
+  never-cross-subjects rules, store wording, Go API section). Nothing reverted.
+- GLM's open questions: scope stays the brief's **8 environment cases** (the brief is explicit); the two
+  "possible missed joins" are deliberately conservative (different subject signatures; the duplicate
+  task / review catches them; a wrong join would attach a fact to a change it does not describe).
+- Merged knowledge-3 (clean). `-out` now writes through `knowledge.NewFileStore` (validated by the
+  store; an existing candidate under the same id is kept). Run-report label uses the domain's
+  consensus scope (Sonnet+Haiku = one family = `same-model`).
+- `ri knowledge candidates|propose` stay stubs in the knowledge lane's file (their test pins the stub
+  message). Recommendation for the commander/knowledge lane: route them with
+  `case "candidates": return c.semanticCandidates(rest)` / `case "propose": return c.semanticPropose(rest)`
+  and drop the stub assertion in `knowledge_test.go`.
+- Real run in progress (see "Real run" below).
+
+## Next
+
+- Rendered-diff addendum: plumbing ready (render evidence enters through the candidate's evidence;
+  prompt version `+rendered`); waits for the render lane.
+- Opus and repeated same-model calls (PO-1 same-model consensus measurement) after the Sonnet+Haiku run.
 
 ## Decisions
 
@@ -57,6 +66,10 @@ Branch `p3ll/semantic` (base `p3-learning-loop` @ 6f0ccf5, merged in 9675572).
   (its cluster-inspection need is covered by `ri semantic candidates`).
 
 ## Files touched outside ownership
+
+- `cmd/ri/main.go`: one additive `case "semantic"` + usage line (merge with knowledge/review cases resolved).
+- `internal/llm/{llm,anthropic,exchange,cache,fake}.go`: additive `CallID` plumbing (PO-1), with tests
+  (`callid_test.go`, one assertion in `anthropic_test.go`).
 
 - `internal/reviewui/demo.go` (dashboard lane): one additive hunk — demo proposals get a
   deterministic `CallID`, required by contract-3's domain validation
