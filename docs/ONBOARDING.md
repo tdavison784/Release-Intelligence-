@@ -60,7 +60,7 @@ What convergence looks like:
 ## Summary
 
 - 28 product definitions, 28 onboarding records, 28 saved relationship reports.
-- 161 distinct constructs are used across all definitions; the records introduce 161.
+- 164 distinct constructs are used across all definitions; the records introduce 161.
 - 12 of 28 recorded products introduced no new construct. The latest product that introduced one has order 28.
 - Product-specific Go changes recorded: 0 (must be 0).
 
@@ -70,20 +70,20 @@ What convergence looks like:
 
 | Order | Wave | Product | YAML lines (code) | Sources | Artifacts | Channels | Contents | Classify rules | Template exprs | Exceptions | Optional artifacts | Fallback groups | Availability constraints |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 0 | cert-manager | 308 (257) | 9 | 9 | 10 | 5 | 5 | 28 | 0 | 0 | 1 | 7 |
-| 2 | 0 | istio | 316 (279) | 9 | 15 | 22 | 6 | 3 | 39 | 0 | 0 | 2 | 4 |
-| 3 | 0 | argo-cd | 227 (189) | 7 | 5 | 7 | 4 | 11 | 21 | 1 | 1 | 1 | 1 |
-| 4 | 1 | cilium | 323 (274) | 8 | 10 | 18 | 3 | 40 | 19 | 0 | 0 | 1 | 4 |
+| 1 | 0 | cert-manager | 311 (260) | 9 | 9 | 10 | 5 | 5 | 28 | 0 | 0 | 1 | 7 |
+| 2 | 0 | istio | 353 (312) | 9 | 15 | 22 | 11 | 3 | 39 | 0 | 0 | 2 | 14 |
+| 3 | 0 | argo-cd | 231 (193) | 7 | 5 | 7 | 4 | 11 | 21 | 1 | 1 | 1 | 1 |
+| 4 | 1 | cilium | 331 (274) | 8 | 10 | 18 | 3 | 40 | 19 | 0 | 0 | 1 | 4 |
 | 5 | 1 | postgresql | 210 (169) | 4 | 3 | 5 | 0 | 24 | 47 | 1 | 0 | 0 | 3 |
 | 6 | 1 | kube-prometheus-stack | 374 (294) | 7 | 9 | 15 | 4 | 14 | 19 | 1 | 0 | 0 | 9 |
-| 7 | 1 | vault | 267 (218) | 8 | 7 | 9 | 2 | 18 | 26 | 3 | 1 | 0 | 10 |
-| 8 | 1 | crossplane | 306 (243) | 9 | 5 | 11 | 2 | 18 | 30 | 2 | 0 | 3 | 8 |
-| 9 | 1 | external-secrets | 271 (223) | 6 | 6 | 8 | 4 | 12 | 16 | 5 | 0 | 1 | 1 |
-| 10 | 1 | ingress-nginx | 342 (299) | 7 | 12 | 14 | 11 | 9 | 19 | 11 | 0 | 1 | 5 |
+| 7 | 1 | vault | 271 (222) | 8 | 7 | 9 | 2 | 18 | 26 | 3 | 1 | 0 | 10 |
+| 8 | 1 | crossplane | 310 (247) | 9 | 5 | 11 | 2 | 18 | 30 | 2 | 0 | 3 | 8 |
+| 9 | 1 | external-secrets | 274 (226) | 6 | 6 | 8 | 4 | 12 | 16 | 5 | 0 | 1 | 1 |
+| 10 | 1 | ingress-nginx | 353 (310) | 7 | 12 | 14 | 11 | 9 | 19 | 12 | 0 | 1 | 5 |
 | 11 | 2 | grafana | 380 (302) | 10 | 7 | 11 | 4 | 58 | 22 | 5 | 1 | 1 | 8 |
-| 12 | 2 | strimzi | 305 (226) | 5 | 10 | 16 | 3 | 10 | 19 | 0 | 0 | 1 | 3 |
+| 12 | 2 | strimzi | 325 (244) | 6 | 10 | 16 | 3 | 10 | 20 | 0 | 0 | 1 | 4 |
 | 13 | 2 | traefik | 339 (261) | 11 | 4 | 7 | 3 | 10 | 27 | 4 | 1 | 1 | 7 |
-| 14 | 2 | karpenter | 371 (296) | 9 | 8 | 8 | 1 | 23 | 18 | 0 | 0 | 2 | 10 |
+| 14 | 2 | karpenter | 379 (302) | 9 | 8 | 8 | 5 | 23 | 18 | 0 | 0 | 2 | 10 |
 | 15 | 2 | flux | 495 (398) | 14 | 14 | 18 | 2 | 21 | 25 | 0 | 1 | 0 | 7 |
 | 16 | 2 | otel-collector | 444 (356) | 7 | 13 | 21 | 0 | 23 | 32 | 22 | 0 | 0 | 9 |
 | 17 | 2 | redis | 238 (170) | 6 | 4 | 6 | 0 | 22 | 11 | 1 | 0 | 1 | 5 |
@@ -104,7 +104,7 @@ What convergence looks like:
 | Order | Product | Used | New | Reused | Reuse | Cumulative | Go generic / specific | Minutes | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | cert-manager | 88 | 87 | 0 | 0% | 87 | 4 / 0 | n/a | full |
-| 2 | istio | 81 | 12 | 69 | 85% | 99 | 7 / 0 | n/a | full |
+| 2 | istio | 82 | 12 | 70 | 85% | 99 | 7 / 0 | n/a | full |
 | 3 | argo-cd | 98 | 14 | 84 | 86% | 113 | 4 / 0 | n/a | full |
 | 4 | cilium | 82 | 2 | 74 | 90% | 115 | 8 / 0 | 34 | full |
 | 5 | postgresql | 56 | 7 | 49 | 88% | 122 | 14 / 0 | 25 | partial |
@@ -114,9 +114,9 @@ What convergence looks like:
 | 9 | external-secrets | 85 | 0 | 85 | 100% | 139 | 0 / 0 | 18 | full |
 | 10 | ingress-nginx | 93 | 5 | 88 | 95% | 144 | 9 / 0 | 25 | full |
 | 11 | grafana | 91 | 0 | 91 | 100% | 144 | 0 / 0 | 27 | full |
-| 12 | strimzi | 77 | 0 | 77 | 100% | 144 | 0 / 0 | 26 | full |
+| 12 | strimzi | 88 | 0 | 85 | 97% | 144 | 0 / 0 | 26 | full |
 | 13 | traefik | 97 | 1 | 96 | 99% | 145 | 0 / 0 | 38 | full |
-| 14 | karpenter | 83 | 3 | 80 | 96% | 148 | 9 / 0 | 35 | full |
+| 14 | karpenter | 85 | 3 | 82 | 96% | 148 | 9 / 0 | 35 | full |
 | 15 | flux | 91 | 4 | 87 | 96% | 152 | 7 / 0 | 46 | full |
 | 16 | otel-collector | 57 | 0 | 57 | 100% | 152 | 0 / 0 | 28 | full |
 | 17 | redis | 61 | 0 | 61 | 100% | 152 | 2 / 0 | 43 | full |
@@ -136,25 +136,25 @@ What convergence looks like:
 
 | Product | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Checks pass/fail/unverif./n.a./covered | Failures initial → final | Manual interventions | Unreachable sources |
 | --- | --- | --- | --- | --- | --- | --- |
-| cert-manager | 0/0/17 (0%) +1 unclassified | 14/0/4/2 | 78/0/12/18/6 | n/a → 0 | 0 | 3 |
-| istio | 0/0/24 (0%) | 24/0/3/0 | 141/0/0/18/3 | n/a → 0 | 2 | 3 |
-| argo-cd | 0/0/12 (0%) | 12/0/1/0 | 59/0/0/13/6 | n/a → 0 | 2 | 3 |
+| cert-manager | 0/0/17 (0%) +1 unclassified | 17/0/2/0 | 96/0/0/24/0 | n/a → 0 | 0 | 3 |
+| istio | 0/0/24 (0%) | 24/0/3/0 | 141/0/0/48/3 | n/a → 0 | 2 | 3 |
+| argo-cd | 0/0/12 (0%) | 12/0/1/0 | 66/0/0/12/0 | n/a → 0 | 2 | 3 |
 | cilium | 4/5/9 (50%) | 17/0/1/0 | 336/0/0/24/0 | 0 → 0 | 2 | 0 |
-| postgresql | 0/1/6 (14%) | 4/0/1/1 | 40/0/15/20/0 | 1 → 0 | 4 | 6 |
-| kube-prometheus-stack | 2/6/8 (50%) | 12/0/3/0 | 60/0/0/15/0 | 0 → 0 | 2 | 0 |
+| postgresql | 0/1/6 (14%) | 5/0/0/0 | 55/0/0/20/0 | 1 → 0 | 4 | 6 |
+| kube-prometheus-stack | 2/6/8 (50%) | 13/0/3/0 | 65/0/0/15/0 | 0 → 0 | 2 | 0 |
 | vault | 2/0/13 (13%) | 14/0/1/0 | 236/0/0/244/0 | 0 → 0 | 8 | 9 |
-| crossplane | 2/4/8 (43%) | 8/0/5/0 | 86/0/0/56/14 | 0 → 0 | 6 | 9 |
-| external-secrets | 4/4/4 (67%) | 12/0/1/0 | 212/0/0/8/19 | 5 → 0 | 3 | 6 |
-| ingress-nginx | 6/4/9 (53%) | 25/0/2/3 | 663/0/47/115/18 | 0 → 0 | 9 | 7 |
+| crossplane | 2/4/8 (43%) | 9/0/4/0 | 98/0/0/56/2 | 0 → 0 | 6 | 9 |
+| external-secrets | 4/4/4 (67%) | 13/0/0/0 | 231/0/0/8/0 | 5 → 0 | 3 | 6 |
+| ingress-nginx | 6/4/9 (53%) | 27/0/0/0 | 727/0/0/116/0 | 0 → 0 | 9 | 7 |
 | grafana | 5/3/9 (47%) | 14/0/3/0 | 70/0/0/32/0 | 0 → 0 | 4 | 0 |
-| strimzi | 6/4/5 (67%) | 15/0/0/0 | 551/0/0/60/4 | 0 → 0 | 3 | 1 |
-| traefik | 4/3/8 (47%) | 12/0/3/0 | 181/0/0/166/8 | 0 → 0 | 5 | 3 |
-| karpenter | 4/5/8 (53%) | 11/0/4/0 | 63/0/0/24/3 | 0 → 0 | 3 | 0 |
+| strimzi | 6/4/5 (67%) +1 unclassified | 16/0/0/0 | 592/0/0/60/4 | 0 → 0 | 3 | 1 |
+| traefik | 4/3/8 (47%) | 12/0/3/0 | 185/0/0/166/4 | 0 → 0 | 5 | 3 |
+| karpenter | 4/5/8 (53%) | 13/0/4/0 | 75/0/0/24/3 | 0 → 0 | 3 | 0 |
 | flux | 4/11/13 (54%) | 19/0/1/0 | 110/0/0/10/0 | 2 → 0 | 4 | 2 |
 | otel-collector | 2/7/11 (45%) | 15/0/1/0 | 848/0/0/192/0 | 12 → 0 | 4 | 2 |
-| redis | 4/0/6 (40%) | 7/0/0/0 | 72/0/0/11/8 | 1 → 0 | 4 | 2 |
+| redis | 4/0/6 (40%) | 7/0/0/0 | 80/0/0/11/0 | 1 → 0 | 4 | 2 |
 | elasticsearch | 2/0/14 (12%) | 10/0/3/0 | 165/0/0/95/0 | 0 → 0 | 3 | 0 |
-| terraform-provider-aws | 2/1/16 (16%) | 11/0/6/0 | 116/0/0/118/4 | 0 → 0 | 4 | 0 |
+| terraform-provider-aws | 2/1/16 (16%) | 11/0/6/0 | 119/0/0/118/1 | 0 → 0 | 4 | 0 |
 | actions-runner-controller | 3/6/2 (82%) | 14/0/0/0 | 284/0/0/4/0 | 2 → 0 | 3 | 0 |
 | kyverno | 5/6/9 (55%) | 20/0/1/0 | 117/0/0/9/0 | 1 → 0 | 4 | 0 |
 | falco | 3/6/6 (60%) | 14/0/0/2 | 65/0/2/3/0 | 0 → 0 | 3 | 1 |
@@ -170,7 +170,7 @@ What convergence looks like:
 | Order | Product | New (records) | Cumulative | Used | Reused | Reuse | First use (computed) | Cumulative used (computed) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | cert-manager | 87 | 87 | 88 | 0 | 0% | 88 | 88 |
-| 2 | istio | 12 | 99 | 81 | 69 | 85% | 11 | 99 |
+| 2 | istio | 12 | 99 | 82 | 70 | 85% | 11 | 99 |
 | 3 | argo-cd | 14 | 113 | 98 | 84 | 86% | 14 | 113 |
 | 4 | cilium | 2 | 115 | 82 | 74 | 90% | 8 | 121 |
 | 5 | postgresql | 7 | 122 | 56 | 49 | 88% | 5 | 126 |
@@ -180,23 +180,23 @@ What convergence looks like:
 | 9 | external-secrets | 0 | 139 | 85 | 85 | 100% | 0 | 139 |
 | 10 | ingress-nginx | 5 | 144 | 93 | 88 | 95% | 5 | 144 |
 | 11 | grafana | 0 | 144 | 91 | 91 | 100% | 0 | 144 |
-| 12 | strimzi | 0 | 144 | 77 | 77 | 100% | 0 | 144 |
-| 13 | traefik | 1 | 145 | 97 | 96 | 99% | 1 | 145 |
-| 14 | karpenter | 3 | 148 | 83 | 80 | 96% | 3 | 148 |
-| 15 | flux | 4 | 152 | 91 | 87 | 96% | 4 | 152 |
-| 16 | otel-collector | 0 | 152 | 57 | 57 | 100% | 0 | 152 |
-| 17 | redis | 0 | 152 | 61 | 61 | 100% | 0 | 152 |
-| 18 | elasticsearch | 1 | 153 | 73 | 72 | 99% | 1 | 153 |
-| 19 | terraform-provider-aws | 0 | 153 | 65 | 65 | 100% | 0 | 153 |
-| 20 | actions-runner-controller | 0 | 153 | 68 | 68 | 100% | 0 | 153 |
-| 21 | kyverno | 0 | 153 | 96 | 96 | 100% | 0 | 153 |
-| 22 | falco | 0 | 153 | 75 | 75 | 100% | 0 | 153 |
-| 23 | linkerd | 0 | 153 | 82 | 82 | 100% | 0 | 153 |
-| 24 | prometheus-operator | 0 | 153 | 78 | 78 | 100% | 0 | 153 |
-| 25 | opensearch | 0 | 153 | 80 | 80 | 100% | 0 | 153 |
-| 26 | loki | 5 | 158 | 93 | 88 | 95% | 5 | 158 |
-| 27 | minio | 2 | 160 | 80 | 78 | 98% | 2 | 160 |
-| 28 | golang | 1 | 161 | 66 | 65 | 98% | 1 | 161 |
+| 12 | strimzi | 0 | 144 | 88 | 85 | 97% | 3 | 147 |
+| 13 | traefik | 1 | 145 | 97 | 96 | 99% | 1 | 148 |
+| 14 | karpenter | 3 | 148 | 85 | 82 | 96% | 3 | 151 |
+| 15 | flux | 4 | 152 | 91 | 87 | 96% | 4 | 155 |
+| 16 | otel-collector | 0 | 152 | 57 | 57 | 100% | 0 | 155 |
+| 17 | redis | 0 | 152 | 61 | 61 | 100% | 0 | 155 |
+| 18 | elasticsearch | 1 | 153 | 73 | 72 | 99% | 1 | 156 |
+| 19 | terraform-provider-aws | 0 | 153 | 65 | 65 | 100% | 0 | 156 |
+| 20 | actions-runner-controller | 0 | 153 | 68 | 68 | 100% | 0 | 156 |
+| 21 | kyverno | 0 | 153 | 96 | 96 | 100% | 0 | 156 |
+| 22 | falco | 0 | 153 | 75 | 75 | 100% | 0 | 156 |
+| 23 | linkerd | 0 | 153 | 82 | 82 | 100% | 0 | 156 |
+| 24 | prometheus-operator | 0 | 153 | 78 | 78 | 100% | 0 | 156 |
+| 25 | opensearch | 0 | 153 | 80 | 80 | 100% | 0 | 156 |
+| 26 | loki | 5 | 158 | 93 | 88 | 95% | 5 | 161 |
+| 27 | minio | 2 | 160 | 80 | 78 | 98% | 2 | 163 |
+| 28 | golang | 1 | 161 | 66 | 65 | 98% | 1 | 164 |
 
 New constructs per product, in onboarding order (records):
 
@@ -446,9 +446,9 @@ No new constructs: the definition is configuration only.
 
 | Wave | Products | Zero-new products | New constructs (per product) | Reuse | Go generic / specific | Median minutes | Discovered / modified / manual (share found) | Validated / failing / insufficient / unverifiable | Unreachable sources | Representability |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) +1 unclassified | 50/0/8/2 (3 of 3 reports) | 9 | full 3 |
-| 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 31 (4.4) | 93% | 59 / 0 | 25 (n=7) | 20/24/57 (44%) | 92/0/14/4 (7 of 7 reports) | 37 | full 4, partial 3 |
-| 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 99% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) | 93/0/12/0 (7 of 7 reports) | 10 | full 7 |
+| 0 | cert-manager, istio, argo-cd | 0 of 3 | 113 (37.7) | 57% | 15 / 0 | n/a | 0/0/53 (0%) +1 unclassified | 53/0/6/0 (3 of 3 reports) | 9 | full 3 |
+| 1 | cilium, postgresql, kube-prometheus-stack, vault, crossplane, external-secrets, ingress-nginx | 1 of 7 (external-secrets) | 31 (4.4) | 93% | 59 / 0 | 25 (n=7) | 20/24/57 (44%) | 98/0/9/0 (7 of 7 reports) | 37 | full 4, partial 3 |
+| 2 | grafana, strimzi, traefik, karpenter, flux, otel-collector, redis | 4 of 7 (grafana, strimzi, otel-collector, redis) | 8 (1.1) | 98% | 18 / 0 | 35 (n=7) | 29/33/60 (51%) +1 unclassified | 96/0/12/0 (7 of 7 reports) | 10 | full 7 |
 | 3 | elasticsearch, terraform-provider-aws, actions-runner-controller, kyverno, falco, linkerd, prometheus-operator | 6 of 7 (terraform-provider-aws, actions-runner-controller, kyverno, falco, linkerd, prometheus-operator) | 1 (0.1) | 100% | 6 / 0 | 24 (n=7) | 25/23/71 (40%) | 98/0/17/2 (7 of 7 reports) | 2 | full 6, partial 1 |
 | 4 | opensearch, loki, minio, golang | 1 of 4 (opensearch) | 8 (2.0) | 97% | 10 / 0 | 28.5 (n=4) | 8/9/42 (29%) | 43/0/9/1 (4 of 4 reports) | 7 | full 3, partial 1 |
 
@@ -517,3 +517,37 @@ Observations about the inputs (missing, inconsistent or later-adopted data). The
 - cert-manager uses constructs introduced by a later product (the definition was migrated after they appeared): field:sources.fallbackGroup (introduced by istio)
 - cilium uses constructs introduced by a later product (the definition was migrated after they appeared): artifact:package (introduced by postgresql), field:artifacts.channels.glob (introduced by kube-prometheus-stack), field:artifacts.channels.path (introduced by vault), field:sources.extract.format (introduced by postgresql), field:sources.extract.labelParagraphs (introduced by vault), field:sources.locator.tagPattern (introduced by crossplane)
 - kube-prometheus-stack uses constructs introduced by a later product (the definition was migrated after they appeared): field:artifacts.channels.path (introduced by vault), field:artifacts.channels.tagPattern (introduced by vault), locator:helm-git (introduced by vault)
+- strimzi uses 3 construct(s) that no record introduces: field:sources.extract.collect, field:sources.extract.columns.reduce, field:sources.extract.where
+
+## Corrections
+
+Phase 1 and most of Phase 2 ran in a network-restricted sandbox. The statements
+below were true of that run only; the original text above and in the records is
+kept as the historical record.
+
+**Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):**
+
+- *Introduction ("the unverifiable ones are only those behind unreachable hosts")
+  and the "Unreachable sources" / "unverifiable" columns*: recorded from the
+  sandbox. Live, unverifiable checks fell to 0 for cert-manager (12), ingress-nginx
+  (47) and postgresql (15); remaining unverifiable subjects are falco (a genuine
+  digest mismatch: falco-9.0.0.tgz was re-published after its index entry) and
+  minio (anonymous pulls of minio/minio are denied). karpenter's HTTP 429s were
+  throttling, not unavailability, and its checks all validate on the sequential
+  re-run after the throttling fixes. The saved check reports for argo-cd
+  (v3.4.1 in place of the never-published v3.4.0 release), cert-manager,
+  crossplane, external-secrets, ingress-nginx, karpenter, postgresql,
+  redis, terraform-provider-aws, traefik, vault, istio, strimzi and
+  kube-prometheus-stack — 14 products — were replaced by the live runs, so
+  the validated / unverifiable counts above reflect them.
+- *`locator:helm-git` (vault): "helm.releases.hashicorp.com is blocked from the
+  sandbox"*: it answers (366 chart versions) and the helm-repo channel declared
+  first validates; helm-git remains as the fallback. Likewise the notes that call
+  charts.crossplane.io, charts.external-secrets.io, kubernetes.github.io,
+  charts.jetstack.io, quay.io or api.github.com blocked.
+- *`field:sources.locator.url` (postgresql): "the host is blocked"*:
+  www.postgresql.org answers; the security page could be read directly.
+- *Argo CD "v3.4.0 exception"*: v3.4.0 is a git tag that was never a GitHub
+  release; the definition's exception wording was corrected.
+- *ingress-nginx*: the live run found that `controller-chroot:v1.10.0` was never
+  published (exception added to the definition).
