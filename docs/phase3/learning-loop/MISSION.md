@@ -115,6 +115,12 @@ failures = 0. UNKNOWN may remain where evidence genuinely does not support a con
     exposure + verified consequence + high confidence. A model may never directly produce it. Allowed
     path: AI proposes → automatic or human verification → trusted knowledge → deterministic join →
     ACTION REQUIRED.
+    *Amended by product-owner decision PO-2 (2026-10-01, [DECISIONS.md](DECISIONS.md)):* models may
+    request ACTION REQUIRED, and an agreed consensus of separate model calls (PO-1) may produce it.
+    This requires every aspect at consensus or better, an action-eligible consequence that every
+    agreeing call requested, deterministic exposure on both evidence chains, and no refuted aspect. The
+    finding is labelled "ACTION REQUIRED · model consensus", and every such fact is sampled into human
+    review. Consensus never produces NOT AFFECTED; a single model or proxy stays capped at REVIEW.
 22. **Expand applicability ground truth.** Environment cases label expected semantic subject,
     applicability, action class, environment evidence, consequence. Prioritize prose-only defaults,
     feature gates, cross-product version dependencies, RBAC, migrations, behaviour changes,
