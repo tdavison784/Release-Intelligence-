@@ -23,6 +23,10 @@ const (
 	EvidenceRepoFile     EvidenceKind = "repo-file"     // a file inside a source repository (discovery)
 	EvidenceLocalFile    EvidenceKind = "local-file"    // a file of the user's environment (values, manifests)
 	EvidenceInput        EvidenceKind = "input"         // a value supplied directly (a CLI flag)
+	// EvidenceRenderedDiff: one semantic difference between two renders
+	// (Evidence.Render says how, at which scope). CONTRACT-CHANGE(render):
+	// RENDER-MISSION R5 names this evidence kind.
+	EvidenceRenderedDiff EvidenceKind = "rendered-diff"
 )
 
 // Evidence is a verifiable pointer to source material that supports a fact or

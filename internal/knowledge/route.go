@@ -61,7 +61,14 @@ func RouteWith(policy AutoApprovePolicy, c domain.SemanticCandidate, ps []domain
 	if policy != nil {
 		// a policy auto-approves a candidate or nothing: its aspects count only
 		// when, with the confirmed validations, they cover all four
-		if ap := policy(c, ps, vs, agreement); ap != nil {
+		// CONTRACT-CHANGE(render): the policy sees the candidate's effective
+		// renderability — its own assessment, else that of an assertion a
+		// render confirmed (domain.EffectiveRenderability); never a model
+		// claim alone. Only the policy's view changes; the stored candidate
+		// is untouched.
+		pc := c
+		pc.Renderability = domain.EffectiveRenderability(c, vs)
+		if ap := policy(pc, ps, vs, agreement); ap != nil {
 			withPolicy := map[domain.Aspect]aspectState{}
 			for x, st := range state {
 				withPolicy[x] = st

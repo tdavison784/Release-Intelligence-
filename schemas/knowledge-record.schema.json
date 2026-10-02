@@ -269,7 +269,8 @@
         "advisory",
         "repo-file",
         "local-file",
-        "input"
+        "input",
+        "rendered-diff"
       ]
     },
     "FactStatus": {"type": "string", "enum": ["active", "retracted", "superseded"]},
@@ -405,6 +406,17 @@
       "type": "string",
       "enum": ["candidate", "proposal", "validation", "review-item", "decision", "fact"]
     },
+    "RenderArtifact": {
+      "type": "object",
+      "required": ["name", "version", "digest"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "digest": {"type": "string"},
+        "outputDigest": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
     "RenderProvenance": {
       "type": "object",
       "required": ["scope", "tool", "toolVersion", "chartDigest"],
@@ -414,7 +426,14 @@
         "toolVersion": {"type": "string"},
         "chartDigest": {"type": "string"},
         "valuesDigest": {"type": "string"},
-        "flags": {"type": "array", "items": {"type": "string"}}
+        "flags": {"type": "array", "items": {"type": "string"}},
+        "fromArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "toArtifact": {"$ref": "#/$defs/RenderArtifact"},
+        "object": {"type": "string"},
+        "path": {"type": "string"},
+        "change": {"type": "string"},
+        "before": {"type": "string"},
+        "after": {"type": "string"}
       },
       "additionalProperties": false
     },

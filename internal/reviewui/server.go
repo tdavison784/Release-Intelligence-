@@ -224,18 +224,22 @@ func (s *server) fail(w http.ResponseWriter, r *http.Request, err error) {
 
 type errorView struct{ Title, Message string }
 
-// renderedDelta returns the optional render evidence of an item.
-func (s *server) renderedDelta(ctx context.Context, id string) *RenderedDelta {
-	src, ok := s.q.(RenderedDeltaSource)
-	if !ok {
+// renderedDelta returns the optional render evidence of an item: the
+// queue's RenderedDeltaSource when it has one for the item, else the review
+// context's render evidence (knowledge.ReviewContext.Render).
+func (s *server) renderedDelta(ctx context.Context, id string, rc *knowledge.ReviewContext) *RenderedDelta {
+	if src, ok := s.q.(RenderedDeltaSource); ok {
+		d, err := src.RenderedDelta(ctx, id)
+		if err != nil {
+			s.opts.Logf("reviewui: rendered delta for %s: %v", id, err)
+		} else if d != nil {
+			return d
+		}
+	}
+	if rc == nil {
 		return nil
 	}
-	d, err := src.RenderedDelta(ctx, id)
-	if err != nil {
-		s.opts.Logf("reviewui: rendered delta for %s: %v", id, err)
-		return nil
-	}
-	return d
+	return deltaFromContext(rc.Render)
 }
 
 // eligible reports whether an item can still be decided.
@@ -278,7 +282,7 @@ func (s *server) itemView(r *http.Request, id string, form map[string][]string, 
 	if err != nil {
 		return nil, err
 	}
-	v := newItemView(rc, s.renderedDelta(r.Context(), id), form)
+	v := newItemView(rc, s.renderedDelta(r.Context(), id, rc), form)
 	v.Reviewer = s.reviewerFrom(r)
 	v.Started = s.opts.Now().UTC().Format(time.RFC3339Nano)
 	v.Return = localPath(r.FormValue("return"), "/")
