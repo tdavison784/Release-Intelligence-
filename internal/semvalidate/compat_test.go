@@ -72,7 +72,9 @@ func TestProductRelationshipUsesTheSameRows(t *testing.T) {
 func TestImageValidator(t *testing.T) {
 	from := newRel("v1.0.0").images("manifest", "quay.io/acme/ctl:v1.0.0", "docker.io/library/busybox:1.35", "quay.io/acme/old:1")
 	to := newRel("v1.1.0").images("manifest", "quay.io/acme/ctl:v1.1.0", "busybox:1.36", "quay.io/acme/new:1")
-	img := func(n string) *domain.Subject { return &domain.Subject{Family: domain.SubjectImage, Product: "demo", Name: n} }
+	img := func(n string) *domain.Subject {
+		return &domain.Subject{Family: domain.SubjectImage, Product: "demo", Name: n}
+	}
 	O, R, I := domain.OutcomeConfirmed, domain.OutcomeRefuted, domain.OutcomeInconclusive
 	for _, tc := range []struct {
 		name, repo      string

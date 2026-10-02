@@ -26,7 +26,9 @@ func restatementFixture(t *testing.T) (*rel, *rel, *domain.UpgradeEdge) {
 func TestRestatementConfirmsAgainstComputedDiffs(t *testing.T) {
 	from, to, edge := restatementFixture(t)
 	O, R, I := domain.OutcomeConfirmed, domain.OutcomeRefuted, domain.OutcomeInconclusive
-	img := func(n string) *domain.Subject { return &domain.Subject{Family: domain.SubjectImage, Product: "demo", Name: n} }
+	img := func(n string) *domain.Subject {
+		return &domain.Subject{Family: domain.SubjectImage, Product: "demo", Name: n}
+	}
 	cases := []struct {
 		name            string
 		subj            *domain.Subject
