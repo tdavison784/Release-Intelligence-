@@ -165,3 +165,22 @@ trustfix re-tasking; this one covers loop-diagnosis.
 **Files touched this handoff:** `internal/impact/condition.go`, `internal/impact/condition_test.go`
 (commit d258ab4), `docs/phase3/learning-loop/LOOP-DIAGNOSIS.md`, this status file. No files outside
 lane ownership; no eval data, gates, expectations or knowledge facts edited.
+
+## Loop-diagnosis — Claude review of the GLM handoff (branch `p3ll/loop-diagnosis`)
+
+**State: DONE.** Deliverable `docs/phase3/learning-loop/LOOP-DIAGNOSIS.md`.
+
+- `d258ab4` (condition leaves: unknown instead of false when nothing was examined): reviewed and
+  kept. It is the fix I had started. I re-verified that the HEAD aggregate is identical to the
+  pre-fix proxy run. I flagged the remaining named-component case as residual risk (doc §7.8).
+- `d3e16f1` (LOOP-DIAGNOSIS draft): kept the structure and corrected four things:
+  - stage f was reported as 0 but is 5 (deterministic ACTION/affected findings on computed diffs
+    that the items' matchers don't select: cilium-1.15 E6, cilium-1.16 E3, karpenter E7,
+    karpenter-ci E7, strimzi-edge E2); stages b/c/d recounted to 2/9/4;
+  - the knowledge-caused not-affected violation is cilium-1.15 E1 (consensus dnsProxy fact
+    through the `(?i)toFQDNs` matcher), not plant-edge E3 (render-caused, present at every level);
+  - the landing of the 34 affected knowledge findings (15 on unmatched changes, 8 on unlinked
+    items, 6 on already-hit links, 4 new hits, 1 violation);
+  - lever L0 added (+5 from the stage-f links); ceiling arithmetic redone (0.77 without L1).
+- The temporary harness `cmd/ri/zz_diag_test.go` is deleted (never committed).
+- `go build ./... && go vet ./... && go test ./...` green.
