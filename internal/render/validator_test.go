@@ -304,8 +304,14 @@ func TestRenderabilityTable(t *testing.T) {
 	for _, f := range verifiable {
 		for _, k := range []domain.ChangeKind{domain.ChangeKindAdded, domain.ChangeKindRemoved,
 			domain.ChangeKindValueChanged, domain.ChangeKindDefaultChanged} {
-			if got := RenderabilityOf(f, k); got != domain.RenderVerifiable {
-				t.Errorf("%s %s = %s, want render-verifiable", f, k, got)
+			want := domain.RenderVerifiable
+			if f == domain.SubjectGVK && (k == domain.ChangeKindValueChanged || k == domain.ChangeKindDefaultChanged) {
+				// a GVK's value is its storage version: a CRD flag, not a
+				// rendered value (VALIDATOR-AUDIT.md; TestRenderedDiffStorageVersionIsNotApplicable)
+				want = domain.RenderNotVerifiable
+			}
+			if got := RenderabilityOf(f, k); got != want {
+				t.Errorf("%s %s = %s, want %s", f, k, got, want)
 			}
 		}
 		if got := RenderabilityOf(f, domain.ChangeKindBehaviorChanged); got != domain.RenderNotVerifiable {

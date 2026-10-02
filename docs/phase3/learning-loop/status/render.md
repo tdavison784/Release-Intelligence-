@@ -105,6 +105,19 @@ demonstration, not a scored case.
   Undocumented rendered changes (`EdgeRendered.Undocumented()`) need a candidate producer to become
   review items.
 
+## render-3 (validator audit fix, branch `p3ll/render-3`)
+
+VALIDATOR-AUDIT.md found that `rendered-diff` refuted the true NodePool/NodeClaim storage-version
+moves (`v1beta1 → v1`). The render showed both versions served on both sides and read that as "the
+rendered value did not change", but storage is a CRD flag, not observable in rendered objects. Fix:
+`domain.RenderabilityOf` classifies `gvk` × `value-changed`/`default-changed` as not-render-verifiable
+(data, `valuelessFamilies`). The validator returns `render-not-applicable` with inconclusive checks
+and never renders. Served-version changes (added/removed/renamed) stay render-verifiable. Regression
+test `TestRenderedDiffStorageVersionIsNotApplicable` reproduces the audit's CRD shape: it failed with
+the old table (refuted) and passes now. Side effect, intended: storage moves are no longer eligible
+for render auto-approval (R10); the `crd-schema` validator still confirms them deterministically.
+Waiting on the product-owner decision about render-backed classification of unset changed defaults.
+
 ## Open / honest gaps
 
 - Pipeline-level R17 (before/after on the corpus) is **measured** (see (f)); the follow-on — re-run

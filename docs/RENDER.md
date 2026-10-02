@@ -113,7 +113,11 @@ accepts the `Pattern` form):
   `EffectiveRenderability`; `internal/render` delegates): each family × change kind maps to `render-verifiable`
   (resources, RBAC, images, args, env vars, ports, labels, annotations, API versions),
   `partially-render-verifiable` (defaults, feature activation, cross-resource relationships) or
-  `not-render-verifiable` (runtime behaviour, protocol semantics, migrations, performance).
+  `not-render-verifiable` (runtime behaviour, protocol semantics, migrations, performance). A GVK's
+  value-changed / default-changed (its **storage version**) is not render-verifiable: rendered objects
+  carry served versions only, and the storage flag is applied by the API server. `rendered-diff`
+  answers `render-not-applicable` without rendering, and the `crd-schema` validator decides it from the
+  schema (VALIDATOR-AUDIT.md).
   `RenderedClasses` lists the structural classes eligible for auto-approval under the default policy
   (R10) — the knowledge lane's `AutoApproveRenderVerifiable` consults candidate renderability.
   `domain.EffectiveRenderability(candidate, validations)` is what routing should use: the candidate's
