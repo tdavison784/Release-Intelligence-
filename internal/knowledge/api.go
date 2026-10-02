@@ -344,6 +344,10 @@ type ModelMetric struct {
 	// per task). CONTRACT-CHANGE(knowledge): DESIGN §7 asks for metrics per
 	// model and per task.
 	ByTask map[domain.ProposalTask]ModelTaskMetric
+	// ProseEdits counts prose-only (improved-statement) corrections of this
+	// model's accepted value: for typed accuracy they are accepted as is.
+	// CONTRACT-CHANGE(knowledge): DESIGN §7 (contract-5) reports them separately.
+	ProseEdits int
 }
 
 // ModelTaskMetric is one model's counters for one task.
@@ -376,6 +380,9 @@ type DecisionStats struct {
 	NeedMoreEvidence, Defer     int
 	MedianDuration, P90Duration time.Duration
 	Batches                     int // batch mode only: distinct BatchIDs
+	// ProseEdits are prose-only (improved-statement) corrections. They are NOT
+	// counted in Correct: the typed assertion was right. CONTRACT-CHANGE(knowledge).
+	ProseEdits int
 }
 
 // FactMetrics count the knowledge itself.

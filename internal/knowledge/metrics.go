@@ -230,6 +230,10 @@ func modelMetrics(s *Snapshot) []ModelMetric {
 				}
 			case domain.ActionCorrect:
 				switch {
+				case IsProseOnlyCorrection(d) && matchFin:
+					// typed assertion right: accepted as is, and reported as a prose edit
+					inc = func(m *ModelMetric) { m.AcceptedAsIs++; m.ProseEdits++ }
+					incT = func(t *ModelTaskMetric) { t.AcceptedAsIs++ }
 				case matchFin:
 					inc, incT = func(m *ModelMetric) { m.AcceptedAsIs++ }, func(t *ModelTaskMetric) { t.AcceptedAsIs++ }
 				case matchOrig:
@@ -393,7 +397,11 @@ func decisionStats(ds []domain.ReviewDecision) DecisionStats {
 		case domain.ActionAccept:
 			st.Accept++
 		case domain.ActionCorrect:
-			st.Correct++
+			if IsProseOnlyCorrection(d) {
+				st.ProseEdits++
+			} else {
+				st.Correct++
+			}
 		case domain.ActionReject:
 			st.Reject++
 		case domain.ActionNeedMoreEvidence:

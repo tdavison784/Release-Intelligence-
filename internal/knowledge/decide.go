@@ -10,6 +10,24 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/domain"
 )
 
+// IsProseOnlyCorrection reports whether d is a correction that changes only the
+// consequence statement/remediation: every aspect digest is unchanged (digests
+// ignore prose) but the prose differs (DESIGN §2.5, contract-5).
+func IsProseOnlyCorrection(d domain.ReviewDecision) bool {
+	if d.Action != domain.ActionCorrect || d.Original == nil || d.Corrected == nil ||
+		d.Original.Digest() != d.Corrected.Digest() {
+		return false
+	}
+	return consequenceProse(d.Original) != consequenceProse(d.Corrected)
+}
+
+func consequenceProse(a *domain.SemanticAssertion) string {
+	if a == nil || a.Consequence == nil {
+		return ""
+	}
+	return a.Consequence.Statement + "\x00" + a.Consequence.Remediation
+}
+
 // levelOf maps a reviewer kind to the verification level its decisions give.
 func levelOf(k domain.ReviewerKind) domain.VerificationLevel {
 	if k == domain.ReviewerProxy {
@@ -78,6 +96,16 @@ func candidateState(seed map[domain.Aspect]aspectState, vs []domain.ValidationRe
 			lvl := levelOf(d.ReviewerKind)
 			if cur, ok := state[x]; ok {
 				if cur.digest == dg && levelNotWeaker(cur.level, lvl) {
+					// a prose-only correction keeps the verified value but takes the
+					// corrected statement/remediation, when the aspect rests on a
+					// decision of the same level (a proxy never rewrites a trusted
+					// reviewer's prose; a validator-confirmed value has no prose to edit)
+					if x == domain.AspectConsequence && IsProseOnlyCorrection(d) && cur.level == lvl &&
+						(lvl == domain.VerifiedHuman || lvl == domain.VerifiedProxy) {
+						cur.part = partOf(*fin, x)
+						cur.basis = appendUnique(append([]string(nil), cur.basis...), d.ID)
+						state[x] = cur
+					}
 					continue
 				}
 				if cur.level.Trusted() && lvl == domain.VerifiedProxy {
@@ -362,6 +390,14 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 			merged.Anchors = addAnchor(merged.Anchors, an)
 		}
 		merged.Candidates = appendUnique(merged.Candidates, cand.ID)
+		// the corrected consequence prose (same id: digests ignore prose)
+		if oc, nc := merged.Assertion.Consequence, f.Assertion.Consequence; oc != nil && nc != nil &&
+			(oc.Statement != nc.Statement || oc.Remediation != nc.Remediation) && state[domain.AspectConsequence].level != domain.VerifiedDeterministic &&
+			state[domain.AspectConsequence].level != domain.VerifiedConsensus {
+			c := *oc
+			c.Statement, c.Remediation = nc.Statement, nc.Remediation
+			merged.Assertion.Consequence = &c
+		}
 		var ver []domain.AspectVerification
 		for _, v := range merged.Verification {
 			if nv := f.Verification[verIndex(f.Verification, v.Aspect)]; levelNotWeaker(nv.Level, v.Level) {

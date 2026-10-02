@@ -71,6 +71,7 @@ func aiProv(model string) domain.Provenance {
 func proposal(c domain.SemanticCandidate, provider, model string, a domain.SemanticAssertion, undetermined ...domain.Aspect) domain.SemanticProposal {
 	p := domain.SemanticProposal{CandidateID: c.ID, Task: domain.TaskFull, Provider: provider, Assertion: a,
 		Undetermined: undetermined, Provenance: aiProv(model)}
+	p.Provenance.Provider = provider // contract-5: every writer states the provider
 	if len(undetermined) > 0 {
 		p.UndeterminedReason = "evidence does not say"
 	}
@@ -105,6 +106,7 @@ func decision(item domain.ReviewItem, reviewer string, kind domain.ReviewerKind,
 	}
 	if kind == domain.ReviewerProxy {
 		p := aiProv("claude-sonnet-5-5")
+		p.Provider = "anthropic"
 		d.ProxyProvenance = &p
 	}
 	d.ID = domain.DecisionID(d.ReviewItemID, d.Reviewer, d.DecidedAt)
