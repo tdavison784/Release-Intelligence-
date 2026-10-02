@@ -354,7 +354,7 @@ func (a *Anthropic) once(ctx context.Context, body []byte, structured bool) (*Re
 	// The Messages API reports one model identifier, which names the pinned
 	// model that answered (after any server-side fallback); it is recorded
 	// as both the model and its version.
-	out := &Response{Text: text.String(), Model: ar.Model, ModelVersion: ar.Model, Origin: OriginAPI}
+	out := &Response{Text: text.String(), Model: ar.Model, ModelVersion: ar.Model, Origin: OriginAPI, CallID: ar.ID}
 	if structured {
 		// Models behind Anthropic-compatible gateways may ignore the
 		// structured-output config and answer with a fenced or prose-wrapped
