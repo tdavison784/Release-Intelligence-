@@ -102,8 +102,9 @@ type Environment struct {
 	// NotExpectedFindings name findings that must NOT appear.
 	NotExpectedFindings []NotExpectedFinding `json:"notExpectedFindings,omitempty" yaml:"notExpectedFindings,omitempty"`
 	// UndecidedImpact (G22) records links whose correct answer is UNKNOWN:
-	// the fixture lacks the input that decides them (labels.go). Recorded,
-	// not yet scored.
+	// the fixture lacks the input that decides them (labels.go). Scored by
+	// unknownHonesty (EnvMetrics.UndecidedLinks/UndecidedHonest; reported,
+	// never gated), never by applicabilityAccuracy.
 	UndecidedImpact []UndecidedLink `json:"undecidedImpact,omitempty" yaml:"undecidedImpact,omitempty"`
 }
 

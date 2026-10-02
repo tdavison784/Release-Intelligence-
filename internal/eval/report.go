@@ -70,6 +70,11 @@ func RenderText(w io.Writer, rep Report) error {
 		fmt.Fprintf(w, "environment (%d entries): impact links %d/%d hit (accuracy %.2f), findings %d/%d, false findings %d\n",
 			agg.EnvEntries, agg.ImpactLinksHit, agg.ImpactLinks, agg.ImpactAccuracy,
 			agg.FindingsFound, agg.FindingsExpected, agg.FindingsFP)
+		if agg.UndecidedLinks > 0 {
+			fmt.Fprintf(w, "unknown honesty %.2f (%d/%d undecided links answered UNKNOWN or not at all; reported, not gated) — read next to applicability accuracy %.2f and affected links hit %d/%d: %s\n",
+				agg.UnknownHonesty, agg.UndecidedHonest, agg.UndecidedLinks, agg.ApplicabilityAccuracy, agg.ImpactLinksHit, agg.ImpactLinks,
+				honestyNote(agg.ImpactLinksHit, agg.ImpactLinks))
+		}
 	}
 	if agg.Confusion != nil && agg.Confusion.Labelled > 0 {
 		renderConfusion(w, agg.Confusion)
@@ -203,4 +208,14 @@ func firstNonEmpty(a, b string) string {
 		return a
 	}
 	return b
+}
+
+// honestyNote qualifies unknown honesty: it is vacuous when the engine
+// decides nothing (an engine that emits nothing scores 1.0), so the note says
+// whether anything was decided at all.
+func honestyNote(hit, links int) string {
+	if hit == 0 {
+		return fmt.Sprintf("vacuous — no affected link was decided (0/%d hit), so honesty here proves nothing", links)
+	}
+	return "honesty counts only alongside decided links"
 }

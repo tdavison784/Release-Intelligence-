@@ -315,6 +315,12 @@ type Aggregate struct {
 	FindingsExpected      int     `json:"findingsExpected"`
 	FindingsFound         int     `json:"findingsFound"`
 	FindingsFP            int     `json:"findingsFalsePositives"`
+	// UnknownHonesty (reported, never gated): undecided links answered
+	// honestly / undecided links — vacuous if nothing is decided, so it is
+	// always shown next to ApplicabilityAccuracy and ImpactAccuracy.
+	UndecidedLinks  int     `json:"undecidedLinks"`
+	UndecidedHonest int     `json:"undecidedHonest"`
+	UnknownHonesty  float64 `json:"unknownHonesty"`
 }
 
 // Aggregate computes the pooled numbers over the entry results.
@@ -383,6 +389,8 @@ func AggregateResults(rs []EntryResult) Aggregate {
 			a.FindingsExpected += r.Env.FindingsExpected
 			a.FindingsFound += r.Env.FindingsFound
 			a.FindingsFP += r.Env.FindingsFP
+			a.UndecidedLinks += r.Env.UndecidedLinks
+			a.UndecidedHonest += r.Env.UndecidedHonest
 			a.UnknownFindings += r.Metrics.UnknownFindings
 			a.FindingsTotal += r.Env.Findings
 		}
@@ -395,6 +403,7 @@ func AggregateResults(rs []EntryResult) Aggregate {
 	a.Precision = Metrics{MatchedChanges: a.MatchedChanges, FalsePositives: a.FalsePositives}.Precision()
 	a.LabeledPrecision = AdjudicationStats{DatasetTrue: a.AdjudicatedTrue, DatasetFalse: a.AdjudicatedFalse}.LabeledPrecision()
 	a.ImpactAccuracy = EnvMetrics{ImpactLinks: a.ImpactLinks, ImpactLinksHit: a.ImpactLinksHit}.ImpactAccuracy()
+	a.UnknownHonesty = ratio(a.UndecidedLinks, a.UndecidedHonest)
 	a.ApplicabilityAccuracy = applicabilityAccuracy(a.ImpactLinks, a.ImpactLinksHit, a.NotAffectedLinks, a.NotAffectedViolations)
 	a.ClassificationAccuracy = ratio(a.ClassificationScored, classificationMatched)
 	a.FalseActionRate = ratio(a.ActionFindings, a.FalseActionFindings)

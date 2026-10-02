@@ -66,6 +66,11 @@ type TransferMetrics struct {
 	// Excluded counts links decided by a fact that was reviewed with this
 	// case's environment as context (not transfer).
 	Excluded int `json:"excluded"`
+	// Undecided links on the transfer subset (an overclaim resting on a fact
+	// reviewed with this environment is excluded like a decided link).
+	UndecidedLinks  int     `json:"undecidedLinks"`
+	UndecidedHonest int     `json:"undecidedHonest"`
+	UnknownHonesty  float64 `json:"unknownHonesty"`
 }
 
 // Transfer computes the transfer subset: contexts maps a fact id to the
@@ -100,6 +105,19 @@ func Transfer(rs []EntryResult, contexts map[string][]string) TransferMetrics {
 		}
 	}
 	t.ApplicabilityAccuracy = applicabilityAccuracy(t.ImpactLinks, t.ImpactLinksHit, t.NotAffectedLinks, t.NotAffectedViolations)
+	for _, r := range rs {
+		for _, u := range r.EnvUndecided {
+			if reviewedHere(u.Facts, contexts, r.CaseID) {
+				t.Excluded++
+				continue
+			}
+			t.UndecidedLinks++
+			if u.Honest {
+				t.UndecidedHonest++
+			}
+		}
+	}
+	t.UnknownHonesty = ratio(t.UndecidedLinks, t.UndecidedHonest)
 	return t
 }
 
@@ -127,6 +145,11 @@ type LevelReport struct {
 	KnowledgeByClass  map[string]int  `json:"knowledgeByClass,omitempty"`
 	ConsensusAction   int             `json:"consensusAction,omitempty"`
 	Transfer          TransferMetrics `json:"transfer"`
+	// UnknownHonesty (reported, never gated): undecided links answered
+	// honestly / undecided links; vacuous when nothing is decided.
+	UndecidedLinks  int     `json:"undecidedLinks"`
+	UndecidedHonest int     `json:"undecidedHonest"`
+	UnknownHonesty  float64 `json:"unknownHonesty"`
 }
 
 // LevelRun is one level's report plus its entry results.
@@ -184,6 +207,7 @@ func levelReport(level string, used int, rs []EntryResult, contexts map[string][
 		FalseActionRate: agg.FalseActionRate, ActionFindings: agg.ActionFindings, FalseActionFindings: agg.FalseActionFindings,
 		ActionFindingsUnsupported: agg.ActionFindingsUnsupported,
 		Transfer:                  Transfer(rs, contexts),
+		UndecidedLinks:            agg.UndecidedLinks, UndecidedHonest: agg.UndecidedHonest, UnknownHonesty: agg.UnknownHonesty,
 	}
 	for _, r := range rs {
 		if r.Knowledge == nil {
@@ -227,4 +251,25 @@ func RenderLevels(w io.Writer, levels []LevelReport) {
 			l.ActionFindings, l.FalseActionFindings, l.ActionFindingsUnsupported, kf)
 	}
 	fmt.Fprintf(w, "(*) consensus and proxy levels are reported and labelled; the gate number is the human level (deterministic ∪ human facts) unless -min-verification names another.\n")
+	fmt.Fprintf(w, "unknown honesty per level (undecided links answered UNKNOWN or not at all; reported, not gated; vacuous if nothing is decided — read with applicability above):\n")
+	for _, l := range levels {
+		if l.UndecidedLinks == 0 && l.Transfer.UndecidedLinks == 0 {
+			continue
+		}
+		fmt.Fprintf(w, "  %-14s %.2f (%d/%d)   transfer %.2f (%d/%d)\n", l.Level, l.UnknownHonesty, l.UndecidedHonest, l.UndecidedLinks,
+			l.Transfer.UnknownHonesty, l.Transfer.UndecidedHonest, l.Transfer.UndecidedLinks)
+	}
+}
+
+// reviewedHere reports whether one of the facts was reviewed with the case's
+// environment as context.
+func reviewedHere(facts []string, contexts map[string][]string, caseID string) bool {
+	for _, f := range facts {
+		for _, label := range contexts[f] {
+			if label == caseID {
+				return true
+			}
+		}
+	}
+	return false
 }
