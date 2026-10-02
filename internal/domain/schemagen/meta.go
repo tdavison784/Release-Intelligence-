@@ -252,9 +252,11 @@ func impactClassRules() []any {
 		o("if", classIs(domain.ImpactUnknown),
 			"then", o("required", []string{"neededToDetermine"},
 				"properties", o("neededToDetermine", o("minItems", 1), "matches", o("maxItems", 0)))),
-		// unknownReason is unknown-only
+		// unknownReason is unknown-only, and every unknown states one
 		o("if", o("required", []string{"unknownReason"}),
 			"then", classIs(domain.ImpactUnknown)),
+		o("if", classIs(domain.ImpactUnknown),
+			"then", o("required", []string{"unknownReason"})),
 		// the trust ladder (docs/phase3/learning-loop/DESIGN.md §4): a finding
 		// evaluated from verified knowledge reaches action-required or
 		// not-affected only from a trusted (deterministic/human) fact

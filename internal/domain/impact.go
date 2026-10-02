@@ -543,6 +543,11 @@ func (f ImpactFinding) validateKnowledge() []error {
 			bad("unknownReason is unknown-only, class is %q", f.Classification)
 		}
 	}
+	// CONTRACT-CHANGE(applicability): mandatory now that the join assigns a
+	// reason to every unknown verdict (DESIGN.md §1.5).
+	if f.Classification == ImpactUnknown && f.UnknownReason == "" {
+		bad("an unknown finding must say why it is unknown (unknownReason)")
+	}
 	knowledgeRule := strings.HasPrefix(f.Rule, KnowledgeRulePrefix)
 	if knowledgeRule != (f.Knowledge != nil) {
 		bad("a knowledge reference is carried exactly by %s* rules", KnowledgeRulePrefix)
@@ -550,6 +555,26 @@ func (f ImpactFinding) validateKnowledge() []error {
 	k := f.Knowledge
 	if k == nil {
 		return errs
+	}
+	// CONTRACT-CHANGE(applicability): each knowledge rule carries exactly its
+	// class(es) (DESIGN.md §4): exposed → affected, overlap → informational,
+	// clear → not-affected, undecided → unknown.
+	ruleClasses := map[string][]ImpactClass{
+		KnowledgeRulePrefix + "exposed":   {ImpactActionRequired, ImpactReviewRequired, ImpactInformational},
+		KnowledgeRulePrefix + "overlap":   {ImpactInformational},
+		KnowledgeRulePrefix + "clear":     {ImpactNotAffected},
+		KnowledgeRulePrefix + "undecided": {ImpactUnknown},
+	}
+	if want, ok := ruleClasses[f.Rule]; !ok {
+		bad("unknown knowledge rule %q", f.Rule)
+	} else {
+		fits := false
+		for _, c := range want {
+			fits = fits || c == f.Classification
+		}
+		if !fits {
+			bad("rule %s cannot carry class %q", f.Rule, f.Classification)
+		}
 	}
 	if !strings.HasPrefix(k.Fact, FactIDPrefix) {
 		bad("knowledge fact %q lacks the %s prefix", k.Fact, FactIDPrefix)
