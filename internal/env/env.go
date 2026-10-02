@@ -223,6 +223,14 @@ type Environment struct {
 	// Products is the product inventory (declared + detected, conflicts kept
 	// visible); see ProductInstance and Environment.Product.
 	Products []ProductInstance
+	// InventoryComplete: the declared inventory file states `complete: true`
+	// — every product running here is listed, so a product it does not list
+	// is not installed (while the products dimension is healthy).
+	// InventoryCompleteEvidence cites the declaration. False without a
+	// declaration: absence from an inventory is never proof of absence.
+	// CONTRACT-CHANGE(applicability): requested by DESIGN.md §1.3 (envinv follow-up).
+	InventoryComplete         bool
+	InventoryCompleteEvidence []domain.EvidenceID
 	// Resources are the per-document resource facts (field values with "[]"
 	// sequence paths, embedded text lines, references); see resources.go and
 	// the query API (ResourcesOfKind, FieldValues, TextBlocks, ResolveRef).

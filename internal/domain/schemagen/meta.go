@@ -86,11 +86,12 @@ var enums = []enumSet{
 	enumOf(domain.SeverityCritical, domain.SeverityHigh, domain.SeverityMedium, domain.SeverityLow),
 	enumOf(
 		domain.DimensionValues, domain.DimensionManifests, domain.DimensionCRDs,
-		domain.DimensionImages, domain.DimensionCluster, domain.DimensionProducts,
+		domain.DimensionImages, domain.DimensionCluster, domain.DimensionProducts, domain.DimensionFromVersion,
 	),
 	enumOf(
 		domain.MatchValuesKey, domain.MatchAPIVersion, domain.MatchCRD, domain.MatchCRDVersion,
 		domain.MatchManifestField, domain.MatchImage, domain.MatchKubernetes,
+		domain.MatchProduct, domain.MatchTextLine, domain.MatchReference, domain.MatchFromVersion, domain.MatchAbsence,
 	),
 	// --- semantic knowledge (internal/domain/semantic.go) ---
 	enumOf(domain.SubjectFamilies...),
