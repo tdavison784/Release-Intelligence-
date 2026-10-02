@@ -268,3 +268,8 @@ func cleanValueComment(c string) string {
 	}
 	return truncateText(collapseSpace(strings.Join(parts, " ")), maxCommentLen)
 }
+
+// EncodeLeaf is the JSON encoding the values inventory uses for a YAML leaf
+// (strings quoted, numbers/bools/null bare, lists inline); exported so other
+// extractors (internal/env resource facts) encode scalars identically.
+func EncodeLeaf(n *yaml.Node) string { return encodeLeaf(n) }

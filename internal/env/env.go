@@ -223,6 +223,10 @@ type Environment struct {
 	// Products is the product inventory (declared + detected, conflicts kept
 	// visible); see ProductInstance and Environment.Product.
 	Products []ProductInstance
+	// Resources are the per-document resource facts (field values with "[]"
+	// sequence paths, embedded text lines, references); see resources.go and
+	// the query API (ResourcesOfKind, FieldValues, TextBlocks, ResolveRef).
+	Resources []Resource
 
 	// RepoRoot is the repository directory of repo mode ("" otherwise) and
 	// Discovered lists every file the walk classified, with its evidence.
@@ -287,6 +291,8 @@ type loader struct {
 	// productsSupplied: an inventory file or a detected product backs the
 	// products dimension.
 	productsSupplied bool
+	// resFacts / resLines count the resource-fact store against its caps.
+	resFacts, resLines int
 }
 
 // warnf records a warning on the Environment and attributes it to the input
@@ -737,6 +743,7 @@ func (l *loader) loadManifest(d doc) {
 		l.gvkAddName(st, scalarOf(d.node, "metadata", "name"), scalarOf(d.node, "metadata", "namespace"))
 		l.gvkAddEvidence(st, l.ev(d.file, fmt.Sprintf("L%d", d.startLine), "apiVersion: "+apiVersion+" / kind: "+kind))
 		l.detectInstalled(d)
+		l.collectResource(d, group, version, kind)
 	}
 	// images: any mapping key "image" with a reference value
 	walkMappings(d.node, func(key string, val *yaml.Node, path string) {
