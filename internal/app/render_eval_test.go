@@ -240,7 +240,7 @@ func loadEvalRenderCases(t *testing.T) []evalRenderCase {
 	}
 	var out []evalRenderCase
 	for _, en := range entries {
-		if !en.IsDir() {
+		if !en.IsDir() || en.Name() == "results" {
 			continue
 		}
 		b, err := os.ReadFile(filepath.Join(dir, en.Name(), "case.yaml"))
