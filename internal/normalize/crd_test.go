@@ -314,3 +314,62 @@ func TestCRDSnapshotCertManagerFixture(t *testing.T) {
 		t.Error("paths not sorted")
 	}
 }
+
+func TestCRDSnapshotFieldSchemas(t *testing.T) {
+	const doc = `apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata: {name: knobs.example.io}
+spec:
+  group: example.io
+  names: {kind: Knob}
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [mode]
+              properties:
+                mode:
+                  type: string
+                  enum: [Fast, Slow]
+                  default: Fast
+                rotationPolicy: {type: string, default: Never}
+                replicas: {type: integer, default: 3}
+                opts:
+                  type: object
+                  default: {b: 2, a: 1}
+                kinds:
+                  type: array
+                  items: {type: string, enum: [A, B]}
+`
+	snap, err := CRDSnapshot([]byte(doc))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]domain.CRDFieldSchema{}
+	for _, f := range snap.CRDs[0].Versions[0].Fields {
+		got[f.Path] = f
+	}
+	if n := len(snap.CRDs[0].Versions[0].Fields); n != len(snap.CRDs[0].Versions[0].SchemaPaths) {
+		t.Errorf("fields = %d, paths = %d", n, len(snap.CRDs[0].Versions[0].SchemaPaths))
+	}
+	check := func(path string, want domain.CRDFieldSchema) {
+		t.Helper()
+		want.Path = path
+		if !reflect.DeepEqual(got[path], want) {
+			t.Errorf("%s: got %+v want %+v", path, got[path], want)
+		}
+	}
+	check("spec", domain.CRDFieldSchema{Type: "object"})
+	check("spec.mode", domain.CRDFieldSchema{Type: "string", Default: `"Fast"`, Enum: []string{`"Fast"`, `"Slow"`}, Required: true})
+	check("spec.rotationPolicy", domain.CRDFieldSchema{Type: "string", Default: `"Never"`})
+	check("spec.replicas", domain.CRDFieldSchema{Type: "integer", Default: `3`})
+	check("spec.opts", domain.CRDFieldSchema{Type: "object", Default: `{"a":1,"b":2}`})
+	check("spec.kinds[]", domain.CRDFieldSchema{Type: "array", Enum: []string{`"A"`, `"B"`}})
+}

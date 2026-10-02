@@ -189,6 +189,23 @@ type CRDVersionInfo struct {
 	// SchemaPaths lists dotted property paths of the openAPIV3Schema
 	// (e.g. "spec.secretTemplate.labels"), used to detect removed/added fields.
 	SchemaPaths []string `json:"schemaPaths,omitempty"`
+	// Fields carries per-path schema facts (type, default, enum, required),
+	// sorted by path, one entry per SchemaPaths element, so validators can
+	// prove default/enum/required changes from the published CRD.
+	Fields []CRDFieldSchema `json:"fields,omitempty"`
+}
+
+// CRDFieldSchema is the machine-comparable schema of one CRD property path.
+type CRDFieldSchema struct {
+	Path string `json:"path"`
+	// Type is the declared OpenAPI type ("string", "object", "array", ...).
+	Type string `json:"type,omitempty"`
+	// Default is the schema default as canonical JSON ("" = no default).
+	Default string `json:"default,omitempty"`
+	// Enum lists the allowed values as canonical JSON, in schema order.
+	Enum []string `json:"enum,omitempty"`
+	// Required reports that the parent schema lists this property in required.
+	Required bool `json:"required,omitempty"`
 }
 
 // ImageRefsSnapshot lists container images referenced by an artifact.

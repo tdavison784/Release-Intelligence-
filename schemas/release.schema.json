@@ -63,6 +63,18 @@
         "documentation"
       ]
     },
+    "CRDFieldSchema": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": {"type": "string"},
+        "type": {"type": "string"},
+        "default": {"type": "string"},
+        "enum": {"type": "array", "items": {"type": "string"}},
+        "required": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
     "CRDSnapshot": {
       "type": "object",
       "required": ["crds"],
@@ -96,7 +108,8 @@
           "type": "array",
           "items": {"type": "string"},
           "description": "Dotted property paths of the openAPIV3Schema (e.g. \"spec.secretTemplate.labels\"); used to detect removed or added fields."
-        }
+        },
+        "fields": {"type": "array", "items": {"$ref": "#/$defs/CRDFieldSchema"}}
       },
       "additionalProperties": false
     },
