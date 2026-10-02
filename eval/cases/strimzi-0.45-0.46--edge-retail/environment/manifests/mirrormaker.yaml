@@ -1,0 +1,13 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaMirrorMaker
+metadata:
+  name: legacy-price-feed
+spec:
+  version: "3.9.0"
+  replicas: 1
+  consumer:
+    bootstrapServers: central-kafka-bootstrap.central.svc.cluster.local:9092
+    groupId: price-feed-mirror
+  producer:
+    bootstrapServers: edge-kafka-kafka-bootstrap:9092
+  include: "^prices\\."

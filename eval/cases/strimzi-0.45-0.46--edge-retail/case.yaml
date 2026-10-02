@@ -1,0 +1,214 @@
+id: strimzi-0.45-0.46--edge-retail
+transferOf: strimzi-0.45-0.46
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md
+  - https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/kafka-versions.yaml
+  - https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/kafka-versions.yaml
+  - https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/documentation/assemblies/deploying/assembly-kraft-mode.adoc
+  - https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/documentation/modules/configuring/con-config-storage-zookeeper.adoc
+  - https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/documentation/modules/configuring/con-config-storage-kraft.adoc
+  - https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/documentation/modules/configuring/proc-loading-config-from-env-vars.adoc
+  - https://github.com/strimzi/kafka-env-var-config-provider/blob/main/README.md
+  - https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/packaging/install/cluster-operator/045-Crd-kafkamirrormaker.yaml
+  - https://github.com/strimzi/strimzi-kafka-operator/tree/0.46.0/packaging/install/cluster-operator
+  - https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/documentation/modules/upgrading/con-upgrade-versions-and-images.adoc
+  - https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/packaging/install/cluster-operator/040-Crd-kafka.yaml
+environment:
+  description: >-
+    Regional retail-edge platform on Kubernetes 1.31 running the Strimzi 0.45.0
+    operator (the mirror list pins quay.io/strimzi/operator:0.45.0 and the
+    installed CRD bundle is the 0.45 one, which still contains the
+    KafkaMirrorMaker CRD). The Kafka cluster edge-kafka runs in KRaft mode: the
+    Kafka CR carries the 0.45-era annotations strimzi.io/kraft: enabled and
+    strimzi.io/node-pools: enabled, and a single dual-role KafkaNodePool
+    (3 replicas, broker+controller) holds all storage — persistent-claim of
+    class local-nvme, one class for every broker, no per-broker storage
+    overrides anywhere. Every operand is pinned to Kafka 3.9.0 (Kafka
+    spec.kafka.version, KafkaConnect spec.version, KafkaMirrorMaker
+    spec.version; metadataVersion 3.9-IV0). Broker authorization delegates to
+    Open Policy Agent (spec.kafka.authorization.type: opa with an in-cluster
+    OPA policy URL). Kafka Connect edge-connect externalizes configuration
+    through the Strimzi EnvVar Configuration Provider
+    (spec.config config.providers.env.class
+    io.strimzi.kafka.EnvVarConfigProvider). A legacy MirrorMaker 1 deployment
+    legacy-price-feed mirrors the ^prices\. topics from the central
+    datacentre cluster into the edge cluster. The Kafka cluster is exposed
+    through a nodeport external listener (per-broker Services with advertised
+    hosts), and broker logging uses a custom external ConfigMap carrying a
+    Reload4j-era log4j.properties file.
+  kubernetes: "1.31"
+  expectedImpact:
+    - expected: E1
+      relevance: not-affected
+      why: >-
+        edge-kafka is already KRaft-based — the Kafka CR carries the 0.45-era
+        opt-in annotations strimzi.io/kraft: enabled and
+        strimzi.io/node-pools: enabled, and there is no ZooKeeper cluster and
+        no in-flight ZooKeeper→KRaft migration — so the 0.46 ZooKeeper removal
+        precondition is already met.
+      exposure:
+        op: not
+        of:
+          - op: resource
+            group: kafka.strimzi.io
+            kind: Kafka
+            of:
+              - op: field
+                path: 'metadata.annotations["strimzi.io/kraft"]'
+                state: equals
+                values: ['"enabled"']
+      environmentEvidence: [manifests/kafka.yaml#L22-L24, manifests/kafka.yaml#L1-L16]
+    - expected: E2
+      relevance: action-required
+      why: >-
+        the cluster still runs a KafkaMirrorMaker resource (legacy-price-feed,
+        MirrorMaker 1) mirroring the ^prices\. topics from the central
+        datacentre; 0.46 removes MirrorMaker 1 support and its CRD from the
+        install bundle, so this replication stops being operated by the
+        upgraded operator until it is migrated to KafkaMirrorMaker2.
+      exposure:
+        op: gvk-in-use
+        group: kafka.strimzi.io
+        version: v1beta2
+        kind: KafkaMirrorMaker
+      environmentEvidence: [manifests/mirrormaker.yaml#L1-L12]
+    - expected: E3
+      relevance: not-affected
+      why: >-
+        storage is configured once for all brokers in the KafkaNodePool
+        (persistent-claim, class local-nvme); the Kafka CR has no
+        spec.kafka.storage at all, so the removed per-broker storage overrides
+        are not used and the node-pool layout is already the suggested one.
+      exposure:
+        op: resource
+        group: kafka.strimzi.io
+        kind: Kafka
+        of:
+          - op: field
+            path: spec.kafka.storage.overrides
+            state: set
+      environmentEvidence: [manifests/kafka.yaml#L12-L16, manifests/kafka.yaml#L25-L28]
+    - expected: E4
+      relevance: action-required
+      why: >-
+        KafkaConnect edge-connect resolves configuration through the removed
+        Strimzi EnvVar Configuration Provider
+        (config.providers.env.class io.strimzi.kafka.EnvVarConfigProvider in
+        spec.config), which 0.46 drops from its container images; the Connect
+        configuration fails to load the provider from the 0.46 image until the
+        class is switched to Apache Kafka's
+        org.apache.kafka.common.config.provider.EnvVarConfigProvider. The
+        MirrorMaker 2 Extensions half of the item does not apply: no
+        KafkaMirrorMaker2 resource exists.
+      exposure:
+        op: resource
+        group: kafka.strimzi.io
+        kind: KafkaConnect
+        of:
+          - op: field
+            path: 'spec.config["config.providers.env.class"]'
+            state: equals
+            values: ['"io.strimzi.kafka.EnvVarConfigProvider"']
+      environmentEvidence: [manifests/connect.yaml#L10-L16]
+    - expected: E5
+      relevance: not-affected
+      why: >-
+        every operand is explicitly pinned to Kafka 3.9.0 (Kafka
+        spec.kafka.version, KafkaConnect spec.version; no KafkaMirrorMaker2
+        exists, and the KafkaMirrorMaker also pins 3.9.0), and 0.46 still
+        supports 3.9.0 — kafka-versions.yaml lists 3.9.0 as supported
+        (non-default) at 0.46.0, so no version bump is forced by the operator
+        upgrade.
+      exposure:
+        op: any
+        of:
+          - op: resource
+            group: kafka.strimzi.io
+            kind: Kafka
+            of: [{op: field, path: spec.kafka.version, state: matches, pattern: '^3\.8\.'}]
+          - op: resource
+            group: kafka.strimzi.io
+            kind: KafkaConnect
+            of: [{op: field, path: spec.version, state: matches, pattern: '^3\.8\.'}]
+          - op: resource
+            group: kafka.strimzi.io
+            kind: KafkaMirrorMaker2
+            of: [{op: field, path: spec.version, state: matches, pattern: '^3\.8\.'}]
+      environmentEvidence: [manifests/kafka.yaml#L26-L28, manifests/connect.yaml#L7-L9, manifests/mirrormaker.yaml#L5-L7]
+    - expected: E6
+      relevance: review
+      why: >-
+        the Kafka CR authorizes through spec.kafka.authorization.type: opa
+        with an in-cluster OPA URL and delegateToKafkaAcls; the opa type still
+        works in 0.46 but is deprecated and will be removed, so this cluster
+        should plan the move to type: custom (no action is forced by this
+        upgrade itself).
+      exposure:
+        op: resource
+        group: kafka.strimzi.io
+        kind: Kafka
+        of:
+          - op: field
+            path: spec.kafka.authorization.type
+            state: equals
+            values: ['"opa"']
+      environmentEvidence: [manifests/kafka.yaml#L49-L52]
+    - expected: E8
+      relevance: informational
+      why: >-
+        the cluster does use custom external broker logging (a Reload4j-era
+        log4j.properties ConfigMap with org.apache.log4j appenders), so the
+        item applies to it — but the brokers are explicitly pinned to Kafka
+        3.9.0, which stays supported on 0.46, and the Reload4j→Log4j2 switch
+        only arrives with Kafka 4.0; the logging config keeps working through
+        this operator upgrade and must be updated when the cluster later
+        moves to Kafka 4.0.
+      exposure:
+        op: resource
+        group: kafka.strimzi.io
+        kind: Kafka
+        of:
+          - op: field
+            path: spec.kafka.logging.type
+            state: equals
+            values: ['"external"']
+      overlap:
+        op: resource
+        group: kafka.strimzi.io
+        kind: Kafka
+        of:
+          - op: field
+            path: spec.kafka.version
+            state: equals
+            values: ['"3.9.0"']
+      environmentEvidence: [manifests/kafka.yaml#L58-L63, manifests/kafka-logging.yaml#L5-L13, manifests/kafka.yaml#L26-L27]
+  undecidedImpact:
+    - expected: E7
+      reason: environment-visibility-gap
+      needed: >-
+        the off-cluster configuration that may select by
+        statefulset.kubernetes.io/pod-name — load-balancer target pools,
+        firewall allowlists, monitoring scrape configs or automation scripts
+        referencing the per-broker external-listener Services or Kafka pods
+      why: >-
+        edge-kafka exposes a nodeport external listener, so per-broker
+        external Services carrying the removed label do exist, and consumers
+        of such labels live outside the cluster manifests; the fixture can
+        neither show a consumer that must switch to strimzi.io/pod-name nor
+        prove that none exists.
+      environmentEvidence: [manifests/kafka.yaml#L34-L48]
+  expectedFindings:
+    - id: F1
+      match:
+        rule: impact:crd-removed
+      why: >-
+        the installed CRD bundle is the 0.45 one and 0.46.0 removes the
+        KafkaMirrorMaker CRD (045-Crd-kafkamirrormaker.yaml is gone from
+        packaging/install/cluster-operator at the 0.46.0 tag, where the node
+        pool CRD takes the 045 slot), so the removed-CRD check must fire for
+        the MirrorMaker 1 CRD this cluster still uses
+    - id: F2
+      match:
+        rule: impact:image-changed
+      why: the mirror list pins the operator repository, whose image moves between 0.45.0 and 0.46.0
