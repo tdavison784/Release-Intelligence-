@@ -86,9 +86,18 @@ func TestE2EImpactRepo(t *testing.T) {
 	// environment evidence points into the discovered repo. Both chains are
 	// mandatory for affected findings (the ACTION/review/informational set);
 	// not-affected/unknown carry their evaluation records instead
-	// (docs/ACTION_CLASSIFICATION.md).
+	// (docs/ACTION_CLASSIFICATION.md). The one affected exception is the
+	// impact:security-fix rule: its informational findings apply to every
+	// environment that upgrades (the fix ships with the target), so they cite
+	// the upstream chain only.
 	for _, f := range rep.Findings {
 		if f.Classification.Affected() {
+			if f.Rule == impact.RuleSecurityFix {
+				if len(f.UpstreamEvidence) == 0 || len(f.EnvironmentEvidence) != 0 || len(f.Matches) != 0 {
+					t.Errorf("security-fix finding %s must carry the upstream chain only", f.ID)
+				}
+				continue
+			}
 			if len(f.UpstreamEvidence) == 0 || len(f.EnvironmentEvidence) == 0 {
 				t.Errorf("affected finding %s (%s) lacks a chain", f.ID, f.Classification)
 			}

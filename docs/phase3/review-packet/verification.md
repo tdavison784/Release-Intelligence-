@@ -51,3 +51,24 @@ the reports were generated from.
 No dead links, no wrong lines, no mismatched excerpts were found. The two
 caveats above (master-branch drift risk; node-start locators) are recorded as
 issues, not failures.
+
+---
+
+## Addendum — Round 4 trust fixes (2026-10-01, branch `feat/p3-trust-fixes`)
+
+The four filed issues below were addressed AFTER the proxy reviews were
+written; the reviews and their numbers above are the round-3 state and are
+deliberately untouched. The shipped reports under `reports/` were regenerated
+from this branch (same offline commands; `reproduce.sh` passes byte for byte
+again).
+
+| Filed issue (reviewer) | What this round did |
+|---|---|
+| Security-relevant changes must be visible deterministically (SRE A2/D2, platform-engineer A2 — both escalation) | New `impact:security-fix` rule: note-derived changes citing a CVE/GHSA/advisory classify **informational** ("the fix ships with the target; no environment-specific action beyond upgrading") with their upstream evidence and the advisory ids in the detail. The predicate is the routine detector's security carve-out (`upgrade.IsSecurityItem` — one definition). A security item that also breaks or carries an operator directive keeps its stronger class. In report 1 the five dependency-CVE bumps moved UNKNOWN → INFORMATIONAL. |
+| Collapse the UNKNOWN wall (both reviewers, C2/F4) | The text report's default view is one line per missing-evidence family with counts (e.g. report 1: 40 note-derived, 4 computed-diff-without-join, 1 unsuppliable cluster platform); `--show-unknown` lists every item. JSON and the funnel counts are unchanged. |
+| Evidence ids force the JSON round-trip (both reviewers, E2/H1/F4) | Finding why-blocks now carry inline short-form locators (`evidence: upstream: release-notes-1.18 L350 · environment: values.yaml:L42`), top 2 per chain with "+n more"; the id legend stays. |
+| "requires 1.29–1.33" overstates (platform-engineer B1/G, the pilot's §0 caveat) | The below-range detail now states the exclusion is **pre-existing** when the source release's range also excluded the cluster (report 1's case), and appends the reconciliation when the chart's `kubeVersion` admits the cluster: "the narrower supported range is the project's tested-matrix statement (Helm will not refuse the install)". Classes unchanged. |
+
+The AI-suggestion metadata of report 4 changed as a consequence (9 suggestions,
+4 prompts pending: the CVE items are no longer UNKNOWN, so the model is no
+longer asked about them) — see `reports/report-4-ai-enriched/run.md`.

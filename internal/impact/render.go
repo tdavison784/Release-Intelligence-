@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 
 	"github.com/tdavison784/release-intelligence/internal/domain"
@@ -188,14 +189,158 @@ func (r *renderer) findingSections() {
 			continue // counted in the funnel; rendered only in verbose mode
 		}
 		r.heading(colors[class], fmt.Sprintf("%s (%d)", titles[class], len(fs)))
+		if class == domain.ImpactUnknown {
+			r.unknownSection(fs)
+			continue
+		}
 		for i, f := range fs {
-			if class == domain.ImpactUnknown {
-				r.unknownFinding(i+1, f)
-			} else {
-				r.finding(i+1, f)
-			}
+			r.finding(i+1, f)
 		}
 	}
+}
+
+// unknownSection renders the UNKNOWN findings. The default view collapses
+// them into one line per missing-evidence family with counts — fifty
+// near-identical blocks is where a reader stops reading (both proxy reviews),
+// and the funnel keeps counting every item either way. The one per-item
+// exception in the default view: findings that carry an AI review suggestion
+// are listed by title, because a suggestion is decision-relevant and must not
+// hide behind a flag. --show-unknown lists every item; the JSON output always
+// carries everything.
+func (r *renderer) unknownSection(fs []domain.ImpactFinding) {
+	if r.opts.ShowUnknown {
+		for i, f := range fs {
+			r.unknownFinding(i+1, f)
+		}
+		return
+	}
+	var plain, suggested []domain.ImpactFinding
+	for _, f := range fs {
+		if f.SuggestedClassification != "" {
+			suggested = append(suggested, f)
+			continue
+		}
+		plain = append(plain, f)
+	}
+	for _, g := range unknownGroups(plain) {
+		r.line("  · %d × %s", g.count, g.label)
+		if g.hint != "" {
+			r.line("      %s", r.paint(ansiDim, g.hint))
+		}
+	}
+	if len(suggested) > 0 {
+		r.line("  %s", r.paint(ansiMagenta, fmt.Sprintf("%d with an AI review suggestion (a suggestion with provenance — see AI enrichments; verify before acting):", len(suggested))))
+		for _, f := range suggested {
+			r.line("    - AI suggests %s: %s %s", f.SuggestedClassification, f.Title, r.paint(ansiDim, "["+f.ID+"]"))
+		}
+	}
+	r.line("  %s", r.paint(ansiDim, fmt.Sprintf("%d total — render with --show-unknown to list every item", len(fs))))
+}
+
+// unknownGroup is one missing-evidence family of the collapsed UNKNOWN view.
+type unknownGroup struct {
+	label string
+	hint  string
+	count int
+}
+
+// unknownGroups buckets unknown findings by rule/reason family. The
+// neededToDetermine strings are too granular for a summary (each constraint
+// names its own subject); the families below are the reasons an operator
+// acts on. Deterministic: stable input order (findings are sorted), output
+// ordered by count then label.
+func unknownGroups(fs []domain.ImpactFinding) []unknownGroup {
+	var order []string
+	byLabel := map[string]*unknownGroup{}
+	for _, f := range fs {
+		label, hint := unknownFamily(f)
+		g := byLabel[label]
+		if g == nil {
+			g = &unknownGroup{label: label, hint: hint}
+			byLabel[label] = g
+			order = append(order, label)
+		}
+		g.count++
+	}
+	out := make([]unknownGroup, 0, len(order))
+	for _, l := range order {
+		out = append(out, *byLabel[l])
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].count != out[j].count {
+			return out[i].count > out[j].count
+		}
+		return out[i].label < out[j].label
+	})
+	return out
+}
+
+// unknownFamily maps one unknown finding to its missing-evidence family.
+func unknownFamily(f domain.ImpactFinding) (label, hint string) {
+	needed := strings.Join(f.NeededToDetermine, "; ")
+	switch f.Rule {
+	case RuleInsufficientVisibility:
+		if strings.Contains(needed, "machine-readable") {
+			return "upstream constraint is not machine-readable — check it manually", ""
+		}
+		return "environment dimension not supplied: " + strings.Join(missingDimensions(f.NeededToDetermine), ", "), ""
+	case RuleNotJoined:
+		switch {
+		case strings.Contains(needed, "no machine-comparable subject"):
+			return "note-derived changes the deterministic join cannot compare", "run -enrich for AI suggestions on these"
+		case strings.HasPrefix(needed, "diff rule"):
+			return "computed diff rules without a join rule", ""
+		case strings.Contains(needed, "carries no subjects"):
+			return "computed changes with no comparable subjects", ""
+		case strings.Contains(needed, "CRD name and version"),
+			strings.Contains(needed, "does not identify a CRD"),
+			strings.Contains(needed, "does not state the CRD identity"):
+			return "upstream identity unparseable", ""
+		}
+	}
+	if needed == "" {
+		return "other findings the join could not evaluate", ""
+	}
+	return "other findings the join could not evaluate", needed
+}
+
+// missingDimensions names the environment dimensions a set of
+// neededToDetermine strings asks for ("Kubernetes cluster version
+// (--kubernetes) not supplied" → kubernetes), deduplicated in first-seen
+// order; the deciding platform is kept for unsuppliable ones (openshift).
+func missingDimensions(needed []string) []string {
+	var out []string
+	seen := map[string]bool{}
+	for _, n := range needed {
+		var d string
+		switch {
+		case strings.Contains(n, "--images"), strings.Contains(n, "image references"):
+			// checked first: the image needed-string lists every
+			// image-bearing flag ("--images, --values or --manifests")
+			d = "images"
+		case strings.Contains(n, "--values"):
+			d = "values"
+		case strings.Contains(n, "--crds"), strings.Contains(n, "CustomResourceDefinitions"):
+			d = "crds"
+		case strings.Contains(n, "--manifests"):
+			d = "manifests"
+		case strings.Contains(n, "--kubernetes"):
+			d = "kubernetes"
+		case strings.Contains(n, "cluster version"):
+			if fields := strings.Fields(n); len(fields) > 0 {
+				d = strings.ToLower(fields[0]) + " cluster version"
+			} else {
+				d = "cluster version"
+			}
+		default:
+			d = n
+		}
+		if !seen[d] {
+			seen[d] = true
+			out = append(out, d)
+		}
+	}
+	return out
 }
 
 // unknownFinding renders one unknown verdict. The missing-evidence list is
@@ -204,6 +349,7 @@ func (r *renderer) findingSections() {
 // with the reasoning in the enrichments section below.
 func (r *renderer) unknownFinding(n int, f domain.ImpactFinding) {
 	r.line("  %d. %s %s", n, f.Title, r.paint(ansiDim, "["+f.ID+"]"))
+	r.evidenceInline(f)
 	r.line("     missing: %s", strings.Join(f.NeededToDetermine, "; "))
 	if f.SuggestedClassification != "" {
 		r.line("     %s", r.paint(ansiMagenta, fmt.Sprintf("AI suggests %s (a suggestion with provenance — see AI enrichments; verify before acting)", f.SuggestedClassification)))
@@ -214,6 +360,7 @@ func (r *renderer) unknownFinding(n int, f domain.ImpactFinding) {
 
 func (r *renderer) finding(n int, f domain.ImpactFinding) {
 	r.line("  %d. %s %s", n, f.Title, r.paint(ansiDim, "["+f.ID+"]"))
+	r.evidenceInline(f)
 	r.changeAndDetail(f)
 	// chain 2: what in the environment matched, where
 	for _, m := range f.Matches {
@@ -270,6 +417,97 @@ func (r *renderer) upstreamChain(f domain.ImpactFinding) {
 		ups = append(ups, r.citeUp(id))
 	}
 	r.line("     upstream evidence: %s", strings.Join(ups, ", "))
+}
+
+// evidenceInline renders the primary evidence locators of both chains in
+// short form right inside the why-block — "upstream: release-notes-1.18
+// L28-L89 · environment: values.yaml:L42" — so the text report does not
+// force the JSON round-trip to resolve an id (the packet reviews' top
+// friction). Truncated to the top 2 per chain with "+n more"; the full id
+// list stays in the Evidence legend below and in the JSON.
+func (r *renderer) evidenceInline(f domain.ImpactFinding) {
+	var parts []string
+	const maxInline = 2
+	if p := r.shortChain("upstream", f.UpstreamEvidence, r.upEv, false, maxInline); len(p) > 0 {
+		parts = append(parts, p...)
+	}
+	if p := r.shortChain("environment", f.EnvironmentEvidence, r.locEv, true, maxInline); len(p) > 0 {
+		parts = append(parts, p...)
+	}
+	if len(parts) == 0 {
+		return
+	}
+	r.line("     evidence: %s", strings.Join(parts, " · "))
+}
+
+// shortChain renders the short locators of one evidence chain (top 2
+// distinct forms, then "+n more" for the remaining records). Identical short
+// forms collapse (two snapshots of one file share a locator); the evidence
+// legend below keeps every id. pathColonLocator renders local files as
+// "values.yaml:L42" (path:line, the shape a reader greps); upstream documents
+// render as "release-notes-1.18 L28-L89".
+func (r *renderer) shortChain(label string, ids []domain.EvidenceID, pool map[domain.EvidenceID]domain.Evidence, pathColonLocator bool, maxInline int) []string {
+	var shorts []string
+	for _, id := range ids {
+		e, ok := pool[id]
+		if !ok {
+			continue
+		}
+		shorts = append(shorts, shortLocator(e, pathColonLocator))
+	}
+	if len(shorts) == 0 {
+		return nil
+	}
+	var distinct []string
+	seen := map[string]bool{}
+	for _, s := range shorts {
+		if !seen[s] {
+			seen[s] = true
+			distinct = append(distinct, s)
+		}
+	}
+	var out []string
+	for i, s := range distinct {
+		if i >= maxInline {
+			break
+		}
+		out = append(out, label+": "+s)
+	}
+	if extra := len(shorts) - len(out); extra > 0 {
+		out = append(out, fmt.Sprintf("+%d more", extra))
+	}
+	return out
+}
+
+// shortLocator is the human-short form of one evidence record: the URI's
+// file name (extension kept for local files, stripped for upstream
+// documents) plus the locator, when one exists. A locator that already
+// carries the file name (values snapshots locate by path) is used as-is.
+func shortLocator(e domain.Evidence, pathColonLocator bool) string {
+	name := e.URI
+	if i := strings.LastIndexByte(name, '/'); i >= 0 {
+		name = name[i+1:]
+	}
+	if name == "" {
+		name = e.URI
+	}
+	loc := e.Locator
+	if loc != "" && strings.Contains(loc, name) {
+		return loc
+	}
+	if !pathColonLocator {
+		if i := strings.LastIndexByte(name, '.'); i > 0 {
+			name = name[:i]
+		}
+		if loc != "" {
+			return name + " " + loc
+		}
+		return name
+	}
+	if loc != "" {
+		return name + ":" + loc
+	}
+	return name
 }
 
 // EnrichedHeading is the section title of the AI enrichments.

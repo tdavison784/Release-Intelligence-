@@ -156,6 +156,43 @@ func TestRoutineCarveouts(t *testing.T) {
 	}
 }
 
+// TestIsSecurityItemAndSecurityIDs pins the shared security predicate (ONE
+// definition: the routine carve-out and the impact builder's
+// impact:security-fix rule both call IsSecurityItem) and the advisory-id
+// extraction the security-fix detail quotes.
+func TestIsSecurityItemAndSecurityIDs(t *testing.T) {
+	positives := []struct {
+		name   string
+		change domain.Change
+	}{
+		{"CVE in title", noteChange("Bump x/crypto to v0.35.0 to fix CVE-2025-22868", "")},
+		{"GHSA in detail", noteChange("Bump x/crypto to v0.35.0", "Fixes GHSA-hcg3-q754-cr77.")},
+		{"CVE in a reference id", noteChange("Bump golang.org/x/net", "",
+			withRefs(domain.Reference{Type: "cve", ID: "CVE-2024-45338"}))},
+		{"security category", noteChange("Bump base image to v3.21", "", securityChange)},
+		{"vulnerability wording", noteChange("Update libxml to v2.13", "Fixes a vulnerability in DTD parsing")},
+	}
+	for _, tc := range positives {
+		if !IsSecurityItem(tc.change) {
+			t.Errorf("%s: IsSecurityItem = false, want true", tc.name)
+		}
+	}
+	if IsSecurityItem(noteChange("Bump golang.org/x/crypto to v0.35.0", "")) {
+		t.Error("a bare bump is not a security item")
+	}
+	ids := SecurityIDs(noteChange("Bump golang-jwt/jwt", "Patches GHSA-mh63-6h87-95cp (CVE-2025-22868 cited in the advisory)",
+		withRefs(domain.Reference{Type: "ghsa", ID: "GHSA-mh63-6h87-95cp"})))
+	want := []string{"GHSA-mh63-6h87-95cp", "CVE-2025-22868"}
+	if len(ids) != len(want) {
+		t.Fatalf("SecurityIDs = %v, want %v", ids, want)
+	}
+	for i := range want {
+		if ids[i] != want[i] {
+			t.Errorf("SecurityIDs[%d] = %q, want %q (deduplicated, first-appearance order)", i, ids[i], want[i])
+		}
+	}
+}
+
 // TestRoutineSummaryShape checks the edge aggregation end to end.
 func TestRoutineSummaryShape(t *testing.T) {
 	from := bare("v1.0.0")

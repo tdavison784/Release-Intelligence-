@@ -484,15 +484,77 @@ func TestKubernetesFindings(t *testing.T) {
 		}
 	}
 	// a cluster outside even the old range is below without the "narrowed
-	// under you" wording
+	// under you" wording — and with the pre-existing exclusion stated: the
+	// source range is known and also excluded 1.25, so the detail must not
+	// imply this upgrade causes the exclusion
 	e := buildReport(t, eb.edge, loadEnv(t, env.Inputs{KubernetesVersion: "1.25"}))
 	fs := findingsByRule(e, RuleKubernetesBelow)
 	if len(fs) != 1 || strings.Contains(fs[0].Detail, "narrowed under you") {
 		t.Errorf("1.25 detail = %q", fs[0].Detail)
 	}
+	if !strings.Contains(fs[0].Detail, "pre-existing") ||
+		!strings.Contains(fs[0].Detail, "also already outside the source release's range") {
+		t.Errorf("pre-existing exclusion must be stated: %q", fs[0].Detail)
+	}
+	if fs[0].Classification != domain.ImpactActionRequired {
+		t.Errorf("pre-existing or not, the upgrade stays blocked: %s", fs[0].Classification)
+	}
 	e = buildReport(t, eb.edge, loadEnv(t, env.Inputs{KubernetesVersion: "1.28"}))
 	if !strings.Contains(findingsByRule(e, RuleKubernetesBelow)[0].Detail, "narrowed under you") {
 		t.Error("1.28 was supported before and is dropped now; detail must say so")
+	}
+	// no From constraint: no pre-existing claim (nothing is known about the
+	// source range)
+	eb2 := newEdge()
+	ev2 := eb2.ev("https://example/compat2.md", "1.29, 1.30, 1.31")
+	eb2.edge.Compatibility = append(eb2.edge.Compatibility, domain.CompatibilityChange{Platform: "kubernetes",
+		To: &domain.CompatibilityConstraint{Platform: "kubernetes", Kind: "supported",
+			Versions: []string{"1.29", "1.30", "1.31"}, Raw: "1.29-1.31",
+			Provenance: domain.Provenance{Method: domain.MethodDeclared, Producer: "normalize.table@v1", Confidence: domain.ConfidenceHigh}, Evidence: []domain.EvidenceID{ev2}}})
+	e2 := buildReport(t, eb2.edge, loadEnv(t, env.Inputs{KubernetesVersion: "1.25"}))
+	if strings.Contains(findingsByRule(e2, RuleKubernetesBelow)[0].Detail, "pre-existing") {
+		t.Error("without a From constraint the pre-existing claim would be invented")
+	}
+}
+
+// TestKubeVersionAdmitsNote: when the chart's kubeVersion admits the cluster
+// while the supported range does not, the detail must reconcile the two —
+// "requires" alone overstates (the reviewers' case); class unchanged.
+func TestKubeVersionAdmitsNote(t *testing.T) {
+	eb := newEdge()
+	eb.constraint("supported", "1.29, 1.30, 1.31")
+	ev := eb.ev("https://example/chart", "kubeVersion: '>= 1.22.0-0'")
+	mk := func() *domain.CompatibilityConstraint {
+		return &domain.CompatibilityConstraint{Platform: "kubernetes", Kind: "chart-kubeVersion",
+			Constraint: ">=1.22.0-0", Raw: ">= 1.22.0-0",
+			Provenance: domain.Provenance{Method: domain.MethodDeclared, Producer: "normalize.helm@v1", Confidence: domain.ConfidenceHigh},
+			Evidence:   []domain.EvidenceID{ev}}
+	}
+	eb.edge.Compatibility = append(eb.edge.Compatibility, domain.CompatibilityChange{Platform: "kubernetes", From: mk(), To: mk()})
+	e := buildReport(t, eb.edge, loadEnv(t, env.Inputs{KubernetesVersion: "1.28"}))
+	below := findingsByRule(e, RuleKubernetesBelow)
+	if len(below) != 1 || below[0].Classification != domain.ImpactActionRequired {
+		t.Fatalf("below findings = %+v (all %+v)", below, e.Findings)
+	}
+	for _, want := range []string{
+		"The chart's kubeVersion constraint itself admits 1.28",
+		"tested-matrix statement",
+		"Helm will not refuse the install",
+	} {
+		if !strings.Contains(below[0].Detail, want) {
+			t.Errorf("detail lacks %q: %q", want, below[0].Detail)
+		}
+	}
+	// and the kubeVersion constraint itself is checked-and-clear
+	if fs := findingsByRule(e, RuleCompatSatisfied); len(fs) != 1 {
+		t.Errorf("compat-satisfied = %+v", fs)
+	}
+	// without a kubeVersion constraint the note must not appear
+	eb2 := newEdge()
+	eb2.constraint("supported", "1.29, 1.30, 1.31")
+	e2 := buildReport(t, eb2.edge, loadEnv(t, env.Inputs{KubernetesVersion: "1.28"}))
+	if strings.Contains(findingsByRule(e2, RuleKubernetesBelow)[0].Detail, "kubeVersion") {
+		t.Error("kubeVersion note invented without a kubeVersion constraint")
 	}
 }
 

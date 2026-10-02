@@ -77,7 +77,14 @@ class for demoted ACTION REQUIRED findings.
 Relevant to the environment — a real, evidenced overlap — while the evidence
 indicates no action is needed ("applies to you, you appear safe": a changed
 default the customer explicitly overrides, a cluster version inside the
-supported range).
+supported range). One shape applies without consulting any environment
+dimension: a security remediation that ships with the target release (the
+`impact:security-fix` rule) reaches every environment that upgrades, so its
+applicability is universal by construction — it cites its upstream evidence
+and states that no environment-specific action is required beyond upgrading.
+A security item that also carries a stronger signal (breaking, or an
+operator directive in the edge) keeps that stronger class and is never
+downgraded to informational.
 
 ### `not-affected` (NOT AFFECTED)
 
@@ -124,6 +131,7 @@ to decide applicability. If a deciding dimension is absent, the verdict is
 | `crd:fields-removed` | `manifests` | field paths are manifest facts |
 | `images:*`, moved image artifacts | `images` | visible when any image-bearing input was supplied (`--images`, `--values`, `--manifests` all yield image facts) |
 | compatibility constraints | `cluster-version` of the constraint's platform | `--kubernetes` supplies the `kubernetes` platform; an unsuppliable platform (e.g. OpenShift today) is always `unknown` |
+| note-derived security remediation (cited CVE/GHSA/advisory, no stronger signal) | none — applies by construction | the fix ships with the target, so every environment that upgrades receives it: AFFECTED as `informational` (`impact:security-fix`) with the upstream chain only; no environment dimension is consulted and none is claimed |
 | note-derived changes (declared/heuristic — no machine-comparable subject) | none | `unknown` by construction: the join cannot evaluate what it cannot compare |
 | computed diff rules without a join rule (e.g. `crd:fields-added`) | none | `unknown` by construction: applicability of an added (possibly required) schema field is not determinable here |
 
@@ -133,7 +141,9 @@ Provenance for every verdict:
   resolving in the report's `evidence`, environment chain resolving in
   `environmentEvidence`) — enforced since phase 2, kept.
 - **`review-required` / `informational`**: both chains likewise (an AFFECTED
-  finding without an environment fact is a contradiction).
+  finding without an environment fact is a contradiction) — the one exception
+  is the `impact:security-fix` rule above, whose universal applicability needs
+  no environment fact, so it carries the upstream chain only.
 - **`not-affected`**: the upstream chain is kept, plus the evaluation record
   (`checks`, with the supplied-input evidence where a direct input record
   exists, e.g. the `--kubernetes` flag).

@@ -61,6 +61,16 @@ const (
 	RuleKubeVersionBlocked = "impact:kubeversion-blocked"
 	// An image the environment references changed between the endpoints.
 	RuleImageChanged = "impact:image-changed"
+	// A note-derived security remediation (the change cites a CVE/GHSA id or
+	// advisory — the same predicate as the routine detector's security
+	// carve-out, upgrade.IsSecurityItem) that ships with the target release
+	// and carries no stronger signal (not breaking, not action-required).
+	// Classified informational with universal applicability: the fix is part
+	// of the target, so every environment that upgrades receives it and no
+	// environment-specific action is required beyond upgrading. The finding
+	// cites its upstream evidence only — no environment dimension is
+	// consulted, and none is claimed (docs/ACTION_CLASSIFICATION.md §5).
+	RuleSecurityFix = "impact:security-fix"
 
 	// --- verdict rules (docs/ACTION_CLASSIFICATION.md) -----------------------
 
@@ -115,6 +125,10 @@ type RenderOptions struct {
 	// ShowNotAffected renders the not-affected section with its evaluation
 	// records; the summary always counts them.
 	ShowNotAffected bool
+	// ShowUnknown lists every UNKNOWN finding instead of the default
+	// collapsed per-reason summary (one line per missing-evidence family
+	// with counts); the funnel and the JSON output always carry everything.
+	ShowUnknown bool
 }
 
 // RenderText writes a human-readable report: the funnel summary, the

@@ -13,7 +13,9 @@ package upgrade
 //   - breaking changes;
 //   - security items — category security (upstream section, product rule or
 //     keyword classification), a cited CVE/GHSA id, or vulnerability wording,
-//     so "Bump golang.org/x/crypto to fix GHSA-…" stays a security change;
+//     so "Bump golang.org/x/crypto to fix GHSA-…" stays a security change
+//     (the predicate is IsSecurityItem, shared with the impact builder's
+//     security-fix rule so the two never disagree);
 //   - items that state an operator directive ("you must", "before upgrading",
 //     "manual migration"), even when a bump pattern also matches;
 //   - items that remove or disable a feature flag (capability removal, not
@@ -118,6 +120,50 @@ var (
 	routineDefaultRe = regexp.MustCompile(`(?i)\bdefaults?\b`)
 )
 
+// IsSecurityItem reports whether a change states security remediation
+// content: the security category (upstream section, product rule or keyword
+// classification), a cited CVE/GHSA identifier, or vulnerability/advisory
+// wording — searched in title, detail and reference ids, so a CVE cited only
+// in a link target still counts. This is the ONE definition of
+// security-relevance: the routine detector's carve-out and the impact
+// builder's security-fix rule (impact:security-fix) both call it, so the two
+// can never disagree about what counts as security content. Deterministic
+// and pure; no product names, no LLM.
+func IsSecurityItem(c domain.Change) bool {
+	if c.Category == domain.CategorySecurity {
+		return true
+	}
+	refs := make([]string, 0, 2*len(c.References))
+	for _, r := range c.References {
+		refs = append(refs, r.Type, r.ID)
+	}
+	head := c.Title + "\n" + c.Detail
+	return routineSecIDRe.MatchString(head) || hasAny(refs, routineSecIDRe) ||
+		routineSecWordRe.MatchString(head) || hasAny(refs, routineSecWordRe)
+}
+
+// SecurityIDs returns the CVE/GHSA identifiers the change cites (title,
+// detail, references), in first-appearance order, deduplicated. The impact
+// builder quotes them in impact:security-fix findings so the advisory ids are
+// visible in the rendered report without opening the JSON.
+func SecurityIDs(c domain.Change) []string {
+	refs := make([]string, 0, 2*len(c.References))
+	for _, r := range c.References {
+		refs = append(refs, r.Type, r.ID)
+	}
+	var out []string
+	seen := map[string]bool{}
+	for _, s := range append([]string{c.Title, c.Detail}, refs...) {
+		for _, id := range routineSecIDRe.FindAllString(s, -1) {
+			if !seen[id] {
+				seen[id] = true
+				out = append(out, id)
+			}
+		}
+	}
+	return out
+}
+
 // routineSigCat reports whether the category marks upgrade-relevant content,
 // so that a housekeeping commit prefix does not wash it out ("chore: deprecate
 // the --redis-compress flag" is a deprecation first).
@@ -143,16 +189,8 @@ func ClassifyRoutine(c domain.Change) (routine bool, kind string) {
 		return false, ""
 	}
 	// Carve-outs first: safety before brevity.
-	if c.Breaking || c.Category == domain.CategorySecurity {
-		return false, ""
-	}
-	refs := make([]string, 0, 2*len(c.References))
-	for _, r := range c.References {
-		refs = append(refs, r.Type, r.ID)
-	}
 	head := c.Title + "\n" + c.Detail
-	if routineSecIDRe.MatchString(head) || hasAny(refs, routineSecIDRe) ||
-		routineSecWordRe.MatchString(head) || hasAny(refs, routineSecWordRe) {
+	if c.Breaking || IsSecurityItem(c) {
 		return false, ""
 	}
 	if c.ActionRequired && routineDirectiveRe.MatchString(head) {

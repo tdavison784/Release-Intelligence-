@@ -278,7 +278,10 @@ type ImpactReport struct {
 // classified, and the class-specific provenance rules hold:
 //
 //   - affected classes (action-required / review-required / informational):
-//     at least one environment match, both chains resolve;
+//     at least one environment match, both chains resolve — except the
+//     impact:security-fix rule, whose informational findings apply to every
+//     environment that upgrades and therefore cite the upstream chain only
+//     (no matches, no environment evidence, no checks);
 //   - action-required: provenance confidence high (low/medium confidence is
 //     demoted to review-required and never validated as ACTION REQUIRED);
 //   - not-affected: no matches, at least one check (the evaluation record);
@@ -355,14 +358,31 @@ func (r *ImpactReport) Validate() error {
 			}
 		}
 		if f.Classification.Affected() {
-			if len(f.Matches) == 0 {
+			// The impact:security-fix rule (defined in internal/impact; the
+			// wire value is pinned by its constant) is the one affected shape
+			// that consults no environment dimension: a security remediation
+			// that ships with the target applies to every environment that
+			// upgrades, so it carries the upstream chain only — and it must
+			// carry no matches (claiming a configuration-specific match would
+			// contradict its universal applicability).
+			securityFix := f.Rule == "impact:security-fix"
+			if securityFix && f.Classification != ImpactInformational {
+				errs = append(errs, fmt.Errorf("finding %s: rule impact:security-fix is informational-only, got %q", f.ID, f.Classification))
+			}
+			if !securityFix && len(f.Matches) == 0 {
 				errs = append(errs, fmt.Errorf("affected finding %s (%q) has no environment match", f.ID, f.Title))
 			}
-			if len(f.EnvironmentEvidence) == 0 {
-				errs = append(errs, fmt.Errorf("finding %s (%q) cites no environment evidence", f.ID, f.Title))
+			if securityFix && len(f.Matches) != 0 {
+				errs = append(errs, fmt.Errorf("security-fix finding %s claims environment matches; its applicability is universal and configuration-independent", f.ID))
 			}
 			if f.Classification == ImpactActionRequired && f.Provenance.Confidence != ConfidenceHigh {
 				errs = append(errs, fmt.Errorf("finding %s: ACTION REQUIRED requires high confidence, got %q (demote to review-required)", f.ID, f.Provenance.Confidence))
+			}
+			if !securityFix && len(f.EnvironmentEvidence) == 0 {
+				errs = append(errs, fmt.Errorf("finding %s (%q) cites no environment evidence", f.ID, f.Title))
+			}
+			if securityFix && len(f.EnvironmentEvidence) != 0 {
+				errs = append(errs, fmt.Errorf("security-fix finding %s cites environment evidence; it consults no environment dimension", f.ID))
 			}
 		} else {
 			if len(f.Matches) != 0 {

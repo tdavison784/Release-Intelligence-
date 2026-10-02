@@ -47,22 +47,41 @@ func TestRenderText(t *testing.T) {
 		"kubernetes 1.31",
 		"values: 2 keys set",
 		"Unknown — insufficient evidence (1)",
-		"missing: no machine-comparable subject",
+		// the collapsed UNKNOWN view: one line per missing-evidence family,
+		// not one block per item
+		"1 × note-derived changes the deterministic join cannot compare",
+		"run -enrich for AI suggestions on these",
+		"1 total — render with --show-unknown to list every item",
+		// inline short-form citations in the why-blocks
+		"evidence: upstream: compat L1-L9 · environment: flag:--kubernetes",
+		"Environment",
+		"kubernetes 1.31",
+		"values: 2 keys set",
 		"Evidence",
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("missing %q in rendered report:\n%s", want, out)
 		}
 	}
-	// no findings section may appear for an empty class, and NOT AFFECTED
-	// appears only in verbose mode
-	for _, absent := range []string{"Review required (", "Not affected ("} {
+	// the collapsed view must not list the raw unknown item
+	for _, absent := range []string{"Review required (", "Not affected (", "missing: no machine-comparable subject"} {
 		if strings.Contains(out, absent) {
-			t.Errorf("empty sections must be omitted:\n%s", out)
+			t.Errorf("must be omitted from the collapsed view:\n%s", out)
 		}
 	}
 	if strings.Contains(out, "\x1b[") {
 		t.Error("colour must be off by default")
+	}
+
+	// --show-unknown lists the items again
+	expanded := rendered(t, RenderOptions{ShowUnknown: true})
+	for _, want := range []string{
+		"Not evaluated for this environment",
+		"missing: no machine-comparable subject",
+	} {
+		if !strings.Contains(expanded, want) {
+			t.Errorf("--show-unknown missing %q:\n%s", want, expanded)
+		}
 	}
 }
 

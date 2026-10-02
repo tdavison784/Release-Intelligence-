@@ -203,6 +203,12 @@ The join runs over the edge's computed diff rules (the `values:*`, `crd:*`,
 changes whose subjects are machine-comparable. Every such change gets a
 verdict; every other change — note-derived (declared/heuristic) — gets an
 explicit UNKNOWN record ("no machine-comparable subject") instead of silence.
+The one exception is a note-derived security remediation (the change cites a
+CVE/GHSA/advisory — the same predicate as the routine detector's security
+carve-out) that ships with the target without a stronger signal (not
+breaking, no operator directive): it classifies `impact:security-fix` ·
+informational · low, because its applicability is universal by construction —
+the fix ships with the upgrade (ACTION_CLASSIFICATION.md §5).
 
 Each join rule declares the environment dimensions that must be supplied to
 decide (values / manifests+CRDs / cluster version / images); a missing

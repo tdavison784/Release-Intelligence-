@@ -35,6 +35,7 @@ func (c *cli) impact(args []string) error {
 	images := fs.String("images", "", "comma-separated image references, or one file listing them (one per line)")
 	policy := fs.String("policy", "", "path policy override: minor-lineage|all")
 	showNotAffected := fs.Bool("show-not-affected", false, "also list the not-affected verdicts with their evaluation records (the summary always counts them)")
+	showUnknown := fs.Bool("show-unknown", false, "list every UNKNOWN finding instead of the collapsed per-reason summary (the summary always counts them; JSON always carries everything)")
 	ef := enrichFlagsFor("impact", fs)
 	pos, err := parse(fs, args)
 	if err != nil {
@@ -88,7 +89,7 @@ func (c *cli) impact(args []string) error {
 	if *output == "json" {
 		return c.writeJSON(rep)
 	}
-	return impact.RenderText(c.out, rep, impact.RenderOptions{Color: isTerminal(c.out), ShowNotAffected: *showNotAffected})
+	return impact.RenderText(c.out, rep, impact.RenderOptions{Color: isTerminal(c.out), ShowNotAffected: *showNotAffected, ShowUnknown: *showUnknown})
 }
 
 // impactEnrich runs the optional AI step over the deterministic report and
