@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f2e545acad90",
+    "candidateId": "sc-f7e1d73d8b1e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterSecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[].value",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "kind": "ClusterSecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ClusterSecretStore resources with fake provider data entries that omit the value field are rejected during validation.",
+        "severity": "high"
+      },
+      "statement": "The spec.provider.fake.data[].value field in ClusterSecretStore v1beta1 is now required; existing resources omitting this field are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9fd85560a485"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:dc355676290bf63f8d4101e95463a69f91e27ca2e756f0f537fb8c0baee9d605",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9fd85560a485",
+        "ev-fa52e4e4e831",
+        "ev-210dbd3942ad",
+        "ev-d98b7e27e53d"
+      ],
+      "generatedAt": "2026-10-02T16:15:58Z",
+      "callId": "b4858133-833a-4637-aa11-40ad08179bff"
+    }
+  }
+}

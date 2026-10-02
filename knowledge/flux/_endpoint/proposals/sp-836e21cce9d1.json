@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-836e21cce9d1",
+    "candidateId": "sc-403cf3c46b63",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "OCIRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "OCIRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "OCIRepository v1beta2 objects that omit status.artifact.digest are rejected by the schema."
+      },
+      "statement": "In the OCIRepository v1beta2 CRD schema, status.artifact.digest is now required, and objects that omit it are rejected."
+    },
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:c5665be2b9fe91d274d6454fb9787b3350c4b6f9094797d0a763df90b6dcf90e",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T20:53:34Z",
+      "callId": "be510f7f-8c07-444a-9076-b7c74c8ef488"
+    }
+  }
+}

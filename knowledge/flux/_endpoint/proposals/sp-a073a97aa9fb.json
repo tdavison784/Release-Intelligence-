@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a073a97aa9fb",
+    "candidateId": "sc-01dac2541bc1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any HelmRepository v1beta2 object (or a status update written by a controller) has status.artifact set without status.artifact.digest; status is written by the controller at runtime and does not appear in static manifests"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "In the source.toolkit.fluxcd.io/v1beta2 HelmRepository schema, status.artifact.digest is now a required field, so the API server rejects objects or status writes that set status.artifact without a digest.",
+        "remediation": "Make sure every client or controller that writes HelmRepository v1beta2 status fills in status.artifact.digest.",
+        "severity": "low"
+      },
+      "statement": "The source.toolkit.fluxcd.io/v1beta2 HelmRepository CRD schema now requires status.artifact.digest, so objects that leave it out are rejected."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6d77dc49d0c4b8a3cbeacb339d902956498156d426ea0e5b578f9933bb7be0a8",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:15:37Z",
+      "callId": "3876a3d8-41cb-49ce-aabc-7bf2bfeb9c46"
+    }
+  }
+}

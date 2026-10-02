@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-45bb458efb41",
+    "candidateId": "sc-01dac2541bc1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "source.toolkit.fluxcd.io",
+              "version": "v1beta2",
+              "kind": "HelmRepository"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.artifact.digest",
+                  "state": "unset"
+                }
+              ],
+              "group": "source.toolkit.fluxcd.io",
+              "version": "v1beta2",
+              "kind": "HelmRepository"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "set"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmRepository v1beta2 resources that omit status.artifact.digest are rejected during creation or updates.",
+        "severity": "high"
+      },
+      "statement": "The field status.artifact.digest is now required in HelmRepository v1beta2 schema; objects omitting it are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:23d2f73b29915cb78a2a1e6c065bef966e227483ab728147447ab16d32723171",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T21:02:00Z",
+      "callId": "7f37f81f-6755-45a6-8b50-23c547ad41ef"
+    }
+  }
+}

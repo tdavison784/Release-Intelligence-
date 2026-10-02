@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2810133124ea",
+    "candidateId": "sc-5996f84cf28b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "experimental.ruler.enable-api"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "ruler.enable-api"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "experimental.ruler.enable-api",
+          "state": "set"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "ruler.enable-api",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Configuration under `experimental.ruler.enable-api` will no longer be honored; the setting must be moved to `ruler.enable-api`.",
+        "severity": "high"
+      },
+      "statement": "The `experimental.ruler.enable-api` configuration option is removed in Loki 3.0.0; users must migrate to `ruler.enable-api` instead."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-8fea3a0e7308"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:71807b13a6f947d24ac3d0bf3f34e6402e823f7ff15fd67c9ab5df6bbe9e2e1e",
+      "inputEvidence": [
+        "ev-8fea3a0e7308"
+      ],
+      "generatedAt": "2026-10-02T16:11:03Z",
+      "callId": "f63ccb5e-384d-4974-a781-a575fa6e3b23"
+    }
+  }
+}

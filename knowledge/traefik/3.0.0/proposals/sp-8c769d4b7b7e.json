@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8c769d4b7b7e",
+    "candidateId": "sc-4b9080e9db9b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "tls.caOptional",
+        "component": "docker"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--providers.docker.tls.caOptional",
+          "state": "set"
+        },
+        "overlap": {
+          "op": "not",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.docker.tls.caOptional",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Docker provider's `tls.caOptional` configuration option has been removed in Traefik v3.0.0 because TLS client authentication is a server-side option."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The evidence states the option is removed and should be removed from configuration, but does not explicitly state what happens if the option remains set (whether it causes upgrade failure, is silently ignored, or generates an error).",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-dac3a3c51ce8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:74bdc9b223a0f4d18cd9d0ce57f2e8c502b35b287bf194bb92c6a129ba739e5d",
+      "inputEvidence": [
+        "ev-dac3a3c51ce8"
+      ],
+      "generatedAt": "2026-10-02T16:18:05Z",
+      "callId": "ce1f0ddc-6226-4614-85fb-5149e7cd69c0"
+    }
+  }
+}

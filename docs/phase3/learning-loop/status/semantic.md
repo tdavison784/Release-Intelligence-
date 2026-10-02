@@ -268,3 +268,19 @@ Uncertainties / for the commander:
 - The 58 haiku refusals cluster on a few typed-constraint shapes (noted under Next); fixing
   them via vocabulary examples is a prompt-version change I did not make unilaterally — it
   would move the ground the just-finished run measured.
+
+## semantic-3 (Claude agent, after the third GLM handoff)
+
+- Reviewed the handoff commits (a46206e, d4cfeb9, 5873b0f). The analyzers were committed verbatim and
+  are correct. The run-record skeleton was accurate except that it called the GLM pairs "the first
+  cross-model measurement" (semantic-2 was); fixed. The "scheduled resume" had not run: no process
+  and no cron entry were found. I resumed it myself with the handoff's `pass3.sh` (correct as written).
+- `semantic-exchange.sh` now stops on an account usage limit instead of failing every remaining
+  request (17fc21b).
+- Run complete: 7 new edges, 573 candidates (51 with release-level rendered evidence), 1 423 proposals
+  (Sonnet 559, Haiku 512, Opus 186, GLM 166), 97 refusals. Claude $57.56; GLM is billed by Z.AI.
+  Committed tree: 1 092 candidates / 2 683 proposals / 0 invalid; eval-reference scan passes.
+- Results replicate semantic-2: cross-model (Opus↔GLM) agreement equals the best same-family pair
+  (change 79 %, consequence 70 %), and free-form subject names remain the bottleneck. Rendered evidence
+  is cited in 57–68 % of proposals where shown; a controlled with/without measurement is the open next
+  step. Full record: `runs/semantic-v3/README.md`.

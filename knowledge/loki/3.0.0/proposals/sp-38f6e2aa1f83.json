@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-38f6e2aa1f83",
+    "candidateId": "sc-da7cf178d59f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--config",
+              "component": "promtail",
+              "state": "unset"
+            },
+            {
+              "op": "image-in-use",
+              "name": "grafana/promtail"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Promtail instances deployed from rpm/deb packages without a custom configuration will use an improved default configuration that reduces CPU consumption when /var/log contains many files."
+      },
+      "statement": "Promtail's default configuration in rpm/deb packages was improved to reduce CPU utilization when many files exist in /var/log."
+    },
+    "undetermined": [
+      "subject",
+      "change"
+    ],
+    "undeterminedReason": "subject: the evidence identifies the component (Promtail) and scope (rpm/deb default config) but does not specify which configuration key or file was changed; change: the evidence describes the purpose (avoid high CPU) and affected scope (rpm/deb packages, /var/log) but does not state what specific configuration value or behavior changed",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-d546fd91b679"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:79d4403c57fa6ab67a45ad2cddccf48026b37c7cb4aff690abb883385bc09ab0",
+      "inputEvidence": [
+        "ev-d546fd91b679"
+      ],
+      "generatedAt": "2026-10-02T16:13:45Z",
+      "callId": "3c9e8101-85ac-431b-bcb9-c487fe92cf1d"
+    }
+  }
+}

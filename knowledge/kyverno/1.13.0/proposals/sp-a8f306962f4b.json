@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a8f306962f4b",
+    "candidateId": "sc-43d7d231eb46",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether Kyverno is upgraded without Helm or with Helm hooks disabled, and whether existing Kyverno custom resources are still stored at a dropped deprecated API version (the evidence's list of affected CRDs is truncated; rendered diffs show v2alpha1 removed from cleanuppolicies, clustercleanuppolicies and policyexceptions)"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Kyverno 1.13 drops deprecated API versions of its managed CRDs. A Helm hook handles the migration automatically, but installs upgraded without Helm or without the Helm hook must migrate existing resources themselves.",
+        "remediation": "If you upgrade without Helm or with Helm hooks disabled, migrate existing Kyverno resources to the served API versions with kube-storage-version-migrator.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 drops deprecated API versions of its managed CRDs. A Helm hook migrates stored resources automatically, but installs upgraded without Helm or without the Helm hook need to migrate existing resources with kube-storage-version-migrator."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-816adf94e987",
+      "ev-d4e66123c4de",
+      "ev-9fdd5d1096ef",
+      "ev-b8120a2bb840"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:243d4579927ce2a96f34a7a69ad9874bfbfd2ff9edb4440ff2b0c5b3282f91b0",
+      "inputEvidence": [
+        "ev-816adf94e987",
+        "ev-d4e66123c4de",
+        "ev-0cc54c6e1585",
+        "ev-9fdd5d1096ef",
+        "ev-238274d981e4",
+        "ev-b8120a2bb840",
+        "ev-08e1559e3c95",
+        "ev-c2e6033ce1d5",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-02T20:56:59Z",
+      "callId": "9bd4fc03-2d2b-42ca-a7da-947b691ee955"
+    }
+  }
+}

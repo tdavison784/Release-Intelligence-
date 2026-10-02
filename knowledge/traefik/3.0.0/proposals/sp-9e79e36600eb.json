@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9e79e36600eb",
+    "candidateId": "sc-9819c3b5051d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.consul.tls.caOptional",
+        "component": "consul"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.consul.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the static configuration file sets providers.consul.tls.caOptional"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The removed `tls.caOptional` option on the Consul provider is no longer supported in v3; it should be removed from the static configuration.",
+        "remediation": "Remove tls.caOptional from the Consul provider static configuration.",
+        "severity": "medium"
+      },
+      "statement": "The Consul provider static option `tls.caOptional` is removed in v3 and should be removed from configuration."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4685c9dd4dac"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6320c26041f493331fb65cd6e74caccd40779dd31e7c2306c3a40bf5797fda27",
+      "inputEvidence": [
+        "ev-4685c9dd4dac"
+      ],
+      "generatedAt": "2026-10-02T21:02:18Z",
+      "callId": "47e8fac1-501b-4703-aa82-c422e7a0eb53"
+    }
+  }
+}

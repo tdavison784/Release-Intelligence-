@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5e32c953ce7f",
+    "candidateId": "sc-b5b05e113509",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "default",
+        "component": "runtime-config"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "operational_config"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Values populated in the runtime config file's `default` block are no longer honoured because the block was removed; defaults must be set in `operational_config`.",
+        "remediation": "Move default values into the top-level `operational_config` in the standard Loki config."
+      },
+      "statement": "The `default` block of the runtime overrides config file (added in 2.9) was removed; set default values in the top-level `operational_config` of the standard Loki config instead."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Runtime config file contents are not visible as a typed input; text says it affects only those with a runtime config file whose `default` block is populated.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0316e25d4611"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ff0e4ba2586d9daf5b4606099d340dc6849dda5f3e417011d3718bb358e41796",
+      "inputEvidence": [
+        "ev-0316e25d4611"
+      ],
+      "generatedAt": "2026-10-02T20:57:37Z",
+      "callId": "8de3f9b2-e62e-43d3-bbde-acb0498921ad"
+    }
+  }
+}

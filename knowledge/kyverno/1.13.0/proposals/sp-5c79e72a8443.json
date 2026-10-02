@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5c79e72a8443",
+    "candidateId": "sc-8076d0a3c442",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Wildcard view permissions have been replaced with a role binding to the system view role; this does not impact policy behaviors during admission controls but may impact users with mutate and generate policies for custom resources and reporting of policy results for validation rules on custom resources. A Helm option is available to upgrade without breaking existing policies.",
+        "remediation": "Review the upgrade guidance documentation for the Helm option that allows upgrading Kyverno without breaking existing policies.",
+        "severity": "medium"
+      },
+      "statement": "Wildcard view permissions in RBAC roles were removed and replaced with a system view role binding in Kyverno 1.13.0; this may impact users with mutate and generate policies or custom resource validation reporting, with a Helm option available to upgrade without breaking policies."
+    },
+    "undetermined": [
+      "subject",
+      "change",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: evidence describes removal of wildcard view permissions and role binding replacement, but does not specify the exact RBAC permission name or which ClusterRole/Role was modified; change: evidence states wildcard view permissions were removed and replaced with system view role binding, but does not specify the before/after permission values or exact nature of the change (removed vs. replaced); applicability: evidence does not provide sufficient detail on which RBAC resources or service accounts are affected, or provide specific permission names to build an exposure condition",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e6df95267b63"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:f56fef04695641d3770fb4dec4d3f87c0e4b67785bb3d56bf555de23ce037f46",
+      "inputEvidence": [
+        "ev-e6df95267b63",
+        "ev-d4e66123c4de",
+        "ev-9fdd5d1096ef",
+        "ev-b8120a2bb840",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-02T16:11:05Z",
+      "callId": "2a411538-becb-4102-875e-012367d2a971"
+    }
+  }
+}

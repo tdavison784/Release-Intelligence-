@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8bf952a14fdb",
+    "candidateId": "sc-159bff8514d4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "SecretStore"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"storage version\"",
+        "after": "\"non-storage version\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "SecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing SecretStore objects stored as v1beta1 must be rewritten and status.storedVersions updated before v1beta1 is removed in a later release.",
+        "remediation": "Run a storage version migration to rewrite all SecretStore objects and update status.storedVersions on the CustomResourceDefinition.",
+        "severity": "high"
+      },
+      "statement": "The storage version of secretstores.external-secrets.io changes from v1beta1 to v1; existing v1beta1 objects remain stored in v1beta1 until rewritten via storage version migration."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47",
+      "ev-a93bb3b1d26d",
+      "ev-d55f4ac0a53f",
+      "ev-10a72c580d6b",
+      "ev-f07fad593227"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:53dc8c1dc117e73d1cce83b65e8fe72e82fee477ce505b254d0fe5f2f48713d8",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-a93bb3b1d26d",
+        "ev-d55f4ac0a53f",
+        "ev-10a72c580d6b",
+        "ev-f07fad593227"
+      ],
+      "generatedAt": "2026-10-02T20:56:11Z",
+      "callId": "fad45634-81d2-448a-8391-a112b3883771"
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a1ee1df82040",
+    "candidateId": "sc-541b56f9cad6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1alpha1",
+        "kind": "PushSecret",
+        "path": "spec.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1alpha1",
+          "kind": "PushSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "PushSecret v1alpha1 resources setting spec.template.engineVersion to \"v1\" are rejected by the API server because that enum value was removed.",
+        "remediation": "Change spec.template.engineVersion to a still-allowed value before upgrading.",
+        "severity": "high"
+      },
+      "statement": "The enum value \"v1\" was removed from spec.template.engineVersion in the PushSecret external-secrets.io/v1alpha1 schema, so PushSecrets using it are rejected by the API server."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:092bd4cd95ceddba1641dfb4a8e1059fea9d2894b5eb1a2f7f94cee933ee0a8a",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-02T20:53:18Z",
+      "callId": "5f194e35-734e-4643-950f-11f8df077add"
+    }
+  }
+}

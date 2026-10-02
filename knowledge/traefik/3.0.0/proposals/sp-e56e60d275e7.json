@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e56e60d275e7",
+    "candidateId": "sc-5dcbbe4e02ea",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "traefik",
+        "group": "traefik.io",
+        "version": "v1alpha1",
+        "kind": "IngressRouteTCP",
+        "path": "spec.routes[].services[].terminationDelay"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "traefik",
+          "group": "traefik.io",
+          "version": "v1alpha1",
+          "kind": "ServersTransportTCP",
+          "path": "spec.terminationDelay"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.routes[].services[].terminationDelay",
+              "state": "set"
+            }
+          ],
+          "group": "traefik.io",
+          "version": "v1alpha1",
+          "kind": "IngressRouteTCP"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The terminationDelay field on IngressRouteTCP services will be ignored; the configuration must be moved to the corresponding TCPServersTransport resource.",
+        "remediation": "Migrate terminationDelay configuration from IngressRouteTCP spec.routes[].services[].terminationDelay to the referenced TCPServersTransport spec.terminationDelay.",
+        "severity": "high"
+      },
+      "statement": "The TCP LoadBalancer terminationDelay option has been removed from IngressRouteTCP service configuration and must now be configured on TCPServersTransport instead."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-d1948f134793"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2b8a9bb527c824814e7a88edcd842f7e237feccb08cbefa97fb4e664bf9b5030",
+      "inputEvidence": [
+        "ev-d1948f134793"
+      ],
+      "generatedAt": "2026-10-02T16:11:27Z",
+      "callId": "cee64f49-c9de-45c7-9cc4-891fc698cb49"
+    }
+  }
+}

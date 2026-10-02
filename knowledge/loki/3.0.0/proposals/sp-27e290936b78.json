@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-27e290936b78",
+    "candidateId": "sc-2d320e39b53a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "limits_config.discover_service_name"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Ingested logs get an automatically assigned service_name label (or unknown_service if no listed label matches) unless a service_label already exists or discover_service_name is set to empty.",
+        "remediation": "Set discover_service_name to an empty value in limits_config to disable, or customize the label list."
+      },
+      "statement": "Loki 3.0 now automatically assigns a service_name label to all ingested logs by default, discovered from a list of labels configurable via limits_config.discover_service_name (empty value disables it)."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b07a4021f30c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:15b5257167c79da4101aa3ea6465d673a3b2fdeb98d873e097aa573b42c89d77",
+      "inputEvidence": [
+        "ev-b07a4021f30c"
+      ],
+      "generatedAt": "2026-10-02T21:01:54Z",
+      "callId": "320fe546-a0e0-4059-94b2-d110b7fa26ee"
+    }
+  }
+}

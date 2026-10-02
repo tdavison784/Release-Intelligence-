@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4f50ec574a33",
+    "candidateId": "sc-43d7d231eb46",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2alpha1",
+              "kind": "CleanupPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2alpha1",
+              "kind": "ClusterCleanupPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2alpha1",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "existing stored CleanupPolicy, ClusterCleanupPolicy or PolicyException objects at the dropped kyverno.io/v2alpha1 storage version, which manifests do not show"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing resources at the dropped kyverno.io/v2alpha1 API versions (CleanupPolicy, ClusterCleanupPolicy, PolicyException) must be migrated: the Helm chart performs this migration automatically through its hook, but installations upgraded without Helm (or without the hook) must migrate existing resources themselves, e.g. via kube-storage-version-migrator.",
+        "remediation": "Upgrade through the Helm chart so its migration hook runs automatically, or run kube-storage-version-migrator to migrate existing resources when upgrading without Helm (or without the hook).",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 drops the deprecated kyverno.io/v2alpha1 API versions of the CleanupPolicy, ClusterCleanupPolicy and PolicyException CRDs, and existing resources at the dropped versions must be migrated — automatically by the Helm chart's migration hook, or via kube-storage-version-migrator when upgrading without Helm (or without the hook)."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-816adf94e987",
+      "ev-d4e66123c4de",
+      "ev-9fdd5d1096ef",
+      "ev-b8120a2bb840"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:7b1828e08540387b67fddecbab9da900b861d9c474ad36b02fd3f089eb993dee",
+      "inputEvidence": [
+        "ev-816adf94e987",
+        "ev-d4e66123c4de",
+        "ev-0cc54c6e1585",
+        "ev-9fdd5d1096ef",
+        "ev-238274d981e4",
+        "ev-b8120a2bb840",
+        "ev-08e1559e3c95",
+        "ev-c2e6033ce1d5",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-02T16:42:39Z",
+      "callId": "8fe6be29-9fce-4c37-be7a-1ae38d12d7ec"
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ce6c15186ca4",
+    "candidateId": "sc-bf284ab1ddb4",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "kind": "SecretStore",
+        "path": "spec.provider.aws.prefix"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.aws",
+              "state": "set"
+            }
+          ],
+          "group": "external-secrets.io",
+          "kind": "SecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence for existing environments: the evidence states only that the field is added, and nothing indicates existing stores or lookups change behavior; the new field is an optional capability an operator may set after upgrading.",
+        "severity": "low"
+      },
+      "statement": "external-secrets 0.16.0 adds a new field spec.provider.aws.prefix to the AWS secrets manager provider on SecretStore (also present on ClusterSecretStore per the target release schemas), giving AWS provider stores a new optional prefix setting."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-61893aebc612"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5bef59736f3b5a88905bf4f6722364d173dff4864d2583bded3a920f16eff2f9",
+      "inputEvidence": [
+        "ev-61893aebc612"
+      ],
+      "generatedAt": "2026-10-02T16:15:19Z",
+      "callId": "51e784ca-03a8-46cd-a53a-975a56b6c3fc"
+    }
+  }
+}

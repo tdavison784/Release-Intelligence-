@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0853079bf53a",
+    "candidateId": "sc-40aecbe6e0b2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "metrics_namespace"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"cortex_*\"",
+        "after": "\"loki_*\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "image-in-use",
+              "name": "grafana/loki"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "metrics_namespace",
+                  "state": "equals",
+                  "values": [
+                    "\"cortex\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "metrics_namespace",
+          "state": "equals",
+          "values": [
+            "\"cortex\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Loki metrics that previously had the `cortex_` prefix will now have the `loki_` prefix by default, requiring updates to metric scrape configurations, dashboards, and alerting rules that reference these metrics by name.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 changes metrics namespace prefix from `cortex_` to `loki_`; the `metrics_namespace` config key can be set to `cortex` to retain the old prefix, but this setting is deprecated and will be removed in the next minor release."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-1f419676f177"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3302a01b32e79126f2e993beed529fec57aeaf7a355890637d16f9ec449747a3",
+      "inputEvidence": [
+        "ev-1f419676f177"
+      ],
+      "generatedAt": "2026-10-02T21:01:13Z",
+      "callId": "8e48570d-553b-43dd-83df-380b53542a17"
+    }
+  }
+}

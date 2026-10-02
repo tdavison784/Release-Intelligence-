@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ef07f781e1f1",
+    "candidateId": "sc-a975e3461f85",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "clustersecretstores-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "external-secrets.io",
+              "kind": "ClusterSecretStore"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.16.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ClusterSecretStore objects stay stored as v1beta1 until they are rewritten. Operators need to run a storage version migration that rewrites all objects, then update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "After upgrading, rewrite all ClusterSecretStore objects so they are stored as v1. Then remove v1beta1 from status.storedVersions on the clustersecretstores.external-secrets.io CRD.",
+        "severity": "medium"
+      },
+      "statement": "From chart 0.15.0 to 0.16.0, the storage version of clustersecretstores.external-secrets.io moves from v1beta1 to v1. Existing ClusterSecretStore objects need a storage version migration and a status.storedVersions update before a later release removes v1beta1."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d55f4ac0a53f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:06d78894d07b707bd1715325e5900261a2f0098ad1a22d6dfd176f0ddee8877a",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-a93bb3b1d26d",
+        "ev-d55f4ac0a53f",
+        "ev-10a72c580d6b",
+        "ev-f07fad593227"
+      ],
+      "generatedAt": "2026-10-02T16:19:31Z",
+      "callId": "d9f5f50a-0eb0-436a-a974-f4d99e3681f6"
+    }
+  }
+}

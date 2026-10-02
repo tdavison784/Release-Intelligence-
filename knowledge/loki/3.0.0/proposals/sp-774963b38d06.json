@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-774963b38d06",
+    "candidateId": "sc-3014cea247c8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "http-error-response-formatting"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"HTTP error response bodies included unwanted newlines\"",
+        "after": "\"HTTP error response bodies do not include unwanted newlines\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "image-in-use",
+              "name": "grafana/loki",
+              "state": "out-of-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "HTTP error response bodies from Loki will no longer include the unwanted newlines that were present in versions prior to 3.0.0, which may affect clients that were adapted to or dependent on the buggy format.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 fixes a regression that was adding newlines to HTTP error response bodies, which broke client integrations."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-ac878fc82910"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:953fe6f7ecfb1854c5de76babefe399997d1f269e1a9ae6205cfeb45b20f57a2",
+      "inputEvidence": [
+        "ev-ac878fc82910"
+      ],
+      "generatedAt": "2026-10-02T16:16:37Z",
+      "callId": "d5f1d89d-86b7-4937-8ff3-deb684a1a40d"
+    }
+  }
+}
