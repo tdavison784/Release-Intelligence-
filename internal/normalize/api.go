@@ -157,6 +157,12 @@ type TableSelector struct {
 	// having at least one of these columns, so an unrelated table that shares
 	// the key column (e.g. a vendor table with a "Release" column) is skipped.
 	ValueColumns []string
+	// Where (records only) keeps the records whose field (case-insensitive
+	// name) matches the regex. Collect (records only) merges every record
+	// passing Where into one synthetic row whose cells are the distinct
+	// values joined with ", "; no key is needed.
+	Where   map[string]*regexp.Regexp
+	Collect bool
 }
 
 // ExtractTableRow returns the first row (across all qualifying tables) whose

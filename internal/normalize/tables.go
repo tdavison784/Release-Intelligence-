@@ -131,6 +131,9 @@ func extractTableRow(md []byte, sel TableSelector) (*TableRow, error) {
 // ---- YAML / JSON records ----------------------------------------------------
 
 func extractRecord(content []byte, sel TableSelector) (*TableRow, error) {
+	if sel.Collect {
+		return collectRecords(content, sel)
+	}
 	if len(sel.KeyColumns) == 0 {
 		return nil, ErrNoMatch
 	}
@@ -172,6 +175,9 @@ func extractRecord(content []byte, sel TableSelector) (*TableRow, error) {
 		if sel.KeyRe != nil && !sel.KeyRe.MatchString(stripMarkdown(key)) {
 			continue
 		}
+		if !recordPasses(headers, cells, sel.Where) {
+			continue
+		}
 		excerpt, _ := yaml.Marshal(rec)
 		return &TableRow{
 			Headers: headers,
@@ -181,6 +187,96 @@ func extractRecord(content []byte, sel TableSelector) (*TableRow, error) {
 		}, nil
 	}
 	return nil, ErrNoMatch
+}
+
+// recordPasses reports whether every Where field of the record matches.
+func recordPasses(headers []string, cells map[string]string, where map[string]*regexp.Regexp) bool {
+	for field, re := range where {
+		matched := false
+		for _, h := range headers {
+			if strings.EqualFold(h, field) {
+				matched = re.MatchString(cells[h])
+				break
+			}
+		}
+		if !matched {
+			return false
+		}
+	}
+	return true
+}
+
+// collectRecords merges every record passing sel.Where into one row: each
+// header's cell is the distinct non-empty values of the passing records,
+// joined with ", " in document order. Only the ValueColumns headers are
+// merged (and quoted in the excerpt), so unrelated bulky fields (checksums)
+// stay out of the evidence. ErrNoMatch when no record qualifies.
+func collectRecords(content []byte, sel TableSelector) (*TableRow, error) {
+	var doc yaml.Node
+	if err := yaml.Unmarshal(content, &doc); err != nil {
+		return nil, fmt.Errorf("normalize: parse records: %w", err)
+	}
+	if len(doc.Content) == 0 {
+		return nil, ErrNoMatch
+	}
+	var (
+		headers []string
+		order   = map[string][]string{}
+		seen    = map[string]map[string]bool{}
+		first   int
+		n       int
+	)
+	for _, rec := range recordNodes(doc.Content[0]) {
+		var hs []string
+		cells := map[string]string{}
+		for i := 0; i+1 < len(rec.Content); i += 2 {
+			k := rec.Content[i].Value
+			hs = append(hs, k)
+			if _, dup := cells[k]; !dup {
+				cells[k] = yamlValueString(rec.Content[i+1])
+			}
+		}
+		if !recordPasses(hs, cells, sel.Where) {
+			continue
+		}
+		if n == 0 {
+			first = rec.Line
+		}
+		n++
+		for _, h := range hs {
+			if len(sel.ValueColumns) > 0 && columnIndex([]string{h}, sel.ValueColumns) < 0 {
+				continue
+			}
+			v := strings.TrimSpace(cells[h])
+			if v == "" {
+				continue
+			}
+			if seen[h] == nil {
+				seen[h] = map[string]bool{}
+				headers = append(headers, h)
+			}
+			if !seen[h][v] {
+				seen[h][v] = true
+				order[h] = append(order[h], v)
+			}
+		}
+	}
+	if n == 0 || len(headers) == 0 {
+		return nil, ErrNoMatch
+	}
+	row := &TableRow{Headers: headers, Cells: map[string]string{}, Line: first}
+	var lines []string
+	for _, h := range headers {
+		row.Cells[h] = strings.Join(order[h], ", ")
+		lines = append(lines, h+": "+row.Cells[h])
+	}
+	row.Excerpt = fmt.Sprintf("%d records", n)
+	for f := range sel.Where {
+		row.Excerpt += " where " + f + " matches"
+		break
+	}
+	row.Excerpt += "\n" + strings.Join(lines, "\n")
+	return row, nil
 }
 
 func resolveAlias(n *yaml.Node) *yaml.Node {
@@ -278,6 +374,7 @@ func compatibilityFromRow(in DocInput, row *TableRow, columns []catalog.ColumnSp
 		if cell == "" {
 			continue
 		}
+		cell = reduceVersions(cell, col.Reduce)
 		if ev == nil {
 			kind := domain.EvidenceDocument
 			if first, _, _ := strings.Cut(row.Excerpt, "\n"); !strings.Contains(first, "|") {
@@ -327,3 +424,31 @@ func findHeader(row *TableRow, names []string) string {
 	}
 	return ""
 }
+
+// reduceVersions coarsens each ", "-separated version of a cell to its
+// "major" or "minor" line, dropping duplicates (order kept). Items that do not
+// start with a numeric major[.minor] are kept untouched.
+func reduceVersions(cell, reduce string) string {
+	if reduce == "" {
+		return cell
+	}
+	var out []string
+	seen := map[string]bool{}
+	for _, item := range strings.Split(cell, ",") {
+		item = strings.TrimSpace(item)
+		if m := reduceRe.FindStringSubmatch(item); m != nil {
+			if reduce == "major" || m[2] == "" {
+				item = m[1]
+			} else {
+				item = m[1] + "." + m[2]
+			}
+		}
+		if item != "" && !seen[item] {
+			seen[item] = true
+			out = append(out, item)
+		}
+	}
+	return strings.Join(out, ", ")
+}
+
+var reduceRe = regexp.MustCompile(`^v?(\d+)(?:\.(\d+))?(?:\.\d+)?(?:[-+].*)?$`)

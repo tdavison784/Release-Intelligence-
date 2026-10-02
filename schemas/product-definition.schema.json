@@ -108,7 +108,8 @@
         "kind": {"enum": ["supported", "tested", "minimum", "maximum"]},
         "headers": {"type": "array", "minItems": 1, "items": {"type": "string"}},
         "separator": {"type": "string"},
-        "part": {"type": "integer", "minimum": 0}
+        "part": {"type": "integer", "minimum": 0},
+        "reduce": {"enum": ["major", "minor"], "description": "coarsen each version of a comma-joined cell to its major/minor line and drop duplicates"}
       }
     },
     "extract": {
@@ -123,11 +124,14 @@
         "keyMatch": {"type": "string"},
         "columns": {"type": "array", "items": {"$ref": "#/$defs/columnSpec"}},
         "tableHeading": {"type": "string"},
-        "labelParagraphs": {"type": "string"}, "listItems": {"type": "boolean", "description": "structural reading: every list item is one item and section prose is its own item, instead of a prose-led section folding its list (docbook/rst conversions always use it)"}
+        "labelParagraphs": {"type": "string"}, "where": {"type": "object", "additionalProperties": {"type": "string"}, "description": "yaml-records: keep records whose field matches the regex"},
+        "collect": {"type": "boolean", "description": "yaml-records: merge every record passing where into one row (cells = distinct values joined with ', '); no key needed"},
+        "listItems": {"type": "boolean", "description": "structural reading: every list item is one item and section prose is its own item, instead of a prose-led section folding its list (docbook/rst conversions always use it)"}
       },
       "allOf": [
         {"if": {"properties": {"type": {"const": "markdown-section"}}}, "then": {"required": ["heading"]}},
-        {"if": {"properties": {"type": {"enum": ["markdown-table", "yaml-records"]}}}, "then": {"required": ["keyColumns", "keyMatch", "columns"]}}
+        {"if": {"properties": {"type": {"enum": ["markdown-table", "yaml-records"]}}, "not": {"required": ["collect"]}}, "then": {"required": ["keyColumns", "keyMatch", "columns"]}},
+        {"if": {"required": ["collect"]}, "then": {"required": ["columns"]}}
       ]
     },
     "classifyRule": {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -374,7 +375,17 @@ func tableSelector(ex catalog.Extract, rc catalog.RenderContext) (normalize.Tabl
 	if err != nil {
 		return normalize.TableSelector{}, pattern, fmt.Errorf("keyMatch: %w", err)
 	}
-	sel := normalize.TableSelector{KeyColumns: ex.KeyColumns, KeyRe: re}
+	sel := normalize.TableSelector{KeyColumns: ex.KeyColumns, KeyRe: re, Collect: ex.Collect}
+	for f, w := range ex.Where {
+		_, wre, err := renderRegex(w, rc)
+		if err != nil {
+			return normalize.TableSelector{}, pattern, fmt.Errorf("where.%s: %w", f, err)
+		}
+		if sel.Where == nil {
+			sel.Where = map[string]*regexp.Regexp{}
+		}
+		sel.Where[f] = wre
+	}
 	for _, c := range ex.Columns {
 		sel.ValueColumns = append(sel.ValueColumns, c.Headers...)
 	}
