@@ -207,6 +207,7 @@
           "$ref": "#/$defs/Representation",
           "description": "Which published form of the artifact these bytes came from: source-tree (a file in the source repository), published-chart-tgz (a chart tarball from a chart repository), published-oci-chart (a chart pulled as an OCI artifact), release-asset (a file attached to a release), http-document (a plain HTTP document) or registry-manifest (an OCI manifest/config). Orthogonal to Provenance.method, which states how knowledge was derived, not from which bytes."
         },
+        "render": {"$ref": "#/$defs/RenderProvenance"},
         "retrievedAt": {
           "type": "string",
           "format": "date-time",
@@ -437,6 +438,20 @@
       },
       "additionalProperties": false
     },
+    "RenderProvenance": {
+      "type": "object",
+      "required": ["scope", "tool", "toolVersion", "chartDigest"],
+      "properties": {
+        "scope": {"$ref": "#/$defs/RenderScope"},
+        "tool": {"type": "string"},
+        "toolVersion": {"type": "string"},
+        "chartDigest": {"type": "string"},
+        "valuesDigest": {"type": "string"},
+        "flags": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "RenderScope": {"type": "string", "enum": ["release", "environment"]},
     "Representation": {
       "type": "string",
       "description": "Which published form of an artifact a fact came from. The same content (chart defaults, CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers rewrite content at packaging time; the representation keeps the two apart. Orthogonal to Provenance.method (how knowledge was derived).",

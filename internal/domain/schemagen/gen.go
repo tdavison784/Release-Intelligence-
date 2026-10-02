@@ -25,6 +25,7 @@ var targets = []target{
 	{"upgrade-edge.schema.json", "https://ri.dev/schemas/upgrade-edge/v1alpha1.json", reflect.TypeOf(domain.UpgradeEdge{})},
 	{"release.schema.json", "https://ri.dev/schemas/release/v1alpha1.json", reflect.TypeOf(domain.Release{})},
 	{"impact-report.schema.json", "https://ri.dev/schemas/impact-report/v1alpha1.json", reflect.TypeOf(domain.ImpactReport{})},
+	{"knowledge-record.schema.json", "https://ri.dev/schemas/knowledge-record/v1alpha1.json", reflect.TypeOf(domain.KnowledgeRecord{})},
 }
 
 var timeType = reflect.TypeOf(time.Time{})

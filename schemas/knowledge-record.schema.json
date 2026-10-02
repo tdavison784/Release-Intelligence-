@@ -1,0 +1,662 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ri.dev/schemas/knowledge-record/v1alpha1.json",
+  "title": "KnowledgeRecord",
+  "description": "One file of the learning loop's knowledge store (knowledge/<product>/<release>/<kind>/<id>.json): exactly one entity — a semantic candidate, a model proposal (AI, never collapsed with other models), a deterministic validation result, a review item, a review decision (human or proxy, labelled) or a verified release-level fact. Cross-record integrity (a fact's per-aspect verification resolves to confirming validations or to decisions by a reviewer of the claimed kind) is checked by domain.ValidateFactBasis in Go. See docs/phase3/learning-loop/DESIGN.md.",
+  "$ref": "#/$defs/KnowledgeRecord",
+  "$defs": {
+    "AIProvenance": {
+      "description": "Provenance of AI output: method is \"ai\" and model, modelVersion, promptVersion, promptDigest, inputEvidence (at least one evidence id) and generatedAt are required, so every enrichment can be traced to the model that answered, the exact prompt and the evidence it was given.",
+      "allOf": [{"$ref": "#/$defs/Provenance"}],
+      "required": ["model", "modelVersion", "promptVersion", "promptDigest", "inputEvidence", "generatedAt"],
+      "properties": {
+        "method": {"const": "ai"},
+        "model": {"minLength": 1},
+        "modelVersion": {"minLength": 1},
+        "promptVersion": {"minLength": 1},
+        "promptDigest": {"minLength": 1},
+        "inputEvidence": {"minItems": 1}
+      }
+    },
+    "Applicability": {
+      "type": "object",
+      "required": ["exposure"],
+      "properties": {
+        "exposure": {"$ref": "#/$defs/Condition"},
+        "overlap": {"$ref": "#/$defs/Condition"}
+      },
+      "additionalProperties": false
+    },
+    "Aspect": {"type": "string", "enum": ["subject", "change", "applicability", "consequence"]},
+    "AspectCheck": {
+      "type": "object",
+      "required": ["aspect", "outcome", "rule"],
+      "properties": {
+        "aspect": {"$ref": "#/$defs/Aspect"},
+        "outcome": {"$ref": "#/$defs/ValidationOutcome"},
+        "rule": {"type": "string"},
+        "detail": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "AspectVerification": {
+      "type": "object",
+      "required": ["aspect", "level", "basis"],
+      "properties": {
+        "aspect": {"$ref": "#/$defs/Aspect"},
+        "level": {"$ref": "#/$defs/VerificationLevel"},
+        "basis": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "CandidateMember": {
+      "type": "object",
+      "required": ["changeId"],
+      "properties": {
+        "changeId": {"type": "string"},
+        "anchor": {"$ref": "#/$defs/ChangeAnchor"},
+        "computed": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "Category": {
+      "type": "string",
+      "enum": [
+        "feature",
+        "bugfix",
+        "deprecation",
+        "removal",
+        "migration",
+        "configuration",
+        "helm-values",
+        "crd-schema",
+        "api",
+        "compatibility",
+        "security",
+        "artifact",
+        "dependency",
+        "other"
+      ]
+    },
+    "ChangeAnchor": {
+      "type": "object",
+      "required": ["statementKeys"],
+      "properties": {
+        "release": {"type": "string"},
+        "evidenceKeys": {"type": "array", "items": {"type": "string"}},
+        "statementKeys": {"type": "array", "items": {"type": "string"}},
+        "changeIds": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "ChangeKind": {
+      "type": "string",
+      "enum": [
+        "added",
+        "removed",
+        "renamed",
+        "default-changed",
+        "value-changed",
+        "behavior-changed",
+        "deprecated",
+        "now-required",
+        "validation-tightened",
+        "requirement-changed",
+        "migration-required"
+      ]
+    },
+    "ChangeSpec": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {"$ref": "#/$defs/ChangeKind"},
+        "before": {"type": "string"},
+        "after": {"type": "string"},
+        "replacedBy": {"$ref": "#/$defs/Subject"}
+      },
+      "additionalProperties": false
+    },
+    "Condition": {
+      "type": "object",
+      "required": ["op"],
+      "properties": {
+        "op": {"$ref": "#/$defs/ConditionOp"},
+        "of": {"type": "array", "items": {"$ref": "#/$defs/Condition"}},
+        "group": {"type": "string"},
+        "version": {"type": "string"},
+        "kind": {"type": "string"},
+        "name": {"type": "string"},
+        "path": {"type": "string"},
+        "component": {"type": "string"},
+        "state": {"$ref": "#/$defs/FieldState"},
+        "values": {"type": "array", "items": {"type": "string"}},
+        "pattern": {"type": "string"},
+        "separator": {"type": "string"},
+        "range": {"type": "string"},
+        "reason": {"$ref": "#/$defs/UnknownReason"},
+        "needed": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "ConditionOp": {
+      "type": "string",
+      "enum": [
+        "all",
+        "any",
+        "not",
+        "resource",
+        "field",
+        "text-line",
+        "ref",
+        "values-key",
+        "gvk-in-use",
+        "image-in-use",
+        "cli-flag",
+        "env-var",
+        "feature-gate",
+        "product-version",
+        "cluster-version",
+        "edge-from-version",
+        "rendered-change",
+        "undecidable"
+      ]
+    },
+    "Confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+    "Consequence": {
+      "type": "object",
+      "required": ["kind", "exposedClass"],
+      "properties": {
+        "kind": {"$ref": "#/$defs/ConsequenceKind"},
+        "exposedClass": {"$ref": "#/$defs/ImpactClass"},
+        "statement": {"type": "string"},
+        "remediation": {"type": "string"},
+        "severity": {"$ref": "#/$defs/ImpactSeverity"}
+      },
+      "additionalProperties": false
+    },
+    "ConsequenceKind": {
+      "type": "string",
+      "enum": [
+        "upgrade-blocked",
+        "resource-rejected",
+        "setting-ignored",
+        "behavior-change",
+        "permission-lost",
+        "workload-failure",
+        "migration-required",
+        "deprecation",
+        "none"
+      ]
+    },
+    "DecisionAction": {"type": "string", "enum": ["accept", "reject", "correct", "need-more-evidence", "defer"]},
+    "DeterministicProvenance": {
+      "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
+      "allOf": [{"$ref": "#/$defs/Provenance"}],
+      "properties": {
+        "method": {"enum": ["declared", "computed", "heuristic"]}
+      },
+      "not": {
+        "anyOf": [
+          {"required": ["model"]},
+          {"required": ["promptDigest"]},
+          {"required": ["inputEvidence"]},
+          {"required": ["generatedAt"]},
+          {"required": ["modelVersion"]},
+          {"required": ["promptVersion"]}
+        ]
+      }
+    },
+    "EnvironmentContext": {
+      "type": "object",
+      "required": ["label"],
+      "properties": {
+        "label": {"type": "string"},
+        "digest": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "Evidence": {
+      "type": "object",
+      "description": "A verifiable pointer to source material supporting a fact or conclusion. `uri` is something a human can open; `locator` narrows it down; `excerpt` and `contentDigest` pin what was read.",
+      "required": ["id", "kind", "uri"],
+      "properties": {
+        "id": {"$ref": "#/$defs/EvidenceID"},
+        "kind": {"$ref": "#/$defs/EvidenceKind"},
+        "sourceId": {
+          "type": "string",
+          "description": "Id of the product-definition source or artifact that produced the evidence."
+        },
+        "uri": {
+          "type": "string",
+          "description": "Location a human or a later run can open to check the claim."
+        },
+        "locator": {
+          "type": "string",
+          "description": "Position within the document, e.g. a line range (\"L120-L131\"), a heading (\"## Breaking Changes\") or a JSONPath (\"$.spec.versions[1]\")."
+        },
+        "excerpt": {"type": "string", "description": "Short verbatim excerpt of the source, truncated."},
+        "contentDigest": {
+          "type": "string",
+          "description": "sha256 of the complete retrieved document, so the exact bytes the conclusion was drawn from can be identified later."
+        },
+        "representation": {
+          "$ref": "#/$defs/Representation",
+          "description": "Which published form of the artifact these bytes came from: source-tree (a file in the source repository), published-chart-tgz (a chart tarball from a chart repository), published-oci-chart (a chart pulled as an OCI artifact), release-asset (a file attached to a release), http-document (a plain HTTP document) or registry-manifest (an OCI manifest/config). Orthogonal to Provenance.method, which states how knowledge was derived, not from which bytes."
+        },
+        "render": {"$ref": "#/$defs/RenderProvenance"},
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the source was fetched (UTC)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "EvidenceID": {
+      "type": "string",
+      "description": "Stable identifier derived from the evidence content (\"ev-\" followed by a short hash)."
+    },
+    "EvidenceKind": {
+      "type": "string",
+      "enum": [
+        "document",
+        "git-ref",
+        "registry",
+        "release-asset",
+        "structured",
+        "advisory",
+        "repo-file",
+        "local-file",
+        "input"
+      ]
+    },
+    "FactStatus": {"type": "string", "enum": ["active", "retracted", "superseded"]},
+    "FeedbackLabel": {
+      "type": "string",
+      "enum": [
+        "accepted",
+        "rejected",
+        "corrected",
+        "insufficient-evidence",
+        "wrong-subject",
+        "wrong-change-type",
+        "wrong-applicability",
+        "wrong-consequence",
+        "wrong-classification",
+        "duplicate"
+      ]
+    },
+    "FieldState": {
+      "type": "string",
+      "enum": [
+        "unset",
+        "set",
+        "equals",
+        "not-equals",
+        "matches",
+        "has-token",
+        "has-token-key",
+        "enabled",
+        "disabled",
+        "in-range",
+        "out-of-range",
+        "exists",
+        "none",
+        "changed",
+        "unchanged",
+        "added",
+        "removed"
+      ]
+    },
+    "ImpactClass": {
+      "type": "string",
+      "enum": ["action-required", "review-required", "informational", "not-affected", "unknown"]
+    },
+    "ImpactSeverity": {"type": "string", "enum": ["critical", "high", "medium", "low"]},
+    "KnowledgeRecord": {
+      "type": "object",
+      "description": "One file of the learning loop's knowledge store (knowledge/<product>/<release>/<kind>/<id>.json): exactly one entity — a semantic candidate, a model proposal (AI, never collapsed with other models), a deterministic validation result, a review item, a review decision (human or proxy, labelled) or a verified release-level fact. Cross-record integrity (a fact's per-aspect verification resolves to confirming validations or to decisions by a reviewer of the claimed kind) is checked by domain.ValidateFactBasis in Go. See docs/phase3/learning-loop/DESIGN.md.",
+      "required": ["schemaVersion", "kind"],
+      "properties": {
+        "schemaVersion": {"type": "string"},
+        "kind": {"$ref": "#/$defs/RecordKind"},
+        "candidate": {"$ref": "#/$defs/SemanticCandidate"},
+        "proposal": {"$ref": "#/$defs/SemanticProposal"},
+        "validation": {"$ref": "#/$defs/ValidationResult"},
+        "reviewItem": {"$ref": "#/$defs/ReviewItem"},
+        "decision": {"$ref": "#/$defs/ReviewDecision"},
+        "fact": {"$ref": "#/$defs/VerifiedFact"}
+      },
+      "additionalProperties": false
+    },
+    "Method": {"type": "string", "enum": ["declared", "computed", "heuristic", "ai"]},
+    "ProductID": {"type": "string"},
+    "ProposalTask": {
+      "type": "string",
+      "enum": ["semantic-mapping", "applicability", "consequence", "relationship", "duplicate", "full"]
+    },
+    "Provenance": {
+      "type": "object",
+      "description": "How a Change, note classification, compatibility constraint or Enrichment was produced. This is the generic shape; documents use DeterministicProvenance where only deterministic methods are allowed (Change.provenance, NoteItem.classification, CompatibilityConstraint.provenance) and AIProvenance for Enrichment.provenance.",
+      "required": ["method", "producer", "confidence"],
+      "properties": {
+        "method": {
+          "$ref": "#/$defs/Method",
+          "description": "How the knowledge was derived. declared: upstream stated it explicitly in a structured or labelled way (an item under a \"Breaking Changes\" heading, a release-note YAML with \"action required\", a published support matrix). computed: deterministic computation over source data (a diff of two values.yaml files or two CRD sets). heuristic: deterministic but pattern-based interpretation (keyword matching such as \"deprecated\" inside a bug-fix bullet); treat with more caution than declared or computed. ai: produced by a language model; only valid on Enrichments."
+        },
+        "producer": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Component and version that produced the record, e.g. \"normalize.notes@v1\"."
+        },
+        "rule": {
+          "type": "string",
+          "description": "Identifier of the rule that fired, e.g. \"section:/breaking/i\"."
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence",
+          "description": "Coarse confidence in the classification."
+        },
+        "model": {
+          "type": "string",
+          "description": "AI only: identifier of the model that answered, as reported by the API response or the exchange response file (never assumed from the request)."
+        },
+        "modelVersion": {
+          "type": "string",
+          "description": "AI only: the most precise version identifier of that model reported with the answer (a pinned snapshot id when the provider reports no separate version)."
+        },
+        "promptVersion": {
+          "type": "string",
+          "description": "AI only: version of the prompt templates, e.g. \"enrich/v1\"; promptDigest pins the exact rendered prompt."
+        },
+        "promptDigest": {
+          "type": "string",
+          "description": "AI only: digest of the exact prompt, so the generation can be reproduced or audited."
+        },
+        "inputEvidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/EvidenceID"},
+          "description": "AI only: ids of the Evidence records the model was given as input."
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "AI only: when the output was generated."
+        }
+      },
+      "additionalProperties": false
+    },
+    "QuestionType": {
+      "type": "string",
+      "enum": [
+        "semantic-mapping",
+        "applicability",
+        "consequence",
+        "classification",
+        "relationship",
+        "duplicate",
+        "evidence-sufficiency"
+      ]
+    },
+    "RecordKind": {
+      "type": "string",
+      "enum": ["candidate", "proposal", "validation", "review-item", "decision", "fact"]
+    },
+    "RenderProvenance": {
+      "type": "object",
+      "required": ["scope", "tool", "toolVersion", "chartDigest"],
+      "properties": {
+        "scope": {"$ref": "#/$defs/RenderScope"},
+        "tool": {"type": "string"},
+        "toolVersion": {"type": "string"},
+        "chartDigest": {"type": "string"},
+        "valuesDigest": {"type": "string"},
+        "flags": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "RenderScope": {"type": "string", "enum": ["release", "environment"]},
+    "Representation": {
+      "type": "string",
+      "description": "Which published form of an artifact a fact came from. The same content (chart defaults, CRDs, metadata) can exist in the source tree and in several artifacts users actually consume, and publishers rewrite content at packaging time; the representation keeps the two apart. Orthogonal to Provenance.method (how knowledge was derived).",
+      "enum": [
+        "source-tree",
+        "published-chart-tgz",
+        "published-oci-chart",
+        "release-asset",
+        "http-document",
+        "registry-manifest"
+      ]
+    },
+    "ReviewDecision": {
+      "type": "object",
+      "required": ["id", "reviewItemId", "action", "reviewer", "reviewerKind", "decidedAt"],
+      "properties": {
+        "id": {"type": "string"},
+        "reviewItemId": {"type": "string"},
+        "action": {"$ref": "#/$defs/DecisionAction"},
+        "labels": {"type": "array", "items": {"$ref": "#/$defs/FeedbackLabel"}},
+        "original": {"$ref": "#/$defs/SemanticAssertion"},
+        "corrected": {"$ref": "#/$defs/SemanticAssertion"},
+        "reviewer": {"type": "string"},
+        "reviewerKind": {"$ref": "#/$defs/ReviewerKind"},
+        "proxyProvenance": {"$ref": "#/$defs/Provenance"},
+        "reason": {"type": "string"},
+        "startedAt": {"type": "string", "format": "date-time"},
+        "decidedAt": {"type": "string", "format": "date-time"},
+        "resultingFact": {"type": "string"},
+        "duplicateOf": {"type": "string"},
+        "batchId": {"type": "string"},
+        "batchSize": {"type": "integer"}
+      },
+      "additionalProperties": false
+    },
+    "ReviewItem": {
+      "type": "object",
+      "required": [
+        "id",
+        "candidateId",
+        "product",
+        "questionType",
+        "question",
+        "proposed",
+        "routing",
+        "status",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "candidateId": {"type": "string"},
+        "product": {"$ref": "#/$defs/ProductID"},
+        "release": {"type": "string"},
+        "questionType": {"$ref": "#/$defs/QuestionType"},
+        "question": {"type": "string"},
+        "proposed": {"$ref": "#/$defs/SemanticAssertion"},
+        "proposals": {"type": "array", "items": {"type": "string"}},
+        "validations": {"type": "array", "items": {"type": "string"}},
+        "routing": {"$ref": "#/$defs/Routing"},
+        "context": {"$ref": "#/$defs/EnvironmentContext"},
+        "status": {"$ref": "#/$defs/ReviewStatus"},
+        "createdAt": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "ReviewPriority": {"type": "string", "enum": ["high", "normal", "low"]},
+    "ReviewStatus": {
+      "type": "string",
+      "enum": ["pending", "needs-evidence", "deferred", "decided", "superseded"]
+    },
+    "ReviewerKind": {"type": "string", "enum": ["human", "proxy"]},
+    "Route": {"type": "string", "enum": ["auto-verify", "review", "missing-evidence"]},
+    "Routing": {
+      "type": "object",
+      "required": ["route", "priority"],
+      "properties": {
+        "route": {"$ref": "#/$defs/Route"},
+        "priority": {"$ref": "#/$defs/ReviewPriority"},
+        "signals": {"type": "array", "items": {"$ref": "#/$defs/RoutingSignal"}}
+      },
+      "additionalProperties": false
+    },
+    "RoutingSignal": {
+      "type": "string",
+      "enum": [
+        "models-agree",
+        "models-disagree",
+        "single-model",
+        "validation-confirmed",
+        "validation-refuted",
+        "all-undetermined",
+        "high-impact"
+      ]
+    },
+    "SemanticAssertion": {
+      "type": "object",
+      "properties": {
+        "subject": {"$ref": "#/$defs/Subject"},
+        "change": {"$ref": "#/$defs/ChangeSpec"},
+        "applicability": {"$ref": "#/$defs/Applicability"},
+        "consequence": {"$ref": "#/$defs/Consequence"},
+        "statement": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "SemanticCandidate": {
+      "type": "object",
+      "required": [
+        "id",
+        "product",
+        "members",
+        "grouping",
+        "category",
+        "title",
+        "evidence",
+        "producer",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "product": {"$ref": "#/$defs/ProductID"},
+        "release": {"type": "string"},
+        "members": {"type": "array", "items": {"$ref": "#/$defs/CandidateMember"}},
+        "grouping": {"type": "string"},
+        "category": {"$ref": "#/$defs/Category"},
+        "title": {"type": "string"},
+        "text": {"type": "string"},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "hints": {"type": "array", "items": {"type": "string"}},
+        "producer": {"type": "string"},
+        "createdAt": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "SemanticProposal": {
+      "type": "object",
+      "required": ["id", "candidateId", "task", "provider", "assertion", "provenance"],
+      "properties": {
+        "id": {"type": "string"},
+        "candidateId": {"type": "string"},
+        "task": {"$ref": "#/$defs/ProposalTask"},
+        "provider": {"type": "string"},
+        "assertion": {"$ref": "#/$defs/SemanticAssertion"},
+        "undetermined": {"type": "array", "items": {"$ref": "#/$defs/Aspect"}},
+        "undeterminedReason": {"type": "string"},
+        "duplicateOf": {"type": "string"},
+        "suggestedClass": {"$ref": "#/$defs/ImpactClass"},
+        "citations": {"type": "array", "items": {"$ref": "#/$defs/EvidenceID"}},
+        "provenance": {"$ref": "#/$defs/Provenance"}
+      },
+      "additionalProperties": false
+    },
+    "Subject": {
+      "type": "object",
+      "required": ["family", "product"],
+      "properties": {
+        "family": {"$ref": "#/$defs/SubjectFamily"},
+        "product": {"$ref": "#/$defs/ProductID"},
+        "group": {"type": "string"},
+        "version": {"type": "string"},
+        "kind": {"type": "string"},
+        "path": {"type": "string"},
+        "name": {"type": "string"},
+        "component": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "SubjectFamily": {
+      "type": "string",
+      "enum": [
+        "crd-field",
+        "helm-value",
+        "gvk",
+        "feature-gate",
+        "image",
+        "config-key",
+        "rbac-permission",
+        "cli-flag",
+        "env-var",
+        "compatibility-boundary",
+        "api-endpoint",
+        "protocol-behavior",
+        "terraform-attribute",
+        "product-relationship",
+        "migration"
+      ]
+    },
+    "UnknownReason": {
+      "type": "string",
+      "enum": [
+        "release-knowledge-gap",
+        "environment-visibility-gap",
+        "cross-product-context-gap",
+        "runtime-behavior-gap",
+        "evidence-gap",
+        "semantic-ambiguity"
+      ]
+    },
+    "ValidationOutcome": {"type": "string", "enum": ["confirmed", "refuted", "inconclusive"]},
+    "ValidationResult": {
+      "type": "object",
+      "required": ["id", "candidateId", "validator", "assertion", "checks", "checkedAt"],
+      "properties": {
+        "id": {"type": "string"},
+        "candidateId": {"type": "string"},
+        "proposalId": {"type": "string"},
+        "validator": {"type": "string"},
+        "assertion": {"$ref": "#/$defs/SemanticAssertion"},
+        "checks": {"type": "array", "items": {"$ref": "#/$defs/AspectCheck"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "checkedAt": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    },
+    "VerificationLevel": {"type": "string", "enum": ["deterministic", "human", "proxy"]},
+    "VerifiedFact": {
+      "type": "object",
+      "required": [
+        "id",
+        "product",
+        "candidates",
+        "assertion",
+        "verification",
+        "evidence",
+        "status",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {"type": "string"},
+        "product": {"$ref": "#/$defs/ProductID"},
+        "release": {"type": "string"},
+        "anchors": {"type": "array", "items": {"$ref": "#/$defs/ChangeAnchor"}},
+        "candidates": {"type": "array", "items": {"type": "string"}},
+        "assertion": {"$ref": "#/$defs/SemanticAssertion"},
+        "verification": {"type": "array", "items": {"$ref": "#/$defs/AspectVerification"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/Evidence"}},
+        "status": {"$ref": "#/$defs/FactStatus"},
+        "supersedes": {"type": "array", "items": {"type": "string"}},
+        "createdAt": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

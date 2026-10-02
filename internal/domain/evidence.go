@@ -42,7 +42,11 @@ type Evidence struct {
 	// came from (source-tree, published-chart-tgz, ...); see Representation.
 	// Empty on evidence whose origin the pipeline does not classify.
 	Representation Representation `json:"representation,omitempty"`
-	RetrievedAt    time.Time      `json:"retrievedAt,omitzero"`
+	// Render is set on evidence that cites a field of a rendered manifest
+	// (the template file is the URI/locator): how the render was produced.
+	// Environment-scoped renders never enter knowledge/ (semantic.go).
+	Render      *RenderProvenance `json:"render,omitempty"`
+	RetrievedAt time.Time         `json:"retrievedAt,omitzero"`
 }
 
 // MaxExcerpt bounds stored excerpts.

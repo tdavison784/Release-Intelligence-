@@ -86,12 +86,34 @@ var enums = []enumSet{
 	enumOf(domain.SeverityCritical, domain.SeverityHigh, domain.SeverityMedium, domain.SeverityLow),
 	enumOf(
 		domain.DimensionValues, domain.DimensionManifests, domain.DimensionCRDs,
-		domain.DimensionImages, domain.DimensionCluster,
+		domain.DimensionImages, domain.DimensionCluster, domain.DimensionProducts,
 	),
 	enumOf(
 		domain.MatchValuesKey, domain.MatchAPIVersion, domain.MatchCRD, domain.MatchCRDVersion,
 		domain.MatchManifestField, domain.MatchImage, domain.MatchKubernetes,
 	),
+	// --- semantic knowledge (internal/domain/semantic.go) ---
+	enumOf(domain.SubjectFamilies...),
+	enumOf(domain.ChangeKinds...),
+	enumOf(domain.ConditionOps...),
+	enumOf(domain.FieldStates...),
+	enumOf(domain.ConsequenceKinds...),
+	enumOf(domain.Aspects...),
+	enumOf(domain.UnknownReasons...),
+	enumOf(domain.VerificationLevels...),
+	enumOf(domain.ReviewerHuman, domain.ReviewerProxy),
+	enumOf(domain.ProposalTasks...),
+	enumOf(domain.OutcomeConfirmed, domain.OutcomeRefuted, domain.OutcomeInconclusive),
+	enumOf(domain.QuestionTypes...),
+	enumOf(domain.ReviewPending, domain.ReviewNeedsEvidence, domain.ReviewDeferred, domain.ReviewDecided, domain.ReviewSuperseded),
+	enumOf(domain.RouteAutoVerify, domain.RouteReview, domain.RouteMissingEvidence),
+	enumOf(domain.PriorityHigh, domain.PriorityNormal, domain.PriorityLow),
+	enumOf(domain.RoutingSignals...),
+	enumOf(domain.ActionAccept, domain.ActionReject, domain.ActionCorrect, domain.ActionNeedMoreEvidence, domain.ActionDefer),
+	enumOf(domain.FeedbackLabels...),
+	enumOf(domain.FactActive, domain.FactRetracted, domain.FactSuperseded),
+	enumOf(domain.RenderRelease, domain.RenderEnvironment),
+	enumOf(domain.RecordCandidate, domain.RecordProposal, domain.RecordValidation, domain.RecordReviewItem, domain.RecordDecision, domain.RecordFact),
 }
 
 // notSerialised names typed-constant sets that never appear in the JSON
@@ -227,6 +249,19 @@ func impactClassRules() []any {
 		o("if", classIs(domain.ImpactUnknown),
 			"then", o("required", []string{"neededToDetermine"},
 				"properties", o("neededToDetermine", o("minItems", 1), "matches", o("maxItems", 0)))),
+		// unknownReason is unknown-only
+		o("if", o("required", []string{"unknownReason"}),
+			"then", classIs(domain.ImpactUnknown)),
+		// the trust ladder (docs/phase3/learning-loop/DESIGN.md §4): a finding
+		// evaluated from verified knowledge reaches action-required or
+		// not-affected only from a trusted (deterministic/human) fact
+		o("if", o("allOf", all(classIs(domain.ImpactActionRequired, domain.ImpactNotAffected), o("required", []string{"knowledge"}))),
+			"then", o("properties", o("knowledge", o("properties", o("verification",
+				o("enum", []any{string(domain.VerifiedDeterministic), string(domain.VerifiedHuman)})))))),
+		// knowledge is carried exactly by impact:knowledge-* rules
+		o("if", o("required", []string{"knowledge"}),
+			"then", ruleIs(o("pattern", "^"+domain.KnowledgeRulePrefix)),
+			"else", ruleIs(o("not", o("pattern", "^"+domain.KnowledgeRulePrefix)))),
 	}
 }
 
@@ -270,6 +305,11 @@ var descriptions = map[string]string{
 		"optional AI enrichments, which are kept apart from changes. Referential integrity (every " +
 		"evidence/fact id resolves within this document, from < to) is checked by " +
 		"domain.UpgradeEdge.Validate() in Go and cannot be expressed in JSON Schema.",
+	"KnowledgeRecord": "One file of the learning loop's knowledge store (knowledge/<product>/<release>/<kind>/<id>.json): " +
+		"exactly one entity — a semantic candidate, a model proposal (AI, never collapsed with other models), a deterministic " +
+		"validation result, a review item, a review decision (human or proxy, labelled) or a verified release-level fact. " +
+		"Cross-record integrity (a fact's per-aspect verification resolves to confirming validations or to decisions by a " +
+		"reviewer of the claimed kind) is checked by domain.ValidateFactBasis in Go. See docs/phase3/learning-loop/DESIGN.md.",
 	"Release": "Everything deterministically known about one product release, as produced by ingestion " +
 		"from the sources of a product definition. UpgradeEdges are computed from Releases. Contains no AI output.",
 
@@ -319,6 +359,8 @@ var descriptions = map[string]string{
 	"ImpactReport.enrichmentRun":    "Present when impact enrichment was attempted: how the AI enrichments were produced and what the validator rejected.",
 	"ImpactReport.generatedAt":      "When the report was built (UTC).",
 	"ImpactReport.definitionDigest": "Digest of the product definition revision the underlying edge was built from.",
+	"KnowledgeRef":                  "The verified fact a knowledge finding (rule impact:knowledge-*) was evaluated from, and the fact's verification level (its weakest aspect). Proxy-verified facts never yield action-required or not-affected.",
+	"ImpactFinding.unknownReason":   "Why an unknown finding is unknown: release-knowledge-gap, environment-visibility-gap, cross-product-context-gap, runtime-behavior-gap, evidence-gap or semantic-ambiguity (docs/phase3/learning-loop/DESIGN.md §1.5). Unknown-only.",
 	"ImpactFinding": "One deterministic verdict of the applicability engine: an upstream change (or compatibility " +
 		"constraint, or moved image artifact) met the environment — or could not be evaluated. Affected classes " +
 		"(action-required / review-required / informational) cite both evidence chains; not-affected carries the " +
