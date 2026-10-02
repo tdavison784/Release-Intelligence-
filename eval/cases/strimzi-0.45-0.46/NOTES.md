@@ -36,3 +36,11 @@ sections exist on N.M.0 releases).
   consistent with E2) and adds 045-Crd-kafkanodepool.yaml. F3 now EXPECTS
   the crd-removed finding. A lesson recorded for the protocol: even
   "obviously unchanged" CRD sets must be diffed before asserting absence.
+
+## Semantic labels and corrections (2026-10-01, groundtruth lane)
+
+Authored blind from the upstream sources above (no pipeline output read); corrections are listed with before/after values in eval/CHANGELOG.md.
+
+- E5 re-grounded (D10): kafka-versions.yaml at 0.45.0 makes 3.9.0 the default, so the Kafka CR without `spec.kafka.version` runs 3.9.0 brokers; the exposure is the KafkaMirrorMaker2's `spec.version: 3.8.0`. The description and inventory were corrected accordingly (two kafka entries: brokers 3.9.0, MirrorMaker 2 3.8.0).
+- E6 corrected to not-affected (D3): no `spec.kafka.authorization` in the fixture.
+- E5 is a `compatibility-boundary` on the operand `kafka` (`requirement-changed` from `>=3.8.0, <=3.9.0` to `>=3.9.0, <=4.0.0`); the canonical cluster-version exposure does not apply to an operand, so the exposure reads the CR version fields.

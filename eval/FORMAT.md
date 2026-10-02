@@ -251,7 +251,11 @@ pipeline output.
 ## Expected classifications (G9)
 
 `expected[].classification` states the class a correct system should output
-for the item (five-class vocabulary: `action-required`, `review-required`,
+for the item (in a case with an environment, the class for THAT environment —
+the scorer compares it with the class observed there, so a linked item's
+classification matches its link: action-required ↔ action-required, review ↔
+review-required, informational ↔ informational, not-affected ↔ not-affected,
+undecidedImpact ↔ unknown; transfer cases do not score item classes) (five-class vocabulary: `action-required`, `review-required`,
 `informational`, `not-affected`, `unknown`). It is optional — cases predating
 it score on presence only — but new cases should declare it whenever the
 fixture can defend the claim. `notExpected[].classification` and

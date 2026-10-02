@@ -15,7 +15,7 @@ expected:
     kind: behaviour-change
     importance: important
     actionRequired: false       # consciously review: verifiers that reject the stronger hashes would break at rotation
-    classification: review-required   # the guide says "worth bearing in mind if you start to see errors"; applicability depends on the verifier landscape
+    classification: unknown           # corrected 2026-10-01 from review-required (eval/CHANGELOG.md): the hash follows the signing CA key, which this fixture does not show (the link is undecided)
     match:
       - text: '(?i)SHA-?384|SHA-?512|hash algorithm'
       - text: '(?i)RSA Certificate Compliance|RSA certificates with keys'
@@ -24,18 +24,34 @@ expected:
         quote: "RSA certificates with keys of length 3072 or 4096 will now use SHA-384 or SHA-512 respectively as hash algorithms."
       - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md
         quote: "In v1.17.0, cert-manager will choose a hash algorithm based on the RSA key length: 3072-bit keys will use SHA-384, and 4096-bit keys will use SHA-512."
+    semantics:
+      subject: {family: protocol-behavior, product: cert-manager, name: rsa-signature-hash-by-signer-key-size, component: ca-and-selfsigned-issuers}
+      change: {type: behavior-changed, before: '"SHA-256"', after: '"SHA-384 for 3072-bit, SHA-512 for >=4096-bit RSA signer keys"'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: certificates signed by a CA or SelfSigned issuer whose RSA key is 3072/4096+ bits carry SHA-384/SHA-512 signatures after re-issuance; verifiers that only accept SHA-256 reject them.
+      note: the hash is decided by the SIGNER's key (cert-manager PR 7368), i.e. the CA key for CA issuers, the certificate's own key for SelfSigned
   # Change type covered: feature-gate deprecation with a removal scheduled.
   - id: E2
     title: ValidateCAA feature gate deprecated; removed in v1.18 — stop enabling it
     kind: deprecation
     importance: important
     actionRequired: true        # operators who enable it must stop before 1.18
-    classification: action-required   # if the operator enables the gate, stopping is mandatory work
+    classification: review-required   # corrected 2026-10-01 (eval/CHANGELOG.md): the gate still works in v1.17 and becomes a no-op (no crash) in v1.18; upstream says "advisable to stop"
     match:
       - text: '(?i)ValidateCAA'
     evidence:
       - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md
         quote: "The `ValidateCAA` feature gate has been deprecated and will be removed in cert-manager v1.18. If you're manually enabling this feature gate, it's advisable to stop."
+    semantics:
+      subject: {family: feature-gate, product: cert-manager, name: ValidateCAA, component: cert-manager-controller}
+      change: {type: deprecated}
+      consequence:
+        kind: deprecation
+        exposedClass: review-required
+        statement: the gate still works in v1.17; v1.18 removes it (it becomes a logged no-op), so CAA checking silently stops then.
+        remediation: stop enabling ValidateCAA before upgrading to v1.18
   # Change type covered: new default-on behaviour via feature-gate promotion.
   - id: E3
     title: NameConstraints and UseDomainQualifiedFinalizer feature gates promoted to beta and enabled by default
@@ -49,6 +65,13 @@ expected:
     evidence:
       - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md
         quote: "In cert-manager v1.17, two feature gates have been promoted to \"beta\", and as such are now enabled by default in all installations: `NameConstraints` … `UseDomainQualifiedFinalizer`"
+    semantics:
+      - subject: {family: feature-gate, product: cert-manager, name: NameConstraints, component: cert-manager-controller}
+        change: {type: default-changed, before: '"false"', after: '"true"'}
+        consequence: {kind: none, exposedClass: informational, statement: the nameConstraints field of CA Certificates is honoured by default}
+      - subject: {family: feature-gate, product: cert-manager, name: UseDomainQualifiedFinalizer, component: cert-manager-controller}
+        change: {type: default-changed, before: '"false"', after: '"true"'}
+        consequence: {kind: none, exposedClass: informational, statement: ACME resources get the acme.cert-manager.io/finalizer finalizer instead of finalizer.acme.cert-manager.io}
   # Change type covered: CRD field addition (new Certificate API field).
   - id: E4
     title: Certificate keystores gain literal password fields (jks/pkcs12 create supports password alongside passwordSecretRef, mutually exclusive)
@@ -62,6 +85,13 @@ expected:
     evidence:
       - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md
         quote: "In cert-manager v1.17, it's now possible to set a keystore password using a literal string value inside the `Certificate` resource itself … The new `password` field is mutually exclusive with the `passwordSecretRef` field"
+    semantics:
+      - subject: {family: crd-field, product: cert-manager, group: cert-manager.io, kind: Certificate, path: spec.keystores.pkcs12.password}
+        change: {type: added}
+        consequence: {kind: none, exposedClass: informational}
+      - subject: {family: crd-field, product: cert-manager, group: cert-manager.io, kind: Certificate, path: spec.keystores.jks.password}
+        change: {type: added}
+        consequence: {kind: none, exposedClass: informational}
   # Change type covered: operational-behaviour change (log formats).
   - id: E5
     title: Log lines across cert-manager gained structured context — literal string matching on logs may break
@@ -74,6 +104,10 @@ expected:
     evidence:
       - url: https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.16-1.17.md
         quote: "Log messages across cert-manager have been augmented with better contextual structured data. If you were matching on literal strings in log lines, it's possible that may break."
+    semantics:
+      subject: {family: protocol-behavior, product: cert-manager, name: log-message-format}
+      change: {type: behavior-changed}
+      consequence: {kind: none, exposedClass: informational, statement: log lines carry additional structured context; only literal-string log matching is affected}
 notExpected:
   - title: dependency bumps in test-only or build-only paths
     match: [{text: '(?i)bump .* in /(test|hack)'}]
@@ -88,15 +122,40 @@ environment:
     4096-bit RSA certificates consumed by a strict verifier appliance.
   kubernetes: "1.29"
   expectedImpact:
-    - expected: E1
-      relevance: review        # the fixture's CA issues 4096-bit RSA certificates; signatures switch to SHA-512 at rotation
-      why: the environment issues 4096-bit RSA certificates, so every rotation changes the signature hash; the verifier appliance must accept it
     - expected: E2
-      relevance: action-required
-      why: the values file enables ValidateCAA, which v1.18 removes; the operator must stop relying on it during this upgrade
+      relevance: review        # corrected 2026-10-01 from action-required (eval/CHANGELOG.md)
+      why: the values file enables ValidateCAA, which is deprecated in v1.17 (still functional) and becomes a no-op in v1.18; the operator should plan to stop relying on CAA checking
+      exposure: {op: feature-gate, name: ValidateCAA, state: enabled, path: featureGates}
+      environmentEvidence: values.yaml#L2
     - expected: E3
       relevance: informational
       why: the gates turn on by default; NameConstraints only matters when the fixture uses it (it does not set name constraints)
+      exposure:
+        op: any
+        of:
+          - {op: feature-gate, name: NameConstraints, state: unset, path: featureGates}
+          - {op: feature-gate, name: UseDomainQualifiedFinalizer, state: unset, path: featureGates}
+      environmentEvidence: values.yaml#L2
+  undecidedImpact:             # corrected 2026-10-01 from expectedImpact relevance review (eval/CHANGELOG.md)
+    - expected: E1
+      reason: environment-visibility-gap
+      needed: the RSA key size of the internal-ca issuer's signing key (Secret internal-ca-key, or the Certificate that issues it); the hash follows the signer's key, not the leaf's
+      why: the 4096-bit payments-api leaf is signed by the CA issuer internal-ca, whose key size the fixture does not show; upstream (cert-manager PR 7368) chooses the hash from the signer's key, so the leaf's own key size does not decide the link
+      exposure:
+        op: any
+        of:
+          - op: resource
+            group: cert-manager.io
+            kind: Certificate
+            of:
+              - {op: field, path: spec.privateKey.algorithm, state: equals, values: ['"RSA"']}
+              - {op: field, path: spec.privateKey.size, state: equals, values: ['3072', '4096', '8192']}
+              - {op: ref, path: spec.issuerRef, of: [{op: field, path: spec.selfSigned, state: set}]}
+          - op: all
+            of:
+              - {op: resource, group: cert-manager.io, kind: Certificate, of: [{op: ref, path: spec.issuerRef, of: [{op: field, path: spec.ca, state: set}]}]}
+              - {op: undecidable, reason: environment-visibility-gap, needed: RSA key size of the CA issuer's signing key (spec.ca.secretName Secret)}
+      environmentEvidence: [manifests/internal-ca.yaml#L1-L7, manifests/internal-ca.yaml#L11-L25]
   expectedFindings:
     - id: F1
       match:

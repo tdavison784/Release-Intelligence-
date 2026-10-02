@@ -43,3 +43,11 @@ Researched blind (no Release Intelligence output consulted) on 2026-10-01.
 - notExpectedFindings: cert-manager v1.18.0 still ships every CRD v1.17.0
   shipped (checked against the two chart values/CRD trees), so a
   crd-removed finding would be a false positive.
+
+## Semantic labels and corrections (2026-10-01, groundtruth lane)
+
+Authored blind from the upstream sources above (no pipeline output read); corrections are listed with before/after values in eval/CHANGELOG.md.
+
+- E1/E2 use the canonical crd-field default-changed shape (exposure: a Certificate leaves the field unset; overlap: sets it).
+- E3 is a `product-relationship` to ingress-nginx with `requirement-changed`; the required range is the default-configuration window from the 1.18 release notes ("resolved in ingress-nginx versions v1.13.2 and v1.12.6"). The exposure also names the two documented workarounds (the ACMEHTTP01IngressPathTypeExact gate disabled; strict-validate-path-type false in ingress-nginx's ConfigMap) and requires an HTTP01 ingress solver on an Issuer/ClusterIssuer (the fixture's ClusterIssuer, lines 23–36 — the solvers on the Certificate are not valid Certificate fields, D14).
+- E4 (OperatorHub) is labelled as a `migration` subject: OLM-managed installs must move to Helm or static manifests.

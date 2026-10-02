@@ -79,9 +79,11 @@ in prose.
   inside `resource` (or `ref`). `text-line` = a line regex over embedded text at a values-style path such
   as `data["config.yaml"]` with state `exists`/`none`. `[]` marks list elements in paths
   (`spec.containers[].args`).
-- Relevance vs class: the link's `relevance` is the ground truth for THIS environment
-  (action-required | review | informational | not-affected); it need not equal the item's generic
-  `classification` (explain differences in `why`/NOTES).
+- Relevance vs class: the scorer compares an item's `classification` with the class the engine outputs
+  in THIS case's environment. So for every linked item, `classification` must match the link:
+  action-required→action-required, review→review-required, informational→informational,
+  not-affected→not-affected, undecidedImpact→unknown. Unlinked items keep their generic class. Note the
+  generic reading in a comment/NOTES when it differs.
 
 ## Validate
 
