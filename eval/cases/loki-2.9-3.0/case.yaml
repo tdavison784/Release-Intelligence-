@@ -1,0 +1,624 @@
+id: loki-2.9-3.0
+product: loki
+from: v2.9.6               # the release the 3.0.0 CHANGELOG section compares against (v2.9.6...v3.0.0)
+to: v3.0.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+  - https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md
+  - https://github.com/grafana/loki/blob/main/docs/sources/release-notes/v3-0.md
+  - https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md
+  - https://github.com/grafana/loki/blob/v2.9.6/docs/sources/configure/_index.md
+  - https://github.com/grafana/loki/blob/v3.0.0/docs/sources/configure/_index.md
+  - https://github.com/grafana/loki/blob/v2.9.6/docs/sources/reference/api.md
+  - https://github.com/grafana/loki/blob/v3.0.0/pkg/loki/validation.go
+  - https://github.com/grafana/loki/blob/v3.0.0/pkg/loki/loki.go
+  - https://github.com/grafana/loki/blob/v2.9.6/pkg/loki/loki.go
+  - https://github.com/grafana/loki/blob/v3.0.0/pkg/compactor/compactor.go
+  - https://github.com/grafana/loki/blob/v3.0.0/pkg/util/cfg/dynamic.go
+  - https://github.com/grafana/loki/blob/v3.0.0/pkg/util/cfg/files.go
+  - https://github.com/grafana/loki/pull/10793
+  - https://github.com/grafana/loki/issues/12529
+  - https://github.com/grafana/loki/issues/12506
+expected:
+  - id: E1
+    title: Structured metadata is enabled by default and requires the tsdb index and schema v13, or Loki will not start
+    kind: breaking
+    importance: critical
+    actionRequired: true       # migrate the active period to tsdb + v13 first, or set allow_structured_metadata: false
+    classification: action-required
+    match:
+      - text: '(?i)structured.metadata.*(tsdb|v13)|(tsdb|v13).*structured.metadata'
+      - text: '(?i)allow.structured.metadata'
+      - text: '(?i)Structured Metadata, Open Telemetry, Schemas and Indexes'
+    evidence:
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'Structured metadata is enabled by default and requires `tsdb` and `v13` schema or Loki won''t start.'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'Structured Metadata is enabled by default in Loki 3.0, however, it requires your active schema be using both the `tsdb` index type AND the `v13` storage schema.'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'This can be done by setting `allow_structured_metadata: false` in the `limits_config` section or set the command line argument `-validation.allow-structured-metadata=false`.'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/pkg/loki/validation.go
+        quote: 'CONFIG ERROR: schema v13 is required to store Structured Metadata and use native OTLP ingestion, your schema version is %s.'
+      - url: https://github.com/grafana/loki/blob/v2.9.6/docs/sources/configure/_index.md
+        quote: '[allow_structured_metadata: <boolean> | default = false]'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/configure/_index.md
+        quote: '[allow_structured_metadata: <boolean> | default = true]'
+    references:
+      - https://github.com/grafana/loki/issues/12506
+    semantics:
+      subject: {family: config-key, product: loki, path: limits_config.allow_structured_metadata, component: loki}
+      change: {type: default-changed, before: 'false', after: 'true'}
+      consequence:
+        kind: upgrade-blocked
+        exposedClass: action-required
+        statement: >-
+          Loki 3.0 config validation fails ("CONFIG ERROR: schema v13 is required to store Structured
+          Metadata ..." / "`tsdb` index type is required ...") when the active schema_config period is
+          not tsdb + v13 and allow_structured_metadata is left at its new default true, so Loki does not start.
+        remediation: >-
+          Add a new schema_config period with store tsdb and schema v13 (dated before the upgrade takes
+          effect) before upgrading, or set limits_config.allow_structured_metadata: false
+          (-validation.allow-structured-metadata=false) and migrate the schema afterwards.
+        severity: critical
+      note: the failure is a startup validation error, not a silent default; the default flip is what makes untouched 2.9 configs fail
+
+  - id: E2
+    title: shared_store and shared_store_key_prefix removed from the tsdb/boltdb shipper and compactor configuration (and their CLI flags)
+    kind: removal
+    importance: critical
+    actionRequired: true       # delete the keys; the index store now follows period_config object_store
+    classification: action-required
+    match:
+      - text: '(?i)shared_store|shared-store'
+    evidence:
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'The `shared_store` config is removed.'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'The following CLI flags and the corresponding YAML settings to configure shared store for TSDB and BoltDB shippers are now removed:'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'If it matches the value of `object_store` for all the periods that use `tsdb` as index type, no additional changes are required besides removing the usage of the deleted configuration option.'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'The following CLI flags and the corresponding YAML settings to configure the shared store and path prefix for compactor are now removed:'
+      - url: https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md
+        quote: 'Removes `shared_store` and `shared_store_key_prefix` from tsdb, boltdb shipper and compactor configs and their corresponding CLI flags.'
+      - url: https://github.com/grafana/loki/issues/12529
+        quote: 'line 40: field shared_store not found in type compactor.Config'
+    references:
+      - https://github.com/grafana/loki/pull/10840
+      - https://github.com/grafana/loki/issues/12529
+    semantics:
+      - subject: {family: config-key, product: loki, path: storage_config.tsdb_shipper.shared_store, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: loki, path: 'schema_config.configs[].object_store', component: loki}
+        consequence: &shared-store-blocked
+          kind: upgrade-blocked
+          exposedClass: action-required
+          statement: >-
+            Loki 3.0 parses its config file strictly, so a config that still sets shared_store /
+            shared_store_key_prefix fails to load ("field shared_store not found in type ...") and Loki
+            does not start; a removed -*.shared-store CLI flag fails flag parsing the same way.
+          remediation: >-
+            Remove the keys and flags; make sure every period's object_store equals the former
+            shared_store (otherwise move the index tables) and carry a non-default key prefix over to
+            period_config index.path_prefix.
+          severity: critical
+      - subject: {family: config-key, product: loki, path: storage_config.boltdb_shipper.shared_store, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: loki, path: 'schema_config.configs[].object_store', component: loki}
+        consequence: *shared-store-blocked
+      - subject: {family: config-key, product: loki, path: compactor.shared_store, component: loki}
+        change: {type: removed}
+        consequence: *shared-store-blocked
+      - subject: {family: config-key, product: loki, path: storage_config.tsdb_shipper.shared_store_key_prefix, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: loki, path: 'schema_config.configs[].index.path_prefix', component: loki}
+        consequence: *shared-store-blocked
+      - subject: {family: config-key, product: loki, path: storage_config.boltdb_shipper.shared_store_key_prefix, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: loki, path: 'schema_config.configs[].index.path_prefix', component: loki}
+        consequence: *shared-store-blocked
+      - subject: {family: config-key, product: loki, path: compactor.shared_store_key_prefix, component: loki}
+        change: {type: removed}
+        consequence: *shared-store-blocked
+
+  - id: E3
+    title: compactor delete_request_store must be configured explicitly when retention is enabled
+    kind: breaking
+    importance: critical
+    actionRequired: true       # it used to default to compactor.shared_store, which no longer exists
+    classification: action-required
+    match:
+      - text: '(?i)delete.request.store'
+    evidence:
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: '`-compactor.delete-request-store` or its YAML setting should be explicitly configured when retention is enabled, this is required for storing delete requests.'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/pkg/compactor/compactor.go
+        quote: 'return fmt.Errorf("compactor.delete-request-store should be configured when retention is enabled")'
+      - url: https://github.com/grafana/loki/blob/v2.9.6/docs/sources/configure/_index.md
+        quote: '# Store used for managing delete requests. Defaults to -compactor.shared-store.'
+    semantics:
+      subject: {family: config-key, product: loki, path: compactor.delete_request_store, component: loki}
+      change: {type: now-required}
+      consequence:
+        kind: upgrade-blocked
+        exposedClass: action-required
+        statement: >-
+          With compactor.retention_enabled true and no delete_request_store, Loki 3.0 config validation
+          fails with "compactor.delete-request-store should be configured when retention is enabled"
+          and Loki does not start.
+        remediation: Set compactor.delete_request_store (e.g. to the object store the former shared_store named).
+        severity: critical
+
+  - id: E4
+    title: Already-deprecated configuration options removed (store.max-look-back-period, validation.enforce-metric-name, querier.engine.timeout, s3.sse-encryption, query_range split/forward-headers, ...)
+    kind: removal
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)Deprecated configuration options are removed'
+      - text: '(?i)max.look.back.period'
+      - text: '(?i)enforce.metric.name'
+      - text: '(?i)querier\.engine\.timeout'
+      - text: '(?i)sse.encryption'
+      - text: '(?i)wal-cleaer'
+      - text: '(?i)experimental\.ruler\.enable-api'
+      - text: '(?i)forward.headers.list'
+      - text: '(?i)evaluation.delay.duration'
+      - text: '(?i)worker.parallelism'
+    evidence:
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'Removed already deprecated `store.max-look-back-period` CLI flag and the corresponding YAML settings. Use `querier.max-query-lookback` config instead.'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: '`validation.enforce-metric-name` CLI flag and the corresponding YAML setting are removed.'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: '`split_queries_by_interval` is removed from `query_range` YAML section. You can instead configure it in [Limits Config](/docs/loki/latest/configuration/#limits_config).'
+      - url: https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md
+        quote: 'Remove already deprecated `store.max-look-back-period`.'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/pkg/util/cfg/dynamic.go
+        quote: 'ConfigFileLoader(args, "config.file", true),'
+      - url: https://github.com/grafana/loki/issues/12529
+        quote: 'It works using that key, with other new changes like v13 schemaConfig and other keys removed like enforce_metric_name.'
+    references:
+      - https://github.com/grafana/loki/pull/11038
+      - https://github.com/grafana/loki/issues/12529
+    semantics:
+      - subject: {family: config-key, product: loki, path: chunk_store_config.max_look_back_period, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: loki, path: limits_config.max_query_lookback, component: loki}
+        consequence: &removed-key-blocked
+          kind: upgrade-blocked
+          exposedClass: action-required
+          statement: >-
+            Loki 3.0 loads its config file with strict YAML unmarshalling, so a config that still sets
+            a removed key fails with "field <key> not found in type ..." and Loki does not start (a
+            removed CLI flag fails flag parsing the same way).
+          remediation: Delete the removed keys/flags; move the ones that have a replacement to the new location (mostly limits_config).
+          severity: critical
+      - subject: {family: config-key, product: loki, path: limits_config.enforce_metric_name, component: loki}
+        change: {type: removed}
+        consequence: *removed-key-blocked
+      - subject: {family: config-key, product: loki, path: querier.engine.timeout, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: loki, path: limits_config.query_timeout, component: loki}
+        consequence: *removed-key-blocked
+      - subject: {family: config-key, product: loki, path: querier.query_timeout, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: loki, path: limits_config.query_timeout, component: loki}
+        consequence: *removed-key-blocked
+      - subject: {family: config-key, product: loki, path: storage_config.aws.sse_encryption, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: loki, path: storage_config.aws.sse.type, component: loki}
+        consequence: *removed-key-blocked
+      - subject: {family: cli-flag, product: loki, name: -ruler.wal-cleaer.period, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: cli-flag, product: loki, name: -ruler.wal-cleaner.period, component: loki}
+        consequence: *removed-key-blocked
+      - subject: {family: cli-flag, product: loki, name: -experimental.ruler.enable-api, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: cli-flag, product: loki, name: -ruler.enable-api, component: loki}
+        consequence: *removed-key-blocked
+      - subject: {family: config-key, product: loki, path: query_range.split_queries_by_interval, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: loki, path: limits_config.split_queries_by_interval, component: loki}
+        consequence: *removed-key-blocked
+      - subject: {family: config-key, product: loki, path: query_range.forward_headers_list, component: loki}
+        change: {type: removed}
+        consequence: *removed-key-blocked
+      - subject: {family: cli-flag, product: loki, name: -frontend.cache-split-interval, component: loki}
+        change: {type: removed}
+        consequence: *removed-key-blocked
+      - subject: {family: config-key, product: loki, path: frontend_worker.parallelism, component: loki}
+        change: {type: removed}
+        consequence: *removed-key-blocked
+      - subject: {family: config-key, product: loki, path: limits_config.ruler_evaluation_delay_duration, component: loki}
+        change: {type: removed}
+        consequence: *removed-key-blocked
+      - subject: {family: config-key, product: loki, path: compactor.deletion_mode, component: loki}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: loki, path: limits_config.deletion_mode, component: loki}
+        consequence: *removed-key-blocked
+
+  - id: E5
+    title: Ingester max_transfer_retries (-ingester.max-transfer-retries) removed in favour of the WAL
+    kind: removal
+    importance: important
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)max.transfer.retries'
+    evidence:
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'The setting `max_transfer_retries` (`-ingester.max-transfer-retries`) is removed in favor of the Write Ahead log (WAL).'
+      - url: https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md
+        quote: 'Remove `ingester.max-transfer-retries` configuration option in favor of using the WAL.'
+    semantics:
+      - subject: {family: config-key, product: loki, path: ingester.max_transfer_retries, component: loki}
+        change: {type: removed}
+        consequence: &transfer-blocked
+          kind: upgrade-blocked
+          exposedClass: action-required
+          statement: >-
+            A config that still sets ingester.max_transfer_retries (or passes -ingester.max-transfer-retries)
+            fails strict config/flag parsing in Loki 3.0 and Loki does not start; chunk hand-over between
+            ingesters no longer exists, so ingesters without the WAL lose unflushed data on rollouts.
+          remediation: Remove the setting and enable the WAL (optionally flush_on_shutdown).
+          severity: high
+      - subject: {family: cli-flag, product: loki, name: -ingester.max-transfer-retries, component: loki}
+        change: {type: removed}
+        consequence: *transfer-blocked
+
+  - id: E6
+    title: Legacy ingester shutdown handler /ingester/flush_shutdown removed (use /ingester/shutdown?flush=true)
+    kind: api
+    importance: important
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)flush_shutdown'
+    evidence:
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'The already deprecated handler `/ingester/flush_shutdown` is removed in favor of `/ingester/shutdown?flush=true`.'
+      - url: https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md
+        quote: 'Remove legacy ingester shutdown handler `/ingester/flush_shutdown`.'
+      - url: https://github.com/grafana/loki/blob/v2.9.6/docs/sources/reference/api.md
+        quote: 'This handler, in contrast to the deprecated `/ingester/flush_shutdown` handler, terminates the Loki process by default.'
+    semantics:
+      subject: {family: api-endpoint, product: loki, name: POST /ingester/flush_shutdown, component: ingester}
+      change:
+        type: removed
+        replacedBy: {family: api-endpoint, product: loki, name: POST /ingester/shutdown, component: ingester}
+      consequence:
+        kind: workload-failure
+        exposedClass: action-required
+        statement: >-
+          Automation (preStop hooks, scale-down scripts, runbooks) that calls POST /ingester/flush_shutdown
+          gets a 404 from Loki 3.0, so the ingester is no longer flushed and shut down by that step.
+        remediation: Call /ingester/shutdown?flush=true instead (note it terminates the process by default; pass terminate=false to keep the old behaviour).
+        severity: medium
+
+  - id: E7
+    title: distributor max line size now defaults to 256KB (was unlimited)
+    kind: behaviour-change
+    importance: important
+    actionRequired: true       # decide whether to raise or disable the limit
+    classification: review-required
+    match:
+      - text: '(?i)max.line.size'
+    evidence:
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'Loki now enforces a max line size of 256KB by default (you can disable this or increase this but this is how Grafana Labs runs Loki).'
+      - url: https://github.com/grafana/loki/blob/v2.9.6/docs/sources/configure/_index.md
+        quote: '[max_line_size: <int> | default = 0B]'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/configure/_index.md
+        quote: '[max_line_size: <int> | default = 256KB]'
+    references:
+      - https://github.com/grafana/loki/pull/10793
+    semantics:
+      subject: {family: config-key, product: loki, path: limits_config.max_line_size, component: loki}
+      change: {type: default-changed, before: '"0B"', after: '"256KB"'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: Log lines longer than 256KB are discarded (or truncated when max_line_size_truncate is set) instead of being accepted.
+        remediation: Set limits_config.max_line_size explicitly (0 disables the limit) if larger lines are expected.
+        severity: medium
+
+  - id: E8
+    title: max label names per series now defaults to 15 (was 30)
+    kind: behaviour-change
+    importance: important
+    actionRequired: true       # check stream label counts or pin the old limit
+    classification: review-required
+    match:
+      - text: '(?i)max.label.names.per.series'
+      - text: '(?i)max label limit of 15'
+    evidence:
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'Loki now enforces a max label limit of 15 labels per series, down from 30.'
+      - url: https://github.com/grafana/loki/blob/v2.9.6/docs/sources/configure/_index.md
+        quote: '[max_label_names_per_series: <int> | default = 30]'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/configure/_index.md
+        quote: '[max_label_names_per_series: <int> | default = 15]'
+    references:
+      - https://github.com/grafana/loki/pull/10793
+    semantics:
+      subject: {family: config-key, product: loki, path: limits_config.max_label_names_per_series, component: loki}
+      change: {type: default-changed, before: '30', after: '15'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: Pushes of streams carrying more than 15 labels are rejected by the distributor (the limit was 30).
+        remediation: Reduce stream labels (e.g. move high-cardinality fields to structured metadata) or set max_label_names_per_series explicitly.
+        severity: medium
+
+  - id: E9
+    title: Metrics formerly prefixed cortex_ are now exported as loki_ (new metrics_namespace setting, default loki)
+    kind: behaviour-change
+    importance: important
+    actionRequired: true       # update dashboards/alerts or set metrics_namespace: cortex
+    classification: review-required
+    match:
+      - text: '(?i)metrics.namespace'
+      - text: '(?i)prefix `?cortex_'
+    evidence:
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/setup/upgrade/_index.md
+        quote: 'Some Loki metrics started with the prefix `cortex_`. In this release they will be changed so they start with `loki_`. To keep them at `cortex_` change the `metrics_namespace` from the default `loki` to `cortex`.'
+      - url: https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md
+        quote: 'Change the default of the `metrics-namespace` flag to ''loki''.'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/docs/sources/configure/_index.md
+        quote: '[metrics_namespace: <string> | default = "loki"]'
+    semantics:
+      subject: {family: config-key, product: loki, path: metrics_namespace, component: loki}
+      change: {type: added, after: '"loki"'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: >-
+          Ring, KV, DNS, query-scheduler, query-frontend and ruler metrics named cortex_* in 2.9 are
+          exported as loki_*, so dashboards and alert rules on the cortex_ names return no data.
+        remediation: 'Rename the metrics in dashboards/alerts, or set metrics_namespace: cortex (deprecated, temporary).'
+        severity: medium
+
+  - id: E10
+    title: -legacy-read-mode now defaults to false (and is deprecated); the read target no longer runs backend components
+    kind: behaviour-change
+    importance: important
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)legacy.read.mode'
+    evidence:
+      - url: https://github.com/grafana/loki/blob/release-3.0.x/CHANGELOG.md
+        quote: 'Deprecate and flip `-legacy-read-mode` flag to `false` by default.'
+      - url: https://github.com/grafana/loki/blob/v3.0.0/pkg/loki/loki.go
+        quote: 'Deprecated. Set to true to enable the legacy read mode which includes the components from the backend target.'
+      - url: https://github.com/grafana/loki/blob/v2.9.6/pkg/loki/loki.go
+        quote: 'Set to false to disable the legacy read mode and use new scalable mode with 3rd backend target.'
+    references:
+      - https://github.com/grafana/loki/pull/11665
+    semantics:
+      subject: {family: cli-flag, product: loki, name: -legacy-read-mode, component: loki}
+      change: {type: default-changed, before: 'true', after: 'false'}
+      consequence:
+        kind: workload-failure
+        exposedClass: action-required
+        statement: >-
+          In a two-target simple-scalable deployment (read + write, no backend target) the read pods
+          stop running the backend components (compactor, index gateway, query scheduler, ruler), so
+          compaction, retention and rule evaluation stop after the upgrade.
+        remediation: Deploy the backend target (three-target simple scalable mode), or set -legacy-read-mode=true until then (deprecated).
+        severity: high
+
+notExpected:
+  - title: -ruler.alertmanager-use-v2 default flip (a 3.2.0 change, not part of 2.9 -> 3.0)
+    match: [{text: '(?i)alertmanager-use-v2'}]
+    classification: action-required
+
+environment:
+  description: >-
+    Production cluster on Kubernetes 1.29. Grafana Loki 2.9.6 runs as a single-binary StatefulSet
+    (-target=all, one replica, docker.io/grafana/loki:2.9.6) in namespace logging, configured by
+    the ConfigMap `loki` (data loki.yaml): index periods boltdb-shipper/v11 from 2021-06-01 and
+    tsdb/v12 from 2023-07-01 (no v13 period), both on S3; storage_config sets shared_store: s3 for
+    both shippers and the compactor sets shared_store: s3 with retention enabled and no
+    delete_request_store; leftovers from older configs (chunk_store_config.max_look_back_period,
+    limits_config.enforce_metric_name) are still present; the ingester runs with the WAL enabled
+    and no max_transfer_retries; limits_config pins max_line_size 512KB but does not set
+    max_label_names_per_series, allow_structured_metadata or metrics_namespace. A PrometheusRule,
+    evaluated by the Prometheus Operator, alerts on cortex_ring_members. No preStop hook calls the
+    ingester HTTP API; ingester drains are done by an on-call runbook script kept outside the
+    cluster manifests, which is not part of this fixture.
+  kubernetes: "1.29"
+  expectedImpact:
+    - expected: E1
+      relevance: action-required
+      why: >-
+        the active period (2023-07-01) is tsdb but schema v12, there is no v13 period, and neither
+        allow_structured_metadata nor -validation.allow-structured-metadata is set, so 3.0's new
+        default true makes config validation fail at startup
+      exposure:
+        op: all
+        of:
+          - op: resource
+            kind: ConfigMap
+            name: loki
+            of:
+              - {op: text-line, path: 'data["loki.yaml"]', state: none, pattern: '^\s*schema:\s*v1[3-9]\b'}
+              - {op: text-line, path: 'data["loki.yaml"]', state: none, pattern: '^\s*allow_structured_metadata:\s*false\b'}
+          - {op: cli-flag, name: -validation.allow-structured-metadata, state: unset}
+      environmentEvidence:
+        - manifests/loki-config.yaml#L38-L53
+        - manifests/loki-config.yaml#L75-L85
+        - manifests/loki-statefulset.yaml#L29-L32
+    - expected: E2
+      relevance: action-required
+      why: >-
+        the config sets shared_store: s3 under boltdb_shipper, tsdb_shipper and compactor; it matches
+        every period's object_store (s3), so no index move is needed, but the keys must be deleted or
+        3.0 fails strict config parsing
+      exposure:
+        op: any
+        of:
+          - op: resource
+            kind: ConfigMap
+            name: loki
+            of:
+              - {op: text-line, path: 'data["loki.yaml"]', state: exists, pattern: '^\s*shared_store(_key_prefix)?:'}
+          - {op: cli-flag, name: -boltdb.shipper.shared-store, state: set}
+          - {op: cli-flag, name: -tsdb.shipper.shared-store, state: set}
+          - {op: cli-flag, name: -boltdb.shipper.compactor.shared-store, state: set}
+      environmentEvidence:
+        - manifests/loki-config.yaml#L56-L63
+        - manifests/loki-config.yaml#L68-L73
+    - expected: E3
+      relevance: action-required
+      why: >-
+        the compactor enables retention and relied on delete_request_store defaulting to
+        compactor.shared_store; 3.0 has no such default and refuses to start without the key
+      exposure:
+        op: resource
+        kind: ConfigMap
+        name: loki
+        of:
+          - {op: text-line, path: 'data["loki.yaml"]', state: exists, pattern: '^\s*retention_enabled:\s*true\b'}
+          - {op: text-line, path: 'data["loki.yaml"]', state: none, pattern: '^\s*delete_request_store:'}
+      environmentEvidence: manifests/loki-config.yaml#L68-L73
+    - expected: E4
+      relevance: action-required
+      why: >-
+        chunk_store_config.max_look_back_period and limits_config.enforce_metric_name are still in the
+        config (max_query_lookback is already set too); both keys are removed in 3.0, so strict parsing
+        fails until they are deleted
+      exposure:
+        op: resource
+        kind: ConfigMap
+        name: loki
+        of:
+          - {op: text-line, path: 'data["loki.yaml"]', state: exists, pattern: '^\s*(max_look_back_period|enforce_metric_name|sse_encryption|forward_headers_list|ruler_evaluation_delay_duration):'}
+      environmentEvidence:
+        - manifests/loki-config.yaml#L65-L66
+        - manifests/loki-config.yaml#L76
+    - expected: E5
+      relevance: not-affected
+      why: >-
+        the ingester block is configured (WAL enabled, flush_on_shutdown) but sets no
+        max_transfer_retries, and the container args carry no -ingester.max-transfer-retries
+      exposure:
+        op: any
+        of:
+          - op: resource
+            kind: ConfigMap
+            name: loki
+            of:
+              - {op: text-line, path: 'data["loki.yaml"]', state: exists, pattern: '^\s*max_transfer_retries:'}
+          - {op: cli-flag, name: -ingester.max-transfer-retries, state: set}
+      environmentEvidence:
+        - manifests/loki-config.yaml#L30-L36
+        - manifests/loki-statefulset.yaml#L29-L32
+    - expected: E7
+      relevance: informational
+      why: >-
+        limits_config pins max_line_size: 512KB (with truncation), so the new 256KB default never
+        applies; the change touches the setting but the explicit value shields the environment
+      exposure:
+        op: all
+        of:
+          - op: resource
+            kind: ConfigMap
+            name: loki
+            of:
+              - {op: text-line, path: 'data["loki.yaml"]', state: none, pattern: '^\s*max_line_size:'}
+          - {op: cli-flag, name: -distributor.max-line-size, state: unset}
+      overlap:
+        op: resource
+        kind: ConfigMap
+        name: loki
+        of:
+          - {op: text-line, path: 'data["loki.yaml"]', state: exists, pattern: '^\s*max_line_size:'}
+      environmentEvidence: manifests/loki-config.yaml#L81-L82
+    - expected: E8
+      relevance: review
+      why: >-
+        neither max_label_names_per_series nor -validation.max-label-names-per-series is set, so the
+        limit drops from 30 to 15; whether any stream carries more than 15 labels must be checked
+      exposure:
+        op: all
+        of:
+          - op: resource
+            kind: ConfigMap
+            name: loki
+            of:
+              - {op: text-line, path: 'data["loki.yaml"]', state: none, pattern: '^\s*max_label_names_per_series:'}
+          - {op: cli-flag, name: -validation.max-label-names-per-series, state: unset}
+      environmentEvidence:
+        - manifests/loki-config.yaml#L75-L85
+        - manifests/loki-statefulset.yaml#L29-L32
+    - expected: E9
+      relevance: review
+      why: >-
+        metrics_namespace is not set and the team's PrometheusRule alerts on cortex_ring_members,
+        which 3.0 exports as loki_ring_members, so the alert silently stops matching
+      exposure:
+        op: all
+        of:
+          - op: resource
+            kind: ConfigMap
+            name: loki
+            of:
+              - {op: text-line, path: 'data["loki.yaml"]', state: none, pattern: '^\s*metrics_namespace:'}
+          - {op: cli-flag, name: -metrics-namespace, state: unset}
+          - op: resource
+            group: monitoring.coreos.com
+            kind: PrometheusRule
+            of:
+              - {op: field, path: 'spec.groups[].rules[].expr', state: matches, pattern: '\bcortex_'}
+      environmentEvidence:
+        - manifests/prometheusrule.yaml#L11-L12
+        - manifests/loki-statefulset.yaml#L29-L32
+    - expected: E10
+      relevance: not-affected
+      why: >-
+        Loki runs as a single binary with -target=all, not as a read target, so the read target's
+        loss of backend components cannot apply
+      exposure:
+        op: all
+        of:
+          - {op: cli-flag, name: -target, state: equals, values: ['"read"']}
+          - {op: cli-flag, name: -legacy-read-mode, state: unset}
+      environmentEvidence: manifests/loki-statefulset.yaml#L29-L32
+  undecidedImpact:
+    - expected: E6
+      reason: runtime-behavior-gap
+      needed: >-
+        who calls the ingester HTTP API: the on-call drain runbook script (outside the cluster
+        manifests) or the ingester access logs for POST /ingester/flush_shutdown
+      why: >-
+        no workload in the fixture calls the endpoint (no preStop hook), but ingester drains are run
+        by an external runbook script whose calls the static inputs cannot show
+      exposure:
+        op: any
+        of:
+          - op: resource
+            group: apps
+            kind: StatefulSet
+            name: loki
+            of:
+              - {op: field, path: 'spec.template.spec.containers[].lifecycle.preStop.httpGet.path', state: equals, values: ['"/ingester/flush_shutdown"']}
+          - op: undecidable
+            reason: runtime-behavior-gap
+            needed: callers of POST /ingester/flush_shutdown outside the cluster manifests (runbook scripts, access logs)
+      environmentEvidence: manifests/loki-statefulset.yaml#L26-L48
