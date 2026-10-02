@@ -198,6 +198,37 @@ Uncertainties / for the commander:
 - I did not retune the clustering on the two observed possible missed joins — that should follow
   the real run's measurements, and changing it before would move the ground the run measures.
 
+## GLM handoff log (third handoff: semantic-3)
+
+GLM-5.3 again, taking over the fresh `p3ll/semantic-3` wave (rendered-diff addendum run over
+7 new edges). The paused Claude agent's run was mid-flight at takeover — nothing lost:
+
+1. `a46206e` committed the paused agent's two v3 analyzers verbatim (per-model outcomes incl.
+   rendered-evidence citation counts; cross-model agreement adapted for the zai-containing store).
+2. `d4cfeb9` run-record skeleton (`runs/semantic-v3/README.md`: scope, commands, files) + this
+   status section; outcome sections TBD until the run completes.
+3. Wrote `.ri/semantic-run-v3/pass3.sh` (post-exchange ingest: sh on all 7 edges, opus on the 4
+   SUB ones; glm was fully ingested in pass 2) and verified the analyzer runs on the partial store.
+4. Verified at takeover: build/vet/tests green; `TestStoreIntegrity` on the combined store
+   1092 candidates / 1982 proposals / 0 invalid; `bin/ri` newer than every source file (pass-3
+   request digests will match the paused run's).
+5. Scheduled the exchange resume for just after the 15:50 America/Chicago session-limit reset
+   (the exact failure that stopped the claude runner at 592/1333, per `exchange-claude/exchange.log`):
+   answer the 741 pending claude requests, run pass 3, analyze, fill the record, commit knowledge/.
+   [GLM note next line updated as this proceeds.]
+
+State at takeover for the record: 573 candidates; answered claude 592/1333 ($26.05; haiku 253,
+sonnet 255, opus 84), zai 187/187 ($25.76); store 722 proposals (sonnet 246, haiku 226, opus 84,
+glm 166) + 57 recorded refusals (haiku 27, glm 21, sonnet 9, all `rejected`); 51 candidates carry
+rendered evidence; prompt-version split already measurable (`semantic-full/v1` vs `v1+rendered`).
+
+Uncertainties / for the commander:
+- The claude half of the run spends real budget: 741 pending stateless calls ≈ $26–35 at v2's
+  per-call rates. It is the paused agent's own run3.sh design (requests already written), so I
+  resumed it as-is rather than shrinking scope; say the word if you want the remainder dropped.
+- If HANDBACK arrives before the claude half finishes, everything is resumable with one command
+  (the exchange script answers only pending requests; then `pass3.sh`).
+
 ## GLM handoff log (second handoff)
 
 GLM-5.3 again, while the Claude agent sits out the usage-limit window. The real run had
