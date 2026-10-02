@@ -117,6 +117,7 @@ func (c *cli) knowledgeDecide(args []string) error {
 	correctedFile := fs.String("corrected", "", "JSON file with the corrected SemanticAssertion (action correct)")
 	duplicateOf := fs.String("duplicate-of", "", "fact id this item restates (action reject, label duplicate)")
 	started := fs.String("started-at", "", "RFC3339 time the reviewer started (default: now)")
+	pProvider := fs.String("proxy-provider", "anthropic", "proxy: provider that served the model (\"anthropic\", \"zai\", …)")
 	pModel := fs.String("proxy-model", "", "proxy: model that acted as reviewer")
 	pVersion := fs.String("proxy-model-version", "", "proxy: model version as reported")
 	pPromptV := fs.String("proxy-prompt-version", "", "proxy: prompt template version")
@@ -198,7 +199,7 @@ func (c *cli) knowledgeDecide(args []string) error {
 			return fmt.Errorf("%w: a proxy's confidence is capped at medium", app.ErrUsage)
 		}
 		gen := now
-		prov := domain.Provenance{Method: domain.MethodAI, Producer: "knowledge.proxy@v1", Confidence: domain.Confidence(*pConf),
+		prov := domain.Provenance{Method: domain.MethodAI, Producer: "knowledge.proxy@v1", Provider: *pProvider, Confidence: domain.Confidence(*pConf),
 			Model: *pModel, ModelVersion: *pVersion, PromptVersion: *pPromptV, PromptDigest: *pPromptD, GeneratedAt: &gen, CallID: *pCall}
 		for _, id := range splitList(*pInput) {
 			prov.InputEvidence = append(prov.InputEvidence, domain.EvidenceID(id))

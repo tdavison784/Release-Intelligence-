@@ -60,6 +60,20 @@ identical value stays deterministic; a proxy never overrides a trusted aspect. R
 candidate's anchors to the named fact. Retraction/supersession: `OpenFactReview` / `ri knowledge review-fact`.
 All decisions of a call (bulk review shares a `BatchID`) are validated before anything is written.
 
+### Prose-only corrections (improved-statement)
+
+A correction that changes only the consequence `Statement`/`Remediation` (aspect digests ignore prose) is labelled
+`[corrected, improved-statement]` and keeps `Original` and `Corrected`. `FactFromDecision` gives the fact the corrected
+prose **under the same id**: a new fact is minted with it, or an existing fact's consequence prose is updated (it also
+works as a re-review of a fact). The file store allows exactly this change besides status/anchors/candidates/verification
+upgrades; the assertion's own `statement` and every typed part stay immutable. The basis of the consequence aspect gains
+the correcting decision (both decisions re-prove). A proxy's prose never rewrites a human reviewer's prose, and aspects
+verified deterministically or by consensus have no reviewer prose to edit (a human correction there upgrades the aspect
+instead). Metrics report prose edits separately (`DecisionStats.ProseEdits`, `ModelMetric.ProseEdits`): they are not
+counted as corrections, and the model's typed value counts as accepted as-is.
+
+Every writer states the provider (`Provenance.Provider`): `ri knowledge decide` takes `-proxy-provider` (default `anthropic`).
+
 ## Dataset and metrics
 
 `ExportDataset` writes JSONL `domain.FeedbackExample` (all G13 labels, original/corrected, proposals, validations,
