@@ -57,3 +57,8 @@ every route; every filter; every action; refusals (correct without change, proxy
 started, outcome label by hand, cross-origin, already-decided); bulk (confirm step, one decision per item + batch id +
 timing, shared reason/labels, mixed valid/invalid, high-priority/disagreement guard incl. per-item lifting and per-session
 scope, exclude-blocked, atomic on queue refusal, correct/proxy refused).
+
+## Pending contract follow-ups (PO-1 / PO-2, from commander; not implemented until `p3ll/contract-3` is merged)
+- Show the consensus label per aspect in the proposals matrix: cross-model vs same-model (separate calls), using the call id each proposal will carry.
+- Show the requested class (`SuggestedClass`) per proposal, including a model's request for action-required, and the "ACTION REQUIRED · model consensus" outcome that auto-sampled review items will carry.
+- Nothing built so far contradicts these: the matrix groups by aspect digest and never merges proposals, and the UI never sets or caps a class.
