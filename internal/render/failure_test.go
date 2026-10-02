@@ -43,6 +43,8 @@ func TestFailuresAreExplicit(t *testing.T) {
 		{fakeRunner{stderr: "Error: chart requires kubeVersion: >= 1.29.0-0 which is incompatible with Kubernetes v1.27.0"}, FailMissingCapability},
 		// a chart-authored fail/required check rejects the configuration
 		{fakeRunner{stderr: `Error: execution error at (demo/templates/validate.yaml:25:5): containerRuntime.integration was removed in v1.16`}, FailInvalidValues},
+		// a template that renders text that is not YAML is a template error
+		{fakeRunner{stderr: "Error: YAML parse error on demo/templates/hook.yaml: error converting YAML to JSON: yaml: line 26: found character that cannot start any token"}, FailTemplateError},
 		// a broken template is a template error
 		{fakeRunner{stderr: `Error: template: demo/templates/deployment.yaml:12:20: executing "demo/templates/deployment.yaml" at <.Values.x.y>: nil pointer evaluating interface {}.y`}, FailTemplateError},
 	}

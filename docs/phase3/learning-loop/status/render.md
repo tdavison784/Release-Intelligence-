@@ -118,6 +118,38 @@ the old table (refuted) and passes now. Side effect, intended: storage moves are
 for render auto-approval (R10); the `crd-schema` validator still confirms them deterministically.
 Waiting on the product-owner decision about render-backed classification of unset changed defaults.
 
+## render-4 — PO-3 (branch `p3ll/render-4`)
+
+Render-backed classification of changed defaults / new keys the customer leaves unset (docs/RENDER.md
+"Unset changed defaults"):
+- `render.UnsetValues` implements the counterfactual (one render per change × Helm deployment;
+  attribution = counterfactual effect ∩ actual upgrade delta);
+- `internal/impact/unset.go`: interface + rule `impact:values-default-rendered`; one hunk in
+  `valuesFamily`; `Input.Unset`. All `CONTRACT-CHANGE(render)`; the applicability lane owns the package;
+- `app.ImpactRun` wires it behind `--render` / `ri eval -render`;
+- release-level `UnsetKeyEvidence` for prompts/knowledge.
+
+Adversarial tests (`internal/render/unset_test.go`, purpose-built `testdata/charts/perm-*`):
+- kyverno-style permission loss;
+- image tag default bump;
+- a new key shipping a RoleBinding;
+- a default that renders nothing (clear);
+- a new key whose effect the source already rendered (clear);
+- a random token never attributed;
+- incomplete / failed / kustomize-only renders never clear;
+- the join's three verdicts.
+
+"YAML parse error on <template>" is now `template-error`.
+
+Results (`eval/render/results/2026-10-02-po3.md`):
+- TRUSTFIX's 8 dangerous kyverno cells → REVIEW (9 → 1; the 1 left is the image-mirror cell);
+- ACTION→NOT-AFFECTED 25 → 17; weighted miss 940 → 868; impactAccuracy 0.274 → 0.315;
+- falseActionRate 0.059, applicabilityAccuracy 0.495 and unknownRate 0.793 unchanged (explained);
+- notAffectedViolations 0 → 3: true rendered effects scored against item-level NOT-AFFECTED labels,
+  for groundtruth.
+
+Contract text (p3ll/contract-4) has not merged yet. Align names/classes when it lands.
+
 ## Open / honest gaps
 
 - Pipeline-level R17 (before/after on the corpus) is **measured** (see (f)); the follow-on — re-run
@@ -148,6 +180,7 @@ Waiting on the product-owner decision about render-backed classification of unse
   `schemas/*.json`.
 - `internal/sources/artifacts.go` `ChartPackage.Archive`, set in `internal/helm/package.go` and
   `internal/oci/chartlayer.go` (one line each).
+- render-4 (PO-3): `internal/impact/{unset.go (new), build.go (one hunk + builder field), api.go (Input.Unset)}`.
 - render-2 wiring: `internal/impact/condition.go` (render deps), `internal/knowledge/{route.go,api.go,queue.go}`
   + new `render.go` (`ReviewContext.Render`, `RenderEvidence`, `RenderEvidenceOf`),
   `internal/reviewui/{rendered.go,server.go}`, `internal/domain/semantic.go`
