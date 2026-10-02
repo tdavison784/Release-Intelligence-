@@ -125,6 +125,8 @@ ri knowledge decide -reviewer me <review-item>  # record a decision (proxy: -rev
 ri knowledge metrics [-o json]                  # agreement, per-model accuracy, review cost, fact counts
 ri knowledge export -o feedback.jsonl           # the human-feedback dataset
 ri review serve -demo                           # engineering review UI for the learning loop (docs/REVIEW_UI.md)
+ri render diff cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31   # render both releases with your configuration; semantic object diff (docs/RENDER.md)
+ri impact cert-manager v1.17.0 v1.18.0 --repo ./customer-repo --kubernetes 1.31 --render # impact report + what actually changes in your rendered deployment
 ```
 
 Global flags go before the command:
