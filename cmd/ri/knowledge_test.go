@@ -100,7 +100,16 @@ func TestKnowledgeCLIRouteProxyDecideMetricsExport(t *testing.T) {
 	if err != nil || strings.Count(out, "\n") != len(snap.ReviewItems) {
 		t.Fatalf("export: %v %d lines for %d items", err, strings.Count(out, "\n"), len(snap.ReviewItems))
 	}
-	if _, err := kcli(t, "knowledge", "propose"); err == nil || !strings.Contains(err.Error(), "semantic lane") {
-		t.Fatalf("propose = %v", err)
+	// candidates and propose are the semantic commands (usage error without arguments)
+	var semErr, kErr error
+	for _, sub := range []string{"candidates", "propose"} {
+		_, semErr = kcli(t, "semantic", sub)
+		_, kErr = kcli(t, "knowledge", sub)
+		if kErr == nil || semErr == nil || kErr.Error() != semErr.Error() {
+			t.Fatalf("knowledge %s = %v, semantic %s = %v; want the same command", sub, kErr, sub, semErr)
+		}
+	}
+	if _, err := kcli(t, "knowledge", "validate"); err == nil || !strings.Contains(err.Error(), "validate lane") {
+		t.Fatalf("validate = %v", err)
 	}
 }

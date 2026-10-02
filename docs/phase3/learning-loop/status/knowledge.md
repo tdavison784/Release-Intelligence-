@@ -46,4 +46,4 @@
 ## knowledge-4: environment context (transfer subset)
 - `ReviewItem.Context.Label` = eval case id exactly, absent when no environment was shown (docs/KNOWLEDGE.md). Set via `RouteOptions.Environment` / `ri knowledge route -env-label`; follow-ups inherit; immutable after creation.
 - Integrity test now exempts `reviewItem.context` only (a case id there is the transfer key); case ids anywhere else still fail. Flagging this as a deliberate relaxation.
-- `ri knowledge candidates|propose` still print "not wired": waiting for the semantic lane merge.
+- (knowledge-5) `ri knowledge candidates|propose` route to the semantic commands; `validate` still waits for the validate lane.

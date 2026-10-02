@@ -64,8 +64,8 @@ metric non-trivial.
 ## CLI
 
 `ri knowledge route|decide|review-fact|export|metrics`. `decide --reviewer-kind proxy` is the only way proxy
-decisions enter and requires the AI provenance flags. `candidates|propose|validate` belong to the semantic and
-validate lanes.
+decisions enter and requires the AI provenance flags. `ri knowledge candidates|propose` are aliases of
+`ri semantic candidates|propose` (same flags, same code); `validate` belongs to the validate lane (not wired yet).
 
 ## Environment context and the transfer subset
 
