@@ -20,6 +20,12 @@
 //	                                    (eval/cases) against the pipeline;
 //	                                    -update rewrites eval/results after
 //	                                    review; non-zero exit on regression
+//	ri knowledge route|decide|review-fact|export|metrics
+//	                                    the learning loop's store, review queue,
+//	                                    feedback dataset and metrics
+//	ri review serve [-addr A] [-demo]   engineering review UI (learning loop):
+//	                                    inbox, evidence, accept/reject/correct,
+//	                                    bulk review
 //
 // Global flags (before the command): -products DIR, -state DIR, -offline,
 // -refresh, -v.
@@ -56,6 +62,8 @@ Commands:
   discover <repository>             inspect an upstream repository and propose a definition
   stats [product ...]               measure onboarding: constructs, effort, discovery, validation
   eval [entries ...]                score the validation dataset (eval/cases) against the pipeline
+  knowledge <subcommand>            the learning loop: route, decide, export, metrics (ri knowledge help)
+  review serve                      engineering review UI for the learning loop (-demo for fixtures)
   semantic candidates|propose ...   learning loop: restatement clusters of an edge; multi-model semantic proposals
 
 Global flags:
@@ -148,6 +156,10 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return c.stats(cmdArgs)
 	case "eval":
 		return c.eval(cmdArgs)
+	case "knowledge":
+		return c.knowledge(cmdArgs)
+	case "review":
+		return c.review(cmdArgs)
 	case "semantic":
 		return c.semanticCmd(cmdArgs)
 	default:

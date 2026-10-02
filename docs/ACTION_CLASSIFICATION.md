@@ -195,10 +195,22 @@ Findings whose rule starts with `impact:knowledge-` come from evaluating a
 trust ladder, which `ImpactReport.Validate()` and the schema enforce:
 
 - They carry `knowledge: {fact, verification}`, and only they do.
-- `action-required` and `not-affected` require a fact verified at
-  `deterministic` or `human` level. A `consensus`-verified fact (independent
-  models agreeing) or a `proxy`-verified fact (an AI acting as reviewer) yields
-  at most `review-required`, never at `high` confidence.
+- `not-affected` requires a fact verified at `deterministic` or `human` level.
+- `action-required` requires either:
+  - a fact verified at `deterministic` or `human` level (**verified**), or, by
+    product-owner decision PO-2 (docs/phase3/learning-loop/DECISIONS.md),
+  - a `consensus` fact with `consensusAction` (**model consensus**): every
+    aspect at consensus or better; an action-eligible consequence that every
+    agreeing separate model call requested as action-required; no aspect
+    refuted.
+
+  Both paths still need the deterministic environment match and both evidence
+  chains. A model-consensus finding carries `knowledge.verification:
+  consensus`, is rendered "ACTION REQUIRED · model consensus", and its fact is
+  always sampled into human review.
+- A `proxy`-verified fact (an AI acting as reviewer), or a consensus fact
+  without `consensusAction`, yields at most `review-required`, never at `high`
+  confidence.
 - A change with a knowledge finding carries no other `unknown` finding: the
   knowledge finding supersedes it.
 - `unknownReason` (unknown-only) names why a finding is unknown:
@@ -206,4 +218,6 @@ trust ladder, which `ImpactReport.Validate()` and the schema enforce:
   `cross-product-context-gap`, `runtime-behavior-gap`, `evidence-gap`,
   `semantic-ambiguity`.
 
-Model proposals never reach the engine. Only verified facts do.
+Model proposals never reach the engine; only facts do. A proposal's
+`action-required` is a request that takes effect only through such a consensus
+fact.

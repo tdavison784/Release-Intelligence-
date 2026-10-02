@@ -85,6 +85,9 @@ internal/store         local JSON store for ingested releases and edges
 internal/knowledge     learning-loop ports (api.go): knowledge store, review queue, model
                        proposer and validator interfaces; entity types in
                        internal/domain/semantic.go (docs/phase3/learning-loop/DESIGN.md)
+internal/reviewui      engineering review UI (`ri review serve`): inbox, collapsible items,
+                       accept/reject/correct/…, bulk review; stdlib net/http + html/template
+                       (docs/REVIEW_UI.md)
 internal/eval          validation dataset: loads eval/cases ground truth, runs the
                        real pipeline per entry (via an injected Pipeline port) and
                        scores recall (per importance), the five-class confusion

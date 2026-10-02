@@ -1,0 +1,193 @@
+{{define "detail"}}
+<div class="detail-body" data-id="{{.Item.ID}}">
+  {{if .Inline}}<h3 class="sr-only">Detail</h3>{{end}}
+  {{range .Errors}}<div class="flash flash-error" role="alert">{{.}}</div>{{end}}
+
+  <section class="panel">
+    <h3>Upstream statement</h3>
+    <blockquote class="statement">{{if .Candidate.Text}}{{.Candidate.Text}}{{else}}{{.Candidate.Title}}{{end}}</blockquote>
+    <p class="muted small">{{.Candidate.Product}} {{.Candidate.Release}} · {{.Candidate.Category}} · {{len .Candidate.Members}} restating member{{if ne (len .Candidate.Members) 1}}s{{end}} · grouping {{.Candidate.Grouping}}</p>
+  </section>
+
+  <section class="panel">
+    <h3>Evidence <span class="count">{{len .Evidence}}</span></h3>
+    <ul class="evidence">
+    {{range .Evidence}}
+      <li>
+        <div class="ev-head">
+          <span class="badge soft">{{.E.Kind}}</span>
+          {{if .Link}}<a href="{{.Link}}" target="_blank" rel="noopener noreferrer">{{.E.URI}}</a>{{else}}<span class="uri">{{.E.URI}}</span>{{end}}
+          {{if .E.Locator}}<code>{{.E.Locator}}</code>{{end}}
+        </div>
+        {{if .E.Excerpt}}<blockquote class="excerpt">{{.E.Excerpt}}</blockquote>{{end}}
+        <div class="muted small">
+          {{if .E.ContentDigest}}digest {{short .E.ContentDigest}} · {{end}}retrieved {{ts .E.RetrievedAt}}
+          {{if .CitedBy}} · cited by {{join ", " .CitedBy}}{{end}}
+          {{if .E.Render}} · rendered with {{.E.Render.Tool}} {{.E.Render.ToolVersion}}{{end}}
+        </div>
+      </li>
+    {{end}}
+    </ul>
+  </section>
+
+  <section class="panel">
+    <h3>Proposed assertion <span class="muted small">— what you accept or correct</span></h3>
+    {{if .Proposed}}
+    <dl class="aspects">
+      {{range .Proposed}}<dt>{{.Aspect}}{{if .Asked}} <span class="badge accent">verifies</span>{{end}}</dt><dd><pre class="wrap">{{.Text}}</pre></dd>{{end}}
+    </dl>
+    {{else}}<p class="muted">This question verifies no aspect; it is a gate (accept = “yes”).</p>{{end}}
+    {{if .Item.Routing.Signals}}<p class="muted small">Routing: {{.Item.Routing.Route}}, {{.Item.Routing.Priority}} priority · signals {{range .Item.Routing.Signals}}<span class="badge soft">{{.}}</span> {{end}}</p>{{end}}
+  </section>
+
+  {{if .Cols}}
+  <section class="panel">
+    <h3>Proposals by model <span class="muted small">— never merged; same letter = same answer</span></h3>
+    <div class="scroll">
+    <table class="matrix">
+      <thead><tr><th>Aspect</th><th>Proposed</th>{{range .Cols}}<th><b>{{.Model}}</b><br><span class="muted small">{{.Provider}} · {{.Confidence}}</span></th>{{end}}</tr></thead>
+      <tbody>
+      {{range .Matrix}}
+        <tr class="m-{{.Status}}">
+          <th scope="row">{{.Aspect}}<div class="agree-chip agree-{{.Status}}">{{.StatusText}}</div></th>
+          <td>{{if .Proposed}}<pre class="wrap">{{.Proposed}}</pre>{{else}}<span class="muted">—</span>{{end}}</td>
+          {{range .Cells}}
+            <td class="{{if .Group}}g g-{{.Group}}{{end}}{{if .AsProposed}} as-proposed{{end}}">
+              {{if .Group}}<span class="grp">{{.Group}}</span><pre class="wrap">{{.Text}}</pre>
+              {{else if .Undetermined}}<span class="badge warn">undetermined</span><div class="small muted">{{.Reason}}</div>
+              {{else}}<span class="muted">—</span>{{end}}
+            </td>
+          {{end}}
+        </tr>
+      {{end}}
+      </tbody>
+    </table>
+    </div>
+  </section>
+  {{end}}
+
+  {{with .Rendered}}
+  <section class="panel rendered" id="rendered">
+    <h3>Rendered delta <span class="badge rel-{{.Relation}}">{{relation .Relation}}</span></h3>
+    {{if .Explanation}}<p>{{.Explanation}}</p>{{end}}
+    {{range .Deltas}}
+    <div class="delta">
+      <div class="delta-head"><code>{{.Object}}</code> <span class="badge soft">{{.ChangeClass}}</span></div>
+      <div class="muted small">path <code>{{.Path}}</code>{{if .Template}} · template <code>{{.Template}}</code>{{end}}</div>
+      <div class="sbs">
+        <div class="side src"><div class="side-h">source</div><pre class="wrap">{{if .Source}}{{.Source}}{{else}}(absent){{end}}</pre></div>
+        <div class="side dst"><div class="side-h">target</div><pre class="wrap">{{if .Target}}{{.Target}}{{else}}(absent){{end}}</pre></div>
+      </div>
+    </div>
+    {{end}}
+    <p class="muted small">Rendered by {{.Renderer}} {{.Version}} · source chart {{.FromChart}} · target chart {{.ToChart}}{{with .Provenance}} · scope {{.Scope}} · chart {{short .ChartDigest}}{{end}}. Absence from a render is not refutation.</p>
+  </section>
+  {{end}}
+
+  <section class="panel">
+    <h3>Validation results <span class="count">{{len .Validations}}</span></h3>
+    {{if not .Validations}}<p class="muted">No deterministic validator produced a result for this item.</p>{{end}}
+    {{range .Validations}}
+      <div class="val">
+        <div class="val-head"><code>{{.V.Validator}}</code>{{if .Proposal}} <span class="muted small">checked {{.Proposal}}'s assertion</span>{{end}}</div>
+        <table class="checks"><tbody>
+        {{range .V.Checks}}<tr><th>{{.Aspect}}</th><td><span class="badge out-{{.Outcome}}">{{.Outcome}}</span></td><td><code>{{.Rule}}</code></td><td>{{.Detail}}</td></tr>{{end}}
+        </tbody></table>
+      </div>
+    {{end}}
+  </section>
+
+  {{with .Ctx.Environment}}
+  <section class="panel env">
+    <h3>Environment context <span class="badge warn">illustration only</span></h3>
+    <p>{{.Label}}{{if .Digest}} <code>{{.Digest}}</code>{{end}}</p>
+    <p class="muted small">Recorded with your decision so transfer can be measured. Knowledge stays release-level: the fact will not name this environment.</p>
+  </section>
+  {{end}}
+
+  <section class="panel">
+    <h3>Previous related decisions <span class="count">{{len .Related}}</span></h3>
+    {{if and (not .Related) (not .Facts)}}<p class="muted">None for this subject.</p>{{end}}
+    <ul class="related">
+    {{range .Related}}<li><span class="badge">{{.Action}}</span> by <b>{{.Reviewer}}</b> ({{.ReviewerKind}}) on {{ts .DecidedAt}}{{if .Reason}} — “{{.Reason}}”{{end}}{{if .BatchID}} <span class="badge soft">batch {{short .BatchID}} · {{.BatchSize}}</span>{{end}} <code>{{short .ReviewItemID}}</code></li>{{end}}
+    {{range .Facts}}<li><span class="badge ok">fact</span> <code>{{short .ID}}</code> {{.Assertion.Statement}} · {{.Level}}</li>{{end}}
+    </ul>
+  </section>
+
+  <section class="panel decide" id="decide-{{.Item.ID}}">
+    <h3>Decide <span class="muted small">— human decision · started {{.Started}}</span></h3>
+    {{if not .Editable}}
+      <p class="flash flash-warn">This item is {{label .Item.Status}}; no further decision can be added.</p>
+    {{else}}
+    <form class="actions" method="post" action="/items/{{.Item.ID}}/decision" data-item="{{.Item.ID}}">
+      <input type="hidden" name="started" value="{{.Started}}">
+      <input type="hidden" name="return" value="{{.Return}}">
+      <div class="row">
+        <label class="reviewer">Reviewer <input type="text" name="reviewer" value="{{.Reviewer}}" required placeholder="your name"></label>
+        <label class="grow">Reason <span class="muted small">(required for reject, need more evidence)</span>
+          <textarea name="reason" rows="2" placeholder="Why? Cite the evidence.">{{formVal .Form "reason"}}</textarea></label>
+      </div>
+      <details class="more"><summary>Labels &amp; duplicate</summary>
+        <div class="labelbox">
+          {{range $.Enums.WrongLabels}}<label class="check"><input type="checkbox" name="label" value="{{.}}" {{if formHas $.Form "label" (printf "%s" .)}}checked{{end}}> {{.}}</label>{{end}}
+        </div>
+        <div class="row">
+          <label>Reject as <select name="outcome"><option value="rejected">rejected</option><option value="duplicate">duplicate of a known fact</option></select></label>
+          <label>Duplicate of <input type="text" name="duplicate_of" placeholder="vf-…" value="{{formVal .Form "duplicate_of"}}"></label>
+        </div>
+      </details>
+      <div class="buttons">
+        <button type="submit" name="action" value="accept" class="btn ok" data-key="a" data-needs-reason="0"><u>A</u>ccept</button>
+        <button type="submit" name="action" value="reject" class="btn danger" data-key="r" data-needs-reason="1"><u>R</u>eject</button>
+        {{if .Correction}}<button type="button" class="btn" data-key="c" data-correct="1"><u>C</u>orrect…</button>{{end}}
+        <button type="submit" name="action" value="need-more-evidence" class="btn" data-key="e" data-needs-reason="1">Need more <u>e</u>vidence</button>
+        <button type="submit" name="action" value="defer" class="btn" data-key="d" data-needs-reason="0"><u>D</u>efer</button>
+        <span class="armed-hint small muted" aria-live="polite"></span>
+      </div>
+    </form>
+
+    {{with .Correction}}
+    <form class="correct" method="post" action="/items/{{$.Item.ID}}/decision" id="correct-{{$.Item.ID}}" {{if not (formHasKey $.Form "c_statement")}}hidden{{end}}>
+      <input type="hidden" name="action" value="correct">
+      <input type="hidden" name="started" value="{{$.Started}}">
+      <input type="hidden" name="return" value="{{$.Return}}">
+      <h4>Correct the assertion <span class="muted small">— pre-filled with the proposal; the original is kept in the decision</span></h4>
+      <div class="row">
+        <label class="reviewer">Reviewer <input type="text" name="reviewer" value="{{$.Reviewer}}" required></label>
+        <label class="grow">Reason (required) <textarea name="reason" rows="2">{{formVal $.Form "reason"}}</textarea></label>
+      </div>
+      {{if .HasSubject}}<fieldset><legend>Subject</legend><div class="grid">
+        <label>Family <select name="c_subject_family">{{range $.Enums.SubjectFamilies}}<option {{if selected . $.Correction.SubjFamily}}selected{{end}}>{{.}}</option>{{end}}</select></label>
+        <label>Product <input name="c_subject_product" value="{{.SubjProduct}}"></label>
+        <label>Group <input name="c_subject_group" value="{{.SubjGroup}}"></label>
+        <label>Version <input name="c_subject_version" value="{{.SubjVersion}}"></label>
+        <label>Kind <input name="c_subject_kind" value="{{.SubjKind}}"></label>
+        <label>Path <input name="c_subject_path" value="{{.SubjPath}}"></label>
+        <label>Name <input name="c_subject_name" value="{{.SubjName}}"></label>
+        <label>Component <input name="c_subject_component" value="{{.SubjComponent}}"></label>
+      </div></fieldset>{{end}}
+      {{if .HasChange}}<fieldset><legend>Change</legend><div class="grid">
+        <label>Type <select name="c_change_type">{{range $.Enums.ChangeKinds}}<option {{if selected . $.Correction.ChangeType}}selected{{end}}>{{.}}</option>{{end}}</select></label>
+        <label>Before <span class="muted small">(JSON scalar, e.g. "Never")</span> <input name="c_change_before" value="{{.ChangeBefore}}"></label>
+        <label>After <input name="c_change_after" value="{{.ChangeAfter}}"></label>
+      </div>
+      <label>Replaced by <span class="muted small">(subject JSON, renamed / deprecated / removed only)</span><textarea name="c_change_replacedby" rows="3" class="mono">{{.ChangeReplacedBy}}</textarea></label></fieldset>{{end}}
+      {{if .HasApplicability}}<fieldset><legend>Applicability</legend>
+        <label>Exposure condition <span class="muted small">(JSON, DESIGN §1.3)</span><textarea name="c_app_exposure" rows="8" class="mono">{{.Exposure}}</textarea></label>
+        <label>Overlap condition <span class="muted small">(optional; shielded state)</span><textarea name="c_app_overlap" rows="5" class="mono">{{.Overlap}}</textarea></label></fieldset>{{end}}
+      {{if .HasConsequence}}<fieldset><legend>Consequence</legend><div class="grid">
+        <label>Kind <select name="c_cons_kind" class="kind">{{range $.Enums.ConsequenceKinds}}<option value="{{.Kind}}" data-class="{{.Class}}" {{if selected .Kind $.Correction.ConsKind}}selected{{end}}>{{.Kind}}</option>{{end}}</select></label>
+        <label>Severity <select name="c_cons_severity"><option value="">—</option>{{range $.Enums.Severities}}<option {{if selected . $.Correction.ConsSeverity}}selected{{end}}>{{.}}</option>{{end}}</select></label>
+        <div class="classbox">Class that follows: <b class="class-out">{{.ConsClass}}</b><div class="muted small">the class follows the kind; the trust ladder may still cap it</div></div>
+      </div>
+      <label>Statement <span class="muted small">(what exactly fails if nothing is done)</span><textarea name="c_cons_statement" rows="2">{{.ConsStatement}}</textarea></label>
+      <label>Remediation <textarea name="c_cons_remediation" rows="2">{{.ConsRemediation}}</textarea></label></fieldset>{{end}}
+      <label>Assertion statement <span class="muted small">(prose; never compared)</span><input name="c_statement" value="{{.Statement}}"></label>
+      <p class="muted small">Labels: <code>corrected</code> plus a <code>wrong-*</code> label per changed aspect (set automatically unless you tick labels in the form above).</p>
+      <button class="btn ok" type="submit">Record correction</button>
+    </form>
+    {{end}}
+    {{end}}
+  </section>
+</div>
+{{end}}

@@ -1,0 +1,46 @@
+{{template "top" "Confirm bulk action"}}
+<header class="bar sticky"><div class="bar-row"><a class="brand" href="/">Release Intelligence <span>review</span></a></div></header>
+<main class="page narrow">
+  <h1>Confirm bulk {{label .Action}}</h1>
+  <p class="muted">One decision is recorded <b>per item</b>, all sharing one batch id, by <b>{{if .Reviewer}}{{.Reviewer}}{{else}}(no reviewer){{end}}</b>.
+     {{if .Reason}}Shared reason: “{{.Reason}}”.{{end}}{{if .Labels}} Labels: {{join ", " .Labels}}.{{end}}</p>
+  {{range .Errors}}<div class="flash flash-error" role="alert">{{.}}</div>{{end}}
+  <div class="summary">
+    <span class="badge ok">{{.OK}} will be recorded</span>
+    {{if .Blocked}}<span class="badge danger">{{.Blocked}} blocked</span>{{end}}
+    {{if .Invalid}}<span class="badge warn">{{.Invalid}} will be skipped</span>{{end}}
+  </div>
+  {{if .Blocked}}<div class="flash flash-warn">Bulk accept is refused for high-priority items and items whose model proposals disagree, unless you opened each one first. Open the blocked items (they open in a new tab and count as read), then press Re-check — or exclude them.</div>{{end}}
+
+  <table class="plan">
+    <thead><tr><th>Item</th><th>Question</th><th>Priority</th><th>Models</th><th>Outcome</th></tr></thead>
+    <tbody>
+    {{range .Rows}}
+      <tr class="plan-{{.State}}">
+        <td><a href="/items/{{.ID}}" target="_blank" rel="noopener"><code>{{short .ID}}</code></a></td>
+        <td>{{.Title}}</td>
+        <td><span class="badge prio-{{.Priority}}">{{.Priority}}</span></td>
+        <td>{{if .Disagrees}}<span class="badge agree-disagree">disagree</span>{{else}}<span class="muted">—</span>{{end}}</td>
+        <td>{{if eq .State "ok"}}<span class="badge ok">record</span>{{else if eq .State "blocked"}}<span class="badge danger">blocked</span> {{.Why}}{{else}}<span class="badge warn">skip</span> {{.Why}}{{end}}</td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+
+  <form method="post" action="/bulk" class="confirm">
+    <input type="hidden" name="action" value="{{.Action}}">
+    <input type="hidden" name="reason" value="{{.Reason}}">
+    <input type="hidden" name="started" value="{{.Started}}">
+    <input type="hidden" name="return" value="{{.Return}}">
+    {{range .Labels}}<input type="hidden" name="label" value="{{.}}">{{end}}
+    {{range .Rows}}<input type="hidden" name="item" value="{{.ID}}">{{end}}
+    <label class="reviewer">Reviewer <input type="text" name="reviewer" value="{{.Reviewer}}" required></label>
+    <div class="buttons">
+      <button class="btn ok" type="submit" name="confirm" value="1" {{if not .CanSubmit}}disabled{{end}}>Record {{.OK}} decisions</button>
+      {{if .Blocked}}<button class="btn" type="submit" name="exclude_blocked" value="1">Exclude {{.Blocked}} blocked and continue</button>{{end}}
+      <button class="btn" type="submit" name="recheck" value="1">Re-check</button>
+      <a class="btn ghost" href="{{.Return}}">Cancel</a>
+    </div>
+  </form>
+</main>
+{{template "bottom"}}
