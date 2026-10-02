@@ -47,11 +47,12 @@
   </form>
   </details>
   <div class="toolbar">
-    <label class="check"><input type="checkbox" id="selectall"> Select all {{.Total}} in this filter</label>
+    <label class="check"><input type="checkbox" id="selectall"> Select all {{.Total}}{{if gt .Matches .Total}} shown{{else}} in this filter{{end}}</label>
     <div class="spacer"></div>
     <button class="btn ghost" type="button" id="expandall">Expand all</button>
     <button class="btn ghost" type="button" id="collapseall">Collapse all</button>
   </div>
+  {{if gt .Matches .Total}}<div class="truncated" role="note">Showing the first {{.Total}} of {{.Matches}} matching items, highest priority first — narrow the filters to reach the rest. Bulk actions cover the items shown above.</div>{{end}}
 
   {{if not .Rows}}<div class="empty"><h2>Nothing here</h2><p>No review items match this filter.</p></div>{{end}}
   <ol class="cards" id="cards">

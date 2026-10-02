@@ -149,6 +149,7 @@ func (q *reviewQueue) Inbox(ctx context.Context, f InboxFilter) (*Inbox, error) 
 		}
 		return lessTimeID(a.CreatedAt.UnixNano(), a.ID, b.CreatedAt.UnixNano(), b.ID)
 	})
+	inbox.Matches = len(rows)
 	if f.Limit > 0 && len(rows) > f.Limit {
 		rows = rows[:f.Limit]
 	}

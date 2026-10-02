@@ -173,7 +173,10 @@ type inboxView struct {
 	Started  string
 	Return   string
 	Total    int
-	Enums    enumView
+	// Matches is the filter's full match count; Total < Matches means the
+	// list was truncated by Options.InboxLimit and the page must say so.
+	Matches int
+	Enums   enumView
 }
 
 // --- item ----------------------------------------------------------------------------------

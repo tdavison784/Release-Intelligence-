@@ -3,6 +3,7 @@ package reviewui
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
@@ -157,6 +158,92 @@ func TestInboxCountsAndDefaultFilter(t *testing.T) {
 		"The default privateKey.rotationPolicy is now Always", `class="card"`, `aria-expanded="false"`, "Expand all", "Collapse all", "Select all")
 	// the default view is pending only: decided/deferred/needs-evidence items are not listed
 	lacks(t, body, "Owner-reference flag default flipped", "Default retention changed", "Ambient data plane")
+	// nothing is truncated: no "first N of M" notice, and select-all counts the filter
+	lacks(t, body, `class="truncated"`, "Select all 10 shown")
+	contains(t, body, "in this filter")
+}
+
+func TestInboxSaysWhenTheListIsTruncated(t *testing.T) {
+	q := NewDemoQueue()
+	srv := httptest.NewServer(NewServer(q, Options{Now: func() time.Time { return now }, InboxLimit: 2, Logf: t.Logf}))
+	t.Cleanup(srv.Close)
+	full, err := q.Inbox(context.Background(), knowledge.InboxFilter{Status: []domain.ReviewStatus{domain.ReviewPending}})
+	if err != nil || full.Matches < 3 {
+		t.Fatalf("fixtures: %d pending matches (%v); want ≥3 so the limit actually truncates", full.Matches, err)
+	}
+	resp, err := http.Get(srv.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(resp.Body)
+	body := string(b)
+	if resp.StatusCode != 200 {
+		t.Fatalf("status %d", resp.StatusCode)
+	}
+	// the page must not pretend to be the whole filter: it says how much was
+	// cut, and select-all covers only the two rows shown
+	contains(t, body, fmt.Sprintf("Showing the first 2 of %d matching items", full.Matches), "Select all 2 shown", `class="truncated"`)
+	lacks(t, body, "in this filter")
+	if got := strings.Count(body, `class="card"`); got != 2 {
+		t.Fatalf("cards = %d, want 2", got)
+	}
+}
+
+// bigQueue serves a synthetic inbox of n pending items (the DemoQueue stands in
+// for Item/Decide); it exists to render the inbox at scale.
+type bigQueue struct {
+	*DemoQueue
+	n int
+}
+
+func (b *bigQueue) Inbox(_ context.Context, f knowledge.InboxFilter) (*knowledge.Inbox, error) {
+	in := &knowledge.Inbox{}
+	pending := len(f.Status) == 0 // the UI always sends statuses; default like parseFilter
+	for _, st := range f.Status {
+		pending = pending || st == domain.ReviewPending
+	}
+	if !pending {
+		return in, nil
+	}
+	for i := 0; i < b.n; i++ {
+		it := domain.ReviewItem{ID: fmt.Sprintf("item-scale-%04d", i), Question: "Did the default change?", Product: "cert-manager",
+			Release: "v1.18.0", QuestionType: domain.QuestionSemanticMapping, Status: domain.ReviewPending,
+			Routing:  domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityNormal},
+			Proposed: domain.SemanticAssertion{Statement: "scale"}}
+		in.Items = append(in.Items, knowledge.InboxRow{Item: it, Title: fmt.Sprintf("Scale item %d", i),
+			Models: []string{"claude-opus-5-5"}, Calls: 1})
+		in.Counts.Pending++
+	}
+	in.Matches = len(in.Items)
+	if f.Limit > 0 && len(in.Items) > f.Limit {
+		in.Items = in.Items[:f.Limit]
+	}
+	return in, nil
+}
+
+func TestInboxHandlesHundredsOfItems(t *testing.T) {
+	srv := httptest.NewServer(NewServer(&bigQueue{DemoQueue: NewDemoQueue(), n: 400}, Options{Now: func() time.Time { return now }, Logf: t.Logf}))
+	t.Cleanup(srv.Close)
+	started := time.Now()
+	resp, err := http.Get(srv.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(resp.Body)
+	body := string(b)
+	if resp.StatusCode != 200 {
+		t.Fatalf("status %d", resp.StatusCode)
+	}
+	// the default page is the first 200 of 400 (priority order): every card
+	// renders, the page says what was cut, and the rest stay reachable
+	if got := strings.Count(body, `class="card"`); got != 200 {
+		t.Fatalf("cards = %d, want 200", got)
+	}
+	contains(t, body, "Showing the first 200 of 400 matching items", "Select all 200 shown", `data-id="item-scale-0199"`)
+	lacks(t, body, `data-id="item-scale-0200"`)
+	t.Logf("inbox of 400 rendered in %s", time.Since(started))
 }
 
 func TestInboxFilters(t *testing.T) {

@@ -132,6 +132,7 @@ func (q *DemoQueue) Inbox(_ context.Context, f knowledge.InboxFilter) (*knowledg
 	sort.SliceStable(in.Items, func(i, j int) bool {
 		return rank[in.Items[i].Item.Routing.Priority] < rank[in.Items[j].Item.Routing.Priority]
 	})
+	in.Matches = len(in.Items)
 	if f.Limit > 0 && len(in.Items) > f.Limit {
 		in.Items = in.Items[:f.Limit]
 	}
