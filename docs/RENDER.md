@@ -172,6 +172,36 @@ and routing: one model call ⇒ no fact (review); two agreeing calls without an 
 auto-approved consensus fact, untrusted, capped at REVIEW; only PO-2 (every agreeing call requests
 action-required) yields `ConsensusAction` — "ACTION REQUIRED · model consensus", always audited.
 
+## Unset changed defaults and new keys (PO-3)
+
+A customer who does not set a key whose default changed (or which is new in the target) gets the new
+default: "your values do not set it" is not "not affected". With `--render`, the values join asks
+`render.UnsetValues` (`impact.Input.Unset`, interface `impact.UnsetValuesEvaluator`). This is the
+bounded R8 counterfactual, one render per change and per customer Helm deployment:
+
+1. the target with the customer's configuration plus a layer pinning the change's keys to their
+   previous state: the source chart's default, or `null` (absent) for a key new in the target;
+2. diff that against the target as the customer gets it. Only differences that also appear in the
+   customer's actual upgrade delta (source vs target with their values) are attributed to the keys.
+
+| Outcome | Verdict (contract-4 rules, `ImpactCheck.Render`) |
+|---|---|
+| an attributable rendered change | `impact:values-default-applies`, **REVIEW REQUIRED**, matches of kind `rendered-change` citing environment-render evidence (chain 2). Stronger only through knowledge (a trusted fact or PO-2 consensus-action) |
+| renders succeeded with complete values, nothing attributable | `impact:values-default-no-effect`, NOT AFFECTED, with a `render` check: `render.outcome: no-attributable-change`, `key`, `counterfactual: true`, citing the environment-render state records of the target and the counterfactual |
+| render unavailable (no `--render`, a failed pair, incomplete values, no Helm deployment, a counterfactual the chart cannot render) | `impact:values-default-unrendered`, NOT AFFECTED (product-owner choice), with a `render` check: `render.outcome: unavailable` and a `reason` |
+
+`impact:values-unset` now covers removed keys only. Without `--render`, an unset changed default or new key
+is `values-default-unrendered` with reason "rendering was not requested (run ri impact with --render)".
+That renames the rule in knowledge-free reports; the class (not-affected) is unchanged, and the eval shows
+no regression against `eval/results`.
+
+Keys are never batched: a group test could hide two cancelling keys and wrongly clear. For an unset key the chart-default attribution
+(`UnsetKeyEvidence`) is the customer's effective change and carries no customer values, so those
+release-scope records may back knowledge and be offered to proposal prompts. Results:
+`eval/render/results/2026-10-02-po3.md`: TRUSTFIX's 8 dangerous kyverno cells move to REVIEW;
+ACTION → NOT AFFECTED 25 → 17; weighted miss 940 → 868; falseActionRate, unknownRate and
+applicabilityAccuracy unchanged.
+
 ## Evaluation (R16, R17)
 
 `eval/render/` holds the render cases: expectations authored from upstream material

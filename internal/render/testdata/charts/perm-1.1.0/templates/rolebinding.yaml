@@ -1,0 +1,10 @@
+{{- if .Values.viewRoleBinding.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-background-view
+  namespace: {{ .Release.Namespace }}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: view}
+subjects:
+  - {kind: ServiceAccount, name: {{ .Release.Name }}-background, namespace: {{ .Release.Namespace }}}
+{{- end }}

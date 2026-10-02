@@ -87,6 +87,11 @@ func (a *App) ImpactRun(ctx context.Context, productID, from, to string, opts Im
 			return nil, err
 		}
 		in.Render = render.ConditionEvaluator{Pairs: run.Render.EnvironmentPairs()}
+		// PO-3: changed defaults / new keys the customer leaves unset are
+		// decided by the counterfactual render
+		in.Unset = &render.UnsetValues{Engine: a.RenderEngine(), Product: productID,
+			From: edge.From.String(), To: edge.To.String(), Pairs: run.Render.EnvironmentPairs(),
+			KubeVersion: ro.KubeVersion, APIVersions: ro.APIVersions, Ctx: ctx}
 	}
 	if run.Report, err = impact.Build(in); err != nil {
 		return nil, err

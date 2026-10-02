@@ -118,6 +118,89 @@ the old table (refuted) and passes now. Side effect, intended: storage moves are
 for render auto-approval (R10); the `crd-schema` validator still confirms them deterministically.
 Waiting on the product-owner decision about render-backed classification of unset changed defaults.
 
+## render-4 — PO-3 (branch `p3ll/render-4`)
+
+Render-backed classification of changed defaults / new keys the customer leaves unset (docs/RENDER.md
+"Unset changed defaults"):
+- `render.UnsetValues` implements the counterfactual (one render per change × Helm deployment;
+  attribution = counterfactual effect ∩ actual upgrade delta);
+- `internal/impact/unset.go`: interface + the contract-4 rules (`values-default-applies` / `-no-effect`
+  / `-unrendered`, `ImpactCheck.Render`); one hunk in `valuesFamily`; `Input.Unset`. All
+  `CONTRACT-CHANGE(render)`; the applicability lane owns the package;
+- `app.ImpactRun` wires it behind `--render` / `ri eval -render`;
+- release-level `UnsetKeyEvidence` for prompts/knowledge.
+
+Adversarial tests (`internal/render/unset_test.go`, purpose-built `testdata/charts/perm-*`):
+- kyverno-style permission loss;
+- image tag default bump;
+- a new key shipping a RoleBinding;
+- a default that renders nothing (clear);
+- a new key whose effect the source already rendered (clear);
+- a random token never attributed;
+- incomplete / failed / kustomize-only renders never clear;
+- the join's three verdicts.
+
+"YAML parse error on <template>" is now `template-error`.
+
+Results (`eval/render/results/2026-10-02-po3.md`):
+- TRUSTFIX's 8 dangerous kyverno cells → REVIEW (9 → 1; the 1 left is the image-mirror cell);
+- ACTION→NOT-AFFECTED 25 → 17; weighted miss 940 → 868; impactAccuracy 0.274 → 0.315;
+- falseActionRate 0.059, applicabilityAccuracy 0.495 and unknownRate 0.793 unchanged (explained);
+- notAffectedViolations 0 → 3: true rendered effects scored against item-level NOT-AFFECTED labels,
+  for groundtruth.
+
+**Aligned with contract-4** (merged p3-learning-loop):
+- rules `impact:values-default-applies` / `-no-effect` / `-unrendered`;
+- `ImpactCheck.Render{outcome, key, counterfactual, reason}`;
+- the no-effect check cites environment-render state records of the target and the counterfactual;
+- `values-unset` is for removed keys only;
+- without `--render`, an unset changed default is `values-default-unrendered` ("rendering was not
+  requested"). The eval shows 0 diffs against `eval/results` and identical PO-3 numbers after the
+  rename.
+
+Bug fixed while extracting the evidence below: distinct environment-scope changes whose excerpts look
+alike (values hidden) shared one evidence id (kyverno's four removed migrate-hook args). The id now
+covers the change's class, name and a digest of its values, and flag names show in the locator.
+Positional arguments, which may be values, do not (`TestEnvironmentEvidenceIsPerChange`).
+
+### For the groundtruth lane: 3 new not-affected violations (labels not changed)
+
+Each is a real rendered change caused by a new default the customer leaves unset. Each is scored
+against an expected item labelled NOT AFFECTED at the item level. Reproduce with
+`ri impact <product> <from> <to> --values … --manifests … --inventory … --kubernetes 1.30 --render -o json`
+on the case's `environment/`. Finding ids are from that run.
+
+1. **cilium-1.16-1.17--plant-edge, E3** (removed metallb-bgp keys unused; TRUSTFIX §5 already lists
+   this as a bgpControlPlane matcher artefact). New key `bgpControlPlane.statusReport.enabled` adds a
+   cilium-config key.
+2. **cilium-1.16-1.17--plant-edge, E4** (the deprecated `tls.secretsBackend` is not in use). The new
+   `tls.*` keys create Namespace `cilium-secrets`, two Roles, two RoleBindings and a cilium-config
+   key. The deployment does change; the item is about the deprecated key.
+3. **kyverno-1.12-1.13, E7** (the manual storage migration does not apply). The changed
+   `crds.migration.resources` default rewrites the post-upgrade migrate-resources hook Job's args.
+   That is a true effect; the item's own claim (no manual step) stays true.
+
+Rendered evidence (environment scope):
+
+  - finding `imp-fda40556bc3b` (`impact:values-default-applies`, change `chg-c1683026f6bb`: New Helm value bgpControlPlane.statusReport.enabled)
+    - `ev-369eb959590c` field-added `core/v1/ConfigMap/cilium/cilium-config` `data.enable-bgp-control-plane-status-report` — template `cilium/templates/cilium-configmap.yaml`
+    - render: helm v3.16.1, chart `sha256:72a820bf01bb3e02`, values `sha256:7eeeaffd94363471`
+  - finding `imp-49d97ffedc01` (`impact:values-default-applies`, change `chg-37c4c95379a8`: 4 new Helm values under tls.*)
+    - `ev-bc2feb367be3` resource-added `rbac.authorization.k8s.io/v1/RoleBinding/cilium-secrets/cilium-operator-tlsinterception-secrets` — template `cilium/templates/cilium-operator/rolebinding.yaml`
+    - `ev-3d96da2bd586` resource-added `rbac.authorization.k8s.io/v1/RoleBinding/cilium-secrets/cilium-tlsinterception-secrets` — template `cilium/templates/cilium-agent/rolebinding.yaml`
+    - `ev-d0fae647b805` resource-added `rbac.authorization.k8s.io/v1/Role/cilium-secrets/cilium-operator-tlsinterception-secrets` — template `cilium/templates/cilium-operator/role.yaml`
+    - `ev-5246a4477548` resource-added `rbac.authorization.k8s.io/v1/Role/cilium-secrets/cilium-tlsinterception-secrets` — template `cilium/templates/cilium-agent/role.yaml`
+    - `ev-9f8637b67958` field-added `core/v1/ConfigMap/cilium/cilium-config` `data.policy-secrets-namespace` — template `cilium/templates/cilium-configmap.yaml`
+    - `ev-3c37e3720dec` resource-added `core/v1/Namespace//cilium-secrets` — template `cilium/templates/cilium-secrets-namespace.yaml`
+    - render: helm v3.16.1, chart `sha256:72a820bf01bb3e02`, values `sha256:7eeeaffd94363471`
+  - finding `imp-e481294357dc` (`impact:values-default-applies`, change `chg-ac4fb1d10f83`: Default of Helm value crds.migration.resources changed: ["admissionreports.kyverno.io",")
+    - `ev-2a4df33522c1` container-arg-changed `batch/v1/Job/kyverno/kyverno-migrate-resources` `spec.template.spec.containers[name=kubectl].args` [--resource] — template `kyverno/templates/hooks/post-upgrade-migrate-resources.yaml`
+    - `ev-21fc83c3349d` container-arg-removed `batch/v1/Job/kyverno/kyverno-migrate-resources` `spec.template.spec.containers[name=kubectl].args` — template `kyverno/templates/hooks/post-upgrade-migrate-resources.yaml`
+    - `ev-c9c2374a5423` container-arg-removed `batch/v1/Job/kyverno/kyverno-migrate-resources` `spec.template.spec.containers[name=kubectl].args` — template `kyverno/templates/hooks/post-upgrade-migrate-resources.yaml`
+    - `ev-d9b1631a25f5` container-arg-removed `batch/v1/Job/kyverno/kyverno-migrate-resources` `spec.template.spec.containers[name=kubectl].args` — template `kyverno/templates/hooks/post-upgrade-migrate-resources.yaml`
+    - `ev-bc411c2810ea` container-arg-removed `batch/v1/Job/kyverno/kyverno-migrate-resources` `spec.template.spec.containers[name=kubectl].args` — template `kyverno/templates/hooks/post-upgrade-migrate-resources.yaml`
+    - render: helm v3.16.1, chart `sha256:35a4a3a0fee67a94`, values `sha256:fbc797c30b89ff3f`
+
 ## Open / honest gaps
 
 - Pipeline-level R17 (before/after on the corpus) is **measured** (see (f)); the follow-on — re-run
@@ -148,6 +231,7 @@ Waiting on the product-owner decision about render-backed classification of unse
   `schemas/*.json`.
 - `internal/sources/artifacts.go` `ChartPackage.Archive`, set in `internal/helm/package.go` and
   `internal/oci/chartlayer.go` (one line each).
+- render-4 (PO-3): `internal/impact/{unset.go (new), build.go (one hunk + builder field), api.go (Input.Unset)}`.
 - render-2 wiring: `internal/impact/condition.go` (render deps), `internal/knowledge/{route.go,api.go,queue.go}`
   + new `render.go` (`ReviewContext.Render`, `RenderEvidence`, `RenderEvidenceOf`),
   `internal/reviewui/{rendered.go,server.go}`, `internal/domain/semantic.go`

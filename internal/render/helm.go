@@ -169,7 +169,7 @@ func (h *Helm) Render(ctx context.Context, req Request) *Result {
 	if f != nil {
 		return &Result{Status: StatusFailed, Failure: f, Provenance: prov}
 	}
-	if h.DetectNondeterminism {
+	if h.DetectNondeterminism && !req.NoProbe {
 		out2, _, err := h.Runner.Run(ctx, dir, h.bin(), args...)
 		if err == nil && string(out2) != string(out) {
 			if objs2, err := ParseObjects(out2); err == nil {
@@ -197,6 +197,7 @@ var (
 	reMissingDep   = regexp.MustCompile(`(?i)(found in Chart\.yaml, but missing in charts/|missing in charts/ directory|dependencies? .*(not|missing))`)
 	reValues       = regexp.MustCompile(`(?i)(values don't meet the specifications of the schema|failed to parse .*values|error converting YAML to JSON|cannot unmarshal .* into Go value of type map|invalid --set|parsing --set|unable to parse key)`)
 	reCapability   = regexp.MustCompile(`(?i)(chart requires kubeVersion|is incompatible with Kubernetes|no matches for kind|ensure CRDs are installed first|resource mapping not found|invalid kube version)`)
+	reBadOutput    = regexp.MustCompile(`YAML parse error on `)
 	reChartRejects = regexp.MustCompile(`execution error at \(`)
 	reChartAccess  = regexp.MustCompile(`(?i)(failed to download|not a valid chart|chart not found|no such file or directory|Chart\.yaml file is missing)`)
 )
@@ -210,6 +211,11 @@ func classifyHelm(stderr string, err error) (FailureReason, string) {
 	}
 	detail = boundDetail(detail)
 	switch {
+	case reBadOutput.MatchString(stderr):
+		// the template rendered text that is not YAML: a template defect
+		// (or a counterfactual input the template cannot handle), not values
+		// the chart validated and rejected
+		return FailTemplateError, detail
 	case reChartRejects.MatchString(stderr):
 		// helm reports chart-authored `fail` / `required` checks as
 		// "execution error at (<template>:<line>:<col>): <message>": the
