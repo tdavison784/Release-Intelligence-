@@ -1,7 +1,9 @@
 package semantic
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -170,7 +172,7 @@ func (r RunReport) WriteText(w interface{ Write([]byte) (int, error) }) {
 		}
 		fam := ""
 		if a.SameFamily {
-			fam = " (single model family: not independent)"
+			fam = " (consensus scope same-model: one model family, domain.ConsensusScopeOf)"
 		}
 		fmt.Fprintf(w, "agreement %-13s all-agree %d/%d%s\n", a.Aspect, a.AllAgree, a.Compared, fam)
 		keys := make([]string, 0, len(a.Pairwise))
@@ -185,55 +187,44 @@ func (r RunReport) WriteText(w interface{ Write([]byte) (int, error) }) {
 	}
 }
 
-// WriteRecords writes candidates and proposals as KnowledgeRecord files in
-// the knowledge/ layout (DESIGN.md §8):
-// <dir>/<product>/<release|_endpoint>/{candidates,proposals}/<id>.json.
-// Records are validated first; an existing identical file is left alone.
-// Failures go to <dir>/<product>/failures/<attempt>.json (not knowledge
-// records; removed when the attempt later succeeds).
+// WriteRecords writes candidates and proposals through the knowledge store
+// (knowledge.NewFileStore(dir): the committed knowledge/ layout, DESIGN.md
+// §8; every record is validated by the store before it is written).
+// Candidates first, as the store requires. A candidate already in the store
+// under the same (member-derived) id is kept as stored: candidates are
+// immutable, and a later run of an overlapping edge (or a re-run on another
+// day) restates the same cluster. Failures are not knowledge records; they
+// go to <dir>/<product>/failures/<attempt>.json and are removed when the
+// attempt later succeeds.
 func WriteRecords(dir string, cands []domain.SemanticCandidate, props []domain.SemanticProposal, fails []knowledge.ProposalFailure) error {
+	ctx := context.Background()
+	store := knowledge.NewFileStore(dir)
 	where := map[string]domain.SemanticCandidate{}
 	for _, c := range cands {
 		where[c.ID] = c
-	}
-	put := func(c domain.SemanticCandidate, sub, id string, entity any) error {
-		rec, err := domain.NewRecord(entity)
+		rec, err := domain.NewRecord(c)
 		if err != nil {
 			return err
 		}
-		if err := rec.Validate(); err != nil {
-			return fmt.Errorf("%s: %w", id, err)
-		}
-		rel := c.Release
-		if rel == "" {
-			rel = "_endpoint"
-		}
-		path := filepath.Join(dir, string(c.Product), rel, sub, id+".json")
-		b, err := json.MarshalIndent(rec, "", "  ")
-		if err != nil {
-			return err
-		}
-		b = append(b, '\n')
-		if have, err := os.ReadFile(path); err == nil && string(have) == string(b) {
-			return nil
-		}
-		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-			return err
-		}
-		return os.WriteFile(path, b, 0o644)
-	}
-	for _, c := range cands {
-		if err := put(c, "candidates", c.ID, c); err != nil {
-			return err
+		if err := store.Put(ctx, rec); err != nil {
+			if !errors.Is(err, knowledge.ErrConflict) {
+				return fmt.Errorf("candidate %s: %w", c.ID, err)
+			}
+			if _, gerr := store.Get(ctx, c.ID); gerr != nil {
+				return fmt.Errorf("candidate %s: %w", c.ID, err)
+			}
 		}
 	}
 	for _, p := range props {
-		c, ok := where[p.CandidateID]
-		if !ok {
+		if _, ok := where[p.CandidateID]; !ok {
 			return fmt.Errorf("proposal %s: candidate %s not written", p.ID, p.CandidateID)
 		}
-		if err := put(c, "proposals", p.ID, p); err != nil {
+		rec, err := domain.NewRecord(p)
+		if err != nil {
 			return err
+		}
+		if err := store.Put(ctx, rec); err != nil {
+			return fmt.Errorf("proposal %s: %w", p.ID, err)
 		}
 	}
 	// one file per attempt (candidate × task × provider × model), so a re-run
