@@ -1,5 +1,18 @@
 # Lane `semantic` — status
 
+Branch `p3ll/semantic-3` (base `p3-learning-loop` @ 9d5126a; earlier waves on `p3ll/semantic`).
+
+## semantic-3 (third handoff, in flight)
+
+The rendered-diff addendum run (`runs/semantic-v3/`): 7 new edges (crossplane, external-secrets,
+flux, kyverno, loki, prometheus-operator, traefik), `-render` everywhere, sonnet+haiku on all 7,
+opus + GLM-5.3 (zai) on the 4 smaller ones — the first real cross-model pairs. The paused Claude
+agent got through candidates (573), requests (1 333 claude + 187 zai), 592/1 333 claude answers
+(the account session limit stopped `claude -p`; resets 15:50 America/Chicago), 187/187 zai answers
+($25.76), and a partial pass-2 ingest (722 proposals, 0 invalid). Remaining: answer the 741
+pending claude requests, pass-3 ingest, analysis (`analyze_models.py`, `analyze_cross.py`), run
+record, commit. Driver: `.ri/semantic-run-v3/run3.sh`. Details and outcome: `runs/semantic-v3/README.md`.
+
 Branch `p3ll/semantic` (base `p3-learning-loop` @ 1174492, knowledge-3 merged).
 
 ## Done
