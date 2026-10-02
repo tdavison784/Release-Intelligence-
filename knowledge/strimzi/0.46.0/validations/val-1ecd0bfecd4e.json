@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1ecd0bfecd4e",
+    "candidateId": "sc-975c09b99b18",
+    "proposalId": "sp-04864cdf3b27",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "ssl.principal.mapping.rules",
+        "component": "kafka-broker"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.kafka.listeners[].authentication.type",
+              "state": "equals",
+              "values": [
+                "\"custom\""
+              ]
+            }
+          ],
+          "group": "kafka.strimzi.io",
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence: existing clusters keep working unchanged; Kafka brokers whose listener authentication is `type: custom` merely gain the ability to configure `ssl.principal.mapping.rules`.",
+        "remediation": "No action required; operators who need custom principal mapping rules with `type: custom` authentication can now set them.",
+        "severity": "low"
+      },
+      "statement": "Strimzi 0.46.0 adds the ability to configure the Kafka broker configuration key `ssl.principal.mapping.rules` in Kafka brokers whose listener authentication is `type: custom` (the same entry also mentions allowing custom trusted CAs, which is not separately asserted here)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/added",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/strimzi-helm/strimzi-kafka-operator:0.45.0: fetch https://quay.io/v2/strimzi-helm/strimzi-kafka-operator/manifests/0.45.0: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://strimzi.io/charts/index.yaml: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/added",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/strimzi-helm/strimzi-kafka-operator:0.45.0: fetch https://quay.io/v2/strimzi-helm/strimzi-kafka-operator/manifests/0.45.0: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://strimzi.io/charts/index.yaml: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ca4285d22a8b",
+    "candidateId": "sc-c71a084ba3c7",
+    "proposalId": "sp-d0715a50fc0d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "clustermesh.apiserver.kvstoremesh.enabled"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "clustermesh.apiserver.kvstoremesh.enabled",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "clustermesh.apiserver.kvstoremesh.enabled",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "KVStoreMesh is now enabled by default in the clustermesh apiserver unless explicitly disabled.",
+        "remediation": "Set clustermesh.apiserver.kvstoremesh.enabled=false explicitly during the upgrade to keep KVStoreMesh disabled."
+      },
+      "statement": "Helm value clustermesh.apiserver.kvstoremesh.enabled now defaults to true (was false); set it to false explicitly to disable KVStoreMesh."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

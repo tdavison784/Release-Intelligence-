@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-e34758a65330",
+    "candidateId": "sc-975c09b99b18",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "questionType": "applicability",
+    "question": "For \"Allow configuring `ssl.principal.mapping.rules` and custom trusted CAs in Kafka brokers with `type: custom` authentication\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.kafka.listeners[].authentication.type",
+              "state": "equals",
+              "values": [
+                "\"custom\""
+              ]
+            }
+          ],
+          "group": "kafka.strimzi.io",
+          "kind": "Kafka"
+        }
+      },
+      "statement": "Strimzi 0.46.0 adds the ability to configure the Kafka broker configuration key `ssl.principal.mapping.rules` in Kafka brokers whose listener authentication is `type: custom` (the same entry also mentions allowing custom trusted CAs, which is not separately asserted here)."
+    },
+    "proposals": [
+      "sp-04864cdf3b27",
+      "sp-06724f64492b",
+      "sp-5b0c5964c87f",
+      "sp-8822b34c0cc9"
+    ],
+    "validations": [
+      "val-03a01c497a76",
+      "val-1ecd0bfecd4e",
+      "val-a54e334ccbe5",
+      "val-b5ca42fb9ca6",
+      "val-e6aeb3894f14",
+      "val-f272331af960"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T11:51:02Z"
+  }
+}

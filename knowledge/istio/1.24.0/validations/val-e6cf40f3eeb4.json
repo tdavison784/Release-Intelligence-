@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e6cf40f3eeb4",
+    "candidateId": "sc-29475ebd2dc6",
+    "proposalId": "sp-57d89b3f16a1",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "manifest diff",
+        "component": "istioctl"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "manifest diff",
+          "component": "istioctl",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Scripts or workflows invoking `istioctl manifest diff` or `istioctl manifest profile diff` will fail with command not found.",
+        "severity": "high"
+      },
+      "statement": "The `istioctl manifest diff` and `istioctl manifest profile diff` command-line tools are removed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

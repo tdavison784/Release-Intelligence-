@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-539e518eca37",
+    "candidateId": "sc-621425375be9",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "applicability",
+    "question": "For \"Standardization of the peer metadata attributes: CEL expressions in the telemetry API must use the standard Envoy attributes instead of the custom Wasm…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any Telemetry API CEL expressions use the old attributes (filter_state[\"wasm.downstream_peer\"], filter_state[\"wasm.upstream_peer\"], node, or unqualified wasm attributes such as istio_responseClass)"
+        }
+      },
+      "statement": "Telemetry API CEL expressions must be updated to use standard Envoy attributes (filter_state.downstream_peer/upstream_peer, xds.node, fully qualified wasm.* attributes) instead of the custom Wasm extended attributes."
+    },
+    "proposals": [
+      "sp-ab158737010c"
+    ],
+    "validations": [
+      "val-4cc4786fa42d",
+      "val-885036d8185a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T05:57:26Z"
+  }
+}

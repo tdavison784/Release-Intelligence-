@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0d08513cfad9",
+    "candidateId": "sc-91d1feb7a7d7",
+    "proposalId": "sp-555ed06d0d61",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "repositories",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.repositories",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "data[\"repository.credentials\"]",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "data[\"helm.repositories\"]",
+                  "state": "set"
+                }
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Repositories configured in argocd-cm (repositories, repository.credentials, helm.repositories) are no longer supported in Argo CD 3.0 and will not be honoured.",
+        "remediation": "Convert the repositories to Secrets following the documentation for declarative management of repositories.",
+        "severity": "high"
+      },
+      "statement": "Legacy repository configuration in the argocd-cm ConfigMap (repositories, repository.credentials, helm.repositories) is removed in Argo CD 3.0; repositories must be converted to Secrets."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

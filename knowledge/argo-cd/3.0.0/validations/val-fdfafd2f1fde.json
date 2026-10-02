@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fdfafd2f1fde",
+    "candidateId": "sc-7ee60ebe99f0",
+    "proposalId": "sp-71a07840f8b3",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "kind": "Application",
+        "path": "status.health.lastTransitionTime"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "argoproj.io",
+          "version": "v1alpha1",
+          "kind": "Application"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The health.status.lastTransitionTime field on Application resources will now always be set with a timestamp value, whereas it was previously sometimes omitted.",
+        "severity": "low"
+      },
+      "statement": "The Argo CD controller now consistently sets health.status.lastTransitionTime on Application resources, whereas previously this field was sometimes not set."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

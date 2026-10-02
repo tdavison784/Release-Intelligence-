@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b518ba879122",
+    "candidateId": "sc-4330cdde4865",
+    "proposalId": "sp-8bd5f3672b57",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+        "component": "pilot"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment has DestinationRules on the same host with different ExportTo attributes"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRules on the same host with different ExportTo attributes will no longer be merged by default, which changes the routing behavior for such configurations unless the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable is explicitly set to false.",
+        "severity": "medium"
+      },
+      "statement": "DestinationRule merging behavior for rules on the same host with different ExportTo attributes changed; merging is now disabled by default, but can be re-enabled by setting the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable to false in the pilot deployment."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:env-var/behavior-changed",
+        "detail": "no canonical exposure condition for env-var behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

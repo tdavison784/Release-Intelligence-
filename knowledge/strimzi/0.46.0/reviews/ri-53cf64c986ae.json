@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-53cf64c986ae",
+    "candidateId": "sc-5fc2da42c29c",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "questionType": "applicability",
+    "question": "For \"Kubernetes events for Pod restarts no longer have the Pod as the `regardingObject`. If you are using `regardingObject` as a `field-selector` for listing events…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any scripts or tooling list Kubernetes events using a regardingObject field-selector that targets the Pod"
+        }
+      },
+      "statement": "Kubernetes events for Pod restarts no longer have the Pod as the regardingObject, so anyone using regardingObject as a field-selector for listing events must update the selector to specify the Kafka resource instead."
+    },
+    "proposals": [
+      "sp-3d6a89408dfb",
+      "sp-648458afca7a",
+      "sp-862eb1868c1a",
+      "sp-926b4f2f6e52"
+    ],
+    "validations": [
+      "val-289df6abfed5",
+      "val-2c15a868bcba",
+      "val-529ebe80ebfe",
+      "val-5b90344648d0",
+      "val-872e91a71c37",
+      "val-91b5692ce54c"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T11:19:26Z"
+  }
+}

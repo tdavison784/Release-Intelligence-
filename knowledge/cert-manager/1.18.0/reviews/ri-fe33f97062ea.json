@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-fe33f97062ea",
+    "candidateId": "sc-7ae1b93c2b58",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates with an IP address in commonName now get that IP in the ipAddresses field rather than in the DNS subjectAlternativeName list; issued certificate SANs differ.",
+        "severity": "low"
+      },
+      "statement": "For Certificates whose commonName is an IP address, the IP is no longer added to the DNS subjectAlternativeName list and is instead added to ipAddresses."
+    },
+    "proposals": [
+      "sp-725f02beefeb",
+      "sp-78a3cebbc2d2",
+      "sp-ebe17c6f3715"
+    ],
+    "validations": [
+      "val-4bf16bcce6be",
+      "val-4e9142623f7e",
+      "val-648090e8cfdd",
+      "val-6abe953ae411",
+      "val-d71704988449",
+      "val-d9b1be76037e",
+      "val-e354c2799543",
+      "val-f91f84a328d5"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T11:41:43Z"
+  }
+}

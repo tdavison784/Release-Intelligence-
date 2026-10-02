@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-284caaf22d7c",
+    "candidateId": "sc-e5b1aa79bd67",
+    "proposalId": "sp-412b262c22a7",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "istio",
+        "path": "sidecar.istio.io/enableCoreDump"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "metadata.annotations[\"sidecar.istio.io/enableCoreDump\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "Pod"
+        }
+      },
+      "statement": "The `sidecar.istio.io/enableCoreDump` annotation was removed; the `samples/proxy-coredump` sample shows preferred ways to enable core dumps."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

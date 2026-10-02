@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2aa6e39812dc",
+    "candidateId": "sc-f68243010efc",
+    "proposalId": "sp-6fccfeb6e8fd",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "clustermesh.apiserver.securityContext"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.securityContext",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.podSecurityContext",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.securityContext",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.podSecurityContext",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The clustermesh-apiserver now runs with all capabilities dropped and as a non-root user by default; verify it still works under these defaults.",
+        "severity": "low"
+      },
+      "statement": "The clustermesh-apiserver podSecurityContext and securityContext Helm settings now default to dropping all capabilities and running as a non-root user."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

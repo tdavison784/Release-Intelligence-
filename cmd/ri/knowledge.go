@@ -88,6 +88,9 @@ func (c *cli) knowledgeRoute(args []string) error {
 	}
 	fmt.Fprintf(c.out, "routed %d candidates: %d review items created, %d facts auto-verified, %d audit items, %d already stored\n",
 		sum.Candidates, sum.Items, sum.Facts, len(sum.Audits), sum.Existing)
+	for _, sk := range sum.Skipped {
+		fmt.Fprintf(c.err, "skipped: %s\n", sk)
+	}
 	return nil
 }
 

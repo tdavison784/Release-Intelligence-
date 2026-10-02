@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-daf6054d0622",
+    "candidateId": "sc-3d6c61af6db3",
+    "proposalId": "sp-a9956bd1ff57",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "exportto-whitespace-parsing"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "VirtualService"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "DestinationRule"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "ServiceEntry"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "Gateway"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Annotations with extra white spaces between namespaces in the exportTo annotation are now accepted without failure."
+      },
+      "statement": "The networking.istio.io/exportTo annotation now accepts extra white spaces between namespaces."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

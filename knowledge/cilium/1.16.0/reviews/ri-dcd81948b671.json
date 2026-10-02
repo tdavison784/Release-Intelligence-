@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-dcd81948b671",
+    "candidateId": "sc-08185c9e1f20",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The Cilium cluster name is now validated to consist of at most 32 lower case alphanumeric characters and '-', start and end with an alphanumeric character\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Cluster names that do not consist of at most 32 lower case alphanumeric characters and '-', or do not start and end with an alphanumeric character, will be rejected during installation/upgrade unless upgradeCompatibility is set to v1.15 or earlier; strict validation will be enforced in Cilium v1.17.",
+        "remediation": "Ensure the cluster name conforms to the validation rules (max 32 chars, lowercase alphanumeric and '-' only, start/end with alphanumeric), or temporarily set upgradeCompatibility to v1.15 or earlier as a workaround.",
+        "severity": "high"
+      },
+      "statement": "Cilium 1.16.0 introduces validation of the cluster name to require at most 32 lower case alphanumeric characters and hyphens, starting and ending with alphanumeric characters; this can be temporarily bypassed with upgradeCompatibility set to v1.15 or earlier, but will be strictly enforced in v1.17."
+    },
+    "proposals": [
+      "sp-56e298d0a5be",
+      "sp-a78020ddec01"
+    ],
+    "validations": [
+      "val-6be20d5b092a",
+      "val-99ebfb9f43c3",
+      "val-b3992e538edd",
+      "val-ff2e7569595f"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:05:36Z"
+  }
+}

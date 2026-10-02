@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-1a9a34804379",
+    "candidateId": "sc-178716874e9a",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`Sidecar` scoping changes: During processing of services, Istio has a variety of conflict resolution strategies\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Service selection and conflict resolution during service processing now follows unified rules regardless of Sidecar resource presence; environments relying on previous behavior differences should verify that the new preference ordering (namespace-local Services first) aligns with their traffic expectations.",
+        "severity": "medium"
+      },
+      "statement": "Sidecar resource conflict resolution behavior when processing services is unified in version 1.24.0; service selection strategies now prefer the proxy's namespace and Kubernetes Services regardless of whether a Sidecar resource is defined."
+    },
+    "proposals": [
+      "sp-21152a31357e",
+      "sp-50eee92ebbc8"
+    ],
+    "validations": [
+      "val-05d36686b0c2",
+      "val-3d62f87c9843",
+      "val-c4bba9d7c8cc"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:05:38Z"
+  }
+}

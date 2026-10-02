@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-de17cbe42357",
+    "candidateId": "sc-292ab9525adb",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "questionType": "applicability",
+    "question": "For \"We have changed the default value of `Certificate.Spec.RevisionHistoryLimit` from `nil` to `1`. > 📖 Read Release 1.18 notes for more information.\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "statement": "The default of Certificate spec.revisionHistoryLimit changed from nil to 1, so stale CertificateRequests are garbage collected on upgrade unless the field is set explicitly."
+    },
+    "proposals": [
+      "sp-515d6ecff980",
+      "sp-c1ce771ec6e3",
+      "sp-d223efe9991f",
+      "sp-e4bb086ea9b3"
+    ],
+    "validations": [
+      "val-483ea4e909c3",
+      "val-a70353975014",
+      "val-bd6cd42c89cb",
+      "val-f4317c4687ee"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "low",
+      "signals": [
+        "models-agree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T11:24:46Z"
+  }
+}

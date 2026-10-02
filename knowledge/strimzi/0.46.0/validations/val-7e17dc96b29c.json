@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7e17dc96b29c",
+    "candidateId": "sc-b5bd8ce23049",
+    "proposalId": "sp-32f1182bd4f0",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "kafka-logging-framework"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Reload4j/Log4j1\"",
+        "after": "\"Log4j2\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=4.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether custom logging configuration is applied to Kafka brokers"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Custom logging configurations used with Kafka before version 4.0 may not work correctly with Log4j2 and require updates to reflect the new logging framework's configuration format and features.",
+        "remediation": "Review and update any custom logging configurations to be compatible with Log4j2 before or during the upgrade to Kafka 4.0.",
+        "severity": "medium"
+      },
+      "statement": "Kafka 4.0 and newer uses Log4j2 for logging instead of Reload4j/Log4j1, and custom logging configurations may need to be updated during the upgrade."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-38b1a466310f",
+    "candidateId": "sc-c84f15e509fa",
+    "proposalId": "sp-b597ceb24109",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "argo-cd",
+        "name": "applicationsets",
+        "component": "application-controller"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "ApplicationSet"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1beta1",
+              "kind": "ApplicationSet"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The application controller can now access ApplicationSet resources as needed for its operation; this fixes a prior permissions gap and enables proper functionality without requiring manual RBAC adjustments."
+      },
+      "statement": "The application controller now has RBAC rights on ApplicationSets."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:rbac-permission/added",
+        "detail": "no canonical exposure condition for rbac-permission added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

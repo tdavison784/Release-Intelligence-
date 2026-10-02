@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f3f125c75453",
+    "candidateId": "sc-b210c27f94c7",
+    "proposalId": "sp-2c6c2616a2c6",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "validation-webhook-unknown-version-acceptance",
+        "component": "istiod"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "networking.istio.io",
+                  "kind": "VirtualService"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "runtime-behavior-gap",
+                  "needed": "whether resources with unknown API versions are being validated at runtime"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "runtime-behavior-gap",
+                  "needed": "whether resources with unknown API versions are being validated at runtime"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether resources with API versions unknown to the running Istiod version are deployed in the environment"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Istiod's validation webhook will now accept and validate resources with API versions it does not recognize instead of potentially rejecting them, enabling validation success when newer CRDs are used with older Istio versions.",
+        "severity": "low"
+      },
+      "statement": "Istiod's validation webhook is improved to accept API versions it does not recognize, ensuring an older Istio can validate resources created by newer CRDs."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

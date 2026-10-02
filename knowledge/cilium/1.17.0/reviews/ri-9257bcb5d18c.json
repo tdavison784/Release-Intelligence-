@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-9257bcb5d18c",
+    "candidateId": "sc-6b512a53017f",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The Kubernetes clients used by Cilium Agent and Cilium Operator now have separately configurable rate limits\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The Cilium Operator's Kubernetes client now uses a default rate limit of 100 QPS/200 Burst, which may differ from previous agent-level defaults; operators can now independently configure these rates using the new --operator-k8s-client-qps and --operator-k8s-client-burst flags.",
+        "severity": "medium"
+      },
+      "statement": "The Cilium Operator component introduces two new CLI flags (--operator-k8s-client-qps and --operator-k8s-client-burst) to allow separate configuration of Kubernetes client rate limits, with a new default of 100 QPS/200 Burst."
+    },
+    "proposals": [
+      "sp-1b9184097a3e",
+      "sp-f72b8da1917c"
+    ],
+    "validations": [
+      "val-077672ff3937",
+      "val-37a7345639d1",
+      "val-72bd004c31b8",
+      "val-e71761723c9c"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:00:35Z"
+  }
+}

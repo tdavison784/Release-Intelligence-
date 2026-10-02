@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-cd672e30bd48",
+    "candidateId": "sc-42a411d9011e",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"TLS Visibility can now pass secrets to Envoy via SDS instead of inline via NPDS\", what happens, and is that review or action? proposed: deprecation",
+    "proposed": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The `tls.secretsBackend` Helm value is deprecated and scheduled for removal; environments using it should migrate to `tls.readSecretsOnlyFromSecretsNamespace` and `tls.secretSync`.",
+        "severity": "medium"
+      },
+      "statement": "The Helm value `tls.secretsBackend` has been deprecated and replaced with `tls.readSecretsOnlyFromSecretsNamespace` and `tls.secretSync`, which change how TLS Visibility secrets are passed to Envoy (from inline NPDS to SDS)."
+    },
+    "proposals": [
+      "sp-4663154e727a",
+      "sp-55408de6e4fa"
+    ],
+    "validations": [
+      "val-0609e710fe95",
+      "val-1069fef0fcb7",
+      "val-1ec2f83e8384",
+      "val-4bfb27cafc1b",
+      "val-6502d2fc3e3a",
+      "val-a5635486d1d6",
+      "val-c6a12ee82876",
+      "val-fe07a7c1dc07"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T05:59:19Z"
+  }
+}

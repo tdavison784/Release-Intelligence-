@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fe4afc005b4a",
+    "candidateId": "sc-00f02ba8dd12",
+    "proposalId": "sp-1a7e64e44626",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "bpf.enableTCX"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "bpf.enableTCX",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "bpf.enableTCX",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium attaches tc BPF programs via tcx links by default on kernels 6.6+, which may conflict with third-party old-style tc BPF users.",
+        "remediation": "Set bpf.enableTCX=false in Helm to continue with old-style tc BPF attachment."
+      },
+      "statement": "On Linux kernels 6.6 or newer, Cilium now defaults to tcx BPF links for attaching tc BPF programs (bpf.enableTCX); setups with third-party old-style tc BPF users should set bpf.enableTCX=false to keep old-style attachment."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

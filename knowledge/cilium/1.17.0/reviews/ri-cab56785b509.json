@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-cab56785b509",
+    "candidateId": "sc-26c0f5e20104",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The default value of `hubble.tls.auto.certValidityDuration` has been lowered from 1095 days to 365 days because recent versions of MacOS will fail to validate…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Hubble TLS certificates will have a shorter validity duration (365 days instead of 1095 days), preventing validation failures on recent macOS versions that reject certificates with expirations longer than 825 days.",
+        "severity": "medium"
+      },
+      "statement": "The default value of Helm value hubble.tls.auto.certValidityDuration has been lowered from 1095 days to 365 days to prevent certificate validation failures on recent versions of macOS."
+    },
+    "proposals": [
+      "sp-4e9a59460576",
+      "sp-8d630b1b10d7"
+    ],
+    "validations": [
+      "val-13c9dca863d5",
+      "val-710dd69be739",
+      "val-8a0bf665744a",
+      "val-db76bfe77bb2",
+      "val-e4423a9894ae",
+      "val-e6509e5974a6",
+      "val-eae7331c60ee",
+      "val-f7bed99e5aaa"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:06:16Z"
+  }
+}

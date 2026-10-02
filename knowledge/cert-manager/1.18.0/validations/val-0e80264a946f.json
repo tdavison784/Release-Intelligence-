@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0e80264a946f",
+    "candidateId": "sc-67c4beb9fafe",
+    "proposalId": "sp-5ed4c2e37429",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cert-manager",
+        "name": "--extra-certificate-annotations",
+        "component": "controller"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--extra-certificate-annotations",
+          "component": "controller",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is a new opt-in controller option. Nothing changes for operators unless they set it, and then the listed annotation keys are copied from Ingress or Gateway resources to the resulting Certificates.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 adds a new controller option, --extra-certificate-annotations. It lets you list annotation keys to copy from an Ingress or Gateway resource to the Certificate created from it."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/added",
+        "detail": "no canonical exposure condition for cli-flag added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

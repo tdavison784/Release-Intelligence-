@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4cc4786fa42d",
+    "candidateId": "sc-621425375be9",
+    "proposalId": "sp-ab158737010c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "telemetry-cel-peer-metadata-attributes"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any Telemetry API CEL expressions use the old attributes (filter_state[\"wasm.downstream_peer\"], filter_state[\"wasm.upstream_peer\"], node, or unqualified wasm attributes such as istio_responseClass)"
+        }
+      },
+      "statement": "Telemetry API CEL expressions must be updated to use standard Envoy attributes (filter_state.downstream_peer/upstream_peer, xds.node, fully qualified wasm.* attributes) instead of the custom Wasm extended attributes."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

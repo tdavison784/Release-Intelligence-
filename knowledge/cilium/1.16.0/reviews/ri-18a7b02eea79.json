@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-18a7b02eea79",
+    "candidateId": "sc-c17c3673cf1d",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "applicability",
+    "question": "For \"L7 network policy with terminatingTLS will not load the key `ca.crt` even if it is present in the secret\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--use-full-tls-context",
+              "component": "cilium",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether environment uses L7 network policies with terminatingTLS that rely on ca.crt loading"
+            }
+          ]
+        }
+      },
+      "statement": "L7 network policy with terminatingTLS no longer loads the ca.crt key from secrets by default; set --use-full-tls-context=true to restore the old behavior."
+    },
+    "proposals": [
+      "sp-28abda984833",
+      "sp-b9b29278c2ac"
+    ],
+    "validations": [
+      "val-517150d7be4e",
+      "val-6d0408610a66",
+      "val-d7f0cc645856",
+      "val-e9fe8fa4e550"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:04:32Z"
+  }
+}

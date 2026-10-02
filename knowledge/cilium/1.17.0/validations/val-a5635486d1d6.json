@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a5635486d1d6",
+    "candidateId": "sc-42a411d9011e",
+    "proposalId": "sp-4663154e727a",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "tls.secretsBackend"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "tls.readSecretsOnlyFromSecretsNamespace"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "tls.secretsBackend",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The `tls.secretsBackend` Helm value is deprecated and scheduled for removal; environments using it should migrate to `tls.readSecretsOnlyFromSecretsNamespace` and `tls.secretSync`.",
+        "severity": "medium"
+      },
+      "statement": "The Helm value `tls.secretsBackend` has been deprecated and replaced with `tls.readSecretsOnlyFromSecretsNamespace` and `tls.secretSync`, which change how TLS Visibility secrets are passed to Envoy (from inline NPDS to SDS)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

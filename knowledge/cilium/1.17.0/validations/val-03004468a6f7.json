@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-03004468a6f7",
+    "candidateId": "sc-1115e82f20f4",
+    "proposalId": "sp-f34e610893b1",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "mtu",
+                  "state": "unset"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "--mtu",
+                  "state": "unset"
+                },
+                {
+                  "op": "env-var",
+                  "name": "MTU",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "env-var",
+                  "name": "AWS_ENI",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "mtu",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments using auto-detection will now select the lowest MTU across all external interfaces instead of only the primary interface, which may result in lower MTU values being applied.",
+        "remediation": "If the change in MTU value is not desired, configure MTU manually via the MTU helm option, --mtu agent flag, or mtu option in CNI configuration.",
+        "severity": "medium"
+      },
+      "statement": "MTU auto-detection behavior changes to use the lowest MTU of all external interfaces instead of only the primary interface, except in ENI mode."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

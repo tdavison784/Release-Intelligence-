@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-63be6714bb5f",
+    "candidateId": "sc-86d66bf4fdcc",
+    "proposalId": "sp-7c77121fced8",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "global.waypoint.tolerations"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.waypoint.tolerations",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Waypoint pod tolerations can now be configured through Helm values; operators gain capability to customize tolerations that were previously fixed."
+      },
+      "statement": "Waypoint pod tolerations are now configurable using the Helm value `.Values.global.waypoint.tolerations`."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "restatement:values:added",
+        "detail": "computed change chg-f0b25bd933d0 names helm-value:istio|path=global.waypoint.tolerations"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:values:added",
+        "detail": "computed change chg-f0b25bd933d0 concerns the subject but not as a behavior-changed"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-2139315891c3",
+        "kind": "structured",
+        "sourceId": "chart-istiod",
+        "uri": "https://github.com/istio/istio/blob/1.23.4/manifests/charts/istio-control/istio-discovery/values.yaml",
+        "locator": "manifests/charts/istio-control/istio-discovery/values.yaml",
+        "excerpt": "# \"defaults\" is a workaround for Helm limitations. Users should NOT set \".defaults\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:217a5d5592a8b23ac072f5061e18871f0f4ab35069779dc961f72dc5fa31174a",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T11:33:50Z"
+      },
+      {
+        "id": "ev-257bea760fce",
+        "kind": "structured",
+        "sourceId": "chart-istiod",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/manifests/charts/istio-control/istio-discovery/values.yaml",
+        "locator": "manifests/charts/istio-control/istio-discovery/values.yaml",
+        "excerpt": "# \"_internal_defaults_do_not_set\" is a workaround for Helm limitations. Users should NOT set \"._internal_defaults_do_not_set\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:f8511b9368491181e5237642da7dbce3dc08fcdab252fd72618038e0ef309b25",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:49Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

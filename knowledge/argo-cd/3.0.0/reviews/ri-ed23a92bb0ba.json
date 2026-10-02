@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-ed23a92bb0ba",
+    "candidateId": "sc-03aa929e64d5",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Upgraded Helm version with breaking changes: Helm was upgraded to 3.17.1\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "helm",
+              "state": "in-range",
+              "range": ">=3.17.1"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "undecidable",
+                  "reason": "environment-visibility-gap",
+                  "needed": "whether environment's helm values.yaml files for subcharts contain null object values"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "Helm was upgraded to 3.17.1, which changes behavior for null values in values.yaml files: previously null values produced a warning and were not applied, but now they are applied and override the K8s object, potentially requiring removal of null values from values.yaml in subcharts."
+    },
+    "proposals": [
+      "sp-1d04929025c9",
+      "sp-b96301c7e644"
+    ],
+    "validations": [
+      "val-22cf9e70b825",
+      "val-2e8e2338a0e0",
+      "val-5e048590ec3f",
+      "val-e68a8b399480"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T05:57:44Z"
+  }
+}

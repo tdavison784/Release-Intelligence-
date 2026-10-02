@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-813a688dcc2d",
+    "candidateId": "sc-1489c912406b",
+    "proposalId": "sp-c4dde4e74512",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumNetworkPolicy",
+        "path": "spec"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "CiliumNetworkPolicies with multiple L7 protocols on the same port, over 40 port rules, or over 40 ICMP rules, previously ignored, are now rejected by the apiserver.",
+        "remediation": "Fix or remove such invalid CiliumNetworkPolicies before applying them.",
+        "severity": "medium"
+      },
+      "statement": "Invalid CiliumNetworkPolicies (multiple L7 protocols on the same port, over 40 port rules, or over 40 ICMP rules) that were previously ignored are now rejected by the apiserver via server-side validation."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

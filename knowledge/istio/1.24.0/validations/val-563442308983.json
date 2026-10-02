@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-563442308983",
+    "candidateId": "sc-55dd0ceaa83f",
+    "proposalId": "sp-5ebdaffcfa59",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "global.profile",
+        "name": "istiod-remote"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "istio",
+          "path": "global.profile",
+          "name": "istio"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.profile",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The istiod-remote Helm chart is no longer available; remote control plane installations must migrate to using the istio chart with --set profile=remote",
+        "severity": "high"
+      },
+      "statement": "The istiod-remote Helm chart has been removed and replaced with installing the istio chart using the remote profile via --set profile=remote."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

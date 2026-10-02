@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b4418f9059a5",
+    "candidateId": "sc-91bdc6129fc9",
+    "proposalId": "sp-3949598c7b39",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "enable-use-strimzi-pod-sets-before-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.34.99"
+            },
+            {
+              "op": "feature-gate",
+              "name": "UseStrimziPodSets",
+              "state": "disabled"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Before upgrading from Strimzi 0.34 or older, the UseStrimziPodSets feature gate must be enabled and StrimziPodSet resources used for the Kafka operand."
+      },
+      "statement": "Upgrading the Kafka operand from Strimzi 0.34 or older requires the UseStrimziPodSets feature gate to be enabled and StrimziPodSet resources in use before upgrading."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

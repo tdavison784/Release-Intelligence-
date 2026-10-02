@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-416619692a50",
+    "candidateId": "sc-03aa929e64d5",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Upgraded Helm version with breaking changes: Helm was upgraded to 3.17.1\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Rendered Kubernetes objects are overridden with the invalid null value from values.yaml null objects, which may require changing subchart values.yaml files.",
+        "remediation": "Identify values.yaml files with null object values and remove those null values.",
+        "severity": "medium"
+      },
+      "statement": "Helm was upgraded to 3.17.1, so a null object in subchart values.yaml now overrides the rendered K8s object with the invalid null value (previously it was not overridden)."
+    },
+    "proposals": [
+      "sp-1d04929025c9",
+      "sp-b96301c7e644"
+    ],
+    "validations": [
+      "val-22cf9e70b825",
+      "val-2e8e2338a0e0",
+      "val-5e048590ec3f",
+      "val-e68a8b399480"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T05:57:44Z"
+  }
+}

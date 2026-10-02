@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-33812a775c2e",
+    "candidateId": "sc-063685a549da",
+    "proposalId": "sp-7bbcbf618194",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "AdditionalCertificateOutputFormats"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "AdditionalCertificateOutputFormats",
+          "state": "disabled"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The AdditionalCertificateOutputFormats feature is now always enabled and can no longer be disabled; environments that previously disabled this feature will have additional certificate output formats enabled by default.",
+        "remediation": "Review certificate output formats to ensure they are compatible with downstream consumers. If additional formats cause issues, update consumers or file an issue with cert-manager if the formats are problematic.",
+        "severity": "medium"
+      },
+      "statement": "The AdditionalCertificateOutputFormats feature-gate is promoted to GA and always enabled; it can no longer be disabled via feature-gate configuration."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:feature-gate/behavior-changed",
+        "detail": "no canonical exposure condition for feature-gate behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

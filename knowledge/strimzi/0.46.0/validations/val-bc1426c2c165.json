@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-bc1426c2c165",
+    "candidateId": "sc-b5bd8ce23049",
+    "proposalId": "sp-99d9f2dda4d7",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "kafka"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Reload4j/Log4j1\"",
+        "after": "\"Log4j2\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=4.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the Kafka cluster has custom logging configuration (the evidence does not name the CR field or ConfigMap that carries it)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kafka 4.0 and newer logs via Log4j2 instead of Reload4j/Log4j1, so an environment upgrading to Kafka 4.0 with custom logging configuration might need to update that configuration during the upgrade (the evidence only says it \"might\" be needed, not that something fails).",
+        "remediation": "Review custom logging configuration and update it for Log4j2 when upgrading to Kafka 4.0, as the changelog advises.",
+        "severity": "low"
+      },
+      "statement": "Kafka 4.0 and newer uses Log4j2 for logging instead of Reload4j/Log4j1, so environments with custom logging configuration might need to update it during the upgrade to Kafka 4.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/behavior-changed",
+        "detail": "product-relationship behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/behavior-changed",
+        "detail": "product-relationship behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

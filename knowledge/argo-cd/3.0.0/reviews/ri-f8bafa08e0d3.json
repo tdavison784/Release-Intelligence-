@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-f8bafa08e0d3",
+    "candidateId": "sc-22716bcf1be8",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Health status in the Application CR: The health status of each object used to be persisted under `/status` in the Application CR by default\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "Application"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "controller.resource.health.persist",
+                  "state": "unset"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "status.resourceHealthSource",
+                      "state": "equals",
+                      "values": [
+                        "\"\""
+                      ]
+                    }
+                  ],
+                  "group": "argoproj.io",
+                  "version": "v1alpha1",
+                  "kind": "Application"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "controller.resource.health.persist",
+          "state": "equals",
+          "values": [
+            "true"
+          ]
+        }
+      },
+      "statement": "The health status is no longer persisted in the Application CR's `/status` by default in 3.0.0; it is stored externally instead, and can be reverted by setting `controller.resource.health.persist` to `true` in the `argocd-cmd-params-cm.yaml` ConfigMap."
+    },
+    "proposals": [
+      "sp-31d4130aaedd",
+      "sp-c045c5dae4e4"
+    ],
+    "validations": [
+      "val-2a6e0176bfa6",
+      "val-4610dfd63b46",
+      "val-8f43ee4d465a",
+      "val-afc1eccb9297",
+      "val-e8bf67c3965f",
+      "val-fc28c493158a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:06:21Z"
+  }
+}

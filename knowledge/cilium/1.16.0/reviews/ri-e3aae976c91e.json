@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-e3aae976c91e",
+    "candidateId": "sc-fa168da2703d",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The Helm option `endpointStatus` has been removed\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Values set under endpointStatus no longer take effect; the additional endpoint statuses in the CiliumEndpoints CRD are no longer provided.",
+        "remediation": "Remove endpointStatus keys and monitor endpoints via Cilium metrics (cilium_policy, cilium_policy_endpoint_enforcement_status, cilium_controllers_failing, cilium_endpoint_state) or `cilium-dbg endpoint get`.",
+        "severity": "medium"
+      },
+      "statement": "The Helm option `endpointStatus` was removed in Cilium 1.16; use Cilium metrics (e.g. cilium_policy, cilium_endpoint_state) or `cilium-dbg endpoint get` instead of additional CiliumEndpoints CRD statuses."
+    },
+    "proposals": [
+      "sp-7052f4eca573",
+      "sp-bba656d93d1c"
+    ],
+    "validations": [
+      "val-4566210b6721",
+      "val-47a3254843ab",
+      "val-7490e3b45834",
+      "val-7fa7bc03c62c",
+      "val-cef17f96061e",
+      "val-d9878f876cb8",
+      "val-fd3f81522bbc",
+      "val-fe4be3aa01c4"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-agree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:04:25Z"
+  }
+}
