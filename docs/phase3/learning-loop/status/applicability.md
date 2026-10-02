@@ -1,112 +1,115 @@
 # Lane `applicability` — status
 
-**State: lane work complete, pending commander review.** `go build ./... && go vet ./... && go test ./...`
-green on `p3ll/applicability` (contract-3 + knowledge + dashboard merged).
-No `internal/domain` type changes on this branch, so no schema regeneration was needed.
+**State: done** (branch `p3ll/applicability`; contract, contract-2 and contract-3 merged).
+`go build ./... && go vet ./... && go test ./...` green. Schemas regenerated (`go run ./internal/domain/schemagen`).
 
 ## Done
 
-- `internal/impact/condition.go`: `EvaluateCondition` (three-valued; absence is not knowledge; every
-  true carries environment evidence; every false carries an ImpactCheck against a supplied+healthy
-  dimension; withheld → unknown with the leaf reason), bound to the merged env APIs (`internal/env`,
-  product inventory, `InventoryComplete`). Tests: `condition_test.go` (leaves, absence, partial
-  manifests, product-version table incl. chart-version refusal, never-panics).
-- `unknownReason` assigned across the existing join, then mandatory (report `Validate()` + goldens
-  regenerated with the reason stated).
-- Deterministic joins for the capture lane's computed diffs: `crd:storage-changed`
-  (`crd_attrs.go`), `crd:default-changed` / `enum-changed` / `field-required` / `field-type-changed`
-  (GVK-scoped, per-resource, medium confidence demotes action to review when kind/version unpinned),
-  and non-Kubernetes compatibility operands (Kafka-style support sets) decided against the product
-  inventory (`compat_products.go`). Tables now in `docs/IMPACT.md` (§ The join / § compatibility).
-- Knowledge pass in `impact.Build` (`knowledge.go`): trust ladder per DESIGN §4 incl. PO-1/PO-2
-  (consensus = separate calls; consensus-action ACTION REQUIRED labelled "model consensus"), §2.6
-  attachment (anchors + subject restatement + restatement closure, umbrella-guarded), supersession of
-  the change's unknown records, never downgrading a deterministic finding, fact evidence copied into
-  the pool, byte-identical output without facts (pinned by test).
-- `app.LoadKnowledge` (read-only): every record validated; facts kept only when
-  `impact.VerifyFacts` proves their per-aspect verification from the loaded records;
-  `ReviewContexts` for the transfer subset.
-- CLI: `-knowledge <dir>` / `-min-verification <level>` on `ri impact` and `ri eval`;
-  `ri eval -knowledge` runs the dataset once per verification level (none/deterministic/human/
-  consensus/proxy) and reports each separately (`internal/eval/levels.go`): applicability overall +
-  transfer subset, classification accuracy, unknown rate, ACTION quality per level with
-  model-consensus ACTION counted separately; levels with an unchanged fact set reuse the previous
-  run's results; the stored-snapshot comparison and `-update` always use the knowledge-free `none`
-  run, so knowledge never masks a regression of the deterministic pipeline. No regression without
-  `-knowledge` (existing suite unchanged).
-- Adversarial pack: eight knowledge traps (`eval/adversarial/knowledge-*`, harness in
-  `adversarial_test.go`) — proxy reaching for ACTION (capped at review), proxy trying to clear
-  (never clears), wrong-kind attachment (kind-scoped conditions; identical path on a same-group
-  resource decides nothing), withheld secret value (decides nothing), partial manifests (never
-  clear), chart-version inventory (never the app version), product missing from a non-complete
-  inventory (never "not installed"), true condition + deprecation consequence (class follows the
-  kind). Facts in fixtures are hand-built from the contract, never from eval expectations.
-- Docs: `docs/IMPACT.md` — knowledge section (`--knowledge`, per-level eval), the CRD attribute and
-  platform-operand join tables (these were claimed by commit 000eb30 but never written; added in
-  this handoff).
+- **Condition evaluator** (`internal/impact/condition.go`): `EvaluateCondition` / `EvaluateConditionWith`, three-valued
+  Kleene logic over every op of DESIGN §1.3, bound to `internal/env` (resource facts, text blocks, refs, values keys,
+  GVK usage, images, workload container args/env for `cli-flag`/`env-var`/`feature-gate`, the product inventory,
+  `--kubernetes`, the edge's from-version). Absence is not knowledge (a leaf is false only against a supplied, healthy
+  dimension; partial → unknown), withheld values decide nothing, scope is per resource, every true carries environment
+  evidence and every false an `ImpactCheck`, `not(false)` is true only with examined evidence. `rendered-change` goes
+  through a `RenderedChangeEvaluator` interface; the default `RenderUnavailable` answers unknown
+  (environment-visibility-gap). `internal/render` is not imported.
+- **Trust ladder** (`ClassifyKnowledge`, DESIGN §4, PO-1/PO-2): trusted → the fact's class (high); consensus/proxy →
+  capped at review (medium), never clear (unknown · release-knowledge-gap); PO-2 consensus-action facts keep
+  ACTION REQUIRED when the exposure is true with evidence, labelled `ACTION REQUIRED · model consensus`
+  (`Knowledge.Verification=consensus`, `Consensus` scope, `ConsensusAction`).
+- **Attachment** (`AttachedChanges`, §2.6): statement anchors; computed restatements by subject (per family, and only
+  diff rules matching the fact's change kind — a deprecation never attaches to the later removal); closure under the
+  restatement grouping for note-derived changes only; umbrellas, other products, inactive facts and facts introduced
+  outside the edge never attach.
+- **Build integration**: `impact.Input{Facts, MinVerification, Render}`; knowledge findings supersede the change's
+  unknown records, are added next to a deterministic verdict only when stronger, never downgrade one; fact evidence is
+  copied into the report pool; evaluation-created records (from-version input, values-file absence) into the
+  environment pool. Byte-identical output without (applicable) facts — pinned by test and the e2e goldens.
+- **`unknownReason`** assigned at every UNKNOWN emission of the existing join, then made mandatory in
+  `ImpactReport.Validate()` and the schema; knowledge rules must carry their class. Goldens regenerated with the reason
+  stated (JSON: added field only; text: the three collapsed UNKNOWN group lines name their reason).
+- **New deterministic joins**: `crd:default-changed`, `crd:enum-changed`, `crd:field-required`,
+  `crd:field-type-changed` (GVK-scoped, per resource, kind/version unpinned → medium → review at most) and
+  `crd:storage-changed` (V2) in `crd_attrs.go`; operand/peer-product compatibility constraints (strimzi-style Kafka
+  support sets) against the inventory in `compat_products.go`. `crd:fields-added` stays unknown
+  (release-knowledge-gap).
+- **`InventoryComplete`**: `inventory.yaml` mapping form `{complete: true, products: [...]}` →
+  `Environment.InventoryComplete` + evidence; the list form is never complete.
+- **Loading knowledge** (`app.LoadKnowledge`, `impact.VerifyFacts`, `impact.ReviewContexts`): read-only over the
+  `knowledge/` record tree; a fact is used only when `VerifiedFact.Validate` and `domain.ValidateFactRecords` prove its
+  verification from the loaded records (a proxy decision claimed as human, or a missing basis, is refused).
+- **CLI / eval**: `-knowledge <dir>` / `-min-verification` on `ri impact` and `ri eval`. `ri eval -knowledge` runs the
+  dataset per level (none, deterministic, human, consensus, proxy) with the transfer subset, ACTION quality per level
+  (consensus ACTION counted separately); the stored-snapshot diff always uses the knowledge-free `none` run; gates run on
+  the `-min-verification` level (default human) and the panel marks it.
+- **Text output**: knowledge provenance line on each knowledge finding; `reason:` on unknown items.
+- **Tests**: condition leaves/absence/partial/product-version table; ladder table; DESIGN §10 path 1 (synthetic and on
+  the recorded cert-manager edge: 3 real restatements → REVIEW) and path 2 (ACTION with both chains; proxy → REVIEW;
+  guards → UNKNOWN); supersession; never-downgrade; attachment guards; PO-2; CRD attribute/storage/platform joins;
+  load-time verification traps. Adversarial pack: 8 knowledge traps (`eval/adversarial/knowledge-*`).
+- **Docs**: `docs/IMPACT.md` (UNKNOWN reasons, knowledge in the join + condition bindings, CRD attribute and platform
+  tables, complete inventories), README, `eval/FORMAT.md`.
+
+## Eval (live dataset, offline, warm primary cache; no `-knowledge`)
+
+No regressions against `eval/results`. Gates unchanged except the pre-existing failing one, which moves:
+applicabilityAccuracy **0.095 → 0.143** (3/21; karpenter E1 via the `crd:storage-changed` join, as UNKNOWN-ANALYSIS
+predicted). ACTION findings 4 → 5, **0 wrong** (new: strimzi 0.46 vs the inventory's Kafka 3.8 — outside the supported
+set 3.9, 4.0). unknownRate 0.73 → 0.72. I did **not** run `-update`; the only delta is `karpenter impactLinksHit 0 → 1`
+(better) — commander's call. Per-level knowledge numbers are unmeasured: no committed `knowledge/` tree yet (smoke-tested
+with an empty one).
 
 ## Decisions (and why)
 
-- The eval's stored-snapshot diff compares the **none** level: knowledge improving a metric must
-  never hide a deterministic-pipeline regression; `-update` refuses `-knowledge` for the same reason.
-- Level runs are reused when the fact set is unchanged (the level sets are nested by
-  `AtLeast`, so equal count ⇒ equal set; `impact.usableFacts` filters identically to `factsAt`).
-- The wrong-kind trap asserts checked-clear (`impact:knowledge-clear`), not unknown: with healthy
-  manifests and zero resources of the kind, the resource condition is False by the documented
-  zero-resources convention (`impact:crd-field-unset`); the trap is that the sibling-kind resource
-  never satisfies the condition.
-- Adversarial harness: `rule: note` now builds the change as declared/note-derived
-  (`MethodDeclared`), matching the vocabulary the pack README always documented — statement anchors
-  (DESIGN §2.6) attach only to note-derived changes. All ten pre-existing fixtures still pass.
-- Default `-min-verification` is `human` (the gate level), on both commands.
+- Default `-min-verification` is `human` (the gate level); consensus/proxy facts are used only when asked for.
+- Schema-attribute joins: a default applies to an unset field even when its plain-object parent is absent (defaulted
+  parents are common; "not affected" must not rest on that guess); `required` binds only inside a stated parent. When no
+  resource of the changed version is touched but resources of the kind exist at another API version → unknown
+  (runtime-behavior-gap: conversion), never clear. Found live on karpenter (v1beta1 NodePools vs a v1 default).
+- Operand constraints use the inventory with product-version semantics; a non-Kubernetes platform missing from the
+  inventory is unknown (cross-product-context-gap) unless the inventory is declared complete.
+- A credential-named ConfigMap key whose field value is withheld also has its text lines treated as withheld (see the
+  envparse finding below).
+- Transfer: a link is excluded from the transfer subset when one of its deciding facts was reviewed with
+  `ReviewItem.Context.Label == <case id>`.
 
-## Contract changes
+## Contract changes (`CONTRACT-CHANGE(applicability)` markers; all additive)
 
-- None this handoff. (Earlier lane commits follow the `CONTRACT-CHANGE` markers; none were needed
-  for the eval wiring — `impact.Input.Facts`/`MinVerification` were already the contract.)
+- `internal/domain/impact.go`: `DimensionFromVersion`; match kinds `product`, `text-line`, `reference`,
+  `from-version`, `absence`; `unknownReason` mandatory on unknown findings; knowledge rule ↔ class consistency.
+  `schemagen/meta.go` enums + the "unknown requires unknownReason" conditional; schemas regenerated.
+- `internal/env`: `Environment.InventoryComplete` / `InventoryCompleteEvidence` and the inventory mapping form
+  (DESIGN §1.3 requested this of envinv).
 
 ## Files outside ownership
 
-- `internal/reviewui/demo.go` — commit ba8210a: the demo proposals lacked `provenance.callId`,
-  which contract-3 made mandatory, so `TestFixturesAreValidDomainRecords` failed on the
-  **integration branch itself** (dashboard fixtures predate contract-3; their status file lists the
-  call-id follow-up). Minimal additive fix: the demo builder derives a distinct call id per
-  (model, candidate, task). The dashboard lane should fold this into their PO-1/PO-2 follow-ups.
+`internal/domain/impact.go`, `internal/domain/schemagen/meta.go`, `schemas/*.json` (regenerated), `internal/env/env.go`,
+`internal/env/inventory.go` (+ test), `internal/app/impact.go`, `internal/app/knowledge.go` (+ tests),
+`internal/reviewui/demo.go` (one line: demo proposals get the `callId` contract-3 requires — the integration branch is
+red without it; dashboard lane should fold it in), `README.md`, `eval/FORMAT.md`.
 
-## Test status
+## Findings for other lanes / the commander
 
-- `go build ./... && go vet ./... && go test ./...` green (all packages, including
-  `internal/eval`, `internal/impact`, `internal/app`, `cmd/ri`, `internal/reviewui`).
-- CLI smoke: `-knowledge` with a missing dir errors cleanly; `-min-verification` without
-  `-knowledge` is a usage error.
-- Live `ri eval -knowledge` against a real `knowledge/` tree has **not** been run: no committed
-  knowledge directory exists yet (knowledge lane open question 2). Per-level numbers are therefore
-  still unmeasured.
+- **envparse (secret handling)**: a ConfigMap `data` key with a credential name (`password: hunter2`) has its field value
+  withheld, but its text block lines are still exposed unredacted (`TextBlock.Lines[].Text`). The evaluator guards it;
+  the extractor should withhold them too.
+- **knowledge lane**: transfer reporting assumes `ReviewItem.Context.Label` is the eval case id when an item was reviewed
+  with an environment illustration. Please confirm or tell me the convention.
+- **render lane**: implement `impact.RenderedChangeEvaluator` (`EvaluateRenderedChange(c, env, edge) ConditionResult`)
+  and pass it as `impact.Input.Render`; the CLI wiring is yours (`--render`).
+- **groundtruth / D1**: unchanged by this lane.
 
-## GLM handoff log (2026-10-01, glm-applicability continuing the paused Claude agent)
+## Open questions
 
-Found on arrival: six modified files + untracked `internal/eval/levels.go` (the per-level eval
-wiring, half-committed), no `status/applicability.md` at all, and a pre-existing test failure on the
-integration branch (`internal/reviewui` fixtures missing `callId`). Did:
+- `-update` of `eval/results` for the karpenter improvement (commander).
+- Whether gates should ever run on the consensus level ("the pre-registered gates apply to the combined output", PO-2)
+  — today only when `-min-verification consensus` is passed explicitly.
 
-1. `ba8210a` — fixed the reviewui demo fixtures (cross-lane, listed above).
-2. `df564b0` — committed the in-flight eval/CLI knowledge work **plus the tests it was missing**
-   (`levels_test.go`: per-level runs and reuse, baseline equality without facts, knowledge counts
-   incl. consensus-action, transfer-subset math) and the `docs/IMPACT.md` `--knowledge` section.
-3. `7ae7988` — the eight mandated adversarial knowledge traps: harness `knowledge:` section
-   (facts must pass `VerifiedFact.Validate`), `environment.inventory` support, `rule: note` →
-   declared changes, fixture README table.
-4. This commit — `docs/IMPACT.md` CRD-attribute + platform-operand join tables (gap left by
-   000eb30, whose message claimed them), and this status file.
+## GLM handoff (2026-10-01/02) — reviewed
 
-Uncertain / for the commander:
-
-- The reviewui fix is the dashboard lane's package; merge order matters only in that the
-  integration branch is red without it (or their own equivalent).
-- Fixture facts assert the *current* zero-resources convention (wrong-kind trap clears). If the
-  contract owner later decides "no resources of the kind" should be unknown for knowledge facts
-  (absence-is-not-knowledge at the kind level), `knowledge-wrong-kind` and `docs/IMPACT.md` both
-  need a one-line flip.
-- Per-level eval numbers (DESIGN §7 ceilings) are unmeasured until a knowledge tree is committed;
-  the lane's measurement obligation then moves to a live run with the warm cache
-  (`-state /Users/tommydavison/repos/Release-Intelligence-/.ri`).
+A GLM-5.3 agent continued the lane while the Claude window was paused (`[glm-handoff]` commits ba8210a, df564b0,
+7ae7988, 7f53973). Review outcome: kept the eval/CLI commit (it is the paused work plus good tests), the reviewui
+callId fix and the adversarial harness. Fixed: two trap facts that a reviewer could not have accepted (a "deprecation"
+saying the value is ignored, exposure `unset`; a "workload-failure" that was a log-level default), the `crd:storage-changed`
+doc row (its clear rule is `impact:crd-unused`), this status file (it claimed no domain/contract changes), gofmt.
+Added what it lacked: load-time verification tests, the e2e real-data demo, UNKNOWN-reason docs, text rendering.
