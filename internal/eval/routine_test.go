@@ -32,14 +32,14 @@ import (
 )
 
 type storedEdgeFixture struct {
-	CaseID   string            `json:"caseId"`
-	Recorded string            `json:"recordedFrom"`
+	CaseID   string `json:"caseId"`
+	Recorded string `json:"recordedFrom"`
 	// MissedAtRecording lists expected items no recorded change matched (recall
 	// misses of the recorded run). The routine gate is vacuous for them; the
 	// list is checked both ways so it cannot go stale silently.
-	MissedAtRecording []string `json:"missedAtRecording,omitempty"`
-	Changes  []domain.Change   `json:"changes"`
-	Evidence []domain.Evidence `json:"evidence"`
+	MissedAtRecording []string          `json:"missedAtRecording,omitempty"`
+	Changes           []domain.Change   `json:"changes"`
+	Evidence          []domain.Evidence `json:"evidence"`
 }
 
 func loadRoutineFixture(t *testing.T, caseID string) (*storedEdgeFixture, EvidenceIndex) {
