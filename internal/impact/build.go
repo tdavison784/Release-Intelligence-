@@ -420,6 +420,23 @@ func (b *builder) valuesFamily() {
 
 func (b *builder) compatibilityChecks() {
 	toTag, fromTag := b.edge.To.String(), b.edge.From.String()
+	// Pre-pass: does the chart's own kubeVersion constraint admit the
+	// supplied cluster? When it does while a stricter range does not, the
+	// action-required wording must say so — "requires 1.29–1.33" overstates a
+	// chart that installs fine on 1.28 (the kubeVersion gate is the hard
+	// blocker; the supported range is the project's tested matrix).
+	kubeVersionAdmits := false
+	if b.env.Kubernetes != nil {
+		for _, cc := range b.edge.Compatibility {
+			if cc.To == nil || !strings.EqualFold(cc.Platform, "kubernetes") || compatKind(cc) != "chart-kubeVersion" {
+				continue
+			}
+			if c := upgrade.EvaluatePlatformConstraint(cc.To, b.env.Kubernetes.Version); c.Computable && c.Admits {
+				kubeVersionAdmits = true
+				break
+			}
+		}
+	}
 	for _, cc := range b.edge.Compatibility {
 		if cc.To == nil {
 			continue
@@ -463,8 +480,17 @@ func (b *builder) compatibilityChecks() {
 			upstream = append(upstream, cc.From.Evidence...)
 		}
 		wasAdmitted := false
+		fromKnown := false
 		if cc.From != nil {
+			fromKnown = true
 			wasAdmitted = upgrade.EvaluatePlatformConstraint(cc.From, cluster).Admits
+		}
+		// wording honesty (b): when the chart's kubeVersion admits the cluster
+		// while this stricter constraint does not, the detail says so — the
+		// class is unchanged (the contract keeps the exclusion an action item).
+		kubeNote := ""
+		if kubeVersionAdmits && kind != "chart-kubeVersion" {
+			kubeNote = fmt.Sprintf("The chart's kubeVersion constraint itself admits %s; the narrower %s range is the project's tested-matrix statement (Helm will not refuse the install).", cluster, kind)
 		}
 		match := domain.ImpactMatch{
 			Kind: domain.MatchKubernetes, Subject: cluster, Evidence: b.env.Kubernetes.Evidence,
@@ -481,19 +507,19 @@ func (b *builder) compatibilityChecks() {
 			case chk.Below != "":
 				b.add(RuleKubernetesBelow, domain.ImpactActionRequired, domain.SeverityHigh, domain.ConfidenceHigh,
 					fmt.Sprintf("Cluster Kubernetes %s is below the supported range %s of %s", cluster, chk.Display, toTag),
-					belowAboveDetail(toTag, fromTag, cluster, chk, wasAdmitted, "at or above "+chk.Below),
+					belowAboveDetail(toTag, fromTag, cluster, chk, wasAdmitted, fromKnown && !wasAdmitted, kubeNote, "at or above "+chk.Below),
 					change, []domain.ImpactMatch{match}, upstream...)
 			case chk.Above != "":
 				b.add(RuleKubernetesAbove, domain.ImpactActionRequired, domain.SeverityHigh, domain.ConfidenceHigh,
 					fmt.Sprintf("Cluster Kubernetes %s is above the supported range %s of %s", cluster, chk.Display, toTag),
-					belowAboveDetail(toTag, fromTag, cluster, chk, wasAdmitted, "at or below "+chk.Above),
+					belowAboveDetail(toTag, fromTag, cluster, chk, wasAdmitted, fromKnown && !wasAdmitted, kubeNote, "at or below "+chk.Above),
 					change, []domain.ImpactMatch{match}, upstream...)
 			}
 		case "minimum":
 			if !chk.Admits {
 				b.add(RuleKubernetesBelow, domain.ImpactActionRequired, domain.SeverityHigh, domain.ConfidenceHigh,
 					fmt.Sprintf("Cluster Kubernetes %s is below the minimum %s requires (%s)", cluster, toTag, chk.Display),
-					belowAboveDetail(toTag, fromTag, cluster, chk, wasAdmitted, chk.Display),
+					belowAboveDetail(toTag, fromTag, cluster, chk, wasAdmitted, fromKnown && !wasAdmitted, kubeNote, chk.Display),
 					change, []domain.ImpactMatch{match}, upstream...)
 			} else {
 				b.compatSatisfied(cc, platform, kind, cluster, chk, change, upstream)
@@ -507,9 +533,14 @@ func (b *builder) compatibilityChecks() {
 				if limit == "" {
 					limit = chk.Display
 				}
+				detail := fmt.Sprintf("%s supports Kubernetes %s; the cluster runs %s, above the stated maximum. Plan a cluster version at or below %s, or stay on a release that admits it.", toTag, chk.Display, cluster, limit)
+				if fromKnown && !wasAdmitted {
+					detail += fmt.Sprintf(" The cluster version is also already outside the source release's range (%s): the exclusion is pre-existing, not caused by this upgrade.", fromTag)
+				}
+				detail = withKubeNote(detail, kubeNote)
 				b.add(RuleKubernetesAbove, domain.ImpactActionRequired, domain.SeverityHigh, domain.ConfidenceHigh,
 					fmt.Sprintf("Cluster Kubernetes %s is above the maximum %s supports (%s)", cluster, toTag, chk.Display),
-					fmt.Sprintf("%s supports Kubernetes %s; the cluster runs %s, above the stated maximum. Plan a cluster version at or below %s, or stay on a release that admits it.", toTag, chk.Display, cluster, limit),
+					detail,
 					change, []domain.ImpactMatch{match}, upstream...)
 			}
 		case "chart-kubeVersion":
@@ -559,12 +590,35 @@ func constraintEvidence(cc domain.CompatibilityChange) []domain.EvidenceID {
 	return out
 }
 
-func belowAboveDetail(toTag, fromTag, cluster string, chk upgrade.PlatformVersionCheck, wasAdmitted bool, need string) string {
-	detail := fmt.Sprintf("%s requires Kubernetes %s; the cluster runs %s. %s.", toTag, chk.Display, cluster, "Plan the cluster upgrade "+need+" before upgrading "+toTag)
-	if wasAdmitted {
+// belowAboveDetail builds the detail of a cluster-excluded-by-range finding.
+// Three honesty cases, mutually exclusive:
+//   - preExisting: the source (From) constraint is known and also excluded
+//     the cluster — the wording must say the exclusion is pre-existing and
+//     not imply this upgrade causes it (the finding stays action-required:
+//     the upgrade is still blocked by the target's range);
+//   - wasAdmitted: the source admitted the cluster — the range narrowed
+//     under you;
+//   - neither known: the plain planning sentence.
+//
+// kubeNote (empty or a full sentence) appends the kubeVersion-admits
+// honesty clause; see compatibilityChecks.
+func belowAboveDetail(toTag, fromTag, cluster string, chk upgrade.PlatformVersionCheck, wasAdmitted, preExisting bool, kubeNote, need string) string {
+	detail := fmt.Sprintf("%s requires Kubernetes %s; the cluster runs %s. Plan the cluster upgrade %s before upgrading %s.", toTag, chk.Display, cluster, need, toTag)
+	switch {
+	case preExisting:
+		detail = fmt.Sprintf("%s requires Kubernetes %s; the cluster runs %s, which is also already outside the source release's range (%s): the exclusion is pre-existing — this upgrade does not cause it, but the upgrade is still blocked. Plan the cluster upgrade %s before upgrading %s.", toTag, chk.Display, cluster, fromTag, need, toTag)
+	case wasAdmitted:
 		detail = fmt.Sprintf("%s supported the cluster's version (%s); %s does not (%s). The support range narrowed under you: upgrade the cluster "+need+" before upgrading.", fromTag, cluster, toTag, chk.Display)
 	}
-	return detail
+	return withKubeNote(detail, kubeNote)
+}
+
+// withKubeNote appends the kubeVersion-admits clause to a detail.
+func withKubeNote(detail, kubeNote string) string {
+	if kubeNote == "" {
+		return detail
+	}
+	return detail + " " + kubeNote
 }
 
 // compatChangeFor finds the edge change that states this compatibility
@@ -738,10 +792,17 @@ func parseRef(coordinate string) (domain.ImageRef, error) {
 
 // unjoinedChanges records an unknown verdict for every change without a
 // machine-comparable subject: applicability cannot be decided
-// deterministically, and silence would read as "not affected".
+// deterministically, and silence would read as "not affected". The one
+// exception is the security-fix rule below: a note-derived security
+// remediation that ships with the target applies to every environment that
+// upgrades, so hiding it among the unknowns would bury exactly the items the
+// funnel exists to surface (the proxies' adoption-blocking finding).
 func (b *builder) unjoinedChanges() {
 	for _, c := range b.edge.Changes {
 		if joinRules[c.Provenance.Rule] {
+			continue
+		}
+		if b.securityFix(c) {
 			continue
 		}
 		var needed string
@@ -755,6 +816,54 @@ func (b *builder) unjoinedChanges() {
 			"The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
 			c, c.Evidence, nil, needed)
 	}
+}
+
+// securityFix emits the impact:security-fix informational finding for a
+// note-derived security remediation and reports whether it did. The rule
+// fires only when the change carries no stronger signal: a breaking change or
+// one flagged action-required (an operator directive, a required migration)
+// keeps its stronger class — a CVE fix that also requires migration work must
+// never be presented as "no action beyond upgrading". The finding cites its
+// upstream evidence; it claims no environment-specific applicability because
+// none is needed: the fix is part of the target release, so every
+// environment that upgrades receives it (docs/ACTION_CLASSIFICATION.md §5,
+// the one security-relevance definition is upgrade.IsSecurityItem).
+func (b *builder) securityFix(c domain.Change) bool {
+	if c.Provenance.Producer != normalize.ProducerNotes || !upgrade.IsSecurityItem(c) || c.Breaking || c.ActionRequired {
+		return false
+	}
+	var up []domain.EvidenceID
+	for _, id := range c.Evidence {
+		if b.edgeEv[id] {
+			up = appendUnique(up, id)
+		}
+	}
+	if len(up) == 0 {
+		return false
+	}
+	id := "imp-" + domain.ShortHash(RuleSecurityFix, c.ID)
+	if b.seen[id] {
+		return true
+	}
+	b.seen[id] = true
+	toTag := b.edge.To.String()
+	title := fmt.Sprintf("Security fix ships with %s: %s", toTag, c.Title)
+	detail := fmt.Sprintf("The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to %s — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it.", toTag)
+	if ids := upgrade.SecurityIDs(c); len(ids) > 0 {
+		detail += " Advisories cited: " + strings.Join(ids, ", ") + "."
+	}
+	f := domain.ImpactFinding{
+		ID: id, Classification: domain.ImpactInformational, Severity: domain.SeverityLow,
+		Rule: RuleSecurityFix, Title: title, Detail: detail,
+		UpstreamEvidence: up,
+		Provenance:       domain.Provenance{Method: domain.MethodComputed, Producer: Producer, Rule: RuleSecurityFix, Confidence: domain.ConfidenceHigh},
+	}
+	b.attachChange(&f, c)
+	b.findings = append(b.findings, f)
+	for _, id := range up {
+		b.upCited[id] = true
+	}
+	return true
 }
 
 // --- sorting and formatting helpers ---------------------------------------------

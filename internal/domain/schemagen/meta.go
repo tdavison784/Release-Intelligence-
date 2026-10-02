@@ -176,7 +176,10 @@ var typePatches = map[string]obj{
 // impactClassRules encodes the per-class provenance rules of
 // docs/ACTION_CLASSIFICATION.md as JSON Schema conditionals:
 //   - affected classes carry at least one environment match and cite the
-//     environment chain;
+//     environment chain — except the impact:security-fix informational rule
+//     (internal/impact.RuleSecurityFix; the literal is pinned by its tests),
+//     which applies to every environment that upgrades and therefore carries
+//     the upstream chain only;
 //   - action-required carries high confidence only (below-high is demoted to
 //     review-required);
 //   - not-affected carries the evaluation record (checks) and no
@@ -191,12 +194,31 @@ func impactClassRules() []any {
 		}
 		return o("properties", o("classification", o("enum", vals)), "required", []string{"classification"})
 	}
+	// ruleIs: a conditional on the join rule (rule is required on every
+	// finding); v is the rule's schema, e.g. o("const", "impact:security-fix")
+	// or o("not", o("const", "impact:security-fix")).
+	ruleIs := func(v any) obj {
+		return o("properties", o("rule", v), "required", []string{"rule"})
+	}
+	all := func(cs ...obj) []any {
+		out := make([]any, len(cs))
+		for i, c := range cs {
+			out[i] = c
+		}
+		return out
+	}
 	affected := []domain.ImpactClass{domain.ImpactActionRequired, domain.ImpactReviewRequired, domain.ImpactInformational}
+	securityFix := "impact:security-fix"
 	return []any{
-		o("if", classIs(affected...),
+		o("if", o("allOf", all(classIs(affected...), ruleIs(o("not", o("const", securityFix))))),
 			"then", o("required", []string{"matches", "environmentEvidence"},
 				"properties", o("matches", o("minItems", 1), "environmentEvidence", o("minItems", 1),
 					"checks", o("maxItems", 0), "neededToDetermine", o("maxItems", 0)))),
+		// impact:security-fix: universal applicability by construction — no
+		// environment chain, no matches, informational only
+		o("if", o("allOf", all(classIs(domain.ImpactInformational), ruleIs(o("const", securityFix)))),
+			"then", o("properties", o("matches", o("maxItems", 0), "environmentEvidence", o("maxItems", 0),
+				"checks", o("maxItems", 0), "neededToDetermine", o("maxItems", 0)))),
 		o("if", classIs(domain.ImpactActionRequired),
 			"then", o("properties", o("provenance", o("properties", o("confidence", o("const", string(domain.ConfidenceHigh))))))),
 		o("if", classIs(domain.ImpactNotAffected),
@@ -301,7 +323,7 @@ var descriptions = map[string]string{
 		"constraint, or moved image artifact) met the environment — or could not be evaluated. Affected classes " +
 		"(action-required / review-required / informational) cite both evidence chains; not-affected carries the " +
 		"evaluation record (`checks`); unknown carries `neededToDetermine`. See docs/ACTION_CLASSIFICATION.md.",
-	"ImpactFinding.classification":      "What to do (docs/ACTION_CLASSIFICATION.md): action-required — the environment must change to avoid concrete failure, evidenced on both chains, high confidence only; review-required — credible overlap, applicability not deterministically provable; informational — evidenced overlap with no action implied; not-affected — checked against a supplied environment dimension and clear; unknown — applicability undeterminable, `neededToDetermine` says why.",
+	"ImpactFinding.classification":      "What to do (docs/ACTION_CLASSIFICATION.md): action-required — the environment must change to avoid concrete failure, evidenced on both chains, high confidence only; review-required — credible overlap, applicability not deterministically provable; informational — evidenced overlap with no action implied; not-affected — checked against a supplied environment dimension and clear; unknown — applicability undeterminable, `neededToDetermine` says why. The impact:security-fix informational findings are the one affected shape with no environment chain: the fix ships with the target, so applicability is universal and configuration-independent.",
 	"ImpactFinding.severity":            "How bad if it bites (independent axis): critical (upgrade fails outright), high (concrete degradation), medium (needs a look), low (confirmed no-action overlap). Absent for not-affected/unknown.",
 	"ImpactFinding.rule":                "Join rule that fired, e.g. \"impact:values-removed\"; verdict records use impact:values-unset / impact:not-joined / impact:insufficient-visibility / ... .",
 	"ImpactFinding.detail":              "Prose explaining the verdict: what upstream changed and which environment fact matched — or what could not be checked, and why.",

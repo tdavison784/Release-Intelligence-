@@ -309,7 +309,7 @@
         "id": {"type": "string"},
         "classification": {
           "$ref": "#/$defs/ImpactClass",
-          "description": "What to do (docs/ACTION_CLASSIFICATION.md): action-required — the environment must change to avoid concrete failure, evidenced on both chains, high confidence only; review-required — credible overlap, applicability not deterministically provable; informational — evidenced overlap with no action implied; not-affected — checked against a supplied environment dimension and clear; unknown — applicability undeterminable, `neededToDetermine` says why."
+          "description": "What to do (docs/ACTION_CLASSIFICATION.md): action-required — the environment must change to avoid concrete failure, evidenced on both chains, high confidence only; review-required — credible overlap, applicability not deterministically provable; informational — evidenced overlap with no action implied; not-affected — checked against a supplied environment dimension and clear; unknown — applicability undeterminable, `neededToDetermine` says why. The impact:security-fix informational findings are the one affected shape with no environment chain: the fix ships with the target, so applicability is universal and configuration-independent."
         },
         "severity": {
           "$ref": "#/$defs/ImpactSeverity",
@@ -373,16 +373,47 @@
       "allOf": [
         {
           "if": {
-            "properties": {
-              "classification": {"enum": ["action-required", "review-required", "informational"]}
-            },
-            "required": ["classification"]
+            "allOf": [
+              {
+                "properties": {
+                  "classification": {"enum": ["action-required", "review-required", "informational"]}
+                },
+                "required": ["classification"]
+              },
+              {
+                "properties": {
+                  "rule": {"not": {"const": "impact:security-fix"}}
+                },
+                "required": ["rule"]
+              }
+            ]
           },
           "then": {
             "required": ["matches", "environmentEvidence"],
             "properties": {
               "matches": {"minItems": 1},
               "environmentEvidence": {"minItems": 1},
+              "checks": {"maxItems": 0},
+              "neededToDetermine": {"maxItems": 0}
+            }
+          }
+        },
+        {
+          "if": {
+            "allOf": [
+              {
+                "properties": {
+                  "classification": {"enum": ["informational"]}
+                },
+                "required": ["classification"]
+              },
+              {"properties": {"rule": {"const": "impact:security-fix"}}, "required": ["rule"]}
+            ]
+          },
+          "then": {
+            "properties": {
+              "matches": {"maxItems": 0},
+              "environmentEvidence": {"maxItems": 0},
               "checks": {"maxItems": 0},
               "neededToDetermine": {"maxItems": 0}
             }

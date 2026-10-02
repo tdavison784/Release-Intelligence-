@@ -80,12 +80,12 @@
   },
   "summary": {
     "upstreamChanges": 51,
-    "affectEnvironment": 5,
+    "affectEnvironment": 10,
     "actionRequired": 1,
     "reviewRequired": 3,
-    "informational": 1,
+    "informational": 6,
     "notAffected": 3,
-    "unknown": 50
+    "unknown": 45
   },
   "findings": [
     {
@@ -94,7 +94,7 @@
       "severity": "high",
       "rule": "impact:kubernetes-below-range",
       "title": "Cluster Kubernetes 1.28 is below the supported range 1.29–1.33 of v1.18.0",
-      "detail": "v1.18.0 requires Kubernetes 1.29–1.33; the cluster runs 1.28. Plan the cluster upgrade at or above 1.29 before upgrading v1.18.0.",
+      "detail": "v1.18.0 requires Kubernetes 1.29–1.33; the cluster runs 1.28, which is also already outside the source release's range (v1.17.0): the exclusion is pre-existing — this upgrade does not cause it, but the upgrade is still blocked. Plan the cluster upgrade at or above 1.29 before upgrading v1.18.0. The chart's kubeVersion constraint itself admits 1.28; the narrower supported range is the project's tested-matrix statement (Helm will not refuse the install).",
       "matches": [
         {
           "kind": "kubernetes",
@@ -208,6 +208,107 @@
         "method": "computed",
         "producer": "impact@v1",
         "rule": "impact:values-new-key",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-d076732b11f9",
+      "classification": "informational",
+      "severity": "low",
+      "rule": "impact:security-fix",
+      "title": "Security fix ships with v1.18.0: Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp`",
+      "detail": "The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: GHSA-mh63-6h87-95cp.",
+      "changeId": "chg-6db1e2247a3e",
+      "changeTitle": "Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp`",
+      "changeCategory": "security",
+      "upstreamEvidence": [
+        "ev-695a6d7c7c6e"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:security-fix",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-8d52c4440ee1",
+      "classification": "informational",
+      "severity": "low",
+      "rule": "impact:security-fix",
+      "title": "Security fix ships with v1.18.0: Bump `go-jose` dependency to address `CVE-2025-27144`",
+      "detail": "The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: CVE-2025-27144.",
+      "changeId": "chg-4da7f0d97cf0",
+      "changeTitle": "Bump `go-jose` dependency to address `CVE-2025-27144`",
+      "changeCategory": "security",
+      "upstreamEvidence": [
+        "ev-8a902cdb88e1"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:security-fix",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-b5e9107c69be",
+      "classification": "informational",
+      "severity": "low",
+      "rule": "impact:security-fix",
+      "title": "Security fix ships with v1.18.0: Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77`",
+      "detail": "The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: GHSA-hcg3-q754-cr77.",
+      "changeId": "chg-b5b5a645584a",
+      "changeTitle": "Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77`",
+      "changeCategory": "security",
+      "upstreamEvidence": [
+        "ev-8e895983c9dd"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:security-fix",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-8d30fe09df0f",
+      "classification": "informational",
+      "severity": "low",
+      "rule": "impact:security-fix",
+      "title": "Security fix ships with v1.18.0: Bump `golang.org/x/oauth2` to patch `CVE-2025-22868`",
+      "detail": "The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: CVE-2025-22868.",
+      "changeId": "chg-fb783ed69ea8",
+      "changeTitle": "Bump `golang.org/x/oauth2` to patch `CVE-2025-22868`",
+      "changeCategory": "security",
+      "upstreamEvidence": [
+        "ev-c6232bc5c8d4"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:security-fix",
+        "confidence": "high"
+      }
+    },
+    {
+      "id": "imp-bbdff364a353",
+      "classification": "informational",
+      "severity": "low",
+      "rule": "impact:security-fix",
+      "title": "Security fix ships with v1.18.0: Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`)",
+      "detail": "The change cites security remediation and is part of the target release: the fix ships with the upgrade itself, so it applies to every environment that upgrades to v1.18.0 — no environment-specific action is required beyond completing the upgrade. This is not an environment-specific determination: no dimension of your configuration was consulted, because applicability does not depend on it. Advisories cited: CVE-2025-22870.",
+      "changeId": "chg-1b9f0e5312e3",
+      "changeTitle": "Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`)",
+      "changeCategory": "security",
+      "upstreamEvidence": [
+        "ev-bfe1f4f54646",
+        "ev-cb5102bd647d"
+      ],
+      "provenance": {
+        "method": "computed",
+        "producer": "impact@v1",
+        "rule": "impact:security-fix",
         "confidence": "high"
       }
     },
@@ -518,94 +619,6 @@
       "changeCategory": "feature",
       "upstreamEvidence": [
         "ev-87995aee2ded"
-      ],
-      "provenance": {
-        "method": "computed",
-        "producer": "impact@v1",
-        "rule": "impact:not-joined",
-        "confidence": "high"
-      },
-      "neededToDetermine": [
-        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
-      ]
-    },
-    {
-      "id": "imp-fa8df652362e",
-      "classification": "unknown",
-      "rule": "impact:not-joined",
-      "title": "Not evaluated for this environment: Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp`",
-      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
-      "changeId": "chg-6db1e2247a3e",
-      "changeTitle": "Bump `github.com/golang-jwt/jwt` to patch `GHSA-mh63-6h87-95cp`",
-      "changeCategory": "security",
-      "upstreamEvidence": [
-        "ev-695a6d7c7c6e"
-      ],
-      "provenance": {
-        "method": "computed",
-        "producer": "impact@v1",
-        "rule": "impact:not-joined",
-        "confidence": "high"
-      },
-      "neededToDetermine": [
-        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
-      ]
-    },
-    {
-      "id": "imp-50009880b265",
-      "classification": "unknown",
-      "rule": "impact:not-joined",
-      "title": "Not evaluated for this environment: Bump `go-jose` dependency to address `CVE-2025-27144`",
-      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
-      "changeId": "chg-4da7f0d97cf0",
-      "changeTitle": "Bump `go-jose` dependency to address `CVE-2025-27144`",
-      "changeCategory": "security",
-      "upstreamEvidence": [
-        "ev-8a902cdb88e1"
-      ],
-      "provenance": {
-        "method": "computed",
-        "producer": "impact@v1",
-        "rule": "impact:not-joined",
-        "confidence": "high"
-      },
-      "neededToDetermine": [
-        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
-      ]
-    },
-    {
-      "id": "imp-82d81560bbc8",
-      "classification": "unknown",
-      "rule": "impact:not-joined",
-      "title": "Not evaluated for this environment: Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77`",
-      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
-      "changeId": "chg-b5b5a645584a",
-      "changeTitle": "Bump `golang.org/x/crypto` to patch `GHSA-hcg3-q754-cr77`",
-      "changeCategory": "security",
-      "upstreamEvidence": [
-        "ev-8e895983c9dd"
-      ],
-      "provenance": {
-        "method": "computed",
-        "producer": "impact@v1",
-        "rule": "impact:not-joined",
-        "confidence": "high"
-      },
-      "neededToDetermine": [
-        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
-      ]
-    },
-    {
-      "id": "imp-88e0a1b18609",
-      "classification": "unknown",
-      "rule": "impact:not-joined",
-      "title": "Not evaluated for this environment: Bump `golang.org/x/oauth2` to patch `CVE-2025-22868`",
-      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
-      "changeId": "chg-fb783ed69ea8",
-      "changeTitle": "Bump `golang.org/x/oauth2` to patch `CVE-2025-22868`",
-      "changeCategory": "security",
-      "upstreamEvidence": [
-        "ev-c6232bc5c8d4"
       ],
       "provenance": {
         "method": "computed",
@@ -1250,29 +1263,6 @@
       "changeCategory": "other",
       "upstreamEvidence": [
         "ev-5744baed396c"
-      ],
-      "provenance": {
-        "method": "computed",
-        "producer": "impact@v1",
-        "rule": "impact:not-joined",
-        "confidence": "high"
-      },
-      "neededToDetermine": [
-        "no machine-comparable subject (declared change); the deterministic join evaluates computed values/CRD/image diffs and compatibility constraints only"
-      ]
-    },
-    {
-      "id": "imp-9eb2de7af6be",
-      "classification": "unknown",
-      "rule": "impact:not-joined",
-      "title": "Not evaluated for this environment: Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`)",
-      "detail": "The applicability of this change to your environment cannot be determined deterministically; see what is missing and check it against the upgrade notes yourself.",
-      "changeId": "chg-1b9f0e5312e3",
-      "changeTitle": "Upgrade `golang.org/x/net` fixing `CVE-2025-22870`. (`#7619`, `@depandabot[bot]`)",
-      "changeCategory": "security",
-      "upstreamEvidence": [
-        "ev-bfe1f4f54646",
-        "ev-cb5102bd647d"
       ],
       "provenance": {
         "method": "computed",

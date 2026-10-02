@@ -483,7 +483,112 @@ never a silent zero and never a reasoning miss. **No fixture fooled the join
 into a wrong action class** — the failures the gates measure are absence of
 insight, not wrong certainty.
 
+## Round 4: the proxy reviews' trust fixes (2026-10-01, `feat/p3-trust-fixes`)
+
+Four changes from the filed proxy reviews and the pilot, all deterministic,
+none touching the classification contract's semantics:
+
+1. **`impact:security-fix`** — note-derived changes citing a CVE/GHSA/advisory
+   classify **informational** ("the fix ships with the target; no
+   environment-specific action beyond upgrading") instead of UNKNOWN. The
+   predicate is the routine detector's security carve-out, factored into
+   `upgrade.IsSecurityItem` so there is ONE definition of security-relevance;
+   a security item that also breaks or carries an operator directive keeps its
+   stronger class (adversarial guard, unit-tested). The finding cites its
+   upstream evidence and quotes the advisory ids; it claims no
+   environment-specific applicability because none is needed — the contract's
+   informational semantics cover it, with one precise addition in
+   docs/ACTION_CLASSIFICATION.md §5 (universal applicability carries the
+   upstream chain only; `Validate()`, the JSON Schema generator and the
+   evaluator's provenance audit all enforce the same carve-out).
+2. **Collapsed UNKNOWN view** — the text report's default renders one line per
+   missing-evidence family with counts (the 50-item wall was where the proxy
+   reviewers stopped reading); `--show-unknown` lists every item. JSON and the
+   funnel counts unchanged.
+3. **Inline citations** — finding why-blocks carry short-form locators
+   (`upstream: release-notes-1.18 L350 · environment: values.yaml:L42`, top 2
+   per chain, "+n more"), so the text report no longer forces the JSON
+   round-trip.
+4. **Compatibility wording honesty** — (a) when the source release's range
+   also excluded the cluster, the below/above-range detail states the
+   exclusion is pre-existing instead of implying the upgrade causes it (the
+   finding stays action-required — the upgrade is still blocked); (b) when the
+   chart's `kubeVersion` admits the cluster while a stricter range does not,
+   the detail says so ("the narrower supported range is the project's
+   tested-matrix statement — Helm will not refuse the install"). Classes
+   unchanged.
+
+**Effect on the cert-manager-1.17→1.18 fixture funnel (reports 1/3/4 of the
+review packet): ACTION 1 · REVIEW 3 · INFO 1 · NOT-AFFECTED 3 · UNKNOWN 50 →
+ACTION 1 · REVIEW 3 · INFO 6 · NOT-AFFECTED 3 · UNKNOWN 45.** The five
+dependency-CVE bumps (go-jose CVE-2025-27144, x/oauth2 CVE-2025-22868,
+x/crypto GHSA-hcg3-q754-cr77, golang-jwt GHSA-mh63-6h87-95cp, x/net
+CVE-2025-22870) are now visible in the deterministic funnel with their
+advisory ids and release-notes line locators — the SRE proxy's "silent CVE"
+worst case is closed offline, without `-enrich`.
+
+### Gate panel: before → after (full live run, 17 entries)
+
+| gate | threshold | before | after | verdict |
+|---|---|---|---|---|
+| criticalRecall | ≥ 0.95 | 1.00 (28/28) | 1.00 | PASS (unchanged — informational reclassification removed no expected item from the found set) |
+| importantRecall | ≥ 0.90 | 1.00 (70/70) | 1.00 | PASS (unchanged) |
+| applicabilityAccuracy | ≥ 0.80 | **0.095** | **0.095** | **FAIL — unchanged, by design** |
+| falseActionRate | < 0.05 | 0.00 (0/3) | 0.00 | PASS (unchanged) |
+| actionFindingEvidence | ≥ 1.00 | 1.00 | 1.00 | PASS (unchanged) |
+| unsupported | ≤ 0 | 0 | 0 | PASS (the evaluator's provenance audit learned the security-fix carve-out) |
+| pipelineFailures | ≤ 0 | 0 | 0 | PASS |
+
+Everything else held: recall 1.00 (115/115), raw precision 0.64, labeled
+precision 0.57 (189/140), classification accuracy 0.46 (57 scored), duplicate
+rate 0.03 (47 groups), the confusion matrix cell-for-cell (47 labelled cells,
+weighted miss 221). The one aggregate metric that moved is **unknownRate
+0.737 (965/1309) → 0.731 (957/1309)**: 8 note-derived security items across
+the environment cases (argo-cd-2.14→3.0: 2, cert-manager-1.16→1.17: 1,
+cert-manager-1.17→1.18: 5) left UNKNOWN for INFORMATIONAL; every one was
+hand-verified against its upstream citation before `-update`.
+
+**The applicability gate still fails, and this round deliberately did not
+touch it.** Note-derived applicability (the 28 ACTION→UNKNOWN cells: a
+deprecated feature gate named in prose, an RBAC default flip) remains the
+documented frontier; reclassifying security remediation as universally
+applicable is orthogonal to deciding "does THIS change apply to THIS
+environment", and no join rule gained a new subject comparison.
+
+### Expectation changes: none required
+
+Checked, not assumed: no environment fixture declares a security-kind
+expected item or a security `expectedImpact` link (the two security
+expectations — argo-cd-3.0-3.1's GHSA sanitisation and
+postgresql-17.2-17.3's CVE-2025-1094 — live in cases WITHOUT an environment
+block and are scored at change level, where the join does not run; the
+postgresql case's ground truth already treats the remediation as
+action-required there and still passes). The only honest updates were the
+three stored snapshots' `unknownFindings` counts (459→457, 41→40, 51→46) via
+`ri eval -update` after hand verification.
+
+### Second-order effects, recorded
+
+- The enriched replay (`-enriched`, committed answer cache) now asks about 9
+  suggestions (was 13): the CVE items are no longer UNKNOWN, so the AI layer
+  is no longer asked about them — exactly the dependency-direction fix the
+  reviewers wanted. 4 prompts of the capped 20 have no committed answer (the
+  candidate set shifted; they stay pending offline, never guessed). The
+  labelled suggestion is still the HTTP01/ingress-nginx item and still
+  under-escalates (suggestionPrecision 0.00, 0/1, unchanged); 8 of 9 are
+  unlabelled.
+- `internal/app` impact goldens and the review packet's four reports were
+  regenerated (report 4's run metadata: 41 candidate groups, 14 accepted,
+  2 rejected, 4 pending, 9 suggestions);
+  `docs/phase3/review-packet/reproduce.sh` reproduces all outputs byte for
+  byte again. Proxy-review files were not touched;
+  `docs/phase3/review-packet/verification.md` carries the round-4 addendum
+  mapping filed issues to fixes.
+
 ## Enriched run: the first suggestion-precision number (G10)
+
+(Round-4 numbers: 9 suggestions, 4 of the capped 20 prompts pending, labelled
+precision still 0.00 — see the Round 4 section above.)
 
 `ri eval -enriched` replays the committed answer cache
 (`internal/app/testdata/impact-llm-cache`, recorded from glm-5.3-flash)

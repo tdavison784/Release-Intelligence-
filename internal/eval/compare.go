@@ -520,8 +520,10 @@ func findUnsupportedChanges(edge *domain.UpgradeEdge) []UnsupportedAudit {
 // was built from (edge may be nil only when there is no edge at all;
 // findings of a real report always come from one). The per-class provenance
 // rules of docs/ACTION_CLASSIFICATION.md apply: affected findings need both
-// chains, unknown findings need upstream evidence plus neededToDetermine,
-// not-affected findings need upstream evidence plus their evaluation record.
+// chains (except the impact:security-fix rule, whose universal applicability
+// carries the upstream chain only), unknown findings need upstream evidence
+// plus neededToDetermine, not-affected findings need upstream evidence plus
+// their evaluation record.
 func findUnsupportedFindings(report *domain.ImpactReport, edge *domain.UpgradeEdge) []UnsupportedAudit {
 	var out []UnsupportedAudit
 	up := map[domain.EvidenceID]bool{}
@@ -538,11 +540,14 @@ func findUnsupportedFindings(report *domain.ImpactReport, edge *domain.UpgradeEd
 	}
 	for _, f := range report.Findings {
 		var reason string
+		securityFix := f.Rule == "impact:security-fix"
 		switch {
 		case len(f.UpstreamEvidence) == 0:
 			reason = "cites an empty provenance chain"
-		case f.Classification.Affected() && len(f.EnvironmentEvidence) == 0:
+		case f.Classification.Affected() && !securityFix && len(f.EnvironmentEvidence) == 0:
 			reason = "affected finding cites no environment evidence"
+		case securityFix && (f.Classification != domain.ImpactInformational || len(f.EnvironmentEvidence) != 0 || len(f.Matches) != 0):
+			reason = "security-fix finding must be informational with the upstream chain only"
 		case f.Classification == domain.ImpactUnknown && len(f.NeededToDetermine) == 0:
 			reason = "unknown finding does not say what evidence was missing"
 		case f.Classification == domain.ImpactNotAffected && len(f.Checks) == 0:

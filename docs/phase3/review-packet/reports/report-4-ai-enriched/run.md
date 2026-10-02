@@ -8,9 +8,13 @@
   notes — each with its own provenance and citations. The AI never rewrites a
   classification: no deterministic verdict moved classes in this report.
 - **Run metadata (also in `report.json` → `enrichmentRun`):** model
-  `glm-5.3-flash`; 46 candidate groups, 20 prompts asked, 18 answers accepted,
+  `glm-5.3-flash`; 41 candidate groups, 20 prompts asked, 14 answers accepted,
   2 rejected (schema-violating answers — shown at the bottom of the report),
-  13 UNKNOWN findings now carry an AI review suggestion.
+  4 prompts pending (no committed answer for their digest — the deterministic
+  UNKNOWN set moved in the round-4 trust fixes: the five dependency-CVE items
+  now classify `impact:security-fix`/informational deterministically, so the
+  AI layer is no longer asked about them), 9 UNKNOWN findings now carry an AI
+  review suggestion.
 - **Run mode:** offline replay of recorded model answers. No network, no API
   keys needed to reproduce.
 

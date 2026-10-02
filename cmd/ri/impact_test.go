@@ -35,11 +35,25 @@ func TestImpactCommand(t *testing.T) {
 		"51 upstream changes analyzed",
 		"ACTION REQUIRED:    1",
 		"REVIEW REQUIRED:    3",
-		"INFORMATIONAL:    1",
+		// the five dependency-CVE bumps classify impact:security-fix
+		// (informational: the fix ships with the target) instead of UNKNOWN
+		"INFORMATIONAL:    6",
 		"NOT AFFECTED:    3",
-		"UNKNOWN:   50",
+		"UNKNOWN:   45",
 		"Action required (1)",
 		"Cluster Kubernetes 1.28 is below the supported range 1.29–1.33 of v1.18.0",
+		// wording honesty: the source range also excludes 1.28 (pre-existing),
+		// and the chart's kubeVersion admits it (no hard blocker)
+		"also already outside the source release's range",
+		"The chart's kubeVersion constraint itself admits 1.28",
+		"Security fix ships with v1.18.0",
+		// inline short-form citations in the why-block
+		"evidence: upstream: release-notes-1.18 L",
+		"environment: values.yaml",
+		// the collapsed UNKNOWN view: one line per missing-evidence family
+		"× note-derived changes the deterministic join cannot compare",
+		"run -enrich for AI suggestions on these",
+		"total — render with --show-unknown to list every item",
 		"environment: values-key prometheus.servicemonitor.targetPort",
 		"upstream evidence: ev-",
 	} {
@@ -47,9 +61,24 @@ func TestImpactCommand(t *testing.T) {
 			t.Errorf("missing %q in:\n%s", want, out)
 		}
 	}
-	// NOT AFFECTED is counted but not listed per finding without the flag
-	if strings.Contains(out, "Not affected (") {
-		t.Errorf("not-affected findings are verbose-only:\n%s", out)
+	// NOT AFFECTED is counted but not listed per finding without the flag,
+	// and the collapsed UNKNOWN view does not print the raw items
+	if strings.Contains(out, "Not affected (") || strings.Contains(out, "Not evaluated for this environment") {
+		t.Errorf("verbose-only content leaked into the default view:\n%s", out)
+	}
+
+	// --show-unknown lists every unknown item again
+	out, _, err = runCLI(t, append(base, "--show-unknown")...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		"Not evaluated for this environment",
+		"missing: no machine-comparable subject",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("--show-unknown output missing %q:\n%s", want, out)
+		}
 	}
 
 	out, _, err = runCLI(t, append(base, "-o", "json")...)
@@ -63,7 +92,7 @@ func TestImpactCommand(t *testing.T) {
 	if err := rep.Validate(); err != nil {
 		t.Fatal(err)
 	}
-	if rep.Summary.AffectEnvironment != 5 || rep.Summary.ActionRequired != 1 {
+	if rep.Summary.AffectEnvironment != 10 || rep.Summary.ActionRequired != 1 || rep.Summary.Informational != 6 {
 		t.Errorf("summary = %+v", rep.Summary)
 	}
 
