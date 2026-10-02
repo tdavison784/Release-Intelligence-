@@ -39,3 +39,12 @@ union of two hops' upgrade work — not just the target minor's notes.
 - The environment's F1/F3 findings span BOTH hops — a removed-by-1.16 key and
   a removed-by-1.17 key — which is exactly what a single-hop-only pipeline
   would miss.
+
+## Semantic labels and corrections (2026-10-01, groundtruth lane)
+
+Authored blind from the upstream sources above (no pipeline output read); corrections are listed with before/after values in eval/CHANGELOG.md.
+
+- E1 corrected to not-affected: the edge itself starts at v1.15.6, so the "v1.15.6 or newer before v1.16" precondition is met (exposure: `edge-from-version` out of `>=1.15.6`, evidence `from`).
+- E8 corrected to review: the v1.17.0 chart's `_helpers.tpl` still maps `tls.secretsBackend` onto `readSecretsOnlyFromSecretsNamespace` while the new key is unset (D8). The label uses `deprecated` + `replacedBy`, with the canonical exposure "old set ∧ new unset" and overlap "new set".
+- E6 uses the three Helm keys the 1.17 notes name verbatim ("The metallb-bgp integration Helm options bgp.enabled, bgp.announce.podCIDR, and bgp.announce.loadbalancerIP have been removed"); the matchers were not changed (D1).
+- E9: the real chart path is `encryption.wireguard.userspaceFallback` (values.yaml at 1.15.6/1.16.0), which the notes abbreviate.

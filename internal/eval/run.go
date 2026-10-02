@@ -178,7 +178,11 @@ func readImagesFile(path string) ([]string, error) {
 func (r *Runner) Run(ctx context.Context, cases []*Case) []EntryResult {
 	out := make([]EntryResult, 0, len(cases))
 	for _, c := range cases {
-		out = append(out, r.runCase(ctx, c))
+		res := r.runCase(ctx, c)
+		if c.TransferOf != "" {
+			res.environmentOnly() // transfer.go: the base entry scores the edge
+		}
+		out = append(out, res)
 	}
 	return out
 }
@@ -187,7 +191,7 @@ func (r *Runner) runCase(ctx context.Context, c *Case) EntryResult {
 	edge, err := r.Pipeline.Upgrade(ctx, c.Product, c.From, c.To)
 	if err != nil {
 		res := ScoreEntry(c, nil, nil, fmt.Errorf("upgrade: %w", err))
-		applyAdjudications(&res, r.Adjudications[c.ID])
+		applyAdjudications(&res, r.Adjudications[c.adjudicationKey()])
 		return res
 	}
 	var report *domain.ImpactReport
@@ -195,7 +199,7 @@ func (r *Runner) runCase(ctx context.Context, c *Case) EntryResult {
 		inputs, ierr := environmentInputs(c)
 		if ierr != nil {
 			res := ScoreEntry(c, edge, nil, nil) // note: env load failures surface as env misses
-			applyAdjudications(&res, r.Adjudications[c.ID])
+			applyAdjudications(&res, r.Adjudications[c.adjudicationKey()])
 			return res
 		}
 		if r.Enriched {
@@ -223,7 +227,7 @@ func (r *Runner) runCase(ctx context.Context, c *Case) EntryResult {
 		}
 	}
 	res := ScoreEntry(c, edge, report, nil)
-	applyAdjudications(&res, r.Adjudications[c.ID])
+	applyAdjudications(&res, r.Adjudications[c.adjudicationKey()])
 	return res
 }
 

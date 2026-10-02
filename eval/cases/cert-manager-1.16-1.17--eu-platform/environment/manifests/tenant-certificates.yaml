@@ -1,0 +1,40 @@
+# Tenant workload certificates issued from the private PKI.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: events-broker-keystore-password
+  namespace: events
+type: Opaque
+stringData:
+  keystore-password: "changeit"
+---
+# Java event-streaming broker: JKS and PKCS12 keystores for the JVM trust
+# chain; keystore passwords are supplied with the pre-existing
+# passwordSecretRef mechanism. Leaf key is ECDSA per platform policy.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: events-broker
+  namespace: events
+spec:
+  secretName: events-broker-tls
+  commonName: events-broker.events.svc.cluster.local
+  dnsNames:
+    - events-broker.events.svc.cluster.local
+  issuerRef:
+    name: tenant-ca
+    kind: ClusterIssuer
+  keystores:
+    jks:
+      create: true
+      passwordSecretRef:
+        name: events-broker-keystore-password
+        key: keystore-password
+    pkcs12:
+      create: true
+      passwordSecretRef:
+        name: events-broker-keystore-password
+        key: keystore-password
+  privateKey:
+    algorithm: ECDSA
+    size: 256

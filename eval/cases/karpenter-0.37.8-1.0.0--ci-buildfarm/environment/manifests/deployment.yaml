@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: build-orchestrator
+  namespace: ci
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: build-orchestrator
+  template:
+    metadata:
+      labels:
+        app: build-orchestrator
+      annotations:
+        karpenter.sh/do-not-disrupt: "true"
+    spec:
+      containers:
+        - name: orchestrator
+          image: ghcr.io/example/build-orchestrator:2.11.3
+          ports:
+            - containerPort: 8080

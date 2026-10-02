@@ -1,0 +1,452 @@
+id: traefik-2.11-3.0
+product: traefik
+from: v2.11.2
+to: v3.0.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+  - https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md
+  - https://github.com/traefik/traefik/releases/tag/v3.0.0
+  - https://github.com/traefik/traefik/blob/v2.11.2/docs/content/migration/v2.md
+  - https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/static-configuration/cli-ref.md
+  - https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/static-configuration/cli-ref.md
+  - https://github.com/traefik/traefik/blob/v3.0.0/docs/content/routing/routers/index.md
+  - https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.io_ingressroutes.yaml
+  - https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+  - https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+  - https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml
+  - https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml
+  - https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/kubernetes-gateway-rbac.yml
+  - https://github.com/traefik/traefik/blob/v3.0.0/docs/content/providers/kubernetes-gateway.md
+  - https://github.com/traefik/traefik/blob/v2.11.2/docs/content/providers/kubernetes-gateway.md
+  - https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/gateway.networking.k8s.io_httproutes.yaml
+  - https://github.com/traefik/traefik/blob/v3.0.0/pkg/provider/kubernetes/gateway/client.go
+  - https://github.com/traefik/traefik/blob/v3.0.0/pkg/provider/kubernetes/gateway/kubernetes.go
+  - https://github.com/traefik/traefik/blob/v3.0.0/docs/content/getting-started/install-traefik.md
+  - https://github.com/traefik/traefik/blob/v2.11.2/docs/content/getting-started/install-traefik.md
+  - https://github.com/traefik/traefik/blob/v3.0.0/docs/content/includes/kubernetes-requirements.md
+  - https://github.com/traefik/traefik/blob/v2.11.2/docs/content/providers/kubernetes-ingress.md
+  - https://github.com/traefik/traefik/blob/v3.0.0/pkg/provider/kubernetes/crd/traefikio/v1alpha1/middleware.go
+  - https://github.com/traefik/traefik/blob/v2.11.2/pkg/provider/kubernetes/crd/traefikio/v1alpha1/middleware.go
+  - https://github.com/traefik/traefik/blob/v2.11.2/docs/content/middlewares/http/ipallowlist.md
+  - https://github.com/traefik/traefik/blob/v3.0.0/docs/content/middlewares/http/contenttype.md
+  - https://github.com/traefik/traefik/blob/v2.11.2/pkg/config/static/static_config.go
+  - https://github.com/traefik/traefik/pull/10637
+expected:
+  - id: E1
+    title: Kubernetes CRD API group traefik.containo.us removed; resources must use traefik.io
+    kind: removal
+    importance: critical
+    actionRequired: true       # routes defined in the legacy group are no longer read by v3
+    classification: action-required
+    match:
+      - text: '(?i)traefik\.containo\.us'
+    evidence:
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "In v3, the Kubernetes CRDs API Group `traefik.containo.us` has been removed."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "Please use the API Group `traefik.io` instead."
+    semantics:
+      - subject: {family: gvk, product: traefik, group: traefik.containo.us, version: v1alpha1, kind: IngressRoute}
+        change: {type: removed, replacedBy: {family: gvk, product: traefik, group: traefik.io, version: v1alpha1, kind: IngressRoute}}
+        consequence: &e1-consequence {kind: setting-ignored, exposedClass: action-required, statement: "Traefik v3 no longer reads objects of the traefik.containo.us API group; the routers, middlewares and services they define disappear from the running configuration and their traffic is no longer routed.", remediation: "Re-create every traefik.containo.us object under traefik.io/v1alpha1 (same spec) and apply the v3 CRD definitions before upgrading."}
+        note: one upstream sentence removes the whole group; one subject per kind the v2.11.2 CRD file defines in it
+      - subject: {family: gvk, product: traefik, group: traefik.containo.us, version: v1alpha1, kind: IngressRouteTCP}
+        change: {type: removed, replacedBy: {family: gvk, product: traefik, group: traefik.io, version: v1alpha1, kind: IngressRouteTCP}}
+        consequence: *e1-consequence
+      - subject: {family: gvk, product: traefik, group: traefik.containo.us, version: v1alpha1, kind: IngressRouteUDP}
+        change: {type: removed, replacedBy: {family: gvk, product: traefik, group: traefik.io, version: v1alpha1, kind: IngressRouteUDP}}
+        consequence: *e1-consequence
+      - subject: {family: gvk, product: traefik, group: traefik.containo.us, version: v1alpha1, kind: Middleware}
+        change: {type: removed, replacedBy: {family: gvk, product: traefik, group: traefik.io, version: v1alpha1, kind: Middleware}}
+        consequence: *e1-consequence
+      - subject: {family: gvk, product: traefik, group: traefik.containo.us, version: v1alpha1, kind: MiddlewareTCP}
+        change: {type: removed, replacedBy: {family: gvk, product: traefik, group: traefik.io, version: v1alpha1, kind: MiddlewareTCP}}
+        consequence: *e1-consequence
+      - subject: {family: gvk, product: traefik, group: traefik.containo.us, version: v1alpha1, kind: ServersTransport}
+        change: {type: removed, replacedBy: {family: gvk, product: traefik, group: traefik.io, version: v1alpha1, kind: ServersTransport}}
+        consequence: *e1-consequence
+      - subject: {family: gvk, product: traefik, group: traefik.containo.us, version: v1alpha1, kind: TLSOption}
+        change: {type: removed, replacedBy: {family: gvk, product: traefik, group: traefik.io, version: v1alpha1, kind: TLSOption}}
+        consequence: *e1-consequence
+      - subject: {family: gvk, product: traefik, group: traefik.containo.us, version: v1alpha1, kind: TLSStore}
+        change: {type: removed, replacedBy: {family: gvk, product: traefik, group: traefik.io, version: v1alpha1, kind: TLSStore}}
+        consequence: *e1-consequence
+      - subject: {family: gvk, product: traefik, group: traefik.containo.us, version: v1alpha1, kind: TraefikService}
+        change: {type: removed, replacedBy: {family: gvk, product: traefik, group: traefik.io, version: v1alpha1, kind: TraefikService}}
+        consequence: *e1-consequence
+
+  - id: E2
+    title: Router rules default to the new v3 matcher syntax (core.defaultRuleSyntax=v3); v2-only rules need rewriting or a v2 syntax opt-out
+    kind: behaviour-change
+    importance: critical
+    actionRequired: true       # rules written in v2-only syntax stop parsing unless rewritten or opted out
+    classification: action-required
+    match:
+      - text: '(?i)defaultRuleSyntax|ruleSyntax'
+      - text: '(?i)rule matchers syntax|Update routing syntax'
+    evidence:
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "By default, the `defaultRuleSyntax` static option is automatically set to `v3`, meaning that the default rule is the new one."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "All matchers now take a single value (except `Header`, `HeaderRegexp`, `Query`, and `QueryRegexp` which take two)"
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "The v2 rule matchers syntax is deprecated and its support will be removed in the next major version."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/static-configuration/cli-ref.md
+        quote: "Defines the rule parser default syntax (v2 or v3) (Default: ```v3```)"
+    references:
+      - https://github.com/traefik/traefik/pull/9531
+    semantics:
+      subject: {family: config-key, product: traefik, path: core.defaultRuleSyntax}
+      change: {type: default-changed, before: '"v2"', after: '"v3"'}
+      consequence: {kind: resource-rejected, exposedClass: action-required, statement: "A router rule written in v2-only syntax (several values in one matcher such as Host(`a`, `b`), Headers/HeadersRegexp, HostHeader, regexps in PathPrefix) no longer parses under the v3 default syntax; Traefik rejects that router and its hosts stop being routed.", remediation: "Rewrite the rule in v3 syntax (one value per matcher, combined with ||), or set syntax: v2 on the route / --core.defaultRuleSyntax=v2 as a temporary escape hatch."}
+      note: before is the effective v2 behaviour (the option does not exist in v2.11, which only parses v2 syntax)
+
+  - id: E3
+    title: IPWhiteList middleware renamed to IPAllowList (ipWhiteList deprecated, still accepted in v3.0)
+    kind: deprecation
+    importance: minor
+    actionRequired: false
+    classification: not-affected   # this environment (generic: review-required); aligned 2026-10-02 to the env-class convention (eval/FORMAT.md)
+    match:
+      - text: '(?i)IPWhiteList'
+    evidence:
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "In v3, we renamed the `IPWhiteList` middleware to `IPAllowList` without changing anything to the configuration."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/pkg/provider/kubernetes/crd/traefikio/v1alpha1/middleware.go
+        quote: "// Deprecated: please use IPAllowList instead."
+      - url: https://github.com/traefik/traefik/blob/v2.11.2/docs/content/migration/v2.md
+        quote: "In `v2.11`, the `IPWhiteList` middleware is deprecated, please use the [IPAllowList](../middlewares/http/ipallowlist.md) middleware instead."
+    references:
+      - https://github.com/traefik/traefik/pull/9457
+    semantics:
+      subject: {family: crd-field, product: traefik, group: traefik.io, kind: Middleware, path: spec.ipWhiteList}
+      change: {type: deprecated, replacedBy: {family: crd-field, product: traefik, group: traefik.io, kind: Middleware, path: spec.ipAllowList}}
+      consequence: {kind: deprecation, exposedClass: review-required, statement: "spec.ipWhiteList is still honoured by v3.0 but marked deprecated in favour of spec.ipAllowList.", remediation: "Rename ipWhiteList to ipAllowList (same sub-fields)."}
+
+  - id: E4
+    title: Static option experimental.http3 removed (HTTP/3 is GA); setting it prevents Traefik from starting
+    kind: removal
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)experimental\.http3'
+      - text: '(?i)HTTP/3 outside the experimental section|HTTP/3 is no longer an experimental'
+    evidence:
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "It can be enabled on entry points without the associated `experimental.http3` option, which is now removed."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "It is now unsupported and would prevent Traefik to start."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md
+        quote: "**[http3]** Moves HTTP/3 outside the experimental section"
+    references:
+      - https://github.com/traefik/traefik/pull/9570
+    semantics:
+      subject: {family: cli-flag, product: traefik, name: --experimental.http3}
+      change: {type: removed}
+      consequence: {kind: workload-failure, exposedClass: action-required, statement: "Traefik v3 refuses the experimental.http3 static option and does not start, so the upgraded pods never become ready.", remediation: "Remove --experimental.http3 (keep --entrypoints.<name>.http3, which is all v3 needs)."}
+
+  - id: E5
+    title: Traefik Pilot configuration removed; any pilot option prevents Traefik from starting
+    kind: removal
+    importance: important
+    actionRequired: true
+    classification: not-affected   # this environment (generic: action-required); aligned 2026-10-02 to the env-class convention (eval/FORMAT.md)
+    match:
+      - text: '(?i)Traefik Pilot|pilot\.token|pilot\.dashboard'
+    evidence:
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "In v2, Pilot configuration was deprecated and ineffective,"
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "it is now unsupported and would prevent Traefik to start."
+      - url: https://github.com/traefik/traefik/blob/v2.11.2/pkg/config/static/static_config.go
+        quote: 'Pilot *Pilot `description:"Traefik Pilot configuration (Deprecated)."'
+    semantics:
+      - subject: {family: cli-flag, product: traefik, name: --pilot.token}
+        change: {type: removed}
+        consequence: &e5-consequence {kind: workload-failure, exposedClass: action-required, statement: "Traefik v3 refuses any pilot static option and does not start.", remediation: "Remove every pilot.* option from the static configuration."}
+      - subject: {family: cli-flag, product: traefik, name: --pilot.dashboard}
+        change: {type: removed}
+        consequence: *e5-consequence
+
+  - id: E6
+    title: Kubernetes Gateway provider moves from Gateway API v0.4.0 (v1alpha2) to Gateway API v1.0.0
+    kind: compatibility
+    importance: important
+    actionRequired: true       # the installed Gateway API CRDs must be the v1.0.0 bundle
+    classification: unknown   # this environment (generic: action-required); aligned 2026-10-02 to the env-class convention (eval/FORMAT.md)
+    match:
+      - text: '(?i)gateway.?api.{0,40}v1\.0\.0'
+    evidence:
+      - url: https://github.com/traefik/traefik/releases/tag/v3.0.0
+        quote: "**[k8s,k8s/gatewayapi]** Upgrade gateway api to v1.0.0"
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/providers/kubernetes-gateway.md
+        quote: "This provider is proposed as an experimental feature and partially supports Gateway API [v1.0.0](https://github.com/kubernetes-sigs/gateway-api/releases/tag/v1.0.0) specification."
+      - url: https://github.com/traefik/traefik/blob/v2.11.2/docs/content/providers/kubernetes-gateway.md
+        quote: "Keep in mind that the Traefik Gateway provider only supports the `v0.4.0` (v1alpha2)."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/providers/kubernetes-gateway.md
+        quote: "Add/update the Kubernetes Gateway API [definitions](../reference/dynamic-configuration/kubernetes-gateway.md#definitions)."
+    references:
+      - https://github.com/traefik/traefik/pull/10205
+    semantics:
+      subject: {family: product-relationship, product: traefik, name: gateway-api}
+      change: {type: requirement-changed, before: '~0.4.0', after: '>=1.0.0'}
+      consequence: {kind: workload-failure, exposedClass: action-required, statement: "The v3 Kubernetes Gateway provider reads the Gateway API v1.0.0 resources (gateway.networking.k8s.io/v1); with only the v0.4.0 (v1alpha2) CRD bundle installed it cannot list Gateways, GatewayClasses and HTTPRoutes, so Gateway API routes are not served.", remediation: "Install the Gateway API v1.0.0 CRDs (the definitions shipped in the v3.0.0 docs carry bundle-version v1.0.0) before upgrading."}
+
+  - id: E7
+    title: Gateway API experimental-channel resources (TCPRoute, TLSRoute) are disabled by default; new experimentalChannel option required
+    kind: behaviour-change
+    importance: important
+    actionRequired: true
+    classification: not-affected   # this environment (generic: action-required); aligned 2026-10-02 to the env-class convention (eval/FORMAT.md)
+    match:
+      - text: '(?i)experimental.?channel'
+    evidence:
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "In v3, the Kubernetes Gateway API provider does not enable support for the experimental channel API resources by default."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "The `experimentalChannel` option should be used to enable the support for the experimental channel API resources."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/pkg/provider/kubernetes/gateway/kubernetes.go
+        quote: 'ExperimentalChannel bool                `description:"Toggles Experimental Channel resources support (TCPRoute, TLSRoute...)."'
+    references:
+      - https://github.com/traefik/traefik/pull/10435
+    semantics:
+      subject: {family: cli-flag, product: traefik, name: --providers.kubernetesgateway.experimentalchannel}
+      change: {type: now-required, after: 'true'}
+      consequence: {kind: setting-ignored, exposedClass: action-required, statement: "Without experimentalChannel=true the v3 Gateway provider ignores TCPRoute and TLSRoute objects; the TCP/TLS routes they define are no longer served.", remediation: "Add --providers.kubernetesgateway.experimentalchannel=true when TCPRoute or TLSRoute objects are used."}
+
+  - id: E8
+    title: RBAC must be updated for the new TCPServersTransport CRD (serverstransporttcps) when using the KubernetesCRD provider
+    kind: migration-step
+    importance: critical
+    actionRequired: true
+    classification: action-required
+    match:
+      - text: '(?i)serverstransporttcps'
+      - text: '(?i)RBAC.{0,120}TCPServersTransport|TCPServersTransport.{0,120}RBAC'
+    evidence:
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "In v3, the support of `TCPServersTransport` has been introduced."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "When using the KubernetesCRD provider, it is therefore necessary to update [RBAC](../reference/dynamic-configuration/kubernetes-crd.md#rbac) and [CRD](../reference/dynamic-configuration/kubernetes-crd.md) manifests."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/kubernetes-crd-rbac.yml
+        quote: "- serverstransporttcps"
+    semantics:
+      subject: {family: rbac-permission, product: traefik, group: traefik.io, name: serverstransporttcps}
+      change: {type: now-required}
+      consequence: {kind: permission-lost, exposedClass: action-required, statement: "The v3 KubernetesCRD provider lists and watches serverstransporttcps.traefik.io; a v2 ClusterRole without that resource forbids it, so the provider cannot sync and the CRD-based routing configuration is not loaded.", remediation: "Apply the v3 kubernetes-crd-rbac.yml (adds serverstransporttcps to the traefik.io rule) and the v3 CRD definitions before upgrading."}
+
+  - id: E9
+    title: Kubernetes requirement raised from 1.16+ to 1.22+ (networking.k8s.io/v1beta1 Ingress and apiextensions.k8s.io/v1beta1 CRD support removed)
+    kind: compatibility
+    importance: important
+    actionRequired: true
+    classification: not-affected   # this environment (generic: action-required); aligned 2026-10-02 to the env-class convention (eval/FORMAT.md)
+    match:
+      - text: '(?i)Kubernetes 1\.22\+|Update Kubernetes version for v3 Helm chart'
+      - text: '(?i)networking\.k8s\.io/v1beta1|apiextensions\.k8s\.io/v1beta1'
+    evidence:
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/getting-started/install-traefik.md
+        quote: "* Kubernetes 1.22+"
+      - url: https://github.com/traefik/traefik/blob/v2.11.2/docs/content/getting-started/install-traefik.md
+        quote: "* Kubernetes 1.16+"
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "In v3, the Kubernetes Ingress API Group `networking.k8s.io/v1beta1` ([removed since Kubernetes v1.22](https://kubernetes.io/docs/reference/using-api/deprecation-guide/#ingress-v122)) support has been removed."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "In v3, the Traefik CRD API Version `apiextensions.k8s.io/v1beta1` ([removed since Kubernetes v1.22](https://kubernetes.io/docs/reference/using-api/deprecation-guide/#customresourcedefinition-v122)) support has been removed."
+    references:
+      - https://github.com/traefik/traefik/pull/10637
+      - https://github.com/traefik/traefik/pull/9949
+    semantics:
+      subject: {family: compatibility-boundary, product: traefik, name: kubernetes}
+      change: {type: requirement-changed, before: '>=1.16.0', after: '>=1.22.0'}
+      consequence: {kind: upgrade-blocked, exposedClass: action-required, statement: "On a cluster older than Kubernetes 1.22 Traefik v3 is outside its documented requirement: the networking.k8s.io/v1beta1 Ingress and apiextensions.k8s.io/v1beta1 CRD support such clusters rely on is gone, so the install does not work there.", remediation: "Upgrade the cluster to Kubernetes 1.22 or later before moving to Traefik v3."}
+
+  - id: E10
+    title: Content-Type is no longer auto-detected when the backend does not set it (ContentType middleware re-enables it)
+    kind: behaviour-change
+    importance: important
+    actionRequired: false
+    classification: unknown   # this environment (generic: review-required); aligned 2026-10-02 to the env-class convention (eval/FORMAT.md)
+    match:
+      - text: '(?i)Content-?Type auto-?detection'
+    evidence:
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "In v3, the `Content-Type` header is not auto-detected anymore when it is not set by the backend."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md
+        quote: "One should use the `ContentType` middleware to enable the `Content-Type` header value auto-detection."
+      - url: https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md
+        quote: "**[middleware]** Disable Content-Type auto-detection by default"
+    references:
+      - https://github.com/traefik/traefik/pull/9546
+    semantics:
+      subject: {family: protocol-behavior, product: traefik, name: content-type-auto-detection}
+      change: {type: default-changed, before: '"enabled"', after: '"disabled"'}
+      consequence: {kind: behavior-change, exposedClass: review-required, statement: "Responses from backends that omit Content-Type no longer get a sniffed Content-Type header from Traefik.", remediation: "Attach a ContentType middleware to routes whose backends rely on auto-detection."}
+
+notExpected:
+  - title: branch-merge bookkeeping bullets in the v3.0.0 changelog section
+    classification: action-required
+    match: [{text: '^Merge (?:current |branch )?v\d+\.\d+ into '}]
+  - title: documentation typo fixes and release-preparation bullets
+    classification: action-required
+    match: [{text: '(?i)^(?:Fix (?:some )?typos?|Prepare release v3\.0\.0)'}]
+
+environment:
+  description: >-
+    Production cluster on Kubernetes 1.29. Traefik Proxy v2.11.2 runs as a
+    two-replica Deployment in namespace traefik, configured only through
+    container arguments (no static configuration file): HTTP/3 on the
+    websecure entry point with experimental.http3 still set, the
+    KubernetesCRD, KubernetesIngress and (experimental) Kubernetes Gateway
+    providers enabled, no core.defaultRuleSyntax, no Pilot and no Gateway
+    experimental-channel option. Its ClusterRole is the v2.11 reference RBAC
+    (traefik.io and traefik.containo.us, no serverstransporttcps) plus the
+    v2.11 Gateway API rule. The dashboard IngressRoute and its basic-auth
+    Middleware were created in the v2.4 era and are still in
+    traefik.containo.us/v1alpha1; the application IngressRoutes are in
+    traefik.io/v1alpha1, one of them matching two hosts in a single Host()
+    matcher, and the IP filter Middleware already uses ipAllowList. The
+    Gateway provider serves one HTTPRoute (no TCPRoute or TLSRoute); the
+    Gateway API CRDs were installed by hand and their bundle version was not
+    recorded. No ContentType middleware is configured, and whether the
+    backends set Content-Type themselves is not known.
+  kubernetes: "1.29"
+  expectedImpact:
+    - expected: E1
+      relevance: action-required
+      why: the dashboard IngressRoute and its basicAuth Middleware are still traefik.containo.us/v1alpha1 objects; v3 stops reading them, so the dashboard route disappears
+      exposure:
+        op: any
+        of:
+          - {op: gvk-in-use, group: traefik.containo.us, version: v1alpha1, kind: IngressRoute}
+          - {op: gvk-in-use, group: traefik.containo.us, version: v1alpha1, kind: IngressRouteTCP}
+          - {op: gvk-in-use, group: traefik.containo.us, version: v1alpha1, kind: IngressRouteUDP}
+          - {op: gvk-in-use, group: traefik.containo.us, version: v1alpha1, kind: Middleware}
+          - {op: gvk-in-use, group: traefik.containo.us, version: v1alpha1, kind: MiddlewareTCP}
+          - {op: gvk-in-use, group: traefik.containo.us, version: v1alpha1, kind: ServersTransport}
+          - {op: gvk-in-use, group: traefik.containo.us, version: v1alpha1, kind: TLSOption}
+          - {op: gvk-in-use, group: traefik.containo.us, version: v1alpha1, kind: TLSStore}
+          - {op: gvk-in-use, group: traefik.containo.us, version: v1alpha1, kind: TraefikService}
+      environmentEvidence: manifests/legacy-dashboard.yaml#L3-L27
+    - expected: E2
+      relevance: action-required
+      why: the shop IngressRoute matches Host(`shop.example.com`, `www.shop.example.com`) (two values in one matcher, v2-only syntax), no route sets syntax and the Deployment does not set --core.defaultRuleSyntax, so the router fails to parse under the v3 default
+      exposure:
+        op: all
+        of:
+          - {op: cli-flag, name: --core.defaultRuleSyntax, state: unset}
+          - op: resource
+            group: traefik.io
+            kind: IngressRoute
+            of:
+              - {op: field, path: 'spec.routes[].match', state: matches, pattern: '(?:Host|HostSNI|Path|PathPrefix|Method|ClientIP)\(`[^`]*`\s*,|HostHeader\(|Headers(?:Regexp)?\('}
+              - {op: field, path: 'spec.routes[].syntax', state: unset}
+      overlap:
+        op: any
+        of:
+          - {op: cli-flag, name: --core.defaultRuleSyntax, state: equals, values: ['"v2"']}
+          - op: resource
+            group: traefik.io
+            kind: IngressRoute
+            of:
+              - {op: field, path: 'spec.routes[].syntax', state: equals, values: ['"v2"']}
+      environmentEvidence:
+        - manifests/apps.yaml#L2-L15
+        - manifests/traefik-deployment.yaml#L25-L41
+    - expected: E3
+      relevance: not-affected
+      why: the only traefik.io Middleware with an IP filter (office-only) already uses spec.ipAllowList; no Middleware in either API group sets ipWhiteList
+      exposure:
+        op: resource
+        group: traefik.io
+        kind: Middleware
+        of:
+          - {op: field, path: spec.ipWhiteList, state: set}
+          - {op: field, path: spec.ipAllowList, state: unset}
+      environmentEvidence:
+        - manifests/apps.yaml#L34-L43
+        - manifests/legacy-dashboard.yaml#L20-L27
+    - expected: E4
+      relevance: action-required
+      why: the Deployment still passes --experimental.http3=true (needed in v2.11 next to --entrypoints.websecure.http3); v3 refuses the option and the new pods do not start
+      exposure: {op: cli-flag, name: --experimental.http3, state: set}
+      environmentEvidence: manifests/traefik-deployment.yaml#L29-L31
+    - expected: E5
+      relevance: not-affected
+      why: the container arguments are the whole static configuration and none of them is a pilot.* option
+      exposure:
+        op: any
+        of:
+          - {op: cli-flag, name: --pilot.token, state: set}
+          - {op: cli-flag, name: --pilot.dashboard, state: set}
+      environmentEvidence: manifests/traefik-deployment.yaml#L25-L41
+    - expected: E7
+      relevance: not-affected
+      why: the Gateway provider is enabled, but only a GatewayClass, a Gateway and an HTTPRoute exist; no TCPRoute or TLSRoute uses the experimental channel, so the new default changes nothing here
+      exposure:
+        op: all
+        of:
+          - {op: cli-flag, name: --providers.kubernetesgateway, state: set}
+          - op: any
+            of:
+              - {op: gvk-in-use, group: gateway.networking.k8s.io, kind: TCPRoute}
+              - {op: gvk-in-use, group: gateway.networking.k8s.io, kind: TLSRoute}
+          - {op: cli-flag, name: --providers.kubernetesgateway.experimentalchannel, state: unset}
+      environmentEvidence:
+        - manifests/gateway.yaml
+        - manifests/traefik-deployment.yaml#L35-L36
+    - expected: E8
+      relevance: action-required
+      why: the KubernetesCRD provider is enabled and the traefik ClusterRole is the v2.11 reference RBAC, whose traefik.io rule lacks serverstransporttcps
+      exposure:
+        op: all
+        of:
+          - {op: cli-flag, name: --providers.kubernetescrd, state: set}
+          - op: not
+            of:
+              - op: resource
+                group: rbac.authorization.k8s.io
+                kind: ClusterRole
+                name: traefik
+                of:
+                  - {op: field, path: 'rules[].resources[]', state: equals, values: ['"serverstransporttcps"']}
+      environmentEvidence:
+        - manifests/rbac.yaml#L10-L58
+        - manifests/traefik-deployment.yaml#L32
+    - expected: E9
+      relevance: not-affected
+      why: the cluster runs Kubernetes 1.29, inside the new 1.22+ requirement; the Ingress provider already reads networking.k8s.io/v1 there
+      exposure: {op: cluster-version, name: kubernetes, state: out-of-range, range: '>=1.22.0'}
+      environmentEvidence: environment.kubernetes
+  undecidedImpact:
+    - expected: E6
+      reason: cross-product-context-gap
+      needed: the installed Gateway API CRD bundle version (an inventory entry for gateway-api, or the CRDs with their gateway.networking.k8s.io/bundle-version annotation)
+      why: the Gateway provider is enabled and serves an HTTPRoute, but the Gateway API CRD version was not recorded and is not in the inventory; v1alpha2 objects alone do not tell whether the v1.0.0 bundle (which also serves v1) is installed
+      exposure:
+        op: all
+        of:
+          - {op: cli-flag, name: --providers.kubernetesgateway, state: set}
+          - {op: product-version, name: gateway-api, state: out-of-range, range: '>=1.0.0'}
+      environmentEvidence:
+        - manifests/traefik-deployment.yaml#L35-L36
+        - manifests/gateway.yaml
+        - inventory.yaml
+    - expected: E10
+      reason: runtime-behavior-gap
+      needed: whether the backends behind Traefik set a Content-Type header on their responses (live traffic or application knowledge)
+      why: no ContentType middleware is configured, so auto-detection is off after the upgrade; whether any backend relied on it is runtime behaviour no manifest carries
+      exposure:
+        op: all
+        of:
+          - op: not
+            of:
+              - op: resource
+                group: traefik.io
+                kind: Middleware
+                of:
+                  - {op: field, path: spec.contentType, state: set}
+          - {op: undecidable, reason: runtime-behavior-gap, needed: whether backends set Content-Type on their responses}
+      environmentEvidence: [manifests/]

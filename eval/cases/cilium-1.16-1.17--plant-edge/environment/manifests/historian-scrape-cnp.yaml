@@ -1,0 +1,34 @@
+# TLS-aware CiliumNetworkPolicy: the edge gateway pod scrapes the plant
+# historian over TLS with visibility into the flow. Modelled on the
+# upstream example, which keeps terminatingTLS secrets in kube-system
+# (examples/kubernetes-tls-inspection/l7-visibility-tls.yaml at v1.16.0).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: historian-scrape-tls
+  namespace: scada
+spec:
+  endpointSelector:
+    matchLabels:
+      app: edge-gateway
+  egress:
+    - toFQDNs:
+        - matchName: historian.plant.internal
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+          terminatingTLS:
+            secret:
+              namespace: kube-system
+              name: historian-tls-data
+          rules:
+            http:
+              - {}
+    - toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: "*"

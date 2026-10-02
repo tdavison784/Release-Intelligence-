@@ -1,0 +1,48 @@
+# Helm values for the external-secrets chart, release "external-secrets" in
+# namespace external-secrets (chart 0.15.0, appVersion v0.15.0).
+# Keys are all present in the chart's values.yaml at helm-chart-0.15.0.
+replicaCount: 2
+leaderElect: true
+
+# CRDs are installed and upgraded by this Helm release.
+installCRDs: true
+
+crds:
+  conversion:
+    # Carried over from the values file we wrote for 0.9.x, when the platform
+    # still had v1alpha1 manifests and the webhook was required for conversion.
+    enabled: true
+
+# Every reconciler stays on; PushSecret is used by the platform team to push
+# generated database credentials back to AWS.
+processClusterStore: true
+processClusterExternalSecret: true
+processPushSecret: true
+processClusterPushSecret: true
+
+serviceMonitor:
+  enabled: true
+  additionalLabels:
+    release: kube-prometheus-stack
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 512Mi
+
+webhook:
+  create: true
+  replicaCount: 2
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+certController:
+  create: true
+  replicaCount: 1

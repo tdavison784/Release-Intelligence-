@@ -1,0 +1,37 @@
+# Helm values for the crossplane-stable/crossplane chart, installed at chart
+# version 1.20.1 (helm upgrade --install crossplane crossplane-stable/crossplane
+# -n crossplane-system -f values.yaml). Keys exist in the chart's values.yaml at
+# v1.20.1 and v2.0.0.
+replicas: 1
+
+image:
+  repository: xpkg.crossplane.io/crossplane/crossplane
+  pullPolicy: IfNotPresent
+
+# Core start flags, carried over from earlier 1.x releases in which these
+# features still had to be switched on with feature flags.
+args:
+  - --enable-composition-webhook-schema-validation
+  - --enable-composition-functions
+  - --max-reconcile-rate=50
+  - --poll-interval=5m
+
+leaderElection: true
+
+resourcesCrossplane:
+  limits:
+    cpu: "1"
+    memory: 2Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+rbacManager:
+  deploy: true
+  replicas: 1
+
+metrics:
+  enabled: true
+
+provider:
+  packages: []

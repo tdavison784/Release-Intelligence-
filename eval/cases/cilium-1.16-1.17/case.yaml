@@ -18,6 +18,14 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "Support for Consul, deprecated since v1.12, has been removed."
+    semantics:
+      subject: {family: config-key, product: cilium, path: kvstore, component: cilium-config}
+      change: {type: validation-tightened, before: '"consul"'}
+      consequence:
+        kind: workload-failure
+        exposedClass: action-required
+        statement: agents configured with the Consul kvstore lose their kvstore backend, so state distribution through it stops.
+        remediation: move the kvstore to etcd (or CRD mode) before upgrading
   - id: E2
     title: L7 protocol visibility via the policy.cilium.io/proxy-visibility Pod annotation removed (deprecated since v1.15)
     kind: removal
@@ -28,6 +36,14 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "Support for L7 protocol visibility using Pod annotations (``policy.cilium.io/proxy-visibility``), deprecated since v1.15, has been removed."
+    semantics:
+      subject: {family: config-key, product: cilium, path: policy.cilium.io/proxy-visibility, component: pod-annotation}
+      change: {type: removed}
+      consequence:
+        kind: setting-ignored
+        exposedClass: action-required
+        statement: Pods annotated with policy.cilium.io/proxy-visibility lose their L7 visibility (no L7 flows in Hubble).
+        remediation: use L7 policies instead of the annotation
   - id: E3
     title: metallb-bgp integration removed; use the Cilium BGP control plane (bgpControlPlane) instead
     kind: removal
@@ -40,6 +56,20 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "Support for ``metallb-bgp``, deprecated since 1.14, has been removed."
+    semantics:
+      - subject: {family: helm-value, product: cilium, path: bgp.enabled}
+        change: {type: removed}
+        consequence: &cilE3
+          kind: setting-ignored
+          exposedClass: action-required
+          statement: the metallb-bgp integration is gone, so LoadBalancer IPs (and pod CIDRs) are no longer announced over BGP and the services become unreachable from outside the cluster.
+          remediation: move the announcements to the BGP control plane (bgpControlPlane) before upgrading
+      - subject: {family: helm-value, product: cilium, path: bgp.announce.loadbalancerIP}
+        change: {type: removed}
+        consequence: *cilE3
+      - subject: {family: helm-value, product: cilium, path: bgp.announce.podCIDR}
+        change: {type: removed}
+        consequence: *cilE3
   - id: E4
     title: Helm value tls.secretsBackend deprecated, replaced by tls.readSecretsOnlyFromSecretsNamespace (+ tls.secretSync)
     kind: helm-values
@@ -54,6 +84,16 @@ expected:
         quote: "The Helm value ``tls.secretsBackend`` … has been deprecated and replaced with ``tls.readSecretsOnlyFromSecretsNamespace``"
       - url: https://github.com/cilium/cilium/blob/1.16.0/install/kubernetes/cilium/values.yaml
         quote: "tls: secretsBackend: local"
+    semantics:
+      subject: {family: helm-value, product: cilium, path: tls.secretsBackend}
+      change:
+        type: deprecated
+        replacedBy: {family: helm-value, product: cilium, path: tls.readSecretsOnlyFromSecretsNamespace}
+      consequence:
+        kind: deprecation
+        exposedClass: review-required
+        statement: the v1.17 chart still honours tls.secretsBackend when tls.readSecretsOnlyFromSecretsNamespace is unset (k8s → false, local → true; templates/_helpers.tpl at v1.17.0), but the key is deprecated in favour of the new one.
+        remediation: set tls.readSecretsOnlyFromSecretsNamespace (false keeps the k8s behaviour) and drop tls.secretsBackend
   - id: E5
     title: Helm default hubble.tls.auto.certValidityDuration lowered from 1095 days to 365 days
     kind: helm-values
@@ -65,6 +105,13 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "The default value of ``hubble.tls.auto.certValidityDuration`` has been lowered from 1095 days to 365 days"
+    semantics:
+      subject: {family: helm-value, product: cilium, path: hubble.tls.auto.certValidityDuration}
+      change: {type: default-changed, before: '1095', after: '365'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: newly generated Hubble certificates are valid for 365 days; with the helm generation method they must be regenerated (helm upgrade) within a year.
   - id: E6
     title: Helm default dnsProxy.endpointMaxIpPerHostname raised from 50 to 1000
     kind: helm-values
@@ -76,6 +123,10 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "The default value of ``dnsProxy.endpointMaxIpPerHostname`` … has been increased from 50 to 1000"
+    semantics:
+      subject: {family: helm-value, product: cilium, path: dnsProxy.endpointMaxIpPerHostname}
+      change: {type: default-changed, before: '50', after: '1000'}
+      consequence: {kind: none, exposedClass: informational, statement: endpoints may cache up to 1000 IPs per FQDN instead of 50}
   - id: E7
     title: IPsec support for a single key removed; per-tunnel keys are always used
     kind: removal
@@ -87,6 +138,14 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "For IPsec, support for a single key has been removed. Per-tunnel keys will now be used regardless of the presence of the ``+`` sign in the secret."
+    semantics:
+      subject: {family: protocol-behavior, product: cilium, name: ipsec-single-key-mode, component: cilium-agent}
+      change: {type: removed}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: IPsec always derives per-tunnel keys, whether or not the key in the cilium-ipsec-keys Secret carries the "+" marker.
+      note: upstream states the removal but no failure mode; the key format lives in a Secret
   - id: E8
     title: In-cluster etcd managed by Cilium (kvstore in pod network) removed
     kind: removal
@@ -98,6 +157,14 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "Cilium could previously be run in a configuration where the Etcd instances … would be managed in pod network by Cilium itself. This support … has now been removed."
+    semantics:
+      subject: {family: protocol-behavior, product: cilium, name: cilium-managed-etcd-in-pod-network, component: cilium-agent}
+      change: {type: removed}
+      consequence:
+        kind: workload-failure
+        exposedClass: action-required
+        statement: clusters whose kvstore etcd runs in the pod network managed by Cilium lose that kvstore.
+        remediation: run etcd externally (k8s_install_etcd) before upgrading
   - id: E9
     title: External Workloads feature deprecated (removal in v1.18)
     kind: deprecation
@@ -108,6 +175,10 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "The External Workloads feature has been deprecated and will be removed in v1.18."
+    semantics:
+      subject: {family: helm-value, product: cilium, path: externalWorkloads.enabled}
+      change: {type: deprecated}
+      consequence: {kind: deprecation, exposedClass: review-required, statement: External Workloads still work in v1.17 and are removed in v1.18}
   - id: E10
     title: Deprecated clustermesh-ip-identities-sync-timeout flag removed in favour of clustermesh-sync-timeout
     kind: removal
@@ -119,6 +190,16 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "The previously deprecated ``clustermesh-ip-identities-sync-timeout`` flag has been removed in favor of ``clustermesh-sync-timeout``."
+    semantics:
+      subject: {family: cli-flag, product: cilium, name: --clustermesh-ip-identities-sync-timeout, component: cilium-agent}
+      change:
+        type: removed
+        replacedBy: {family: cli-flag, product: cilium, name: --clustermesh-sync-timeout, component: cilium-agent}
+      consequence:
+        kind: workload-failure
+        exposedClass: action-required
+        statement: an agent started with the removed flag fails to start (unknown flag).
+        remediation: use --clustermesh-sync-timeout
   - id: E11
     title: WireGuard userspace fallback (wireguard.userspaceFallback) removed; kernel WireGuard support required
     kind: removal
@@ -130,6 +211,14 @@ expected:
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst
         quote: "The previously deprecated built-in WireGuard userspace-mode fallback (Helm ``wireguard.userspaceFallback``) has been removed."
+    semantics:
+      subject: {family: helm-value, product: cilium, path: encryption.wireguard.userspaceFallback}
+      change: {type: removed}
+      consequence:
+        kind: workload-failure
+        exposedClass: action-required
+        statement: nodes without kernel WireGuard support can no longer run WireGuard transparent encryption, so encrypted pod traffic on them fails.
+        remediation: ensure every node runs a kernel with WireGuard support before upgrading
 notExpected:
   - title: metrics renames and new metrics are not operator upgrade blockers
     match: [{text: '(?i)envoy_cilium_npds_|cilium_node_health_connectivity|Added Metrics'}]
@@ -148,9 +237,18 @@ environment:
     - expected: E3
       relevance: action-required
       why: the values file enables bgp.enabled/bgp.announce, which v1.17.0 removes; announcements must move to bgpControlPlane before upgrading
+      exposure: {op: values-key, path: bgp.enabled, state: equals, values: ['true']}
+      environmentEvidence: values.yaml#L23-L27
     - expected: E4
-      relevance: action-required
-      why: 'the values file sets tls.secretsBackend: k8s, a key that no longer exists in the v1.17.0 chart'
+      relevance: review        # corrected 2026-10-01 from action-required (eval/CHANGELOG.md)
+      why: 'the values file sets tls.secretsBackend: k8s; the key still exists in the v1.17.0 chart (secretsBackend: ~) and its templates still map k8s to readSecretsOnlyFromSecretsNamespace=false while the new key is unset, so it keeps working but is deprecated'
+      exposure:
+        op: all
+        of:
+          - {op: values-key, path: tls.secretsBackend, state: set}
+          - {op: values-key, path: tls.readSecretsOnlyFromSecretsNamespace, state: unset}
+      overlap: {op: values-key, path: tls.readSecretsOnlyFromSecretsNamespace, state: set}
+      environmentEvidence: values.yaml#L21-L22
   expectedFindings:
     - id: F1
       match:
