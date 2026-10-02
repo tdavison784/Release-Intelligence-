@@ -219,6 +219,57 @@ environment block. `Statuses()` deliberately does not list the dimension (it
 feeds the enrichment prompts and their committed answer caches); read it with
 `Health(env.DimProducts)` / `ProductsStatus()`.
 
+### Resource facts and the query API (`Environment.Resources`)
+
+Beyond the path inventories above, every manifest document is also kept as a
+`Resource` (group, version, kind, name, namespace, document ref, document
+evidence) with three kinds of fact for the deterministic applicability engine.
+They live in their own store: `ManifestFields`, `GVKUsage`, the report counts and
+the enrichment prompts are unchanged, so these facts add no finding and move no
+prompt digest.
+
+- **Field facts** (`FieldFact`): the scalar **value** of each leaf, JSON-encoded
+  exactly like `ValuesKey.Value` (`"Always"`, `true`, `null`), plus container
+  facts for mappings and sequences so "is this subtree set" is answerable.
+  Sequences are descended with `[]` markers — the syntax of CRD `SchemaPaths`
+  (`spec.acme.solvers[].http01.ingress.class`) — and each fact also records the
+  indexed `Element` path (`spec.acme.solvers[0]…`), which the evidence locator
+  carries with the file line and an excerpt.
+- **Text blocks** (`TextBlock`): multi-line string scalars and every ConfigMap
+  `data` value, line by line. Each `TextLine` has line-level evidence; for
+  literal block scalars `FileLine` is the true file line (scalar start +
+  offset; `Exact`), for folded/quoted multi-line scalars it is the line the
+  scalar starts on. A `---` inside a block scalar never splits the document.
+- **References** (`Ref`): any mapping under a key ending in `Ref` (or elements
+  under a key ending in `Refs`) that carries a `name` (+ optional
+  `kind`/`group`/`namespace`) — `issuerRef`, `parentRefs[]`, … — recorded
+  generically and resolved by `ResolveRef` against the supplied manifests.
+  Group/kind constrain the match only when stated; no namespace means the
+  referrer's namespace (or a resource declaring none). Outcomes are
+  `resolved`, `ambiguous` or `unresolved`; unresolved is **not** "does not
+  exist": `ManifestsComplete` tells whether the manifests dimension was
+  healthy.
+
+Query API (all deterministic, load-ordered):
+
+| Call | Answers |
+|---|---|
+| `ResourcesOfKind(group, kind)` / `Select(GVKSelector)` | the resources of an API identity (`Group ""` = core only, `"*"` = any; `Version ""` = any) |
+| `FieldValues(sel, path)` | per matching resource: `Set` (false = the resource does not state it) and the `FieldFact`s; `path` with `[]` covers all elements, `[0]` one |
+| `TextBlocks(sel, pathPrefix)` + `TextBlock.Match(re)` | per resource, the text blocks under a path and the lines matching a regex (`Withheld` counts lines a "no line matches" predicate cannot see) |
+| `References(sel, path)` / `ResolveRef(from, ref)` | the references at a path, each with its resolution |
+
+**Secrets.** Values are withheld (`Withheld: "sensitive"`, no `Value`, no value
+in the evidence excerpt) for `Secret` resources, for keys naming a credential
+(`password`, `token`, `apiKey`, `clientSecret`, `privateKey`, …) and for
+anything containing a private key; text lines assigning such a key, or inside
+a private-key block, are withheld the same way (and never match). Oversize
+leaves (> 4 KiB) are withheld as `oversize`. Resource values never reach an
+LLM prompt (the prompt carries paths only; pinned by
+`TestPromptNeverSendsManifestValues`). Caps (100 000 field facts, 50 000 text
+lines, 5 000 per block) are warnings that make the manifests dimension
+`partial`.
+
 ## Repository mode (`--repo`)
 
 `--repo ./customer-repo` walks a directory tree (bounded depth 10, ≤ 5 000
