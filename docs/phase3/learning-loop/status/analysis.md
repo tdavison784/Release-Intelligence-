@@ -1,6 +1,7 @@
 # Lane `analysis` — status
 
-**State: DONE.** Deliverable: `docs/phase3/learning-loop/UNKNOWN-ANALYSIS.md` (complete: all four sections).
+**State: DONE (analysis brief); trustfix follow-on worked by handoff (see GLM handoff log).**
+Deliverable: `docs/phase3/learning-loop/UNKNOWN-ANALYSIS.md` (complete: all four sections).
 
 ## Done
 - Rebuilt `bin/ri` and reran `ri eval -o json` offline against the primary checkout's warm cache. The
@@ -45,3 +46,62 @@ None.
 ## Test status
 Docs-only lane; no Go code changed. `go build ./...` was used to build the binary; no `go vet`/`go test`
 impact.
+
+## Trustfix follow-on (branch `p3ll/trustfix`)
+
+The commander re-tasked this worktree past the analysis brief with impact-layer verdict-trust fixes
+(branch `p3ll/trustfix` off `p3-learning-loop` @ 823b44c). Commit c804c91 (Claude agent) fixed the
+crd-field-removed why-block to name only exposed resources. An uncommitted WIP was left mid-flight; the
+GLM handoff finished it (details below).
+
+## GLM handoff log
+
+**Who/when:** glm-analysis (GLM-5.3), 2026-10-02, holding `.lane-lead`.
+
+**What I did:**
+
+1. Finished the uncommitted WIP as commit `3b42c1e` — *decide removed CRD fields below a set list
+   element by element*. Design and tests are the Claude agent's; I verified the semantics against
+   `internal/env` (field facts descend sequences in schema-path syntax; sensitive withholding keeps
+   paths; any warning flips the manifests dimension to partial) and added one fix of my own: a CRD
+   definition document stages the GVK usage entry of every version it serves (`internal/env/env.go`
+   loadCRD), so the coverage check — "every usage document must have full-depth resource facts" —
+   would always refuse on real environments (CRDs + manifests supplied), leaving the WIP dead in
+   production while green in its manifests-only tests. `crdDefinitionDocs` exempts exactly those
+   documents (a schema is not a resource of the kind it defines). Extended the regression test with
+   the CRD-supplied shape and a manifests-only subtest.
+2. Validated honestly: A/B eval (warm cache, primary `-state`) of c804c91 vs 3b42c1e —
+   external-secrets-0.15-0.16 classificationMatched 3 → 4; applicabilityAccuracy 0.4571 → 0.4667
+   (49/105); every other case byte-identical; falseActionRate unchanged 0.133. `go build ./...`,
+   `go vet ./...`, `go test ./...` all green.
+
+**Diagnosed, not fixed (other lanes / commander — the two false actions behind the failing
+falseActionRate gate, both pre-existing on c804c91):**
+
+- kyverno-1.12-1.13: the one ACTION is `impact:values-removed` on the removed cleanupJobs/chunkSize
+  values (E9, expected review-required). Generic values-removed honestly says action; softening it for
+  these values needs release-level knowledge (knowledge lane) or a relabel (groundtruth). Product-
+  specific Go logic is forbidden by FLEET.
+- crossplane-1.20-2.0: both ACTIONs (crd-enum-value-removed on spec.mode, crd-field-removed on
+  spec.resources) are honest E1 verdicts (E1 expects action); the "false" accounting comes via
+  dataset-FP changes / matcher joining — the D1-family measurement artefact. Editing the comparator to
+  move a gate number is integrity-sensitive; left alone.
+
+**Uncertainties / assumptions:**
+
+- No written trustfix brief exists; I inferred the lane's mandate from the branch, c804c91, and the
+  WIP. The analysis brief itself declared this lane read-only on code — the trustfix re-tasking
+  supersedes that (the Claude agent's c804c91 already committed code here). Flagging in case the
+  commander intended otherwise.
+- Known bounds of the deep decision (documented in code comments): refuses on partial manifests
+  dimension, on uncovered usage documents, on oversize-withheld subtrees, and (by construction) when a
+  GVK exceeds 25 documents (a warning flips health to partial — conservative, maybe over-conservative
+  for large fleets). Descent caps at depth 64 silently; a removed path nested deeper than 64 levels in
+  a manifest would not be seen (pathological; same cap as the flattened paths).
+- Dataset swept per-case (`ri impact` with exactly the evaluator's inputs, all 28 cases incl. the 4
+  transfer environments): no further crd-fields-removed review/action verdicts remain — the family is
+  decided everywhere the dataset exercises it.
+
+**Files touched this handoff:** `internal/impact/crd_gvk.go`, `internal/impact/crd_gvk_test.go` (both
+already touched by the trustfix re-tasking), this status file. No files outside; `.lane-lead` unread
+beyond confirming my hold.
