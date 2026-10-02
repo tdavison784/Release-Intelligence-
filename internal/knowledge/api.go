@@ -257,6 +257,26 @@ type ReviewContext struct {
 	SuggestedExposedClass domain.ImpactClass
 	// Environment is the optional illustration recorded on the item.
 	Environment *domain.EnvironmentContext
+	// Render is the render evidence of the item's candidate (RENDER-MISSION
+	// R18): what the release-level (chart-default) renders show for the
+	// asserted change, from the rendered-diff validations. Nil when no render
+	// validated the candidate. CONTRACT-CHANGE(render).
+	Render *RenderEvidence
+}
+
+// RenderEvidence is the rendered delta shown next to a review item.
+// CONTRACT-CHANGE(render).
+type RenderEvidence struct {
+	// Validation is the rendered-diff validation the evidence comes from
+	// (the most decisive one: contradicted > confirmed > not visible > not
+	// applicable).
+	Validation string
+	Relation   domain.RenderRelation
+	// Explanation is the validation's check detail (what each render shows).
+	Explanation string
+	// Evidence are the rendered-diff records (release scope only: chart
+	// defaults; Evidence.Render carries object, path, before/after).
+	Evidence []domain.Evidence
 }
 
 // DecisionOutcome reports what one decision produced.

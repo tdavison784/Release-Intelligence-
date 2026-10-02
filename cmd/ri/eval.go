@@ -19,6 +19,9 @@ import (
 type appPipeline struct {
 	a     *app.App
 	model string
+	// render, when set (`ri eval -render`), renders every environment case
+	// with its own configuration before the join (eval_render.go).
+	render *renderEval
 }
 
 func (p appPipeline) Upgrade(ctx context.Context, product, from, to string) (*domain.UpgradeEdge, error) {
@@ -26,10 +29,16 @@ func (p appPipeline) Upgrade(ctx context.Context, product, from, to string) (*do
 }
 
 func (p appPipeline) Impact(ctx context.Context, product, from, to string, inputs env.Inputs) (*domain.ImpactReport, error) {
+	if p.render != nil {
+		return p.renderImpact(ctx, product, from, to, inputs, nil, "")
+	}
 	return p.a.Impact(ctx, product, from, to, app.ImpactOptions{Environment: inputs})
 }
 
 func (p appPipeline) ImpactWithKnowledge(ctx context.Context, product, from, to string, inputs env.Inputs, facts []domain.VerifiedFact, min domain.VerificationLevel) (*domain.ImpactReport, error) {
+	if p.render != nil {
+		return p.renderImpact(ctx, product, from, to, inputs, facts, min)
+	}
 	return p.a.Impact(ctx, product, from, to, app.ImpactOptions{Environment: inputs, Facts: facts, MinVerification: min})
 }
 
@@ -61,9 +70,18 @@ func (c *cli) eval(args []string) error {
 	model := fs.String("model", "glm-5.3-flash", "model requested for -enriched (part of the prompt digest; the fixtures were recorded from this one)")
 	knowledgeDir := fs.String("knowledge", "", "directory of verified knowledge: run the dataset once per verification level (none, deterministic, human, consensus, proxy) and report each separately, with the transfer subset")
 	minVerification := fs.String("min-verification", "", "with -knowledge: the level whose results, aggregate and gates are reported as the run's own (default human, the gate level)")
+	doRender := fs.Bool("render", false, "render every environment case with its own configuration before the join (helm/kustomize; docs/RENDER.md): rendered-change conditions of facts are decided against those renders, and an R17 rendering section follows the report; the stored results stay the render-free baseline (the before)")
+	renderJSONOut := fs.String("render-json", "", "with -render: also write the per-case render measurements (JSON) to this file")
 	pos, err := parse(fs, args)
 	if err != nil {
 		return err
+	}
+	if *doRender && *update {
+		return fmt.Errorf("%w: -update stores the render-free baseline; run it without -render", app.ErrUsage)
+	}
+	var rev *renderEval
+	if *doRender {
+		rev = &renderEval{}
 	}
 	a, err := c.newApp()
 	if err != nil {
@@ -106,7 +124,7 @@ func (c *cli) eval(args []string) error {
 		}
 		enrichedEnv = &envInputs
 	}
-	r := &eval.Runner{Pipeline: appPipeline{a, *model}, CasesDir: *dataset, Adjudications: adj, Enriched: *enriched, EnrichedEnv: enrichedEnv}
+	r := &eval.Runner{Pipeline: appPipeline{a, *model, rev}, CasesDir: *dataset, Adjudications: adj, Enriched: *enriched, EnrichedEnv: enrichedEnv}
 	var cases []*eval.Case
 	if len(pos) == 0 {
 		cases, err = r.LoadAll()
@@ -192,6 +210,18 @@ func (c *cli) eval(args []string) error {
 		}
 	} else if err := eval.RenderText(c.out, rep); err != nil {
 		return err
+	}
+	if rev != nil {
+		w := c.out
+		if *output == "json" {
+			w = c.err // keep stdout one JSON document
+		}
+		rev.writeText(w)
+		if *renderJSONOut != "" {
+			if err := rev.writeJSON(*renderJSONOut); err != nil {
+				return err
+			}
+		}
 	}
 
 	if eval.HasRegression(rep.Diffs) {

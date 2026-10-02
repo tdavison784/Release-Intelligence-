@@ -371,7 +371,16 @@ func (ev *evaluator) eval(c domain.Condition, scope *env.Resource) ConditionResu
 	case domain.OpEdgeFromVersion:
 		return ev.edgeFromVersion(c)
 	case domain.OpRenderedChange:
-		return ev.render.EvaluateRenderedChange(c, ev.env, ev.edge)
+		// CONTRACT-CHANGE(render): the evaluator outside this package cannot
+		// set deps; record the render dimension here so `not` labels its check
+		// correctly. Health needs no gate: a rendered true rests on rendered
+		// evidence, and the render evaluator returns false only for complete,
+		// successful renders.
+		r := ev.render.EvaluateRenderedChange(c, ev.env, ev.edge)
+		if r.Value != Unknown {
+			r.deps = []domain.EnvironmentDimension{domain.DimensionRender}
+		}
+		return r
 	case domain.OpUndecidable:
 		reason := c.Reason
 		if !reason.Valid() {
