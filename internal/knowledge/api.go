@@ -298,6 +298,20 @@ type ModelMetric struct {
 	FalseNegative map[domain.Aspect]int
 	// GroundedCitations is the share of citations the accepted fact also uses.
 	GroundedCitations float64
+	// ByTask splits the counters above by proposal task (the same fields,
+	// per task). CONTRACT-CHANGE(knowledge): DESIGN §7 asks for metrics per
+	// model and per task.
+	ByTask map[domain.ProposalTask]ModelTaskMetric
+}
+
+// ModelTaskMetric is one model's counters for one task.
+type ModelTaskMetric struct {
+	Proposals            int
+	AcceptedAsIs         int
+	AcceptedCorrected    int
+	Rejected             int
+	InsufficientEvidence int
+	Abstentions          int
 }
 
 // ReviewMetrics is review cost (G24). Batch (bulk) and individual decisions
