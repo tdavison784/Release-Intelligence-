@@ -23,6 +23,8 @@ type aspectState struct {
 // AutoApproval is what an AutoApprovePolicy returns: aspects it verifies
 // without a reviewer, with the level and basis records that justify them.
 type AutoApproval struct {
+	// Policy names the policy ("render-verifiable", "consensus-action", "general").
+	Policy  string
 	Aspects map[domain.Aspect]AutoApprovedAspect
 }
 
@@ -58,6 +60,7 @@ func Route(c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []domain
 func RouteWith(policy AutoApprovePolicy, c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []domain.ValidationResult) RouteResult {
 	agreement := Agreements(ps)
 	state := stateFromValidations(vs)
+	policyName := ""
 	if policy != nil {
 		// a policy auto-approves a candidate or nothing: its aspects count only
 		// when, with the confirmed validations, they cover all four
@@ -67,7 +70,7 @@ func RouteWith(policy AutoApprovePolicy, c domain.SemanticCandidate, ps []domain
 		// claim alone. Only the policy's view changes; the stored candidate
 		// is untouched.
 		pc := c
-		pc.Renderability = domain.EffectiveRenderability(c, vs)
+		pc.Renderability = DeriveRenderability(c, ps, vs)
 		if ap := policy(pc, ps, vs, agreement); ap != nil {
 			withPolicy := map[domain.Aspect]aspectState{}
 			for x, st := range state {
@@ -80,6 +83,7 @@ func RouteWith(policy AutoApprovePolicy, c domain.SemanticCandidate, ps []domain
 			}
 			if len(withPolicy) == len(domain.Aspects) {
 				state = withPolicy
+				policyName = ap.Policy
 			}
 		}
 	}
@@ -88,6 +92,8 @@ func RouteWith(policy AutoApprovePolicy, c domain.SemanticCandidate, ps []domain
 	if len(state) == len(domain.Aspects) {
 		if f, err := buildFact(c, state, ps, vs, now); err == nil {
 			res.Fact = f
+			res.Policy = policyName
+			res.Signals = policySignals(*f, policyName)
 			return res
 		}
 		// an inconsistent composition is not auto-verifiable: fall through to review
@@ -591,4 +597,63 @@ func statementOf(c domain.SemanticCandidate, ps []domain.SemanticProposal, a dom
 		return a.Statement
 	}
 	return strings.TrimSpace(c.Title)
+}
+
+// DeriveRenderability is the renderability the policies see for a candidate: a
+// property of what the change IS (domain.RenderabilityOf(family, change kind)),
+// not of the edge. Order: the candidate's own assessment; the assertion a render
+// confirmed; the subject+change a validator confirmed; else the subject+change
+// that ≥2 separate calls agree on (PO-1). A single model's claim alone never
+// assesses it (the render lane's rule), so a candidate nothing supports stays "".
+func DeriveRenderability(c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []domain.ValidationResult) domain.Renderability {
+	if r := domain.EffectiveRenderability(c, vs); r != "" {
+		return r
+	}
+	st := stateFromValidations(vs)
+	cons := ConsensusAspects(ps, vs)
+	var a domain.SemanticAssertion
+	for _, x := range []domain.Aspect{domain.AspectSubject, domain.AspectChange} {
+		if v, ok := st[x]; ok {
+			mergeAspect(&a, v.part, x)
+		} else if cv, ok := cons[x]; ok {
+			mergeAspect(&a, cv.Part, x)
+		}
+	}
+	return domain.AssessRenderability(a)
+}
+
+// policySignals records an auto-approval for the audit item: which policy,
+// that the fact is auto-approved, the consensus scope(s), and consensus-action.
+func policySignals(f domain.VerifiedFact, policy string) []domain.RoutingSignal {
+	var sig []domain.RoutingSignal
+	switch policy {
+	case PolicyRender:
+		sig = append(sig, domain.SignalPolicyRender)
+	case PolicyGeneral:
+		sig = append(sig, domain.SignalPolicyGeneral)
+	}
+	if f.AutoApproved {
+		sig = append(sig, domain.SignalAutoApproved)
+	}
+	for _, v := range f.Verification {
+		switch v.Consensus {
+		case domain.ConsensusSameModel:
+			sig = appendSignal(sig, domain.SignalConsensusSameModel)
+		case domain.ConsensusCrossModel:
+			sig = appendSignal(sig, domain.SignalConsensusCrossModel)
+		}
+	}
+	if f.ConsensusAction {
+		sig = append(sig, domain.SignalConsensusAction)
+	}
+	return sig
+}
+
+func appendSignal(xs []domain.RoutingSignal, s domain.RoutingSignal) []domain.RoutingSignal {
+	for _, x := range xs {
+		if x == s {
+			return xs
+		}
+	}
+	return append(xs, s)
 }

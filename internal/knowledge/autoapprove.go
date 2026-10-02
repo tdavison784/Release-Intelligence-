@@ -94,6 +94,13 @@ func anyRefuted(vs []domain.ValidationResult) bool {
 	return false
 }
 
+// Policy names, recorded on AutoApproval.Policy and RouteResult.Policy.
+const (
+	PolicyRender          = "render-verifiable"
+	PolicyConsensusAction = "consensus-action"
+	PolicyGeneral         = "general"
+)
+
 // AutoApproveRenderVerifiable is the auto-approval policy of RENDER-MISSION
 // Goal 10 (DESIGN §6): the candidate's class is render-verifiable, subject and
 // change are confirmed by the render (a validation with renderRelation
@@ -122,7 +129,7 @@ func AutoApproveRenderVerifiable(c domain.SemanticCandidate, ps []domain.Semanti
 	if len(cons) == 0 {
 		return nil
 	}
-	return &AutoApproval{Aspects: cons}
+	return &AutoApproval{Policy: PolicyRender, Aspects: cons}
 }
 
 // AutoApproveConsensusAction is the PO-2 row of DESIGN §6: whatever the
@@ -149,7 +156,7 @@ func AutoApproveConsensusAction(c domain.SemanticCandidate, ps []domain.Semantic
 		}
 	}
 	confirmed := stateFromValidations(vs)
-	out := &AutoApproval{Aspects: map[domain.Aspect]AutoApprovedAspect{}}
+	out := &AutoApproval{Policy: PolicyConsensusAction, Aspects: map[domain.Aspect]AutoApprovedAspect{}}
 	for _, x := range domain.Aspects {
 		if _, ok := confirmed[x]; ok {
 			continue
@@ -159,6 +166,44 @@ func AutoApproveConsensusAction(c domain.SemanticCandidate, ps []domain.Semantic
 			return nil
 		}
 		out.Aspects[x] = a
+	}
+	return out
+}
+
+// AutoApproveGeneral is the MISSION Goal 16 general auto-approval policy
+// (opt-in; not part of DefaultAutoApprove): every aspect is verified at
+// consensus or better — a validator confirmed it, or ≥2 separate calls agree
+// (PO-1) — at least one of subject/change is confirmed by a validator
+// (deterministically, so a model-only assertion can never mint a fact), and no
+// validator refuted any aspect of the candidate. The fact is minted at its
+// weakest level (consensus: capped at review by the ladder unless PO-2
+// consensus-action holds, which buildFact decides), marked auto-approved, and
+// audit-sampled by RouteOptions.AuditEvery (always when consensus-action). A
+// proxy decision is never an input: this policy reads validations and proposals.
+func AutoApproveGeneral(c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []domain.ValidationResult, _ []AspectAgreement) *AutoApproval {
+	if anyRefuted(vs) {
+		return nil
+	}
+	confirmed := stateFromValidations(vs)
+	_, subj := confirmed[domain.AspectSubject]
+	_, chg := confirmed[domain.AspectChange]
+	if !subj && !chg {
+		return nil
+	}
+	cons := ConsensusAspects(ps, vs)
+	out := &AutoApproval{Policy: PolicyGeneral, Aspects: map[domain.Aspect]AutoApprovedAspect{}}
+	for _, x := range domain.Aspects {
+		if _, ok := confirmed[x]; ok {
+			continue
+		}
+		a, ok := cons[x]
+		if !ok {
+			return nil
+		}
+		out.Aspects[x] = a
+	}
+	if len(out.Aspects) == 0 {
+		return nil // everything validator-confirmed: plain auto-verify, no policy needed
 	}
 	return out
 }

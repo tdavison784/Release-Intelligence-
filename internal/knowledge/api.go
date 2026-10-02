@@ -167,6 +167,12 @@ type RouteResult struct {
 	// Agreement is the per-aspect agreement among distinct models that
 	// routing based its signals on.
 	Agreement []AspectAgreement
+	// Policy names the auto-approval policy that completed Fact ("" when every
+	// aspect was validator-confirmed). Signals records that decision (policy,
+	// auto-approved, consensus scope, consensus-action) for the audit item.
+	// CONTRACT-CHANGE(knowledge): additive.
+	Policy  string
+	Signals []domain.RoutingSignal
 }
 
 // AspectAgreement summarises how the proposals of distinct models compare on

@@ -1831,12 +1831,22 @@ const (
 	SignalValidationRefuted   RoutingSignal = "validation-refuted"
 	SignalAllUndetermined     RoutingSignal = "all-undetermined"
 	SignalHighImpact          RoutingSignal = "high-impact"
+	// CONTRACT-CHANGE(knowledge): signals recorded on the audit item of an
+	// auto-approved fact, so the auto-approval policies can later be tested
+	// against human outcomes (MISSION G16).
+	SignalAutoApproved        RoutingSignal = "auto-approved"
+	SignalConsensusAction     RoutingSignal = "consensus-action"
+	SignalPolicyRender        RoutingSignal = "policy-render"
+	SignalPolicyGeneral       RoutingSignal = "policy-general"
+	SignalConsensusSameModel  RoutingSignal = "consensus-same-model"
+	SignalConsensusCrossModel RoutingSignal = "consensus-cross-model"
 )
 
 // RoutingSignals lists every signal.
 var RoutingSignals = []RoutingSignal{
 	SignalModelsAgree, SignalModelsDisagree, SignalSingleModel, SignalValidationConfirmed,
 	SignalValidationRefuted, SignalAllUndetermined, SignalHighImpact,
+	SignalAutoApproved, SignalConsensusAction, SignalPolicyRender, SignalPolicyGeneral, SignalConsensusSameModel, SignalConsensusCrossModel,
 }
 
 // Routing records why an item is in the queue and how urgent it is; recorded

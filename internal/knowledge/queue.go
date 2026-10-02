@@ -432,6 +432,13 @@ func replaceFact(fs []domain.VerifiedFact, f domain.VerifiedFact) []domain.Verif
 // existing fact is still right: a reject retracts it, a correction mints a
 // superseding fact (FactFromDecision). The item carries the full assertion.
 func OpenFactReview(ctx context.Context, s Store, factID string, now time.Time) (*domain.ReviewItem, error) {
+	return OpenFactReviewWith(ctx, s, factID, now, nil)
+}
+
+// OpenFactReviewWith is OpenFactReview recording routing signals on the item
+// (the audit item of an auto-approved fact carries the policy and consensus
+// signals; a consensus-action fact's audit is high priority).
+func OpenFactReviewWith(ctx context.Context, s Store, factID string, now time.Time, signals []domain.RoutingSignal) (*domain.ReviewItem, error) {
 	r, err := s.Get(ctx, factID)
 	if err != nil {
 		return nil, err
@@ -452,9 +459,14 @@ func OpenFactReview(ctx context.Context, s Store, factID string, now time.Time) 
 		QuestionType: domain.QuestionClassification,
 		Question:     fmt.Sprintf("Is fact %s (%s) still correct? Reject to retract it; correct to supersede it.", f.ID, f.Assertion.Statement),
 		Proposed:     f.Assertion,
-		Routing:      domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityNormal},
+		Routing:      domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityNormal, Signals: dedupeSignals(signals)},
 		Status:       domain.ReviewPending,
 		CreatedAt:    now,
+	}
+	for _, sg := range signals {
+		if sg == domain.SignalConsensusAction {
+			it.Routing.Priority = domain.PriorityHigh
+		}
 	}
 	rec, err := domain.NewRecord(it)
 	if err != nil {
