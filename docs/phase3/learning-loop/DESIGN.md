@@ -5,7 +5,8 @@
 > [UNKNOWN-ANALYSIS.md](UNKNOWN-ANALYSIS.md) (§x.y / Dnn / Xn / Vn references).
 > Types live in `internal/domain/semantic.go` (+ two additive fields in
 > `internal/domain/impact.go`); ports live in `internal/knowledge/api.go`.
-> Changes to either go through the `contract` owner (FLEET.md).
+> Changes to either go through the `contract` owner (FLEET.md). Product-owner
+> decisions that amend this design are in [DECISIONS.md](DECISIONS.md) (PO-1, PO-2).
 
 ## 0. The idea in one paragraph
 
@@ -401,8 +402,15 @@ DuplicateOf, SuggestedClass, Citations, Provenance}`.
   `Undetermined` with a reason. Abstention is a first-class answer.
 - `Provider` (`anthropic`, `zai`, `typesafe`, …) is required. `Provenance` is the
   existing complete AI provenance; confidence is capped at `medium`.
-- `SuggestedClass` ∈ {`""`, `review-required`, `informational`, `unknown`}: a
-  model can never suggest `action-required` or `not-affected`.
+  **`Provenance.CallID`** (PO-1) is required: the request/message id or CLI
+  session id from the provider's response envelope, never invented. It is part
+  of the `sp-` id, so two separate calls of the same model with the same prompt
+  are two proposals, while a replayed cached answer keeps its call id and is one.
+- `SuggestedClass` ∈ {`""`, `action-required`, `review-required`,
+  `informational`, `unknown`}. **`action-required` is a request** (PO-2): it
+  needs an action-eligible consequence in the same proposal, and it takes effect
+  only through an agreed consensus fact (§4). A model can never suggest
+  `not-affected`.
 - `Citations ⊆ Provenance.InputEvidence`, and `ValidateAgainst(candidate)` checks
   that citations are candidate evidence.
 
@@ -494,16 +502,26 @@ Verification []AspectVerification, Evidence, Status, Supersedes, AutoApproved, C
 |---|---|---|
 | `deterministic` | `val-…` confirming the aspect | yes |
 | `human` | `rd-…` by a human reviewer | yes |
-| `consensus` | ≥2 `sp-…` from **independent models** asserting the identical aspect digest (+ optionally a `val-…` that does not refute it) | **no** — treated exactly like proxy |
+| `consensus` | ≥2 `sp-…` from **separate stateless calls** (PO-1) asserting the identical aspect digest (+ optionally a `val-…` that does not refute it) | **no** for clearing; may produce ACTION only on the PO-2 path (§4) |
 | `proxy` | `rd-…` by an AI acting as reviewer | no |
 
 Ordering for `fact.Level()` (the weakest aspect): deterministic ≡ human >
-consensus > proxy. Consensus ranks above proxy because it is a structural test
-(two independent lineages produced the same digest), not one model's judgement;
-the trust ladder treats the two identically anyway. "Independent" means distinct
-**model families** (`domain.ModelFamily`: `claude`, `glm`, `gpt`, …;
-`domain.IndependentModels`). Distinct providers alone are not enough: the same
-model behind two gateways is one opinion, and two Claude models are one family.
+consensus > proxy. **Separateness (PO-1):** consensus counts any models,
+including two calls of the same model. What makes calls separate is distinct
+`sp-` ids and distinct call ids from stateless calls with no shared context
+(`domain.SeparateCalls`); no call may be counted twice. `domain.ModelFamily` only
+**labels** each consensus verification `cross-model` or `same-model`
+(`AspectVerification.Consensus`, copied to `KnowledgeRef.Consensus`), so the
+metrics can measure whether same-model agreement, with its correlated errors, is
+as reliable as cross-model agreement.
+
+**`ConsensusAction`** (PO-2) marks a fact that may produce ACTION REQUIRED by
+model consensus. `Validate()` checks: every aspect at consensus or better (no
+proxy), at least one at consensus, and an action-eligible consequence.
+`ValidateFactRecords` checks: every agreeing proposal on a consensus-verified
+consequence requested `action-required`, and no validation of the fact's
+candidates refutes any aspect (callers pass all of them). **Every
+consensus-action fact is sampled into human review (100%).**
 
 **`AutoApproved`** is set exactly when no aspect rests on a human or proxy
 decision (every aspect is deterministic or consensus). Such facts are minted
@@ -522,8 +540,9 @@ aspect level.
 `domain.ValidateFactRecords(fact, FactRecords{Validations, Decisions, Items,
 Proposals})` re-proves each aspect from its records (`ValidateFactBasis` is the
 earlier proposal-free wrapper, and it fails on consensus facts). A `sp-` basis
-must answer one of the fact's candidates and assert the fact's aspect digest,
-and the agreeing proposals must include two independent model families. A `val-` basis must confirm that aspect on an assertion
+must answer one of the fact's candidates and assert the fact's aspect digest.
+The agreeing proposals must include two separate calls, and the scope label must
+match them. A `val-` basis must confirm that aspect on an assertion
 with the same aspect digest. An `rd-` basis must be an accept/correct whose
 `ReviewerKind` **equals** the claimed level, whose item's question verifies that
 aspect, and whose final assertion has the same aspect digest.
@@ -573,32 +592,40 @@ are used.
 
 Inputs per (fact F, environment): `L` = F.Level(); `C` = F's
 `Consequence.ExposedClass`; `X` = Exposure evaluated; `O` = Overlap evaluated
-(false if absent). "Trusted" means `deterministic` or `human`; `consensus` and
-`proxy` are untrusted and share the right-hand column.
+(false if absent). "Trusted" means `deterministic` or `human`.
 
-| X | O | L trusted | L consensus / proxy |
-|---|---|---|---|
-| true | – | **C** (action-required only with the confidence `high` the evaluation earns; see rule 1) | min(C, **review-required**), confidence medium, flagged `verification: proxy` |
-| false | true | informational | informational |
-| false | false/unknown | **not-affected** with checks | **unknown** (`release-knowledge-gap`: a proxy may never clear) |
-| unknown | – | unknown (leaf reason) | unknown (leaf reason) |
+| X | O | L trusted | L consensus, `ConsensusAction` (PO-2) | L consensus without it, or proxy |
+|---|---|---|---|---|
+| true | – | **C** (action-required only with the confidence `high` the evaluation earns; see rule 1) | **C** = action-required, labelled **"ACTION REQUIRED · model consensus"** (`Knowledge.Verification = consensus`); confidence may be high, and the label is mandatory | min(C, **review-required**), confidence ≤ medium |
+| false | true | informational | informational | informational |
+| false | false/unknown | **not-affected** with checks | **unknown** (consensus never clears) | **unknown** (`release-knowledge-gap`: never clears) |
+| unknown | – | unknown (leaf reason) | unknown (leaf reason) | unknown (leaf reason) |
 
 Hard rules. `ImpactReport.Validate()` and the JSON Schema enforce them on findings
 that carry `ImpactFinding.Knowledge` (rule prefix `impact:knowledge-`):
 
-1. **ACTION REQUIRED** requires all of: `Knowledge.Verification` trusted, so
-   subject, change, consequence (with its ExposedClass) **and** applicability are
-   each verified by a human or deterministically (this is stricter than the
-   commander's minimum, on purpose: an unverified condition must not decide
-   mandatory work); `X` true with matches and environment evidence (both chains,
-   the existing affected-class rule); and confidence `high` (the existing
-   demotion rule).
+1. **ACTION REQUIRED** has two paths:
+   - **verified**: `Knowledge.Verification` is trusted, so all four aspects
+     (including applicability, by design) are verified by a human or
+     deterministically;
+   - **model consensus** (PO-2): `Knowledge.Verification = consensus` with
+     `Knowledge.ConsensusAction`. That means (a) every aspect is at consensus or
+     better, with no proxy; (b) the consequence is action-eligible and every
+     agreeing consequence proposal requested action-required; (d) no validator
+     refuted any aspect.
+
+   Both paths also need (c): `X` true deterministically, with matches and
+   environment evidence on both chains (the unchanged affected-class /
+   actionFindingEvidence rule), and confidence `high` (the unchanged demotion
+   rule; consensus findings are labelled via `Knowledge.ActionLabel()`).
 2. **not-affected** from knowledge requires a trusted verification and checks.
-3. A **consensus**- or **proxy**-verified knowledge finding is review-required,
-   informational or unknown: never action-required, never not-affected, never
-   high confidence. A render difference plus model consensus therefore never
-   produces ACTION REQUIRED (R11): rendering proves the structural change, not the
-   operational consequence.
+   Consensus never clears.
+3. A **proxy**-verified finding, or a consensus finding without
+   `ConsensusAction`, is review-required, informational or unknown, and never
+   high confidence. A single model, or a proxy reviewer alone, is still capped at
+   review. A render difference alone still never produces ACTION REQUIRED (R11):
+   the consensus path also needs the verified consequence and the deterministic
+   exposure.
 4. **Model proposals alone never change a classification.** `impact.Build`
    receives facts (`[]VerifiedFact`), never proposals. The existing
    `SuggestedClassification` path (impactenrich) is unchanged and stays
@@ -663,16 +690,17 @@ each hypothesis later.
 | Signals | Route | Priority |
 |---|---|---|
 | validation `confirmed` for every aspect | `auto-verify` (no review item; fact at `deterministic`, `autoApproved`) | – |
-| **auto-approval (R10)**: the candidate's class is in the policy's eligible list (render-verifiable: resource added/removed, field changed, image, RBAC, container args/env, service), subject + change are `confirmed-by-render`, and ≥2 independent models agree on the remaining aspects | `auto-verify` (fact with those aspects at `consensus`, `autoApproved`; capped at REVIEW by §4) | – |
+| **auto-approval (R10)**: the candidate's class is in the policy's eligible list (render-verifiable: resource added/removed, field changed, image, RBAC, container args/env, service), subject + change are `confirmed-by-render`, and ≥2 separate calls agree on the remaining aspects | `auto-verify` (fact with those aspects at `consensus`, `autoApproved`; capped at REVIEW unless the consensus-action row applies) | – |
 | models agree on the open aspects + validation confirmed the rest | `review` | low |
 | models agree, no validation possible | `review` | normal |
 | models disagree on any aspect, or a validation `refuted` a proposal | `review` | normal (high if `high-impact`) |
 | every model abstained | `missing-evidence` | low |
 | any proposal's consequence kind is action-eligible (`high-impact`) | `review` | high |
+| **consensus action (PO-2)**: ≥2 separate calls agree on an action-eligible consequence and all requested `action-required`, the other aspects are at consensus or better, and nothing is refuted | fact minted with `ConsensusAction`, **plus** a human audit item (100% sampling) | high |
 
-"Agree" means equal aspect digests across ≥2 proposals from **independent model
-families** (`domain.IndependentModels`). A single-model proposal carries
-`single-model` and never counts as agreement. The auto-approval policy is data
+"Agree" means equal aspect digests across ≥2 proposals from **separate calls**
+(`domain.SeparateCalls`; any models, PO-1), labelled `cross-model` or
+`same-model`. A single proposal (`single-model`) never counts as agreement. The auto-approval policy is data
 (eligible classes, required agreement, required render relation), owned by the
 knowledge lane with the render lane, and every auto-approval is recorded.
 Runtime-behaviour changes without rendered evidence follow normal review.
@@ -686,9 +714,16 @@ runs the dataset at each level and reports each separately (G21, FLEET):
 |---|---|---|
 | `none` | no facts | today's baseline |
 | `deterministic` | facts whose every aspect is deterministic | reported |
-| `human` | deterministic ∪ human | **the gate number** |
-| `consensus` | deterministic ∪ human ∪ consensus | reported, labelled consensus (auto-approved knowledge), never the gate |
-| `proxy` | all active facts | reported, labelled proxy, never presented as the gate |
+| `human` | deterministic ∪ human | reported |
+| `consensus` | deterministic ∪ human ∪ consensus | reported, labelled consensus (model-consensus ACTION and auto-approved knowledge) |
+| `proxy` | all active facts | reported, labelled proxy |
+
+**Gates (PO-2).** The pre-registered gates (`eval/gates.yaml`, unchanged) apply
+to the **combined output**: the system as shipped, with every knowledge level it
+uses, consensus included. `falseActionRate` and `actionFindingEvidence` are also
+reported **per verification level, consensus included**, with model-consensus
+ACTION findings counted separately from verified ACTION findings, so a false
+action is attributable to the path that produced it.
 
 A proxy fact can reach review-required, which is an affected class, so it counts
 as a link hit. That is exactly why the proxy number must never be the headline.
@@ -719,6 +754,8 @@ class than their label by design (D11).
 | per model: FP / FN per aspect vs final facts | proposals vs facts |
 | review volume per release / product / question type | review items |
 | median and p90 time to decision | decisions |
+| consensus reliability (PO-1): human-audit agreement of consensus aspects, **cross-model vs same-model** | facts (`AspectVerification.Consensus`) + audit decisions |
+| consensus ACTION (PO-2): facts with `ConsensusAction`, audited (must be 100%), human agreement | facts + audit decisions |
 | auto-approval: auto-approved facts by class; the share sampled into human review; **agreement of sampled auto-approved facts with the human verdict**, per class (R19: which render-diff classes are safe to auto-approve) | facts (`autoApproved`) + audit decisions |
 | render relation per proposal and model: confirmed / contradicted / not visible (R17) | validations (`renderRelation`) |
 | batch vs individual: decision counts, accept/correct/reject rates, timing, number of batches — always reported **separately** (bulk accepts must not inflate the per-item acceptance rate or deflate the per-item time) | decisions (`BatchID`, `BatchSize`) |
