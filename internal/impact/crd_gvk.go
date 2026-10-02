@@ -323,6 +323,85 @@ func (g gvkLines) lines(uses []env.GVKUsage) []string {
 	return out
 }
 
+// appendUniqueField appends f unless the same field fact (path, line,
+// evidence) is already listed: several removed sub-paths can relate to one set
+// field (a set list leaf `spec.resources` relates to every removed
+// `spec.resources[].…` path), and the why-block must list it once.
+func appendUniqueField(fs []env.ManifestField, f env.ManifestField) []env.ManifestField {
+	for _, x := range fs {
+		if x.Path == f.Path && x.Line == f.Line && sameEvidence(x.Evidence, f.Evidence) {
+			return fs
+		}
+	}
+	return append(fs, f)
+}
+
+func sameEvidence(a, b []domain.EvidenceID) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// usageSettingFields narrows a GVK usage entry to the documents that contain
+// the given field facts, so a why-block names the resources that actually set
+// the matched fields, not every resource of the GVK. A field belongs to the
+// resource document of its file with the greatest start line at or before the
+// field's line. When no field can be placed (no line or file evidence), the
+// entry is returned unchanged.
+func usageSettingFields(e *env.Environment, ix evIndex, u env.GVKUsage, fs []env.ManifestField) env.GVKUsage {
+	docs := map[env.DocumentRef]bool{}
+	names := map[env.ResourceName]bool{}
+	for _, f := range fs {
+		file := ""
+		for _, id := range f.Evidence {
+			if ev, ok := ix[id]; ok && ev.Kind == domain.EvidenceLocalFile {
+				file = ev.URI
+				break
+			}
+		}
+		if file == "" || f.Line <= 0 {
+			return u
+		}
+		var owner *env.Resource
+		for i := range e.Resources {
+			r := &e.Resources[i]
+			if r.Doc.File != file || r.Doc.StartLine > f.Line {
+				continue
+			}
+			if owner == nil || r.Doc.StartLine > owner.Doc.StartLine {
+				owner = r
+			}
+		}
+		if owner == nil {
+			return u
+		}
+		docs[owner.Doc] = true
+		names[env.ResourceName{Name: owner.Name, Namespace: owner.Namespace}] = true
+	}
+	out := u
+	out.Names, out.Documents = nil, nil
+	for _, n := range u.Names {
+		if names[n] {
+			out.Names = append(out.Names, n)
+		}
+	}
+	for _, d := range u.Documents {
+		if docs[d] {
+			out.Documents = append(out.Documents, d)
+		}
+	}
+	if len(out.Documents) == 0 {
+		return u
+	}
+	return out
+}
+
 // fieldSetsPhrase renders the matched field paths of one GVK with their lines
 // ("spec.secretName (L7), spec.dnsNames (L9)"), capped like the titles.
 func fieldSetsPhrase(fs []env.ManifestField) string {
@@ -759,7 +838,7 @@ func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 				if rel == relNone {
 					continue
 				}
-				hit = append(hit, f)
+				hit = appendUniqueField(hit, f)
 				matches = appendUniqueMatches(matches, domain.ImpactMatch{
 					Kind: domain.MatchManifestField, Subject: f.Path, Evidence: f.Evidence,
 				})
@@ -777,7 +856,7 @@ func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 			matches = appendUniqueMatches(matches, domain.ImpactMatch{
 				Kind: domain.MatchAPIVersion, Subject: groupVersionOf(u) + " " + u.Kind, Evidence: u.Evidence,
 			})
-			lines = append(lines, g.line(u, fieldSetsPhrase(hit)))
+			lines = append(lines, g.line(usageSettingFields(b.env, g.ix, u, hit), fieldSetsPhrase(hit)))
 		}
 	}
 	if len(matches) == 0 {

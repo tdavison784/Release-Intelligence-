@@ -379,3 +379,56 @@ func TestGVKVersionDeclaredButUnused(t *testing.T) {
 		t.Errorf("the installed CRD is the environment evidence: %+v", fs[0].Matches)
 	}
 }
+
+// --- 7. trustfix: an ACTION finding's why-block names only the resources that
+// set the removed field, and each matched field once.
+//
+// Regression (crossplane-1.20-2.0): a removed list field (`spec.resources[]`)
+// is reported with dozens of removed sub-paths; each sub-path related to the
+// same set list leaf, so the explanation repeated "spec.resources (L18)" for
+// every sub-path, and it named every resource of the GVK — including the
+// converted Composition that does not set the field at all. The evidence
+// chain was right; the prose blamed a resource that is not exposed.
+func TestCRDFieldRemovedWhyNamesOnlyTheExposedResources(t *testing.T) {
+	eb := newEdge()
+	eb.schemaChange(upgrade.RuleCRDFieldsRemoved,
+		"Composition v1 schema: 1 field removed: `spec.resources[]`",
+		fieldsRemovedDetail("apiextensions.example.io", "v1", "compositions.apiextensions.example.io",
+			"spec.resources[]\nspec.resources[].base\nspec.resources[].patches[]"),
+		"spec.resources[]", "spec.resources[].base", "spec.resources[].patches[]")
+	dir := t.TempDir()
+	manifests := writeFile(t, dir, "compositions.yaml", `apiVersion: apiextensions.example.io/v1
+kind: Composition
+metadata:
+  name: legacy
+spec:
+  mode: Resources
+  resources:
+    - name: bucket
+      base: {kind: Bucket}
+---
+apiVersion: apiextensions.example.io/v1
+kind: Composition
+metadata:
+  name: converted
+spec:
+  mode: Pipeline
+  pipeline:
+    - step: one
+`)
+	e := buildReport(t, eb.edge, loadEnv(t, env.Inputs{Manifests: []string{manifests}}))
+	fs := findingsByRule(e, RuleCRDFieldRemoved)
+	if len(fs) != 1 || fs[0].Classification != domain.ImpactActionRequired {
+		t.Fatalf("exact GVK + set removed field must stay one action-required finding: %+v", e.Findings)
+	}
+	d := fs[0].Detail
+	if strings.Contains(d, "converted") {
+		t.Errorf("why-block names a resource that does not set the removed field:\n%s", d)
+	}
+	if !strings.Contains(d, "Composition/legacy") {
+		t.Errorf("why-block must name the exposed resource:\n%s", d)
+	}
+	if n := strings.Count(d, "spec.resources (L"); n != 1 {
+		t.Errorf("the matched field must be listed once, got %d times:\n%s", n, d)
+	}
+}
