@@ -164,6 +164,18 @@ deciding input) go to `environment.undecidedImpact`, never to
       environmentEvidence: [manifests/]    # optional: what was examined
 ```
 
+Undecided links never enter `applicabilityAccuracy`. They are scored by
+**`unknownHonesty`** (product-owner decision on
+docs/phase3/learning-loop/UNDECIDED-SCORING.md; **reported, never gated**):
+undecided links answered honestly / undecided links. A link is honest iff no
+AFFECTED (action/review/informational) and no NOT-AFFECTED finding joins a
+change the item's matchers select; UNKNOWN or no finding at all is honest.
+Both directions are failures. The metric is vacuous on its own (an engine
+that decides nothing scores 1.0), so `ri eval` prints it next to
+`applicabilityAccuracy` and the affected-link hit rate and says when it is
+vacuous; `ri eval -knowledge` also reports it per level and on the transfer
+subset.
+
 Rules (enforced at load time):
 
 - Field names are the domain JSON names (`replacedBy`, `exposedClass`, …) and
