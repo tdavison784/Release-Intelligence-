@@ -26,8 +26,11 @@ Auto-approval is a policy hook (`AutoApprovePolicy`). `AutoApproveRenderVerifiab
 `renderability: render-verifiable` whose open aspects have **consensus**: ≥2 agreeing proposals from independent
 model families (`domain.IndependentModels`; Opus + Sonnet count as one) and no validator refutation. Such facts are
 marked `autoApproved` and level `consensus` (capped like proxy by the trust ladder). `RouteOptions.AuditEvery`
-samples one in N auto-approved facts into human review (a fact-review item); an audit **accept** measures the fact
-without upgrading it, a reject retracts it, a correction supersedes it. `FactMetrics` report auto-approval agreement
+samples one in N auto-approved facts into human review (a fact-review item); auto-approved facts with an
+action-eligible consequence are **always** audited (PO-2, 100%). The audit decision is written before the fact is
+touched, and the R19 agreement metric is computed from those decision records. An audit **accept** upgrades the aspects
+the human verified to `human` (the `autoApproved` marker stays as history); a reject retracts the fact, a correction
+supersedes it. `FactMetrics` report auto-approval agreement
 per subject family (RENDER-MISSION R19).
 
 ## Decisions → facts (`Queue.Decide`, `FactFromDecision`)

@@ -303,12 +303,6 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 		if old.Status != domain.FactActive {
 			return out, nil // a retracted or superseded fact is never revived
 		}
-		if isReview && target == old.ID && d.Action == domain.ActionAccept && old.AutoApproved {
-			// an audit confirmation of an auto-approved fact measures it; it does
-			// not upgrade it (the marker means no reviewer decided it)
-			out.Fact = &old
-			return out, nil
-		}
 		merged := old
 		for _, an := range f.Anchors {
 			merged.Anchors = addAnchor(merged.Anchors, an)
@@ -322,10 +316,15 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 			ver = append(ver, v)
 		}
 		merged.Verification = ver
-		merged.AutoApproved = true
+		// the auto-approved marker is history: it stays after a human audit
+		// upgrades the aspects the reviewer verified. The audit itself is the
+		// decision record (written before the fact), which is what the R19
+		// agreement metric reads.
+		auto := true
 		for _, v := range ver {
-			merged.AutoApproved = merged.AutoApproved && (v.Level == domain.VerifiedDeterministic || v.Level == domain.VerifiedConsensus)
+			auto = auto && (v.Level == domain.VerifiedDeterministic || v.Level == domain.VerifiedConsensus)
 		}
+		merged.AutoApproved = old.AutoApproved || auto
 		f = &merged
 	}
 	if target, ok := factReviewTarget(item, facts); ok && d.Action == domain.ActionCorrect && target != f.ID {

@@ -19,10 +19,12 @@
 - Aspects nobody proposed → one `evidence-sufficiency` item on route `missing-evidence`.
 - Fact re-review = item whose complete Proposed is exactly an existing fact (`OpenFactReview`): reject retracts, correct supersedes; routing never revives a retracted/superseded fact.
 - Auto-approval (contract-2): `Route()` stays the pure DESIGN §6 table; the policy is opt-in (`RouteWith`, `RouteOptions.Policy`). `ri knowledge route` enables `AutoApproveRenderVerifiable` by default (`-auto-approve=false` to disable) and samples 1-in-5 (`-audit-every`) into human audit.
-- An audit **accept** of an auto-approved fact measures it and does NOT upgrade it (the marker means no reviewer decided it). See open question.
+- (knowledge-2, commander Q1) An audit **accept** of an auto-approved fact upgrades the aspects the human verified to `human`; the audit decision is persisted first and the R19 metric reads decisions, not the post-upgrade fact. `autoApproved` stays as history.
+- (knowledge-2, PO-2) `AuditRequired`: auto-approved facts with an action-eligible consequence are audited at 100%, others 1-in-N.
 - Metrics `GeneratedAt` is the latest snapshot timestamp (deterministic).
 
 ## Contract changes
+- `domain.VerifiedFact.Validate`: `autoApproved` is now one-directional (required when every aspect is deterministic/consensus; may stay set as history after a human audit). `CONTRACT-CHANGE(knowledge)` in semantic.go + test; no schema change.
 - `FileStore` lets a fact's per-aspect verification be upgraded (never weakened) under the same id (proxy/consensus → human). `// CONTRACT-CHANGE(knowledge)` in filestore.go.
 - `knowledge.ModelMetric.ByTask` / `ModelTaskMetric` added (api.go, `CONTRACT-CHANGE(knowledge)`): DESIGN §7 asks for per-task metrics.
 

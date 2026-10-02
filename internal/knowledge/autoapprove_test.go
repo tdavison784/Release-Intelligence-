@@ -60,7 +60,7 @@ func TestAutoApprovalMintsMarkedFactAndAuditsASample(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// the human audit accepts: measured, but the fact is not upgraded
+	// the human audit accepts: the verified aspect is upgraded, the marker stays
 	q := NewQueue(s, nil)
 	item := snap.ReviewItems[0]
 	_ = item
@@ -70,15 +70,19 @@ func TestAutoApprovalMintsMarkedFactAndAuditsASample(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if out[0].Fact == nil || !out[0].Fact.AutoApproved || out[0].Fact.Level() != domain.VerifiedConsensus {
-		t.Fatalf("audit accept changed the fact: %+v", out[0].Fact)
+	af := out[0].Fact
+	if af == nil || !af.AutoApproved || af.AspectLevel(domain.AspectConsequence) != domain.VerifiedHuman || af.AspectLevel(domain.AspectSubject) != domain.VerifiedConsensus {
+		t.Fatalf("audit accept: %+v", af)
+	}
+	if rec, _ := s.Get(ctx, af.ID); rec.Fact.AspectLevel(domain.AspectConsequence) != domain.VerifiedHuman {
+		t.Fatal("upgrade not stored")
 	}
 	snap, _ = s.Load(ctx, Query{})
 	m := ComputeMetrics(snap).Facts
 	if m.AutoApproved != 1 || m.AutoApprovedAudited != 1 || m.AutoApprovalAgreement != 1 || m.AutoApprovalAgreementBy[domain.SubjectCRDField] != 1 {
 		t.Fatalf("audit metrics = %+v", m)
 	}
-	if m.ByLevel[domain.VerifiedConsensus] != 1 {
+	if m.ByLevel[domain.VerifiedConsensus] != 1 { // weakest aspect is still consensus
 		t.Fatalf("by level = %v", m.ByLevel)
 	}
 
@@ -118,5 +122,21 @@ func TestSampledForAudit(t *testing.T) {
 	}
 	if n < 60 || n > 140 {
 		t.Fatalf("1-in-4 sample picked %d of 400", n)
+	}
+}
+
+func TestActionEligibleAutoApprovalIsAlwaysAudited(t *testing.T) {
+	s, c := renderable(t)
+	ctx := context.Background()
+	a := rotationAssertion(domain.ConsequenceSettingIgnored)
+	mustPut(t, s, proposal(c, "anthropic", "claude-sonnet-5-5", a))
+	mustPut(t, s, proposal(c, "zai", "glm-5.3-flash", a))
+	sum, err := RouteStore(ctx, s, RouteOptions{Policy: AutoApproveRenderVerifiable, AuditEvery: 0}, Query{})
+	if err != nil || sum.Facts != 1 || len(sum.Audits) != 1 {
+		t.Fatalf("summary = %+v, %v (action-eligible must be audited at 100%% even with sampling off)", sum, err)
+	}
+	snap, _ := s.Load(ctx, Query{})
+	if !AuditRequired(snap.Facts[0]) {
+		t.Fatal("AuditRequired")
 	}
 }

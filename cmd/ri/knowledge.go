@@ -59,7 +59,7 @@ func (c *cli) knowledgeRoute(args []string) error {
 	product := fs.String("product", "", "only this product")
 	release := fs.String("release", "", "only this release")
 	auto := fs.Bool("auto-approve", true, "auto-approve render-verifiable candidates whose open aspects have independent-family consensus")
-	audit := fs.Int("audit-every", 5, "sample one in N auto-approved facts into human review (0 = none)")
+	audit := fs.Int("audit-every", 5, "sample one in N auto-approved facts into human review (0 = none; action-eligible ones are always audited)")
 	if _, err := parse(fs, args); err != nil {
 		return err
 	}

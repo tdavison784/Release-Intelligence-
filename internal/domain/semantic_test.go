@@ -1035,7 +1035,7 @@ func TestConsensusFact(t *testing.T) {
 		want string
 	}{
 		{"glm + claude agree, render confirmed the rest", func(*VerifiedFact, *FactRecords) {}, ""},
-		{"auto-approved not marked", func(f *VerifiedFact, _ *FactRecords) { f.AutoApproved = false }, "autoApproved must be set exactly"},
+		{"auto-approved not marked", func(f *VerifiedFact, _ *FactRecords) { f.AutoApproved = false }, "autoApproved must be set"},
 		{"single proposal", func(f *VerifiedFact, _ *FactRecords) { f.Verification[3].Basis = f.Verification[3].Basis[:1] }, "at least two agreeing proposals"},
 		{"decision as consensus basis", func(f *VerifiedFact, _ *FactRecords) {
 			f.Verification[3].Basis = append(f.Verification[3].Basis, "rd-x")
@@ -1097,8 +1097,11 @@ func TestConsensusFact(t *testing.T) {
 	v.Checks = append(v.Checks, AspectCheck{Aspect: AspectConsequence, Outcome: OutcomeInconclusive, Rule: "x"})
 	d := validFact(cand, v, validDecision(validItem(cand)))
 	d.Verification[3] = AspectVerification{Aspect: AspectConsequence, Level: VerifiedDeterministic, Basis: []string{v.ID}}
-	expectErr(t, d.Validate(), "autoApproved must be set exactly")
+	expectErr(t, d.Validate(), "autoApproved must be set")
 	d.AutoApproved = true
+	expectErr(t, d.Validate(), "")
+	// history: the marker may stay after a human audit upgraded an aspect
+	d.Verification[3] = validFact(cand, v, validDecision(validItem(cand))).Verification[3]
 	expectErr(t, d.Validate(), "")
 }
 
