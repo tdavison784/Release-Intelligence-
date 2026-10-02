@@ -1,0 +1,432 @@
+id: prometheus-operator-0.85-0.86
+product: prometheus-operator
+from: v0.85.0
+to: v0.86.2                    # latest patch of the 0.86 line: 0.86.2 carries the events RBAC fix (E1)
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/CHANGELOG.md
+  - https://github.com/prometheus-operator/prometheus-operator/blob/main/CHANGELOG.md
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.85.0/Documentation/getting-started/compatibility.md
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.0/Documentation/getting-started/compatibility.md
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.85.0/example/rbac/prometheus-operator/prometheus-operator-cluster-role.yaml
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.0/example/rbac/prometheus-operator/prometheus-operator-cluster-role.yaml
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/example/rbac/prometheus-operator/prometheus-operator-cluster-role.yaml
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.85.0/example/rbac/prometheus/prometheus-cluster-role.yaml
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.85.0/bundle.yaml
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/bundle.yaml
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.85.0/pkg/operator/defaults.go
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.0/pkg/operator/defaults.go
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.85.0/pkg/operator/feature_gates.go
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/pkg/operator/config.go
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/cmd/operator/main.go
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/pkg/prometheus/server/operator.go
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/Documentation/platform/operator.md
+  - https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/proposals/accepted/202501-configuration-object-status-subresource.md
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.85.0/example/prometheus-operator-crd/monitoring.coreos.com_scrapeconfigs.yaml
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/example/prometheus-operator-crd/monitoring.coreos.com_scrapeconfigs.yaml
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+  - https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+  - https://github.com/prometheus-operator/prometheus-operator/pull/8077
+  - https://github.com/prometheus-operator/prometheus-operator/issues/8076
+  - https://github.com/prometheus-operator/prometheus-operator/pull/7867
+  - https://github.com/prometheus-operator/prometheus-operator/pull/7953
+  - https://github.com/prometheus-operator/prometheus-operator/pull/7893
+  - https://github.com/prometheus-operator/prometheus-operator/issues/7889
+  - https://github.com/prometheus-operator/prometheus-operator/pull/7637
+  - https://github.com/prometheus-operator/prometheus-operator/pull/7985
+  - https://github.com/prometheus-operator/prometheus-operator/pull/7939
+  - https://github.com/prometheus-operator/prometheus-operator/pull/7856
+  - https://github.com/prometheus-operator/prometheus-operator/pull/7823
+  - https://github.com/prometheus-operator/prometheus-operator/pull/7966
+expected:
+  - id: E1
+    title: The operator now emits events through events.k8s.io; its ClusterRole needs create/patch on events.k8s.io events
+    kind: migration-step
+    importance: important
+    actionRequired: true       # a hand-maintained ClusterRole must gain the events.k8s.io rule
+    classification: action-required
+    match:
+      - text: "(?i)permissions? to emit (Kubernetes )?events"
+      - text: '(?i)events\.k8s\.io'
+    evidence:
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/CHANGELOG.md
+        quote: "[CHANGE/BUGFIX] Fix operator's permissions to emit Kubernetes events."
+      - url: https://github.com/prometheus-operator/prometheus-operator/pull/8077
+        quote: "Pull requests #7867 and #7953 switched from the core Events API to the new `events.k8s.io` API group but we forgot to update the RBAC permissions of the prometheus-operator Service Account and the verification which happens during the startup."
+      - url: https://github.com/prometheus-operator/prometheus-operator/issues/8076
+        quote: "After upgrading to prometheus-operator v0.86.0 (via kube-prometheus-stack), the operator fails to emit Kubernetes Events when reconciling invalid resources such as AlertmanagerConfig."
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/example/rbac/prometheus-operator/prometheus-operator-cluster-role.yaml
+        quote: "- apiGroups:\n  - events.k8s.io\n  resources:\n  - events\n  verbs:\n  - patch\n  - create"
+    references:
+      - https://github.com/prometheus-operator/prometheus-operator/issues/8076
+      - https://github.com/prometheus-operator/prometheus-operator/pull/7867
+    semantics:
+      subject: {family: rbac-permission, product: prometheus-operator, name: events, group: events.k8s.io, component: prometheus-operator}
+      change: {type: now-required}
+      consequence:
+        kind: permission-lost
+        exposedClass: action-required
+        statement: >-
+          An operator ClusterRole that grants events only in the core ("") group cannot create events.k8s.io
+          events: the operator logs "missing permission to emit events" at startup and stops emitting the
+          Kubernetes Events that report invalid Prometheus/Alertmanager/AlertmanagerConfig/rule objects.
+        remediation: add an events.k8s.io rule (resources events, verbs create and patch) to the operator's ClusterRole, as in the v0.86.2 example ClusterRole
+  - id: E2
+    title: Status subresource for PodMonitor, Probe and ScrapeConfig behind the StatusForConfigurationResources feature gate; the operator needs the matching */status permissions
+    kind: migration-step
+    importance: important
+    actionRequired: true       # only where the gate is on; those clusters must extend RBAC (and the CRDs)
+    classification: action-required
+    match:
+      - text: '(?i)status subresource for .?(PodMonitor|Probe|ScrapeConfig)'
+      - text: '(?i)StatusForConfigurationResources'
+    evidence:
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/CHANGELOG.md
+        quote: "This release introduces the status subresource (behind the `StatusForConfigurationResources` feature gate) for `ServiceMonitor`, `PodMonitor`, `Probe` and `Scrapeconfig` custom resources. It is only supported for `Prometheus` resources."
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/CHANGELOG.md
+        quote: "[FEATURE] Add status subresource for `PodMonitor` custom resources (requires the `StatusForConfigurationResources` feature gate). #7929 #7914 #7936"
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.0/example/rbac/prometheus-operator/prometheus-operator-cluster-role.yaml
+        quote: "- scrapeconfigs/status … - podmonitors/status … - probes/status"
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/Documentation/platform/operator.md
+        quote: "StatusForConfigurationResources: Updates the status subresource for configuration resources (enabled: false)"
+    semantics:
+      - subject: {family: rbac-permission, product: prometheus-operator, name: podmonitors/status, group: monitoring.coreos.com, component: prometheus-operator}
+        change: {type: now-required}
+        consequence: &status-perm
+          kind: permission-lost
+          exposedClass: action-required
+          statement: >-
+            With the StatusForConfigurationResources gate enabled, the v0.86 operator writes status bindings to
+            every selected PodMonitor, Probe and ScrapeConfig; without the */status permission the update is
+            forbidden, so the Prometheus reconciliation ends with "failed to update PodMonitor ... status" on
+            every sync and the bindings never appear.
+          remediation: add podmonitors/status, probes/status and scrapeconfigs/status to the monitoring.coreos.com rule of the operator's ClusterRole (and apply the v0.86 CRDs, which add the status subresource)
+        note: the gate is the exposure precondition, not the subject; it is off by default and pre-dates v0.86 (ServiceMonitor status at v0.85)
+      - subject: {family: rbac-permission, product: prometheus-operator, name: probes/status, group: monitoring.coreos.com, component: prometheus-operator}
+        change: {type: now-required}
+        consequence: *status-perm
+      - subject: {family: rbac-permission, product: prometheus-operator, name: scrapeconfigs/status, group: monitoring.coreos.com, component: prometheus-operator}
+        change: {type: now-required}
+        consequence: *status-perm
+  - id: E3
+    title: Default Prometheus version deployed by the operator moves from v3.5.0 to v3.6.0
+    kind: behaviour-change
+    importance: important
+    actionRequired: true       # unpinned Prometheus resources are rolled to a new Prometheus minor by the operator upgrade
+    classification: review-required
+    match:
+      - text: '(?i)prometheus\b[^\n]{0,80}v3\.6\.0'
+      - text: '(?i)v3\.5\.0[^\n]{0,40}v3\.6\.0'
+    evidence:
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.0/Documentation/getting-started/compatibility.md
+        quote: "The end-to-end tests are mostly tested against … * v3.6.0"
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.85.0/Documentation/getting-started/compatibility.md
+        quote: "The end-to-end tests are mostly tested against … * v3.5.0"
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.0/pkg/operator/defaults.go
+        quote: "DefaultPrometheusVersion = PrometheusCompatibilityMatrix[len(PrometheusCompatibilityMatrix)-1] … \"v3.5.0\", \"v3.6.0\", }"
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+        quote: "If not specified, the operator assumes the latest upstream version of Prometheus available at the time when the version of the operator was released."
+    semantics:
+      subject: {family: crd-field, product: prometheus-operator, group: monitoring.coreos.com, kind: Prometheus, path: spec.version}
+      change: {type: default-changed, before: '"v3.5.0"', after: '"v3.6.0"'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: Prometheus resources that set neither spec.version nor spec.image are rolled from Prometheus v3.5.0 to v3.6.0 when the operator is upgraded.
+        remediation: pin spec.version (or spec.image) to keep v3.5.0, or review the Prometheus v3.6 changes before upgrading the operator
+      note: stated only by the e2e default in compatibility.md and the defaults.go matrix, not in the CHANGELOG (prose/code-only default); PrometheusAgent shares the default
+  - id: E4
+    title: The operator no longer adds the metadata-wal-records feature flag for Prometheus >= 3.4 with remote-write v2
+    kind: behaviour-change
+    importance: minor
+    actionRequired: true       # remote-write v2 users decide whether to set the flag themselves
+    classification: not-affected   # class in THIS environment (link E4); generic reading: review-required
+    match:
+      - text: '(?i)metadata-wal-records'
+    evidence:
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/CHANGELOG.md
+        quote: "[CHANGE] Remove automatic addition of the `metadata-wal-records` feature flag for Prometheus versions >= 3.4. #7893"
+      - url: https://github.com/prometheus-operator/prometheus-operator/issues/7889
+        quote: "We should modify the operator to not add the feature flag if the deployed version is >= v3.4.0 (first version where the change was introduced). It should be noted as a CHANGE in the changelog (users who want to preserve the existing behavior can set the feature-flag themselves)"
+    references:
+      - https://github.com/prometheus-operator/prometheus-operator/pull/7893
+    semantics:
+      subject: {family: cli-flag, product: prometheus-operator, name: --enable-feature=metadata-wal-records, component: prometheus}
+      change: {type: behavior-changed}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: Prometheus >= 3.4 pods whose remote write uses messageVersion V2.0 restart without --enable-feature=metadata-wal-records, so metric metadata is no longer appended to the WAL.
+        remediation: add metadata-wal-records to spec.enableFeatures if the remote-write v2 receiver relies on WAL metadata
+      note: the operator-injected flag disappears from the generated Prometheus args only when remoteWrite[].messageVersion is V2.0 (PR 7893 diff)
+  - id: E5
+    title: UTF-8 label and metric names are enabled automatically for Prometheus >= 3.0.0; admission webhook keeps legacy validation unless --name-validation-scheme is set
+    kind: behaviour-change
+    importance: important
+    actionRequired: true
+    classification: review-required
+    match:
+      - text: '(?i)UTF-8 (character )?support|support for UTF-8 characters'
+      - text: '(?i)name-validation-scheme'
+    evidence:
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/CHANGELOG.md
+        quote: "This release enables automatic UTF-8 character support in label names, metric names and PrometheusRule expressions for Prometheus/PrometheusAgent resources running with version >= 3.0.0."
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/CHANGELOG.md
+        quote: "To preserve backward compatibility, the admission webhook service validates PrometheusRule resources against the legacy Prometheus scheme by default (but it can be changed with the `--name-validation-scheme` flag)."
+    semantics:
+      - subject: {family: protocol-behavior, product: prometheus-operator, name: utf8-label-and-metric-names, component: prometheus-operator}
+        change: {type: behavior-changed}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: For Prometheus/PrometheusAgent >= 3.0.0 the operator now accepts UTF-8 label names, metric names and PrometheusRule expressions it previously rejected, and loads them into Prometheus.
+          remediation: review rule and relabeling sources for names that were previously filtered out; align the admission webhook's --name-validation-scheme with the operator if the webhook is deployed
+        note: the requirement lives in prose ("running with version >= 3.0.0"); applicability is a product-version leaf over the inventory
+      - subject: {family: cli-flag, product: prometheus-operator, name: --name-validation-scheme, component: admission-webhook}
+        change: {type: added}
+        consequence: {kind: none, exposedClass: informational}
+  - id: E6
+    title: Tighter ScrapeConfig CRD validation (Eureka/Kuma server must be an http(s) URL, Hetzner port bounded to 0-65535)
+    kind: crd-schema
+    importance: minor
+    actionRequired: true       # only for ScrapeConfigs carrying such values
+    classification: not-affected   # class in THIS environment (link E6); generic reading: action-required
+    match:
+      - text: '(?i)miscellaneous validations to the .?ScrapeConfig'
+    evidence:
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/CHANGELOG.md
+        quote: "[CHANGE] Add miscellaneous validations to the `ScrapeConfig` CRD. #7856 #7823 #7835 #7838 #7838 #7966"
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/example/prometheus-operator-crd/monitoring.coreos.com_scrapeconfigs.yaml
+        quote: "eurekaSDConfigs … server: … minLength: 1 pattern: ^http(s)?://.+$ … kumaSDConfigs … server: … pattern: ^https?://.+$"
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/example/prometheus-operator-crd/monitoring.coreos.com_scrapeconfigs.yaml
+        quote: "hetznerSDConfigs … port: description: port defines the port to scrape metrics from. … format: int32 maximum: 65535 minimum: 0 type: integer"
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.85.0/example/prometheus-operator-crd/monitoring.coreos.com_scrapeconfigs.yaml
+        quote: "hetznerSDConfigs … port: description: The port to scrape metrics from. type: integer"
+    semantics:
+      - subject: {family: crd-field, product: prometheus-operator, group: monitoring.coreos.com, version: v1alpha1, kind: ScrapeConfig, path: 'spec.eurekaSDConfigs[].server'}
+        change: {type: validation-tightened}
+        consequence: &sc-rejected
+          kind: resource-rejected
+          exposedClass: action-required
+          statement: After the v0.86 CRDs are applied, the API server rejects creating or updating a ScrapeConfig whose Eureka or Kuma server is not an http(s) URL or whose Hetzner port lies outside 0-65535.
+          remediation: fix the offending values before applying the v0.86 CRDs
+      - subject: {family: crd-field, product: prometheus-operator, group: monitoring.coreos.com, version: v1alpha1, kind: ScrapeConfig, path: 'spec.kumaSDConfigs[].server'}
+        change: {type: validation-tightened}
+        consequence: *sc-rejected
+      - subject: {family: crd-field, product: prometheus-operator, group: monitoring.coreos.com, version: v1alpha1, kind: ScrapeConfig, path: 'spec.hetznerSDConfigs[].port'}
+        change: {type: validation-tightened}
+        consequence: *sc-rejected
+  - id: E7
+    title: Kubernetes requirement restated at v0.86.0 (Kubernetes >= v1.16.0, unchanged)
+    kind: compatibility
+    importance: minor
+    actionRequired: false
+    classification: informational
+    match:
+      - text: '(?i)requires Kubernetes >= ?v?1\.16'
+    evidence:
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.0/Documentation/getting-started/compatibility.md
+        quote: "Due to the use of apiextensions.k8s.io/v1 CustomResourceDefinitions, prometheus-operator requires Kubernetes >= v1.16.0."
+    semantics:
+      subject: {family: compatibility-boundary, product: prometheus-operator, name: kubernetes}
+      change: {type: requirement-changed, after: '>=1.16.0'}
+      consequence:
+        kind: upgrade-blocked
+        exposedClass: action-required
+        statement: On a cluster older than Kubernetes 1.16 the apiextensions.k8s.io/v1 CRDs cannot be installed, so the operator cannot be deployed.
+      note: the floor did not move (the same sentence is in v0.85.0); requirement-changed is the only type that carries a platform range — the restatement is informational for any in-range cluster
+  - id: E8
+    title: The operator labels every managed resource with app.kubernetes.io/managed-by=prometheus-operator
+    kind: behaviour-change
+    importance: minor
+    actionRequired: false
+    classification: informational
+    match:
+      - text: '(?i)app\.kubernetes\.io/managed-by'
+    evidence:
+      - url: https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.2/CHANGELOG.md
+        quote: "[ENHANCEMENT] Add `app.kubernetes.io/managed-by: prometheus-operator` label to all managed resources. #7939"
+      - url: https://github.com/prometheus-operator/prometheus-operator/pull/7939
+        quote: "With this commit, all resources managed by the operator will be labelled with the `app.kubernetes.io/managed-by: prometheus-operator` label."
+    semantics:
+      subject: {family: protocol-behavior, product: prometheus-operator, name: managed-by-label, component: prometheus-operator}
+      change: {type: behavior-changed}
+      consequence:
+        kind: none
+        exposedClass: informational
+        statement: Secrets, ConfigMaps and Services generated for Prometheus/Alertmanager objects gain a new label; nothing stops working.
+notExpected:
+  - title: event formatting bugfix (0.86.1) is not an RBAC/upgrade step
+    classification: action-required
+    match: [{text: '(?i)formatting of Kubernetes events'}]
+  - title: config-reloader init container port rename is a warning fix, no operator action
+    classification: action-required
+    match: [{text: '(?i)distinct port name for the config-reloader'}]
+environment:
+  description: >-
+    Production cluster on Kubernetes 1.32. Prometheus Operator v0.85.0 installed from the
+    v0.85.0 bundle.yaml Deployment in namespace monitoring, started with
+    --feature-gates=StatusForConfigurationResources=true (enabled at v0.85.0 for ServiceMonitor
+    status bindings). The operator's ClusterRole is maintained in-house as a copy of the v0.85.0
+    example ClusterRole: events are granted only in the core ("") API group, and it grants
+    servicemonitors/status but not podmonitors/status, probes/status or scrapeconfigs/status; it is
+    not regenerated from bundle.yaml on upgrade. The Prometheus server's own ClusterRole
+    (prometheus) is the v0.85.0 example too. One Prometheus (k8s) and one Alertmanager (main),
+    neither setting spec.version or spec.image: the Prometheus k8s runs the operator's default
+    Prometheus v3.5.0 and the Alertmanager main runs the default Alertmanager v0.28.1. Remote write
+    uses the default message version (no messageVersion set). Prometheus k8s selects one
+    ServiceMonitor, one PodMonitor and one ScrapeConfig that uses only static targets (no Eureka,
+    Kuma or Hetzner service discovery). No PrometheusAgent, Probe or admission webhook is deployed.
+  kubernetes: "1.32"
+  expectedImpact:
+    - expected: E1
+      relevance: action-required
+      why: >-
+        the in-house operator ClusterRole grants events only in the core group (the v0.85.0 shape) and
+        is not replaced by the bundle upgrade, so v0.86.2 starts with "missing permission to emit
+        events" and emits no events; the prometheus ClusterRole also lacks events.k8s.io but belongs to
+        the Prometheus server, which emits no events (scoped out by name)
+      exposure:
+        op: resource
+        group: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: prometheus-operator
+        of:
+          - op: not
+            of: [{op: field, path: 'rules[].apiGroups[]', state: equals, values: ['"events.k8s.io"']}]
+      environmentEvidence: [manifests/operator-rbac.yaml#L6-L113]
+    - expected: E2
+      relevance: action-required
+      why: >-
+        the gate is enabled on the operator, Prometheus k8s selects a PodMonitor and a ScrapeConfig,
+        and the in-house ClusterRole lacks podmonitors/status and scrapeconfigs/status, so status
+        updates are forbidden after the upgrade (probes/status is missing too, but no Probe exists)
+      exposure:
+        op: all
+        of:
+          - {op: feature-gate, name: StatusForConfigurationResources, state: enabled, component: prometheus-operator}
+          - op: any
+            of:
+              - op: all
+                of:
+                  - {op: gvk-in-use, group: monitoring.coreos.com, kind: PodMonitor}
+                  - op: resource
+                    group: rbac.authorization.k8s.io
+                    kind: ClusterRole
+                    name: prometheus-operator
+                    of: [{op: not, of: [{op: field, path: 'rules[].resources[]', state: equals, values: ['"podmonitors/status"']}]}]
+              - op: all
+                of:
+                  - {op: gvk-in-use, group: monitoring.coreos.com, kind: Probe}
+                  - op: resource
+                    group: rbac.authorization.k8s.io
+                    kind: ClusterRole
+                    name: prometheus-operator
+                    of: [{op: not, of: [{op: field, path: 'rules[].resources[]', state: equals, values: ['"probes/status"']}]}]
+              - op: all
+                of:
+                  - {op: gvk-in-use, group: monitoring.coreos.com, kind: ScrapeConfig}
+                  - op: resource
+                    group: rbac.authorization.k8s.io
+                    kind: ClusterRole
+                    name: prometheus-operator
+                    of: [{op: not, of: [{op: field, path: 'rules[].resources[]', state: equals, values: ['"scrapeconfigs/status"']}]}]
+      environmentEvidence: [manifests/operator.yaml#L41-L48, manifests/operator-rbac.yaml#L14-L38, manifests/monitors.yaml#L19-L49]
+    - expected: E3
+      relevance: review
+      why: Prometheus k8s sets neither spec.version nor spec.image, so the operator upgrade rolls it from the v0.85.0 default v3.5.0 to v3.6.0
+      exposure:
+        op: resource
+        group: monitoring.coreos.com
+        kind: Prometheus
+        of:
+          - {op: field, path: spec.version, state: unset}
+          - {op: field, path: spec.image, state: unset}
+      overlap:
+        op: resource
+        group: monitoring.coreos.com
+        kind: Prometheus
+        of:
+          - op: any
+            of:
+              - {op: field, path: spec.version, state: set}
+              - {op: field, path: spec.image, state: set}
+      environmentEvidence: [manifests/prometheus.yaml#L5-L45, inventory.yaml#L4-L5]
+    - expected: E4
+      relevance: not-affected
+      why: >-
+        Prometheus runs v3.5.0 (>= 3.4, so the new rule would apply) but its remoteWrite sets no
+        messageVersion (V1.0), and the operator only ever added metadata-wal-records for V2.0
+        endpoints; no PrometheusAgent exists
+      exposure:
+        op: all
+        of:
+          - {op: product-version, name: prometheus, state: in-range, range: '>=3.4.0'}
+          - op: any
+            of:
+              - op: resource
+                group: monitoring.coreos.com
+                kind: Prometheus
+                of: [{op: field, path: 'spec.remoteWrite[].messageVersion', state: equals, values: ['"V2.0"']}]
+              - op: resource
+                group: monitoring.coreos.com
+                kind: PrometheusAgent
+                of: [{op: field, path: 'spec.remoteWrite[].messageVersion', state: equals, values: ['"V2.0"']}]
+      environmentEvidence: [manifests/prometheus.yaml#L31-L34, inventory.yaml#L4-L5]
+    - expected: E5
+      relevance: review
+      why: the inventory puts Prometheus at v3.5.0 (>= 3.0.0) and a Prometheus resource is in use, so the operator switches to UTF-8 name handling for its rules and relabelings
+      exposure:
+        op: all
+        of:
+          - {op: product-version, name: prometheus, state: in-range, range: '>=3.0.0'}
+          - op: any
+            of:
+              - {op: gvk-in-use, group: monitoring.coreos.com, kind: Prometheus}
+              - {op: gvk-in-use, group: monitoring.coreos.com, kind: PrometheusAgent}
+      environmentEvidence: [inventory.yaml#L4-L5, manifests/prometheus.yaml#L5-L10]
+    - expected: E6
+      relevance: not-affected
+      why: >-
+        a ScrapeConfig is in use (so the CRD change touches the cluster) but it only has
+        staticConfigs; no Eureka, Kuma or Hetzner SD values exist that the new constraints could reject
+      exposure:
+        op: resource
+        group: monitoring.coreos.com
+        kind: ScrapeConfig
+        of:
+          - op: any
+            of:
+              - op: all
+                of:
+                  - {op: field, path: 'spec.eurekaSDConfigs[].server', state: set}
+                  - op: not
+                    of: [{op: field, path: 'spec.eurekaSDConfigs[].server', state: matches, pattern: '^"?https?://.+'}]
+              - op: all
+                of:
+                  - {op: field, path: 'spec.kumaSDConfigs[].server', state: set}
+                  - op: not
+                    of: [{op: field, path: 'spec.kumaSDConfigs[].server', state: matches, pattern: '^"?https?://.+'}]
+              - {op: field, path: 'spec.hetznerSDConfigs[].port', state: matches, pattern: '^(-[0-9]+|[0-9]{6,}|6553[6-9]|655[4-9][0-9]|65[6-9][0-9]{2}|6[6-9][0-9]{3}|[7-9][0-9]{4})$'}
+      environmentEvidence: [manifests/monitors.yaml#L34-L49]
+    - expected: E7
+      relevance: informational
+      why: >-
+        the cluster runs Kubernetes 1.32, inside the unchanged >= v1.16.0 floor: the requirement
+        applies and is met ("applies to you, you appear safe"), which should be confirmed, not flagged
+      exposure: {op: cluster-version, name: kubernetes, state: out-of-range, range: '>=1.16.0'}
+      overlap: {op: cluster-version, name: kubernetes, state: in-range, range: '>=1.16.0'}
+      environmentEvidence: environment.kubernetes
+    - expected: E8
+      relevance: informational
+      why: the operator manages Prometheus k8s and Alertmanager main, whose generated objects gain the label; no selector or policy in the fixture keys on managed-by
+      exposure:
+        op: any
+        of:
+          - {op: gvk-in-use, group: monitoring.coreos.com, kind: Prometheus}
+          - {op: gvk-in-use, group: monitoring.coreos.com, kind: Alertmanager}
+      environmentEvidence: manifests/prometheus.yaml#L5-L56
+  notExpectedFindings:
+    - title: no CRD removed by this upgrade
+      match: {rule: impact:crd-removed}
+      why: example/prometheus-operator-crd lists the same ten CRDs at v0.85.0 and v0.86.2
