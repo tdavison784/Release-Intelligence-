@@ -452,12 +452,13 @@ func (w *resourceWalk) scalar(n *yaml.Node, fact FieldFact, loc, key string) {
 		return
 	}
 	if strings.Contains(n.Value, "\n") || (w.isCM && strings.HasPrefix(fact.Path, "data")) {
-		w.text(n, fact)
+		w.text(n, fact, key != "" && sensitiveKeyRe.MatchString(key))
 	}
 }
 
-// text exposes a string scalar line by line.
-func (w *resourceWalk) text(n *yaml.Node, fact FieldFact) {
+// text exposes a string scalar line by line. keyWithheld: the key names a
+// credential, so every line is withheld (and counted) like a Secret value.
+func (w *resourceWalk) text(n *yaml.Node, fact FieldFact, keyWithheld bool) {
 	lines := strings.Split(n.Value, "\n")
 	if len(lines) > 1 && lines[len(lines)-1] == "" {
 		lines = lines[:len(lines)-1] // the final newline ends the last line
@@ -486,7 +487,7 @@ func (w *resourceWalk) text(n *yaml.Node, fact FieldFact) {
 			fileLine = n.Line + 1 // folding merges lines: the first content line, not exact
 		}
 		m := privateKeyMark.FindStringSubmatch(text)
-		withheld := inKey || sensitiveLine.MatchString(text) || m != nil
+		withheld := keyWithheld || inKey || sensitiveLine.MatchString(text) || m != nil
 		if m != nil {
 			inKey = m[1] == "BEGIN"
 		}
