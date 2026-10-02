@@ -147,7 +147,53 @@ func subjectKey(c domain.Change) string {
 			s[j], s[j-1] = s[j-1], s[j]
 		}
 	}
-	return string(c.Category) + "|" + strings.Join(s, ",")
+	key := string(c.Category) + "|" + strings.Join(s, ",")
+	if id := crdIdentity(c); id != "" {
+		key = "crd:" + id + "|" + key
+	}
+	return key
+}
+
+// crdIdentity is the API identity (group/kind) a CRD diff's subjects belong
+// to, "" for other changes. Schema-path diffs (crd:fields-removed,
+// crd:default-changed, …) carry bare paths as subjects, so the same path on
+// two CRDs ("status.conditions[]" added to several CRDs) is not the same
+// subject. The identity is read from the differ's deterministic wording
+// (internal/upgrade/crds.go): the title "<Kind> <version> schema: …" and
+// the detail "… the <group>/<version> schema of <crd name> …"; the CRD name
+// alone is used when the title labels the CRD by name.
+func crdIdentity(c domain.Change) string {
+	if !strings.HasPrefix(c.Provenance.Rule, "crd:") {
+		return ""
+	}
+	name := ""
+	if i := strings.Index(c.Detail, " schema of "); i >= 0 {
+		tail := c.Detail[i+len(" schema of "):]
+		if j := strings.IndexAny(tail, " ;:(\n\t"); j >= 0 {
+			tail = tail[:j]
+		}
+		name = strings.TrimRight(tail, ".")
+	}
+	kind := ""
+	if i := strings.Index(c.Title, " schema: "); i > 0 {
+		head := c.Title[:i]
+		if sp := strings.LastIndexByte(head, ' '); sp > 0 && !strings.Contains(head[:sp], ".") {
+			kind = head[:sp]
+		} else if sp > 0 && name == "" {
+			name = head[:sp]
+		}
+	}
+	group := ""
+	if i := strings.IndexByte(name, '.'); i > 0 {
+		group = name[i+1:]
+	}
+	switch {
+	case group != "" && kind != "":
+		return group + "/" + kind
+	case name != "":
+		return name
+	}
+	return kind
 }
 
 // tokenSet is the bag of words for near-duplicate detection.

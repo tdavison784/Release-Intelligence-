@@ -175,3 +175,36 @@ crossplane-1.20-2.0 alone: links 0/5 → 1/5 (E1 hit by the two ACTIONs plus the
 finding), not-affected violations 1 → 0 (E3), recall 9/10 unchanged (E8 still missed),
 classificationAccuracy unchanged overall (0.438 over 112). No stored-result regressions in either run.
 
+
+## 2026-10-02 (d) — evaluator fix: duplicate groups keyed on CRD identity (lane `eval-dup`)
+
+**Evaluator change, no label changed.** The duplicate-conclusion audit (`internal/eval` `findDuplicates`,
+non-gated `duplicateGroups` / `duplicateRate`) keyed its subject comparison on category + subject set. A CRD
+schema-path diff carries bare paths as subjects, so the same path on *different* CRDs (`spec.resources[]` newly
+required on CiliumEnvoyConfig and CiliumClusterwideEnvoyConfig, `status.conditions[]` added to several CRDs) was
+counted as a duplicate. The subject key of a `crd:*` change now includes the CRD identity (group/kind, read from
+the differ's deterministic title/detail wording; the CRD name when the title labels it by name). Every other
+change is keyed exactly as before. Consequence by design: one kind's two served versions (v1 and v1beta2)
+stating the same schema change still group, so a former cross-CRD group can split into one group per kind.
+
+Live run (offline, warm cache), `duplicateGroups` per case (unlisted cases unchanged; `-update` not run):
+
+| Case | Before | After |
+|---|---|---|
+| cert-manager-1.15-1.16 | 4 | 3 |
+| cert-manager-1.16-1.17 | 2 | 0 |
+| cert-manager-1.17-1.18 | 2 | 0 |
+| cilium-1.15-1.17 | 10 | 1 |
+| cilium-1.16-1.17 | 6 | 0 |
+| crossplane-1.20-2.0 | 12 | 8 |
+| external-secrets-0.15-0.16 | 4 | 0 |
+| flux-2.6-2.7 | 7 | 10 (four per-kind v1/v1beta2 groups replace one cross-kind group) |
+| kube-prometheus-stack-90-91 | 1 | 0 |
+| kyverno-1.12-1.13 | 10 | 15 (same: per-kind v1/v2beta1 or v2/v2beta1 groups) |
+| prometheus-operator-0.85-0.86 | 3 | 0 |
+| strimzi-0.45-0.46 | 3 | 1 |
+| **aggregate** | **75** (rate 0.028) | **49** (rate 0.018) |
+
+No other aggregate metric moved (only `duplicateGroups`, `duplicateRate`, `duplicatedChanges`); no gate reads
+these. `ri eval` reports flux and kyverno as "worse" against `eval/results` until the stored snapshots are
+accepted with `-update` (commander).
