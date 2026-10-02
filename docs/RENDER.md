@@ -46,9 +46,9 @@ failed), never "no change":
 | `chart-unavailable` | the chart package could not be resolved or fetched (offline: not in cache) |
 | `renderer-unavailable` | the helm/kustomize binary is not installed |
 | `missing-dependency` | a chart dependency (subchart) is not packaged |
-| `invalid-values` | the values do not parse or violate `values.schema.json` |
+| `invalid-values` | the values do not parse, violate `values.schema.json`, or a chart-authored `fail`/`required` check rejects them. When the source rendered the same values, the pair reports **TARGET CHART REJECTS THIS CONFIGURATION** (`Pair.TargetRejects`): the upgrade with these values fails at render time |
 | `missing-capability` | kubeVersion / API capability the chart requires is absent |
-| `template-error` | a template failed to execute (required/fail/parse) |
+| `template-error` | a template failed to execute (a parse error, a nil pointer: a broken template) |
 | `kustomize-dependency` | a kustomize base/component/resource could not be loaded (includes load-restrictor violations — fidelity to how the customer's deployer builds) |
 | `unsupported-feature` | an input feature the renderer path does not support |
 | `output-unparsable` | the renderer's output is not a YAML stream of objects |
@@ -120,8 +120,11 @@ accepts the `Pattern` form):
   own assessment, else that of an assertion whose subject and change a render **confirmed** — never a
   model claim alone. (The table lives in the domain because `internal/knowledge` cannot import this
   package: render imports knowledge for the Validator port.)
-- **Wiring:** `app.RenderValidator(kubeVersion)` returns the validator to register beside the validate
-  lane's `semvalidate.Validators()` in `ri knowledge validate`.
+- **Wiring:** `app.Validators(kubeVersion)` is the registry: the validate lane's
+  `semvalidate.Validators()` followed by `rendered-diff`. Knowledge routing hands the auto-approval
+  policy the candidate's `domain.EffectiveRenderability`. `knowledge.ReviewContext.Render`
+  (`RenderEvidenceOf`: the most decisive render validation, with release-scope records carrying
+  before/after) feeds the dashboard's Rendered delta panel (`reviewui` `deltaFromContext`).
 - **Prompt evidence** (`EdgeRenderedChanges`, semantic lane addendum): the edge's release-level rendered
   changes as citable `rendered-diff` evidence, correlated with the edge changes; `ForChanges(memberIDs)`
   selects what a candidate restates, `Undocumented()` the rendered changes no entry mentions (review
@@ -151,19 +154,12 @@ or image-tag equality)?
   incomplete values, or a condition naming one object (`Name`) that is absent while the release name
   was *assumed* (object names derive from it).
 
-The result's fields mirror `impact.ConditionResult` (applicability lane) one to one, so the
-`impact.RenderedChangeEvaluator` adapter is a field copy:
-
-```go
-type renderEvaluator struct{ pairs []*render.Pair }
-
-func (r renderEvaluator) EvaluateRenderedChange(c domain.Condition, _ *env.Environment, _ *domain.UpgradeEdge) impact.ConditionResult {
-	x := render.EvaluateRenderedChange(c, r.pairs)
-	return impact.ConditionResult{Value: impact.Truth(x.Value), Matches: x.Matches, Checks: x.Checks,
-		Examined: x.Examined, Reason: x.Reason, Needed: x.Needed, Records: x.Evidence}
-}
-// impact.Input{…, Render: renderEvaluator{pairs: renderDiff.EnvironmentPairs()}}
-```
+The result's fields mirror `impact.ConditionResult` one to one. `render.ConditionEvaluator{Pairs}`
+implements `impact.RenderedChangeEvaluator`, and `app.ImpactRun` wires it: with `--render` (or
+`ImpactOptions.Render`) the From/To releases are rendered with the environment's configuration
+*before* the join, and `impact.Input.Render` decides the facts' rendered-change leaves against the
+environment pairs (never the chart-default pair). The impact engine records the `render` dimension
+on decided render leaves, so `not(rendered-change)` labels its check correctly.
 
 The leaf concludes nothing about consequences: a render difference alone never produces ACTION
 REQUIRED (R11) — that classification is the trust ladder's, above this predicate.
@@ -187,9 +183,22 @@ a role new under its name is one `resource-added` record, so its permissions are
 emitted as `rbac-permission-added`), the `servicemonitor` and `crds.enabled` variants
 2/2 each, the kustomize overlay failing exactly as authored. cert-manager ships its
 CRDs as a gated template (`crds.enabled`, default false), so they appear only in the
-variant. The pipeline-level R17 metrics (UNKNOWN
-→ decided due to render, ACTION strengthened, false ACTION delta, applicability
-before/after) wait on the applicability lane's wiring.
+variant.
+
+**Pipeline-level R17** (`ri eval -render [-render-json stats.json]`): every environment case is
+rendered with its own configuration before the join, and an R17 section follows the report. It
+covers render success, target-chart rejections, rendered and undocumented changes, unknowns
+restated by a customer render, UNKNOWN → decided by render, ACTION with render evidence, and ACTION
+corroborated by render. The stored results stay the render-free baseline (the before; `-update`
+refuses `-render`). `eval/render/tools/r17_join.py` joins the stats with the eval's per-link results.
+Results (`eval/render/results/2026-10-02-pipeline.md`):
+- before and after are identical on all 47 aggregate fields: false-ACTION delta 0, UNKNOWN → decided 0;
+- why: no verified facts exist yet, and rendering added no false certainty;
+- render success 11/12 pairs;
+- ACTION corroborated by render 4/15;
+- 8 of 55 missed expected links (6 action) have their change restated by a complete customer render,
+  but so do 4 of 32 not-affected links. A restatement is not exposure; render-backed facts with
+  conditions must decide.
 
 ## CLI
 

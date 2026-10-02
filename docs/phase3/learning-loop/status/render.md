@@ -86,23 +86,24 @@ GLM's own disclosure stands: the cert-manager case was not authored fully blind 
 and one live run were seen first). Weigh its numbers accordingly. The ingress-nginx run is a live
 demonstration, not a scored case.
 
-## Proposals to other lanes (not done here: outside ownership)
+## Integration wiring (render-2, commander request; minimal additive hunks in other lanes' packages)
 
-- **knowledge:** set the candidate's renderability for routing with
-  `domain.EffectiveRenderability(c, vs)`. Today `AutoApproveRenderVerifiable` keys on
-  `c.Renderability`, which no production code sets, so the R10 policy is inert.
-- **validate / knowledge CLI:** register `app.RenderValidator(kube)` beside `semvalidate.Validators()`
-  in `ri knowledge validate`.
-- **applicability:** wire `impact.Input.Render` with the adapter in docs/RENDER.md over
-  `RenderDiffResult.EnvironmentPairs()` behind `ri impact --render`. The adapter cannot set
-  `ConditionResult.deps` (unexported), so `not(rendered-change)` needs the engine to record the
-  `render` dimension itself.
-- **semantic:** cite `render.EdgeRenderedChanges(...).ForChanges(memberIDs)` in prompts (release scope
-  only).
-- **dashboard:** render evidence already reaches `knowledge.ReviewContext` through the `rendered-diff`
-  `ValidationResult` (RenderRelation + `rendered-diff` evidence with object/path/before→after), so no new
-  `ReviewContext` field is needed for a "Rendered delta" panel. Undocumented rendered changes
-  (`EdgeRendered.Undocumented()`) need a candidate producer to become review items.
+- **applicability:** `render.ConditionEvaluator` implements `impact.RenderedChangeEvaluator`.
+  `app.ImpactRun` renders before the join, and `ri impact --render` decides facts' rendered-change
+  leaves against the environment pairs. `internal/impact/condition.go` (one hunk,
+  `CONTRACT-CHANGE(render)`) records the `render` dimension on decided render leaves (`deps` is
+  unexported).
+- **validate:** `app.Validators(kube)` = `semvalidate.Validators()` + `rendered-diff` (test-pinned).
+  `ri knowledge validate` itself is still the validate/semantic lanes' to wire.
+- **knowledge:** `route.go` (one hunk) hands the policy a copy of the candidate with
+  `domain.EffectiveRenderability`. The R11 test now relies on routing deriving it.
+  `ReviewContext.Render` + `RenderEvidenceOf` (new `knowledge/render.go`), filled by the queue.
+- **dashboard:** `reviewui` `renderedDelta()` maps `ReviewContext.Render` (`deltaFromContext`) when no
+  `RenderedDeltaSource` answers. `RenderProvenance.Before/After` (release scope) gives the panel source
+  vs target values.
+- **semantic (still open):** cite `render.EdgeRenderedChanges(...).ForChanges(memberIDs)` in prompts.
+  Undocumented rendered changes (`EdgeRendered.Undocumented()`) need a candidate producer to become
+  review items.
 
 ## Open / honest gaps
 
@@ -134,6 +135,10 @@ demonstration, not a scored case.
   `schemas/*.json`.
 - `internal/sources/artifacts.go` `ChartPackage.Archive`, set in `internal/helm/package.go` and
   `internal/oci/chartlayer.go` (one line each).
+- render-2 wiring: `internal/impact/condition.go` (render deps), `internal/knowledge/{route.go,api.go,queue.go}`
+  + new `render.go` (`ReviewContext.Render`, `RenderEvidence`, `RenderEvidenceOf`),
+  `internal/reviewui/{rendered.go,server.go}`, `internal/domain/semantic.go`
+  (`RenderProvenance.Before/After`), `internal/app/{impact.go,validators.go}`.
 - `internal/app/render.go`, `internal/app/render_eval_test.go` (also: the case loader skips
   `eval/render/tools/` beside `results/`), `cmd/ri/{main,impact,render,eval}.go` (eval: `-render`,
   `-render-json`), `README.md` usage lines.
@@ -173,3 +178,10 @@ Uncertainties / not done (deliberate):
   verified the code paths and the join tool's logic, but did not re-run the 28-entry live eval
   (needs the warm state and network; the stored JSONs were not checked in).
 - Reran the full `go build/vet/test` — green — and smoke-tested the new flags in the built binary.
+
+### Review of the second GLM window (by the returning Claude lead)
+
+The 5 commits bank the lead's own uncommitted work. I checked the diff: nothing was altered apart
+from gofmt, plus one correct fix (the eval-case loader skips `eval/render/tools/`, which the new join
+tool would otherwise have broken). One error was mine and is corrected: the results file said 8
+manifest-only cases, but it is 7 (19 env cases − 12 with values files).
