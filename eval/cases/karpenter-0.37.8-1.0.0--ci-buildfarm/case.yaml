@@ -1,0 +1,171 @@
+id: karpenter-0.37.8-1.0.0--ci-buildfarm
+transferOf: karpenter-0.37.8-1.0.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
+  - https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/v1-migration.md
+  - https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/compatibility.md
+  - https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/charts/karpenter/values.yaml
+  - https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/charts/karpenter/values.yaml
+  - https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/charts/karpenter-crd/templates/karpenter.sh_nodepools.yaml
+  - https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/charts/karpenter-crd/templates/karpenter.k8s.aws_ec2nodeclasses.yaml
+  - https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/website/content/en/preview/concepts/disruption.md
+  - https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/website/content/en/preview/getting-started/getting-started-with-karpenter/scripts/step12-add-nodepool.sh
+environment:
+  description: >-
+    ci-buildfarm, a dedicated CI/build EKS cluster on Kubernetes 1.30 running
+    Karpenter v0.37.8 installed with the karpenter Helm chart; the mirror list
+    pins the controller image to 0.37.8. Capacity is a single GPU NodePool
+    (gpu-runners, karpenter.sh/v1beta1) for g-category on-demand NVIDIA build
+    runners: it leaves consolidationPolicy unset, sets no consolidateAfter, and
+    rotates nodes with disruption.expireAfter 336h. The GPU EC2NodeClass
+    (gpu-al2023, karpenter.k8s.aws/v1beta1) uses amiFamily AL2023 with
+    amiSelectorTerms pinned to the EKS AL2023 NVIDIA AMI name glob and sets no
+    metadataOptions at all. The chart values disable the drift feature gate
+    (settings.featureGates.drift: false) because AMI name-globs made drift roll
+    GPU nodes mid-build, and set none of the legacy logConfig or assumeRole
+    keys. The build-orchestrator Deployment is an ordinary (non-hostNetwork)
+    pod workload whose pods carry the karpenter.sh/do-not-disrupt annotation;
+    the node-log-collector DaemonSet tolerates the
+    karpenter.sh/disruption=disrupting:NoSchedule taint so it keeps shipping
+    logs while Karpenter drains a node.
+  kubernetes: "1.30"
+  expectedImpact:
+    - expected: E1
+      relevance: action-required
+      why: >-
+        the stored NodePool and EC2NodeClass are authored against the v1beta1
+        API and must be migrated to v1 while conversion webhooks still serve
+        v1beta1 (v1.1.0 stops serving it)
+      exposure:
+        op: any
+        of:
+          - {op: gvk-in-use, group: karpenter.sh, version: v1beta1, kind: NodePool}
+          - {op: gvk-in-use, group: karpenter.k8s.aws, version: v1beta1, kind: EC2NodeClass}
+      environmentEvidence: [manifests/nodepool.yaml#L3-L4, manifests/ec2nodeclass.yaml#L3-L4]
+    - expected: E2
+      relevance: not-affected
+      why: >-
+        the NodePool never spells consolidationPolicy: WhenUnderutilized, so
+        there is no value to rename — the v1beta1 default WhenUnderutilized
+        becomes the v1 default WhenEmptyOrUnderutilized with the same behavior
+      exposure:
+        op: resource
+        group: karpenter.sh
+        kind: NodePool
+        of: [{op: field, path: spec.disruption.consolidationPolicy, state: equals, values: ['"WhenUnderutilized"']}]
+      environmentEvidence: [manifests/nodepool.yaml#L24-L25]
+    - expected: E3
+      relevance: not-affected
+      why: >-
+        disruption protection is already expressed with the replacement
+        karpenter.sh/do-not-disrupt annotation; no workload template carries
+        karpenter.sh/do-not-evict or do-not-consolidate
+      exposure:
+        op: any
+        of:
+          - op: resource
+            kind: Deployment
+            of:
+              - {op: field, path: 'spec.template.metadata.annotations["karpenter.sh/do-not-evict"]', state: set}
+          - op: resource
+            kind: DaemonSet
+            of:
+              - {op: field, path: 'spec.template.metadata.annotations["karpenter.sh/do-not-evict"]', state: set}
+          - op: resource
+            kind: Deployment
+            of:
+              - {op: field, path: 'spec.template.metadata.annotations["karpenter.sh/do-not-consolidate"]', state: set}
+          - op: resource
+            kind: DaemonSet
+            of:
+              - {op: field, path: 'spec.template.metadata.annotations["karpenter.sh/do-not-consolidate"]', state: set}
+      environmentEvidence: [manifests/deployment.yaml#L12-L16, manifests/daemonset.yaml#L12-L15]
+    - expected: E4
+      relevance: action-required
+      why: >-
+        the node-log-collector DaemonSet tolerates exactly the old taint
+        (karpenter.sh/disruption=disrupting:NoSchedule); after the rename to
+        karpenter.sh/disrupted:NoSchedule the toleration matches nothing and
+        the collector is evicted with the node instead of shipping final logs
+      exposure:
+        op: resource
+        kind: DaemonSet
+        of: [{op: field, path: 'spec.template.spec.tolerations[].key', state: equals, values: ['"karpenter.sh/disruption"']}]
+      environmentEvidence: [manifests/daemonset.yaml#L18-L22]
+    - expected: E5
+      relevance: action-required
+      why: >-
+        the NodePool's disruption block sets no consolidateAfter (required in
+        v1; the v1beta1 CEL even forbade it with the WhenUnderutilized default)
+        and its nodeClassRef uses the v1beta1 spelling apiVersion/kind/name
+        with no group, which v1 renames and requires
+      exposure:
+        op: any
+        of:
+          - op: resource
+            group: karpenter.sh
+            kind: NodePool
+            of: [{op: field, path: spec.disruption.consolidateAfter, state: unset}]
+          - op: resource
+            group: karpenter.sh
+            kind: NodePool
+            of: [{op: field, path: spec.template.spec.nodeClassRef.group, state: unset}]
+      environmentEvidence: [manifests/nodepool.yaml#L17-L20, manifests/nodepool.yaml#L24-L25]
+    - expected: E6
+      relevance: review
+      why: >-
+        the EC2NodeClass sets no metadataOptions, so new classes on v1 get the
+        lowered httpPutResponseHopLimit default of 1 (v1beta1 default 2); the
+        CI pods are ordinary non-hostNetwork pods, exactly the case the v1
+        migration guide warns "could cause your containers to break when you
+        apply new EC2NodeClasses on v1"
+      exposure:
+        op: resource
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        of: [{op: field, path: spec.metadataOptions.httpPutResponseHopLimit, state: unset}]
+      environmentEvidence: [manifests/ec2nodeclass.yaml#L7-L24]
+    - expected: E7
+      relevance: review
+      why: >-
+        the values file opts out of drift (settings.featureGates.drift: false);
+        v1 drops the gate — "FEATURE_GATES.DRIFT=true was dropped and promoted
+        to Stable, and cannot be disabled", "Users currently opting out of
+        drift ... will no longer be able to do so" — so drift disruption
+        silently re-enables on this cluster (the 1.0.0 chart values no longer
+        carry the drift key at all); the dropped logging/assumeRole keys are
+        not set here
+      exposure: {op: feature-gate, name: Drift, path: settings.featureGates.drift, state: disabled}
+      environmentEvidence: [values.yaml#L8-L11]
+    - expected: E8
+      relevance: not-affected
+      why: >-
+        the EC2NodeClass pins amiFamily AL2023, which stays a supported
+        first-class family in v1 (the v1 CRD enum keeps AL2023 and drops
+        Ubuntu); only the Ubuntu family was dropped
+      exposure:
+        op: resource
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        of: [{op: field, path: spec.amiFamily, state: equals, values: ['"Ubuntu"']}]
+      environmentEvidence: [manifests/ec2nodeclass.yaml#L8-L11]
+  expectedFindings:
+    - id: F1
+      match:
+        rule: impact:image-changed
+      why: the mirror list pins the karpenter controller repository at tag 0.37.8, which moves to 1.0.0 with this upgrade
+  undecidedImpact:
+    - expected: E9
+      reason: runtime-behavior-gap
+      needed: >-
+        evidence of replacement capacity and workload tolerance at expiry
+        time — whether a g-category instance is obtainable in the pool's zones
+        when an expired node force-drains, and whether in-flight builds can be
+        restarted without loss; neither is visible in a static GitOps fixture
+      why: >-
+        the pool actively rotates GPU nodes on expireAfter: 336h, so forceful
+        expiration is in use; whether draining without waiting for replacement
+        capacity is harmless (CI pods are reschedulable) or bites (in-flight
+        builds lost, g-capacity tight at peak) depends on runtime state
+      environmentEvidence: [manifests/nodepool.yaml#L24-L25]
