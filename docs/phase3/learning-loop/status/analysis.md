@@ -1,6 +1,6 @@
 # Lane `analysis` — status
 
-**State: DONE (analysis brief); trustfix follow-on worked by handoff (see GLM handoff log).**
+**State: DONE (analysis brief).** The trustfix follow-on is complete; see `status/trustfix.md` (it reviews and corrects the GLM handoff log below).
 Deliverable: `docs/phase3/learning-loop/UNKNOWN-ANALYSIS.md` (complete: all four sections).
 
 ## Done
