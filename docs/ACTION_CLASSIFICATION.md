@@ -186,3 +186,23 @@ an exact pin and an adjacent section — contributes one finding to each
 class, so the sum can exceed the analyzed change count). `NOT AFFECTED`
 appears in the summary and in verbose mode only; per-finding sections print
 `action-required`, `review-required`, `informational` and `unknown`.
+
+## 8. Findings from verified knowledge (learning loop)
+
+Findings whose rule starts with `impact:knowledge-` come from evaluating a
+**verified, release-level semantic fact** against the environment
+(docs/phase3/learning-loop/DESIGN.md). They follow every rule above, plus the
+trust ladder, which `ImpactReport.Validate()` and the schema enforce:
+
+- They carry `knowledge: {fact, verification}`, and only they do.
+- `action-required` and `not-affected` require a fact verified at
+  `deterministic` or `human` level. A `proxy`-verified fact (an AI acting as
+  reviewer) yields at most `review-required`, never at `high` confidence.
+- A change with a knowledge finding carries no other `unknown` finding: the
+  knowledge finding supersedes it.
+- `unknownReason` (unknown-only) names why a finding is unknown:
+  `release-knowledge-gap`, `environment-visibility-gap`,
+  `cross-product-context-gap`, `runtime-behavior-gap`, `evidence-gap`,
+  `semantic-ambiguity`.
+
+Model proposals never reach the engine. Only verified facts do.

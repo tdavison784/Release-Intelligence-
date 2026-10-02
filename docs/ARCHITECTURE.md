@@ -82,6 +82,9 @@ internal/llm           LLM port + Anthropic implementation, response cache (by p
 internal/enrich        AI enrichment of edges: deterministic candidate groups → bounded prompts →
                        validator → Enrichments with full provenance (docs/ENRICHMENT.md)
 internal/store         local JSON store for ingested releases and edges
+internal/knowledge     learning-loop ports (api.go): knowledge store, review queue, model
+                       proposer and validator interfaces; entity types in
+                       internal/domain/semantic.go (docs/phase3/learning-loop/DESIGN.md)
 internal/eval          validation dataset: loads eval/cases ground truth, runs the
                        real pipeline per entry (via an injected Pipeline port) and
                        scores recall (per importance), the five-class confusion
@@ -100,7 +103,7 @@ eval/                  validation dataset (cases with hand-curated ground truth 
                        adjudications/ and the adversarial/ join-fooling pack —
                        consumed by `ri eval` and `go test ./internal/eval`
 schemas/               JSON Schemas (draft 2020-12): product-definition (hand-written); upgrade-edge,
-                       release and impact-report (generated from internal/domain, run
+                       release, impact-report and knowledge-record (generated from internal/domain, run
                        `go run ./internal/domain/schemagen`; a test fails when they are stale)
 ```
 

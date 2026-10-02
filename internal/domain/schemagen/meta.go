@@ -112,6 +112,7 @@ var enums = []enumSet{
 	enumOf(domain.ActionAccept, domain.ActionReject, domain.ActionCorrect, domain.ActionNeedMoreEvidence, domain.ActionDefer),
 	enumOf(domain.FeedbackLabels...),
 	enumOf(domain.FactActive, domain.FactRetracted, domain.FactSuperseded),
+	enumOf(domain.RenderRelease, domain.RenderEnvironment),
 	enumOf(domain.RecordCandidate, domain.RecordProposal, domain.RecordValidation, domain.RecordReviewItem, domain.RecordDecision, domain.RecordFact),
 }
 

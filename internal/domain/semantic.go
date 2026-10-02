@@ -286,8 +286,8 @@ const (
 
 	// scoped leaves (inside resource / ref)
 	OpField    ConditionOp = "field"     // a field of the scoped resource (Path with [] list markers)
-	OpTextLine ConditionOp = "text-line" // a line of embedded text at Path (e.g. ConfigMap data) matches Pattern
-	OpRef      ConditionOp = "ref"       // the reference at Path resolves to a resource (Kind/Group) satisfying the operands
+	OpTextLine ConditionOp = "text-line" // lines of embedded text at Path (e.g. ConfigMap data) vs Pattern: exists | none
+	OpRef      ConditionOp = "ref"       // the reference at Path resolves to ONE resource (of Kind/Group when given) satisfying the operands
 
 	// environment-wide leaves
 	OpValuesKey      ConditionOp = "values-key"
@@ -298,9 +298,16 @@ const (
 	OpFeatureGate    ConditionOp = "feature-gate"
 	OpProductVersion ConditionOp = "product-version"
 	OpClusterVersion ConditionOp = "cluster-version"
-	// OpUpgradeFrom compares the edge's from-version (the version the
-	// environment runs today, an input of `ri impact`) with Range.
-	OpUpgradeFrom ConditionOp = "upgrade-from"
+	// OpEdgeFromVersion compares the edge's from-version (the version the
+	// environment runs today, an input of `ri impact`) with Range — e.g. "the
+	// precondition release is already installed".
+	OpEdgeFromVersion ConditionOp = "edge-from-version"
+	// OpRenderedChange: a field of a rendered object (Group/Kind/Path) differs
+	// between the environment's From and To renders (customer values). The
+	// render lane implements the evaluation (internal/render); render
+	// unavailable ⇒ unknown; false only when both renders succeeded with
+	// complete values.
+	OpRenderedChange ConditionOp = "rendered-change"
 	// OpUndecidable is an explicit "not statically decidable": always
 	// unknown with Reason and Needed.
 	OpUndecidable ConditionOp = "undecidable"
@@ -309,7 +316,7 @@ const (
 // ConditionOps lists every op.
 var ConditionOps = []ConditionOp{
 	OpAll, OpAny, OpNot, OpResource, OpField, OpTextLine, OpRef, OpValuesKey, OpGVKInUse, OpImageInUse,
-	OpCLIFlag, OpEnvVar, OpFeatureGate, OpProductVersion, OpClusterVersion, OpUpgradeFrom, OpUndecidable,
+	OpCLIFlag, OpEnvVar, OpFeatureGate, OpProductVersion, OpClusterVersion, OpEdgeFromVersion, OpRenderedChange, OpUndecidable,
 }
 
 // FieldState is the state a leaf predicate tests.
@@ -327,19 +334,27 @@ const (
 	StateDisabled    FieldState = "disabled"      // feature-gate
 	StateInRange     FieldState = "in-range"      // present, version inside Range
 	StateOutOfRange  FieldState = "out-of-range"  // present, version outside Range
+	StateExists      FieldState = "exists"        // text-line: some line matches Pattern
+	StateNone        FieldState = "none"          // text-line: no line matches (unknown while any line is withheld)
+	StateChanged     FieldState = "changed"       // rendered-change: present in both renders, value differs
+	StateUnchanged   FieldState = "unchanged"     // rendered-change: present in both, same value
+	StateAdded       FieldState = "added"         // rendered-change: only in the To render
+	StateRemoved     FieldState = "removed"       // rendered-change: only in the From render
 )
 
 // FieldStates lists every state.
 var FieldStates = []FieldState{
 	StateUnset, StateSet, StateEquals, StateNotEquals, StateMatches, StateHasToken, StateHasTokenKey,
-	StateEnabled, StateDisabled, StateInRange, StateOutOfRange,
+	StateEnabled, StateDisabled, StateInRange, StateOutOfRange, StateExists, StateNone,
+	StateChanged, StateUnchanged, StateAdded, StateRemoved,
 }
 
 var (
 	valueStates   = []FieldState{StateUnset, StateSet, StateEquals, StateNotEquals, StateMatches, StateHasToken, StateHasTokenKey}
 	gateStates    = []FieldState{StateEnabled, StateDisabled, StateUnset}
 	versionStates = []FieldState{StateInRange, StateOutOfRange}
-	lineStates    = []FieldState{StateMatches}
+	lineStates    = []FieldState{StateExists, StateNone}
+	renderStates  = []FieldState{StateChanged, StateUnchanged, StateAdded, StateRemoved}
 )
 
 // conditionSpec declares, per op, the required and optional fields and the
@@ -355,23 +370,24 @@ type conditionSpec struct {
 }
 
 var conditionSpecs = map[ConditionOp]conditionSpec{
-	OpAll:            {operands: -1},
-	OpAny:            {operands: -1},
-	OpNot:            {operands: 1},
-	OpResource:       {required: []string{"kind"}, optional: []string{"group", "version", "name"}, operands: -1, environmentWide: true},
-	OpField:          {required: []string{"path"}, optional: []string{"pattern", "separator"}, states: valueStates, scoped: true},
-	OpTextLine:       {required: []string{"path", "pattern"}, states: lineStates, scoped: true},
-	OpRef:            {required: []string{"path", "kind"}, optional: []string{"group"}, operands: -1, scoped: true},
-	OpValuesKey:      {required: []string{"path"}, optional: []string{"pattern", "separator"}, states: valueStates, environmentWide: true},
-	OpGVKInUse:       {required: []string{"kind"}, optional: []string{"group", "version"}, environmentWide: true},
-	OpImageInUse:     {required: []string{"name"}, optional: []string{"range"}, states: versionStates, stateOptional: true, environmentWide: true},
-	OpCLIFlag:        {required: []string{"name"}, optional: []string{"component", "pattern", "separator"}, states: valueStates, environmentWide: true},
-	OpEnvVar:         {required: []string{"name"}, optional: []string{"component", "pattern", "separator"}, states: valueStates, environmentWide: true},
-	OpFeatureGate:    {required: []string{"name"}, optional: []string{"path", "component"}, states: gateStates, environmentWide: true},
-	OpProductVersion: {required: []string{"name", "range"}, states: versionStates, environmentWide: true},
-	OpClusterVersion: {required: []string{"name", "range"}, states: versionStates, environmentWide: true},
-	OpUpgradeFrom:    {required: []string{"range"}, states: versionStates, environmentWide: true},
-	OpUndecidable:    {required: []string{"reason", "needed"}},
+	OpAll:             {operands: -1},
+	OpAny:             {operands: -1},
+	OpNot:             {operands: 1},
+	OpResource:        {required: []string{"kind"}, optional: []string{"group", "version", "name"}, operands: -1, environmentWide: true},
+	OpField:           {required: []string{"path"}, optional: []string{"pattern", "separator"}, states: valueStates, scoped: true},
+	OpTextLine:        {required: []string{"path", "pattern"}, states: lineStates, scoped: true},
+	OpRef:             {required: []string{"path"}, optional: []string{"group", "kind"}, operands: -1, scoped: true},
+	OpValuesKey:       {required: []string{"path"}, optional: []string{"pattern", "separator"}, states: valueStates, environmentWide: true},
+	OpGVKInUse:        {required: []string{"kind"}, optional: []string{"group", "version"}, environmentWide: true},
+	OpImageInUse:      {required: []string{"name"}, optional: []string{"range"}, states: versionStates, stateOptional: true, environmentWide: true},
+	OpCLIFlag:         {required: []string{"name"}, optional: []string{"component", "pattern", "separator"}, states: valueStates, environmentWide: true},
+	OpEnvVar:          {required: []string{"name"}, optional: []string{"component", "pattern", "separator"}, states: valueStates, environmentWide: true},
+	OpFeatureGate:     {required: []string{"name"}, optional: []string{"path", "component"}, states: gateStates, environmentWide: true},
+	OpProductVersion:  {required: []string{"name", "range"}, states: versionStates, environmentWide: true},
+	OpClusterVersion:  {required: []string{"name", "range"}, states: versionStates, environmentWide: true},
+	OpEdgeFromVersion: {required: []string{"range"}, states: versionStates, environmentWide: true},
+	OpRenderedChange:  {required: []string{"kind", "path"}, optional: []string{"group", "name"}, states: renderStates, environmentWide: true},
+	OpUndecidable:     {required: []string{"reason", "needed"}},
 }
 
 // MaxConditionDepth bounds condition trees.
@@ -495,13 +511,20 @@ func (c Condition) validate(depth int, inScope bool) error {
 		if len(c.Values) == 0 {
 			bad("state %s needs values (the tokens)", c.State)
 		}
+	case StateChanged, StateAdded:
+		// optional: the To value must be one of Values (JSON-encoded)
+		for _, v := range c.Values {
+			if !json.Valid([]byte(v)) {
+				bad("value %q is not JSON-encoded", v)
+			}
+		}
 	default:
 		if len(c.Values) != 0 {
-			bad("values are only used with equals/not-equals/has-token/has-token-key")
+			bad("values are only used with equals/not-equals/has-token/has-token-key/changed/added")
 		}
 	}
-	if (c.State == StateMatches) != (c.Pattern != "") {
-		bad("pattern is used exactly with state matches")
+	if wantPattern := c.State == StateMatches || c.Op == OpTextLine; wantPattern != (c.Pattern != "") {
+		bad("pattern is used exactly with state matches and with text-line")
 	}
 	if c.Pattern != "" {
 		if _, err := regexp.Compile(c.Pattern); err != nil {
@@ -572,7 +595,8 @@ const (
 	ConsequenceResourceRejected  ConsequenceKind = "resource-rejected"
 	ConsequenceSettingIgnored    ConsequenceKind = "setting-ignored"
 	ConsequenceBehaviorChange    ConsequenceKind = "behavior-change"
-	ConsequencePermissionChange  ConsequenceKind = "permission-change"
+	ConsequencePermissionLost    ConsequenceKind = "permission-lost"
+	ConsequenceWorkloadFailure   ConsequenceKind = "workload-failure"
 	ConsequenceMigrationRequired ConsequenceKind = "migration-required"
 	ConsequenceDeprecation       ConsequenceKind = "deprecation"
 	ConsequenceNone              ConsequenceKind = "none"
@@ -581,7 +605,7 @@ const (
 // ConsequenceKinds lists every kind.
 var ConsequenceKinds = []ConsequenceKind{
 	ConsequenceUpgradeBlocked, ConsequenceResourceRejected, ConsequenceSettingIgnored, ConsequenceBehaviorChange,
-	ConsequencePermissionChange, ConsequenceMigrationRequired, ConsequenceDeprecation, ConsequenceNone,
+	ConsequencePermissionLost, ConsequenceWorkloadFailure, ConsequenceMigrationRequired, ConsequenceDeprecation, ConsequenceNone,
 }
 
 // Valid reports whether k is a known kind.
@@ -594,45 +618,46 @@ func (k ConsequenceKind) Valid() bool {
 	return false
 }
 
-// ActionEligible reports whether the kind describes concrete failure or loss
-// of intended behaviour — the only kinds whose when-exposed class may be
-// action-required.
+// ActionEligible reports whether the kind is concrete failure in the sense of
+// docs/ACTION_CLASSIFICATION.md ("the environment must change … to avoid
+// concrete failure, incompatibility, or loss of intended behavior"):
+// something fails, is rejected, stops being honoured, loses access, or needs
+// a mandatory step. behavior-change (works differently; verify it) is not.
 func (k ConsequenceKind) ActionEligible() bool {
 	switch k {
 	case ConsequenceUpgradeBlocked, ConsequenceResourceRejected, ConsequenceSettingIgnored,
-		ConsequenceBehaviorChange, ConsequencePermissionChange, ConsequenceMigrationRequired:
+		ConsequencePermissionLost, ConsequenceWorkloadFailure, ConsequenceMigrationRequired:
 		return true
 	}
 	return false
 }
 
-// DefaultExposedClass is the SUGGESTED when-exposed class for a change kind
-// and consequence kind (UNKNOWN-ANALYSIS.md §3.5-3). It only pre-fills the
-// review form: the class a fact carries is the one its consequence aspect was
-// verified with (Consequence.ExposedClass).
-func DefaultExposedClass(change ChangeKind, k ConsequenceKind) ImpactClass {
+// ExposedClass is the class a consequence of this kind gives an exposed
+// environment: the reviewer picks the kind, the class follows.
+// Action-eligible kinds → action-required; behavior-change and deprecation →
+// review-required; none → informational. The trust ladder still caps it
+// (DESIGN.md §4).
+func (k ConsequenceKind) ExposedClass() ImpactClass {
 	switch {
-	case k == ConsequenceNone:
-		return ImpactInformational
-	case k == ConsequenceDeprecation, change == ChangeKindDeprecated, change == ChangeKindDefaultChanged, change == ChangeKindBehaviorChanged:
-		return ImpactReviewRequired
 	case k.ActionEligible():
 		return ImpactActionRequired
+	case k == ConsequenceBehaviorChange, k == ConsequenceDeprecation:
+		return ImpactReviewRequired
 	}
-	return ImpactReviewRequired
+	return ImpactInformational
 }
 
-// Consequence is the typed consequence of a change for an exposed environment,
-// including the class an exposed environment receives. ExposedClass is part
-// of the consequence aspect: it is verified with it (by a reviewer), and the
-// trust ladder still caps it (DESIGN.md §4).
+// Consequence is the typed consequence of a change for an exposed environment.
+// The fact carries its consequence → class mapping explicitly: ExposedClass
+// must equal Kind.ExposedClass(), is part of the consequence aspect (verified
+// with it) and is still capped by the trust ladder (DESIGN.md §4).
 type Consequence struct {
 	Kind ConsequenceKind `json:"kind"`
-	// ExposedClass is the class for an exposed environment: action-required,
-	// review-required or informational.
+	// ExposedClass is the class for an exposed environment
+	// (= Kind.ExposedClass()).
 	ExposedClass ImpactClass `json:"exposedClass"`
 	// Statement answers "what exactly will fail if I do nothing?"; required
-	// whenever ExposedClass is action-required.
+	// for action-eligible kinds.
 	Statement   string         `json:"statement,omitempty"`
 	Remediation string         `json:"remediation,omitempty"`
 	Severity    ImpactSeverity `json:"severity,omitempty"`
@@ -642,21 +667,13 @@ type Consequence struct {
 func (c Consequence) Validate() error {
 	var errs []error
 	if !c.Kind.Valid() {
-		errs = append(errs, fmt.Errorf("consequence: unknown kind %q", c.Kind))
+		return fmt.Errorf("consequence: unknown kind %q", c.Kind)
 	}
-	if !c.ExposedClass.Affected() {
-		errs = append(errs, fmt.Errorf("consequence: exposedClass must be action-required, review-required or informational, got %q", c.ExposedClass))
+	if want := c.Kind.ExposedClass(); c.ExposedClass != want {
+		errs = append(errs, fmt.Errorf("consequence %s: exposedClass must be %s (the class follows the kind), got %q", c.Kind, want, c.ExposedClass))
 	}
-	if c.ExposedClass == ImpactActionRequired {
-		if !c.Kind.ActionEligible() {
-			errs = append(errs, fmt.Errorf("consequence %s: not action-eligible, so exposedClass cannot be action-required", c.Kind))
-		}
-		if strings.TrimSpace(c.Statement) == "" {
-			errs = append(errs, errors.New("consequence: an action-required class needs the statement of what fails if nothing is done"))
-		}
-	}
-	if c.Kind == ConsequenceNone && c.ExposedClass != ImpactInformational {
-		errs = append(errs, errors.New("consequence none: exposedClass must be informational"))
+	if c.Kind.ActionEligible() && strings.TrimSpace(c.Statement) == "" {
+		errs = append(errs, fmt.Errorf("consequence %s: statement (what fails if nothing is done) is required", c.Kind))
 	}
 	if c.Severity != "" {
 		ok := false
@@ -1047,9 +1064,48 @@ func appendUniqueString(xs []string, s string) []string {
 	return append(xs, s)
 }
 
+// RenderScope says whose values a render used.
+type RenderScope string
+
+const (
+	// RenderRelease: chart defaults only — release-level, may back facts.
+	RenderRelease RenderScope = "release"
+	// RenderEnvironment: the customer's values — environment evidence, never
+	// allowed under knowledge/.
+	RenderEnvironment RenderScope = "environment"
+)
+
+// RenderProvenance records how a rendered manifest was produced, so a
+// rendered object field (whose evidence cites the template file named by
+// Helm's "# Source:" comment) can be reproduced exactly. Details:
+// docs/RENDER.md (render lane).
+type RenderProvenance struct {
+	Scope        RenderScope `json:"scope"`
+	Tool         string      `json:"tool"`        // e.g. "helm"
+	ToolVersion  string      `json:"toolVersion"` // e.g. "v3.17.2"
+	ChartDigest  string      `json:"chartDigest"`
+	ValuesDigest string      `json:"valuesDigest,omitempty"` // digest of the values used (none for chart defaults)
+	Flags        []string    `json:"flags,omitempty"`        // e.g. ["--kube-version=1.31"]
+}
+
+// Validate checks the provenance is complete.
+func (r RenderProvenance) Validate() error {
+	var errs []error
+	if r.Scope != RenderRelease && r.Scope != RenderEnvironment {
+		errs = append(errs, fmt.Errorf("render: unknown scope %q", r.Scope))
+	}
+	if r.Tool == "" || r.ToolVersion == "" || r.ChartDigest == "" {
+		errs = append(errs, errors.New("render: tool, toolVersion and chartDigest are required"))
+	}
+	if r.Scope == RenderEnvironment && r.ValuesDigest == "" {
+		errs = append(errs, errors.New("render: an environment render records the digest of the values it used"))
+	}
+	return errors.Join(errs...)
+}
+
 // validateUpstreamEvidence checks a self-contained evidence snapshot: unique
 // ids, and only upstream kinds — knowledge is release-level and never cites the
-// user's environment.
+// user's environment (local files, inputs, or environment-scoped renders).
 func validateUpstreamEvidence(what string, evs []Evidence) []error {
 	var errs []error
 	seen := map[EvidenceID]bool{}
@@ -1063,6 +1119,14 @@ func validateUpstreamEvidence(what string, evs []Evidence) []error {
 		seen[e.ID] = true
 		if e.Kind == EvidenceLocalFile || e.Kind == EvidenceInput {
 			errs = append(errs, fmt.Errorf("%s: evidence %s is environment evidence (%s); knowledge is release-level", what, e.ID, e.Kind))
+		}
+		if e.Render != nil {
+			if err := e.Render.Validate(); err != nil {
+				errs = append(errs, fmt.Errorf("%s: evidence %s: %w", what, e.ID, err))
+			}
+			if e.Render.Scope != RenderRelease {
+				errs = append(errs, fmt.Errorf("%s: evidence %s comes from an environment render; only release-level (chart-default) renders may back knowledge", what, e.ID))
+			}
 		}
 	}
 	return errs
@@ -1078,56 +1142,108 @@ func evidenceIDs(evs []Evidence) map[EvidenceID]bool {
 
 // --- SemanticCandidate ---------------------------------------------------------------
 
-// SemanticCandidate is one upstream change the join cannot evaluate,
-// environment-independent, with a self-contained snapshot of its evidence
-// (the change's evidence plus any artifact-snapshot evidence the generator
-// attaches as context; proposals may cite only these).
-type SemanticCandidate struct {
-	ID       string    `json:"id"`
-	Product  ProductID `json:"product"`
-	Release  string    `json:"release,omitempty"`
-	ChangeID string    `json:"changeId"` // the edge change it was generated from (informational identity)
-	// Anchor is set for note-derived changes; computed changes have none
-	// (they attach by subject restatement).
-	Anchor    *ChangeAnchor `json:"anchor,omitempty"`
-	Category  Category      `json:"category"`
-	Title     string        `json:"title"`
-	Text      string        `json:"text,omitempty"`
-	Evidence  []Evidence    `json:"evidence"`
-	Hints     []string      `json:"hints,omitempty"` // deterministic pre-extractions (tokens), never conclusions
-	Producer  string        `json:"producer"`
-	CreatedAt time.Time     `json:"createdAt"`
+// CandidateMember is one change of a restatement cluster: a prose change
+// (with its statement anchor) or a computed diff (identified by its change id,
+// which is rule + subjects and therefore stable).
+type CandidateMember struct {
+	ChangeID string        `json:"changeId"`
+	Anchor   *ChangeAnchor `json:"anchor,omitempty"` // prose members only
+	Computed bool          `json:"computed,omitempty"`
 }
 
-// CandidateID derives a candidate id: the anchor's statement keys for prose,
-// the change id for computed diffs (whose ids are rule + subjects).
-func CandidateID(product ProductID, release, changeID string, a *ChangeAnchor) string {
-	if a != nil {
-		return CandidateIDPrefix + ShortHash(append([]string{string(product), release}, a.StatementKeys...)...)
+// key is the member's stable identity inside a candidate id.
+func (m CandidateMember) key() string {
+	if m.Anchor != nil {
+		return "a:" + strings.Join(m.Anchor.StatementKeys, ",")
 	}
-	return CandidateIDPrefix + ShortHash(string(product), release, changeID)
+	return "c:" + m.ChangeID
 }
 
-// Validate checks identity, anchor and evidence.
+// SemanticCandidate is one upstream change as a RESTATEMENT CLUSTER: every
+// change of the edge that states it (upgrade guide, release notes, GitHub
+// release, the computed diff a note names), grouped deterministically, never
+// across distinct subjects and never including an umbrella. One proposal set
+// and one review per cluster; the resulting fact attaches to every member.
+// Environment-independent, with a self-contained snapshot of the members'
+// evidence (plus any artifact-snapshot evidence attached as context;
+// proposals may cite only these).
+type SemanticCandidate struct {
+	ID      string            `json:"id"`
+	Product ProductID         `json:"product"`
+	Release string            `json:"release,omitempty"`
+	Members []CandidateMember `json:"members"`
+	// Grouping names the deterministic rule that clustered the members
+	// ("single", "same-statement", "title-jaccard", "subject-named", …).
+	Grouping  string     `json:"grouping"`
+	Category  Category   `json:"category"`
+	Title     string     `json:"title"`
+	Text      string     `json:"text,omitempty"`
+	Evidence  []Evidence `json:"evidence"`
+	Hints     []string   `json:"hints,omitempty"` // deterministic pre-extractions (tokens), never conclusions
+	Producer  string     `json:"producer"`
+	CreatedAt time.Time  `json:"createdAt"`
+}
+
+// CandidateID derives a candidate id from product, release and the sorted
+// member identities (statement keys for prose, change ids for computed diffs).
+func CandidateID(product ProductID, release string, members []CandidateMember) string {
+	keys := make([]string, 0, len(members))
+	for _, m := range members {
+		keys = append(keys, m.key())
+	}
+	sort.Strings(keys)
+	return CandidateIDPrefix + ShortHash(append([]string{string(product), release}, keys...)...)
+}
+
+// Anchors returns the statement anchors of the prose members.
+func (c SemanticCandidate) Anchors() []ChangeAnchor {
+	var out []ChangeAnchor
+	for _, m := range c.Members {
+		if m.Anchor != nil {
+			out = append(out, *m.Anchor)
+		}
+	}
+	return out
+}
+
+// Validate checks identity, members, anchors and evidence.
 func (c SemanticCandidate) Validate() error {
 	var errs []error
-	want := CandidateID(c.Product, c.Release, c.ChangeID, c.Anchor)
-	if c.ID != want {
-		errs = append(errs, fmt.Errorf("candidate %s: id is not derived from product+release+anchor (want %s)", c.ID, want))
+	bad := func(format string, args ...any) {
+		errs = append(errs, fmt.Errorf("candidate %s: %s", c.ID, fmt.Sprintf(format, args...)))
 	}
-	if c.Product == "" || c.ChangeID == "" || strings.TrimSpace(c.Title) == "" || c.Producer == "" || c.CreatedAt.IsZero() {
-		errs = append(errs, fmt.Errorf("candidate %s: product, changeId, title, producer and createdAt are required", c.ID))
+	if want := CandidateID(c.Product, c.Release, c.Members); c.ID != want {
+		bad("id is not derived from product+release+members (want %s)", want)
 	}
-	if c.Anchor != nil {
-		if c.Release != c.Anchor.Release {
-			errs = append(errs, fmt.Errorf("candidate %s: release %q differs from anchor release %q", c.ID, c.Release, c.Anchor.Release))
+	if c.Product == "" || strings.TrimSpace(c.Title) == "" || c.Producer == "" || c.Grouping == "" || c.CreatedAt.IsZero() {
+		bad("product, title, grouping, producer and createdAt are required")
+	}
+	if len(c.Members) == 0 {
+		bad("no members")
+	}
+	seen := map[string]bool{}
+	for i, m := range c.Members {
+		if m.ChangeID == "" {
+			bad("member %d: changeId is required", i)
 		}
-		if err := c.Anchor.Validate(); err != nil {
-			errs = append(errs, fmt.Errorf("candidate %s: %w", c.ID, err))
+		if seen[m.ChangeID] {
+			bad("member %s listed twice", m.ChangeID)
+		}
+		seen[m.ChangeID] = true
+		if m.Computed == (m.Anchor != nil) {
+			bad("member %s: a prose member carries an anchor, a computed member none", m.ChangeID)
+		}
+		if m.Anchor != nil {
+			if m.Anchor.Release != c.Release {
+				bad("member %s: anchor release %q differs from %q", m.ChangeID, m.Anchor.Release, c.Release)
+			}
+			if err := m.Anchor.Validate(); err != nil {
+				bad("member %s: %v", m.ChangeID, err)
+			}
 		}
 	}
 	if len(c.Evidence) == 0 {
-		errs = append(errs, fmt.Errorf("candidate %s: no evidence", c.ID))
+		bad("no evidence")
 	}
 	errs = append(errs, validateUpstreamEvidence("candidate "+c.ID, c.Evidence)...)
 	return errors.Join(errs...)
@@ -1683,6 +1799,21 @@ type ReviewDecision struct {
 	DecidedAt       time.Time    `json:"decidedAt"`
 	ResultingFact   string       `json:"resultingFact,omitempty"`
 	DuplicateOf     string       `json:"duplicateOf,omitempty"`
+	// BatchID groups decisions submitted together by one bulk action in the
+	// dashboard (rb-…, see BatchID); BatchSize is how many. Each item still
+	// gets its own decision. Corrections are individual-only.
+	BatchID   string `json:"batchId,omitempty"`
+	BatchSize int    `json:"batchSize,omitempty"`
+}
+
+// BatchIDPrefix starts every review-batch id.
+const BatchIDPrefix = "rb-"
+
+// BatchID derives the id shared by the decisions of one bulk action.
+func BatchID(itemIDs []string, reviewer string, decidedAt time.Time) string {
+	ids := append([]string(nil), itemIDs...)
+	sort.Strings(ids)
+	return BatchIDPrefix + ShortHash(append([]string{reviewer, decidedAt.UTC().Format(time.RFC3339Nano)}, ids...)...)
 }
 
 // DecisionID derives a decision id.
@@ -1842,6 +1973,18 @@ func (d ReviewDecision) Validate() error {
 	}
 	if d.DuplicateOf != "" && !strings.HasPrefix(d.DuplicateOf, FactIDPrefix) {
 		bad("duplicateOf lacks the %s prefix", FactIDPrefix)
+	}
+	if (d.BatchID != "") != (d.BatchSize >= 2) {
+		bad("batchId is set exactly when batchSize >= 2 (got %q, %d)", d.BatchID, d.BatchSize)
+	}
+	if d.BatchID != "" && !strings.HasPrefix(d.BatchID, BatchIDPrefix) {
+		bad("batchId lacks the %s prefix", BatchIDPrefix)
+	}
+	if d.BatchSize < 0 {
+		bad("negative batchSize")
+	}
+	if d.Action == ActionCorrect && d.BatchID != "" {
+		bad("corrections are individual-only; a correct decision is never part of a batch")
 	}
 	return errors.Join(errs...)
 }

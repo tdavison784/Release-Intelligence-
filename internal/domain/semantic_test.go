@@ -56,9 +56,10 @@ func anchor() ChangeAnchor {
 
 func validCandidate() SemanticCandidate {
 	a := anchor()
+	members := []CandidateMember{{ChangeID: "chg-rot", Anchor: &a}}
 	return SemanticCandidate{
-		ID: CandidateID("cert-manager", a.Release, "chg-rot", &a), Product: "cert-manager", Release: a.Release,
-		ChangeID: "chg-rot", Anchor: &a,
+		ID: CandidateID("cert-manager", a.Release, members), Product: "cert-manager", Release: a.Release,
+		Members: members, Grouping: "single",
 		Category: CategoryConfiguration, Title: "The default rotationPolicy is now Always",
 		Evidence: []Evidence{upEvidence(), crdEvidence()}, Producer: "semantic.candidates@v1", CreatedAt: t0,
 	}
@@ -122,7 +123,7 @@ func validDecision(item ReviewItem) ReviewDecision {
 
 func validFact(c SemanticCandidate, v ValidationResult, d ReviewDecision) VerifiedFact {
 	f := VerifiedFact{
-		Product: c.Product, Release: c.Release, Anchors: []ChangeAnchor{*c.Anchor}, Candidates: []string{c.ID},
+		Product: c.Product, Release: c.Release, Anchors: c.Anchors(), Candidates: []string{c.ID},
 		Assertion: rotationAssertion(),
 		Verification: []AspectVerification{
 			{Aspect: AspectSubject, Level: VerifiedDeterministic, Basis: []string{v.ID}},
@@ -246,21 +247,29 @@ func TestConditionValidate(t *testing.T) {
 		{"regex on a field", certificates(Condition{Op: OpField, Path: "spec.metrics.overrides[].match.metric", State: StateMatches, Pattern: `filter_state\["wasm\.`}), ""},
 		{"bad regex", certificates(Condition{Op: OpField, Path: "a", State: StateMatches, Pattern: "("}), "pattern"},
 		{"pattern without matches", certificates(Condition{Op: OpField, Path: "a", State: StateSet, Pattern: "x"}), "exactly with state matches"},
+		{"text-line needs a pattern", certificates(Condition{Op: OpTextLine, Path: "data", State: StateExists}), "pattern is required"},
+		{"text-line state matches", certificates(Condition{Op: OpTextLine, Path: "data", State: StateMatches, Pattern: "x"}), "not allowed"},
+		{"negated text-line", certificates(Condition{Op: OpNot, Of: []Condition{{Op: OpTextLine, Path: "data", State: StateExists, Pattern: "x"}}}), ""},
 		{"token in a k=v list", Condition{Op: OpValuesKey, Path: "featureGates", State: StateHasTokenKey, Values: []string{"ValidateCAA"}}, ""},
 		{"token without values", Condition{Op: OpCLIFlag, Name: "--feature-gates", State: StateHasToken}, "needs values"},
 		{"separator without token state", Condition{Op: OpValuesKey, Path: "a", State: StateSet, Separator: ";"}, "separator is only used"},
 		{"no line matches (negated text-line)", Condition{Op: OpResource, Kind: "ConfigMap", Name: "argocd-rbac-cm", Of: []Condition{
-			{Op: OpNot, Of: []Condition{{Op: OpTextLine, Path: "data.policy\\.csv", State: StateMatches, Pattern: `^p,.*,applications,update/\*`}}},
+			{Op: OpTextLine, Path: `data["policy.csv"]`, State: StateNone, Pattern: `^p,.*,applications,update/\*`},
 		}}, ""},
 		{"cross-resource ref", certificates(Condition{Op: OpRef, Path: "spec.issuerRef", Kind: "Issuer", Group: "cert-manager.io",
 			Of: []Condition{{Op: OpField, Path: "spec.ca", State: StateSet}}}), ""},
-		{"ref outside a scope", Condition{Op: OpRef, Path: "spec.issuerRef", Kind: "Issuer", Of: []Condition{field}}, "only valid inside"},
+		{"ref outside a scope", Condition{Op: OpRef, Path: "spec.issuerRef", Of: []Condition{field}}, "only valid inside"},
+		{"ref without path", certificates(Condition{Op: OpRef, Of: []Condition{field}}), "path is required"},
 		{"gvk no state", Condition{Op: OpGVKInUse, Group: "networking.k8s.io", Version: "v1beta1", Kind: "Ingress"}, ""},
 		{"gvk with state", Condition{Op: OpGVKInUse, Kind: "Ingress", State: StateSet}, "takes no state"},
 		{"product version", Condition{Op: OpProductVersion, Name: "ingress-nginx", State: StateOutOfRange, Range: ">=1.12.6"}, ""},
 		{"product version bad range", Condition{Op: OpProductVersion, Name: "ingress-nginx", State: StateInRange, Range: "recent"}, "range"},
 		{"product version no range", Condition{Op: OpProductVersion, Name: "ingress-nginx", State: StateInRange}, "range is required"},
-		{"upgrade from", Condition{Op: OpUpgradeFrom, State: StateOutOfRange, Range: ">=1.15.6"}, ""},
+		{"rendered change", Condition{Op: OpRenderedChange, Group: "rbac.authorization.k8s.io", Kind: "ClusterRole", Path: "rules[].verbs", State: StateChanged}, ""},
+		{"rendered change to a value", Condition{Op: OpRenderedChange, Group: "apps", Kind: "Deployment", Path: "spec.template.spec.containers[].args", State: StateAdded, Values: []string{`"--enable-gateway-api"`}}, ""},
+		{"rendered change bad state", Condition{Op: OpRenderedChange, Kind: "Deployment", Path: "spec", State: StateSet}, "not allowed"},
+		{"rendered change inside a scope", certificates(Condition{Op: OpRenderedChange, Kind: "Deployment", Path: "spec", State: StateRemoved}), "cannot appear inside"},
+		{"edge from-version (precondition met)", Condition{Op: OpEdgeFromVersion, State: StateInRange, Range: ">=1.15.6"}, ""},
 		{"image any tag", Condition{Op: OpImageInUse, Name: "quay.io/jetstack/cert-manager-controller"}, ""},
 		{"image range without state", Condition{Op: OpImageInUse, Name: "quay.io/x", Range: "<1.18"}, "go together"},
 		{"feature gate", Condition{Op: OpFeatureGate, Name: "ServerSideApply", State: StateEnabled, Path: "featureGates"}, ""},
@@ -287,12 +296,13 @@ func TestConsequence(t *testing.T) {
 		c    Consequence
 		want string
 	}{
-		{"action with statement", Consequence{Kind: ConsequenceSettingIgnored, ExposedClass: ImpactActionRequired, Statement: "the value stops taking effect"}, ""},
-		{"action without statement", Consequence{Kind: ConsequenceSettingIgnored, ExposedClass: ImpactActionRequired}, "needs the statement"},
-		{"action on a deprecation", Consequence{Kind: ConsequenceDeprecation, ExposedClass: ImpactActionRequired, Statement: "x"}, "not action-eligible"},
-		{"review for an eligible kind", Consequence{Kind: ConsequenceBehaviorChange, ExposedClass: ImpactReviewRequired}, ""},
+		{"setting ignored is action", Consequence{Kind: ConsequenceSettingIgnored, ExposedClass: ImpactActionRequired, Statement: "the value stops taking effect"}, ""},
+		{"action kind without statement", Consequence{Kind: ConsequenceSettingIgnored, ExposedClass: ImpactActionRequired}, "statement"},
+		{"action kind softened by hand", Consequence{Kind: ConsequenceWorkloadFailure, ExposedClass: ImpactReviewRequired, Statement: "x"}, "class follows the kind"},
+		{"behavior change is review (D11)", Consequence{Kind: ConsequenceBehaviorChange, ExposedClass: ImpactReviewRequired}, ""},
+		{"behavior change promoted to action", Consequence{Kind: ConsequenceBehaviorChange, ExposedClass: ImpactActionRequired, Statement: "x"}, "must be review-required"},
+		{"deprecation promoted to action", Consequence{Kind: ConsequenceDeprecation, ExposedClass: ImpactActionRequired, Statement: "x"}, "must be review-required"},
 		{"none must be informational", Consequence{Kind: ConsequenceNone, ExposedClass: ImpactReviewRequired}, "must be informational"},
-		{"exposed class not affected", Consequence{Kind: ConsequenceNone, ExposedClass: ImpactNotAffected}, "exposedClass must be"},
 		{"missing exposed class", Consequence{Kind: ConsequenceDeprecation}, "exposedClass must be"},
 		{"bad severity", Consequence{Kind: ConsequenceDeprecation, ExposedClass: ImpactReviewRequired, Severity: "apocalyptic"}, "unknown severity"},
 		{"unknown kind", Consequence{Kind: "explodes", ExposedClass: ImpactReviewRequired}, "unknown kind"},
@@ -300,25 +310,16 @@ func TestConsequence(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) { expectErr(t, c.c.Validate(), c.want) })
 	}
-	defaults := []struct {
-		change ChangeKind
-		kind   ConsequenceKind
-		want   ImpactClass
-	}{
-		{ChangeKindRemoved, ConsequenceSettingIgnored, ImpactActionRequired},
-		{ChangeKindDeprecated, ConsequenceDeprecation, ImpactReviewRequired},
-		{ChangeKindDefaultChanged, ConsequenceBehaviorChange, ImpactReviewRequired},
-		{ChangeKindDefaultChanged, ConsequenceNone, ImpactInformational},
-		{ChangeKindDeprecated, ConsequenceSettingIgnored, ImpactReviewRequired},
+	for _, k := range ConsequenceKinds {
+		if (k.ExposedClass() == ImpactActionRequired) != k.ActionEligible() {
+			t.Errorf("%s: action-required exactly for action-eligible kinds", k)
+		}
+		if !k.ExposedClass().Affected() {
+			t.Errorf("%s: an exposed class is an affected class", k)
+		}
 	}
-	for _, d := range defaults {
-		if got := DefaultExposedClass(d.change, d.kind); got != d.want {
-			t.Errorf("DefaultExposedClass(%s, %s) = %s, want %s", d.change, d.kind, got, d.want)
-		}
-		c := Consequence{Kind: d.kind, ExposedClass: DefaultExposedClass(d.change, d.kind), Statement: "x"}
-		if err := c.Validate(); err != nil {
-			t.Errorf("the default suggestion for (%s, %s) must validate: %v", d.change, d.kind, err)
-		}
+	if ConsequenceBehaviorChange.ActionEligible() {
+		t.Error("behavior-change (works differently; verify) is never action-eligible")
 	}
 }
 
@@ -434,16 +435,31 @@ func TestCandidateValidate(t *testing.T) {
 		{"environment evidence", func(c *SemanticCandidate) {
 			c.Evidence = append(c.Evidence, NewEvidence(EvidenceLocalFile, "", "values.yaml", "L1", "x: 1", "sha256:v", time.Time{}))
 		}, "release-level"},
-		{"release mismatch", func(c *SemanticCandidate) { c.Release = "v9" }, "differs from anchor"},
+		{"release mismatch", func(c *SemanticCandidate) { c.Release = "v9"; c.ID = CandidateID(c.Product, c.Release, c.Members) }, "anchor release"},
 		{"anchor without statement keys", func(c *SemanticCandidate) {
-			c.Anchor.StatementKeys = nil
-			c.ID = CandidateID(c.Product, c.Release, c.ChangeID, c.Anchor)
+			a := *c.Members[0].Anchor
+			a.StatementKeys = nil
+			c.Members[0].Anchor = &a
+			c.ID = CandidateID(c.Product, c.Release, c.Members)
 		}, "statement key is required"},
-		{"computed change, no anchor", func(c *SemanticCandidate) {
-			c.Anchor = nil
-			c.ID = CandidateID(c.Product, c.Release, c.ChangeID, nil)
+		{"restatement cluster: notes + guide + computed diff", func(c *SemanticCandidate) {
+			guide := NewChangeAnchor(Change{ID: "chg-guide", Release: "v1.18.0", Evidence: []EvidenceID{crdEvidence().ID}},
+				func(EvidenceID) (Evidence, bool) { return crdEvidence(), true })
+			c.Members = append(c.Members, CandidateMember{ChangeID: "chg-guide", Anchor: &guide},
+				CandidateMember{ChangeID: "chg-crd-default", Computed: true})
+			c.Grouping = "subject-named"
+			c.ID = CandidateID(c.Product, c.Release, c.Members)
 		}, ""},
-		{"no change id", func(c *SemanticCandidate) { c.ChangeID = "" }, "changeId"},
+		{"computed member with an anchor", func(c *SemanticCandidate) {
+			c.Members[0].Computed = true
+			c.ID = CandidateID(c.Product, c.Release, c.Members)
+		}, "a prose member carries an anchor"},
+		{"member twice", func(c *SemanticCandidate) {
+			c.Members = append(c.Members, c.Members[0])
+			c.ID = CandidateID(c.Product, c.Release, c.Members)
+		}, "listed twice"},
+		{"no members", func(c *SemanticCandidate) { c.Members = nil; c.ID = CandidateID(c.Product, c.Release, nil) }, "no members"},
+		{"no grouping", func(c *SemanticCandidate) { c.Grouping = "" }, "grouping"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -541,6 +557,21 @@ func TestValidationResultValidate(t *testing.T) {
 		{"environment evidence", func(v *ValidationResult) {
 			v.Evidence = []Evidence{NewEvidence(EvidenceInput, "", "--kubernetes", "", "1.28", "", time.Time{})}
 		}, "release-level"},
+		{"chart-default render backs a validation", func(v *ValidationResult) {
+			e := NewEvidence(EvidenceStructured, "chart", "templates/clusterrole.yaml", "rules[0].verbs", "verbs: [get]", "sha256:r", t0)
+			e.Render = &RenderProvenance{Scope: RenderRelease, Tool: "helm", ToolVersion: "v3.17.2", ChartDigest: "sha256:chart"}
+			v.Evidence = []Evidence{e}
+		}, ""},
+		{"environment render never backs knowledge", func(v *ValidationResult) {
+			e := NewEvidence(EvidenceStructured, "chart", "templates/clusterrole.yaml", "rules[0].verbs", "verbs: [get]", "sha256:r", t0)
+			e.Render = &RenderProvenance{Scope: RenderEnvironment, Tool: "helm", ToolVersion: "v3.17.2", ChartDigest: "sha256:chart", ValuesDigest: "sha256:v"}
+			v.Evidence = []Evidence{e}
+		}, "environment render"},
+		{"incomplete render provenance", func(v *ValidationResult) {
+			e := NewEvidence(EvidenceStructured, "chart", "templates/x.yaml", "", "x", "sha256:r", t0)
+			e.Render = &RenderProvenance{Scope: RenderRelease, Tool: "helm"}
+			v.Evidence = []Evidence{e}
+		}, "toolVersion and chartDigest"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -654,6 +685,17 @@ func TestReviewDecisionValidate(t *testing.T) {
 		}, "must be method ai"},
 		{"unknown reviewer kind", func(d *ReviewDecision) { d.ReviewerKind = "intern" }, "unknown reviewerKind"},
 		{"id not derived", func(d *ReviewDecision) { d.Reviewer = "someone-else" }, "not derived"},
+		{"bulk accept", func(d *ReviewDecision) {
+			d.BatchID, d.BatchSize = BatchID([]string{d.ReviewItemID, "ri-other"}, d.Reviewer, d.DecidedAt), 2
+		}, ""},
+		{"batch of one", func(d *ReviewDecision) { d.BatchID, d.BatchSize = "rb-x", 1 }, "batchSize >= 2"},
+		{"batch size without id", func(d *ReviewDecision) { d.BatchSize = 3 }, "batchSize >= 2"},
+		{"batch id prefix", func(d *ReviewDecision) { d.BatchID, d.BatchSize = "batch-1", 2 }, "rb- prefix"},
+		{"bulk correction", func(d *ReviewDecision) {
+			d.Action, d.Corrected, d.Reason = ActionCorrect, corrected(), "x"
+			d.Labels = []FeedbackLabel{LabelCorrected, LabelWrongConsequence}
+			d.BatchID, d.BatchSize = "rb-x", 2
+		}, "individual-only"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -820,4 +862,77 @@ func TestKnowledgeRecordRoundTrip(t *testing.T) {
 	r, _ = NewRecord(cand)
 	r.SchemaVersion = "v0"
 	expectErr(t, r.Validate(), "schemaVersion")
+}
+
+// --- the trust ladder on ImpactFinding (DESIGN.md §4) ---------------------------
+
+func TestImpactFindingKnowledgeRules(t *testing.T) {
+	knowledgeFinding := func(r *ImpactReport) *ImpactFinding {
+		f := &r.Findings[0]
+		f.Rule = "impact:knowledge-exposed"
+		f.Provenance.Rule = f.Rule
+		f.Knowledge = &KnowledgeRef{Fact: "vf-1", Verification: VerifiedHuman}
+		return f
+	}
+	unknownOf := func(r *ImpactReport, changeID string) ImpactFinding {
+		up := r.Evidence[0].ID
+		r.Summary.Unknown++
+		return ImpactFinding{ID: "imp-u", Classification: ImpactUnknown, Rule: "impact:not-joined", Title: "not evaluated",
+			ChangeID: changeID, ChangeTitle: "t", UpstreamEvidence: []EvidenceID{up}, NeededToDetermine: []string{"x"},
+			UnknownReason: UnknownReleaseKnowledgeGap,
+			Provenance:    Provenance{Method: MethodComputed, Producer: "impact@v1", Confidence: ConfidenceHigh}}
+	}
+	cases := []struct {
+		name string
+		mut  func(*ImpactReport)
+		want string
+	}{
+		{"deterministic finding untouched", func(*ImpactReport) {}, ""},
+		{"action from a human-verified fact", func(r *ImpactReport) { knowledgeFinding(r) }, ""},
+		{"action from a deterministic fact", func(r *ImpactReport) { knowledgeFinding(r).Knowledge.Verification = VerifiedDeterministic }, ""},
+		{"action from a proxy fact", func(r *ImpactReport) { knowledgeFinding(r).Knowledge.Verification = VerifiedProxy }, "requires a deterministic- or human-verified fact"},
+		{"proxy review at medium", func(r *ImpactReport) {
+			f := knowledgeFinding(r)
+			f.Knowledge.Verification = VerifiedProxy
+			f.Classification, f.Provenance.Confidence = ImpactReviewRequired, ConfidenceMedium
+			r.Summary.ActionRequired, r.Summary.ReviewRequired = 0, 1
+		}, ""},
+		{"proxy at high confidence", func(r *ImpactReport) {
+			f := knowledgeFinding(r)
+			f.Knowledge.Verification = VerifiedProxy
+			f.Classification = ImpactReviewRequired
+			r.Summary.ActionRequired, r.Summary.ReviewRequired = 0, 1
+		}, "cannot carry high confidence"},
+		{"proxy never clears", func(r *ImpactReport) {
+			f := knowledgeFinding(r)
+			f.Knowledge.Verification = VerifiedProxy
+			f.Rule, f.Classification, f.Provenance.Confidence = "impact:knowledge-clear", ImpactNotAffected, ConfidenceMedium
+			f.Matches, f.EnvironmentEvidence = nil, nil
+			f.Checks = []ImpactCheck{{Dimension: DimensionManifests, Facts: 3, Subjects: []string{"spec.privateKey.rotationPolicy"}}}
+			r.Summary.ActionRequired, r.Summary.AffectEnvironment, r.Summary.NotAffected = 0, 0, 1
+		}, "a proxy never clears"},
+		{"knowledge ref on a join rule", func(r *ImpactReport) {
+			r.Findings[0].Knowledge = &KnowledgeRef{Fact: "vf-1", Verification: VerifiedHuman}
+		}, "carried exactly by impact:knowledge-"},
+		{"knowledge rule without ref", func(r *ImpactReport) { r.Findings[0].Rule = "impact:knowledge-exposed" }, "carried exactly by impact:knowledge-"},
+		{"bad fact id", func(r *ImpactReport) { knowledgeFinding(r).Knowledge.Fact = "chg-1" }, "vf- prefix"},
+		{"unknown reason on an affected finding", func(r *ImpactReport) { r.Findings[0].UnknownReason = UnknownEvidenceGap }, "unknown-only"},
+		{"invalid unknown reason", func(r *ImpactReport) {
+			u := unknownOf(r, "chg-other")
+			u.UnknownReason = "shrug"
+			r.Findings = append(r.Findings, u)
+		}, "unknown unknownReason"},
+		{"unknown with reason", func(r *ImpactReport) { r.Findings = append(r.Findings, unknownOf(r, "chg-other")) }, ""},
+		{"knowledge supersedes the unknown record", func(r *ImpactReport) {
+			f := knowledgeFinding(r)
+			r.Findings = append(r.Findings, unknownOf(r, f.ChangeID))
+		}, "supersedes this unknown record"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			r := validReport()
+			tc.mut(r)
+			expectErr(t, r.Validate(), tc.want)
+		})
+	}
 }
