@@ -90,7 +90,9 @@ func http01Assertion() domain.SemanticAssertion {
 	}
 }
 
-func lookupOf(e *domain.UpgradeEdge) func(domain.EvidenceID) (domain.Evidence, bool) { return edgeLookup(e) }
+func lookupOf(e *domain.UpgradeEdge) func(domain.EvidenceID) (domain.Evidence, bool) {
+	return edgeLookup(e)
+}
 
 func buildWith(t *testing.T, e *domain.UpgradeEdge, en *env.Environment, facts []domain.VerifiedFact, min domain.VerificationLevel) *domain.ImpactReport {
 	t.Helper()
@@ -192,7 +194,18 @@ func TestKnowledgeRotationPolicyIsReviewOnEveryRestatement(t *testing.T) {
 
 	en := condEnv(t, "", nil)
 	r := buildWith(t, eb.edge, en, []domain.VerifiedFact{f}, "")
-	for _, c := range []domain.Change{guide, notes, computedC} {
+	// the computed default diff is joined deterministically (review for the
+	// Certificate that leaves the field unset): the knowledge finding is not
+	// stronger, so it is not added next to it
+	if fs := findingsOf(r, computedC.ID); len(fs) == 0 || fs[0].Rule != RuleCRDDefaultApplies || fs[0].Classification != domain.ImpactReviewRequired {
+		t.Errorf("computed default diff: %+v", fs)
+	}
+	for _, f := range findingsOf(r, computedC.ID) {
+		if f.Knowledge != nil {
+			t.Errorf("knowledge finding added next to an equally strong deterministic one: %+v", f)
+		}
+	}
+	for _, c := range []domain.Change{guide, notes} {
 		fs := findingsOf(r, c.ID)
 		if len(fs) != 1 {
 			t.Fatalf("%q: %d findings, want exactly the knowledge finding: %+v", c.Title, len(fs), fs)

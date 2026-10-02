@@ -69,6 +69,10 @@ var joinRules = map[string]bool{
 	upgrade.RuleCRDVersionUnserved: true, upgrade.RuleCRDVersionDeprecated: true,
 	upgrade.RuleCRDFieldsRemoved: true,
 	upgrade.RuleImageRemoved:     true, upgrade.RuleImageMoved: true, upgrade.RuleImageTagsChanged: true,
+	// schema attributes and storage versions (crd_attrs.go)
+	upgrade.RuleCRDDefaultChanged: true, upgrade.RuleCRDEnumChanged: true,
+	upgrade.RuleCRDFieldRequired: true, upgrade.RuleCRDFieldTypeChange: true,
+	upgrade.RuleCRDStorageChanged: true,
 }
 
 // unimplementedDiffRules are computed diff rules the join family knows about
@@ -77,12 +81,8 @@ var joinRules = map[string]bool{
 // note-derived changes.
 var unimplementedDiffRules = map[string]bool{
 	upgrade.RuleCRDAdded: true, upgrade.RuleCRDVersionAdded: true,
-	upgrade.RuleCRDStorageChanged: true, upgrade.RuleCRDFieldsAdded: true,
-	upgrade.RuleImageAdded: true,
-	// schema-attribute diffs: provable upstream facts, joined by the
-	// applicability lane; until then unknown with a specific reason
-	upgrade.RuleCRDDefaultChanged: true, upgrade.RuleCRDEnumChanged: true,
-	upgrade.RuleCRDFieldRequired: true, upgrade.RuleCRDFieldTypeChange: true,
+	upgrade.RuleCRDFieldsAdded: true,
+	upgrade.RuleImageAdded:     true,
 }
 
 // builder accumulates the report while Build runs.
@@ -140,6 +140,7 @@ func build(in Input) (*domain.ImpactReport, error) {
 
 	b.valuesFamily()
 	b.crdFamily()
+	b.crdAttributeFamily()
 	b.compatibilityChecks()
 	b.imageFamily()
 	b.unjoinedChanges()
@@ -485,6 +486,11 @@ func (b *builder) compatibilityChecks() {
 		// deciding dimension: the cluster version of this platform. Only the
 		// kubernetes platform is collectable today (--kubernetes).
 		supplied := b.env.Kubernetes != nil && strings.EqualFold(platform, "kubernetes")
+		if !strings.EqualFold(platform, "kubernetes") && !strings.EqualFold(platform, "openshift") {
+			// an operand/peer product: decided against the product inventory
+			b.productCompat(cc, platform)
+			continue
+		}
 		if !supplied {
 			needed := fmt.Sprintf("%s cluster version not supplied", platform)
 			hint := "no input collects it (ri impact supports --kubernetes)"
