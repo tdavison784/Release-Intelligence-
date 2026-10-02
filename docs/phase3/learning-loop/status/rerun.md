@@ -26,3 +26,50 @@ None. No Go changes; `go build ./... && go vet ./... && go test ./...` pass.
 
 ## Open
 kube-prometheus-stack old-binary control; drift vs an older baseline; body-level claim verification.
+
+## Phase 12 follow-up (branch `p3ll/phase12-fix`)
+
+After LANE DONE, the lane continued on `p3ll/phase12-fix`, executing REPORT.md recommendations 1–4.
+Full record: `docs/rerun/REPORT.md` §11.
+
+- Definition fixes: ingress-nginx chroot exception (D1) + argo-cd exception wording (D2) (`bf9889a`);
+  vault `helm-repo` primary and crossplane/external-secrets canonical chart channels first, dated
+  provenance notes (`65cdb8f`).
+- Pipeline fixes (`cb81c58`): distinct `throttled` state with Retry-After backoff + per-host
+  concurrency, 401/403/000-DNS reasons, stale-baseline digest check, `definitionDigest` in check output.
+- 14 baselines replaced with the post-fix re-runs (`docs/rerun/phase12/`, fresh state, same `-versions`;
+  argo-cd 3.4.0→3.4.1 per D2). Totals: 2766 pass / 922 not-applicable / 17 covered /
+  **0 failed / 0 unavailable / 0 unverifiable / 0 throttled**. Karpenter's 429s were throttling
+  (sequential re-run clean); falco/minio and the 12 untouched products unchanged.
+- Dated 2026-10-02 corrections in README, FINDINGS.md, phase2 PLAN/OUTCOMES, all 30 `docs/research/*.md`
+  (originals kept as the 2026-10-01 record); Corrections section added to the stats renderer;
+  `docs/ONBOARDING.md` regenerated from the live baselines.
+- `go build ./... && go vet ./... && go test ./...` pass.
+
+## GLM handoff log
+
+Held by GLM-5.3 (glm-rerun) from 2026-10-02 08:02 while the lane's Claude agent paused for a
+usage-limit window. Found phase12 mid-flight — 14 live re-checks on disk untracked, doc corrections
+uncommitted, baselines replaced for only the 12 pre-pipeline-fix products — and finished it:
+
+1. Committed the phase12 raw outputs as-is (`docs/rerun/phase12/`, empty stderr captures).
+2. Replaced the 14 `docs/onboarding/checks/` baselines with the phase12 outputs; release sets equal
+   the old baselines except argo-cd 3.4.0→3.4.1 (the recorded D2 decision).
+3. Committed the doc corrections after updating their karpenter/argo-cd wording to the final phase12
+   outcome — they were drafted mid-run and not yet committed, so updated in place rather than stacking
+   a second same-day correction.
+4. Rebuilt `bin/ri` (the checked-in binary predated the renderer edit) and regenerated
+   `docs/ONBOARDING.md`; verified the new G2 numbers (0 unverifiable for all 14).
+5. Added REPORT.md §11 (recommendations status) and this log; ran build/vet/test.
+
+Uncertainties / judgement calls, for the commander:
+
+- Replacing the 12 already-replaced baselines again (pre-fix → post-fix output) was read as intended:
+  `cb81c58` adds `definitionDigest`, which the stale-baseline check compares, and outcomes are
+  identical either way. If unwanted, `git revert` of that single commit restores the 07:52 versions.
+- `docs/rerun/stats.json|stats.md` left as the earlier measurement record; regenerating them would now
+  read the replaced baselines (ONBOARDING.md is the authoritative regenerated doc) — commander's call.
+- The FLEET.md gate-baseline note (D5) was not added: FLEET.md is the commander's file.
+- Recommendation 5 items remain open, as before.
+- Commit subjects carry the required `[glm-handoff] ` prefix; co-author line follows the FLEET.md
+  convention with this agent's model name (`GLM-5.3`).
