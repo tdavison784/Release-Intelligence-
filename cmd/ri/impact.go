@@ -37,6 +37,8 @@ func (c *cli) impact(args []string) error {
 	policy := fs.String("policy", "", "path policy override: minor-lineage|all")
 	showNotAffected := fs.Bool("show-not-affected", false, "also list the not-affected verdicts with their evaluation records (the summary always counts them)")
 	showUnknown := fs.Bool("show-unknown", false, "list every UNKNOWN finding instead of the collapsed per-reason summary (the summary always counts them; JSON always carries everything)")
+	doRender := fs.Bool("render", false, "render the source and target releases with the customer's configuration (--values/--repo, or chart defaults without them) and diff the manifests: what actually changes for this environment, each rendered change correlated with the changelog entries that mention it")
+	rf := addRenderFlags(fs)
 	ef := enrichFlagsFor("impact", fs)
 	pos, err := parse(fs, args)
 	if err != nil {
@@ -68,6 +70,18 @@ func (c *cli) impact(args []string) error {
 	if err != nil {
 		return err
 	}
+	var rres *app.RenderDiffResult
+	if *doRender {
+		rres, err = a.RenderDiffEdge(c.ctx, edge, app.RenderOptions{
+			ValuesFiles: splitList(*values), Repo: *repo, Env: e, Overlays: splitList(*rf.overlays),
+			ReleaseName: *rf.releaseName, Namespace: *rf.namespace, KubeVersion: *kubernetes,
+			APIVersions: splitList(*rf.apiVersions),
+			Release:     *rf.chartDefaults || (*values == "" && *repo == "" && *rf.overlays == ""),
+		})
+		if err != nil {
+			return err
+		}
+	}
 	if *ef.candidates {
 		printImpactCandidates(c.err, rep, edge, e, impactenrich.Candidates(rep, edge, impactenrich.CandidateOptions{}))
 	}
@@ -89,9 +103,23 @@ func (c *cli) impact(args []string) error {
 		}
 	}
 	if *output == "json" {
+		if rres != nil {
+			// the impact report unchanged, plus the rendered delta beside it
+			return c.writeJSON(struct {
+				*domain.ImpactReport
+				Render renderReport `json:"render"`
+			}{rep, renderJSON(rres, *rf.showValues)})
+		}
 		return c.writeJSON(rep)
 	}
-	return impact.RenderText(c.out, rep, impact.RenderOptions{Color: isTerminal(c.out), ShowNotAffected: *showNotAffected, ShowUnknown: *showUnknown})
+	if err := impact.RenderText(c.out, rep, impact.RenderOptions{Color: isTerminal(c.out), ShowNotAffected: *showNotAffected, ShowUnknown: *showUnknown}); err != nil {
+		return err
+	}
+	if rres != nil {
+		fmt.Fprintln(c.out)
+		writeRenderText(c.out, rres, *rf.showValues)
+	}
+	return nil
 }
 
 // impactEnrich runs the optional AI step over the deterministic report and

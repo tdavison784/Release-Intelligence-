@@ -94,6 +94,13 @@ func (a *App) RenderDiff(ctx context.Context, productID, from, to string, opts R
 	if err != nil {
 		return nil, err
 	}
+	return a.RenderDiffEdge(ctx, edge, opts)
+}
+
+// RenderDiffEdge is RenderDiff over an already computed edge (the impact
+// command has one, and its loaded environment is reused through opts.Env).
+func (a *App) RenderDiffEdge(ctx context.Context, edge *domain.UpgradeEdge, opts RenderOptions) (*RenderDiffResult, error) {
+	productID := string(edge.Product.ID)
 	res := &RenderDiffResult{Edge: edge, Correlations: map[string]render.Correlation{}}
 	eng := a.RenderEngine()
 	fromV, toV := edge.From.String(), edge.To.String()
