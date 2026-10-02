@@ -1,0 +1,17 @@
+# eu-platform (staging tier) — Helm values for the cert-manager release,
+# chart v1.16.x, owned by the platform team in this repository.
+#
+# Change-freeze policy: the controller's feature gates are pinned explicitly
+# until each promotion is validated in the sandbox cluster, so the gates that
+# upstream promotes to beta are pinned OFF here rather than left to defaults.
+# ValidateCAA has never been enabled on this cluster (no ACME CAA checking).
+featureGates: "NameConstraints=false,UseDomainQualifiedFinalizer=false"
+
+crds:
+  enabled: true
+
+replicaCount: 2
+webhook:
+  replicaCount: 2
+cainjector:
+  enabled: true

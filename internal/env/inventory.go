@@ -250,6 +250,9 @@ type inventoryBuilder struct {
 	out   []ProductInstance
 	// declaredFile reports an inventory file was supplied (even if empty).
 	declaredFile bool
+	// complete: the file declares `complete: true` (completeEvidence cites it).
+	complete         bool
+	completeEvidence domain.EvidenceID
 }
 
 func (b *inventoryBuilder) resolve(candidates ...string) (id string, inCatalog bool) {
@@ -308,6 +311,25 @@ func (b *inventoryBuilder) loadInventoryFile(path string) error {
 	seq := resolveAlias(&root)
 	if seq != nil && seq.Kind == yaml.DocumentNode && len(seq.Content) == 1 {
 		seq = resolveAlias(seq.Content[0])
+	}
+	// CONTRACT-CHANGE(applicability): the mapping form {complete: true,
+	// products: [...]} declares the inventory complete (DESIGN.md §1.3
+	// product-version: "not listed" is false only under a declared-complete,
+	// healthy inventory). The list form stays the default: never complete.
+	if seq != nil && seq.Kind == yaml.MappingNode && (fieldOf(seq, "products") != nil || fieldOf(seq, "complete") != nil) {
+		complete, cl := scalarLine(seq, "complete")
+		switch complete {
+		case "true":
+			b.complete = true
+			b.completeEvidence = b.l.ev(path, fmt.Sprintf("$.complete (L%d)", cl), "complete: true")
+		case "", "false":
+		default:
+			b.l.warnf(DimProducts, "%s: complete must be true or false, got %q; the inventory is not declared complete", path, complete)
+		}
+		seq = resolveAlias(fieldOf(seq, "products"))
+		if seq == nil {
+			return nil // a declaration without entries: an empty (possibly complete) inventory
+		}
 	}
 	if seq == nil || seq.Kind != yaml.SequenceNode {
 		b.l.warnf(DimProducts, "%s is not a list of {product, version} entries; nothing was read from it", path)
@@ -516,6 +538,10 @@ func (l *loader) loadProducts(invFile string, hints []ProductHint) error {
 	b.fromInstalled()
 	b.fromImages()
 	b.finalize()
+	if b.complete {
+		l.env.InventoryComplete = true
+		l.env.InventoryCompleteEvidence = []domain.EvidenceID{b.completeEvidence}
+	}
 	l.productsSupplied = b.declaredFile
 	for _, p := range l.env.Products {
 		if p.Product != KubernetesProduct || p.Source != ProductDeclared {

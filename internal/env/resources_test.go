@@ -440,3 +440,49 @@ func TestResourceFactsAreDeterministicAndCapped(t *testing.T) {
 		t.Error("nil environment")
 	}
 }
+
+// Regression: the lines of a credential-named ConfigMap key are withheld
+// exactly like Secret values — not exposed, not matchable, and counted.
+func TestCredentialNamedConfigMapKeyLinesWithheld(t *testing.T) {
+	e := loadManifest(t, `apiVersion: v1
+kind: ConfigMap
+metadata: {name: cm}
+data:
+  db-password: |
+    plain-looking-secret-line-1
+    plain-looking-secret-line-2
+  api_token: single-line-token-value
+  settings: |
+    mode=fast
+`)
+	byPath := map[string]TextBlock{}
+	for _, b := range e.TextBlocks(GVKSelector{Kind: "ConfigMap"}, "data")[0].Blocks {
+		byPath[b.Path] = b
+	}
+	pw := byPath["data.db-password"]
+	if pw.Withheld != 2 || len(pw.Lines) != 2 {
+		t.Fatalf("db-password block = %+v, want 2 withheld lines", pw)
+	}
+	tok := byPath["data.api_token"]
+	if tok.Withheld != 1 || len(tok.Lines) != 1 {
+		t.Fatalf("api_token block = %+v, want 1 withheld line", tok)
+	}
+	for _, b := range []TextBlock{pw, tok} {
+		for _, ln := range b.Lines {
+			if !ln.Withheld || ln.Text != "" {
+				t.Errorf("line exposed: %+v", ln)
+			}
+		}
+		if len(b.Match(regexp.MustCompile(`.`))) != 0 {
+			t.Error("withheld lines must never match")
+		}
+	}
+	if s := byPath["data.settings"]; s.Withheld != 0 || len(s.Match(regexp.MustCompile(`mode=fast`))) != 1 {
+		t.Errorf("ordinary key must stay readable: %+v", s)
+	}
+	for _, ev := range e.Evidence {
+		if strings.Contains(ev.Excerpt, "plain-looking-secret") || strings.Contains(ev.Excerpt, "single-line-token-value") {
+			t.Errorf("secret in evidence: %q", ev.Excerpt)
+		}
+	}
+}

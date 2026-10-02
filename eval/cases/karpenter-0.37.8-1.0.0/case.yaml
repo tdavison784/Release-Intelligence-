@@ -7,6 +7,7 @@ sources:
   - https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
   - https://github.com/aws/karpenter-provider-aws/releases/tag/v1.0.0
   - https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/hack/docs/compatibilitymatrix_gen/compatibility.yaml
+  - https://github.com/aws/karpenter-provider-aws/blob/main/hack/docs/compatibilitymatrix_gen/compatibility.yaml   # the 1.0.x record (minK8sVersion 1.25, maxK8sVersion 1.30) exists only on main; the v1.0.0 tag ends at 0.37.0 (products/karpenter.yaml falls back to main)
   - https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/charts/karpenter/values.yaml
   - https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/charts/karpenter/values.yaml
 expected:
@@ -25,6 +26,26 @@ expected:
         quote: "Karpenter `1.0.0` introduces v1 APIs, including _significant_ changes to the API and upgrade procedures … **Do not** upgrade to `1.0.0`+ without referencing the [v1 Migration Upgrade Procedure]"
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
         quote: "Karpenter will stop serving the v1beta1 API version at v1.1.0 … Migrate all stored manifests to v1 API versions on Karpenter v1.0+."
+    semantics:
+      - subject: {family: gvk, product: karpenter, group: karpenter.sh, version: v1beta1, kind: NodePool}
+        change:
+          type: deprecated
+          replacedBy: {family: gvk, product: karpenter, group: karpenter.sh, version: v1, kind: NodePool}
+        consequence: &karpE1
+          kind: migration-required
+          exposedClass: action-required
+          statement: v1beta1 NodePools/EC2NodeClasses/NodeClaims are served in 1.0 only through conversion webhooks, the upgrade must follow the v1 Migration Upgrade Procedure, and v1beta1 stops being served at v1.1.0 — stored manifests must be migrated to v1.
+          remediation: follow the v1 Migration Upgrade Procedure, then migrate every stored manifest to the v1 API versions
+      - subject: {family: gvk, product: karpenter, group: karpenter.k8s.aws, version: v1beta1, kind: EC2NodeClass}
+        change:
+          type: deprecated
+          replacedBy: {family: gvk, product: karpenter, group: karpenter.k8s.aws, version: v1, kind: EC2NodeClass}
+        consequence: *karpE1
+      - subject: {family: gvk, product: karpenter, group: karpenter.sh, version: v1beta1, kind: NodeClaim}
+        change:
+          type: deprecated
+          replacedBy: {family: gvk, product: karpenter, group: karpenter.sh, version: v1, kind: NodeClaim}
+        consequence: *karpE1
   # Change type covered: breaking API rename.
   - id: E2
     title: NodePool ConsolidationPolicy WhenUnderutilized renamed to WhenEmptyOrUnderutilized (manual migration needed)
@@ -37,6 +58,14 @@ expected:
     evidence:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
         quote: "API Rename: NodePool's ConsolidationPolicy `WhenUnderutilized` is now renamed to `WhenEmptyOrUnderutilized`"
+    semantics:
+      subject: {family: crd-field, product: karpenter, group: karpenter.sh, kind: NodePool, path: spec.disruption.consolidationPolicy}
+      change: {type: validation-tightened, before: '"WhenUnderutilized"', after: '"WhenEmptyOrUnderutilized"'}
+      consequence:
+        kind: resource-rejected
+        exposedClass: action-required
+        statement: v1 NodePool manifests that still say consolidationPolicy WhenUnderutilized are rejected by the v1 schema.
+        remediation: use WhenEmptyOrUnderutilized (and set consolidateAfter) in the v1 manifests
   # Change type covered: removed annotations/tags.
   - id: E3
     title: karpenter.sh/do-not-consolidate, do-not-evict annotations and karpenter.sh/managed-by tag removed (replaced by eks:eks-cluster-name)
@@ -49,6 +78,26 @@ expected:
     evidence:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
         quote: "`karpenter.sh/do-not-consolidate` (annotation), `karpenter.sh/do-not-evict` (annotation), and `karpenter.sh/managed-by` (tag) are all removed."
+    semantics:
+      - subject: {family: config-key, product: karpenter, path: karpenter.sh/do-not-evict, component: pod-annotation}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: karpenter, path: karpenter.sh/do-not-disrupt, component: pod-annotation}
+        consequence: &karpE3
+          kind: setting-ignored
+          exposedClass: action-required
+          statement: pods and nodes protected only by the removed annotations are disrupted (consolidated, evicted) like any other; resources found by the removed tag are no longer recognised.
+          remediation: switch to karpenter.sh/do-not-disrupt (and eks:eks-cluster-name for the tag)
+      - subject: {family: config-key, product: karpenter, path: karpenter.sh/do-not-consolidate, component: node-annotation}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: karpenter, path: karpenter.sh/do-not-disrupt, component: node-annotation}
+        consequence: *karpE3
+      - subject: {family: config-key, product: karpenter, path: karpenter.sh/managed-by, component: ec2-tag}
+        change:
+          type: removed
+          replacedBy: {family: config-key, product: karpenter, path: eks:eks-cluster-name, component: ec2-tag}
+        consequence: *karpE3
   # Change type covered: taint rename with workload consequence.
   - id: E4
     title: Disruption taint changed from karpenter.sh/disruption=disrupting:NoSchedule to karpenter.sh/disrupted:NoSchedule — tolerations must be adjusted
@@ -61,6 +110,16 @@ expected:
     evidence:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
         quote: "The taint used to mark nodes for disruption and termination changed from `karpenter.sh/disruption=disrupting:NoSchedule` to `karpenter.sh/disrupted:NoSchedule` … if you were tolerating it in your applications, you'll need to adjust your taints to reflect this."
+    semantics:
+      subject: {family: config-key, product: karpenter, path: karpenter.sh/disruption, component: node-taint}
+      change:
+        type: renamed
+        replacedBy: {family: config-key, product: karpenter, path: karpenter.sh/disrupted, component: node-taint}
+      consequence:
+        kind: setting-ignored
+        exposedClass: action-required
+        statement: tolerations of karpenter.sh/disruption=disrupting:NoSchedule no longer match the taint on disrupting nodes (karpenter.sh/disrupted:NoSchedule).
+        remediation: tolerate karpenter.sh/disrupted instead (upstream recommends not tolerating it at all)
   # Change type covered: schema tightening (required fields).
   - id: E5
     title: ConsolidateAfter, AMISelectorTerms and all NodeClassRef fields become required in v1
@@ -74,6 +133,20 @@ expected:
     evidence:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
         quote: "API: ConsolidateAfter is required. … API: All `NodeClassRef` fields are now all required, and apiVersion has been renamed to group … API: AMISelectorTerms are required."
+    semantics:
+      - subject: {family: crd-field, product: karpenter, group: karpenter.sh, kind: NodePool, path: spec.disruption.consolidateAfter}
+        change: {type: now-required}
+        consequence: &karpE5
+          kind: resource-rejected
+          exposedClass: action-required
+          statement: v1 manifests without the newly required fields are rejected.
+          remediation: set consolidateAfter (0s keeps the v1beta1 behaviour), amiSelectorTerms (an alias such as al2@latest) and every nodeClassRef field (group, kind, name)
+      - subject: {family: crd-field, product: karpenter, group: karpenter.k8s.aws, kind: EC2NodeClass, path: spec.amiSelectorTerms}
+        change: {type: now-required}
+        consequence: *karpE5
+      - subject: {family: crd-field, product: karpenter, group: karpenter.sh, kind: NodePool, path: spec.template.spec.nodeClassRef}
+        change: {type: now-required}
+        consequence: *karpE5
   # Change type covered: security-relevant default change.
   - id: E6
     title: EC2NodeClass httpPutResponseHopLimit default lowered from 2 to 1 — IMDS access from containers dropped by default
@@ -86,6 +159,13 @@ expected:
     evidence:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
         quote: "API: Karpenter will drop support for IMDS access from containers by default on new EC2NodeClasses by updating the default of `httpPutResponseHopLimit` from 2 to 1."
+    semantics:
+      subject: {family: crd-field, product: karpenter, group: karpenter.k8s.aws, kind: EC2NodeClass, path: spec.metadataOptions.httpPutResponseHopLimit}
+      change: {type: default-changed, before: '2', after: '1'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: containers on nodes from EC2NodeClasses that do not set httpPutResponseHopLimit can no longer reach IMDS (IMDSv2 hop limit 1).
   # Change type covered: environment variables / feature gates dropped or renamed (chart-level).
   - id: E7
     title: LOGGING_CONFIG, ASSUME_ROLE_ARN, ASSUME_ROLE_DURATION dropped; LEADER_ELECT renamed to DISABLE_LEADER_ELECTION; drift feature gate stable and cannot be disabled
@@ -99,9 +179,39 @@ expected:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
         quote: "LOGGING_CONFIG, ASSUME_ROLE_ARN, ASSUME_ROLE_DURATION Dropped … LEADER_ELECT renamed to DISABLE_LEADER_ELECTION … `FEATURE_GATES.DRIFT=true` was dropped and promoted to Stable, and cannot be disabled."
       - url: https://github.com/aws/karpenter-provider-aws/blob/v0.37.8/charts/karpenter/values.yaml
-        quote: "logConfig: {…} / assumeRoleARN: \"\" / assumeRoleDuration: 15m"
+        quote: '# -- Log configuration (Deprecated: Logging configuration will be dropped by v1, use logLevel instead) logConfig: … assumeRoleARN: "" … assumeRoleDuration: 15m'   # verbatim since 2026-10-02 (eval/CHANGELOG.md); logConfig is top-level, assumeRoleARN/Duration sit under settings:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/charts/karpenter/values.yaml
-        quote: "logOutputPaths: - stdout … (the logConfig and assumeRole keys of 0.37.8 are gone)"
+        quote: '# -- Log outputPaths - defaults to stdout only logOutputPaths: - stdout'   # verbatim since 2026-10-02 (eval/CHANGELOG.md); the 1.0.0 values have no logConfig and no settings.assumeRole* keys
+    semantics:
+      - subject: {family: env-var, product: karpenter, name: LOGGING_CONFIG, component: controller}
+        change: {type: removed}
+        consequence: &karpE7
+          kind: setting-ignored
+          exposedClass: action-required
+          statement: the dropped settings are no longer read, so the configured logging / assume-role / leader-election behaviour silently reverts to the defaults.
+      - subject: {family: env-var, product: karpenter, name: ASSUME_ROLE_ARN, component: controller}
+        change: {type: removed}
+        consequence: *karpE7
+      - subject: {family: env-var, product: karpenter, name: ASSUME_ROLE_DURATION, component: controller}
+        change: {type: removed}
+        consequence: *karpE7
+      - subject: {family: env-var, product: karpenter, name: LEADER_ELECT, component: controller}
+        change:
+          type: renamed
+          replacedBy: {family: env-var, product: karpenter, name: DISABLE_LEADER_ELECTION, component: controller}
+        consequence: *karpE7
+      - subject: {family: helm-value, product: karpenter, path: logConfig}
+        change: {type: removed}
+        consequence: *karpE7
+      - subject: {family: helm-value, product: karpenter, path: settings.assumeRoleARN}
+        change: {type: removed}
+        consequence: *karpE7
+      - subject: {family: helm-value, product: karpenter, path: settings.assumeRoleDuration}
+        change: {type: removed}
+        consequence: *karpE7
+      - subject: {family: feature-gate, product: karpenter, name: Drift, component: controller}
+        change: {type: removed}
+        consequence: {kind: behavior-change, exposedClass: review-required, statement: drift is always on and can no longer be disabled}
   # Change type covered: dropped platform support.
   - id: E8
     title: Ubuntu dropped as a first-class supported AMI family
@@ -114,6 +224,14 @@ expected:
     evidence:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
         quote: "Breaking API (Manual Migration Needed): Ubuntu is dropped as a first class supported AMI Family"
+    semantics:
+      subject: {family: crd-field, product: karpenter, group: karpenter.k8s.aws, kind: EC2NodeClass, path: spec.amiFamily}
+      change: {type: validation-tightened, before: '"Ubuntu"'}
+      consequence:
+        kind: resource-rejected
+        exposedClass: action-required
+        statement: EC2NodeClasses with amiFamily Ubuntu are no longer a supported first-class family in v1 and need a manual migration.
+        remediation: select the Ubuntu AMIs explicitly via amiSelectorTerms with a supported/Custom family and matching user data
   # Change type covered: expiration/drift behavioural changes.
   - id: E9
     title: Node expiration is now forceful — draining starts as soon as a node expires, without waiting for replacement capacity
@@ -126,6 +244,13 @@ expected:
     evidence:
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md
         quote: "Expiration is now forceful and begins draining as soon as it's expired. Karpenter does not wait for replacement capacity to be available before draining"
+    semantics:
+      subject: {family: protocol-behavior, product: karpenter, name: node-expiration, component: controller}
+      change: {type: behavior-changed}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: expired nodes are drained immediately, without waiting for replacement capacity, so expiry can briefly reduce capacity.
   # Change type covered: Helm scheduling default change (capacity-relevant).
   - id: E10
     title: Helm chart defaults to required zonal topology spread for the Karpenter deployment (multizone by default); metrics port default back to 8080
@@ -143,6 +268,16 @@ expected:
         quote: "port: 8000"
       - url: https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/charts/karpenter/values.yaml
         quote: "port: 8080"
+    semantics:
+      - subject: {family: helm-value, product: karpenter, path: 'topologySpreadConstraints[].whenUnsatisfiable'}
+        change: {type: default-changed, before: '"ScheduleAnyway"', after: '"DoNotSchedule"'}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: Karpenter replicas require zonal spread; clusters that cannot place them in distinct zones leave replicas Pending.
+      - subject: {family: helm-value, product: karpenter, path: controller.metrics.port}
+        change: {type: default-changed, before: '8000', after: '8080'}
+        consequence: {kind: behavior-change, exposedClass: review-required, statement: scrapers that target the old default port 8000 stop collecting metrics unless the port is pinned}
 notExpected:
   - title: feature PRs in the release body are not upgrade work
     match: [{text: '(?i)^- (Add|Implement|Support) .*\[#'}]
@@ -158,12 +293,35 @@ environment:
     - expected: E1
       relevance: action-required
       why: the fixture's NodePools/EC2NodeClass are authored with apiVersion karpenter.sh/v1beta1 and must move to v1
+      exposure:
+        op: any
+        of:
+          - {op: gvk-in-use, group: karpenter.sh, version: v1beta1, kind: NodePool}
+          - {op: gvk-in-use, group: karpenter.k8s.aws, version: v1beta1, kind: EC2NodeClass}
+          - {op: gvk-in-use, group: karpenter.sh, version: v1beta1, kind: NodeClaim}
+      environmentEvidence: [manifests/nodepool.yaml#L1-L4, manifests/nodepool.yaml#L20-L23]
     - expected: E2
       relevance: action-required
       why: "the fixture's NodePool sets consolidationPolicy: WhenUnderutilized, a value the v1 API renames"
+      exposure:
+        op: resource
+        group: karpenter.sh
+        kind: NodePool
+        of: [{op: field, path: spec.disruption.consolidationPolicy, state: equals, values: ['"WhenUnderutilized"']}]
+      environmentEvidence: manifests/nodepool.yaml#L1-L18
     - expected: E7
       relevance: action-required
       why: the values file sets logConfig (dropped for logOutputPaths) and pins the old metrics port
+      exposure:
+        op: any
+        of:
+          - {op: values-key, path: logConfig.enabled, state: set}
+          - {op: values-key, path: settings.assumeRoleARN, state: set}
+          - {op: values-key, path: settings.assumeRoleDuration, state: set}
+          - {op: env-var, name: LOGGING_CONFIG, state: set}
+          - {op: env-var, name: ASSUME_ROLE_ARN, state: set}
+          - {op: env-var, name: LEADER_ELECT, state: set}
+      environmentEvidence: values.yaml#L5-L10
   expectedFindings:
     - id: F3
       match:

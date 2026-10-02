@@ -22,6 +22,14 @@ expected:
     evidence:
       - url: https://raw.githubusercontent.com/istio/istio.io/master/content/en/news/releases/1.24.x/announcing-1.24/upgrade-notes/index.md
         quote: "For upgrades to Istio 1.24.0 when using Ambient mode, with `cni.ambient.dnsCapture=true` configured, users will need to follow a specific set of upgrade steps … Failure to do so will result in DNS resolution failures."
+    semantics:
+      subject: {family: migration, product: istio, name: ambient-dns-capture-ordered-upgrade, component: istio-cni}
+      change: {type: migration-required}
+      consequence:
+        kind: migration-required
+        exposedClass: action-required
+        statement: ambient workloads lose DNS resolution unless the upgrade runs Istio CNI first, then restarts the ambient workloads, then upgrades ztunnel.
+        remediation: follow the ordered procedure (CNI → restart ambient workloads → ztunnel); restarting the workloads recovers
   # Change type covered: third-party interaction requiring a workaround.
   - id: E2
     title: cert-manager istio-csr (≤ v0.12.0) breaks against 1.24's stricter gRPC validation — set GRPC_ENFORCE_ALPN_ENABLED=false or upgrade istio-csr
@@ -33,7 +41,15 @@ expected:
       - text: '(?i)istio-csr|GRPC_ENFORCE_ALPN_ENABLED|ALPN'
     evidence:
       - url: https://raw.githubusercontent.com/istio/istio.io/master/content/en/news/releases/1.24.x/announcing-1.24/upgrade-notes/index.md
-        quote: "a popular third-party CA implementation, `istio-csr`, is [impacted] … there is not yet a released version with the fix at the time of writing (`v0.12.0` does not have the fix). This can be worked around in the meantime by installing Istio with the following settings: … GRPC_ENFORCE_ALPN_ENABLED: \"false\""
+        quote: 'While Istio''s control plane is not impacted by this, a popular third-party CA implementation, [`istio-csr`](https://github.com/cert-manager/istio-csr) is. … there is not yet a released version with the fix at the time of writing (`v0.12.0` does not have the fix). This can be worked around in the meantime by installing Istio with the following settings: … GRPC_ENFORCE_ALPN_ENABLED: "false"'   # verbatim since 2026-10-02 (eval/CHANGELOG.md)
+    semantics:
+      subject: {family: product-relationship, product: istio, name: istio-csr}
+      change: {type: requirement-changed, after: '>=0.13.0'}
+      consequence:
+        kind: workload-failure
+        exposedClass: action-required
+        statement: with istio-csr <= v0.12.0 as the CA, proxies fail the gRPC handshake to the CA ("missing selected ALPN property"), so workload certificates are not issued.
+        remediation: set meshConfig.defaultConfig.proxyMetadata.GRPC_ENFORCE_ALPN_ENABLED "false", or upgrade istio-csr to v0.13.0 (first release with the fix, cert-manager/istio-csr PR 422)
   # Change type covered: installation-channel replacement (chart removal).
   - id: E3
     title: istiod-remote Helm chart replaced by the remote profile of the istiod chart
@@ -46,6 +62,13 @@ expected:
     evidence:
       - url: https://raw.githubusercontent.com/istio/istio.io/master/content/en/news/releases/1.24.x/announcing-1.24/upgrade-notes/index.md
         quote: "The `istiod-remote` Helm chart has been merged with the regular `istio-discovery` Helm chart."
+    semantics:
+      subject: {family: migration, product: istio, name: istiod-remote-chart-to-remote-profile}
+      change: {type: migration-required}
+      consequence:
+        kind: migration-required
+        exposedClass: action-required
+        statement: remote/external-control-plane installs managed with the istiod-remote chart have no 1.24 chart to upgrade to; they must move to the istiod chart with profile=remote (and install istio-base).
   # Change type covered: CRD lifecycle change (Helm-managed CRDs).
   - id: E4
     title: Istio CRDs are templated and Helm-upgradable by default — out-of-band kubectl apply of CRDs no longer required (one-time label/annotation migration)
@@ -58,6 +81,13 @@ expected:
     evidence:
       - url: https://raw.githubusercontent.com/istio/istio.io/master/content/en/news/releases/1.24.x/announcing-1.24/upgrade-notes/index.md
         quote: "Istio CRDs are templated by default and can be installed and upgraded via `helm install istio-base` … after running the below kubectl commands as a one-time migration"
+    semantics:
+      subject: {family: helm-value, product: istio, path: base.enableCRDTemplates, name: base}
+      change: {type: default-changed, before: 'false', after: 'true'}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: the istio-base chart now templates the CRDs; CRDs that were applied out of band need the one-time Helm ownership labels/annotations before helm upgrade istio-base can manage them.
   # Change type covered: behavioural conflict-resolution change.
   - id: E5
     title: Sidecar scoping unified — same-hostname service and Route conflicts resolve differently; PILOT_UNIFIED_SIDECAR_SCOPE=false restores the old behavior
@@ -70,18 +100,41 @@ expected:
     evidence:
       - url: https://raw.githubusercontent.com/istio/istio.io/master/content/en/news/releases/1.24.x/announcing-1.24/upgrade-notes/index.md
         quote: "In this version, the behavior between the two has been unified … The old behavior can be retained, temporarily, by setting `PILOT_UNIFIED_SIDECAR_SCOPE=false`."
+    semantics:
+      subject: {family: protocol-behavior, product: istio, name: sidecar-scope-conflict-resolution, component: istiod}
+      change: {type: behavior-changed}
+      consequence:
+        kind: behavior-change
+        exposedClass: review-required
+        statement: with several services of the same hostname, or several Gateway API routes for one service, proxies may pick a different winner than before (the Sidecar and no-Sidecar rules are unified).
+        remediation: PILOT_UNIFIED_SIDECAR_SCOPE=false (or the 1.23 compatibility profile) restores the old behaviour temporarily
   # Change type covered: telemetry-API attribute standardization.
   - id: E6
     title: Telemetry API CEL expressions must use standard Envoy attributes — peer metadata moves from filter_state["wasm.*"] to filter_state.downstream_peer/upstream_peer
     kind: api
     importance: important
     actionRequired: true       # telemetry configurations using the old attributes stop producing values
-    classification: review-required
+    classification: action-required   # corrected 2026-10-01 from review-required (eval/CHANGELOG.md): upstream "must use"; the old attributes no longer hold the peer metadata
     match:
       - text: '(?i)filter_state|wasm\.downstream_peer|peer metadata'
     evidence:
       - url: https://raw.githubusercontent.com/istio/istio.io/master/content/en/news/releases/1.24.x/announcing-1.24/upgrade-notes/index.md
-        quote: "CEL expressions in the telemetry API must use the standard [Envoy attributes] instead of the custom Wasm extended attributes. Peer metadata is now stored in `filter_state.downstream_peer` and `filter_state.upstream_peer`"
+        quote: 'CEL expressions in the telemetry API must use the standard [Envoy attributes](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/advanced/attributes) instead of the custom Wasm extended attributes. … Peer metadata is now stored  in `filter_state.downstream_peer` and `filter_state.upstream_peer`'   # verbatim since 2026-10-02 (eval/CHANGELOG.md)
+    semantics:
+      - subject: {family: protocol-behavior, product: istio, name: 'cel-attribute filter_state["wasm.downstream_peer"]', component: telemetry-api}
+        change:
+          type: renamed
+          replacedBy: {family: protocol-behavior, product: istio, name: cel-attribute filter_state.downstream_peer, component: telemetry-api}
+        consequence: &istioE6
+          kind: setting-ignored
+          exposedClass: action-required
+          statement: Telemetry CEL expressions that read the Wasm peer attributes no longer resolve, so the metric tags they override stop carrying the peer values.
+          remediation: use filter_state.downstream_peer / filter_state.upstream_peer (or a has() fallback during mixed-version rollout)
+      - subject: {family: protocol-behavior, product: istio, name: 'cel-attribute filter_state["wasm.upstream_peer"]', component: telemetry-api}
+        change:
+          type: renamed
+          replacedBy: {family: protocol-behavior, product: istio, name: cel-attribute filter_state.upstream_peer, component: telemetry-api}
+        consequence: *istioE6
   # Change type covered: removal of a compatibility profile.
   - id: E7
     title: The 1.20 compatibilityProfile is removed (ENABLE_EXTERNAL_NAME_ALIAS and peers dropped from the profile mechanism)
@@ -94,6 +147,13 @@ expected:
     evidence:
       - url: https://raw.githubusercontent.com/istio/istio.io/master/content/en/news/releases/1.24.x/announcing-1.24/change-notes/index.md
         quote: "**Removed** support for the `1.20` `compatibilityProfile`."
+    semantics:
+      subject: {family: helm-value, product: istio, path: compatibilityVersion}
+      change: {type: validation-tightened, before: '"1.20"'}
+      consequence:
+        kind: setting-ignored
+        exposedClass: action-required
+        statement: installs that rely on compatibilityVersion 1.20 lose the 1.20 profile (and the settings it pinned, such as ENABLE_EXTERNAL_NAME_ALIAS).
 notExpected:
   - title: feature additions in the change notes are not upgrade work
     match: [{text: '(?i)\*\*Added\*\*|\*\*Improved\*\*'}]
@@ -109,12 +169,31 @@ environment:
     - expected: E1
       relevance: action-required
       why: the mesh runs ambient mode with cni.ambient.dnsCapture=true, so the ordered CNI → workloads → Ztunnel procedure is mandatory
+      exposure:
+        op: all
+        of:
+          - {op: values-key, path: cni.ambient.dnsCapture, state: equals, values: ['true']}
+          - {op: resource, kind: Namespace, of: [{op: field, path: 'metadata.labels["istio.io/dataplane-mode"]', state: equals, values: ['"ambient"']}]}
+      environmentEvidence: [values.yaml#L11-L13, manifests/telemetry.yaml#L2-L7]
     - expected: E2
       relevance: action-required
       why: istio-csr v0.12.0 is the CA integration; without the ALPN workaround or an istio-csr upgrade, gRPC to the control plane fails
+      exposure:
+        op: all
+        of:
+          - {op: product-version, name: istio-csr, state: out-of-range, range: '>=0.13.0'}
+          - op: not
+            of: [{op: values-key, path: meshConfig.defaultConfig.proxyMetadata.GRPC_ENFORCE_ALPN_ENABLED, state: equals, values: ['"false"']}]
+      environmentEvidence: [inventory.yaml#L2-L3, values.yaml#L5-L10]
     - expected: E6
-      relevance: review
-      why: the fixture's Telemetry CRs still use the legacy filter_state["wasm.*"] attributes, which stop resolving
+      relevance: action-required   # corrected 2026-10-01 from review (eval/CHANGELOG.md)
+      why: the fixture's Telemetry CR overrides peer_namespace with filter_state["wasm.downstream_peer"].namespace; 1.24 stores peer metadata in filter_state.downstream_peer instead, so the tag stops carrying the peer namespace unless the expression is rewritten
+      exposure:
+        op: resource
+        group: telemetry.istio.io
+        kind: Telemetry
+        of: [{op: field, path: 'spec.metrics[].overrides[].tagOverrides.*.value', state: matches, pattern: 'filter_state\["wasm\.(downstream|upstream)_peer"\]'}]
+      environmentEvidence: manifests/telemetry.yaml#L9-L21
   expectedFindings:
     - id: F1
       match:

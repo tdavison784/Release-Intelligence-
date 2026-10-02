@@ -1,0 +1,16 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: edge-connect
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: "3.9.0"
+  bootstrapServers: edge-kafka-kafka-bootstrap:9092
+  config:
+    group.id: edge-connect
+    offset.storage.topic: edge-connect-offsets
+    config.storage.topic: edge-connect-configs
+    status.storage.topic: edge-connect-status
+    config.providers: env
+    config.providers.env.class: io.strimzi.kafka.EnvVarConfigProvider

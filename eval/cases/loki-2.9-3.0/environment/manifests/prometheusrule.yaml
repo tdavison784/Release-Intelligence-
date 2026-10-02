@@ -1,0 +1,17 @@
+# Team-owned alert on Loki's ring health, evaluated by the Prometheus Operator.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: loki-ring
+  namespace: logging
+spec:
+  groups:
+    - name: loki-ring
+      rules:
+        - alert: LokiRingMemberUnhealthy
+          expr: sum by (name) (cortex_ring_members{job="logging/loki", state="Unhealthy"}) > 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: Loki ring {{ $labels.name }} has unhealthy members

@@ -1,0 +1,27 @@
+# Created in the Traefik v2.4 era and never migrated: still in the legacy
+# traefik.containo.us API group.
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: dashboard
+  namespace: traefik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`traefik.example.com`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+      kind: Rule
+      middlewares:
+        - name: dashboard-auth
+      services:
+        - name: api@internal
+          kind: TraefikService
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: dashboard-auth
+  namespace: traefik
+spec:
+  basicAuth:
+    secret: dashboard-users

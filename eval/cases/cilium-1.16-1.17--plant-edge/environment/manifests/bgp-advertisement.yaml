@@ -1,0 +1,65 @@
+# LoadBalancer IP announcement for the plant SCADA gateway: the site router
+# (10.60.255.1, ASN 64513) receives the LoadBalancer IP via the Cilium BGP
+# control plane. Shapes follow the v1.16.0 BGPv2 documentation examples
+# (Documentation/network/bgp-control-plane/bgp-control-plane-v2.rst).
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPClusterConfig
+metadata:
+  name: plant-edge-bgp
+spec:
+  nodeSelector:
+    matchLabels:
+      kubernetes.io/os: linux
+  bgpInstances:
+    - name: "instance-64512"
+      localASN: 64512
+      peers:
+        - name: "site-router"
+          peerASN: 64513
+          peerAddress: 10.60.255.1
+          peerConfigRef:
+            name: plant-peer
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeerConfig
+metadata:
+  name: plant-peer
+spec:
+  families:
+    - afi: ipv4
+      safi: unicast
+      advertisements:
+        matchLabels:
+          advertise: lb
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPAdvertisement
+metadata:
+  name: lb-ips
+  labels:
+    advertise: lb
+spec:
+  advertisements:
+    - advertisementType: "Service"
+      service:
+        addresses:
+          - LoadBalancerIP
+      selector:
+        matchExpressions:
+          - { key: expose, operator: In, values: [ bgp ] }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scada-gateway
+  namespace: scada
+  labels:
+    expose: bgp
+spec:
+  type: LoadBalancer
+  selector:
+    app: edge-gateway
+  ports:
+    - name: https
+      port: 443
+      targetPort: 8443

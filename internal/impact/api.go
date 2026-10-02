@@ -110,6 +110,16 @@ type Input struct {
 	Edge *domain.UpgradeEdge
 	Env  *env.Environment
 	Now  time.Time
+	// Facts is verified, release-level knowledge to evaluate against the
+	// environment (knowledge.go). Without facts Build is byte-identical to
+	// the knowledge-free join. Never model proposals: only facts.
+	Facts []domain.VerifiedFact
+	// MinVerification keeps only facts at or above this level
+	// (VerificationLevel.AtLeast); "" means human (deterministic ∪ human).
+	MinVerification domain.VerificationLevel
+	// Render evaluates rendered-change conditions (nil: render unavailable,
+	// such leaves are unknown).
+	Render RenderedChangeEvaluator
 }
 
 // Build assembles the ImpactReport. The result must pass

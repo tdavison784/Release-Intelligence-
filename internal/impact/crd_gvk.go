@@ -106,19 +106,24 @@ func plausibleVersion(s string) bool {
 func identityFromSchemaChange(c domain.Change) (id crdIdentity, ok bool) {
 	// Detail: "Fields no longer in the <group>/<version> schema of <name>
 	// are pruned from stored objects and rejected or dropped in manifests. …"
+	// — and the schema-attribute rules' "… changed in the <gv> schema of
+	// <name> (old → new; …", "…; a removed value …", ":\n…": the name is the
+	// token after " schema of ", ended by a space, ';', ':', '(' or newline.
 	if i := strings.Index(c.Detail, " in the "); i >= 0 {
 		rest := c.Detail[i+len(" in the "):]
-		if j := strings.Index(rest, " schema of "); j >= 0 {
+		if j := strings.Index(rest, " schema of "); j >= 0 && !strings.ContainsAny(rest[:j], "\n") {
 			gv := strings.TrimSpace(rest[:j])
 			tail := rest[j+len(" schema of "):]
-			if k := strings.Index(tail, " are pruned"); k >= 0 {
-				if name := strings.TrimSpace(tail[:k]); name != "" && !strings.ContainsAny(name, " \t/") {
-					group, version, hasGroup := strings.Cut(gv, "/")
-					if !hasGroup {
-						version, group = gv, "" // bare-version form; the name decides the group below
-					}
-					id.Name, id.Group, id.Version = name, group, version
+			end := strings.IndexAny(tail, " ;:(\n\t")
+			if end < 0 {
+				end = len(tail)
+			}
+			if name := strings.TrimRight(tail[:end], "."); name != "" && !strings.ContainsAny(gv, " \t") && !strings.Contains(name, "/") {
+				group, version, hasGroup := strings.Cut(gv, "/")
+				if !hasGroup {
+					version, group = gv, "" // bare-version form; the name decides the group below
 				}
+				id.Name, id.Group, id.Version = name, group, version
 			}
 		}
 	}
@@ -397,7 +402,7 @@ func (b *builder) crdRemoved(c domain.Change, toTag string) {
 	// runs). Manifests refine the verdict; both are recorded.
 	if !b.env.Supplied.CRDs {
 		checks := b.partialChecks([]domain.ImpactCheck{b.apiVersionsCheck(c.Subjects)}, b.env.Supplied.Manifests)
-		b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, c.ID,
+		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether the removed CRD affects you: installed CRDs were not supplied (%s)", c.Title),
 			"Applicability of a CRD removal is decided against the CustomResourceDefinitions your cluster actually has installed; without them the join cannot look.",
 			c, c.Evidence, checks, "installed CustomResourceDefinitions (--crds) not supplied")
@@ -418,7 +423,7 @@ func (b *builder) crdRemoved(c domain.Change, toTag string) {
 			}
 		}
 		if installed == nil && !ok {
-			b.verdict(RuleNotJoined, domain.ImpactUnknown, c.ID+":"+s,
+			b.unknown(domain.UnknownSemanticAmbiguity, RuleNotJoined, c.ID+":"+s,
 				fmt.Sprintf("Cannot tell whether the removed CRD affects you: %q does not name a CustomResourceDefinition", s),
 				"The subject carries no CRD name with an API group, so the join can neither check the installed CRDs nor scope manifest usage to a group/version/kind.",
 				c, c.Evidence, nil,
@@ -504,7 +509,7 @@ func (b *builder) crdRemoved(c domain.Change, toTag string) {
 func (b *builder) crdVersionGone(c domain.Change, toTag string) {
 	if !b.env.Supplied.CRDs {
 		checks := b.partialChecks([]domain.ImpactCheck{b.apiVersionsCheck(c.Subjects)}, b.env.Supplied.Manifests)
-		b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, c.ID,
+		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether the removed API version affects you: installed CRDs were not supplied (%s)", c.Title),
 			"Applicability is decided against the versions your installed CRDs declare and the apiVersions your manifests use; without the CRDs the join cannot look.",
 			c, c.Evidence, checks, "installed CustomResourceDefinitions (--crds) not supplied")
@@ -579,7 +584,7 @@ func (b *builder) crdVersionGone(c domain.Change, toTag string) {
 		}
 	}
 	if len(unparsed) > 0 {
-		b.verdict(RuleNotJoined, domain.ImpactUnknown, c.ID+":unparsed",
+		b.unknown(domain.UnknownSemanticAmbiguity, RuleNotJoined, c.ID+":unparsed",
 			fmt.Sprintf("Cannot tell whether the removed API version affects you: %s does not name name/version", codeList(unparsed, 3)),
 			"A version change is joined through its CRD name and API version; a subject without that shape cannot be scoped to a group/version/kind.",
 			c, c.Evidence, nil,
@@ -607,7 +612,7 @@ func (b *builder) crdVersionGone(c domain.Change, toTag string) {
 func (b *builder) crdVersionDeprecated(c domain.Change, toTag string) {
 	if !b.env.Supplied.CRDs {
 		checks := b.partialChecks([]domain.ImpactCheck{b.apiVersionsCheck(c.Subjects)}, b.env.Supplied.Manifests)
-		b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, c.ID,
+		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether the deprecated API version affects you: installed CRDs were not supplied (%s)", c.Title),
 			"Applicability is decided against the versions your installed CRDs declare and the apiVersions your manifests use; without the CRDs the join cannot look.",
 			c, c.Evidence, checks, "installed CustomResourceDefinitions (--crds) not supplied")
@@ -661,7 +666,7 @@ func (b *builder) crdVersionDeprecated(c domain.Change, toTag string) {
 		}
 	}
 	if len(unparsed) > 0 {
-		b.verdict(RuleNotJoined, domain.ImpactUnknown, c.ID+":unparsed",
+		b.unknown(domain.UnknownSemanticAmbiguity, RuleNotJoined, c.ID+":unparsed",
 			fmt.Sprintf("Cannot tell whether the deprecated API version affects you: %s does not name name/version", codeList(unparsed, 3)),
 			"A version change is joined through its CRD name and API version; a subject without that shape cannot be scoped to a group/version/kind.",
 			c, c.Evidence, nil,
@@ -692,7 +697,7 @@ func (b *builder) crdVersionDeprecated(c domain.Change, toTag string) {
 func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 	// deciding dimension: manifests (field paths are manifest facts).
 	if !b.env.Supplied.Manifests {
-		b.verdict(RuleInsufficientVisibility, domain.ImpactUnknown, c.ID,
+		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether the removed CRD field affects you: manifests were not supplied (%s)", c.Title),
 			"Applicability of a schema field removal is decided against the field paths your manifests actually set; without them the join cannot look.",
 			c, c.Evidence, nil, "Kubernetes manifests (--manifests) not supplied")
@@ -710,7 +715,7 @@ func (b *builder) crdFieldsRemoved(c domain.Change, toTag string) {
 		ok = true
 	}
 	if !ok {
-		b.verdict(RuleNotJoined, domain.ImpactUnknown, c.ID,
+		b.unknown(domain.UnknownSemanticAmbiguity, RuleNotJoined, c.ID,
 			fmt.Sprintf("Cannot tell whether the removed CRD fields affect you: the change does not identify the CRD (%s)", c.Title),
 			"The removed schema paths carry no group/version/kind, so matching them by path alone would flag every resource that sets a same-named path — a Deployment setting spec.foo is not a CRD impact. Check the paths against your manifests manually.",
 			c, c.Evidence, nil,

@@ -67,6 +67,24 @@ metric non-trivial.
 decisions enter and requires the AI provenance flags. `candidates|propose|validate` belong to the semantic and
 validate lanes.
 
+## Environment context and the transfer subset
+
+`ReviewItem.Context` is **absent** unless an environment was shown to the reviewer. When present, `Context.Label` is
+exactly the **eval case id** (the directory name under `eval/cases/`, e.g. `cert-manager-1.17-1.18`; no spaces or path
+separators) and `Context.Digest` optionally digests the environment shown. The eval's transfer subset compares the label
+with the case id for equality, and treats a missing context as "never reviewed with an environment".
+
+Whatever creates review items with environment context sets it, at creation: `RouteOptions.Environment` /
+`ri knowledge route -env-label <case-id> [-env-digest D]` stamp it on the items that call creates
+(`ValidateEnvironment` enforces the label shape); follow-up items created by `Queue.Decide` inherit the decided item's
+context (same reviewer session). Items default to environment-free, and `Context` cannot be added later: it is not
+one of the mutable fields, and the item id does not include it, so the first creation of an item fixes its context.
+The dashboard must not invent contexts.
+
+Integrity: this is the one place a case id may appear under `knowledge/` — the integrity test exempts
+`reviewItem.context` (it names the environment shown, not what the case expects) and still fails on a case id anywhere
+else.
+
 ## Integrity
 
 `integrity_test.go` fails if any file under `knowledge/` mentions `eval/cases`, expectation blocks, or an eval case

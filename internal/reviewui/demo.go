@@ -132,6 +132,7 @@ func (q *DemoQueue) Inbox(_ context.Context, f knowledge.InboxFilter) (*knowledg
 	sort.SliceStable(in.Items, func(i, j int) bool {
 		return rank[in.Items[i].Item.Routing.Priority] < rank[in.Items[j].Item.Routing.Priority]
 	})
+	in.Matches = len(in.Items)
 	if f.Limit > 0 && len(in.Items) > f.Limit {
 		in.Items = in.Items[:f.Limit]
 	}
@@ -142,12 +143,15 @@ func (q *DemoQueue) row(it domain.ReviewItem) knowledge.InboxRow {
 	props := q.proposalsOf(it)
 	row := knowledge.InboxRow{Item: it, Title: q.candidates[it.CandidateID].Title}
 	seen := map[string]bool{}
+	calls := map[string]bool{}
 	for _, p := range props {
+		calls[p.Provenance.CallID] = true
 		if !seen[p.Provenance.Model] {
 			seen[p.Provenance.Model] = true
 			row.Models = append(row.Models, p.Provenance.Model)
 		}
 	}
+	row.Calls = len(calls)
 	for _, a := range Agreement(props) {
 		if len(a.Groups) >= 2 {
 			row.Disagreement = true
@@ -313,7 +317,10 @@ func (q *DemoQueue) Decide(_ context.Context, ds []domain.ReviewDecision) ([]kno
 // DemoEpoch is the fixed time of the fixtures (they are deterministic).
 var DemoEpoch = time.Date(2026, 10, 1, 9, 0, 0, 0, time.UTC)
 
-type demoBuilder struct{ q *DemoQueue }
+type demoBuilder struct {
+	q     *DemoQueue
+	calls *int
+}
 
 func str(s string) *string { return &s }
 
@@ -331,13 +338,15 @@ func NewDemoQueue() *DemoQueue {
 		envs:        map[string]*domain.EnvironmentContext{},
 		renders:     map[string]*RenderedDelta{},
 	}
-	b := demoBuilder{q}
+	n := 0
+	b := demoBuilder{q, &n}
 	b.rotationPolicy()
 	b.http01()
 	b.mapping()
 	b.insufficient()
 	b.deferred()
 	b.decided()
+	b.consensusAction()
 	b.routine()
 	return q
 }
@@ -362,13 +371,14 @@ func (b demoBuilder) proposal(c domain.SemanticCandidate, task domain.ProposalTa
 	for _, e := range c.Evidence {
 		input = append(input, e.ID)
 	}
+	*b.calls++
 	p := domain.SemanticProposal{
 		CandidateID: c.ID, Task: task, Provider: provider, Assertion: a, Undetermined: undetermined,
 		UndeterminedReason: reason, SuggestedClass: class,
 		Provenance: domain.Provenance{Method: domain.MethodAI, Producer: "semantic.propose@v1", Confidence: conf,
 			Model: model, ModelVersion: model + "-2026-09", PromptVersion: "semantic/v1", PromptDigest: "sha256:" + domain.ShortHash(model, c.ID),
-			CallID:        "call-" + domain.ShortHash(model, string(task), c.ID), // PO-1: each demo proposal is its own call
-			InputEvidence: input, GeneratedAt: &at},
+			InputEvidence: input, GeneratedAt: &at,
+			CallID: fmt.Sprintf("call-%s-%03d", model, *b.calls)}, // each proposal is its own stateless call
 	}
 	if !a.Empty() {
 		p.Citations = []domain.EvidenceID{c.Evidence[0].ID}
@@ -586,7 +596,16 @@ func (b demoBuilder) routine() {
 			Change:  &domain.ChangeSpec{Type: domain.ChangeKindDefaultChanged, Before: str(r.before), After: str(r.after)},
 		}
 		p1 := b.proposal(c, domain.TaskSemanticMapping, "anthropic", "claude-opus-5-5", domain.ConfidenceMedium, a, nil, "", "")
-		p2 := b.proposal(c, domain.TaskSemanticMapping, "anthropic", "claude-sonnet-5-5", domain.ConfidenceMedium, a, nil, "", "")
+		// who answers second: a different family (cross-model consensus), the
+		// same family (opus + sonnet) or a second separate call of the same model
+		second, provider := "claude-sonnet-5-5", "anthropic"
+		switch r.flag {
+		case "txt-prefix":
+			second = "claude-opus-5-5"
+		case "acme-http01-solver-nameservers", "max-concurrent-challenges", "default-ssl-certificate":
+			second, provider = "glm-5.3-flash", "zai"
+		}
+		p2 := b.proposal(c, domain.TaskSemanticMapping, provider, second, domain.ConfidenceMedium, a, nil, "", "")
 		v := b.validation(c, "semvalidate.flag@v1", &p1, a, []domain.AspectCheck{
 			{Aspect: domain.AspectSubject, Outcome: domain.OutcomeConfirmed, Rule: "cli:flag-listed"},
 			{Aspect: domain.AspectChange, Outcome: domain.OutcomeInconclusive, Rule: "cli:default"},
@@ -596,4 +615,30 @@ func (b demoBuilder) routine() {
 			domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityNormal, Signals: []domain.RoutingSignal{domain.SignalModelsAgree}},
 			domain.ReviewPending, nil)
 	}
+}
+
+// consensusAction is an audit item for a PO-2 fact: two separate calls of
+// different models agree on an action-eligible consequence and both requested
+// action-required. (The fact itself is minted by routing; every such fact is
+// sampled into human review, and this is that review item.)
+func (b demoBuilder) consensusAction() {
+	up := domain.NewEvidence(domain.EvidenceDocument, "notes", "https://github.com/cert-manager/cert-manager/releases/tag/v1.18.0", "## Breaking changes",
+		"Certificates whose private key is RSA smaller than 2048 bits are now rejected by the webhook.", "sha256:rsa118", DemoEpoch)
+	c := b.candidate("cert-manager", "v1.18.0", "RSA keys below 2048 bits are rejected", "Webhook rejects small RSA keys.", up)
+	a := domain.SemanticAssertion{
+		Subject: &domain.Subject{Family: domain.SubjectCRDField, Product: "cert-manager", Group: "cert-manager.io", Kind: "Certificate", Path: "spec.privateKey.size"},
+		Change:  &domain.ChangeSpec{Type: domain.ChangeKindValidationTightened},
+		Applicability: &domain.Applicability{Exposure: certs(
+			domain.Condition{Op: domain.OpField, Path: "spec.privateKey.algorithm", State: domain.StateEquals, Values: []string{`"RSA"`}},
+			domain.Condition{Op: domain.OpField, Path: "spec.privateKey.size", State: domain.StateEquals, Values: []string{`1024`}})},
+		Consequence: &domain.Consequence{Kind: domain.ConsequenceResourceRejected, ExposedClass: domain.ImpactActionRequired,
+			Statement: "Applying a Certificate with an RSA key below 2048 bits is rejected by the webhook.", Remediation: "Raise spec.privateKey.size to 2048 or more.", Severity: domain.SeverityHigh},
+		Statement: "Certificate.spec.privateKey.size below 2048 (RSA) is rejected",
+	}
+	p1 := b.proposal(c, domain.TaskFull, "anthropic", "claude-opus-5-5", domain.ConfidenceMedium, a, nil, "", domain.ImpactActionRequired)
+	p2 := b.proposal(c, domain.TaskFull, "zai", "glm-5.3-flash", domain.ConfidenceMedium, a, nil, "", domain.ImpactActionRequired)
+	b.item(c, domain.QuestionConsequence, "Audit: two separate model calls agree this is ACTION REQUIRED. Is a Certificate with an RSA key below 2048 bits really rejected, and is that action-eligible?",
+		a, []domain.SemanticProposal{p1, p2}, nil,
+		domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityHigh, Signals: []domain.RoutingSignal{domain.SignalModelsAgree, domain.SignalHighImpact}},
+		domain.ReviewPending, nil)
 }

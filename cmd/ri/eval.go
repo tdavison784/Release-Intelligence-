@@ -29,6 +29,10 @@ func (p appPipeline) Impact(ctx context.Context, product, from, to string, input
 	return p.a.Impact(ctx, product, from, to, app.ImpactOptions{Environment: inputs})
 }
 
+func (p appPipeline) ImpactWithKnowledge(ctx context.Context, product, from, to string, inputs env.Inputs, facts []domain.VerifiedFact, min domain.VerificationLevel) (*domain.ImpactReport, error) {
+	return p.a.Impact(ctx, product, from, to, app.ImpactOptions{Environment: inputs, Facts: facts, MinVerification: min})
+}
+
 func (p appPipeline) EnrichedImpact(ctx context.Context, product, from, to string, inputs env.Inputs) (*domain.ImpactReport, error) {
 	rep, edge, e, err := p.a.ImpactParts(ctx, product, from, to, app.ImpactOptions{Environment: inputs})
 	if err != nil {
@@ -55,6 +59,8 @@ func (c *cli) eval(args []string) error {
 	enrichedEnvDir := fs.String("enriched-env", "internal/app/testdata/e2e/env/cert-manager", "environment inputs for -enriched, spelled exactly as the recording harness passed them (paths are part of the prompt digest)")
 	enrichedKubernetes := fs.String("enriched-kubernetes", "1.28", "cluster version for -enriched-env (the recorded fixture's)")
 	model := fs.String("model", "glm-5.3-flash", "model requested for -enriched (part of the prompt digest; the fixtures were recorded from this one)")
+	knowledgeDir := fs.String("knowledge", "", "directory of verified knowledge: run the dataset once per verification level (none, deterministic, human, consensus, proxy) and report each separately, with the transfer subset")
+	minVerification := fs.String("min-verification", "", "with -knowledge: the level whose results, aggregate and gates are reported as the run's own (default human, the gate level)")
 	pos, err := parse(fs, args)
 	if err != nil {
 		return err
@@ -110,8 +116,40 @@ func (c *cli) eval(args []string) error {
 	if err != nil {
 		return err
 	}
-	results := r.Run(c.ctx, cases)
-	rep := eval.Report{Results: results, Aggregate: eval.AggregateResults(results)}
+	var results, baseline []eval.EntryResult
+	var levels []eval.LevelReport
+	var knowledgeWarnings []string
+	if *knowledgeDir != "" {
+		if *update {
+			return fmt.Errorf("%w: -update stores the knowledge-free baseline; run it without -knowledge", app.ErrUsage)
+		}
+		lvl, err := app.ParseVerificationLevel(*minVerification)
+		if err != nil {
+			return err
+		}
+		ks, err := app.LoadKnowledge(*knowledgeDir)
+		if err != nil {
+			return err
+		}
+		knowledgeWarnings = ks.Warnings
+		for _, lr := range r.RunLevels(c.ctx, cases, ks.Facts, ks.Contexts) {
+			rep := lr.Report
+			rep.Gate = rep.Level == string(lvl) // the gates below are evaluated on this level
+			levels = append(levels, rep)
+			switch lr.Report.Level {
+			case eval.LevelNone:
+				baseline = lr.Results
+			case string(lvl):
+				results = lr.Results
+			}
+		}
+	} else if *minVerification != "" {
+		return fmt.Errorf("%w: -min-verification needs -knowledge", app.ErrUsage)
+	} else {
+		results = r.Run(c.ctx, cases)
+		baseline = results
+	}
+	rep := eval.Report{Results: results, Aggregate: eval.AggregateResults(results), Levels: levels, KnowledgeWarnings: knowledgeWarnings}
 	rep.Gates = eval.EvaluateGates(gates, rep.Aggregate)
 
 	// -update rewrites the stored snapshot of every (selected) entry after
@@ -125,10 +163,13 @@ func (c *cli) eval(args []string) error {
 		fmt.Fprintf(c.err, "updated stored results for %d entries under %s/%s\n", len(results), *dataset, eval.ResultsDirName)
 	}
 
-	// Compare against stored snapshots (skip when updating).
+	// Compare against stored snapshots (skip when updating). The stored
+	// results are the knowledge-free baseline, so with -knowledge the
+	// comparison uses the "none" level: knowledge never masks a regression of
+	// the deterministic pipeline, and its own effect is the levels panel.
 	if !*update {
-		for i := range results {
-			stored, err := eval.LoadStored(*dataset, results[i].CaseID)
+		for i := range baseline {
+			stored, err := eval.LoadStored(*dataset, baseline[i].CaseID)
 			if err != nil {
 				return err
 			}
@@ -136,7 +177,7 @@ func (c *cli) eval(args []string) error {
 				continue
 			}
 			rep.Compared = true
-			rep.Diffs = append(rep.Diffs, eval.Diff(*stored, results[i])...)
+			rep.Diffs = append(rep.Diffs, eval.Diff(*stored, baseline[i])...)
 		}
 	}
 

@@ -42,3 +42,8 @@
 - Policies: `AutoApproveRenderVerifiable` (now requires subject+change `confirmed-by-render`), `AutoApproveConsensusAction`, `CombinePolicies`, `DefaultAutoApprove` (used by `ri knowledge route`). `RouteWith` honours a policy only if it completes all four aspects.
 - `AuditRequired` = ConsensusAction || (auto-approved ∧ action-eligible): always audited. Metrics: `ConsensusAgreementByScope`, `ConsensusAction{,Audited,Agreement}` from audit decisions; report prints them.
 - Not done here (other lanes): ladder/eval per-level `falseActionRate`/`actionFindingEvidence` (applicability), NOT AFFECTED stays trusted-only (impact/domain).
+
+## knowledge-4: environment context (transfer subset)
+- `ReviewItem.Context.Label` = eval case id exactly, absent when no environment was shown (docs/KNOWLEDGE.md). Set via `RouteOptions.Environment` / `ri knowledge route -env-label`; follow-ups inherit; immutable after creation.
+- Integrity test now exempts `reviewItem.context` only (a case id there is the transfer key); case ids anywhere else still fail. Flagging this as a deliberate relaxation.
+- `ri knowledge candidates|propose` still print "not wired": waiting for the semantic lane merge.

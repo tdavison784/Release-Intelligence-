@@ -37,6 +37,8 @@ func (c *cli) impact(args []string) error {
 	policy := fs.String("policy", "", "path policy override: minor-lineage|all")
 	showNotAffected := fs.Bool("show-not-affected", false, "also list the not-affected verdicts with their evaluation records (the summary always counts them)")
 	showUnknown := fs.Bool("show-unknown", false, "list every UNKNOWN finding instead of the collapsed per-reason summary (the summary always counts them; JSON always carries everything)")
+	knowledgeDir := fs.String("knowledge", "", "directory of verified knowledge (the knowledge/ record tree): facts are evaluated against the environment (impact:knowledge-* findings)")
+	minVerification := fs.String("min-verification", "", "with -knowledge: use facts verified at least at this level: deterministic|human|consensus|proxy (default human; consensus and proxy facts never clear a change)")
 	ef := enrichFlagsFor("impact", fs)
 	pos, err := parse(fs, args)
 	if err != nil {
@@ -59,6 +61,22 @@ func (c *cli) impact(args []string) error {
 	in.Environment.Images, err = imageList(*images)
 	if err != nil {
 		return err
+	}
+	if *knowledgeDir != "" {
+		lvl, err := app.ParseVerificationLevel(*minVerification)
+		if err != nil {
+			return err
+		}
+		ks, err := app.LoadKnowledge(*knowledgeDir)
+		if err != nil {
+			return err
+		}
+		for _, w := range ks.Warnings {
+			fmt.Fprintf(c.err, "knowledge: %s\n", w)
+		}
+		in.Facts, in.MinVerification = ks.Facts, lvl
+	} else if *minVerification != "" {
+		return fmt.Errorf("%w: -min-verification needs -knowledge", app.ErrUsage)
 	}
 	a, err := c.newApp()
 	if err != nil {

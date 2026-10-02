@@ -1,0 +1,44 @@
+# PolicyExceptions owned by the application teams, each kept in the team's
+# own namespace (not in a dedicated exceptions namespace). Written against
+# kyverno.io/v2beta1, the storage version served by v1.12.6.
+apiVersion: kyverno.io/v2beta1
+kind: PolicyException
+metadata:
+  name: ebpf-exporter-privileged
+  namespace: monitoring
+spec:
+  exceptions:
+    - policyName: disallow-privileged-containers
+      ruleNames:
+        - privileged-containers
+        - autogen-privileged-containers
+  match:
+    any:
+      - resources:
+          kinds:
+            - DaemonSet
+            - Pod
+          namespaces:
+            - monitoring
+          names:
+            - ebpf-exporter*
+---
+apiVersion: kyverno.io/v2beta1
+kind: PolicyException
+metadata:
+  name: ingress-nginx-team-label
+  namespace: ingress-nginx
+spec:
+  exceptions:
+    - policyName: require-team-label
+      ruleNames:
+        - check-team-label
+  match:
+    any:
+      - resources:
+          kinds:
+            - Deployment
+          namespaces:
+            - ingress-nginx
+          names:
+            - ingress-nginx-controller

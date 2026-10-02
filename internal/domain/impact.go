@@ -101,10 +101,16 @@ const (
 	// from the environment), consulted by product-version conditions of
 	// verified knowledge.
 	DimensionProducts EnvironmentDimension = "products"
+	// DimensionFromVersion: the version the environment runs today, as
+	// supplied to `ri impact <product> <from> <to>` (edge-from-version
+	// conditions of verified knowledge). Always supplied.
+	// CONTRACT-CHANGE(applicability): a false edge-from-version leaf needs a
+	// check, and no other dimension names the from-version input.
+	DimensionFromVersion EnvironmentDimension = "from-version"
 )
 
 // AllEnvironmentDimensions lists every dimension in display order.
-var AllEnvironmentDimensions = []EnvironmentDimension{DimensionValues, DimensionManifests, DimensionCRDs, DimensionImages, DimensionCluster, DimensionProducts}
+var AllEnvironmentDimensions = []EnvironmentDimension{DimensionValues, DimensionManifests, DimensionCRDs, DimensionImages, DimensionCluster, DimensionProducts, DimensionFromVersion}
 
 // ImpactCheck is one entry of a NOT AFFECTED (or partially-evaluated UNKNOWN)
 // evaluation record: which environment dimension was consulted, how many
@@ -136,6 +142,17 @@ const (
 	MatchManifestField ImpactMatchKind = "manifest-field" // a field path set in a manifest
 	MatchImage         ImpactMatchKind = "image"          // a container image reference in use
 	MatchKubernetes    ImpactMatchKind = "kubernetes"     // the cluster Kubernetes version
+	// CONTRACT-CHANGE(applicability): match kinds of findings evaluated from
+	// verified knowledge (internal/impact condition evaluation).
+	MatchProduct     ImpactMatchKind = "product"      // a product-inventory entry (product + version)
+	MatchTextLine    ImpactMatchKind = "text-line"    // a line of embedded text (ConfigMap data, a multi-line string)
+	MatchReference   ImpactMatchKind = "reference"    // a resolved *Ref reference between two resources
+	MatchFromVersion ImpactMatchKind = "from-version" // the version the environment runs today (the edge's from)
+	// MatchAbsence is an examined environment record that proves something
+	// is NOT stated: a resource that leaves a field unset, a values file that
+	// does not set a key, a text block none of whose lines match. Only ever
+	// produced from a supplied, healthy dimension.
+	MatchAbsence ImpactMatchKind = "absence"
 )
 
 // ImpactMatch is one environment fact that made a finding fire: what matched
@@ -541,6 +558,11 @@ func (f ImpactFinding) validateKnowledge() []error {
 			bad("unknownReason is unknown-only, class is %q", f.Classification)
 		}
 	}
+	// CONTRACT-CHANGE(applicability): mandatory now that the join assigns a
+	// reason to every unknown verdict (DESIGN.md §1.5).
+	if f.Classification == ImpactUnknown && f.UnknownReason == "" {
+		bad("an unknown finding must say why it is unknown (unknownReason)")
+	}
 	knowledgeRule := strings.HasPrefix(f.Rule, KnowledgeRulePrefix)
 	if knowledgeRule != (f.Knowledge != nil) {
 		bad("a knowledge reference is carried exactly by %s* rules", KnowledgeRulePrefix)
@@ -548,6 +570,26 @@ func (f ImpactFinding) validateKnowledge() []error {
 	k := f.Knowledge
 	if k == nil {
 		return errs
+	}
+	// CONTRACT-CHANGE(applicability): each knowledge rule carries exactly its
+	// class(es) (DESIGN.md §4): exposed → affected, overlap → informational,
+	// clear → not-affected, undecided → unknown.
+	ruleClasses := map[string][]ImpactClass{
+		KnowledgeRulePrefix + "exposed":   {ImpactActionRequired, ImpactReviewRequired, ImpactInformational},
+		KnowledgeRulePrefix + "overlap":   {ImpactInformational},
+		KnowledgeRulePrefix + "clear":     {ImpactNotAffected},
+		KnowledgeRulePrefix + "undecided": {ImpactUnknown},
+	}
+	if want, ok := ruleClasses[f.Rule]; !ok {
+		bad("unknown knowledge rule %q", f.Rule)
+	} else {
+		fits := false
+		for _, c := range want {
+			fits = fits || c == f.Classification
+		}
+		if !fits {
+			bad("rule %s cannot carry class %q", f.Rule, f.Classification)
+		}
 	}
 	if !strings.HasPrefix(k.Fact, FactIDPrefix) {
 		bad("knowledge fact %q lacks the %s prefix", k.Fact, FactIDPrefix)

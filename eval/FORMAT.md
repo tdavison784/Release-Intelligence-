@@ -17,7 +17,9 @@ eval/cases/<case-id>/
     images.txt       #   optional mirror list, one image ref per line
     inventory.yaml   #   optional product inventory: list of {product, version, note?};
                      #   only facts already stated in case.yaml's environment.description
-                     #   (or NOTES.md), each entry citing the sentence in a comment
+                     #   (or NOTES.md), each entry citing the sentence in a comment;
+                     #   the form {complete: true, products: [...]} declares that
+                     #   nothing else runs there (only when the sources say so)
 eval/results/        # stored results (snapshots), committed after review;
                      # `ri eval -update` rewrites them, tools never touch
                      # case.yaml
@@ -110,6 +112,111 @@ same reason (the join consumes installed CRDs).
 `expectedImpact` with `relevance: not-affected` asserts the opposite: no
 finding may join a change covering that item.
 
+## Semantic labels (G22) and undecided links
+
+Added for the learning loop (docs/phase3/learning-loop/DESIGN.md §9). All of
+it is optional and additive; the existing scoring is unchanged. Labels are
+authored **blind from upstream sources** (never from pipeline output), and
+they are **never read by knowledge authoring** — they score the semantic
+stage (per-model subject / change / applicability accuracy, G15) and the
+transfer of verified facts (G12).
+
+Per expected item, `semantics:` (one mapping, or a list when one upstream
+item bundles several subjects):
+
+```yaml
+  - id: E1
+    # … the usual fields …
+    semantics:
+      subject: {family: crd-field, product: cert-manager, group: cert-manager.io, kind: Certificate, path: spec.privateKey.rotationPolicy}
+      change: {type: default-changed, before: '"Never"', after: '"Always"'}
+      consequence: {kind: behavior-change, exposedClass: review-required, statement: "…"}
+      note: optional one-line judgement (the rationale belongs in NOTES.md)
+```
+
+Per `expectedImpact` link, the applicability condition for THIS environment
+and the fixture evidence that decides it:
+
+```yaml
+    - expected: E1
+      relevance: review
+      why: …
+      exposure:                      # domain condition language, verbatim (DESIGN.md §1.3)
+        op: resource
+        group: cert-manager.io
+        kind: Certificate
+        of: [{op: field, path: spec.privateKey.rotationPolicy, state: unset}]
+      overlap: {…}                   # optional: touches the subject but shielded (→ informational)
+      environmentEvidence: manifests/certificate.yaml#L7-L18   # or a list
+```
+
+Links whose honest answer is UNKNOWN (the fixture lacks or withholds the
+deciding input) go to `environment.undecidedImpact`, never to
+`expectedImpact`:
+
+```yaml
+  undecidedImpact:
+    - expected: E3
+      reason: environment-visibility-gap   # a domain UnknownReason
+      needed: the argocd-cm ConfigMap (resource.exclusions override)
+      why: …
+      exposure: {…}                        # optional
+      environmentEvidence: [manifests/]    # optional: what was examined
+```
+
+Rules (enforced at load time):
+
+- Field names are the domain JSON names (`replacedBy`, `exposedClass`, …) and
+  the blocks decode **strictly** into `domain.Subject` / `ChangeSpec` /
+  `Consequence` / `Condition`: an unknown key is an error, and each block
+  must pass the domain `Validate()` (one spelling per subject family, the
+  class follows the consequence kind, scoped leaves only inside a scope, …).
+  `before` / `after` / `values` are JSON-encoded strings: write `'"Never"'`,
+  `'"30"'` or `'30'`, never a bare number.
+- A label is complete: `subject`, `change` and `consequence` are all
+  required, and subjects belong to the case's own product (other products
+  appear through `product-relationship` / conditions).
+- A link with `exposure` requires the item's `semantics` and at least one
+  `environmentEvidence` locator: `<path under environment/>[#L<n>[-L<m>]]`
+  (the file, and the lines, must exist), or `environment.kubernetes` (the
+  declared cluster version) / `from` (the edge's from-version, what runs
+  today).
+- An expected item is linked at most once per environment (decided or
+  undecided).
+- `undecidedImpact` links are **recorded, not scored**: counting them in
+  `applicabilityAccuracy` (correct = no affected and no not-affected finding
+  joins the item) is a scoring change and must be pre-registered first.
+
+## Transfer environments (G12)
+
+A verified release-level fact must carry over to other clusters without
+re-review. To measure that, a case can have **transfer cases**: sibling
+directories whose `case.yaml` declares `transferOf: <base-case-id>` and only
+an environment — a second, independently authored cluster for the same
+transition (some links affected, some not, some undecided):
+
+```yaml
+id: cert-manager-1.17-1.18--edge-cluster
+transferOf: cert-manager-1.17-1.18
+researchedAt: "2026-10-01"
+sources: [ … fixture grounding only … ]
+environment:
+  description: …
+  expectedImpact: [ … ]
+  undecidedImpact: [ … ]
+```
+
+Product, from/to, `expected` and `notExpected` are inherited from the base
+case at load time and must not be restated (one copy of every expected item
+and its `semantics`). The runner runs the impact join against the transfer
+environment, and the entry contributes **only environment numbers**
+(links, findings, confusion cells, action/unknown accounting) — the shared
+edge is scored once, by the base entry. Adjudications of the base case
+apply. This was chosen over a second `environment:` block per case because
+it needs no change to the edge scoring, gives every environment its own
+entry id (the environment context label the transfer subset is computed
+from) and its own stored result.
+
 ## Vocabulary
 
 - `kind` values (open set, but the evaluator enforces the known ones so
@@ -126,6 +233,7 @@ finding may join a change covering that item.
 ## Loading rules the evaluator enforces
 
 - ids unique, kinds/importances/relevances known, every regex compiles,
+  semantic labels and conditions valid (see "Semantic labels"),
   every expected item has at least one matcher (an unmatchable expectation
   can never be found and would silently inflate the miss count),
   every expected item carries at least one evidence citation,
@@ -145,7 +253,11 @@ pipeline output.
 ## Expected classifications (G9)
 
 `expected[].classification` states the class a correct system should output
-for the item (five-class vocabulary: `action-required`, `review-required`,
+for the item (in a case with an environment, the class for THAT environment —
+the scorer compares it with the class observed there, so a linked item's
+classification matches its link: action-required ↔ action-required, review ↔
+review-required, informational ↔ informational, not-affected ↔ not-affected,
+undecidedImpact ↔ unknown; transfer cases do not score item classes) (five-class vocabulary: `action-required`, `review-required`,
 `informational`, `not-affected`, `unknown`). It is optional — cases predating
 it score on presence only — but new cases should declare it whenever the
 fixture can defend the claim. `notExpected[].classification` and

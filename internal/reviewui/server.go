@@ -40,6 +40,10 @@ type Options struct {
 	// DefaultReviewer pre-fills the reviewer name (never assumed: the reviewer
 	// must still be present on every decision).
 	DefaultReviewer string
+	// Demo marks the data as fixtures: every page carries a persistent
+	// "DEMO DATA" banner and fixture excerpts are tagged, so invented text
+	// next to real-looking URLs is never mistaken for upstream evidence.
+	Demo bool
 	// InboxLimit caps the inbox rows (default 200).
 	InboxLimit int
 	// Logf receives server-side problems (default log.Printf).
@@ -86,7 +90,9 @@ func NewServer(q knowledge.Queue, opts Options) http.Handler {
 		opts.Logf = log.Printf
 	}
 	s := &server{q: q, opts: opts, sessions: map[string]*session{}, mux: http.NewServeMux()}
-	s.tpl = template.Must(template.New("").Funcs(funcs()).ParseFS(templateFS, "templates/*.html"))
+	fm := funcs()
+	fm["demo"] = func() bool { return opts.Demo }
+	s.tpl = template.Must(template.New("").Funcs(fm).ParseFS(templateFS, "templates/*.html"))
 	static, _ := fs.Sub(staticFS, "static")
 	s.mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(static)))
 	s.mux.HandleFunc("GET /{$}", s.inbox)
@@ -251,8 +257,13 @@ func (s *server) inbox(w http.ResponseWriter, r *http.Request) {
 	v := inboxView{
 		Filter: form, Counts: in.Counts, Tiles: tiles(in.Counts), Flashes: s.takeFlashes(ss),
 		Reviewer: reviewer, Started: s.opts.Now().UTC().Format(time.RFC3339Nano),
-		Return: r.URL.RequestURI(), Total: len(in.Items),
+		Return: r.URL.RequestURI(), Total: len(in.Items), Matches: in.Matches,
 		Enums: enums(),
+	}
+	// a Queue implementor that ignores Matches (zero) must not make the page
+	// claim truncation
+	if v.Matches < v.Total {
+		v.Matches = v.Total
 	}
 	for _, row := range in.Items {
 		v.Rows = append(v.Rows, newRowView(row, r.URL.RequestURI()))

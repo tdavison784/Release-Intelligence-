@@ -1,0 +1,49 @@
+# Scrape configuration objects selected by Prometheus "k8s" (team=platform).
+# The ScrapeConfig only uses staticConfigs: no Eureka, Kuma or Hetzner
+# service discovery.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-gateway
+  namespace: apps
+  labels:
+    team: platform
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+  endpoints:
+    - port: metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: batch-workers
+  namespace: apps
+  labels:
+    team: platform
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: batch-worker
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 60s
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: legacy-vms
+  namespace: monitoring
+  labels:
+    team: platform
+spec:
+  staticConfigs:
+    - labels:
+        job: legacy-vms
+      targets:
+        - 10.20.0.11:9100
+        - 10.20.0.12:9100
+  metricsPath: /metrics
+  scrapeInterval: 60s

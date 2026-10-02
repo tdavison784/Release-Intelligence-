@@ -363,3 +363,29 @@ func TestHintsFromCatalog(t *testing.T) {
 		t.Error("nil catalog yields hints")
 	}
 }
+
+func TestInventoryCompleteDeclaration(t *testing.T) {
+	inv := writeTemp(t, "inventory.yaml", "complete: true\nproducts:\n  - product: ingress-nginx\n    version: v1.12.1\n")
+	e, err := Load(Inputs{Inventory: inv})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !e.InventoryComplete || len(e.InventoryCompleteEvidence) != 1 || e.Health(DimProducts) != HealthOK {
+		t.Fatalf("complete declaration not recorded: complete=%v evidence=%v health=%s", e.InventoryComplete, e.InventoryCompleteEvidence, e.Health(DimProducts))
+	}
+	if p, ok := e.Product("ingress-nginx"); !ok || p.Version != "1.12.1" {
+		t.Errorf("products of the mapping form not read: %+v", p)
+	}
+	// the list form is never complete; complete: false neither
+	for _, body := range []string{"- product: cilium\n  version: 1.16.1\n", "complete: false\nproducts:\n  - product: cilium\n    version: 1.16.1\n"} {
+		e, err := Load(Inputs{Inventory: writeTemp(t, "inventory.yaml", body)})
+		if err != nil || e.InventoryComplete {
+			t.Errorf("%q: complete=%v err=%v, want not complete", body, e.InventoryComplete, err)
+		}
+	}
+	// a malformed declaration is a warning and not complete
+	e, err = Load(Inputs{Inventory: writeTemp(t, "inventory.yaml", "complete: yes-ish\nproducts: []\n")})
+	if err != nil || e.InventoryComplete || e.Health(DimProducts) != HealthPartial {
+		t.Errorf("malformed complete: complete=%v health=%s err=%v", e.InventoryComplete, e.Health(DimProducts), err)
+	}
+}

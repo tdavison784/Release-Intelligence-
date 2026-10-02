@@ -58,3 +58,51 @@ func TestDatasetEntrySelectionLoads(t *testing.T) {
 		t.Error("unknown entry must fail")
 	}
 }
+
+// TestDatasetLabelConsistency keeps the G22 labels coherent: in a case with
+// an environment, a linked item's classification is the class for that
+// environment (the scorer compares the two), an undecided link's item is
+// classified unknown, and an affected link's relevance is the class one of the
+// item's consequences gives an exposed environment (informational may come
+// from an overlap instead).
+func TestDatasetLabelConsistency(t *testing.T) {
+	r := &Runner{CasesDir: datasetRoot}
+	cases, err := r.LoadAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+	relClass := map[string]string{
+		RelevanceActionRequired: ClassActionRequired, RelevanceReview: ClassReviewRequired,
+		RelevanceInformational: ClassInformational, RelevanceNotAffected: ClassNotAffected,
+	}
+	for _, c := range cases {
+		if c.Environment == nil {
+			continue
+		}
+		items := map[string]Expected{}
+		for _, e := range c.Expected {
+			items[e.ID] = e
+		}
+		for _, l := range c.Environment.ExpectedImpact {
+			e, want := items[l.Expected], relClass[l.Relevance]
+			if c.TransferOf == "" && e.Classification != "" && e.Classification != want {
+				t.Errorf("%s %s: classification %s, but the link says %s", c.ID, e.ID, e.Classification, l.Relevance)
+			}
+			if len(e.Semantics) == 0 || l.Relevance == RelevanceNotAffected || (l.Relevance == RelevanceInformational && l.Overlap != nil) {
+				continue
+			}
+			ok := false
+			for _, s := range e.Semantics {
+				ok = ok || string(s.Consequence.ExposedClass) == want
+			}
+			if !ok {
+				t.Errorf("%s %s: relevance %s matches no consequence class of the item's semantics", c.ID, e.ID, l.Relevance)
+			}
+		}
+		for _, u := range c.Environment.UndecidedImpact {
+			if e := items[u.Expected]; c.TransferOf == "" && e.Classification != "" && e.Classification != ClassUnknown {
+				t.Errorf("%s %s: undecided link, but classification %s (want unknown)", c.ID, e.ID, e.Classification)
+			}
+		}
+	}
+}
