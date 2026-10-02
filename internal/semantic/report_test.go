@@ -89,3 +89,43 @@ func TestSummaryCountsSameModelSeparateCalls(t *testing.T) {
 		}
 	}
 }
+
+// Two edges restating one cluster whose computed member carries
+// edge-specific evidence: same member-derived id, different evidence. The
+// stored candidate wins; proposals are asked against it, and a proposal
+// built on the other variant is refused rather than stored.
+func TestStoredCandidateWinsAcrossEdges(t *testing.T) {
+	mk := func(fromValues string) domain.SemanticCandidate {
+		b := newEdge()
+		b.note("chg-note", "The Helm options `bgp.enabled`, `bgp.port` have been removed", notesURI, "L1")
+		ev := b.ev(domain.EvidenceStructured, fromValues, "", "")
+		b.e.Changes = append(b.e.Changes, domain.Change{ID: "chg-sec", Category: domain.CategoryHelmValues,
+			Title: "Helm values section `bgp.*` removed (2 keys)", Subjects: []string{"bgp.enabled", "bgp.port"},
+			Provenance: domain.Provenance{Method: domain.MethodComputed, Producer: "upgrade@v1", Rule: "values:section-removed", Confidence: domain.ConfidenceHigh},
+			Evidence:   []domain.EvidenceID{ev}})
+		cs := Candidates(b.edge(), t0)
+		if len(cs) != 1 {
+			t.Fatalf("want one cluster, got %d", len(cs))
+		}
+		return cs[0]
+	}
+	a, b := mk("https://example.io/v1.0.0/values.yaml"), mk("https://example.io/v1.0.5/values.yaml")
+	if a.ID != b.ID || a.Evidence[1].ID == b.Evidence[1].ID {
+		t.Fatal("fixture: same id, different evidence expected")
+	}
+	dir := t.TempDir()
+	if err := WriteRecords(dir, []domain.SemanticCandidate{a}, nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	got, n, err := UseStored(dir, []domain.SemanticCandidate{b})
+	if err != nil || n != 1 || got[0].Evidence[1].ID != a.Evidence[1].ID {
+		t.Fatalf("UseStored = %v, %d, %v", got, n, err)
+	}
+	pb, err := propose(t, b, domain.TaskFull, fullAnswer(b, func(m map[string]any) { m["citations"] = []any{string(b.Evidence[1].ID)} }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteRecords(dir, []domain.SemanticCandidate{b}, []domain.SemanticProposal{*pb}, nil); err == nil {
+		t.Fatal("a proposal built on another variant of a stored candidate must be refused")
+	}
+}

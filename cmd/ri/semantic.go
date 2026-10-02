@@ -113,6 +113,15 @@ func (c *cli) semanticPropose(args []string) error {
 	if *max > 0 && len(cands) > *max {
 		cands = cands[:*max]
 	}
+	if *out != "" {
+		var stored int
+		if cands, stored, err = semantic.UseStored(*out, cands); err != nil {
+			return err
+		}
+		if stored > 0 {
+			fmt.Fprintf(c.err, "semantic: %d candidate(s) already stored under -out; proposing against the stored records\n", stored)
+		}
+	}
 
 	var inner llm.Client
 	backend := "cached answers only"

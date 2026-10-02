@@ -210,14 +210,26 @@ func WriteRecords(dir string, cands []domain.SemanticCandidate, props []domain.S
 			if !errors.Is(err, knowledge.ErrConflict) {
 				return fmt.Errorf("candidate %s: %w", c.ID, err)
 			}
-			if _, gerr := store.Get(ctx, c.ID); gerr != nil {
+			stored, gerr := store.Get(ctx, c.ID)
+			if gerr != nil || stored.Candidate == nil {
 				return fmt.Errorf("candidate %s: %w", c.ID, err)
 			}
+			where[c.ID] = *stored.Candidate
 		}
 	}
 	for _, p := range props {
-		if _, ok := where[p.CandidateID]; !ok {
+		c, ok := where[p.CandidateID]
+		if !ok {
 			return fmt.Errorf("proposal %s: candidate %s not written", p.ID, p.CandidateID)
+		}
+		// a proposal must hold against the candidate as STORED (ids are
+		// member-derived; a computed member's evidence can differ between
+		// edges): never store one that cites or was shown other evidence
+		if err := p.ValidateAgainst(c); err != nil {
+			return fmt.Errorf("proposal %s does not hold against stored candidate %s: %w", p.ID, c.ID, err)
+		}
+		if err := shownSubset(p, c); err != nil {
+			return err
 		}
 		rec, err := domain.NewRecord(p)
 		if err != nil {
@@ -255,4 +267,42 @@ func WriteRecords(dir string, cands []domain.SemanticCandidate, props []domain.S
 		}
 	}
 	return nil
+}
+
+// shownSubset checks that a proposal was prompted with the candidate's own
+// evidence (its inputEvidence ⊆ the candidate's evidence).
+func shownSubset(p domain.SemanticProposal, c domain.SemanticCandidate) error {
+	ev := map[domain.EvidenceID]bool{}
+	for _, e := range c.Evidence {
+		ev[e.ID] = true
+	}
+	for _, id := range p.Provenance.InputEvidence {
+		if !ev[id] {
+			return fmt.Errorf("proposal %s was shown evidence %s that stored candidate %s does not carry", p.ID, id, c.ID)
+		}
+	}
+	return nil
+}
+
+// UseStored replaces every candidate the store already holds (same
+// member-derived id) by the stored one, so proposals are asked against the
+// immutable record — not against a restatement of it from another edge whose
+// computed members carry that edge's endpoint evidence.
+func UseStored(dir string, cands []domain.SemanticCandidate) ([]domain.SemanticCandidate, int, error) {
+	store := knowledge.NewFileStore(dir)
+	out := make([]domain.SemanticCandidate, len(cands))
+	n := 0
+	for i, c := range cands {
+		out[i] = c
+		rec, err := store.Get(context.Background(), c.ID)
+		switch {
+		case errors.Is(err, knowledge.ErrNotFound):
+		case err != nil:
+			return nil, 0, err
+		case rec.Candidate != nil:
+			out[i] = *rec.Candidate
+			n++
+		}
+	}
+	return out, n, nil
 }
