@@ -63,3 +63,34 @@
 ## Tests
 - `go build ./... && go vet ./... && go test ./...` pass. The e2e goldens are unchanged (no knowledge
   supplied ⇒ byte-identical).
+
+---
+
+## contract-2 (branch `p3ll/contract-2`, from `p3-learning-loop` @ 2007556) — done
+
+The render-mission contract change (RENDER-MISSION R6, R10–R12, R19; briefs/render.md §7):
+- **New `consensus` verification level.**
+  - Basis: ≥2 `sp-` proposals from independent model families asserting the fact's aspect digest,
+    plus an optional `val-` that does not refute it.
+  - **Untrusted.** It is treated exactly like proxy: ≤ review-required, never not-affected or
+    action-required, confidence ≤ medium (enforced in `ImpactFinding` validation).
+  - Ordering for `Level()`: deterministic ≡ human > consensus > proxy. Consensus is a structural
+    agreement test rather than one model's judgement; the ladder treats both the same anyway.
+  - `AtLeast(consensus)` admits deterministic, human and consensus.
+- **Independence = distinct model families** (`ModelFamily`, `IndependentModels`). This deliberately
+  narrows the request's "distinct providers or families": the same model behind two gateways, or
+  Opus + Sonnet, is not two opinions.
+- **`ValidateFactRecords(fact, FactRecords{Validations, Decisions, Items, Proposals})`** resolves
+  consensus bases. `ValidateFactBasis` keeps its signature (a non-breaking wrapper), and it fails on
+  consensus facts because it resolves no proposals.
+- **`VerifiedFact.AutoApproved`**: set exactly when every aspect is deterministic or consensus (this is
+  validated). **Behaviour change:** all-deterministic facts must now carry `autoApproved: true`.
+- **`ValidationResult.RenderRelation`**: confirmed-by-render (needs a confirmed check plus rendered
+  evidence) | contradicted-by-render (needs a refuted check) | not-visible-in-render /
+  render-not-applicable (inconclusive checks only).
+- **`SemanticCandidate.Renderability`**: render-verifiable | partially-render-verifiable |
+  not-render-verifiable.
+- **`knowledge.FactMetrics`**: auto-approval audit fields (R19).
+- **Docs and schemas:** DESIGN.md §2.3, §2.6, §4, §6 (auto-approval route), §7 (consensus level row,
+  auto-approval and render-relation metrics); ACTION_CLASSIFICATION §8; schemas regenerated.
+- **Tests:** `go build`, `go vet` and `go test ./...` pass; goldens unchanged.

@@ -344,6 +344,56 @@ func TestAssertionDigests(t *testing.T) {
 	expectErr(t, rotationAssertion().Validate(true), "")
 }
 
+func TestConsensusLevelOrdering(t *testing.T) {
+	if VerifiedConsensus.Trusted() {
+		t.Fatal("consensus is never trusted")
+	}
+	for _, c := range []struct {
+		l, min VerificationLevel
+		want   bool
+	}{
+		{VerifiedConsensus, VerifiedConsensus, true}, {VerifiedHuman, VerifiedConsensus, true},
+		{VerifiedProxy, VerifiedConsensus, false}, {VerifiedConsensus, VerifiedProxy, true},
+		{VerifiedConsensus, VerifiedHuman, false}, {VerifiedConsensus, VerifiedDeterministic, false},
+	} {
+		if got := c.l.AtLeast(c.min); got != c.want {
+			t.Errorf("%s.AtLeast(%s) = %v, want %v", c.l, c.min, got, c.want)
+		}
+	}
+	for _, c := range []struct{ a, b, want VerificationLevel }{
+		{VerifiedDeterministic, VerifiedDeterministic, VerifiedDeterministic},
+		{VerifiedDeterministic, VerifiedHuman, VerifiedHuman},
+		{VerifiedHuman, VerifiedConsensus, VerifiedConsensus},
+		{VerifiedConsensus, VerifiedProxy, VerifiedProxy},
+	} {
+		if got := weaker(c.a, c.b); got != c.want {
+			t.Errorf("weaker(%s, %s) = %s, want %s", c.a, c.b, got, c.want)
+		}
+	}
+}
+
+func TestModelIndependence(t *testing.T) {
+	fam := map[string]string{"claude-opus-5-5": "claude", "claude-sonnet-5-5": "claude", "glm-5.3-flash": "glm",
+		"gpt-5": "gpt", "zai/glm-5.3": "glm", "Gemini-2.5-Pro": "gemini"}
+	for m, want := range fam {
+		if got := ModelFamily(m); got != want {
+			t.Errorf("ModelFamily(%q) = %q, want %q", m, got, want)
+		}
+	}
+	p := func(provider, model string) SemanticProposal {
+		return SemanticProposal{Provider: provider, Provenance: Provenance{Model: model}}
+	}
+	if !IndependentModels(p("zai", "glm-5.3-flash"), p("anthropic", "claude-sonnet-5-5")) {
+		t.Error("GLM and Claude are independent")
+	}
+	if IndependentModels(p("anthropic", "claude-opus-5-5"), p("anthropic", "claude-sonnet-5-5")) {
+		t.Error("two Claude models are one family")
+	}
+	if IndependentModels(p("anthropic", "claude-sonnet-5-5"), p("bedrock", "claude-sonnet-5-5")) {
+		t.Error("the same model behind two gateways is one opinion")
+	}
+}
+
 func TestVerificationLevels(t *testing.T) {
 	if !VerifiedHuman.AtLeast(VerifiedHuman) || !VerifiedDeterministic.AtLeast(VerifiedHuman) || VerifiedProxy.AtLeast(VerifiedHuman) {
 		t.Error("human minimum admits deterministic and human, not proxy")
@@ -910,7 +960,28 @@ func TestImpactFindingKnowledgeRules(t *testing.T) {
 			f.Matches, f.EnvironmentEvidence = nil, nil
 			f.Checks = []ImpactCheck{{Dimension: DimensionManifests, Facts: 3, Subjects: []string{"spec.privateKey.rotationPolicy"}}}
 			r.Summary.ActionRequired, r.Summary.AffectEnvironment, r.Summary.NotAffected = 0, 0, 1
-		}, "a proxy never clears"},
+		}, "consensus and proxy never clear"},
+		{"action from a consensus fact", func(r *ImpactReport) { knowledgeFinding(r).Knowledge.Verification = VerifiedConsensus }, "requires a deterministic- or human-verified fact"},
+		{"consensus review at medium", func(r *ImpactReport) {
+			f := knowledgeFinding(r)
+			f.Knowledge.Verification = VerifiedConsensus
+			f.Classification, f.Provenance.Confidence = ImpactReviewRequired, ConfidenceMedium
+			r.Summary.ActionRequired, r.Summary.ReviewRequired = 0, 1
+		}, ""},
+		{"consensus at high confidence", func(r *ImpactReport) {
+			f := knowledgeFinding(r)
+			f.Knowledge.Verification = VerifiedConsensus
+			f.Classification = ImpactReviewRequired
+			r.Summary.ActionRequired, r.Summary.ReviewRequired = 0, 1
+		}, "cannot carry high confidence"},
+		{"consensus never clears", func(r *ImpactReport) {
+			f := knowledgeFinding(r)
+			f.Knowledge.Verification = VerifiedConsensus
+			f.Rule, f.Classification, f.Provenance.Confidence = "impact:knowledge-clear", ImpactNotAffected, ConfidenceMedium
+			f.Matches, f.EnvironmentEvidence = nil, nil
+			f.Checks = []ImpactCheck{{Dimension: DimensionManifests, Facts: 3, Subjects: []string{"x"}}}
+			r.Summary.ActionRequired, r.Summary.AffectEnvironment, r.Summary.NotAffected = 0, 0, 1
+		}, "consensus and proxy never clear"},
 		{"knowledge ref on a join rule", func(r *ImpactReport) {
 			r.Findings[0].Knowledge = &KnowledgeRef{Fact: "vf-1", Verification: VerifiedHuman}
 		}, "carried exactly by impact:knowledge-"},
@@ -935,4 +1006,138 @@ func TestImpactFindingKnowledgeRules(t *testing.T) {
 			expectErr(t, r.Validate(), tc.want)
 		})
 	}
+}
+
+// --- consensus facts, auto-approval, render relations (contract-2) -----------------
+
+// consensusFact: subject/change/applicability confirmed by a render
+// validation, consequence agreed by GLM and Claude; no human involved.
+func consensusFact() (VerifiedFact, FactRecords) {
+	cand := validCandidate()
+	v := validValidation(cand)
+	glm := validProposal(cand)
+	claude := validProposal(cand)
+	claude.Provider, claude.Provenance = "anthropic", aiProvenance("claude-sonnet-5-5", upEvidence().ID, crdEvidence().ID)
+	claude.ID = ProposalID(claude.CandidateID, claude.Task, claude.Provider, claude.Provenance)
+	f := validFact(cand, v, validDecision(validItem(cand)))
+	f.Verification[3] = AspectVerification{Aspect: AspectConsequence, Level: VerifiedConsensus, Basis: []string{glm.ID, claude.ID}}
+	f.AutoApproved = true
+	return f, FactRecords{
+		Validations: map[string]ValidationResult{v.ID: v},
+		Proposals:   map[string]SemanticProposal{glm.ID: glm, claude.ID: claude},
+	}
+}
+
+func TestConsensusFact(t *testing.T) {
+	cases := []struct {
+		name string
+		mut  func(*VerifiedFact, *FactRecords)
+		want string
+	}{
+		{"glm + claude agree, render confirmed the rest", func(*VerifiedFact, *FactRecords) {}, ""},
+		{"auto-approved not marked", func(f *VerifiedFact, _ *FactRecords) { f.AutoApproved = false }, "autoApproved must be set exactly"},
+		{"single proposal", func(f *VerifiedFact, _ *FactRecords) { f.Verification[3].Basis = f.Verification[3].Basis[:1] }, "at least two agreeing proposals"},
+		{"decision as consensus basis", func(f *VerifiedFact, _ *FactRecords) {
+			f.Verification[3].Basis = append(f.Verification[3].Basis, "rd-x")
+		}, "consensus verification rests on agreeing proposals"},
+		{"same model family", func(f *VerifiedFact, r *FactRecords) {
+			for id, p := range r.Proposals {
+				p.Provenance.Model = "claude-opus-5-5"
+				r.Proposals[id] = p
+			}
+		}, "two independent model families"},
+		{"a proposal disagrees", func(f *VerifiedFact, r *FactRecords) {
+			id := f.Verification[3].Basis[1]
+			p := r.Proposals[id]
+			a := rotationAssertion()
+			a.Consequence = &Consequence{Kind: ConsequenceNone, ExposedClass: ImpactInformational}
+			p.Assertion = a
+			r.Proposals[id] = p
+		}, "asserted a different consequence"},
+		{"proposal for another candidate", func(f *VerifiedFact, r *FactRecords) {
+			id := f.Verification[3].Basis[0]
+			p := r.Proposals[id]
+			p.CandidateID = "sc-other"
+			r.Proposals[id] = p
+		}, "not one of the fact's"},
+		{"unresolved proposal", func(f *VerifiedFact, r *FactRecords) { r.Proposals = nil }, "does not resolve"},
+		{"proposal backing a deterministic aspect", func(f *VerifiedFact, r *FactRecords) {
+			f.Verification[0].Basis = append(f.Verification[0].Basis, f.Verification[3].Basis[0])
+		}, "must rest on validation records"},
+		{"refuting validation in a consensus basis", func(f *VerifiedFact, r *FactRecords) {
+			cand := validCandidate()
+			v := ValidationResult{CandidateID: cand.ID, Validator: "render.diff@v1", Assertion: rotationAssertion(), CheckedAt: t0,
+				Checks: []AspectCheck{{Aspect: AspectConsequence, Outcome: OutcomeRefuted, Rule: "x"}}}
+			v.ID = ValidationID(v.CandidateID, v.Validator, v.Assertion)
+			r.Validations[v.ID] = v
+			f.Verification[3].Basis = append(f.Verification[3].Basis, v.ID)
+		}, "refutes it"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f, r := consensusFact()
+			tc.mut(&f, &r)
+			err := f.Validate()
+			if err == nil {
+				err = ValidateFactRecords(f, r)
+			}
+			expectErr(t, err, tc.want)
+		})
+	}
+	f, r := consensusFact()
+	if f.Level() != VerifiedConsensus {
+		t.Errorf("Level = %s, want consensus", f.Level())
+	}
+	if err := ValidateFactBasis(f, r.Validations, nil, nil); err == nil {
+		t.Error("ValidateFactBasis resolves no proposals, so a consensus fact must fail it")
+	}
+	// a fully deterministic fact is auto-approved too
+	cand := validCandidate()
+	v := validValidation(cand)
+	v.Checks = append(v.Checks, AspectCheck{Aspect: AspectConsequence, Outcome: OutcomeInconclusive, Rule: "x"})
+	d := validFact(cand, v, validDecision(validItem(cand)))
+	d.Verification[3] = AspectVerification{Aspect: AspectConsequence, Level: VerifiedDeterministic, Basis: []string{v.ID}}
+	expectErr(t, d.Validate(), "autoApproved must be set exactly")
+	d.AutoApproved = true
+	expectErr(t, d.Validate(), "")
+}
+
+func TestRenderRelationAndRenderability(t *testing.T) {
+	cand := validCandidate()
+	rendered := NewEvidence(EvidenceStructured, "chart", "templates/certificate-crd.yaml", "spec.versions[0]", "rotationPolicy", "sha256:r", t0)
+	rendered.Render = &RenderProvenance{Scope: RenderRelease, Tool: "helm", ToolVersion: "v3.16.4", ChartDigest: "sha256:chart"}
+	inconclusive := func(v *ValidationResult) {
+		v.Checks = []AspectCheck{{Aspect: AspectChange, Outcome: OutcomeInconclusive, Rule: "render:not-visible"}}
+		v.Evidence = nil
+	}
+	cases := []struct {
+		name string
+		mut  func(*ValidationResult)
+		want string
+	}{
+		{"confirmed by render", func(v *ValidationResult) { v.RenderRelation, v.Evidence = RenderConfirmed, []Evidence{rendered} }, ""},
+		{"confirmed without rendered evidence", func(v *ValidationResult) { v.RenderRelation = RenderConfirmed }, "must cite rendered evidence"},
+		{"contradicted without refutation", func(v *ValidationResult) { v.RenderRelation = RenderContradicted }, "needs a refuted check"},
+		{"contradicted", func(v *ValidationResult) {
+			v.RenderRelation = RenderContradicted
+			v.Checks = []AspectCheck{{Aspect: AspectChange, Outcome: OutcomeRefuted, Rule: "render:default"}}
+			v.Evidence = []Evidence{rendered}
+		}, ""},
+		{"not visible concludes nothing", func(v *ValidationResult) { inconclusive(v); v.RenderRelation = RenderNotVisible }, ""},
+		{"not visible but confirming", func(v *ValidationResult) { v.RenderRelation = RenderNotVisible }, "must all be inconclusive"},
+		{"render not applicable", func(v *ValidationResult) { inconclusive(v); v.RenderRelation = RenderNotApplicable }, ""},
+		{"unknown relation", func(v *ValidationResult) { v.RenderRelation = "maybe" }, "unknown renderRelation"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			v := validValidation(cand)
+			tc.mut(&v)
+			expectErr(t, v.Validate(), tc.want)
+		})
+	}
+	c := validCandidate()
+	c.Renderability = RenderPartiallyVerifiable
+	expectErr(t, c.Validate(), "")
+	c.Renderability = "sometimes"
+	expectErr(t, c.Validate(), "unknown renderability")
 }
