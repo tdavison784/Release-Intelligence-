@@ -97,10 +97,14 @@ const (
 	// DimensionCluster: the cluster version of a platform (Platform names
 	// it, e.g. "kubernetes", "openshift").
 	DimensionCluster EnvironmentDimension = "cluster-version"
+	// DimensionProducts: the product inventory (--inventory, or detected
+	// from the environment), consulted by product-version conditions of
+	// verified knowledge.
+	DimensionProducts EnvironmentDimension = "products"
 )
 
 // AllEnvironmentDimensions lists every dimension in display order.
-var AllEnvironmentDimensions = []EnvironmentDimension{DimensionValues, DimensionManifests, DimensionCRDs, DimensionImages, DimensionCluster}
+var AllEnvironmentDimensions = []EnvironmentDimension{DimensionValues, DimensionManifests, DimensionCRDs, DimensionImages, DimensionCluster, DimensionProducts}
 
 // ImpactCheck is one entry of a NOT AFFECTED (or partially-evaluated UNKNOWN)
 // evaluation record: which environment dimension was consulted, how many
@@ -190,6 +194,30 @@ type ImpactFinding struct {
 	// Unknown-only, and review-required only (the AI never suggests
 	// action-required). Validate enforces the 1:1 with those enrichments.
 	SuggestedClassification ImpactClass `json:"suggestedClassification,omitempty"`
+
+	// UnknownReason says why an unknown finding is unknown (MISSION G18;
+	// docs/phase3/learning-loop/DESIGN.md §1.5). Unknown-only.
+	UnknownReason UnknownReason `json:"unknownReason,omitempty"`
+	// Knowledge is set exactly on findings produced by evaluating a
+	// VerifiedFact against the environment (rules impact:knowledge-*): which
+	// fact, and how trusted it is. The trust ladder is enforced by Validate:
+	// action-required and not-affected require a trusted (deterministic or
+	// human) fact; a proxy-verified fact never yields either.
+	Knowledge *KnowledgeRef `json:"knowledge,omitempty"`
+}
+
+// KnowledgeRulePrefix starts the rule of every finding produced from
+// verified knowledge (impact:knowledge-exposed / -overlap / -clear /
+// -undecided).
+const KnowledgeRulePrefix = "impact:knowledge-"
+
+// KnowledgeRef links a finding to the verified fact it was evaluated from.
+type KnowledgeRef struct {
+	Fact string `json:"fact"` // VerifiedFact id (vf-…)
+	// Verification is the fact's level (its weakest aspect): deterministic,
+	// human or proxy.
+	Verification VerificationLevel `json:"verification"`
+	Statement    string            `json:"statement,omitempty"`
 }
 
 // ImpactSummary counts the funnel: all upstream changes, how many produced
@@ -459,10 +487,12 @@ func (r *ImpactReport) Validate() error {
 				}
 			}
 		}
+		errs = append(errs, f.validateKnowledge()...)
 		if (f.ChangeID == "") != (f.ChangeTitle == "") {
 			errs = append(errs, fmt.Errorf("finding %s: changeId and changeTitle must be given together", f.ID))
 		}
 	}
+	errs = append(errs, r.validateKnowledgeSupersession()...)
 	if r.Summary.AffectEnvironment != counts[ImpactActionRequired]+counts[ImpactReviewRequired]+counts[ImpactInformational] ||
 		r.Summary.ActionRequired != counts[ImpactActionRequired] ||
 		r.Summary.ReviewRequired != counts[ImpactReviewRequired] ||
@@ -479,6 +509,73 @@ func (r *ImpactReport) Validate() error {
 		errs = append(errs, errors.New("report 'from' must be lower than 'to'"))
 	}
 	return errors.Join(errs...)
+}
+
+// validateKnowledge enforces the unknown-reason and trust-ladder rules of one
+// finding (docs/phase3/learning-loop/DESIGN.md §4).
+func (f ImpactFinding) validateKnowledge() []error {
+	var errs []error
+	bad := func(format string, args ...any) {
+		errs = append(errs, fmt.Errorf("finding %s: %s", f.ID, fmt.Sprintf(format, args...)))
+	}
+	if f.UnknownReason != "" {
+		if !f.UnknownReason.Valid() {
+			bad("unknown unknownReason %q", f.UnknownReason)
+		}
+		if f.Classification != ImpactUnknown {
+			bad("unknownReason is unknown-only, class is %q", f.Classification)
+		}
+	}
+	knowledgeRule := strings.HasPrefix(f.Rule, KnowledgeRulePrefix)
+	if knowledgeRule != (f.Knowledge != nil) {
+		bad("a knowledge reference is carried exactly by %s* rules", KnowledgeRulePrefix)
+	}
+	k := f.Knowledge
+	if k == nil {
+		return errs
+	}
+	if !strings.HasPrefix(k.Fact, FactIDPrefix) {
+		bad("knowledge fact %q lacks the %s prefix", k.Fact, FactIDPrefix)
+	}
+	if !k.Verification.Valid() {
+		bad("unknown knowledge verification %q", k.Verification)
+	}
+	if f.ChangeID == "" {
+		bad("a knowledge finding joins an upstream change (changeId required)")
+	}
+	switch f.Classification {
+	case ImpactActionRequired:
+		if !k.Verification.Trusted() {
+			bad("ACTION REQUIRED from knowledge requires a deterministic- or human-verified fact, got %q (cap at review-required)", k.Verification)
+		}
+	case ImpactNotAffected:
+		if !k.Verification.Trusted() {
+			bad("NOT AFFECTED from knowledge requires a deterministic- or human-verified fact, got %q (a proxy never clears)", k.Verification)
+		}
+	}
+	if k.Verification == VerifiedProxy && f.Provenance.Confidence == ConfidenceHigh {
+		bad("a proxy-verified fact cannot carry high confidence")
+	}
+	return errs
+}
+
+// validateKnowledgeSupersession: a knowledge finding replaces the unknown
+// records of its change — a change with a knowledge finding carries no other
+// unknown finding (no double counting).
+func (r *ImpactReport) validateKnowledgeSupersession() []error {
+	known := map[string]bool{}
+	for _, f := range r.Findings {
+		if f.Knowledge != nil && f.ChangeID != "" {
+			known[f.ChangeID] = true
+		}
+	}
+	var errs []error
+	for _, f := range r.Findings {
+		if known[f.ChangeID] && f.Knowledge == nil && f.Classification == ImpactUnknown {
+			errs = append(errs, fmt.Errorf("finding %s: change %s has a knowledge finding, which supersedes this unknown record", f.ID, f.ChangeID))
+		}
+	}
+	return errs
 }
 
 // validateReportEnrichmentKinds are the enrichment kinds an ImpactReport may

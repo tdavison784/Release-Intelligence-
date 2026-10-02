@@ -172,12 +172,26 @@ coordinated through status files):
   []ResourceInstance` (`{Name, Namespace, Version, Fields map[path]valueJSON,
   Containers []{Name, Image, Args, Env}, Evidence}`) built from the documents the
   loader already decodes.
-- `product-version` needs the `envinv` lane's accessor, assumed as
-  `func (e *Environment) Product(id string) (ProductInstance, bool)` with a
-  `products` dimension in `Health` (`absent|ok|partial`). Until it lands the
-  evaluator returns `unknown` / `cross-product-context-gap` for every
-  `product-version` leaf. `domain.DimensionProducts` (`"products"`) is added now
-  for the evaluation records.
+- `product-version` evaluates against the `envinv` lane's inventory (merged:
+  `Environment.Products`, `Health(env.DimProducts)`, `Product(id)`,
+  `ProductInstances(id)`, `ProductInRange(id, constraint)`). Semantics, normative:
+
+  | Inventory state for product `Name` | Leaf value |
+  |---|---|
+  | dimension `absent` | `unknown` · `cross-product-context-gap` (needed: "product inventory (--inventory) not supplied") |
+  | listed, ≥1 **app-kind** entry (`VersionOf == app`) with a parsable version, all app-kind entries agree on in/out of `Range` | `true`/`false` per State, evidence = those entries |
+  | listed, app-kind entries disagree (`Conflict`) | `unknown` · `cross-product-context-gap` (both entries named in needed) |
+  | listed, only **chart-kind** entries (Helm/Argo/Flux detections) or no parsable version | `unknown` · `cross-product-context-gap` — a chart version is never read as the app version |
+  | listed (any entry, any kind), `Range == "*"`, State `in-range` — takes precedence over the version rows | `true` (presence is what is asked) |
+  | **not listed**, dimension `ok`/`partial`, inventory **not declared complete** | `unknown` · `cross-product-context-gap` — absence from a detected/partial inventory is not proof of absence |
+  | **not listed**, inventory declared complete (`complete: true` at the top of `inventory.yaml`) and health `ok` | `false`, with a `products` check citing the declaration |
+
+  The `complete` declaration does not exist yet: the `applicability` lane adds it
+  additively (`env.Environment.InventoryComplete` + its evidence), coordinated via
+  status files. `ProductInRange` takes a `domain.CompatibilityConstraint`; the
+  evaluator either builds one from `Range` or filters to app-kind entries itself —
+  the table above is what must hold. `domain.DimensionProducts` (`"products"`) is
+  added for the evaluation records.
 
 #### Canonical applicability (deterministically verifiable)
 
@@ -477,9 +491,10 @@ change `requirement-changed` with `After` the required range, and whose Exposure
 is `product-version{Name: <other product>, State: out-of-range, Range: <required>}`
 — e.g. "v1.18.0 needs ingress-nginx ≥ 1.12.6 for HTTP01" ⇒ Exposure
 `all[ product-version{ingress-nginx, out-of-range, ">=1.12.6"}, resource-field{acme.cert-manager.io, Issuer, spec.acme.solvers.http01.ingress, set} ]`.
-Evaluated against the `envinv` lane's product inventory. Product absent from a
-**supplied** inventory ⇒ `false` (the requirement is irrelevant); inventory not
-supplied ⇒ `unknown / cross-product-context-gap`. "Argo CD manages cert-manager
+Evaluated against the `envinv` lane's product inventory with the semantics of
+§1.3: only app-kind versions decide; a product missing from an inventory that is
+not declared complete is `unknown / cross-product-context-gap`, never "not
+installed". "Argo CD manages cert-manager
 resources" is likewise `product-version{argo-cd, in-range, "*"}` in an Exposure.
 
 ## 6. Routing (G16 — hypotheses, measured, not assumed)
