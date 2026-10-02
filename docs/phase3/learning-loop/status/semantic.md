@@ -121,10 +121,8 @@ no cross-model measurement exists yet (needs GLM/Codex). See `runs/semantic-v2/R
 - `internal/llm/{llm,anthropic,exchange,cache,fake}.go`: additive `CallID` plumbing (PO-1), with tests
   (`callid_test.go`, one assertion in `anthropic_test.go`).
 
-- `internal/reviewui/demo.go` (dashboard lane): one additive hunk — demo proposals get a
-  deterministic `CallID`, required by contract-3's domain validation
-  (commits 0be37e9). The real dashboard follow-up (consensus-scope labels on the disagreement
-  items) is left to that lane.
+- `internal/reviewui/demo.go`: none left. The GLM stopgap call-id hunk was superseded by the dashboard
+  lane's own call ids when p3-learning-loop was merged (file identical to integration).
 
 ## Contract changes
 
@@ -145,9 +143,9 @@ decision.
 
 ## Test status
 
-`go build ./... && go vet ./... && go test ./...` green on the branch at 86ec7de (verified again
-after the second handoff's commits; the new `TestStoreIntegrity` skips offline and passes against
-both real-run stores: 519 candidates / 1122 proposals / 0 invalid, and 31/50/0 same-model).
+`go build ./... && go vet ./... && go test ./...` green on the branch at 233b890 (after merging
+p3-learning-loop @ 223b506, render-2 included). `TestStoreIntegrity` (env-gated) passes against both
+real-run stores: 519 candidates / 1122 proposals / 0 invalid, and 31 / 50 / 0 same-model.
 
 ## GLM handoff log
 
