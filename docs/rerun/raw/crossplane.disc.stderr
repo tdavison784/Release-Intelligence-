@@ -1,0 +1,79 @@
+# Discovery report: crossplane
+
+- Repository: `github.com/crossplane/crossplane` at `v2.4.2` (commit `bf8ffd4048a0…`)
+- Generated: 2026-10-02T12:33:28Z
+- LLM: not used (deterministic resolver only)
+- Tags: 239 tags: prefix "v", 169 stable, 45 prereleases (preview.N×2, rc.N×43), 25 junk; latest stable v2.4.2; lineage minor
+- Strict tag pattern: `^v(?P<version>\d+\.\d+\.\d+(?:-(?:preview\.\d+|rc\.\d+))?)$` (junk sample: apis/v2.3.0, apis/v2.3.0-rc.1, apis/v2.3.1, apis/v2.3.2, apis/v2.3.3, apis/v2.3.4)
+- Scanned `github.com/crossplane/crossplane@v2.4.2` (source profile): 950 files listed, 478 read
+- Scanned `github.com/crossplane/docs@master` (docs profile): 1247 files listed, 93 read
+- Validation: done against v2.2.0, v2.2.6, v2.3.0, v2.3.6, v2.4.0, v2.4.2
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 1 | git-tags github.com/crossplane/crossplane |
+| release-notes | found | 1 | repo-file github.com/crossplane/docs content/v{{.Major}}.{{.Minor}}/whats-new/_index.md @master |
+| changelog | not-found | 0 |  |
+| helm-charts | found | 3 | crossplane via helm-repo:https://charts.crossplane.io/stable |
+| registries | found | 4 | ghcr.io/crossplane |
+| images | found | 2 | ghcr.io/crossplane/crossplane:{{.Tag}} |
+| upgrade-docs | found | 2 | repo-file github.com/crossplane/docs content/v{{.Major}}.{{.Minor}}/guides/upgrade-crossplane.md @master |
+| compatibility | not-found | 0 |  |
+| security | found | 1 | github-advisories crossplane/crossplane |
+| version-relations | found | 0 | crossplane-chart: version = {{.Version}}; crds: version = {{.Tag}}; crossplane: version = {{.Tag}} |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:crds | historically-validated | crd.in-repo | https://github.com/crossplane/crossplane/blob/v2.4.2/cluster/crds/apiextensions.crossplane.io_compositeresourcedefinitions.yaml#L3 (+2) |
+| artifact:crossplane | historically-validated | image.tag-from-release | https://github.com/crossplane/crossplane/blob/v2.4.2/.github/workflows/ci.yml#L316 |
+| artifact:crossplane-chart | historically-validated | helm.placeholder-version-follows-release | https://github.com/crossplane/crossplane/blob/v2.4.2/cluster/charts/crossplane/Chart.yaml#L4 (+1) |
+| source:release-notes-line | historically-validated | notes.per-line-file | https://github.com/crossplane/docs/blob/d1c9eb7fd1548d0d61ab3901781919a5b4aaf69d/content/v2.4/whats-new/_index.md# |
+| source:upgrade-guide | historically-validated | upgrade.versioned-doc | https://github.com/crossplane/docs/blob/d1c9eb7fd1548d0d61ab3901781919a5b4aaf69d/content/v2.4/guides/upgrade-crossplane.md# |
+| source:advisories | discovered | security.github-hosted-default | https://github.com/crossplane/crossplane/blob/v2.4.2/SECURITY.md#L1 |
+| source:tags | discovered | versions.git-tags | https://github.com/crossplane/crossplane/releases/tag/v2.4.2#refs/tags/v2.4.2 |
+| versioning | discovered | tags.scheme | https://github.com/crossplane/crossplane/releases/tag/v2.4.2#refs/tags/v2.4.2 |
+
+Statuses: 5 historically-validated, 3 discovered.
+
+## Open questions for the reviewer
+
+- Ambiguity (registry-roles): 4 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (docs-sources): Documentation lives in another repository; no release-notes, compatibility source was derived from it.
+- Ambiguity (chart-version): How do the versions of chart(s) crossplane relate to the release version?
+
+## Validation matrix
+
+| Element | Verdict | v2.2.0 | v2.2.6 | v2.3.0 | v2.3.6 | v2.4.0 | v2.4.2 |
+|---|---|---|---|---|---|---|---|
+| artifact:crds | validated |  |  |  |  |  |  |
+| artifact:crossplane | validated |  |  |  |  |  |  |
+| artifact:crossplane-chart | validated |  |  |  |  |  |  |
+| content:crds/crds | validated |  |  |  |  |  |  |
+| content:crossplane-chart/chart-metadata | validated |  |  |  |  |  |  |
+| content:crossplane-chart/helm-values | validated |  |  |  |  |  |  |
+| source:release-notes-line | validated |  |  |  |  |  |  |
+| source:upgrade-guide | validated |  |  |  |  |  |  |
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 239 tags: prefix "v", 169 stable, 45 prereleases (preview.N×2, rc.N×43), 25 junk; latest stable v2.4.2; lineage minor; strict tagPattern excludes junk tags such as apis/v2.3.0, apis/v2.3.0-rc.1, apis/v2.3.1, apis/v2.3.… |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (239 tags: prefix "v", 169 stable, 45 prereleases (preview.N×2, rc.N×43), 25 junk; latest stable v2.4.2; lineage minor). |
+| source:release-notes-line | include | notes.per-line-file | heuristic | One notes document per release line (3 instances, newest content/v2.4/whats-new/_index.md), used for X.Y.0 releases. |
+| source:upgrade-guide | include | upgrade.versioned-doc | heuristic | One upgrade document per release line (3 instances, newest content/v2.4/guides/upgrade-crossplane.md). |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+| artifact:crossplane-chart | include | helm.placeholder-version-follows-release | heuristic | Chart.yaml carries placeholder version "0.0.1" replaced at release time; assumed to equal the release ({{.Version}}). Published via 1 channel(s); OCI locations first. |
+| artifact:crds | include | crd.in-repo | heuristic | 21 CRDs of the product's API groups in cluster/crds at the release tag. |
+| artifact:crossplane | include | image.tag-from-release | heuristic | Image tags equal the release tag in the build/publish configuration. |
+
+48 candidates were found; 12 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/crossplane.report.md
+proposed definition written to docs/rerun/discovery/crossplane.proposed.yaml

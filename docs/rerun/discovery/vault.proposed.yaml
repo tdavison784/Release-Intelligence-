@@ -1,0 +1,50 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: vault
+name: vault
+homepage: https://github.com/hashicorp/vault
+versioning:
+  scheme: semver
+  tagPrefix: v
+  tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/hashicorp/vault
+      tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$
+  - id: release-notes-line
+    roles:
+      - release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/hashicorp/web-unified-docs
+      ref: main
+      path: content/consul/v{{.Major}}.{{.Minor}}.x/content/docs/release-notes/consul-api-gateway/v0_1_x.mdx
+    releaseKinds:
+      - minor
+      - major
+    fallbackGroup: release-notes
+    notes: 'Failed validation for one release (1.21.4 not-applicable (not applicable to 1.21.4: release kinds minor,major (this is a patch release)); 2.0.4 not-applicable (not applicable to 2.0.4: release kinds minor,major (this is a patch release)); 2.1.0 fail (fetch https://raw.githubusercontent.com/hashicorp/web-unified-docs/main/content/consul/v2.1.x/content/docs/release-notes/consul-api-gateway/v0_1_x.mdx: not found (HTTP 404)); 2.1.1 not-applicable (not applicable to 2.1.1: release kinds minor,major (this is a patch release))); possibly published late or elsewhere.'
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: hashicorp/vault
+artifacts: []
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  validatedReleases:
+    - v1.21.0
+    - v1.21.4
+    - v2.0.0
+    - v2.0.4
+    - v2.1.0
+    - v2.1.1
+  notes: Proposed by automated discovery; relationship checks run against v1.21.0, v1.21.4, v2.0.0, v2.0.4, v2.1.0, v2.1.1.

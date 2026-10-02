@@ -1,0 +1,84 @@
+# Discovery report: prometheus-operator
+
+- Repository: `github.com/prometheus-operator/prometheus-operator` at `v0.94.1` (commit `24929ab3b4c9…`)
+- Generated: 2026-10-02T12:37:44Z
+- LLM: not used (deterministic resolver only)
+- Tags: 381 tags: prefix "v", 175 stable, 3 prereleases (rc.N×3), 203 junk; latest stable v0.94.1; lineage minor
+- Scanned `github.com/prometheus-operator/prometheus-operator@v0.94.1` (source profile): 1648 files listed, 215 read
+- Scanned `github.com/prometheus-operator/website@main` (docs profile): 48 files listed, 2 read
+- Validation: done against v0.92.0, v0.92.1, v0.93.0, v0.93.1, v0.94.0, v0.94.1
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 4 | git-tags github.com/prometheus-operator/prometheus-operator; github-releases prometheus-operator/prometheus-operator |
+| release-notes | found | 0 | github-releases prometheus-operator/prometheus-operator  @{{.Tag}} |
+| changelog | found | 1 | repo-file github.com/prometheus-operator/prometheus-operator CHANGELOG.md |
+| helm-charts | not-found | 0 |  |
+| registries | found | 5 | quay.io/prometheus-operator |
+| images | found | 14 | quay.io/prometheus-operator/admission-webhook:{{.Tag}}; quay.io/prometheus-operator/prometheus-config-reloader:{{.Tag}}; quay.io/prometheus-operator/prometheus-operator:{{.Tag}} |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 1 | github-advisories prometheus-operator/prometheus-operator |
+| version-relations | found | 2 | bundle: version = {{.Tag}}; bundle-manifest: version = {{.Tag}}; admission-webhook: version = {{.Tag}}; prometheus-config-reloader: version = {{.Tag}}; prometheus-operator: version = {{.Tag}} |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:admission-webhook | historically-validated | image.tag-from-release | https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/Documentation/platform/webhook.md#L134 |
+| artifact:bundle | historically-validated | manifest.in-repo-install | https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/bundle.yaml#L77023 |
+| artifact:bundle-manifest | historically-validated | asset.hosted-release-download | https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/Documentation/getting-started/installation.md#L38 |
+| artifact:prometheus-config-reloader | historically-validated | image.tag-from-release | https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/Documentation/platform/operator.md#L104 |
+| artifact:prometheus-operator | historically-validated | image.tag-from-release | https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/Makefile#L23 |
+| source:changelog | historically-validated | changelog.file | https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/CHANGELOG.md#L1 |
+| source:release-notes-github | historically-validated | notes.hosted-release-body | https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/.github/workflows/release.yaml#L22 (+1) |
+| source:advisories | discovered | security.github-hosted-default | https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/SECURITY.md#L1 |
+| source:github-releases | discovered | versions.github-releases-fallback | https://github.com/prometheus-operator/prometheus-operator/blob/v0.94.1/.github/workflows/release.yaml#L22 (+1) |
+| source:tags | discovered | versions.git-tags | https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.1#refs/tags/v0.94.1 |
+| versioning | discovered | tags.scheme | https://github.com/prometheus-operator/prometheus-operator/releases/tag/v0.94.1#refs/tags/v0.94.1 (+1) |
+
+Statuses: 7 historically-validated, 4 discovered.
+
+## Open questions for the reviewer
+
+- Ambiguity (registry-roles): 5 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (docs-sources): Documentation lives in another repository; no release-notes, upgrade-guide, compatibility source was derived from it.
+
+## Validation matrix
+
+| Element | Verdict | v0.92.0 | v0.92.1 | v0.93.0 | v0.93.1 | v0.94.0 | v0.94.1 |
+|---|---|---|---|---|---|---|---|
+| artifact:admission-webhook | validated |  |  |  |  |  |  |
+| artifact:bundle | validated |  |  |  |  |  |  |
+| artifact:bundle-manifest | validated |  |  |  |  |  |  |
+| artifact:prometheus-config-reloader | validated |  |  |  |  |  |  |
+| artifact:prometheus-operator | validated |  |  |  |  |  |  |
+| content:bundle-manifest/image-refs | validated |  |  |  |  |  |  |
+| content:bundle/image-refs | validated |  |  |  |  |  |  |
+| source:changelog | validated |  |  |  |  |  |  |
+| source:release-notes-github | validated |  |  |  |  |  |  |
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 381 tags: prefix "v", 175 stable, 3 prereleases (rc.N×3), 203 junk; latest stable v0.94.1; lineage minor |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (381 tags: prefix "v", 175 stable, 3 prereleases (rc.N×3), 203 junk; latest stable v0.94.1; lineage minor). |
+| source:github-releases | include | versions.github-releases-fallback | heuristic | Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list. |
+| source:release-notes-github | include | notes.hosted-release-body | heuristic | Hosted GitHub releases exist (assets are downloaded from them); their body may carry notes. |
+| source:changelog | include | changelog.file | heuristic | Changelog with 41 version sections, newest 0.94.1 (heading "## 0.94.1 / 2026-09-23"). |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+| artifact:bundle | include | manifest.in-repo-install | heuristic | Static install manifest in the tagged tree referencing the product image with the release tag. |
+| artifact:bundle-manifest | include | asset.hosted-release-download | heuristic | Downloaded from the hosted release of the tag (1 reference(s)). |
+| artifact:admission-webhook | include | image.tag-from-release | heuristic | Image tags equal the release tag in the build/publish configuration. |
+| artifact:prometheus-config-reloader | include | image.tag-from-release | heuristic | Image tags equal the release tag in the build/publish configuration. |
+| artifact:prometheus-operator | include | image.tag-from-release | heuristic | Image tags equal the release tag in the build/publish configuration. |
+
+54 candidates were found; 32 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/prometheus-operator.report.md
+proposed definition written to docs/rerun/discovery/prometheus-operator.proposed.yaml

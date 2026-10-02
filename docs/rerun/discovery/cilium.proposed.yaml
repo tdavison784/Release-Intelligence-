@@ -1,0 +1,171 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: cilium
+name: cilium
+homepage: https://github.com/cilium/cilium
+versioning:
+  scheme: semver
+  tagPrefix: v
+  tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:pre\.\d+|rc\.\d+|rc\d+))?)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/cilium/cilium
+      tagPattern: ^v(?P<version>\d+\.\d+\.\d+(?:-(?:pre\.\d+|rc\.\d+|rc\d+))?)$
+  - id: changelog
+    roles:
+      - changelog
+    locator:
+      kind: repo-file
+      repository: github.com/cilium/cilium
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: ^\[?v?{{regexQuote .Version}}\]?(\s|$)
+    validatedAgainst:
+      - 1.18.0
+      - 1.18.14
+      - 1.19.0
+      - 1.19.8
+      - 1.20.0
+      - 1.20.2
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: cilium/cilium
+    notes: 'Security policy: SECURITY.md → https://github.com/cilium/community/blob/…/roles/Security-Team.md https://docs.cilium.io/en/latest/security/threat-model/'
+artifacts:
+  - id: cilium-chart
+    type: helm-chart
+    name: cilium
+    version:
+      strategy: lookup
+      field: appVersion
+      match: '{{.Version}}'
+      select: latest
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/charts/cilium
+      - kind: helm-repo
+        url: https://helm.cilium.io
+        chart: cilium
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/cilium/cilium
+          path: install/kubernetes/cilium/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/cilium/cilium
+          path: install/kubernetes/cilium/Chart.yaml
+    validatedAgainst:
+      - 1.18.0
+      - 1.18.14
+      - 1.19.0
+      - 1.19.8
+      - 1.20.0
+      - 1.20.2
+  - id: crds
+    type: crd
+    name: CustomResourceDefinitions
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-dir
+        repository: github.com/cilium/cilium
+        path: pkg/k8s/apis/cilium.io/client/crds/v2
+        glob: '*.yaml'
+    contents:
+      - kind: crds
+    validatedAgainst:
+      - 1.18.0
+      - 1.18.14
+      - 1.19.0
+      - 1.19.8
+      - 1.20.0
+      - 1.20.2
+  - id: cilium
+    type: container-image
+    name: cilium
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/cilium
+    validatedAgainst:
+      - 1.18.0
+      - 1.18.14
+      - 1.19.0
+      - 1.19.8
+      - 1.20.0
+      - 1.20.2
+  - id: clustermesh-apiserver
+    type: container-image
+    name: clustermesh-apiserver
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/clustermesh-apiserver
+    validatedAgainst:
+      - 1.18.0
+      - 1.18.14
+      - 1.19.0
+      - 1.19.8
+      - 1.20.0
+      - 1.20.2
+  - id: hubble-relay
+    type: container-image
+    name: hubble-relay
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/hubble-relay
+    validatedAgainst:
+      - 1.18.0
+      - 1.18.14
+      - 1.19.0
+      - 1.19.8
+      - 1.20.0
+      - 1.20.2
+  - id: operator
+    type: container-image
+    name: operator
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: quay.io/cilium/operator
+    validatedAgainst:
+      - 1.18.0
+      - 1.18.14
+      - 1.19.0
+      - 1.19.8
+      - 1.20.0
+      - 1.20.2
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  validatedReleases:
+    - v1.18.0
+    - v1.18.14
+    - v1.19.0
+    - v1.19.8
+    - v1.20.0
+    - v1.20.2
+  notes: Proposed by automated discovery; relationship checks run against v1.18.0, v1.18.14, v1.19.0, v1.19.8, v1.20.0, v1.20.2.

@@ -1,0 +1,70 @@
+# Discovery report: redis
+
+- Repository: `github.com/redis/redis` at `8.10.2` (commit `498ecd0d6d00…`)
+- Generated: 2026-10-02T12:37:53Z
+- LLM: not used (deterministic resolver only)
+- Tags: 416 tags: prefix "", 269 stable, 42 prereleases (betaN×8, rcN×34), 105 junk; latest stable 8.10.2; lineage minor
+- Strict tag pattern: `^(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$` (junk sample: 2.2-alpha0, 2.2-alpha1, 2.2-alpha2, 2.2-alpha3, 2.2-alpha4, 2.2-alpha5)
+- Scanned `github.com/redis/redis@8.10.2` (source profile): 1861 files listed, 181 read
+- Scanned `github.com/redis/docs@main` (docs profile): 10413 files listed, 1312 read
+- Validation: done against 8.6.0, 8.6.7, 8.8.0, 8.8.3, 8.10.0, 8.10.2
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 2 | git-tags github.com/redis/redis; github-releases redis/redis |
+| release-notes | found | 1 | repo-file github.com/redis/docs content/operate/oss_and_stack/stack-with-enterprise/release-notes/redisce/redisos-{{.Major}}.{{.Minor}}-release-notes.md @main; github-releases redis/redis  @{{.Tag}} |
+| changelog | candidates-only | 1 |  |
+| helm-charts | candidates-only | 2 |  |
+| registries | candidates-only | 2 |  |
+| images | candidates-only | 11 |  |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 1 | github-advisories redis/redis |
+| version-relations | not-found | 0 |  |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| source:release-notes-github | historically-validated | notes.hosted-release-body | https://github.com/redis/redis/blob/8.10.2/.github/workflows/post-release-automation.yml#L42 |
+| source:advisories | discovered | security.github-hosted-default | https://github.com/redis/redis/blob/8.10.2/SECURITY.md#L1 |
+| source:github-releases | discovered | versions.github-releases-fallback | https://github.com/redis/redis/blob/8.10.2/.github/workflows/post-release-automation.yml#L42 |
+| source:release-notes-docs | unverified | notes.per-line-file-with-release-sections | https://github.com/redis/docs/blob/8e470127f213e88de722abde6989526bd76f20c6/content/operate/oss_and_stack/stack-with-enterprise/release-notes/redisce/… |
+| source:tags | discovered | versions.git-tags | https://github.com/redis/redis/releases/tag/8.10.2#refs/tags/8.10.2 |
+| versioning | discovered | tags.scheme | https://github.com/redis/redis/releases/tag/8.10.2#refs/tags/8.10.2 |
+
+Statuses: 1 historically-validated, 4 discovered, 1 unverified.
+
+## Open questions for the reviewer
+
+- deps/hiredis/CHANGELOG.md stops at 1.2.0; confirm it is abandoned (release notes come from other sources).
+- Ambiguity (registry-roles): 2 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (docs-sources): Documentation lives in another repository; no upgrade-guide, compatibility source was derived from it.
+
+## Validation matrix
+
+| Element | Verdict | 8.6.0 | 8.6.7 | 8.8.0 | 8.8.3 | 8.10.0 | 8.10.2 |
+|---|---|---|---|---|---|---|---|
+| source:release-notes-docs | insufficient | covered: covered by release-notes-github (fallback group release-note… | covered: covered by release-notes-github (fallback group release-note… | covered: covered by release-notes-github (fallback group release-note… | covered: covered by release-notes-github (fallback group release-note… | covered: covered by release-notes-github (fallback group release-note… | covered: covered by release-notes-github (fallback group release-note… |
+| source:release-notes-github | validated | pass | pass | pass | pass | pass | pass |
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 416 tags: prefix "", 269 stable, 42 prereleases (betaN×8, rcN×34), 105 junk; latest stable 8.10.2; lineage minor; strict tagPattern excludes junk tags such as 2.2-alpha0, 2.2-alpha1, 2.2-alpha2, 2.2-alpha3 |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (416 tags: prefix "", 269 stable, 42 prereleases (betaN×8, rcN×34), 105 junk; latest stable 8.10.2; lineage minor). |
+| source:github-releases | include | versions.github-releases-fallback | heuristic | Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list. |
+| source:release-notes-docs | include | notes.per-line-file-with-release-sections | heuristic | One notes file per release line (6 instances) with one section per release (e.g. "## Redis Open Source 8.10.1 (August 2026)"). |
+| source:release-notes-github | include | notes.hosted-release-body | heuristic | Hosted GitHub releases exist (assets are downloaded from them); their body may carry notes. |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+| source:release-notes-docs | annotate | validate.insufficient | computed | Kept unverified: 8.6.0 covered (covered by release-notes-github (fallback group release-notes): no section matching "^v?8\\.6\\.0$" in https://github.com/redis/docs/blob/main/content/operate/oss_and_stack/stack-with-ente… |
+
+21 candidates were found; 12 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/redis.report.md
+proposed definition written to docs/rerun/discovery/redis.proposed.yaml

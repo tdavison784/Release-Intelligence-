@@ -1,0 +1,61 @@
+# Discovery report: elasticsearch
+
+- Repository: `github.com/elastic/elasticsearch` at `v9.5.4` (commit `9170df19cae1…`)
+- Generated: 2026-10-02T12:33:40Z
+- LLM: not used (deterministic resolver only)
+- Tags: 516 tags: prefix "v", 476 stable, 28 prereleases (alphaN×11, betaN×8, rcN×9), 12 junk; latest stable v9.5.4; lineage minor
+- Scanned `github.com/elastic/elasticsearch@v9.5.4` (source profile): 44098 files listed, 6047 read
+- Scanned `github.com/elastic/docs@master` (docs profile): 597 files listed, 5 read
+- Validation: done against v9.3.0, v9.3.8, v9.4.0, v9.4.7, v9.5.0, v9.5.4
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 1 | git-tags github.com/elastic/elasticsearch |
+| release-notes | found | 1 | repo-dir github.com/elastic/elasticsearch docs/changelog |
+| changelog | not-found | 0 |  |
+| helm-charts | not-found | 0 |  |
+| registries | candidates-only | 3 |  |
+| images | candidates-only | 26 |  |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 0 | github-advisories elastic/elasticsearch |
+| version-relations | not-found | 0 |  |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| source:release-note-files | historically-validated | notes.structured-dir | https://github.com/elastic/elasticsearch/blob/v9.5.4/docs/changelog/158545.yaml# |
+| source:advisories | discovered | security.github-hosted-default |  |
+| source:tags | discovered | versions.git-tags | https://github.com/elastic/elasticsearch/releases/tag/v9.5.4#refs/tags/v9.5.4 |
+| versioning | discovered | tags.scheme | https://github.com/elastic/elasticsearch/releases/tag/v9.5.4#refs/tags/v9.5.4 |
+
+Statuses: 1 historically-validated, 3 discovered.
+
+## Open questions for the reviewer
+
+- Ambiguity (docs-sources): Documentation lives in another repository; no upgrade-guide, compatibility source was derived from it.
+
+## Validation matrix
+
+| Element | Verdict | v9.3.0 | v9.3.8 | v9.4.0 | v9.4.7 | v9.5.0 | v9.5.4 |
+|---|---|---|---|---|---|---|---|
+| source:release-note-files | validated |  |  |  |  |  |  |
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 516 tags: prefix "v", 476 stable, 28 prereleases (alphaN×11, betaN×8, rcN×9), 12 junk; latest stable v9.5.4; lineage minor |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (516 tags: prefix "v", 476 stable, 28 prereleases (alphaN×11, betaN×8, rcN×9), 12 junk; latest stable v9.5.4; lineage minor). |
+| source:release-note-files | include | notes.structured-dir | heuristic | Directory of 22 structured note files (keys: summary). |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+
+32 candidates were found; 26 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/elasticsearch.report.md
+proposed definition written to docs/rerun/discovery/elasticsearch.proposed.yaml

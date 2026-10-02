@@ -1,0 +1,1027 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: kube-prometheus-stack
+name: helm-charts
+homepage: https://github.com/prometheus-community/helm-charts
+versioning:
+  scheme: semver
+  tagPrefix: kube-prometheus-stack-
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/prometheus-community/helm-charts
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: prometheus-community/helm-charts
+    notes: 'Security policy: SECURITY.md → https://prometheus.io/docs/operating/security/'
+artifacts:
+  - id: alertmanager-snmp-notifier-chart
+    type: helm-chart
+    name: alertmanager-snmp-notifier
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/alertmanager-snmp-notifier
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/alertmanager-snmp-notifier
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/alertmanager-snmp-notifier/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/alertmanager-snmp-notifier/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: alertmanager-chart
+    type: helm-chart
+    name: alertmanager
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/alertmanager
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/alertmanager
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/alertmanager/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/alertmanager/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: jiralert-chart
+    type: helm-chart
+    name: jiralert
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/jiralert
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/jiralert
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/jiralert/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/jiralert/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: kube-prometheus-stack-chart
+    type: helm-chart
+    name: kube-prometheus-stack
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/kube-prometheus-stack
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/kube-prometheus-stack
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/kube-prometheus-stack/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/kube-prometheus-stack/Chart.yaml
+    validatedAgainst:
+      - 91.6.0
+      - 91.7.0
+      - 91.7.1
+      - 91.8.0
+      - 91.8.2
+  - id: kube-state-metrics-chart
+    type: helm-chart
+    name: kube-state-metrics
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/kube-state-metrics
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/kube-state-metrics
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/kube-state-metrics/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/kube-state-metrics/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prom-label-proxy-chart
+    type: helm-chart
+    name: prom-label-proxy
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prom-label-proxy/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prom-label-proxy/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-adapter-chart
+    type: helm-chart
+    name: prometheus-adapter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-adapter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-adapter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-adapter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-adapter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-blackbox-exporter-chart
+    type: helm-chart
+    name: prometheus-blackbox-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-blackbox-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-blackbox-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-blackbox-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-blackbox-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-cloudwatch-exporter-chart
+    type: helm-chart
+    name: prometheus-cloudwatch-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-cloudwatch-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-cloudwatch-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-cloudwatch-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-cloudwatch-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-conntrack-stats-exporter-chart
+    type: helm-chart
+    name: prometheus-conntrack-stats-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-conntrack-stats-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-conntrack-stats-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-conntrack-stats-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-conntrack-stats-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-consul-exporter-chart
+    type: helm-chart
+    name: prometheus-consul-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-consul-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-consul-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-consul-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-consul-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-couchdb-exporter-chart
+    type: helm-chart
+    name: prometheus-couchdb-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-couchdb-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-couchdb-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-couchdb-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-couchdb-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-druid-exporter-chart
+    type: helm-chart
+    name: prometheus-druid-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-druid-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-druid-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-druid-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-druid-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-elasticsearch-exporter-chart
+    type: helm-chart
+    name: prometheus-elasticsearch-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-elasticsearch-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-elasticsearch-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-elasticsearch-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-elasticsearch-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-fastly-exporter-chart
+    type: helm-chart
+    name: prometheus-fastly-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-fastly-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-fastly-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-fastly-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-fastly-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-ipmi-exporter-chart
+    type: helm-chart
+    name: prometheus-ipmi-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-ipmi-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-ipmi-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-ipmi-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-ipmi-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-json-exporter-chart
+    type: helm-chart
+    name: prometheus-json-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-json-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-json-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-json-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-json-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-kafka-exporter-chart
+    type: helm-chart
+    name: prometheus-kafka-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-kafka-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-kafka-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-kafka-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-kafka-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-memcached-exporter-chart
+    type: helm-chart
+    name: prometheus-memcached-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-memcached-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-memcached-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-memcached-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-memcached-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-modbus-exporter-chart
+    type: helm-chart
+    name: prometheus-modbus-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-modbus-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-modbus-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-modbus-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-modbus-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-mongodb-exporter-chart
+    type: helm-chart
+    name: prometheus-mongodb-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-mongodb-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-mongodb-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-mongodb-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-mongodb-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-mysql-exporter-chart
+    type: helm-chart
+    name: prometheus-mysql-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-mysql-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-mysql-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-mysql-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-mysql-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-nats-exporter-chart
+    type: helm-chart
+    name: prometheus-nats-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-nats-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-nats-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-nats-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-nats-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-nginx-exporter-chart
+    type: helm-chart
+    name: prometheus-nginx-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-nginx-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-nginx-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-nginx-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-nginx-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-node-exporter-chart
+    type: helm-chart
+    name: prometheus-node-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-node-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-node-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-node-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-node-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-operator-admission-webhook-chart
+    type: helm-chart
+    name: prometheus-operator-admission-webhook
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-operator-admission-webhook
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-operator-admission-webhook
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-operator-admission-webhook/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-operator-admission-webhook/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-operator-crds-chart
+    type: helm-chart
+    name: prometheus-operator-crds
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-operator-crds
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-operator-crds
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-operator-crds/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-operator-crds/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-pgbouncer-exporter-chart
+    type: helm-chart
+    name: prometheus-pgbouncer-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-pgbouncer-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-pgbouncer-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-pgbouncer-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-pgbouncer-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-pingdom-exporter-chart
+    type: helm-chart
+    name: prometheus-pingdom-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-pingdom-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-pingdom-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-pingdom-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-pingdom-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-pingmesh-exporter-chart
+    type: helm-chart
+    name: prometheus-pingmesh-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-pingmesh-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-pingmesh-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-pingmesh-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-pingmesh-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-postgres-exporter-chart
+    type: helm-chart
+    name: prometheus-postgres-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-postgres-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-postgres-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-postgres-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-postgres-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-pushgateway-chart
+    type: helm-chart
+    name: prometheus-pushgateway
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-pushgateway
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-pushgateway
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-pushgateway/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-pushgateway/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-rabbitmq-exporter-chart
+    type: helm-chart
+    name: prometheus-rabbitmq-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-rabbitmq-exporter
+      - kind: helm-repo
+        url: https://prometheus-community.github.io/helm-charts
+        chart: prometheus-rabbitmq-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-rabbitmq-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-rabbitmq-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-redis-exporter-chart
+    type: helm-chart
+    name: prometheus-redis-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-redis-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-redis-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-redis-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-redis-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-smartctl-exporter-chart
+    type: helm-chart
+    name: prometheus-smartctl-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-smartctl-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-smartctl-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-smartctl-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-smartctl-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-snmp-exporter-chart
+    type: helm-chart
+    name: prometheus-snmp-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-snmp-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-snmp-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-snmp-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-snmp-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-sql-exporter-chart
+    type: helm-chart
+    name: prometheus-sql-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-sql-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-sql-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-sql-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-sql-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-stackdriver-exporter-chart
+    type: helm-chart
+    name: prometheus-stackdriver-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-stackdriver-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-stackdriver-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-stackdriver-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-stackdriver-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-statsd-exporter-chart
+    type: helm-chart
+    name: prometheus-statsd-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-statsd-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-statsd-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-statsd-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-statsd-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-systemd-exporter-chart
+    type: helm-chart
+    name: prometheus-systemd-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-systemd-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-systemd-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-systemd-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-systemd-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-to-sd-chart
+    type: helm-chart
+    name: prometheus-to-sd
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-to-sd
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-to-sd
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-to-sd/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-to-sd/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-windows-exporter-chart
+    type: helm-chart
+    name: prometheus-windows-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-windows-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-windows-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-windows-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-windows-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-yet-another-cloudwatch-exporter-chart
+    type: helm-chart
+    name: prometheus-yet-another-cloudwatch-exporter
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus-yet-another-cloudwatch-exporter
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus-yet-another-cloudwatch-exporter
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-yet-another-cloudwatch-exporter/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus-yet-another-cloudwatch-exporter/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: prometheus-chart
+    type: helm-chart
+    name: prometheus
+    version:
+      strategy: independent
+    channels:
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prometheus
+      - kind: oci
+        repository: ghcr.io/prometheus-community/charts/prom-label-proxy/prometheus
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/prometheus-community/helm-charts
+          path: charts/prometheus/Chart.yaml
+    notes: 'Unverified by discovery (unverifiable: 91.6.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.7.1 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 91.8.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); …).'
+  - id: crds
+    type: crd
+    name: CustomResourceDefinitions
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-dir
+        repository: github.com/prometheus-community/helm-charts
+        path: charts/kube-prometheus-stack/charts/crds/crds
+        glob: '*.yaml'
+    contents:
+      - kind: crds
+    validatedAgainst:
+      - 91.6.0
+      - 91.7.0
+      - 91.7.1
+      - 91.8.0
+      - 91.8.2
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  validatedReleases:
+    - kube-prometheus-stack-91.6.0
+    - kube-prometheus-stack-91.7.0
+    - kube-prometheus-stack-91.7.1
+    - kube-prometheus-stack-91.8.0
+    - kube-prometheus-stack-91.8.2
+  notes: Proposed by automated discovery; relationship checks run against kube-prometheus-stack-91.6.0, kube-prometheus-stack-91.7.0, kube-prometheus-stack-91.7.1, kube-prometheus-stack-91.8.0, kube-prometheus-stack-91.8.2.
