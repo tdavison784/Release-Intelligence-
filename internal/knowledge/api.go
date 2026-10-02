@@ -350,4 +350,13 @@ type FactMetrics struct {
 	AutoApprovedAudited     int
 	AutoApprovalAgreement   float64
 	AutoApprovalAgreementBy map[domain.SubjectFamily]float64
+	// Consensus reliability (PO-1): human-audit agreement of consensus-verified
+	// aspects by scope — is same-model agreement (correlated errors) as
+	// reliable as cross-model agreement?
+	ConsensusAgreementByScope map[domain.ConsensusScope]float64
+	// Consensus ACTION (PO-2): facts allowed to produce ACTION REQUIRED by
+	// model consensus; every one is sampled into human review.
+	ConsensusAction          int
+	ConsensusActionAudited   int
+	ConsensusActionAgreement float64
 }

@@ -103,7 +103,12 @@ func buildFact(c domain.SemanticCandidate, state map[domain.Aspect]aspectState, 
 			return nil, fmt.Errorf("fact: aspect %s is not verified", x)
 		}
 		mergeAspect(&a, st.part, x)
-		ver = append(ver, domain.AspectVerification{Aspect: x, Level: st.level, Basis: append([]string(nil), st.basis...)})
+		av := domain.AspectVerification{Aspect: x, Level: st.level, Basis: append([]string(nil), st.basis...)}
+		if st.level == domain.VerifiedConsensus {
+			// CONTRACT-CHANGE(contract-3): PO-1 labels consensus cross-model / same-model.
+			av.Consensus = consensusScope(st.basis, ps)
+		}
+		ver = append(ver, av)
 		for _, id := range st.basis {
 			basisVal[id] = true
 		}
@@ -431,4 +436,20 @@ func validateDecisions(snap *Snapshot, ds []domain.ReviewDecision) error {
 		}
 	}
 	return errors.Join(errs...)
+}
+
+// consensusScope labels the agreeing proposals of a consensus basis
+// (same-model when they cannot be resolved: the conservative label).
+func consensusScope(basis []string, ps []domain.SemanticProposal) domain.ConsensusScope {
+	ids := map[string]bool{}
+	for _, id := range basis {
+		ids[id] = true
+	}
+	var agreeing []domain.SemanticProposal
+	for _, p := range ps {
+		if ids[p.ID] {
+			agreeing = append(agreeing, p)
+		}
+	}
+	return domain.ConsensusScopeOf(agreeing)
 }

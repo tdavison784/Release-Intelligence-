@@ -17,12 +17,22 @@ func renderable(t *testing.T) (Store, domain.SemanticCandidate) {
 	return s, c
 }
 
-func TestConsensusRequiresIndependentFamilies(t *testing.T) {
+// CONTRACT-CHANGE(contract-3): PO-1 — consensus is two SEPARATE calls
+// agreeing, any models (the same model twice included); one call never counts
+// twice.
+func TestConsensusRequiresSeparateCalls(t *testing.T) {
 	c := fixtureCandidate()
 	a := rotationAssertion(domain.ConsequenceBehaviorChange)
 	same := []domain.SemanticProposal{proposal(c, "anthropic", "claude-opus-5-5", a), proposal(c, "anthropic", "claude-sonnet-5-5", a)}
-	if got := ConsensusAspects(same, nil); len(got) != 0 {
-		t.Fatalf("Opus+Sonnet counted as consensus: %v", got)
+	if got := ConsensusAspects(same, nil); len(got) != 4 {
+		t.Fatalf("two separate Claude calls gave %d consensus aspects, want 4", len(got))
+	}
+	oneCall := proposal(c, "anthropic", "claude-opus-5-5", a)
+	replay := oneCall
+	replay.Provenance.PromptDigest = "sha256:replayed"
+	replay.ID = domain.ProposalID(replay.CandidateID, replay.Task, replay.Provider, replay.Provenance)
+	if got := ConsensusAspects([]domain.SemanticProposal{oneCall, replay}, nil); len(got) != 0 {
+		t.Fatalf("one call counted twice as consensus: %v", got)
 	}
 	indep := []domain.SemanticProposal{proposal(c, "anthropic", "claude-sonnet-5-5", a), proposal(c, "zai", "glm-5.3-flash", a)}
 	if got := ConsensusAspects(indep, nil); len(got) != 4 {

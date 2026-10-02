@@ -69,7 +69,7 @@ func aiProvenance(model string, input ...EvidenceID) Provenance {
 	at := t0
 	return Provenance{Method: MethodAI, Producer: "semantic.propose@v1", Confidence: ConfidenceMedium,
 		Model: model, ModelVersion: model, PromptVersion: "semantic/v1", PromptDigest: "sha256:" + model,
-		InputEvidence: input, GeneratedAt: &at}
+		InputEvidence: input, GeneratedAt: &at, CallID: "call-" + model}
 }
 
 func validProposal(c SemanticCandidate) SemanticProposal {
@@ -372,7 +372,7 @@ func TestConsensusLevelOrdering(t *testing.T) {
 	}
 }
 
-func TestModelIndependence(t *testing.T) {
+func TestSeparateCallsAndScope(t *testing.T) {
 	fam := map[string]string{"claude-opus-5-5": "claude", "claude-sonnet-5-5": "claude", "glm-5.3-flash": "glm",
 		"gpt-5": "gpt", "zai/glm-5.3": "glm", "Gemini-2.5-Pro": "gemini"}
 	for m, want := range fam {
@@ -380,17 +380,30 @@ func TestModelIndependence(t *testing.T) {
 			t.Errorf("ModelFamily(%q) = %q, want %q", m, got, want)
 		}
 	}
-	p := func(provider, model string) SemanticProposal {
-		return SemanticProposal{Provider: provider, Provenance: Provenance{Model: model}}
+	p := func(id, model, call string) SemanticProposal {
+		return SemanticProposal{ID: id, Provenance: Provenance{Model: model, CallID: call}}
 	}
-	if !IndependentModels(p("zai", "glm-5.3-flash"), p("anthropic", "claude-sonnet-5-5")) {
-		t.Error("GLM and Claude are independent")
+	cases := []struct {
+		name string
+		a, b SemanticProposal
+		want bool
+	}{
+		{"two Opus calls (PO-1)", p("sp-1", "claude-opus-5-5", "msg_1"), p("sp-2", "claude-opus-5-5", "msg_2"), true},
+		{"GLM and Claude", p("sp-1", "glm-5.3-flash", "req_1"), p("sp-2", "claude-sonnet-5-5", "msg_1"), true},
+		{"one call replayed", p("sp-1", "claude-opus-5-5", "msg_1"), p("sp-2", "claude-opus-5-5", "msg_1"), false},
+		{"same proposal", p("sp-1", "claude-opus-5-5", "msg_1"), p("sp-1", "claude-opus-5-5", "msg_2"), false},
+		{"missing call id", p("sp-1", "claude-opus-5-5", ""), p("sp-2", "claude-opus-5-5", "msg_2"), false},
 	}
-	if IndependentModels(p("anthropic", "claude-opus-5-5"), p("anthropic", "claude-sonnet-5-5")) {
-		t.Error("two Claude models are one family")
+	for _, c := range cases {
+		if got := SeparateCalls(c.a, c.b); got != c.want {
+			t.Errorf("%s: SeparateCalls = %v, want %v", c.name, got, c.want)
+		}
 	}
-	if IndependentModels(p("anthropic", "claude-sonnet-5-5"), p("bedrock", "claude-sonnet-5-5")) {
-		t.Error("the same model behind two gateways is one opinion")
+	if s := ConsensusScopeOf([]SemanticProposal{p("a", "claude-opus-5-5", "1"), p("b", "claude-sonnet-5-5", "2")}); s != ConsensusSameModel {
+		t.Errorf("two Claude models = %s, want same-model", s)
+	}
+	if s := ConsensusScopeOf([]SemanticProposal{p("a", "glm-5.3-flash", "1"), p("b", "claude-sonnet-5-5", "2")}); s != ConsensusCrossModel {
+		t.Errorf("GLM + Claude = %s, want cross-model", s)
 	}
 }
 
@@ -536,7 +549,12 @@ func TestProposalValidate(t *testing.T) {
 		{"missing model version", func(p *SemanticProposal) { p.Provenance.ModelVersion = "" }, "modelVersion"},
 		{"high confidence", func(p *SemanticProposal) { p.Provenance.Confidence = ConfidenceHigh }, "capped at medium"},
 		{"no provider", func(p *SemanticProposal) { p.Provider = ""; rehash(p) }, "provider is required"},
-		{"suggests action", func(p *SemanticProposal) { p.SuggestedClass = ImpactActionRequired }, "never"[:0] + "not \"action-required\""},
+		{"requests action on a behavior change", func(p *SemanticProposal) { p.SuggestedClass = ImpactActionRequired }, "must assert an action-eligible consequence"},
+		{"requests action on a failure (PO-2)", func(p *SemanticProposal) {
+			p.SuggestedClass = ImpactActionRequired
+			p.Assertion.Consequence = &Consequence{Kind: ConsequenceSettingIgnored, ExposedClass: ImpactActionRequired, Statement: "keys stop rotating"}
+		}, ""},
+		{"no call id", func(p *SemanticProposal) { p.Provenance.CallID = ""; rehash(p) }, "callId"},
 		{"suggests not-affected", func(p *SemanticProposal) { p.SuggestedClass = ImpactNotAffected }, "not \"not-affected\""},
 		{"cites outside input", func(p *SemanticProposal) { p.Citations = []EvidenceID{"ev-invented"} }, "not part of its input"},
 		{"asserts without citing", func(p *SemanticProposal) { p.Citations = nil }, "must cite evidence"},
@@ -961,22 +979,41 @@ func TestImpactFindingKnowledgeRules(t *testing.T) {
 			f.Checks = []ImpactCheck{{Dimension: DimensionManifests, Facts: 3, Subjects: []string{"spec.privateKey.rotationPolicy"}}}
 			r.Summary.ActionRequired, r.Summary.AffectEnvironment, r.Summary.NotAffected = 0, 0, 1
 		}, "consensus and proxy never clear"},
-		{"action from a consensus fact", func(r *ImpactReport) { knowledgeFinding(r).Knowledge.Verification = VerifiedConsensus }, "requires a deterministic- or human-verified fact"},
+		{"action from a consensus fact without consensusAction", func(r *ImpactReport) {
+			k := knowledgeFinding(r).Knowledge
+			k.Verification, k.Consensus = VerifiedConsensus, ConsensusSameModel
+		}, "or a consensus-action fact"},
+		{"ACTION REQUIRED · model consensus (PO-2)", func(r *ImpactReport) {
+			k := knowledgeFinding(r).Knowledge
+			k.Verification, k.Consensus, k.ConsensusAction = VerifiedConsensus, ConsensusSameModel, true
+			if k.ActionLabel() != "model consensus" {
+				t.Errorf("label = %q", k.ActionLabel())
+			}
+		}, ""},
+		{"consensus label missing", func(r *ImpactReport) {
+			k := knowledgeFinding(r).Knowledge
+			k.Verification, k.ConsensusAction = VerifiedConsensus, true
+		}, "set exactly for consensus-verified facts"},
+		{"consensusAction on a human fact", func(r *ImpactReport) { knowledgeFinding(r).Knowledge.ConsensusAction = true }, "consensus-verified facts only"},
+		{"proxy may still not act", func(r *ImpactReport) {
+			k := knowledgeFinding(r).Knowledge
+			k.Verification = VerifiedProxy
+		}, "or a consensus-action fact"},
 		{"consensus review at medium", func(r *ImpactReport) {
 			f := knowledgeFinding(r)
-			f.Knowledge.Verification = VerifiedConsensus
+			f.Knowledge.Verification, f.Knowledge.Consensus = VerifiedConsensus, ConsensusCrossModel
 			f.Classification, f.Provenance.Confidence = ImpactReviewRequired, ConfidenceMedium
 			r.Summary.ActionRequired, r.Summary.ReviewRequired = 0, 1
 		}, ""},
-		{"consensus at high confidence", func(r *ImpactReport) {
+		{"consensus review at high confidence", func(r *ImpactReport) {
 			f := knowledgeFinding(r)
-			f.Knowledge.Verification = VerifiedConsensus
+			f.Knowledge.Verification, f.Knowledge.Consensus, f.Knowledge.ConsensusAction = VerifiedConsensus, ConsensusCrossModel, true
 			f.Classification = ImpactReviewRequired
 			r.Summary.ActionRequired, r.Summary.ReviewRequired = 0, 1
 		}, "cannot carry high confidence"},
 		{"consensus never clears", func(r *ImpactReport) {
 			f := knowledgeFinding(r)
-			f.Knowledge.Verification = VerifiedConsensus
+			f.Knowledge.Verification, f.Knowledge.Consensus = VerifiedConsensus, ConsensusCrossModel
 			f.Rule, f.Classification, f.Provenance.Confidence = "impact:knowledge-clear", ImpactNotAffected, ConfidenceMedium
 			f.Matches, f.EnvironmentEvidence = nil, nil
 			f.Checks = []ImpactCheck{{Dimension: DimensionManifests, Facts: 3, Subjects: []string{"x"}}}
@@ -1020,7 +1057,7 @@ func consensusFact() (VerifiedFact, FactRecords) {
 	claude.Provider, claude.Provenance = "anthropic", aiProvenance("claude-sonnet-5-5", upEvidence().ID, crdEvidence().ID)
 	claude.ID = ProposalID(claude.CandidateID, claude.Task, claude.Provider, claude.Provenance)
 	f := validFact(cand, v, validDecision(validItem(cand)))
-	f.Verification[3] = AspectVerification{Aspect: AspectConsequence, Level: VerifiedConsensus, Basis: []string{glm.ID, claude.ID}}
+	f.Verification[3] = AspectVerification{Aspect: AspectConsequence, Level: VerifiedConsensus, Basis: []string{glm.ID, claude.ID}, Consensus: ConsensusCrossModel}
 	f.AutoApproved = true
 	return f, FactRecords{
 		Validations: map[string]ValidationResult{v.ID: v},
@@ -1040,12 +1077,27 @@ func TestConsensusFact(t *testing.T) {
 		{"decision as consensus basis", func(f *VerifiedFact, _ *FactRecords) {
 			f.Verification[3].Basis = append(f.Verification[3].Basis, "rd-x")
 		}, "consensus verification rests on agreeing proposals"},
-		{"same model family", func(f *VerifiedFact, r *FactRecords) {
+		{"two Opus calls are consensus (PO-1), labelled same-model", func(f *VerifiedFact, r *FactRecords) {
 			for id, p := range r.Proposals {
 				p.Provenance.Model = "claude-opus-5-5"
 				r.Proposals[id] = p
 			}
-		}, "two independent model families"},
+			f.Verification[3].Consensus = ConsensusSameModel
+		}, ""},
+		{"wrong scope label", func(f *VerifiedFact, r *FactRecords) {
+			for id, p := range r.Proposals {
+				p.Provenance.Model = "claude-opus-5-5"
+				r.Proposals[id] = p
+			}
+		}, "labelled \"cross-model\" but the agreeing calls are same-model"},
+		{"one call counted twice", func(f *VerifiedFact, r *FactRecords) {
+			for id, p := range r.Proposals {
+				p.Provenance.CallID = "msg_same"
+				r.Proposals[id] = p
+			}
+		}, "counted twice"},
+		{"label on a deterministic aspect", func(f *VerifiedFact, _ *FactRecords) { f.Verification[0].Consensus = ConsensusCrossModel }, "consensus verifications only"},
+		{"consensus without label", func(f *VerifiedFact, _ *FactRecords) { f.Verification[3].Consensus = "" }, "labelled cross-model or same-model"},
 		{"a proposal disagrees", func(f *VerifiedFact, r *FactRecords) {
 			id := f.Verification[3].Basis[1]
 			p := r.Proposals[id]
@@ -1143,4 +1195,74 @@ func TestRenderRelationAndRenderability(t *testing.T) {
 	expectErr(t, c.Validate(), "")
 	c.Renderability = "sometimes"
 	expectErr(t, c.Validate(), "unknown renderability")
+}
+
+// --- PO-2: consensus may produce ACTION REQUIRED -----------------------------------
+
+// consensusActionFact: subject/change/applicability deterministic, consequence
+// setting-ignored agreed by two separate calls that both requested action.
+func consensusActionFact() (VerifiedFact, FactRecords) {
+	f, r := consensusFact()
+	cons := &Consequence{Kind: ConsequenceSettingIgnored, ExposedClass: ImpactActionRequired, Statement: "the pinned key stops taking effect"}
+	f.Assertion.Consequence = cons
+	f.ID = VerifiedFactID(f.Product, f.Release, f.Assertion)
+	props := map[string]SemanticProposal{}
+	var ids []string
+	for _, p := range r.Proposals {
+		p.Assertion.Consequence = cons
+		p.SuggestedClass = ImpactActionRequired
+		props[p.ID] = p
+		ids = append(ids, p.ID)
+	}
+	r.Proposals = props
+	f.Verification[3].Basis = ids
+	f.ConsensusAction = true
+	return f, r
+}
+
+func TestConsensusActionFact(t *testing.T) {
+	cases := []struct {
+		name string
+		mut  func(*VerifiedFact, *FactRecords)
+		want string
+	}{
+		{"both calls requested action, nothing refuted", func(*VerifiedFact, *FactRecords) {}, ""},
+		{"one call only suggested review", func(f *VerifiedFact, r *FactRecords) {
+			id := f.Verification[3].Basis[0]
+			p := r.Proposals[id]
+			p.SuggestedClass = ImpactReviewRequired
+			r.Proposals[id] = p
+		}, "did not request action-required"},
+		{"behavior change cannot act", func(f *VerifiedFact, r *FactRecords) {
+			cons := &Consequence{Kind: ConsequenceBehaviorChange, ExposedClass: ImpactReviewRequired}
+			f.Assertion.Consequence = cons
+			f.ID = VerifiedFactID(f.Product, f.Release, f.Assertion)
+		}, "action-eligible consequence"},
+		{"a proxy aspect blocks consensus action", func(f *VerifiedFact, _ *FactRecords) {
+			f.Verification[0] = AspectVerification{Aspect: AspectSubject, Level: VerifiedProxy, Basis: []string{"rd-x"}}
+			f.AutoApproved = false
+		}, "no proxy"},
+		{"all trusted: not a consensus path", func(f *VerifiedFact, _ *FactRecords) {
+			f.Verification[3] = AspectVerification{Aspect: AspectConsequence, Level: VerifiedHuman, Basis: []string{"rd-x"}}
+			f.AutoApproved = false
+		}, "at least one at consensus"},
+		{"a validator refuted an aspect", func(f *VerifiedFact, r *FactRecords) {
+			cand := validCandidate()
+			v := ValidationResult{CandidateID: cand.ID, Validator: "render.diff@v1", Assertion: f.Assertion, CheckedAt: t0,
+				Checks: []AspectCheck{{Aspect: AspectApplicability, Outcome: OutcomeRefuted, Rule: "render:not-set"}}}
+			v.ID = ValidationID(v.CandidateID, v.Validator, v.Assertion)
+			r.Validations[v.ID] = v
+		}, "refutes the applicability aspect"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f, r := consensusActionFact()
+			tc.mut(&f, &r)
+			err := f.Validate()
+			if err == nil {
+				err = ValidateFactRecords(f, r)
+			}
+			expectErr(t, err, tc.want)
+		})
+	}
 }

@@ -45,7 +45,8 @@ func seedKnowledge(t *testing.T) (dir string, item domain.ReviewItem) {
 	}
 	p := domain.SemanticProposal{CandidateID: c.ID, Task: domain.TaskFull, Provider: "zai", Assertion: a, Citations: []domain.EvidenceID{ev.ID},
 		Provenance: domain.Provenance{Method: domain.MethodAI, Producer: "semantic.propose@v1", Confidence: domain.ConfidenceMedium, Model: "glm-5.3-flash",
-			ModelVersion: "1", PromptVersion: "v1", PromptDigest: "sha256:x", InputEvidence: []domain.EvidenceID{ev.ID}, GeneratedAt: &at}}
+			ModelVersion: "1", PromptVersion: "v1", PromptDigest: "sha256:x", InputEvidence: []domain.EvidenceID{ev.ID}, GeneratedAt: &at,
+			CallID: "call-1"}} // CONTRACT-CHANGE(contract-3): proposals carry a call id (PO-1)
 	p.ID = domain.ProposalID(p.CandidateID, p.Task, p.Provider, p.Provenance)
 	put(p)
 	return dir, domain.ReviewItem{}
