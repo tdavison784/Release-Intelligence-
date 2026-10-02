@@ -202,7 +202,7 @@ type ImpactFinding struct {
 	// VerifiedFact against the environment (rules impact:knowledge-*): which
 	// fact, and how trusted it is. The trust ladder is enforced by Validate:
 	// action-required and not-affected require a trusted (deterministic or
-	// human) fact; a proxy-verified fact never yields either.
+	// human) fact; a consensus- or proxy-verified fact never yields either.
 	Knowledge *KnowledgeRef `json:"knowledge,omitempty"`
 }
 
@@ -215,7 +215,7 @@ const KnowledgeRulePrefix = "impact:knowledge-"
 type KnowledgeRef struct {
 	Fact string `json:"fact"` // VerifiedFact id (vf-…)
 	// Verification is the fact's level (its weakest aspect): deterministic,
-	// human or proxy.
+	// human, consensus or proxy.
 	Verification VerificationLevel `json:"verification"`
 	Statement    string            `json:"statement,omitempty"`
 }
@@ -550,11 +550,11 @@ func (f ImpactFinding) validateKnowledge() []error {
 		}
 	case ImpactNotAffected:
 		if !k.Verification.Trusted() {
-			bad("NOT AFFECTED from knowledge requires a deterministic- or human-verified fact, got %q (a proxy never clears)", k.Verification)
+			bad("NOT AFFECTED from knowledge requires a deterministic- or human-verified fact, got %q (consensus and proxy never clear)", k.Verification)
 		}
 	}
-	if k.Verification == VerifiedProxy && f.Provenance.Confidence == ConfidenceHigh {
-		bad("a proxy-verified fact cannot carry high confidence")
+	if k.Verification.Valid() && !k.Verification.Trusted() && f.Provenance.Confidence == ConfidenceHigh {
+		bad("a %s-verified fact cannot carry high confidence (untrusted levels: confidence at most medium)", k.Verification)
 	}
 	return errs
 }

@@ -31,8 +31,8 @@ var (
 // Store is the durable knowledge store (default implementation: committed
 // JSON files under knowledge/, DESIGN.md §8). Writes are idempotent by
 // content-derived id. Every record is validated (KnowledgeRecord.Validate,
-// and ValidateFactBasis for facts) before it is written; an invalid record is
-// never stored.
+// and ValidateFactRecords for facts) before it is written; an invalid record
+// is never stored.
 type Store interface {
 	// Put writes one record. Re-putting an identical record is a no-op.
 	// Review items may change only Status; facts only Status, Anchors and
@@ -329,4 +329,11 @@ type FactMetrics struct {
 	ByFamily       map[domain.SubjectFamily]int
 	Retracted      int
 	AnchorsPerFact float64 // restatements remembered per fact
+	// Auto-approval audit (RENDER-MISSION R19): facts minted with no human or
+	// proxy decision, how many were sampled into human review, and how often
+	// the human verdict agreed with them — overall and per subject family.
+	AutoApproved            int
+	AutoApprovedAudited     int
+	AutoApprovalAgreement   float64
+	AutoApprovalAgreementBy map[domain.SubjectFamily]float64
 }
