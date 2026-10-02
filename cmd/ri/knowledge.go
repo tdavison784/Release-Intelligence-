@@ -20,7 +20,8 @@ Subcommands:
   review-fact <fact-id>          open a re-review of a fact (reject retracts, correct supersedes)
   export [-o file]               the human-feedback dataset as JSONL
   metrics [-o text|json]         agreement, per-model accuracy, review cost, fact counts
-  candidates | propose | validate  produced by the semantic and validate lanes (not wired in this build)
+  validate -edge p:from:to[,…]   run the deterministic validators over stored proposals; write ValidationResults
+  (candidates | propose: see ri semantic)
 `
 
 func (c *cli) knowledge(args []string) error {
@@ -40,9 +41,10 @@ func (c *cli) knowledge(args []string) error {
 		return c.knowledgeExport(rest)
 	case "metrics":
 		return c.knowledgeMetrics(rest)
-	case "candidates", "propose", "validate":
-		return fmt.Errorf("ri knowledge %s is provided by the %s lane and is not wired in this build", sub,
-			map[string]string{"candidates": "semantic", "propose": "semantic", "validate": "validate"}[sub])
+	case "validate":
+		return c.knowledgeValidate(rest)
+	case "candidates", "propose":
+		return fmt.Errorf("ri knowledge %s is provided by the semantic lane: use ri semantic %s", sub, sub)
 	case "help":
 		fmt.Fprint(c.err, knowledgeUsage)
 		return nil
