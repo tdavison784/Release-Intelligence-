@@ -201,11 +201,11 @@ func TestTransferSubset(t *testing.T) {
 	}
 	rs := []EntryResult{
 		{CaseID: "c1", EnvImpact: []EnvImpactAudit{
-			link(true, "vf-reviewed-c1"),  // reviewed with c1's environment: excluded
-			link(true, "vf-fresh"),        // transfer: hit
+			link(true, "vf-reviewed-c1"), // reviewed with c1's environment: excluded
+			link(true, "vf-fresh"),       // transfer: hit
 		}},
 		{CaseID: "c2", EnvImpact: []EnvImpactAudit{
-			link(false, "vf-fresh"),       // transfer: miss
+			link(false, "vf-fresh"),                      // transfer: miss
 			{Relevance: RelevanceNotAffected, Hit: true}, // a not-affected violation
 		}},
 	}

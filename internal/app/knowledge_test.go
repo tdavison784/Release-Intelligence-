@@ -31,8 +31,8 @@ func kAssertion() domain.SemanticAssertion {
 	}
 	overlap := cert(domain.StateSet)
 	return domain.SemanticAssertion{
-		Subject: &domain.Subject{Family: domain.SubjectCRDField, Product: "cert-manager", Group: "cert-manager.io", Kind: "Certificate", Path: "spec.privateKey.rotationPolicy"},
-		Change:  &domain.ChangeSpec{Type: domain.ChangeKindDefaultChanged, Before: kStr(`"Never"`), After: kStr(`"Always"`)},
+		Subject:       &domain.Subject{Family: domain.SubjectCRDField, Product: "cert-manager", Group: "cert-manager.io", Kind: "Certificate", Path: "spec.privateKey.rotationPolicy"},
+		Change:        &domain.ChangeSpec{Type: domain.ChangeKindDefaultChanged, Before: kStr(`"Never"`), After: kStr(`"Always"`)},
 		Applicability: &domain.Applicability{Exposure: cert(domain.StateUnset), Overlap: &overlap},
 		Consequence: &domain.Consequence{Kind: domain.ConsequenceBehaviorChange, ExposedClass: domain.ImpactReviewRequired,
 			Statement: "private keys are regenerated on every renewal"},

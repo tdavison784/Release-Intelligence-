@@ -122,9 +122,9 @@ type LevelReport struct {
 	FalseActionFindings       int     `json:"falseActionFindings"`
 	ActionFindingsUnsupported int     `json:"actionFindingsUnsupported"`
 	// Knowledge findings of the level.
-	KnowledgeFindings int            `json:"knowledgeFindings"`
-	KnowledgeByClass  map[string]int `json:"knowledgeByClass,omitempty"`
-	ConsensusAction   int            `json:"consensusAction,omitempty"`
+	KnowledgeFindings int             `json:"knowledgeFindings"`
+	KnowledgeByClass  map[string]int  `json:"knowledgeByClass,omitempty"`
+	ConsensusAction   int             `json:"consensusAction,omitempty"`
 	Transfer          TransferMetrics `json:"transfer"`
 }
 

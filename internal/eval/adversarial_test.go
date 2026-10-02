@@ -112,8 +112,8 @@ func (a advCondition) toCondition() domain.Condition {
 // derives id, product, release, exposed class and provenance so the fixture
 // states only what the attack needs.
 type advFact struct {
-	Level           string        `yaml:"level"` // deterministic|human|consensus|proxy
-	ConsensusAction bool          `yaml:"consensusAction"`
+	Level           string `yaml:"level"` // deterministic|human|consensus|proxy
+	ConsensusAction bool   `yaml:"consensusAction"`
 	Subject         struct {
 		Family    string `yaml:"family"`
 		Group     string `yaml:"group"`
@@ -124,9 +124,9 @@ type advFact struct {
 		Component string `yaml:"component"`
 	} `yaml:"subject"`
 	Change struct {
-		Type   string   `yaml:"type"`
-		Before *string  `yaml:"before"`
-		After  *string  `yaml:"after"`
+		Type   string  `yaml:"type"`
+		Before *string `yaml:"before"`
+		After  *string `yaml:"after"`
 	} `yaml:"change"`
 	Exposure    advCondition  `yaml:"exposure"`
 	Overlap     *advCondition `yaml:"overlap"`
@@ -135,7 +135,7 @@ type advFact struct {
 		Statement   string `yaml:"statement"`
 		Remediation string `yaml:"remediation"`
 	} `yaml:"consequence"`
-	Statement string   `yaml:"statement"`
+	Statement string `yaml:"statement"`
 	// Anchors are titles of the fixture's own changes (statement anchors).
 	Anchors []string `yaml:"anchors"`
 }
@@ -296,7 +296,7 @@ func buildAdvFacts(t *testing.T, f advFixture, edge *domain.UpgradeEdge) ([]doma
 			Name: af.Subject.Name, Path: af.Subject.Path, Component: af.Subject.Component}
 		cons := &domain.Consequence{Kind: domain.ConsequenceKind(af.Consequence.Kind),
 			ExposedClass: domain.ConsequenceKind(af.Consequence.Kind).ExposedClass(),
-			Statement: af.Consequence.Statement, Remediation: af.Consequence.Remediation}
+			Statement:    af.Consequence.Statement, Remediation: af.Consequence.Remediation}
 		a := domain.SemanticAssertion{
 			Subject: subject,
 			Change:  &domain.ChangeSpec{Type: domain.ChangeKind(af.Change.Type), Before: af.Change.Before, After: af.Change.After},
@@ -315,7 +315,7 @@ func buildAdvFacts(t *testing.T, f advFixture, edge *domain.UpgradeEdge) ([]doma
 			Assertion: a, Status: domain.FactActive, CreatedAt: adversarialNow,
 			Evidence: []domain.Evidence{domain.NewEvidence(domain.EvidenceDocument, "docs",
 				"https://adversarial.example/"+f.ID+"/fact", "L1", af.Statement,
-				domain.Digest([]byte(f.ID + af.Statement)), adversarialNow)},
+				domain.Digest([]byte(f.ID+af.Statement)), adversarialNow)},
 		}
 		for _, title := range af.Anchors {
 			c, ok := byTitle[title]
