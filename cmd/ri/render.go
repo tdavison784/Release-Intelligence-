@@ -171,6 +171,11 @@ func writePairText(w io.Writer, p *render.Pair, corr render.Correlation, showVal
 	if !p.Target.ValuesComplete {
 		fmt.Fprintf(w, "  values INCOMPLETE: %s — an absence of change here decides nothing\n", p.Target.IncompleteReason)
 	}
+	if p.TargetRejects() {
+		fmt.Fprintf(w, "  TARGET CHART REJECTS THIS CONFIGURATION (the source rendered it): %s\n", p.Failure.Detail)
+		fmt.Fprintf(w, "  → the upgrade with these values fails at render time; review the values before upgrading\n")
+		return
+	}
 	if p.Status != render.PairOK {
 		fmt.Fprintf(w, "  UNKNOWN / RENDER %s: %s: %s\n", strings.ToUpper(strings.ReplaceAll(string(p.Status), "-", " ")), p.Failure.Reason, p.Failure.Detail)
 		return

@@ -41,7 +41,10 @@ func TestFailuresAreExplicit(t *testing.T) {
 		{fakeRunner{stderr: "Error: found in Chart.yaml, but missing in charts/ directory: postgresql"}, FailMissingDependency},
 		{fakeRunner{stderr: "Error: values don't meet the specifications of the schema(s) in the following chart(s):\ndemo:\n- replicaCount: Invalid type"}, FailInvalidValues},
 		{fakeRunner{stderr: "Error: chart requires kubeVersion: >= 1.29.0-0 which is incompatible with Kubernetes v1.27.0"}, FailMissingCapability},
-		{fakeRunner{stderr: `Error: execution error at (demo/templates/deployment.yaml:3:4): image.tag is required`}, FailTemplateError},
+		// a chart-authored fail/required check rejects the configuration
+		{fakeRunner{stderr: `Error: execution error at (demo/templates/validate.yaml:25:5): containerRuntime.integration was removed in v1.16`}, FailInvalidValues},
+		// a broken template is a template error
+		{fakeRunner{stderr: `Error: template: demo/templates/deployment.yaml:12:20: executing "demo/templates/deployment.yaml" at <.Values.x.y>: nil pointer evaluating interface {}.y`}, FailTemplateError},
 	}
 	for _, c := range cases {
 		h := &Helm{Runner: c.runner, Now: func() time.Time { return fixedNow }}

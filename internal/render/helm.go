@@ -194,10 +194,11 @@ func finish(prov Provenance, out []byte) (*Result, *Failure) {
 }
 
 var (
-	reMissingDep  = regexp.MustCompile(`(?i)(found in Chart\.yaml, but missing in charts/|missing in charts/ directory|dependencies? .*(not|missing))`)
-	reValues      = regexp.MustCompile(`(?i)(values don't meet the specifications of the schema|failed to parse .*values|error converting YAML to JSON|cannot unmarshal .* into Go value of type map|invalid --set|parsing --set|unable to parse key)`)
-	reCapability  = regexp.MustCompile(`(?i)(chart requires kubeVersion|is incompatible with Kubernetes|no matches for kind|ensure CRDs are installed first|resource mapping not found|invalid kube version)`)
-	reChartAccess = regexp.MustCompile(`(?i)(failed to download|not a valid chart|chart not found|no such file or directory|Chart\.yaml file is missing)`)
+	reMissingDep   = regexp.MustCompile(`(?i)(found in Chart\.yaml, but missing in charts/|missing in charts/ directory|dependencies? .*(not|missing))`)
+	reValues       = regexp.MustCompile(`(?i)(values don't meet the specifications of the schema|failed to parse .*values|error converting YAML to JSON|cannot unmarshal .* into Go value of type map|invalid --set|parsing --set|unable to parse key)`)
+	reCapability   = regexp.MustCompile(`(?i)(chart requires kubeVersion|is incompatible with Kubernetes|no matches for kind|ensure CRDs are installed first|resource mapping not found|invalid kube version)`)
+	reChartRejects = regexp.MustCompile(`execution error at \(`)
+	reChartAccess  = regexp.MustCompile(`(?i)(failed to download|not a valid chart|chart not found|no such file or directory|Chart\.yaml file is missing)`)
 )
 
 // classifyHelm maps helm's stderr onto the R13 failure classes. The first
@@ -209,6 +210,11 @@ func classifyHelm(stderr string, err error) (FailureReason, string) {
 	}
 	detail = boundDetail(detail)
 	switch {
+	case reChartRejects.MatchString(stderr):
+		// helm reports chart-authored `fail` / `required` checks as
+		// "execution error at (<template>:<line>:<col>): <message>": the
+		// chart itself rejects this configuration
+		return FailInvalidValues, "the chart rejects these values: " + detail
 	case reMissingDep.MatchString(stderr):
 		return FailMissingDependency, detail
 	case reValues.MatchString(stderr):

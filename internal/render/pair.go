@@ -50,6 +50,15 @@ type Pair struct {
 	Diff       *DiffResult `json:"diff,omitempty"`
 }
 
+// TargetRejects reports whether the target chart refuses a configuration the
+// source chart rendered: the upgrade with these values would fail at render
+// time (the chart's own validation). Evidence for review — never, by itself,
+// a classification (R11).
+func (p *Pair) TargetRejects() bool {
+	return p != nil && p.Status == PairFailed && p.FromResult.OK() && p.ToResult != nil &&
+		p.ToResult.Failure != nil && p.ToResult.Failure.Reason == FailInvalidValues
+}
+
 // Complete reports whether an absence of change in this pair is evidence:
 // both renders succeeded with complete customer values.
 func (p *Pair) Complete() bool {
