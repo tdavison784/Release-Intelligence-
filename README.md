@@ -120,6 +120,8 @@ ri upgrade argo-cd v2.14.11 v3.0.6 -o json      # … as JSON (schemas/upgrade-e
 ri upgrade istio 1.29.2 1.30.1 -verbose         # include features, bug fixes, dependency updates
 ri upgrade cert-manager v1.17.0 v1.18.0 -enrich # + AI clusters/explanations with provenance (docs/ENRICHMENT.md)
 ri discover github.com/cert-manager/cert-manager -out proposed.yaml -report report.md
+ri semantic candidates cert-manager v1.17.0 v1.18.0  # learning loop: deterministic restatement clusters (docs/SEMANTIC.md)
+ri semantic propose cert-manager v1.17.0 v1.18.0 -model claude-sonnet-5-5 -llm-exchange /tmp/x -out /tmp/out
 ri knowledge route                              # learning loop: route candidates into review items / auto-verified facts (docs/KNOWLEDGE.md)
 ri knowledge decide -reviewer me <review-item>  # record a decision (proxy: -reviewer-kind proxy -proxy-* provenance)
 ri knowledge metrics [-o json]                  # agreement, per-model accuracy, review cost, fact counts
