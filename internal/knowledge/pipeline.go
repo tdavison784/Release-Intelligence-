@@ -19,6 +19,9 @@ type RouteSummary struct {
 	ByRoute      map[domain.Route]int
 	Autoverified []string // fact ids
 	Audits       []string // review item ids sampling auto-approved facts into human review
+	// Skipped lists records the store refused (invalid), with the reason; the
+	// pass continues so one bad candidate cannot block a whole store.
+	Skipped []string
 }
 
 // RouteOptions configure RouteStore.
@@ -113,7 +116,8 @@ func RouteStore(ctx context.Context, s Store, opts RouteOptions, q Query) (*Rout
 					return nil, err
 				}
 				if err := s.Put(ctx, rec); err != nil {
-					return nil, err
+					sum.Skipped = append(sum.Skipped, c.ID+": fact: "+err.Error())
+					continue
 				}
 				facts[res.Fact.ID] = *res.Fact
 				sum.Facts++
@@ -146,7 +150,8 @@ func RouteStore(ctx context.Context, s Store, opts RouteOptions, q Query) (*Rout
 				return nil, err
 			}
 			if err := s.Put(ctx, rec); err != nil {
-				return nil, err
+				sum.Skipped = append(sum.Skipped, c.ID+": item: "+err.Error())
+				continue
 			}
 			items[it.ID] = it
 			sum.Items++

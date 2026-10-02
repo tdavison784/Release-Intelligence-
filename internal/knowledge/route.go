@@ -431,26 +431,7 @@ func buildItems(c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []d
 	var items []domain.ReviewItem
 	missing := false
 	for _, g := range groupsFor(open, ps) {
-		var proposed domain.SemanticAssertion
-		complete := true
-		for _, x := range g.aspects {
-			var part domain.SemanticAssertion
-			var stmt string
-			ok := false
-			if st, done := state[x]; done {
-				part, ok = st.part, true
-			} else {
-				part, stmt, ok = pluralityValue(ps, x, refuted)
-			}
-			if !ok {
-				complete = false
-				break
-			}
-			mergeAspect(&proposed, part, x)
-			if proposed.Statement == "" {
-				proposed.Statement = stmt
-			}
-		}
+		proposed, complete := proposedFor(g.aspects, ps, state, refuted)
 		if !complete {
 			missing = true
 			continue
@@ -469,6 +450,88 @@ func buildItems(c domain.SemanticCandidate, ps []domain.SemanticProposal, vs []d
 		}, ps, vs, now))
 	}
 	return items
+}
+
+// proposedFor composes the assertion a question proposes. Aspects already
+// verified (state) are fixed; the open ones are taken COHERENTLY from one
+// proposal (the tuple of open-aspect values asserted together by the most
+// separate calls), because mixing a subject from one proposal with a change from
+// another can build an assertion that is invalid or says nothing anyone said.
+// When no proposal asserts all open aspects, or the coherent composition does
+// not validate, it falls back to the per-aspect plurality and checks validity;
+// ok is false when nothing valid can be proposed.
+func proposedFor(aspects []domain.Aspect, ps []domain.SemanticProposal, state map[domain.Aspect]aspectState, refuted map[domain.Aspect]map[string]bool) (domain.SemanticAssertion, bool) {
+	var fixed domain.SemanticAssertion
+	var open []domain.Aspect
+	for _, x := range aspects {
+		if st, done := state[x]; done {
+			mergeAspect(&fixed, st.part, x)
+		} else {
+			open = append(open, x)
+		}
+	}
+	valid := func(a domain.SemanticAssertion) bool { return a.Validate(false) == nil }
+	// coherent tuple from one proposal
+	type tuple struct {
+		calls map[string]bool
+		first domain.SemanticProposal
+	}
+	tuples := map[string]*tuple{}
+	for _, p := range ps {
+		key, ok := "", true
+		for _, x := range open {
+			if !p.Assertion.Has(x) || refuted[x][p.Assertion.AspectDigest(x)] {
+				ok = false
+				break
+			}
+			key += p.Assertion.AspectDigest(x) + "|"
+		}
+		if !ok || len(open) == 0 {
+			continue
+		}
+		if tuples[key] == nil {
+			tuples[key] = &tuple{calls: map[string]bool{}, first: p}
+		}
+		tuples[key].calls[callKey(p)] = true
+	}
+	keys := make([]string, 0, len(tuples))
+	for k := range tuples {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		a, b := tuples[keys[i]], tuples[keys[j]]
+		if len(a.calls) != len(b.calls) {
+			return len(a.calls) > len(b.calls)
+		}
+		return keys[i] < keys[j]
+	})
+	for _, k := range keys {
+		cand := fixed
+		p := tuples[k].first
+		for _, x := range open {
+			mergeAspect(&cand, partOf(p.Assertion, x), x)
+		}
+		cand.Statement = p.Assertion.Statement
+		if valid(cand) {
+			return cand, true
+		}
+	}
+	// fallback: per-aspect plurality
+	cand := fixed
+	for _, x := range open {
+		part, stmt, ok := pluralityValue(ps, x, refuted)
+		if !ok {
+			return domain.SemanticAssertion{}, false
+		}
+		mergeAspect(&cand, part, x)
+		if cand.Statement == "" {
+			cand.Statement = stmt
+		}
+	}
+	if !valid(cand) {
+		return domain.SemanticAssertion{}, false
+	}
+	return cand, true
 }
 
 func mergeAspect(dst *domain.SemanticAssertion, part domain.SemanticAssertion, x domain.Aspect) {

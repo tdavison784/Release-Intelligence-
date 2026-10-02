@@ -125,3 +125,36 @@ func rotationAssertionWithBehaviorSeverity() domain.SemanticAssertion {
 	a.Consequence.Severity = domain.SeverityLow
 	return a
 }
+
+// Mixing a subject from one proposal with a change from another can build an
+// invalid assertion (requirement-changed needs a compatibility-boundary or
+// product-relationship subject). Items take the open aspects coherently from one proposal.
+func TestItemsComposeCoherentAssertions(t *testing.T) {
+	c := fixtureCandidate()
+	a1 := domain.SemanticAssertion{
+		Subject: &domain.Subject{Family: domain.SubjectProtocolBehavior, Product: "cert-manager", Name: "grpc-alpn"},
+		Change:  &domain.ChangeSpec{Type: domain.ChangeKindBehaviorChanged},
+	}
+	a2 := domain.SemanticAssertion{
+		Subject: &domain.Subject{Family: domain.SubjectCompatibilityBoundary, Product: "cert-manager", Name: "kubernetes"},
+		Change:  &domain.ChangeSpec{Type: domain.ChangeKindRequirementChanged, After: str(">=1.29")},
+	}
+	for i := 0; i < 8; i++ { // vary tie-breaking by model/call names
+		p1 := call(proposal(c, "zai", "glm", a1, domain.AspectApplicability, domain.AspectConsequence), "c1", "")
+		p2 := call(proposal(c, "anthropic", "sonnet", a2, domain.AspectApplicability, domain.AspectConsequence), "c2", "")
+		p1.Task, p2.Task = domain.TaskFull, domain.TaskFull
+		r := Route(c, []domain.SemanticProposal{p1, p2}, nil)
+		for _, it := range r.ReviewItems {
+			if err := it.Validate(); err != nil {
+				t.Fatalf("incoherent item: %v", err)
+			}
+			if it.QuestionType == domain.QuestionSemanticMapping {
+				ok1 := it.Proposed.Subject.Key() == a1.Subject.Key() && it.Proposed.Change.Type == a1.Change.Type
+				ok2 := it.Proposed.Subject.Key() == a2.Subject.Key() && it.Proposed.Change.Type == a2.Change.Type
+				if !ok1 && !ok2 {
+					t.Fatalf("mapping mixes proposals: %+v", it.Proposed)
+				}
+			}
+		}
+	}
+}
