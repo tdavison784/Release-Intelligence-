@@ -1,0 +1,34 @@
+id: knowledge-named-component-absent
+attacks: >-
+  trusted fact scoped to a named component (container `controller`) evaluated
+  against manifests that simply do not include that workload — the Helm-installed
+  controller's Deployment is rarely committed by the customer
+expectation: >-
+  unknown (impact:knowledge-undecided, environment-visibility-gap, needed: the
+  controller workload's manifests); never impact:knowledge-clear — a workload
+  missing from manifests that are not declared complete is "not shown", not
+  "not running" (docs/IMPACT.md, LOOP-DIAGNOSIS.md §7.8)
+knowledge:
+  facts:
+    - level: human
+      subject: {family: cli-flag, name: --enable-certificate-owner-ref, component: controller}
+      change: {type: removed}
+      exposure: {op: cli-flag, name: --enable-certificate-owner-ref, component: controller, state: set}
+      consequence: {kind: setting-ignored, statement: "The controller no longer reads --enable-certificate-owner-ref; Secrets lose their owner references."}
+      statement: "The controller flag --enable-certificate-owner-ref was removed."
+      anchors: ["The controller flag --enable-certificate-owner-ref was removed"]
+edge:
+  changes:
+    - rule: note
+      title: "The controller flag --enable-certificate-owner-ref was removed"
+      subjects: [--enable-certificate-owner-ref]
+      category: removal
+environment:
+  files: [manifests/certificate.yaml]
+expect:
+  present:
+    - rule: impact:knowledge-undecided
+      classification: unknown
+  absent:
+    - rule: impact:knowledge-clear
+    - classification: not-affected

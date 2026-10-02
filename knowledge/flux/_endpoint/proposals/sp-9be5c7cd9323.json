@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9be5c7cd9323",
+    "candidateId": "sc-1007e5d829a0",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "storage-version-migration",
+        "component": "imageupdateautomations.image.toolkit.fluxcd.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "image.toolkit.fluxcd.io",
+          "kind": "ImageUpdateAutomation"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImageUpdateAutomation objects stay stored as v1beta2 until they are rewritten. If no storage version migration runs and status.storedVersions is not updated, the objects will still be stored as v1beta2 when a later release removes that version.",
+        "remediation": "After the upgrade, rewrite all ImageUpdateAutomation objects so they are stored as v1. Then update the CRD's status.storedVersions to drop v1beta2.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the imageupdateautomations.image.toolkit.fluxcd.io CRD moves from v1beta2 to v1. Existing ImageUpdateAutomation objects stay stored as v1beta2 until they are rewritten, so a storage version migration (rewrite all objects and update status.storedVersions) has to run before a later release removes v1beta2."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e2343459e3dd338fd841cdf861dd80ef635a228b0a1e8322c4ba2c84eddb9fa4",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T20:59:58Z",
+      "callId": "bfb5302f-229b-40e2-b6a4-5ec03f91f858"
+    }
+  }
+}

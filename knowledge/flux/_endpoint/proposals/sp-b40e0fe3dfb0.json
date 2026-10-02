@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b40e0fe3dfb0",
+    "candidateId": "sc-e9a6db7e6358",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "kustomize.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "Kustomization",
+        "path": "spec.sourceRef.kind"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"ExternalArtifact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.sourceRef.kind",
+              "state": "set"
+            }
+          ],
+          "group": "kustomize.toolkit.fluxcd.io",
+          "kind": "Kustomization"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "An allowed enum value was added and none was removed, so existing Kustomization resources are not rejected. The schema only gains the new sourceRef kind \"ExternalArtifact\".",
+        "severity": "low"
+      },
+      "statement": "The kustomize.toolkit.fluxcd.io/v1 Kustomization schema now also accepts \"ExternalArtifact\" for spec.sourceRef.kind. No values were removed, so manifests that were valid before stay valid."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:52127be9e77239ef6a49d1535c78de6c1b5cfca0f852d641db65cfb825ca9907",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T20:54:35Z",
+      "callId": "80d91c83-438d-4aae-b72b-cfc1514128e2"
+    }
+  }
+}

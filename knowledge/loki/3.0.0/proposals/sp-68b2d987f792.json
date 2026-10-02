@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-68b2d987f792",
+    "candidateId": "sc-9a0c088f99f9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "loki",
+        "path": "querier.query_timeout"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "loki",
+          "path": "limits_config.query_timeout"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "querier.query_timeout",
+          "state": "set"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "limits_config.query_timeout",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `querier.query_timeout` configuration key is no longer honored; environments must move this setting to `limits_config.query_timeout`.",
+        "severity": "high"
+      },
+      "statement": "The `query_timeout` configuration key is removed from the `querier` YAML section and must now be configured under `limits_config` instead."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-a0b618cd90db"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:17d28cf5bcec1ce913682dcd89a29a70779873df37205a79b67ce5de249dae77",
+      "inputEvidence": [
+        "ev-a0b618cd90db"
+      ],
+      "generatedAt": "2026-10-02T20:58:11Z",
+      "callId": "9e6d5af3-46b2-45c1-b8b3-b8b91d45e0c0"
+    }
+  }
+}

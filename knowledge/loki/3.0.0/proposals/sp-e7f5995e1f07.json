@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e7f5995e1f07",
+    "candidateId": "sc-2e72ec27733c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store",
+        "component": "shipper"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "boltdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "tsdb.shipper.shared-store",
+              "state": "set"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "not",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-boltdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "-tsdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "boltdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "tsdb.shipper.shared-store",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The -boltdb.shipper.shared-store and -tsdb.shipper.shared-store configuration settings, if present, are no longer honored during upgrade to Loki 3.0.0.",
+        "severity": "high"
+      },
+      "statement": "The cli-flags -boltdb.shipper.shared-store and -tsdb.shipper.shared-store, and their corresponding YAML configuration keys, have been removed and are no longer honored in Loki 3.0.0; environments that had not configured these settings are unaffected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-0483f04624d3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:c453fd725a2701a418322e524be813111984d756fadaf094f3e45d6608da77a3",
+      "inputEvidence": [
+        "ev-0483f04624d3"
+      ],
+      "generatedAt": "2026-10-02T16:17:46Z",
+      "callId": "1f53b6b9-0b50-467d-999f-c54311854968"
+    }
+  }
+}

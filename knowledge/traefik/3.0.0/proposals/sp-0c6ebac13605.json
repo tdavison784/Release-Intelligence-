@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0c6ebac13605",
+    "candidateId": "sc-46a0844196f4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "traefik",
+        "group": "traefik.io",
+        "version": "v1alpha1",
+        "kind": "TCPServersTransport"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "traefik.io",
+              "kind": "TCPServersTransport"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.kubernetesCRD",
+              "component": "traefik",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "RBAC and CRD manifests must be updated to authorize and define TCPServersTransport resources when using the KubernetesCRD provider.",
+        "severity": "high"
+      },
+      "statement": "Traefik v3.0.0 introduces TCPServersTransport support; when using the KubernetesCRD provider, RBAC and CRD manifests must be updated to recognize this new resource type."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-c160fecc6f71"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:461f7599a99415f92867e72c5929039332fc582f4101d5d73f8ac05f0dffbd12",
+      "inputEvidence": [
+        "ev-c160fecc6f71"
+      ],
+      "generatedAt": "2026-10-02T20:56:19Z",
+      "callId": "d1b42017-df50-4aae-b0c8-aa424d36e982"
+    }
+  }
+}

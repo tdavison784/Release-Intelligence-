@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9094d2401ddc",
+    "candidateId": "sc-541b56f9cad6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1alpha1",
+        "kind": "PushSecret",
+        "path": "spec.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1 allowed\"",
+        "after": "\"v1 not allowed\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "external-secrets.io",
+              "version": "v1alpha1",
+              "kind": "PushSecret"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.engineVersion",
+                  "state": "equals",
+                  "values": [
+                    "\"v1\""
+                  ]
+                }
+              ],
+              "group": "external-secrets.io",
+              "version": "v1alpha1",
+              "kind": "PushSecret"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "PushSecret resources with spec.template.engineVersion set to \"v1\" will be rejected by the API server.",
+        "severity": "high"
+      },
+      "statement": "The enum value \"v1\" was removed from spec.template.engineVersion in external-secrets.io/v1alpha1 PushSecret, causing resources with this field set to \"v1\" to be rejected by the API server."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:c7a7cc398514836b89c042ad3c797654e8c4d46514099e0c7e0f592d4c8e3c14",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-02T20:57:04Z",
+      "callId": "b7b1e7f0-23be-4269-9897-4792a88224f4"
+    }
+  }
+}

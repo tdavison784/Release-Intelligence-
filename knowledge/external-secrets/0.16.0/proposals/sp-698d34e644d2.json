@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-698d34e644d2",
+    "candidateId": "sc-dd35e147bb75",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "remove-v1alpha1-stored-versions"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether status.storedVersions of the four external-secrets CRDs in the live cluster contains v1alpha1"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "A pre-upgrade check must be run; if any of the four CRDs still lists v1alpha1 in status.storedVersions, v1alpha1 must be removed from the stored versions and that status persisted before upgrading.",
+        "remediation": "Run the kubectl storedVersions check from the 0.16 guide; if it reports NOT SAFE, remove v1alpha1 from the stored versions and persist the status.",
+        "severity": "high"
+      },
+      "statement": "Before upgrading to 0.16, verify that status.storedVersions of the externalsecrets, clusterexternalsecrets, secretstores and clustersecretstores CRDs no longer contains v1alpha1, and remove it if present, because 0.16 drops the v1alpha1 CRD versions."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-07d67e9be26a",
+      "ev-4a1f27e04efd",
+      "ev-04b0055709ca",
+      "ev-f978a29a8906"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:1d47a575b1d2d86dbe75c3a22bd1f82e68f5b1590ce5d65003971a05e13bff4a",
+      "inputEvidence": [
+        "ev-07d67e9be26a",
+        "ev-1061f4fcca14",
+        "ev-acf4ed4bcd3b",
+        "ev-f978a29a8906",
+        "ev-b80f52507eed",
+        "ev-4a1f27e04efd",
+        "ev-f9a790bae7ab",
+        "ev-04b0055709ca"
+      ],
+      "generatedAt": "2026-10-02T20:58:59Z",
+      "callId": "ea7578cc-0952-4da1-8a6c-3ce50e6eff79"
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-367b2c081ffd",
+    "candidateId": "sc-e35ee2a5c098",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.kubernetesGateway.experimentalChannel"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.kubernetesGateway",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "providers.kubernetesGateway.experimentalChannel",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Experimental channel API resources (TLSRoute and TCPRoute) are not supported by the Kubernetes Gateway API provider unless experimentalChannel is enabled.",
+        "remediation": "Set providers.kubernetesGateway.experimentalChannel: true."
+      },
+      "statement": "In v3 the Kubernetes Gateway API provider no longer enables experimental channel resources (TLSRoute, TCPRoute) by default; set providers.kubernetesGateway.experimentalChannel to true to enable them."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5b58f5805519"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0e4f2c6d2422b6765594aaacbd89548fa744e589bedc5d0818d38a914786508d",
+      "inputEvidence": [
+        "ev-5b58f5805519"
+      ],
+      "generatedAt": "2026-10-02T20:57:49Z",
+      "callId": "6c8e472e-37b7-4800-9ec7-5b114d2ab457"
+    }
+  }
+}

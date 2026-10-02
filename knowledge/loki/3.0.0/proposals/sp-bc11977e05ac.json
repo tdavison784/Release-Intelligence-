@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-bc11977e05ac",
+    "candidateId": "sc-ee8d17efbe0b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "-boltdb.shipper.shared-store",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the removed shared-store setting did not match object_store for periods using boltdb-shipper, access to the index for those periods is lost.",
+        "remediation": "Move or copy the index tables to the store configured in object_store, and remove the deleted option.",
+        "severity": "high"
+      },
+      "statement": "The -boltdb.shipper.shared-store option is removed; if it was set to a value differing from object_store for boltdb-shipper periods, the index for those periods becomes inaccessible until tables are moved or copied to the object_store store."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-7d2769e8c602"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:97ada11806de5c3177c296d54838f259d361ef76610fb19f839bd0d605f78056",
+      "inputEvidence": [
+        "ev-7d2769e8c602"
+      ],
+      "generatedAt": "2026-10-02T20:58:34Z",
+      "callId": "3b15f252-053a-417a-8ca0-b31ad1d941b7"
+    }
+  }
+}

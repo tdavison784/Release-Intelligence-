@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9c91b8214cf6",
+    "candidateId": "sc-b4c5db49b8f5",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "kyverno",
+        "name": "--enableReporting"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"validate,mutate,mutateExisting,imageVerify,generate\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "rendered-change",
+          "kind": "Deployment",
+          "path": "spec.template.spec.containers[].args",
+          "state": "added"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Policy reports now also record results for mutate, mutateExisting and generate rules. If the reports controller has not been granted the needed RBAC permissions, admitting a policy returns a warning message.",
+        "remediation": "Grant the reports controller the RBAC permissions it needs for the new report types, or set --enableReporting to only the rule types you want reported.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13 adds the container flag --enableReporting, which chooses which rule types are reported (validate, mutate, mutateExisting, generate, imageVerify). Reporting now also covers mutate and generate rules, and the chart default enables all five types."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2835c7c71165",
+      "ev-b2a444d8e5e6",
+      "ev-bc837634eaa2",
+      "ev-ff42ab09a455"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:a08d0a10e16158ac372d48950fae7acd2f70ba7abdd6ac4a6071af1044e86f3e",
+      "inputEvidence": [
+        "ev-2835c7c71165",
+        "ev-a5eba5775d07",
+        "ev-4cd26225bffa",
+        "ev-52c07595c637",
+        "ev-54749e1a631c",
+        "ev-8dbdd0d2ff64",
+        "ev-e8169ff3d009",
+        "ev-892e45421732",
+        "ev-72f16d281831",
+        "ev-b2a444d8e5e6",
+        "ev-bc837634eaa2",
+        "ev-ff42ab09a455",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-02T16:14:38Z",
+      "callId": "652ec58b-2f1e-4b28-9ae0-5102e630c039"
+    }
+  }
+}

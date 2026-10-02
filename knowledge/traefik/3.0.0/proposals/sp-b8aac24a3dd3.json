@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b8aac24a3dd3",
+    "candidateId": "sc-545ceb6ab35c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "tls-client-subject-logging"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--accesslog",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "accessLog",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Access logs may now include TLS client subject information when TLS connections are present, providing additional detail in log output.",
+        "severity": "low"
+      },
+      "statement": "Traefik 3.0.0 adds the ability to log TLS client subject information in access logs middleware."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-9ddb01602beb"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:45ac8535f81ceaba006b6ecca2803e7065e0bd5a8ef5bb24bdade1e0bbbe6a2a",
+      "inputEvidence": [
+        "ev-9ddb01602beb"
+      ],
+      "generatedAt": "2026-10-02T20:55:36Z",
+      "callId": "25d5196b-8a40-4e3e-bfac-9dddbefb4d9b"
+    }
+  }
+}

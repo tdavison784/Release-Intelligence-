@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-78b0936d568c",
+    "candidateId": "sc-f7e1d73d8b1e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterSecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[].value",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterSecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "In the external-secrets.io/v1beta1 schema, a ClusterSecretStore whose spec.provider.fake.data[] entries leave out `value` fails schema validation and is rejected.",
+        "remediation": "Give every spec.provider.fake.data[] entry in v1beta1 ClusterSecretStore manifests a `value` before applying them against the new CRDs.",
+        "severity": "low"
+      },
+      "statement": "From 0.15.0 to 0.16.0, the external-secrets.io/v1beta1 ClusterSecretStore schema starts requiring `value` on every spec.provider.fake.data[] entry, alongside `key`, so objects that leave it out are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9fd85560a485"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:ce231ecddbd2878ee98179aaeefd479a6635eac63cb90084855b121b5d0509b7",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9fd85560a485",
+        "ev-fa52e4e4e831",
+        "ev-210dbd3942ad",
+        "ev-d98b7e27e53d"
+      ],
+      "generatedAt": "2026-10-02T21:00:28Z",
+      "callId": "42ba42e8-9ca2-4792-ba4c-465bc4070b30"
+    }
+  }
+}

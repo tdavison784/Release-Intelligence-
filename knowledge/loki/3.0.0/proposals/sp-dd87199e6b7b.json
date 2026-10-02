@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dd87199e6b7b",
+    "candidateId": "sc-9abbb017eb5c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "loki",
+        "name": "DROP_LABELS",
+        "component": "lambda-promtail"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "DROP_LABELS",
+          "component": "lambda-promtail",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "lambda-promtail handles the DROP_LABELS environment variable correctly, fixing a panic that occurred with empty values; existing workloads using this variable will no longer experience crashes."
+      },
+      "statement": "lambda-promtail no longer panics when the DROP_LABELS environment variable is empty."
+    },
+    "citations": [
+      "ev-4f0f13cefd09"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:978a4e277aab4a81101a6955d6dfc1e9f66e682daf12909517ebb21de560b26c",
+      "inputEvidence": [
+        "ev-4f0f13cefd09"
+      ],
+      "generatedAt": "2026-10-02T16:17:29Z",
+      "callId": "fc478d1d-05d0-4133-b007-ecad5256ce21"
+    }
+  }
+}
