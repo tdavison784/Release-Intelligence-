@@ -3,6 +3,7 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -59,6 +60,23 @@ type Provenance struct {
 	// (PO-1, docs/phase3/learning-loop/DECISIONS.md). Optional in general;
 	// required on SemanticProposals.
 	CallID string `json:"callId,omitempty"`
+	// Provider names who served the model ("anthropic", "zai", …; MISSION
+	// Goal 2). AI-only; set by every writer going forward. Older records
+	// carried it as Rule "provider:<name>" — read it with ProviderName.
+	Provider string `json:"provider,omitempty"`
+}
+
+// ProviderName returns the provider that served the model: the Provider
+// field, or — for records written before it existed — the name in a legacy
+// Rule "provider:<name>". "" when neither states it.
+func (p Provenance) ProviderName() string {
+	if p.Provider != "" {
+		return p.Provider
+	}
+	if name, ok := strings.CutPrefix(p.Rule, "provider:"); ok {
+		return strings.TrimSpace(name)
+	}
+	return ""
 }
 
 // Deterministic reports whether the provenance is not AI-derived.
@@ -69,7 +87,7 @@ func (p Provenance) Validate() error {
 	var errs []error
 	switch p.Method {
 	case MethodDeclared, MethodComputed, MethodHeuristic:
-		if p.Model != "" || p.PromptDigest != "" || p.ModelVersion != "" || p.PromptVersion != "" || len(p.InputEvidence) > 0 || p.GeneratedAt != nil || p.CallID != "" {
+		if p.Model != "" || p.PromptDigest != "" || p.ModelVersion != "" || p.PromptVersion != "" || len(p.InputEvidence) > 0 || p.GeneratedAt != nil || p.CallID != "" || p.Provider != "" {
 			errs = append(errs, fmt.Errorf("deterministic provenance (%s) must not carry model/prompt fields", p.Method))
 		}
 	case MethodAI:

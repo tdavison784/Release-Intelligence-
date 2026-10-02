@@ -403,6 +403,11 @@ DuplicateOf, SuggestedClass, Citations, Provenance}`.
   `Undetermined` with a reason. Abstention is a first-class answer.
 - `Provider` (`anthropic`, `zai`, `typesafe`, …) is required. `Provenance` is the
   existing complete AI provenance; confidence is capped at `medium`.
+  **`Provenance.Provider`** (contract-5, MISSION Goal 2) states the provider on
+  the provenance itself. Every AI writer (semantic proposals, proxy decisions)
+  sets it from now on. Older records carried it as `Rule: "provider:<name>"`, so
+  readers use `Provenance.ProviderName()`, which handles both. On a proposal it
+  must equal the proposal's `Provider`.
   **`Provenance.CallID`** (PO-1) is required: the request/message id or CLI
   session id from the provider's response envelope, never invented. It is part
   of the `sp-` id, so two separate calls of the same model with the same prompt
@@ -474,7 +479,13 @@ ProxyProvenance, Reason, StartedAt, DecidedAt, ResultingFact, DuplicateOf}`.
 
 - Actions `accept | reject | correct | need-more-evidence | defer`. Labels (G13)
   must fit the action: accept ⇒ exactly `accepted`; correct ⇒ `corrected` + ≥1
-  `wrong-*`; reject ⇒ `rejected` or `duplicate` (+ `wrong-*`); need-more-evidence
+  `wrong-*` (+ optionally `improved-statement` when the consequence prose also
+  changed). A **prose-only correction** (contract-5) changes only the
+  consequence `Statement`/`Remediation`, which aspect digests ignore. It is a
+  correction of the consequence aspect, labelled exactly `[corrected,
+  improved-statement]`, keeps `Original` and `Corrected`, and the fact takes the
+  corrected prose under the same id. `improved-statement` is not a `wrong-*`
+  label: the typed assertion was right, so it never counts as a model error. reject ⇒ `rejected` or `duplicate` (+ `wrong-*`); need-more-evidence
   ⇒ exactly `insufficient-evidence`; defer ⇒ no label. Reject, correct and
   need-more-evidence require a reason.
 - **Correction is first-class (G9):** `Original` is the assertion shown;
@@ -767,7 +778,7 @@ class than their label by design (D11).
 | Metric | From |
 |---|---|
 | agreement rate, pairwise agreement per aspect and per task | proposals (aspect digests) |
-| per model: accepted as-is / after correction / rejected / insufficient | decisions ↔ proposals (proposal aspect digest vs Original/Corrected) |
+| per model: accepted as-is / after correction / rejected / insufficient (a prose-only `improved-statement` correction counts as accepted as-is for typed accuracy, and is reported separately as prose edits) | decisions ↔ proposals (proposal aspect digest vs Original/Corrected) |
 | per model: FP / FN per aspect vs final facts | proposals vs facts |
 | review volume per release / product / question type | review items |
 | median and p90 time to decision | decisions |
