@@ -262,6 +262,30 @@ artifacts:
           glob: '*.yaml'
     validatedAgainst: [1.20.0, 1.20.13, 2.0.0, 2.0.8, 2.1.0, 2.1.8, 2.2.0, 2.2.6, 2.3.0, 2.3.6, 2.4.0, 2.4.2]
 
+  # The core controller's startup flags are Go struct fields of
+  # cmd/crossplane/core/core.go; a flag Crossplane stops honouring is not in
+  # the chart, the CRDs or (reliably) the release notes - the source states it
+  # itself, in the error or log message and the comment that retire it ("...
+  # returns an error when you enable them", "... flag will be removed in a
+  # future release"). The lines snapshot keeps exactly those statements and the
+  # edge reports the ones a release adds or drops; a statement that stays put
+  # is no change.
+  - id: core-flags
+    type: documentation
+    name: cmd/crossplane/core/core.go
+    description: Startup flag declarations and their retirement statements in the core controller.
+    availability: ">= 1.12.0"
+    version: {strategy: template, template: "{{.Tag}}"}
+    channels:
+      - kind: repo-file
+        repository: github.com/crossplane/crossplane
+        ref: "{{.Tag}}"
+        path: cmd/crossplane/core/core.go
+    contents:
+      - kind: lines
+        label: cmd/crossplane/core/core.go
+        pattern: '(?i)\b(?:removed support|no longer support\w*|flags? will be removed|cannot be disabled)\b'
+
   # CLI. Up to v2.2 "crank" was built and promoted together with the core
   # release (same tag). From v2.3 the CLI is released from crossplane/cli
   # with its own tags (v2.3.0 .. v2.3.4, v2.4.0, v2.4.1, ...): the minor

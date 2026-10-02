@@ -378,6 +378,7 @@ const (
 	ContentChartMetadata = "chart-metadata" // Chart.yaml (kubeVersion → compatibility)
 	ContentCRDs          = "crds"           // CRD YAML (single or multi-doc, or a directory)
 	ContentImageRefs     = "image-refs"     // image references inside manifests
+	ContentLines         = "lines"          // the lines of a document matching Pattern (statements the artifact makes)
 )
 
 // Content is a structured view of an artifact to capture per release.
@@ -410,6 +411,18 @@ type Content struct {
 	// one key exactly; an entry ending in ".*" matches every key below it
 	// ("global.image.*" matches "global.image.tag").
 	IgnoreKeys []string `yaml:"ignoreKeys,omitempty" json:"ignoreKeys,omitempty"`
+	// Pattern (lines only) is an RE2 expression applied to every line of the
+	// document; matching lines are kept (trimmed, de-duplicated). With a
+	// capture group, the first group is kept instead of the whole line. The
+	// two releases of an edge are compared as sets: a line only one of them
+	// has is a change, so a statement that stays put is none. Use it for what
+	// an artifact says about itself that has no structure of its own (a
+	// removal or deprecation notice in a CRD description or a source file, an
+	// annotated comment, a list of tested versions).
+	Pattern string `yaml:"pattern,omitempty" json:"pattern,omitempty"`
+	// Label (lines only) names the document in the changes ("compatibility
+	// page"); default: the base name of the document.
+	Label string `yaml:"label,omitempty" json:"label,omitempty"`
 }
 
 // DefinitionProvenance documents the origin of the definition itself.

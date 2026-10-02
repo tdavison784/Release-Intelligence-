@@ -58,7 +58,7 @@ var enums = []enumSet{
 		domain.EvidenceStructured, domain.EvidenceAdvisory, domain.EvidenceRepoFile,
 		domain.EvidenceLocalFile, domain.EvidenceInput, domain.EvidenceRenderedDiff,
 	),
-	enumOf(domain.SnapshotHelmValues, domain.SnapshotCRDs, domain.SnapshotImages),
+	enumOf(domain.SnapshotHelmValues, domain.SnapshotCRDs, domain.SnapshotImages, domain.SnapshotLines),
 	enumOf(
 		domain.ArtifactSourceRelease, domain.ArtifactHelmChart, domain.ArtifactContainerImage, domain.ArtifactOperator,
 		domain.ArtifactBinary, domain.ArtifactPackage, domain.ArtifactManifest, domain.ArtifactCRD,
@@ -192,11 +192,13 @@ var typePatches = map[string]obj{
 			o("required", []string{"values"}),
 			o("required", []string{"crds"}),
 			o("required", []string{"images"}),
+			o("required", []string{"lines"}),
 		},
 		"allOf", []any{
 			snapshotKindRule(domain.SnapshotHelmValues, "values"),
 			snapshotKindRule(domain.SnapshotCRDs, "crds"),
 			snapshotKindRule(domain.SnapshotImages, "images"),
+			snapshotKindRule(domain.SnapshotLines, "lines"),
 		},
 	),
 }
