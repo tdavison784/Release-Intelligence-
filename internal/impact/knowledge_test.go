@@ -44,6 +44,7 @@ func fact(t *testing.T, a domain.SemanticAssertion, level domain.VerificationLev
 			v.Basis = []string{"val-" + string(x)}
 		case domain.VerifiedConsensus:
 			v.Basis = []string{"sp-a" + string(x), "sp-b" + string(x)}
+			v.Consensus = domain.ConsensusCrossModel
 		default:
 			v.Basis = []string{"rd-" + string(x)}
 		}
@@ -419,5 +420,54 @@ func TestBuildWithoutApplicableFactsIsByteIdentical(t *testing.T) {
 	b, _ := json.Marshal(with)
 	if string(a) != string(b) {
 		t.Error("an inapplicable fact changed the report")
+	}
+}
+
+// consensusFact: every aspect agreed by separate model calls; action marks the
+// PO-2 consensus-action path.
+func consensusFact(t *testing.T, a domain.SemanticAssertion, action bool, anchors ...domain.ChangeAnchor) domain.VerifiedFact {
+	t.Helper()
+	f := fact(t, a, domain.VerifiedConsensus, anchors...)
+	if action {
+		f.ConsensusAction = true
+		if err := f.Validate(); err != nil {
+			t.Fatalf("consensus-action fact invalid: %v", err)
+		}
+	}
+	return f
+}
+
+func TestKnowledgeConsensusActionPO2(t *testing.T) {
+	eb, c := http01Edge()
+	anchor := domain.NewChangeAnchor(c, lookupOf(eb.edge))
+	en := condEnv(t, "- product: ingress-nginx\n  version: v1.12.1\n", nil)
+
+	act := consensusFact(t, http01Assertion(), true, anchor)
+	r := buildWith(t, eb.edge, en, []domain.VerifiedFact{act}, domain.VerifiedConsensus)
+	f := onlyFinding(t, r, c.ID)
+	if f.Classification != domain.ImpactActionRequired || f.Knowledge.Verification != domain.VerifiedConsensus ||
+		!f.Knowledge.ConsensusAction || f.Knowledge.Consensus != domain.ConsensusCrossModel || f.Knowledge.ActionLabel() != "model consensus" {
+		t.Errorf("consensus-action: %s %+v", f.Classification, f.Knowledge)
+	}
+	if !strings.Contains(f.Title, "model consensus") {
+		t.Errorf("a consensus ACTION must be labelled as such: %q", f.Title)
+	}
+	// consensus facts are not used at the human (gate) level
+	if f := onlyFinding(t, buildWith(t, eb.edge, en, []domain.VerifiedFact{act}, ""), c.ID); f.Knowledge != nil {
+		t.Errorf("consensus fact used at the human level: %+v", f)
+	}
+	// consensus without the action marker: review at most
+	plain := consensusFact(t, http01Assertion(), false, anchor)
+	if f := onlyFinding(t, buildWith(t, eb.edge, en, []domain.VerifiedFact{plain}, domain.VerifiedConsensus), c.ID); f.Classification != domain.ImpactReviewRequired || f.Provenance.Confidence == domain.ConfidenceHigh {
+		t.Errorf("plain consensus: %s/%s", f.Classification, f.Provenance.Confidence)
+	}
+	// consensus never clears, even with the action marker
+	low := condEnv(t, "- product: ingress-nginx\n  version: v1.11.0\n", nil)
+	if f := onlyFinding(t, buildWith(t, eb.edge, low, []domain.VerifiedFact{act}, domain.VerifiedConsensus), c.ID); f.Classification != domain.ImpactUnknown || f.UnknownReason != domain.UnknownReleaseKnowledgeGap {
+		t.Errorf("consensus with exposure false: %s/%s", f.Classification, f.UnknownReason)
+	}
+	// a leaf the environment cannot decide stays unknown with its reason
+	if f := onlyFinding(t, buildWith(t, eb.edge, condEnv(t, "", nil), []domain.VerifiedFact{act}, domain.VerifiedConsensus), c.ID); f.Classification != domain.ImpactUnknown || f.UnknownReason != domain.UnknownCrossProductContextGap {
+		t.Errorf("consensus-action without inventory: %s/%s", f.Classification, f.UnknownReason)
 	}
 }

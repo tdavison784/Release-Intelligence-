@@ -49,11 +49,19 @@ const (
 //	false   true           informational                   informational, medium
 //	false   false/unknown  not-affected, high              unknown · release-knowledge-gap
 //	unknown –              unknown · the leaf's reason     unknown · the leaf's reason
+//
+// PO-2 (DECISIONS.md): a consensus fact marked ConsensusAction (every aspect
+// at consensus or better, an action-eligible consequence every agreeing
+// proposal requested as action, no validator refuting anything — proven when
+// the fact is loaded) keeps its action-required class when the exposure is
+// true with environment evidence; the finding is labelled "model consensus"
+// through Knowledge.Verification/ConsensusAction. Consensus never clears.
 func ClassifyKnowledge(f domain.VerifiedFact, exposure, overlap ConditionResult) (domain.ImpactClass, domain.Confidence, domain.UnknownReason) {
 	trusted := f.Level().Trusted()
+	consensusAction := f.ConsensusAction && f.Level() == domain.VerifiedConsensus
 	conf := domain.ConfidenceHigh
 	if !trusted {
-		conf = domain.ConfidenceMedium // an untrusted fact never carries high confidence
+		conf = domain.ConfidenceMedium // an untrusted fact never carries high confidence …
 	}
 	ov := overlap.Value
 	if ov == "" {
@@ -66,6 +74,9 @@ func ClassifyKnowledge(f domain.VerifiedFact, exposure, overlap ConditionResult)
 			class = c.ExposedClass
 		}
 		if !trusted && class == domain.ImpactActionRequired {
+			if consensusAction && len(exposure.Matches) > 0 {
+				return class, domain.ConfidenceHigh, "" // … except a consensus-action ACTION REQUIRED (PO-2)
+			}
 			class = domain.ImpactReviewRequired
 		}
 		return class, conf, ""
@@ -470,6 +481,10 @@ func (b *builder) knowledgeFinding(f domain.VerifiedFact, exposure, overlap Cond
 		Provenance:       domain.Provenance{Method: domain.MethodComputed, Producer: KnowledgeProducer, Rule: rule, Confidence: conf},
 		Knowledge:        &domain.KnowledgeRef{Fact: f.ID, Verification: level, Statement: factStatement(f)},
 	}
+	if level == domain.VerifiedConsensus {
+		kf.Knowledge.Consensus = consensusScope(f)
+		kf.Knowledge.ConsensusAction = f.ConsensusAction
+	}
 	b.attachChange(&kf, c)
 	var records []domain.Evidence
 	switch class {
@@ -520,6 +535,19 @@ func (b *builder) knowledgeFinding(f domain.VerifiedFact, exposure, overlap Cond
 	return kf, true
 }
 
+// consensusScope labels a consensus fact: same-model when any consensus
+// aspect rests on calls of one model family (the weaker, correlated-error
+// case, PO-1), cross-model otherwise.
+func consensusScope(f domain.VerifiedFact) domain.ConsensusScope {
+	scope := domain.ConsensusCrossModel
+	for _, v := range f.Verification {
+		if v.Level == domain.VerifiedConsensus && v.Consensus == domain.ConsensusSameModel {
+			scope = domain.ConsensusSameModel
+		}
+	}
+	return scope
+}
+
 func factStatement(f domain.VerifiedFact) string {
 	if s := strings.TrimSpace(f.Assertion.Statement); s != "" {
 		return s
@@ -540,6 +568,9 @@ func knowledgeText(f domain.VerifiedFact, class domain.ImpactClass, rule string,
 	switch rule {
 	case RuleKnowledgeExposed:
 		title = "Applies to you: " + st
+		if class == domain.ImpactActionRequired && f.Level() == domain.VerifiedConsensus {
+			title = "Applies to you (ACTION REQUIRED · model consensus): " + st
+		}
 	case RuleKnowledgeOverlap:
 		title = "Touches your environment, which appears shielded: " + st
 	case RuleKnowledgeClear:
@@ -566,7 +597,12 @@ func knowledgeText(f domain.VerifiedFact, class domain.ImpactClass, rule string,
 	}
 	level := f.Level()
 	v := fmt.Sprintf("Verified knowledge %s (%s-verified", f.ID, level)
-	if !level.Trusted() {
+	switch {
+	case level == domain.VerifiedConsensus && f.ConsensusAction:
+		v += fmt.Sprintf(", %s; ACTION REQUIRED here rests on model consensus (PO-2), not on a human or a validator — the fact is sampled into human review; consensus never clears a change", consensusScope(f))
+	case level == domain.VerifiedConsensus:
+		v += fmt.Sprintf(", %s; consensus knowledge is capped at review-required and never clears a change", consensusScope(f))
+	case !level.Trusted():
 		v += "; untrusted knowledge is capped at review-required and never clears a change"
 	}
 	d = append(d, v+").")
