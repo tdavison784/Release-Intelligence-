@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-40a8ac9a2e55",
+    "reviewItemId": "ri-9cbd726f2192",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.route53",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.route53",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "statement": "cert-manager 1.18.0 fixes how the AWS Route53 DNS01 solver detects not-found errors when it deletes DNS records."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.acme.solvers[].dns01.route53",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "Issuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.acme.solvers[].dns01.route53",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "ClusterIssuer"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether AWS Route53 returns not-found errors when cert-manager deletes DNS-01 challenge records at runtime"
+            }
+          ]
+        }
+      },
+      "statement": "Environments are exposed when an Issuer or ClusterIssuer uses an ACME DNS-01 solver backed by AWS Route53 and Route53 returns a not-found error while cert-manager deletes a DNS record at runtime. In that case cert-manager 1.18.0 now detects the not-found error correctly."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:7ba7e028ae41c0710d913751b04ce16e61e7d4ab3aed392d25437698a32f3259",
+      "inputEvidence": [
+        "ev-23e99dfde8d0"
+      ],
+      "generatedAt": "2026-10-02T13:05:26.394Z",
+      "callId": "f484b34a-9185-4b58-9b84-4a58316b5763"
+    },
+    "reason": "[ev-23e99dfde8d0] limits the fix to AWS Route53 not-found errors raised while DNS records are being deleted. Using Route53 for DNS-01 (an Issuer or ClusterIssuer with a route53 solver) is needed for exposure, but it is not enough. The changed behaviour only shows up when Route53 actually returns a not-found error during deletion, and no configuration records that. So the proposed config-only condition is too broad, and it needs an undecidable runtime operand added to it.",
+    "startedAt": "2026-10-02T13:05:12.954Z",
+    "decidedAt": "2026-10-02T13:05:26.394Z"
+  }
+}

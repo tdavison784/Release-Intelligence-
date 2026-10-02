@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-89c988689498",
+    "reviewItemId": "ri-d80c1ebfdb63",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:bef1b83499da034de727389992e491b75145515c95b4cccf1d22b98f5b9ba2c8",
+      "inputEvidence": [
+        "ev-fe0fca386a7a",
+        "ev-717ddb6f40cd",
+        "ev-fdc96eee87bf"
+      ],
+      "generatedAt": "2026-10-02T15:59:37.395Z",
+      "callId": "7ed94899-41d4-44d7-a718-860d584f48e7"
+    },
+    "reason": "[ev-fe0fca386a7a] says plainly that 1.17.0 adds a new Helm value `webhook.extraEnv` for custom environment variables in the webhook Pod. However, it bundles this with two other new values (`cainjector.extraEnv`, `startupapicheck.extraEnv`). The values-file validator also refuted \"added\": it reports that `webhook.extraEnv` already exists in the v1.16.0 chart values [ev-fdc96eee87bf], as well as in v1.17.0 [ev-717ddb6f40cd]. The artifact excerpts shown only contain a section header, so they don't settle whether the key existed before or what changed. We need the relevant v1.16.0 and v1.17.0 values.yaml contents (or PR #7317) before writing the change type and consequence.",
+    "startedAt": "2026-10-02T15:59:29.073Z",
+    "decidedAt": "2026-10-02T15:59:37.395Z"
+  }
+}

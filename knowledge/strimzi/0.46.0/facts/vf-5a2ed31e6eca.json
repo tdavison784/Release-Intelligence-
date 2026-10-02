@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-5a2ed31e6eca",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "anchors": [
+      {
+        "release": "0.46.0",
+        "evidenceKeys": [
+          "ek-a1e15311a49d"
+        ],
+        "statementKeys": [
+          "sk-64b1d2c67e40"
+        ],
+        "changeIds": [
+          "chg-4706e3b7a8e2"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-3e8896f66ab7"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "cluster-ca-cert-secret-missing",
+        "component": "User Operator"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "release-knowledge-gap",
+          "needed": "whether the environment runs the standalone User Operator with TLS not needed and without the Cluster CA cert Secret (the evidence names no chart values, environment variables or Secret name identifying this configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The standalone User Operator now handles a missing Cluster CA cert Secret when TLS is not needed. The evidence states no previous failure and no operator action is required.",
+        "severity": "low"
+      },
+      "statement": "Update standalone User Operator to handle Cluster CA cert Secret being missing when TLS is not needed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-b9927360fa75"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-b9927360fa75"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-67942e4ac7b8"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-7605c380b3f2"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-35ea1afad43d",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/CHANGELOG.md",
+        "locator": "L18-L18 (0.46.0)",
+        "excerpt": "* Update standalone User Operator to handle Cluster CA cert Secret being missing when TLS is not needed.",
+        "contentDigest": "sha256:88ad3a149443f11fbecbc17d97166dca02fa5f8d1bd0dcad7492073bd86663bf",
+        "retrievedAt": "2026-10-02T02:58:54Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T12:59:46.729Z"
+  }
+}

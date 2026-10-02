@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-4ec91e1269ad",
+  "promptDigest": "sha256:01cadffc92c2b8f1ced6b2604ac50e5af0d52c72c824aab74ea9ca9fb6572de5",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "555427dd-2933-4d76-b3cd-91e50a98c838",
+  "startedAt": "2026-10-02T12:54:36.703Z",
+  "decidedAt": "2026-10-02T12:54:47.154Z",
+  "durationMs": 9299,
+  "costUSD": 0.062248000000000005,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-bacdc0376810] only says the default logging was switched to JSON. Nothing in it says anything fails, is rejected or stops working, so behavior-change (review) is the right kind. However, the proposed statement says the old default was \"text\", and the remediation names a --log-format flag and an ARGOCD_LOG_FORMAT environment variable. The evidence supports neither detail, so I corrected the statement and remediation to say only what the evidence says.",
+    "citations": [
+      "ev-bacdc0376810"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Argo CD 3.0.0 switches the default logging format to JSON. Environments relying on the default will produce JSON-formatted logs. Logging still works, but tooling that consumes the logs should be checked.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "statement": "Where the logging format is left at its default, Argo CD now logs in JSON. Logs are still produced, but in a different format, so any log parsing, monitoring or alerting that expects the previous format may need updating.",
+        "remediation": "Check that log parsing, monitoring and alerting can handle JSON-formatted Argo CD logs, or explicitly configure the logging format if a different format is required.",
+        "severity": "medium"
+      }
+    }
+  }
+}

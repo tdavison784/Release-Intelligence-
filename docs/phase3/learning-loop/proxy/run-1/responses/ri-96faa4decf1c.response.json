@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-96faa4decf1c",
+  "promptDigest": "sha256:88705f9936d66a124d45f1db3524e9669ef24cf737a7eea993ec461827c406f4",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d3034937-fe6f-4312-a251-917880e2f095",
+  "startedAt": "2026-10-02T13:04:24.596Z",
+  "decidedAt": "2026-10-02T13:04:35.857Z",
+  "durationMs": 10321,
+  "costUSD": 0.09697599999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-467eb4865201] only says waypoint resources can now be set with the new Helm value `global.waypoint.resources`. The validators confirm the key is new in the 1.24.0 istiod chart [ev-2139315891c3, ev-257bea760fce]. No evidence mentions a `networking.istio.io/v1` Waypoint kind. Nothing says waypoint defaults changed, so having a Gateway in use does not expose an environment, and the proposed condition is broader than the evidence supports. The only environments affected by this optional addition are those that set the new key.",
+    "citations": [
+      "ev-467eb4865201",
+      "ev-257bea760fce",
+      "ev-2139315891c3"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Istio 1.24.0 adds the optional Helm value global.waypoint.resources to the istiod chart for configuring waypoint resources. Only environments that set this value are affected; existing environments are unchanged.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "values-key",
+          "path": "global.waypoint.resources",
+          "state": "set"
+        }
+      }
+    }
+  }
+}

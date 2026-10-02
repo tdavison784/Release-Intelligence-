@@ -1,0 +1,47 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-465a9def7930",
+  "promptDigest": "sha256:b6b9b88e85dea631ba23a53b7781127abfcb6ffaeb1f514376f0ecc80890a90a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b491dce9-98ee-4bfd-ae46-0a3ed27a23c6",
+  "startedAt": "2026-10-02T12:53:36.759Z",
+  "decidedAt": "2026-10-02T12:53:52.614Z",
+  "durationMs": 15083,
+  "costUSD": 0.10389200000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-0bb0d885678d] says only that the chart's Service and ServiceMonitor (\"service/servicemon\") definitions now refer to ports by name instead of by number. That means an environment is exposed only if those rendered objects actually change. The proposed edge-from-version <1.18.0 condition flags every upgrade, whether or not it renders the affected objects. A rendered-change condition on the Service ports and the ServiceMonitor endpoints describes the exposure more exactly. Confidence is low because the evidence does not name these field paths; they come from the standard Service and ServiceMonitor schemas.",
+    "citations": [
+      "ev-0bb0d885678d"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "cert-manager 1.18.0 changed its chart's Service and ServiceMonitor definitions to refer to ports by name instead of by number. Exposed environments are those whose rendered Service ports or ServiceMonitor endpoints differ between the old and new release when rendered with the environment's own values.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "rendered-change",
+              "kind": "Service",
+              "path": "spec.ports",
+              "state": "changed"
+            },
+            {
+              "op": "rendered-change",
+              "group": "monitoring.coreos.com",
+              "kind": "ServiceMonitor",
+              "path": "spec.endpoints",
+              "state": "changed"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

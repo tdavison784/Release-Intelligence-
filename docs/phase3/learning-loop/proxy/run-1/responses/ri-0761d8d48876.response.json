@@ -1,0 +1,76 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0761d8d48876",
+  "promptDigest": "sha256:227dcf5f1636fdb5adc5957d5487d6c0896c614f77c4ba5bbf3da3adb1477b04",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9a413713-88d4-46d8-a028-2e71d98568f0",
+  "startedAt": "2026-10-02T12:45:48.658Z",
+  "decidedAt": "2026-10-02T12:46:02.358Z",
+  "durationMs": 12647,
+  "costUSD": 0.109004,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-07e8b4d1d6f1] says how to tell if you are affected: look at the `application.resourceTrackingMethod` field in the `argocd-cm` ConfigMap. You are affected if it is unset or set to `label`, and not affected if it is set to `annotation`. The proposed condition uses a Helm values key, `server.config.application.resourceTrackingMethod`, but no evidence supports that path. The condition should check the data field of the argocd-cm ConfigMap, using the plain values label and annotation.",
+    "citations": [
+      "ev-07e8b4d1d6f1"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Exposed: environments whose argocd-cm ConfigMap has application.resourceTrackingMethod unset or set to label. In Argo CD 3.0 these switch to annotation-based tracking, and labels are replaced with annotations on the next sync. Shielded: environments where it is already set to annotation.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "name": "argocd-cm",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"application.resourceTrackingMethod\"]",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "name": "argocd-cm",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"application.resourceTrackingMethod\"]",
+                  "state": "equals",
+                  "values": [
+                    "label"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "kind": "ConfigMap",
+          "name": "argocd-cm",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"application.resourceTrackingMethod\"]",
+              "state": "equals",
+              "values": [
+                "annotation"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

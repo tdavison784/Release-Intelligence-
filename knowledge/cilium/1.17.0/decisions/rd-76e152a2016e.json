@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-76e152a2016e",
+    "reviewItemId": "ri-7e357eaf34f1",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The KVStore subsystem in the Cilium status API response changes from reporting OK state with Disabled message to reporting Disabled state; clients parsing the state field will see different values.",
+        "severity": "medium"
+      },
+      "statement": "The Cilium status API now reports the KVStore subsystem with Disabled state instead of OK state with Disabled message."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:b4c8702ae7406a4ea967cd1bbb944f4b94a49bc0df6537482a2d155b9956336c",
+      "inputEvidence": [
+        "ev-e6b268264713"
+      ],
+      "generatedAt": "2026-10-02T13:01:04.023Z",
+      "callId": "9f4b5dea-1dcd-4f26-9505-c31dbebce34f"
+    },
+    "reason": "[ev-e6b268264713] says only that when the KVStore is disabled, the status API now reports it with a `Disabled` state instead of an `OK` state with a `Disabled` message. It doesn't say that anything fails, is rejected or stops being honoured. The change is in the reported value, so behavior-change (review) fits. The proposed statement says that clients reading the state field will see a different value, which matches the evidence without claiming any mandatory work. The evidence doesn't give a severity, so the proposed \"medium\" is a judgement call that the evidence doesn't contradict.",
+    "startedAt": "2026-10-02T13:00:58.365Z",
+    "decidedAt": "2026-10-02T13:01:04.023Z"
+  }
+}

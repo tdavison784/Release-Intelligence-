@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4c063b12ca84",
+    "reviewItemId": "ri-620803d3532e",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:b0f2f08c849d4bc34ddf9f894556cea3eb23365b7a029520aa888790b29abf4a",
+      "inputEvidence": [
+        "ev-c3fa8260181b",
+        "ev-717ddb6f40cd",
+        "ev-fdc96eee87bf"
+      ],
+      "generatedAt": "2026-10-02T12:57:19.344Z",
+      "callId": "461b21c4-19bf-434a-8723-9c9fd202ad40"
+    },
+    "reason": "[ev-c3fa8260181b] says only that the Helm chart now allows `enabled` to be set so cert-manager can be toggled as a dependency. The validators confirm that `enabled` is a new key, absent from the v1.16.0 values and present in v1.17.0 [ev-fdc96eee87bf][ev-717ddb6f40cd]. None of the evidence says what happened before when `enabled` was set (whether it was rejected or ignored), or that `enabled: false` changes how cert-manager's own chart renders. So the proposed exposure (`enabled` equals \"false\") assumes an effect the evidence never states, and no other exposure condition is supported either. To decide, we need the PR #7350 diff or schema/template evidence showing how `enabled` was handled before and after the change.",
+    "startedAt": "2026-10-02T12:57:07.462Z",
+    "decidedAt": "2026-10-02T12:57:19.344Z"
+  }
+}

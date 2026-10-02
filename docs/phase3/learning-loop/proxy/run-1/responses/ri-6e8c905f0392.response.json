@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-6e8c905f0392",
+  "promptDigest": "sha256:93371da35924a1b9b70bfff5c0d308ba4d97b0a6a9d714d9b8e3504efe5db624",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "7ff3577a-b4cf-4ed5-aaf2-1483e293661b",
+  "startedAt": "2026-10-02T12:58:58.651Z",
+  "decidedAt": "2026-10-02T12:59:08.206Z",
+  "durationMs": 8645,
+  "costUSD": 0.089204,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-44a03a4444c2] is a one-line changelog entry saying only that SPDY was replaced with WebSocket for port-forward and pod exec. It names no --port-forward or --exec CLI flags, and nothing in the evidence shows such container arguments on Argo CD workloads, so the proposed exposure is made up. The evidence names no configuration that determines exposure; whether an environment is affected depends on whether port-forward or pod exec is actually used at runtime. Only an undecidable condition can express that.",
+    "citations": [
+      "ev-44a03a4444c2"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Argo CD 3.0.0 replaces SPDY with WebSocket for port-forward and pod exec. Exposure depends on whether the environment uses port-forward or pod exec at runtime, which no static configuration shows.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment uses Argo CD port-forward or pod exec at runtime, and whether its Kubernetes API path supports WebSocket for these operations"
+        }
+      }
+    }
+  }
+}

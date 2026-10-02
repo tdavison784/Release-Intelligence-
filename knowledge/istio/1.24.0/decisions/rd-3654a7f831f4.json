@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3654a7f831f4",
+    "reviewItemId": "ri-467b3d8b2ca3",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:572190836b27342d979133e4ea265702800e620abd8f16c3e40947907781f4eb",
+      "inputEvidence": [
+        "ev-9413f4b657a9"
+      ],
+      "generatedAt": "2026-10-02T12:53:50.25Z",
+      "callId": "35d06297-0511-483d-b2e7-cf3927dc5c05"
+    },
+    "reason": "The only evidence is one line, \"Fixed an issue when using mirror policies with waypoints\" [ev-9413f4b657a9]. It doesn't say what the issue was, what triggered it, or which API sets up the mirror policy. The proposed condition is wrong in two ways. First, it's too broad: it flags any VirtualService with a mirror, even though the note limits the problem to waypoints, and it adds a tcp[].mirror path that the evidence never mentions. Second, it may be too narrow: it skips other ways to set up mirroring, such as Gateway API route filters. To fix it, we'd need the linked PR or issue, which should say which mirror setup in a waypoint deployment caused the problem and how it showed up.",
+    "startedAt": "2026-10-02T12:53:41.718Z",
+    "decidedAt": "2026-10-02T12:53:50.25Z"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f3a850072c30",
+    "reviewItemId": "ri-de09ffd1dfa2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.rbac.disableHTTPChallengesRole",
+          "state": "set"
+        }
+      },
+      "statement": "Adds the Helm value global.rbac.disableHTTPChallengesRole (default false) which, when set, disables HTTP-01 ACME challenges so cert-manager drops its permission to create pods."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:f90876b10ef2085f068ae82f970a60755587d35b4be5185e0ee3d59206244e5e",
+      "inputEvidence": [
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2",
+        "ev-861cb2d69752"
+      ],
+      "generatedAt": "2026-10-02T16:00:33.371Z",
+      "callId": "e5627b26-9ea9-4fc6-ac8d-c59a82667b58"
+    },
+    "reason": "[ev-861cb2d69752] describes a new opt-in Helm value that disables HTTP-01 ACME challenges and drops cert-manager's permission to create pods. The computed values diff ([ev-717ddb6f40cd] → [ev-7a67f12867b2]) shows the key is new, defaults to false, and is used by setting it. Only environments that set the key touch the change; an environment that leaves it unset keeps the default (false) and sees no change, so the \"unset\" variant proposed by P1 and P4 would be wrong. Strictly, only a value of true changes behaviour, but the upstream text says \"set this value\", so \"set\" is an acceptable exposure.",
+    "startedAt": "2026-10-02T16:00:18.535Z",
+    "decidedAt": "2026-10-02T16:00:33.371Z",
+    "resultingFact": "vf-d91b3c370940"
+  }
+}

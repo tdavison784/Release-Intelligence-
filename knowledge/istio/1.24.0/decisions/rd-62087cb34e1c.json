@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-62087cb34e1c",
+    "reviewItemId": "ri-686fc6d057fc",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:d0ee74838959c560ae70b292b3fc3dc3b39cf596ee9032e80bc7b2bcf58cfa55",
+      "inputEvidence": [
+        "ev-d6ef50aec061",
+        "ev-41d780f6ab39",
+        "ev-ad95ec08c00b"
+      ],
+      "generatedAt": "2026-10-02T12:58:08.968Z",
+      "callId": "600273b0-e646-4828-b63f-4586778ede01"
+    },
+    "reason": "[ev-d6ef50aec061] contains two separate changes: new platform-specific overrides for Helm installs, and the removal of the OpenShift profile variants (e.g. ambient-openshift) in favour of global.platform. For the list of supported platforms it only points to the manifests/charts/platform-xxx.yaml files, which are not among the evidence. The validator found global.platform in the base chart values of both 1.23.4 and 1.24.0 [ev-41d780f6ab39][ev-ad95ec08c00b], so the evidence shown does not establish what was actually added. The note also does not say what happens to an install that still sets a removed profile like ambient-openshift (an error, a silent fallback, or something else), so the consequence cannot be written. Needed: the platform-xxx.yaml and profile file diffs between 1.23.4 and 1.24.0, and the item split into its addition and removal parts.",
+    "startedAt": "2026-10-02T12:57:59.677Z",
+    "decidedAt": "2026-10-02T12:58:08.968Z"
+  }
+}

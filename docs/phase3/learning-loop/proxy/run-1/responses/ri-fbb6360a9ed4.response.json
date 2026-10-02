@@ -1,0 +1,39 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-fbb6360a9ed4",
+  "promptDigest": "sha256:f3f2cbbafa4bbcd2e15370e5b514e6ccbde7fe8afce781c6951e67ea1de3da61",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "4a9e4a92-9941-4b9b-bd29-7163f68308fb",
+  "startedAt": "2026-10-02T16:05:08.823Z",
+  "decidedAt": "2026-10-02T16:05:20.149Z",
+  "durationMs": 10439,
+  "costUSD": 0.08821200000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c5faeec10a04] says that by default the compare option for ignoring the status field changed from `crd` to `all`. The setting can still be set explicitly (`ignoreResourceStatusField: crd`) to keep the v2 behaviour. So this is a changed default, not a fixed value, and the change type should be default-changed. The evidence also names the setting whose default changed as `ignoreResourceStatusField`, which sits inside the `resource.compareoptions` key of argocd-cm. The subject path should therefore point to that nested setting, not the whole `resource.compareoptions` block, which has no default change of its own.",
+    "citations": [
+      "ev-c5faeec10a04"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "The default of ignoreResourceStatusField in argocd-cm resource.compareoptions changed from crd to all, so status-field differences are no longer detected for any resource unless ignoreResourceStatusField: crd is set explicitly.",
+      "subject": {
+        "determination": "asserted",
+        "family": "config-key",
+        "path": "resource.compareoptions.ignoreResourceStatusField",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "default-changed",
+        "before": "crd",
+        "after": "all"
+      }
+    }
+  }
+}

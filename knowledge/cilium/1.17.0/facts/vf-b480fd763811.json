@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-b480fd763811",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-cec3424f8884"
+        ],
+        "statementKeys": [
+          "sk-175261144924"
+        ],
+        "changeIds": [
+          "chg-6a1236c12830"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-c6b6d5d2dafd"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--dial-timeout",
+        "component": "hubble-relay"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--dial-timeout",
+          "component": "hubble-relay",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "A `--dial-timeout` value set on hubble-relay has no effect from 1.17.0 because the flag is now a no-op. The flag will be removed in Cilium 1.18.",
+        "remediation": "Remove `--dial-timeout` from the hubble-relay arguments, and do not rely on it to set the dial timeout.",
+        "severity": "low"
+      },
+      "statement": "The hubble-relay flag `--dial-timeout` has been deprecated (now a no-op) and will be removed in Cilium 1.18"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-0a4921729b13"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-0a4921729b13"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-1040de926f1c"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-b977e2f206ec"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-bcdbfe5ecd01",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L375-L376 (1.17 Upgrade Notes › Deprecated Options)",
+        "excerpt": "* The hubble-relay flag `--dial-timeout` has been deprecated (now a no-op)\n  and will be removed in Cilium 1.18.",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T13:05:04.104Z"
+  }
+}

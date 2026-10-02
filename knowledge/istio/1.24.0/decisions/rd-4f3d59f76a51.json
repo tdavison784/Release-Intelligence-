@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4f3d59f76a51",
+    "reviewItemId": "ri-088999be0ce3",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "initContainers",
+          "state": "set"
+        }
+      },
+      "statement": "The istio-discovery Helm chart now supports initContainers configuration, allowing init containers to be specified for the discovery deployment."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:89c2a3e8a4149daf93b9a3bbdf310db03aedb67b464ffbb75cac01308983b5ff",
+      "inputEvidence": [
+        "ev-699362a8f7c3",
+        "ev-2139315891c3",
+        "ev-257bea760fce"
+      ],
+      "generatedAt": "2026-10-02T12:46:13.215Z",
+      "callId": "714a1911-6df4-4802-ac21-ec83e4e736a2"
+    },
+    "reason": "[ev-699362a8f7c3] says initContainers support was added to the istio-discovery chart, and validators confirmed from [ev-2139315891c3] and [ev-257bea760fce] that `initContainers` is a new top-level values key in 1.24.0 that was absent in 1.23.4. The only environments whose rendered output can change are those that set this key, so values-key{initContainers, set} is the narrowest fitting exposure for an additive change with no consequence. The evidence does not state this condition directly, so confidence is low.",
+    "startedAt": "2026-10-02T12:46:05.366Z",
+    "decidedAt": "2026-10-02T12:46:13.215Z",
+    "resultingFact": "vf-db482ab270f2"
+  }
+}

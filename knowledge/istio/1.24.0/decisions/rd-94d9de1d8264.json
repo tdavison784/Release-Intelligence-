@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-94d9de1d8264",
+    "reviewItemId": "ri-f20108d1f029",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "env",
+          "state": "set"
+        }
+      },
+      "statement": "Support for providing arbitrary environment variables to the istio-cni Helm chart was added in Istio 1.24.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:47bf5866deb181734834055ef27c867f0bd1d6806447a389c64ae800825aaec9",
+      "inputEvidence": [
+        "ev-ca323a617966",
+        "ev-2139315891c3",
+        "ev-257bea760fce",
+        "ev-431a25873750",
+        "ev-bf76c777b5f0",
+        "ev-03abdee84e8d",
+        "ev-3f9d99e04dfe"
+      ],
+      "generatedAt": "2026-10-02T16:03:42.178Z",
+      "callId": "a8173d04-7214-41cf-9ba6-c3b79ce74d08"
+    },
+    "reason": "The release note says only that the istio-cni chart now accepts arbitrary environment variables [ev-ca323a617966]. A validator matched this note to a computed change that adds a new Helm value `env` to the cni chart [ev-03abdee84e8d, ev-3f9d99e04dfe]. That means `values-key env set` correctly picks out the environments that use the new option. This is an optional feature with no failure, so no narrower or broader condition follows from the evidence. One caveat lowers confidence: a validator reported that `env` is ambiguous across charts (it also matched istiod) [ev-257bea760fce], and the values-key leaf cannot name a single chart.",
+    "startedAt": "2026-10-02T16:03:29.665Z",
+    "decidedAt": "2026-10-02T16:03:42.178Z",
+    "resultingFact": "vf-55d752fa7d58"
+  }
+}

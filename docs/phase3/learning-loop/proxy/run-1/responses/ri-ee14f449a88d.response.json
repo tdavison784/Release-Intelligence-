@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ee14f449a88d",
+  "promptDigest": "sha256:14c96006394bbeeb777629f3b7283931b67b2c5c74120d8a1cecfae84f74a3cb",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d83959fd-9caf-46ed-a91b-1b33d1ed020c",
+  "startedAt": "2026-10-02T16:02:54.029Z",
+  "decidedAt": "2026-10-02T16:03:03.208Z",
+  "durationMs": 8210,
+  "costUSD": 0.09134,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-dc0997efed20] describes only a change in the output layout of the interactive debug command `cilium-dbg status --verbose`: health may appear under a `reporter` leaf, and branches are sorted. The proposed cli-flag leaf checks container arguments of the product's workloads. A `--verbose` container argument is unrelated to whether anyone runs this debug command or parses its output, so the condition would flag the wrong environments. Whether an environment is exposed depends on scripts or tooling that consume this output, and no static configuration shows that, so the exposure is undecidable.",
+    "citations": [
+      "ev-dc0997efed20"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "The health data output of `cilium-dbg status --verbose` changes: health reported on a non-leaf component may appear under a leaf named `reporter`, and tree branches are sorted by fully qualified health status identifier. Exposure depends on whether operators or tooling run and parse this command's output, which no static configuration shows.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators' scripts or monitoring tools run and parse the output of `cilium-dbg status --verbose` health data"
+        }
+      }
+    },
+    "labels": [
+      "wrong-applicability"
+    ]
+  }
+}

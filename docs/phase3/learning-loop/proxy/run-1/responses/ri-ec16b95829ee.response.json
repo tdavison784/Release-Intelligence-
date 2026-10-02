@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ec16b95829ee",
+  "promptDigest": "sha256:4cf2943bde5e5a0196f2b4923cdd3e6118d41d6e3c8cc5e38a6bd9c074852de1",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "809b3f53-af10-44b1-b279-9c17ebb5567c",
+  "startedAt": "2026-10-02T16:02:35.624Z",
+  "decidedAt": "2026-10-02T16:02:47.298Z",
+  "durationMs": 10751,
+  "costUSD": 0.065576,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-1fd772318bb8] only says that Istio now writes an extra status condition on AuthorizationPolicy when it binds to a waypoint proxy. It also says the condition format is experimental and that policies with multiple targetRefs get a single condition. Nothing in the excerpt says an existing policy, setting or workload behaves differently or breaks. The proposed statement is about future format changes, which describe later releases, not what happens to an environment that does nothing on this upgrade. That makes behavior-change with medium severity (review) an over-claim; the supported kind is none (informational), with a note that the condition format is not stable.",
+    "citations": [
+      "ev-1fd772318bb8"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "Istio now writes a status condition on AuthorizationPolicy resources when they bind to a waypoint proxy. Policies with multiple targetRefs get a single condition. The condition format is experimental and will change. Existing policy behavior is unaffected, so there is no operational consequence.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "statement": "A new status condition for waypoint binding is written to AuthorizationPolicy status. The evidence states no change to how policies are applied or enforced. The condition format is experimental and should not be relied on as stable.",
+        "remediation": "Do not build automation on the exact format of this status condition, because upstream says it will change.",
+        "severity": "low"
+      }
+    },
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ]
+  }
+}

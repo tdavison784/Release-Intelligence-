@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-afb3f076fb25",
+  "promptDigest": "sha256:7d4d6ce5ff3db6da463e5c1a6fe517e8e2747b4255574d456425751d41228573",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "7fc5d969-5a9b-4b3b-a908-1aab54d37eb8",
+  "startedAt": "2026-10-02T15:54:23.686Z",
+  "decidedAt": "2026-10-02T15:54:34.045Z",
+  "durationMs": 9328,
+  "costUSD": 0.088736,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-af23565ba695] only says that the metric `cilium_api_limiter_processed_requests_total` gains a `return_code` label. An environment is affected only if it scrapes this metric and has queries, dashboards or alerts that depend on its label set. The proposed condition `image-in-use cilium` flags every Cilium deployment, so it is broader than the real exposure. The evidence names no Helm value or flag that would narrow it, and metric use in external monitoring is not visible in static configuration, so the exposure is undecidable.",
+    "citations": [
+      "ev-af23565ba695"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The cilium_api_limiter_processed_requests_total metric now carries a return_code label with the HTTP code of the request. Affected environments are those whose monitoring scrapes this metric and has queries, dashboards or alerts that depend on its labels. This cannot be determined from static configuration.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment scrapes cilium_api_limiter_processed_requests_total and has Prometheus queries, recording rules, dashboards or alerts that aggregate on or match its label set"
+        }
+      }
+    }
+  }
+}

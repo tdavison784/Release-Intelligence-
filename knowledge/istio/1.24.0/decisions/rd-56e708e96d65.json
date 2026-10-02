@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-56e708e96d65",
+    "reviewItemId": "ri-67562d6a5016",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "networking.istio.io",
+                  "kind": "VirtualService"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "runtime-behavior-gap",
+                  "needed": "whether resources with unknown API versions are being validated at runtime"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "runtime-behavior-gap",
+                  "needed": "whether resources with unknown API versions are being validated at runtime"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether resources with API versions unknown to the running Istiod version are deployed in the environment"
+            }
+          ]
+        }
+      },
+      "statement": "Istiod's validation webhook is improved to accept API versions it does not recognize, ensuring an older Istio can validate resources created by newer CRDs."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether resources using Istio API versions unknown to the running Istiod (e.g. defined by CRDs newer than the Istiod version) are submitted to Istiod's validation webhook"
+        }
+      },
+      "statement": "Istiod's validation webhook now accepts resources whose API versions it does not know about, so an older Istio can validate resources created by newer CRDs. This affects environments where resources with API versions unknown to the running Istiod, such as those defined by newer CRDs, are submitted to the webhook. No static input can show this."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:5ac722f563d76364e3618b537f1ef97e4eeceedee24dfece43ae506f9295ded9",
+      "inputEvidence": [
+        "ev-0f8bce94541e"
+      ],
+      "generatedAt": "2026-10-02T12:57:59.354Z",
+      "callId": "1bcac211-25ca-4d7c-94b6-23a95f4659b2"
+    },
+    "reason": "[ev-0f8bce94541e] says only that Istiod's validation webhook now accepts resource versions it does not know about, so an older Istio can validate resources created by newer CRDs. It names no resource kinds, so limiting two branches to VirtualService and DestinationRule has no support. Those branches also wrongly suggest that the change touches only those kinds. Exposure depends on whether resources using API versions unknown to the running Istiod (for example, from newer CRDs) reach the webhook. No static input shows this, so the condition should be a single undecidable leaf.",
+    "startedAt": "2026-10-02T12:57:49.405Z",
+    "decidedAt": "2026-10-02T12:57:59.354Z"
+  }
+}

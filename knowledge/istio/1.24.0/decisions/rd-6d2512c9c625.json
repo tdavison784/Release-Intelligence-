@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6d2512c9c625",
+    "reviewItemId": "ri-16f1ed74edd4",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--remote-contexts",
+          "component": "istioctl",
+          "state": "unset"
+        }
+      },
+      "statement": "A new optional CLI flag --remote-contexts was added to the istioctl analyze command to specify remote cluster contexts during multi-cluster analysis."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:47ef8a7c87c9815f87e7f21121c61ef914d6861344dcaef0998a4990afe772b3",
+      "inputEvidence": [
+        "ev-a2198475a8e4"
+      ],
+      "generatedAt": "2026-10-02T12:48:14.367Z",
+      "callId": "8cdb73b9-ca6a-4cc3-9a16-b71c88dbd26e"
+    },
+    "reason": "[ev-a2198475a8e4] only says a new optional `remote-contexts` flag was added to `istioctl analyze`. It names no environment state in which anything fails or changes. The proposed exposure, cli-flag `--remote-contexts` unset, would flag nearly every environment, because no existing setup uses a flag that is new. It also treats a flag of the istioctl client command as if it were a container argument of the product's workloads. No exposure condition follows from the evidence, so this assertion should be rejected rather than corrected.",
+    "startedAt": "2026-10-02T12:48:06.805Z",
+    "decidedAt": "2026-10-02T12:48:14.367Z"
+  }
+}

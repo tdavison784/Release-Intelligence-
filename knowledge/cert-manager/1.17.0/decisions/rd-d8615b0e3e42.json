@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d8615b0e3e42",
+    "reviewItemId": "ri-98e0497087e2",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=1.16.0 <1.16.1"
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "statement": "A regression introduced in v1.16.0 made cert-manager's ACME ClusterIssuers look in the wrong namespace for resources required for issuance (e.g. credential Secrets), and v1.17.0 fixes this lookup."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=1.16.0 <1.16.1"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "statement": "Environments upgrading from cert-manager v1.16.0 (before 1.16.1) that have an ACME ClusterIssuer (spec.acme set) are affected: the v1.16.0 regression made these issuers look in the wrong namespace for issuance resources such as credential Secrets, and 1.17.0 fixes the lookup."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:c5eab376218f306a465f3f8b020eaaed9b1650743b1516965fcff45c29aa85eb",
+      "inputEvidence": [
+        "ev-aa02449851f9",
+        "ev-60054fcf0986",
+        "ev-84061d76ea1b"
+      ],
+      "generatedAt": "2026-10-02T13:04:53.806Z",
+      "callId": "304a0818-3cc1-4cbe-8dc1-18164bec45da"
+    },
+    "reason": "[ev-aa02449851f9] says the regression came in v1.16.0, only affected ACME ClusterIssuers, and is fixed in v1.16.1+ and v1.17.0+. So the version range 1.16.0 ≤ version < 1.16.1 is right. However, matching any ClusterIssuer with gvk-in-use is too broad: it would also flag environments whose ClusterIssuers use only non-ACME issuer types. The exposure condition should require a cert-manager.io ClusterIssuer that has spec.acme set ([ev-60054fcf0986] confirms that the cert-manager.io ClusterIssuer API exists in 1.17.0).",
+    "startedAt": "2026-10-02T13:04:44.476Z",
+    "decidedAt": "2026-10-02T13:04:53.806Z",
+    "resultingFact": "vf-b5a713701efb"
+  }
+}

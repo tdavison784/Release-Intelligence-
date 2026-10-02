@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-71b84941225f",
+    "reviewItemId": "ri-77ef5e97bbd2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Pod restart events are now attached to the Kafka resource with the Pod in the related field; consumers filtering events by the Pod as the regarding object may see different results.",
+        "severity": "low"
+      },
+      "statement": "Kubernetes events emitted during a Pod restart now have the Kafka resource as regardingObject and the Pod in the related field."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:f02bfd2f82f445bd62b72661c9a9213a7431ed0cd8434c9a17733c3f0762dbcc",
+      "inputEvidence": [
+        "ev-4308bfa38162"
+      ],
+      "generatedAt": "2026-10-02T13:00:25.784Z",
+      "callId": "a5d94882-6484-410b-b72d-a6a7800245c5"
+    },
+    "reason": "[ev-4308bfa38162] says only that events emitted during a Pod restart now have the Kafka resource as the `regardingObject` and the Pod in the `related` field. Nothing in it says anything fails, is rejected or stops being honoured. Events are still emitted, but their object references change, so behavior-change (review) with low severity fits. The statement is hedged: consumers that filter by regardingObject 'may see different results'. It does not claim a failure.",
+    "startedAt": "2026-10-02T13:00:20.014Z",
+    "decidedAt": "2026-10-02T13:00:25.784Z"
+  }
+}
