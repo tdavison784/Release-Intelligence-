@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-eb5b8e91a9d0",
+    "candidateId": "sc-0564d2273368",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.privateKey.rotationPolicy"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"Never\"",
+        "after": "\"Always\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.privateKey.rotationPolicy",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.privateKey.rotationPolicy",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates without an explicit rotationPolicy now generate a new private key on re-issuance (default Always instead of Never); this is feature gated and enabled by default, and the gate can no longer be turned off from release 1.19.",
+        "remediation": "Explicitly set rotationPolicy: Never on Certificate resources to keep the old behavior, or turn off the feature gate in this release and set rotationPolicy: Never before 1.19.",
+        "severity": "medium"
+      },
+      "statement": "The default of Certificate spec.privateKey.rotationPolicy changed from Never to Always, so re-issued certificates without an explicit rotationPolicy now get a new private key."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-9a2f8d3ec5e9",
+      "ev-c92478af13c4",
+      "ev-cf14b14073be"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:7076cb913247bd4aaa12a1d617195713932d71e31fd79a16b3fff1b965175897",
+      "inputEvidence": [
+        "ev-9a2f8d3ec5e9",
+        "ev-c92478af13c4",
+        "ev-cf14b14073be"
+      ],
+      "generatedAt": "2026-10-02T05:57:36Z",
+      "callId": "fc85481e-beec-418b-a803-0a9310df58b8"
+    }
+  }
+}

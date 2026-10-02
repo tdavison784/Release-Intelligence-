@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b22b8a0f5e8b",
+    "candidateId": "sc-63c2c8cd111b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "operatorhub"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the environment uses OperatorHub as the installation/upgrade method for cert-manager"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators using OperatorHub to install or upgrade cert-manager cannot proceed with v1.17.0 or later; they must migrate to alternative installation methods such as Helm charts or direct manifest deployment.",
+        "remediation": "Switch to Helm-based installation, direct kubectl manifests, or other supported installation methods. See cert-manager installation documentation for alternatives to OperatorHub.",
+        "severity": "high"
+      },
+      "statement": "OperatorHub packages for cert-manager are no longer published; v1.16.5 is the last release available on OperatorHub, and v1.17.0+ cannot be installed via that distribution channel."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-a89ac42d3167"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:362c409b916a05923101a0c0be7a6fab4aaea142a1ab2bc2d083184face569de",
+      "inputEvidence": [
+        "ev-a89ac42d3167"
+      ],
+      "generatedAt": "2026-10-02T05:55:16Z",
+      "callId": "3b3fe559-d78b-43df-95c0-b4c8bd39e799"
+    }
+  }
+}

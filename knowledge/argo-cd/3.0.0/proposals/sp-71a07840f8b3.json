@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-71a07840f8b3",
+    "candidateId": "sc-7ee60ebe99f0",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "kind": "Application",
+        "path": "status.health.lastTransitionTime"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "argoproj.io",
+          "version": "v1alpha1",
+          "kind": "Application"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The health.status.lastTransitionTime field on Application resources will now always be set with a timestamp value, whereas it was previously sometimes omitted.",
+        "severity": "low"
+      },
+      "statement": "The Argo CD controller now consistently sets health.status.lastTransitionTime on Application resources, whereas previously this field was sometimes not set."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5d698f8b4038"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9cf0cd7a8709f9d7cfd300b89e5483baa2c9daf5cfefe72b76312e6da9b7d1b6",
+      "inputEvidence": [
+        "ev-5d698f8b4038"
+      ],
+      "generatedAt": "2026-10-02T05:59:04Z",
+      "callId": "a96492d3-8cae-4431-9348-826861823c79"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-30d233ad3c98",
+    "candidateId": "sc-3e8896f66ab7",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "standalone-cluster-ca-cert-secret-missing-handling",
+        "component": "user-operator"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"the standalone User Operator did not handle a missing Cluster CA cert Secret when TLS is not needed\"",
+        "after": "\"the standalone User Operator handles a missing Cluster CA cert Secret when TLS is not needed\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "An affected standalone User Operator deployment upgraded to 0.46.0 no longer hits an unhandled missing Cluster CA cert Secret, because the operator now handles that case when TLS is not needed.",
+        "severity": "low"
+      },
+      "statement": "In Strimzi 0.46.0, the standalone User Operator was updated to handle the Cluster CA cert Secret being missing when TLS is not needed, changing how it behaves in such deployments."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure cannot be expressed from static inputs: it depends on whether the User Operator runs standalone with TLS not needed and the Cluster CA cert Secret is absent at runtime; no chart value or manifest predicate carries that state.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-35ea1afad43d"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2a3cf8bd9a0e8c64f7aa335701c195c5eead22acfad92c8b9c1b8523d1f70ca4",
+      "inputEvidence": [
+        "ev-35ea1afad43d"
+      ],
+      "generatedAt": "2026-10-02T06:34:08Z",
+      "callId": "a7830bbc-8738-4679-9965-24263752b9ff"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2b93bf27ebc8",
+    "candidateId": "sc-9f8a80378b1b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "System-level ignoreDifferences customizations are now applied to resource updates by default, which may reduce the number of diffs generated for applications. Fields configured to be ignored will no longer trigger diffs when changed.",
+        "severity": "medium"
+      },
+      "statement": "By default, system-level ignoreDifferences customizations are now applied to ignore resource updates; set ignoreDifferencesOnResourceUpdates to false to preserve the v2 default behavior."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-63314a5fae82"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:dd087a00112567d253d5945475d6b495dc87f13bb49f555d990f7656f54b3dea",
+      "inputEvidence": [
+        "ev-63314a5fae82"
+      ],
+      "generatedAt": "2026-10-02T06:07:36Z",
+      "callId": "6a8ef5cd-23f0-47a0-bdf7-bf7516e76cc2"
+    }
+  }
+}

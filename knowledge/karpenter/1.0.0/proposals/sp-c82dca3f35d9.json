@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c82dca3f35d9",
+    "candidateId": "sc-eedb90bededa",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "kind": "NodePool",
+        "path": "spec.disruption.expireAfter"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "karpenter",
+          "group": "karpenter.sh",
+          "kind": "NodePool",
+          "path": "spec.template.spec.expireAfter"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption.expireAfter",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "statement": "NodePool expireAfter has moved from spec.disruption to spec.template.spec and is now a drift-able field."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The evidence says the field moved and can now cause drift. It does not say what happens to NodePools that still set spec.disruption.expireAfter (for example, whether the value is converted, ignored or rejected).",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-1253ff5bd0a5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0dcdc3253008d1cadca2b427613cb624041030ddbc6c8f87a6d9ba76d5f3feab",
+      "inputEvidence": [
+        "ev-1253ff5bd0a5"
+      ],
+      "generatedAt": "2026-10-02T06:10:58Z",
+      "callId": "b2d4df98-9cf2-4709-a349-5e0f11c3b1b5"
+    }
+  }
+}

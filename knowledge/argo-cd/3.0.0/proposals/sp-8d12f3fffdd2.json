@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8d12f3fffdd2",
+    "candidateId": "sc-cd46ebca5f3e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "server.rbac.disableApplicationFineGrainedRBACInheritance",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"update/delete policies also apply to sub-resources\"",
+        "after": "\"update/delete policies apply only to the application itself\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"server.rbac.disableApplicationFineGrainedRBACInheritance\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "Users whose policies grant `update` or `delete` on an application lose that access to the application's sub-resources (managed resources) unless new `update/*` or `delete/*` policies are defined.",
+        "remediation": "Define policies allowing `update/*` or `delete/*` on the Application's managed resources, or set server.rbac.disableApplicationFineGrainedRBACInheritance to false in argocd-cm to preserve v2 behavior.",
+        "severity": "medium"
+      },
+      "statement": "Starting in Argo CD 3.0, application `update` and `delete` RBAC policies no longer apply to sub-resources; the v2 behavior can be kept by setting server.rbac.disableApplicationFineGrainedRBACInheritance to false in argocd-cm."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d0cda25040fe"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f60822030f703e805b4c85c5480ef74fc204b1b6ab8a005860b288d62dabcfec",
+      "inputEvidence": [
+        "ev-d0cda25040fe"
+      ],
+      "generatedAt": "2026-10-02T05:53:57Z",
+      "callId": "6c9ed0ee-7bcf-4101-a8ba-4b4678f3adf7"
+    }
+  }
+}

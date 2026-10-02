@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-12312c24ca44",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-6c55df58ae29",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-9f431cd2fd31"
+          ],
+          "statementKeys": [
+            "sk-7408b3407586"
+          ],
+          "changeIds": [
+            "chg-6c55df58ae29"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "Use Annotation-Based Tracking by Default: The default behavior for tracking resources has changed to use annotation-based tracking instead of label-based…",
+    "text": "Use Annotation-Based Tracking by Default: The default behavior for tracking resources has changed to use annotation-based tracking instead of label-based tracking. Annotation-based tracking is more reliable and less prone to errors caused by external code copying tracking labels from one resource to another. Detection: To detect if you are impacted, check the `argocd-cm` ConfigMap for the `application.resourceTrackingMethod` field. If it unset or is set to `label`, you are using label-based tracking. If it is set to `annotation`, you are already using annotation-based tracking and are not impacted by this change. Remediation: For most users, it is safe to upgrade to Argo CD 3.0 and use annotation-based tracking. Labels will be replaced with annotations on the next sync. Applications will not be marked as out-of-sync if labels are not present on the resources. !!! warning \"Potential for orphaned resources\" There is a known edge case when switching from label-based tracking to annotation-based tracking that may cause resources to be orphaned. If the first sync operation after switching to annotation-based tracking includes a resource being deleted, Argo CD will fail to recognize…",
+    "evidence": [
+      {
+        "id": "ev-07e8b4d1d6f1",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L234-L284 (v2.14 to 3.0 › Breaking Changes › Use Annotation-Based Tracking by Default)",
+        "excerpt": "### Use Annotation-Based Tracking by Default\n\nThe default behavior for [tracking resources](../../user-guide/resource_tracking.md) has changed to use annotation-based\ntracking instead of label-based tracking. Annotation-based tracking is more reliable and less prone to errors caused by\nexternal code copying tracking labels from one resource to another.\n\n#### Detection\n\nTo detect if you are impacted, check the `argocd-cm` ConfigMap for the `application.resourceTrackingMethod` field. If it\nunset or is set to `label`, you are using label-based tracking. If it is set to `annotation`, you are alrea…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "hints": [
+      "code:argocd-cm",
+      "code:application.resourceTrackingMethod",
+      "code:label",
+      "code:annotation",
+      "path:application.resourceTrackingMethod",
+      "version:3.0"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

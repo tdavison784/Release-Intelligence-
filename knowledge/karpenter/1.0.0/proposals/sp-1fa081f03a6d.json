@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1fa081f03a6d",
+    "candidateId": "sc-003aa0b14bf1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "information about whether Windows pods are being scheduled and whether instance types lack VPC resource controller configuration in the user's environment"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Windows pod launches that previously failed when instance types were not configured in the VPC resource controller now succeed; the bug preventing pod placement in this scenario is fixed."
+      },
+      "statement": "Karpenter 1.0.0 fixes a bug that caused Windows pod launch failures when instance types were not in the VPC resource controller config."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: evidence does not identify a specific configurable subject (CRD field, config key, feature gate, etc.); the bug fix affects runtime behavior of pod scheduling with Windows pods and VPC resource controller interaction",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-664e993932dd"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d43adb6501c102beed96888ea59b1682957cd898ac6da40d4a07c34f4539ceb3",
+      "inputEvidence": [
+        "ev-664e993932dd"
+      ],
+      "generatedAt": "2026-10-02T06:01:35Z",
+      "callId": "b597a2c7-32cd-426a-b20a-0e5e06bc334e"
+    }
+  }
+}

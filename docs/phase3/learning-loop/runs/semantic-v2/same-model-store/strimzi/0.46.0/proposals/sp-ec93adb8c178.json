@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ec93adb8c178",
+    "candidateId": "sc-f71e5a991048",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment's tooling or clients consume the Kafka node certificate Secrets and depend on the previous single-Secret layout"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kafka node certificates are now stored in separate Secrets, one Secret per pod, instead of in a single shared Secret, so consumers of the previous Secret layout will see a different structure.",
+        "severity": "medium"
+      },
+      "statement": "In Strimzi 0.46.0, Kafka node certificates are stored in separate Secrets, one Secret per pod, instead of a single shared Secret."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The changelog line describes an internal change to the operator's Secret layout for Kafka node certificates; no Secret names or keys are stated and no available subject family (crd-field, helm-value, gvk, config-key, migration, ...) captures a generated-Secret storage layout.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-acec48f57273"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:74a9e95463a5aa1b0f150aff19dc6b636f0c8b96fbe19293391ba3dc834c2b91",
+      "inputEvidence": [
+        "ev-acec48f57273"
+      ],
+      "generatedAt": "2026-10-02T06:33:44Z",
+      "callId": "157e5a6e-0b05-4a31-83cf-1b09a1b8fc2a"
+    }
+  }
+}

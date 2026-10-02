@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5ebdaffcfa59",
+    "candidateId": "sc-55dd0ceaa83f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "global.profile",
+        "name": "istiod-remote"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "istio",
+          "path": "global.profile",
+          "name": "istio"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.profile",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The istiod-remote Helm chart is no longer available; remote control plane installations must migrate to using the istio chart with --set profile=remote",
+        "severity": "high"
+      },
+      "statement": "The istiod-remote Helm chart has been removed and replaced with installing the istio chart using the remote profile via --set profile=remote."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-5a31c0781dc5",
+      "ev-1295567312b0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:817d20d95ad497d2534377a4277016a6e8a1d27b89d11fa4ccd15ee0fc6e5324",
+      "inputEvidence": [
+        "ev-5a31c0781dc5",
+        "ev-1295567312b0"
+      ],
+      "generatedAt": "2026-10-02T06:01:54Z",
+      "callId": "9e98ee6a-a999-468d-acba-5a0359bfdc36"
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b95410deaa5c",
+    "candidateId": "sc-590664a9778c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "lbipam_services_unsatisfied_total"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "cilium",
+          "path": "lbipam_services_unsatisfied"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment actively scrapes or monitors metrics from Cilium agents at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Metric collection configurations that reference `lbipam_services_unsatisfied_total` will not receive the renamed metric; monitoring dashboards and alerting rules using the old metric name will stop functioning.",
+        "severity": "medium"
+      },
+      "statement": "The metric `lbipam_services_unsatisfied_total` has been renamed to `lbipam_services_unsatisfied`."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-9a62461ebaa9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:637fd7392f91c13191690a152791d591d20b31e5a14c2fd94d998e9bd39f9b55",
+      "inputEvidence": [
+        "ev-9a62461ebaa9"
+      ],
+      "generatedAt": "2026-10-02T05:59:12Z",
+      "callId": "a238bb57-ea34-430f-8b40-e7d6760542b4"
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-546d5defe894",
+    "candidateId": "sc-5b167d635249",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "strimzi",
+        "name": "ContinueReconciliationOnManualRollingUpdateFailure"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"disableable\"",
+        "after": "\"enabled\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "ContinueReconciliationOnManualRollingUpdateFailure",
+          "state": "disabled"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments that had the feature gate disabled lose the ability to disable it: the disable setting is no longer honoured and reconciliation will continue after a manual rolling update failure.",
+        "severity": "medium"
+      },
+      "statement": "In Strimzi 0.46.0 the `ContinueReconciliationOnManualRollingUpdateFailure` feature gate moves to GA stage and is permanently enabled without the possibility to disable it."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-173f5593d910"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b1be235735a259760c5d3470a2eae77a92f6d9eed5b576f61dbc617848b96589",
+      "inputEvidence": [
+        "ev-173f5593d910"
+      ],
+      "generatedAt": "2026-10-02T06:34:00Z",
+      "callId": "d8ea09cc-acba-4a64-9266-a3272d817f8e"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-78b0d2a76c39",
+    "candidateId": "sc-3aa4cb777553",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "jmx-ipv4-preference",
+        "component": "jmx"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"implicit IPv4 preference\"",
+        "after": "\"JVM defaults\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "how JMX is enabled in the environment (the change text names no CR field, Helm value or config key that carries it)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments with JMX enabled will use JVM network defaults instead of the previous implicit IPv4 preference; per the changelog this makes the cluster boot up correctly in IPv6-only environments where the IPv4 preference would break it.",
+        "severity": "low"
+      },
+      "statement": "Strimzi 0.46.0 removed the implicit IPv4 preference that was applied when JMX was enabled; JMX now uses JVM defaults, so clusters boot correctly in IPv6-only environments where the IPv4 preference would break startup."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-6b927d45a8a3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d9df1c2fa6c6c4c7c78553ce5d8a029c4a88ddf3462efc941ade54bcf4abeb32",
+      "inputEvidence": [
+        "ev-6b927d45a8a3"
+      ],
+      "generatedAt": "2026-10-02T06:31:21Z",
+      "callId": "081f6b93-f9ee-43bc-9948-5c4ac1a9bbf9"
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-621425375be9",
+    "product": "istio",
+    "release": "1.24.0",
+    "members": [
+      {
+        "changeId": "chg-f772888f69da",
+        "anchor": {
+          "release": "1.24.0",
+          "evidenceKeys": [
+            "ek-0182d02674dd",
+            "ek-509553300f96"
+          ],
+          "statementKeys": [
+            "sk-d1e4f98eb4e5",
+            "sk-dc8cb92f9f4b"
+          ],
+          "changeIds": [
+            "chg-f772888f69da"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "Standardization of the peer metadata attributes: CEL expressions in the telemetry API must use the standard Envoy attributes instead of the custom Wasm…",
+    "text": "Standardization of the peer metadata attributes: CEL expressions in the telemetry API must use the standard Envoy attributes instead of the custom Wasm extended attributes. Peer metadata is now stored in `filter_state.downstream_peer` and `filter_state.upstream_peer` instead of `filter_state[\"wasm.downstream_peer\"]` and `filter_state[\"wasm.upstream_peer\"]`. Node metadata is stored in `xds.node` instead of `node`. Wasm attributes must be fully qualified, e.g. use `filter_state[\"wasm.istio_responseClass\"]` instead of `istio_responseClass`. Presence operator can be used for backwards compatible expressions in a mixed proxy scenario, e.g. `has(filter_state.downstream_peer) ? filter_state.downstream_peer.namespace : filter_state[\"wasm.downstream_peer\"].namespace` to read the namespace of the peer. The peer metadata uses baggage encoding with the following field attributes: `namespace`, `cluster`, `service`, `revision`, `app`, `version`, `workload`, `type` (e.g. `\"deployment\"`), and `name` (e.g. `\"pod-foo-12345\"`).",
+    "evidence": [
+      {
+        "id": "ev-7e3267b542c5",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/telemetry-cel.yaml",
+        "locator": "telemetry-cel.yaml L8-L24",
+        "excerpt": "- title: Standardization of the peer metadata attributes\n  content: |\n    CEL expressions in the telemetry API must use the standard [Envoy\n    attributes](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/advanced/attributes)\n    instead of the custom Wasm extended attributes. Peer metadata is now stored\n    in `filter_state.downstream_peer` and `filter_state.upstream_peer` instead\n    of `filter_state[\"wasm.downstream_peer\"]` and\n    `filter_state[\"wasm.upstream_peer\"]`. Node metadata is stored in `xds.node`\n    instead of `node`. Wasm attributes must be fully qualified, e.g. u…",
+        "contentDigest": "sha256:bee3413e1fd52a67dd4aa9dcc446ee5a10c1d1ffe29bc179e9a09fedf2522ad8",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      },
+      {
+        "id": "ev-a3db376e8800",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/istio/istio.io/blob/master/content/en/news/releases/1.24.x/announcing-1.24/upgrade-notes/index.md",
+        "locator": "L112-L132 (Standardization of the peer metadata attributes)",
+        "excerpt": "## Standardization of the peer metadata attributes\n\nCEL expressions in the telemetry API must use the standard [Envoy attributes](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/advanced/attributes) instead of the custom Wasm extended attributes.\n\nPeer metadata is now stored  in `filter_state.downstream_peer` and `filter_state.upstream_peer` instead  of `filter_state[\"wasm.downstream_peer\"]` and`filter_state[\"wasm.upstream_peer\"]`.\nNode metadata is stored in `xds.node` instead of `node`.\nWasm attributes must be fully qualified, e.g. use `filter_state[\"wasm.istio_responseClass\"]…",
+        "contentDigest": "sha256:39808307f2fa17d6ba13c103f941f60a988469897b1d90f4382a5651961d40fe",
+        "retrievedAt": "2026-10-02T02:35:49Z"
+      }
+    ],
+    "hints": [
+      "code:filter_state.downstream_peer",
+      "code:filter_state.upstream_peer",
+      "code:filter_state[\"wasm.downstream_peer",
+      "code:filter_state[\"wasm.upstream_peer",
+      "code:xds.node",
+      "code:node",
+      "code:filter_state[\"wasm.istio_responseClass",
+      "code:istio_responseClass",
+      "code:has(filter_state.downstream_peer) ? filter_state.downstream_peer.namespace : filter_state[\"wasm.downstream_peer\"].namespace",
+      "code:namespace",
+      "code:cluster",
+      "code:service",
+      "code:revision",
+      "code:app",
+      "code:version",
+      "code:workload",
+      "code:type",
+      "code:deployment",
+      "code:name",
+      "code:pod-foo-12345",
+      "path:filter_state.downstream_peer",
+      "path:filter_state.upstream_peer",
+      "path:wasm.downstream_peer",
+      "path:wasm.upstream_peer"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

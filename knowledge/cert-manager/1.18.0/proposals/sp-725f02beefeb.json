@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-725f02beefeb",
+    "candidateId": "sc-7ae1b93c2b58",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.commonName"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.commonName",
+              "state": "matches",
+              "pattern": "^([0-9]{1,3}\\.){3}[0-9]{1,3}$|:"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates with an IP address in commonName now get that IP in the ipAddresses field rather than in the DNS subjectAlternativeName list; issued certificate SANs differ.",
+        "severity": "low"
+      },
+      "statement": "For Certificates whose commonName is an IP address, the IP is no longer added to the DNS subjectAlternativeName list and is instead added to ipAddresses."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a8c04d9f0485"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:576bc4ba31dc00162246e341dfa2db109efb58d33d4633bc415729184c7f4d1f",
+      "inputEvidence": [
+        "ev-a8c04d9f0485"
+      ],
+      "generatedAt": "2026-10-02T05:56:19Z",
+      "callId": "1da3f3bc-34e1-4ea8-97ed-debfc3b7370c"
+    }
+  }
+}

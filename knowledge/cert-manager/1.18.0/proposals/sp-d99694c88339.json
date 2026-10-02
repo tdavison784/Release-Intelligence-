@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d99694c88339",
+    "candidateId": "sc-39c7cfbb1541",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ACME account key Secrets created by cert-manager now carry the label app.kubernetes.io/managed-by: cert-manager. Nothing fails, but anything that selects or filters Secrets by this label may now match them.",
+        "severity": "low"
+      },
+      "statement": "Let's Encrypt (ACME) account key Secrets that cert-manager creates now carry the label `app.kubernetes.io/managed-by: cert-manager`."
+    },
+    "undetermined": [
+      "subject",
+      "change",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: A label added to Secrets the product creates doesn't fit any subject family (it is not a CRD field, Helm value, config key or wire protocol behaviour).; change: Without a subject family that fits, the change type can't be stated in a form other answers could compare. The evidence only says a label was added to the account key Secrets that cert-manager creates.; applicability: The evidence doesn't say which environments are affected, for example whether only newly created account keys get the label or existing ones are relabelled too, or which configuration leads to account keys being created.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-1d4a9d664d8c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:17b6bbc91cdc6f26863168d8c689a76c734797bfa30e31d0d46ac4e48f743875",
+      "inputEvidence": [
+        "ev-1d4a9d664d8c"
+      ],
+      "generatedAt": "2026-10-02T06:10:27Z",
+      "callId": "b532593d-e7a1-4e7e-af9d-62767bc8e4f4"
+    }
+  }
+}

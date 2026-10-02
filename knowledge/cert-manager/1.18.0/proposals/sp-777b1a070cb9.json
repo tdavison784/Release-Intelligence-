@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-777b1a070cb9",
+    "candidateId": "sc-e1a3e9a9cadf",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cert-manager",
+        "name": "--namespace"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--namespace",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Installations started with `--namespace=<namespace>` are now limited to that single namespace, and cluster-scoped controllers are disabled.",
+        "remediation": "If you set --namespace, check that you do not depend on cluster-scoped controllers or on resources outside that namespace.",
+        "severity": "medium"
+      },
+      "statement": "When cert-manager runs with `--namespace=<namespace>`, it now limits its scope to that single namespace and disables cluster-scoped controllers."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-ef5237d47ade"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4fe6826d1b2c21c8ef7449c507e7eb850de591b711d36394869e20c142bb10e6",
+      "inputEvidence": [
+        "ev-ef5237d47ade"
+      ],
+      "generatedAt": "2026-10-02T06:12:15Z",
+      "callId": "08a1fa2c-894e-479d-8fa6-e6e783262d80"
+    }
+  }
+}

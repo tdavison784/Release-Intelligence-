@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3fd334f12dd0",
+    "candidateId": "sc-f117b7291fa1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "structured-logs"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"unstructured log messages\"",
+        "after": "\"structured logs\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether external log tooling (alerts, parsers, monitors) matches on specific cert-manager log strings"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Setups that match on specific cert-manager log strings could break, because the unstructured log messages have been replaced with structured logs.",
+        "remediation": "Review and update any log matching, alerting or parsing rules that depend on specific cert-manager log message strings.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0, log messages that were not structured are now structured logs, so any setup that matches on specific log strings could break."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-df7847de6bcb"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:7150d961c37f55f13f11abc88c2c59687a28d2b54a82d3896a30aaaedc1be106",
+      "inputEvidence": [
+        "ev-df7847de6bcb"
+      ],
+      "generatedAt": "2026-10-02T06:12:54Z",
+      "callId": "1ab02c25-a23a-46a4-b63e-80b01810baee"
+    }
+  }
+}
