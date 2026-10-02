@@ -1,0 +1,42 @@
+id: kustomize-customer-overlay
+product: cert-manager
+from: v1.17.0
+to: v1.18.0
+researchedAt: "2026-10-01"
+level: environment
+repo: internal/env/testdata/customer-repo
+sources:
+  - internal/env/testdata/customer-repo/kustomize/kustomization.yaml (the fixture)
+  - internal/env/testdata/customer-repo/base/*.yaml (the referenced resources)
+  - https://kubectl.docs.kubernetes.io/references/kustomize/kustomization/resource/#load-restrictors
+
+# Authored from the fixture itself and kustomize's documented behavior, not
+# from renderer output. This is a fixture-derived case (not upstream-product
+# material): the kustomize path of the renderer needs a customer overlay to
+# evaluate, and the repository fixture is the honest available one.
+expected:
+  - id: K1
+    category: kustomize
+    expect: present
+    target: kustomize
+    failure: kustomize-dependency
+    detail: >-
+      the overlay's resources live outside the overlay directory
+      (../base/…), which kustomize's default (root) load restrictor refuses:
+      the render must fail explicitly with kustomize-dependency — the
+      customer's own deployer would fail the same way — never "no change"
+    source: >-
+      kustomization.yaml lists resources ../base/{namespace,deployment,
+      certificate}.yaml; kustomize resource docs: "resources must reside
+      within the same directory tree as the kustomization referencing them"
+      unless loadRestrictions are relaxed.
+  - id: K2
+    category: kustomize
+    expect: present
+    target: kustomize
+    detail: >-
+      the failure is reported per-target with the overlay path and the why
+      record (top-level kustomization whose inputs reference cert-manager)
+    source: >-
+      repo-mode target detection (R7): the overlay is chosen because its
+      inputs reference the product; the choice and why are recorded.

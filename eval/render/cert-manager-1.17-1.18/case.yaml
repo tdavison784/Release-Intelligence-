@@ -1,0 +1,196 @@
+id: cert-manager-1.17-1.18
+product: cert-manager
+from: v1.17.0
+to: v1.18.0
+researchedAt: "2026-10-01"
+level: release
+sources:
+  - "git diff v1.17.0 v1.18.0 -- deploy/charts/cert-manager (github.com/cert-manager/cert-manager)"
+  - "git diff v1.17.0 v1.18.0 -- deploy/crds (github.com/cert-manager/cert-manager)"
+  - https://cert-manager.io/docs/releases/release-notes/release-notes-1.18
+
+# Authored from the template/CRD diff between the tags and the 1.18 release
+# notes (see NOTES.md for the exact hunks). Expectations live at source
+# granularity: object names as the templates spell them, field areas the
+# templates touch — not the renderer's path spellings.
+expected:
+  - id: R1
+    category: image
+    expect: present
+    kind: Deployment
+    name: cert-manager
+    detail: controller image tag v1.17.0 → v1.18.0
+    source: >-
+      chart appVersion (packaged per release; release notes "v1.18.0").
+  - id: R2
+    category: image
+    expect: present
+    kind: Deployment
+    name: cert-manager-cainjector
+    detail: cainjector image tag v1.17.0 → v1.18.0
+    source: R1
+  - id: R3
+    category: image
+    expect: present
+    kind: Deployment
+    name: cert-manager-webhook
+    detail: webhook image tag v1.17.0 → v1.18.0
+    source: R1
+  - id: R4
+    category: image
+    expect: present
+    kind: Job
+    name: cert-manager-startupapicheck
+    detail: startupapicheck image tag v1.17.0 → v1.18.0
+    source: R1
+  - id: R5
+    category: arg
+    expect: present
+    kind: Deployment
+    name: cert-manager
+    path: acme-http01-solver-image
+    detail: the --acme-http01-solver-image arg moves to the v1.18.0 acmesolver image
+    source: >-
+      templates/deployment.yaml renders the arg from the appVersion-tagged
+      acmesolver image.
+  - id: R6
+    category: rbac
+    expect: present
+    kind: ClusterRole
+    name: cert-manager-controller-challenges
+    class: resource-removed
+    detail: the single challenges ClusterRole is removed
+    source: >-
+      templates/rbac.yaml: "name: …-controller-challenges" renamed (the role is
+      split), so the old object disappears from the render.
+  - id: R7
+    category: rbac
+    expect: present
+    kind: ClusterRole
+    name: cert-manager-http01-controller-challenges
+    class: resource-added
+    detail: a new http01 challenges ClusterRole appears (create-pods permission retained)
+    source: >-
+      templates/rbac.yaml: "# HTTP01 Challenges controller role", name
+      cert-manager-http01-controller-challenges, gated on the new
+      global.rbac.disableHTTPChallengesRole (default false in values.yaml).
+  - id: R8
+    category: rbac
+    expect: present
+    kind: ClusterRole
+    name: cert-manager-dns01-controller-challenges
+    class: resource-added
+    detail: a new dns01 challenges ClusterRole appears
+    source: >-
+      templates/rbac.yaml: "# DNS01 Challenges controller role" added with the
+      watch/update challenges + issuers + secrets + events rules.
+  - id: R9
+    category: rbac
+    expect: present
+    kind: ClusterRoleBinding
+    name: cert-manager-controller-challenges
+    class: resource-removed
+    detail: the old challenges ClusterRoleBinding is removed
+    source: templates/rbac.yaml (binding follows the role split)
+  - id: R10
+    category: rbac
+    expect: present
+    kind: ClusterRoleBinding
+    name: cert-manager-http01-controller-challenges
+    class: resource-added
+    detail: binding for the http01 role
+    source: templates/rbac.yaml (http01 ClusterRoleBinding, same gate)
+  - id: R11
+    category: rbac
+    expect: present
+    kind: ClusterRoleBinding
+    name: cert-manager-dns01-controller-challenges
+    class: resource-added
+    detail: binding for the dns01 role
+    source: templates/rbac.yaml (dns01 ClusterRoleBinding)
+  - id: R13
+    category: port
+    expect: present
+    kind: Deployment
+    name: cert-manager-webhook
+    path: livenessProbe
+    detail: webhook liveness probe httpGet.port 6080 → healthcheck (named port)
+    source: >-
+      templates/webhook-deployment.yaml: the "port: 6080" (or healthzPort)
+      branches collapse to "port: healthcheck" in both probes.
+  - id: R14
+    category: port
+    expect: present
+    kind: Deployment
+    name: cert-manager-webhook
+    path: readinessProbe
+    detail: webhook readiness probe httpGet.port 6080 → healthcheck
+    source: R13
+  - id: R15
+    category: helm-default
+    expect: present
+    kind: Service
+    name: cert-manager
+    path: targetPort
+    detail: the tcp-prometheus-servicemonitor port's targetPort default 9402 → "http-metrics"
+    source: >-
+      values.yaml: prometheus.servicemonitor.targetPort 9402 → http-metrics
+      (values.schema.json default follows); the Service template renders it.
+  - id: R16
+    category: crd
+    expect: present
+    kind: CustomResourceDefinition
+    name: certificates.cert-manager.io
+    path: signatureAlgorithm
+    knownGap: true
+    detail: the Certificate CRD gains the signatureAlgorithm field (enum) — visible only if CRDs are rendered
+    source: >-
+      deploy/crds/crd-certificates.yaml: new signatureAlgorithm property with
+      enum [SHA256WithRSA, …, PureEd25519].
+  - id: R17
+    category: not-render-verifiable
+    expect: absent
+    kind: CustomResourceDefinition
+    name: certificates.cert-manager.io
+    path: default
+    detail: >-
+      the rotationPolicy default change (Never → Always) is a controller
+      feature gate, not a schema default; the renderer must not present a
+      rendered change asserting the new default (description prose changes are
+      noise, not the semantic default)
+    source: >-
+      deploy/crds/crd-certificates.yaml keeps no schema default for
+      rotationPolicy (only description text); release notes 1.18: default
+      changed "from Never to Always", disable with
+      DefaultPrivateKeyRotationPolicyAlways=false feature gate.
+
+variants:
+  - id: servicemonitor
+    values: environment/values-servicemonitor.yaml
+    note: >-
+      values-driven behaviour: with the ServiceMonitor enabled the rendered
+      objects include monitoring.coreos.com ServiceMonitors on both sides and
+      the targetPort default flows into them too.
+    expected:
+      - id: V1
+        category: resource
+        expect: present
+        kind: ServiceMonitor
+        name: cert-manager
+        class: field-changed
+        path: endpoints
+        detail: >-
+          the ServiceMonitor's endpoints change with the targetPort default
+          (9402 → http-metrics): the rendered field is endpoints[].port — the
+          values key targetPort itself never appears in the object
+        source: >-
+          values.yaml targetPort default change; templates/servicemonitor.yaml
+          renders endpoints[].port from it.
+      - id: V2
+        category: resource
+        expect: absent
+        kind: ServiceMonitor
+        name: cert-manager
+        class: resource-added
+        detail: the ServiceMonitor exists on BOTH sides (not an added resource)
+        source: the variant enables it for both renders.
