@@ -138,6 +138,21 @@ or image-tag equality)?
 The leaf concludes nothing about consequences: a render difference alone never produces ACTION
 REQUIRED (R11) — that classification is the trust ladder's, above this predicate.
 
+## Evaluation (R16, R17)
+
+`eval/render/` holds the render cases: expectations authored from upstream material
+(the chart template/CRD diff between the tags, values.yaml, release notes) before the
+renderer ran on them — see its README and each case's NOTES.md, which also records
+every blind-authoring caveat and every correction the comparison forced. The runner is
+`go test ./internal/app -run TestEvalRenderCases -v` (skips without helm/network) and
+reports per case: pairs rendered/failed (render success rate), recall (expectations
+matched) and, where the expectations aim at the whole delta, precision (changes
+explained). Committed comparisons live in `eval/render/results/`; the current one:
+release level 14/14 precision, 15/16 recall (one marked known gap: CRD fields), the
+kustomize overlay failing exactly as authored. The pipeline-level R17 metrics (UNKNOWN
+→ decided due to render, ACTION strengthened, false ACTION delta, applicability
+before/after) wait on the applicability lane's wiring.
+
 ## CLI
 
 ```sh
