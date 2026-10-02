@@ -1,19 +1,35 @@
 # Lane `knowledge` — status
 
-**State: in progress.** Store + queue + routing + decisions→facts committed (STORE READY for semantic/dashboard lanes).
+**State: done.** `go build ./... && go vet ./... && go test ./...` green on `p3ll/knowledge` (with contract-2 merged).
 
 ## Done
-- `internal/knowledge/filestore.go`: FileStore (`NewFileStore`), layout `knowledge/<product>/<release|_endpoint>/<kind>/<id>.json`, idempotent writes, atomic, validate on write and read, immutable kinds, status-only mutation, `ValidateFactBasis` on every fact.
-- `route.go`: `Route`/`RouteWith` (DESIGN §6), per-aspect `Agreements`, signals, priority, items for open aspects; `AutoApprovePolicy` seam (see below).
-- `decide.go`: `FactFromDecision` (accept/correct/reject/duplicate/retract/supersede), per-aspect state, `buildFact`.
-- `queue.go`: `NewQueue` (Inbox with G7 counts+filters, Item → `ReviewContext` via `AssembleContext`, Decide incl. bulk), `OpenFactReview`.
+- `internal/knowledge`: `filestore.go` (FileStore), `route.go` (Route/RouteWith, agreements, signals, items, `AutoApprovePolicy` seam),
+  `autoapprove.go` (`ConsensusAspects`, `AutoApproveRenderVerifiable`), `decide.go` (`FactFromDecision`, per-aspect state, `buildFact`),
+  `queue.go` (Queue: Inbox with G7 counts+filters, Item → `ReviewContext` incl. related decisions/facts by subject key and shared members,
+  Decide incl. bulk; `OpenFactReview`), `pipeline.go` (`RouteStore`, audit sampling), `dataset.go` (`ExportDataset`), `metrics.go`
+  (every DESIGN §7 metric, per model and per task, batch vs individual separate, auto-approval audit), `report.go`, tests incl. the
+  integrity test (no file under `knowledge/` references eval cases/expectations/case ids).
+- CLI `ri knowledge route|decide|review-fact|export|metrics` (`cmd/ri/knowledge.go`); `decide --reviewer-kind proxy` requires AI provenance flags.
+  `candidates|propose|validate` print "provided by the semantic/validate lane" (not wired: those packages are not on this branch).
+- Docs: `docs/KNOWLEDGE.md`, README command lines.
 
-## Decisions
-- Fact evidence = validator evidence + candidate evidence cited by proposals that agree with the fact on ≥1 aspect (all candidate evidence if none), so the grounding metric is meaningful.
-- A decision overrides earlier ones per aspect in time order; a validator-confirmed identical value stays `deterministic`; a proxy never overrides a trusted aspect.
+## Decisions (and why)
+- Fact evidence = validator evidence + candidate evidence cited by proposals agreeing with the fact (all candidate evidence if none): makes the grounding metric non-trivial.
+- Per aspect, later decisions override earlier; validator-confirmed identical value stays deterministic; a proxy never overrides a trusted aspect.
 - Aspects nobody proposed → one `evidence-sufficiency` item on route `missing-evidence`.
-- Fact re-review ("fact-review item") = item whose complete Proposed is exactly an existing fact: reject retracts, correct supersedes. Created by `OpenFactReview`.
-- Auto-approval: `AutoApprovePolicy` hook in `RouteWith` (commander note: consensus level + auto-approved marker land in contract-2; sampling to human review to be added with the marker).
+- Fact re-review = item whose complete Proposed is exactly an existing fact (`OpenFactReview`): reject retracts, correct supersedes; routing never revives a retracted/superseded fact.
+- Auto-approval (contract-2): `Route()` stays the pure DESIGN §6 table; the policy is opt-in (`RouteWith`, `RouteOptions.Policy`). `ri knowledge route` enables `AutoApproveRenderVerifiable` by default (`-auto-approve=false` to disable) and samples 1-in-5 (`-audit-every`) into human audit.
+- An audit **accept** of an auto-approved fact measures it and does NOT upgrade it (the marker means no reviewer decided it). See open question.
+- Metrics `GeneratedAt` is the latest snapshot timestamp (deterministic).
 
 ## Contract changes
-- `FileStore` lets a fact's per-aspect verification be upgraded (never weakened) under the same id (proxy → human re-review). `// CONTRACT-CHANGE(knowledge)`.
+- `FileStore` lets a fact's per-aspect verification be upgraded (never weakened) under the same id (proxy/consensus → human). `// CONTRACT-CHANGE(knowledge)` in filestore.go.
+- `knowledge.ModelMetric.ByTask` / `ModelTaskMetric` added (api.go, `CONTRACT-CHANGE(knowledge)`): DESIGN §7 asks for per-task metrics.
+
+## Files outside ownership
+- `cmd/ri/main.go` (additive: `knowledge` command + usage), `README.md` (command lines), `docs/KNOWLEDGE.md` (new).
+
+## Open questions for the commander
+1. Should a human audit-accept upgrade an auto-approved fact to `human`? Currently no (keeps R19 measurement clean); the ladder keeps such facts capped.
+2. The committed `knowledge/` directory does not exist yet (no data authored by this lane); the integrity test skips until it does.
+3. Consensus facts rest on `sp-` basis; `ValidateFactBasis` cannot verify them, only `ValidateFactRecords` (used everywhere here). Other lanes reading facts should do the same.
