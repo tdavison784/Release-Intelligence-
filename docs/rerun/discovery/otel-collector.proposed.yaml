@@ -1,0 +1,154 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: otel-collector
+name: opentelemetry-collector-releases
+homepage: https://github.com/open-telemetry/opentelemetry-collector-releases
+versioning:
+  scheme: semver
+  tagPrefix: v
+  tagPattern: ^v(?P<version>\d+\.\d+\.\d+)$
+  lineage: linear
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/open-telemetry/opentelemetry-collector-releases
+      tagPattern: ^v(?P<version>\d+\.\d+\.\d+)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: open-telemetry/opentelemetry-collector-releases
+    priority: 1
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: open-telemetry/opentelemetry-collector-releases
+      ref: '{{.Tag}}'
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 0.159.0
+      - 0.160.0
+      - 0.161.0
+      - 0.162.0
+  - id: changelog
+    roles:
+      - changelog
+    locator:
+      kind: repo-file
+      repository: github.com/open-telemetry/opentelemetry-collector-releases
+      path: CHANGELOG.md
+    extract:
+      type: markdown-section
+      heading: ^\[?v?{{regexQuote .Version}}\]?(\s|$)
+    validatedAgainst:
+      - 0.159.0
+      - 0.160.0
+      - 0.161.0
+      - 0.162.0
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: open-telemetry/opentelemetry-collector-releases
+artifacts:
+  - id: opentelemetry-collector
+    type: container-image
+    name: opentelemetry-collector
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector
+    validatedAgainst:
+      - 0.159.0
+      - 0.160.0
+      - 0.161.0
+      - 0.162.0
+  - id: opentelemetry-collector-builder
+    type: container-image
+    name: opentelemetry-collector-builder
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-builder
+    validatedAgainst:
+      - 0.159.0
+      - 0.160.0
+      - 0.161.0
+      - 0.162.0
+  - id: opentelemetry-collector-ebpf-profiler
+    type: container-image
+    name: opentelemetry-collector-ebpf-profiler
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-ebpf-profiler
+    validatedAgainst:
+      - 0.159.0
+      - 0.160.0
+      - 0.161.0
+      - 0.162.0
+  - id: opentelemetry-collector-k8s
+    type: container-image
+    name: opentelemetry-collector-k8s
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+    validatedAgainst:
+      - 0.159.0
+      - 0.160.0
+      - 0.161.0
+      - 0.162.0
+  - id: opentelemetry-collector-opampsupervisor
+    type: container-image
+    name: opentelemetry-collector-opampsupervisor
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-opampsupervisor
+    validatedAgainst:
+      - 0.159.0
+      - 0.160.0
+      - 0.161.0
+      - 0.162.0
+  - id: opentelemetry-collector-otlp
+    type: container-image
+    name: opentelemetry-collector-otlp
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: oci
+        repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-otlp
+    validatedAgainst:
+      - 0.159.0
+      - 0.160.0
+      - 0.161.0
+      - 0.162.0
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  validatedReleases:
+    - v0.159.0
+    - v0.160.0
+    - v0.161.0
+    - v0.162.0
+  notes: Proposed by automated discovery; relationship checks run against v0.159.0, v0.160.0, v0.161.0, v0.162.0.

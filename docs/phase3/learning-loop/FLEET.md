@@ -58,7 +58,10 @@ instead of editing them unilaterally (small additive fields are OK, note them).
 - Build: `go build -o bin/ri ./cmd/ri` (bin/ is gitignored, per worktree).
 - Eval (live, populates `.ri/cache`): `GITHUB_TOKEN=$(gh auth token) bin/ri eval`. The primary checkout's
   cache is warm; reuse it with `-state /Users/tommydavison/repos/Release-Intelligence-/.ri` rather than
-  re-fetching. Baseline (main @ c341555): all gates pass except applicabilityAccuracy 0.095 (2/21 links).
+  re-fetching. Baseline (main @ c341555, 17 entries): all gates pass except applicabilityAccuracy 0.095
+  (2/21 links). Current p3-learning-loop (28 entries incl. the groundtruth expansion, no -knowledge):
+  applicabilityAccuracy 0.476 (0.514 with -render) and falseActionRate 0.059 (kyverno E9, pending a
+  verified 'superseded' fact) FAIL; the other gates pass. Re-check with `ri eval` before quoting numbers.
 - LLM calls: no API keys are set in the environment. Use the file exchange (`-llm-exchange <dir>`) and
   answer requests with stateless `claude -p` calls in the style of
   `docs/phase3/model-comparison/raw-arm.sh` (Claude models: claude-opus-5-5, claude-sonnet-5-5,

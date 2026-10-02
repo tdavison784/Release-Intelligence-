@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-879cc38622b3",
+  "promptDigest": "sha256:17a63588265d5a026d8e72a1497648bea9f58abcc203e5852d11f0a3245143da",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9a45755a-33c6-43e3-a615-e99157304add",
+  "startedAt": "2026-10-02T13:02:34.430Z",
+  "decidedAt": "2026-10-02T13:02:45.546Z",
+  "durationMs": 10042,
+  "costUSD": 0.065244,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-4ce2886cea1f] says `hubble.relay.dialTimeout` is \"now a no-op\" in 1.17, so a value set for it is no longer honoured, which matches setting-ignored. It is not a deprecation that still works today, even though removal is also planned for 1.18. The proposed statement says the option \"remains configurable without causing failure\", which hides the fact that the value is silently ignored from 1.17.0. The validators only confirm that the key exists [ev-28e0ccb5774a][ev-39a22d88e2f5] and do not change this reading.",
+    "citations": [
+      "ev-4ce2886cea1f"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Cilium 1.17.0 the Helm value hubble.relay.dialTimeout is deprecated and is now a no-op, so any configured value is no longer honoured. The option will be removed in Cilium 1.18.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "statement": "If hubble.relay.dialTimeout is set in Helm values, the value is not honoured in Cilium 1.17.0 because the option is now a no-op. The option will be removed in Cilium 1.18.",
+        "remediation": "Remove hubble.relay.dialTimeout from Helm values. Do not rely on it to control the Hubble Relay dial timeout.",
+        "severity": "low"
+      }
+    }
+  }
+}

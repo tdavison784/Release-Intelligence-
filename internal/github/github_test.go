@@ -105,7 +105,9 @@ func (s *spy) Do(ctx context.Context, req fetch.Request) (*fetch.Document, error
 
 func newClient(t *testing.T, api *fakeAPI, cacheDir, token string, mode fetch.Mode, opts ...Option) (*Client, *spy) {
 	t.Helper()
-	sp := &spy{inner: fetch.NewHTTPClient(fetch.NewCache(cacheDir), mode)}
+	hc := fetch.NewHTTPClient(fetch.NewCache(cacheDir), mode)
+	hc.BackoffBase = time.Millisecond // fake 429s are retried; keep the test fast
+	sp := &spy{inner: hc}
 	return NewClient(sp, token, append([]Option{WithBaseURL(api.URL)}, opts...)...), sp
 }
 
@@ -375,9 +377,9 @@ func TestListReleasesErrors(t *testing.T) {
 		wantState domain.SourceState
 	}{
 		{"not found", http.StatusNotFound, `{"message":"Not Found"}`, fetch.ErrNotFound, domain.SourceNotFound},
-		{"forbidden (blocked or no access)", http.StatusForbidden, `{"message":"Resource not accessible"}`, fetch.ErrUnavailable, domain.SourceUnavailable},
-		{"rate limited", http.StatusTooManyRequests, `{"message":"API rate limit exceeded"}`, fetch.ErrUnavailable, domain.SourceUnavailable},
-		{"bad credentials", http.StatusUnauthorized, `{"message":"Bad credentials"}`, fetch.ErrUnavailable, domain.SourceUnavailable},
+		{"forbidden (blocked or no access)", http.StatusForbidden, `{"message":"Resource not accessible"}`, fetch.ErrForbidden, domain.SourceUnavailable},
+		{"rate limited", http.StatusTooManyRequests, `{"message":"API rate limit exceeded"}`, fetch.ErrThrottled, domain.SourceThrottled},
+		{"bad credentials", http.StatusUnauthorized, `{"message":"Bad credentials"}`, fetch.ErrAuthRequired, domain.SourceUnavailable},
 		{"server error", http.StatusInternalServerError, `oops`, nil, domain.SourceError},
 		{"malformed json", http.StatusOK, `{not json`, nil, domain.SourceError},
 		{"unexpected json shape", http.StatusOK, `{"message":"not a list"}`, nil, domain.SourceError},

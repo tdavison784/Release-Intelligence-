@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8cc788c97ec9",
+    "reviewItemId": "ri-e40746b48c6d",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--retry-on-conflict",
+          "component": "admin",
+          "state": "set"
+        }
+      },
+      "statement": "Two new flags have been added to the argocd admin import command to support retrying updates on conflicts and skipping resources with specific labels."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:077cb159494e4e7b74833dfd391a5b6e0cc78cd3577594c5379a22b25a979d19",
+      "inputEvidence": [
+        "ev-a5b549ff42a5"
+      ],
+      "generatedAt": "2026-10-02T16:01:50.287Z",
+      "callId": "b90144da-2196-4812-b8d2-69c07f852ddf"
+    },
+    "reason": "[ev-a5b549ff42a5] says only that new flags were added to the `argocd admin import` CLI command, one to retry updates on conflicts and one to skip resources with specific labels. It does not name either flag, so the literal \"--retry-on-conflict\" has no support in the evidence. The proposed condition also uses cli-flag, which checks container arguments of the product's workloads. That does not fit an operator-run CLI subcommand, and it covers only one of the two flags. New opt-in flags leave existing use unchanged, so no environment state is exposed and the evidence supports no exposure condition.",
+    "startedAt": "2026-10-02T16:01:42.489Z",
+    "decidedAt": "2026-10-02T16:01:50.287Z"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-347bfaf9942d",
+    "reviewItemId": "ri-53cf64c986ae",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any scripts or tooling list Kubernetes events using a regardingObject field-selector that targets the Pod"
+        }
+      },
+      "statement": "Kubernetes events for Pod restarts no longer have the Pod as the regardingObject, so anyone using regardingObject as a field-selector for listing events must update the selector to specify the Kafka resource instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:3a0a551d53cba9e75a6f41122c15ceea9aee717497ae87609047225303fcdf78",
+      "inputEvidence": [
+        "ev-2dffc916b09a"
+      ],
+      "generatedAt": "2026-10-02T12:55:09.405Z",
+      "callId": "6812381a-b5b0-48b0-9094-9ae0773e8d0b"
+    },
+    "reason": "[ev-2dffc916b09a] says Pod-restart events no longer have the Pod as the `regardingObject`, and that only users who list events with a `regardingObject` field-selector need to change anything. That exposure depends on how external scripts or tooling query events. None of the static inputs (Helm values, manifests, CLI flags) show this, so an undecidable condition with reason environment-visibility-gap fits. The stated \"needed\" matches exactly the condition in the changelog, so it is neither broader nor narrower than the real exposure.",
+    "startedAt": "2026-10-02T12:55:02.598Z",
+    "decidedAt": "2026-10-02T12:55:09.405Z"
+  }
+}

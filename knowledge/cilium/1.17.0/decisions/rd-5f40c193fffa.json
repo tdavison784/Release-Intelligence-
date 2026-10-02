@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5f40c193fffa",
+    "reviewItemId": "ri-c112c65328ab",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Prometheus metric `lbipam_services_matching_total` has been renamed to `lbipam_services_matching`; monitoring queries and alerts referencing the old name will need to be updated.",
+        "severity": "medium"
+      },
+      "statement": "The Prometheus metric `lbipam_services_matching_total` has been renamed to `lbipam_services_matching` in Cilium 1.17.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:e8234b3e54da1ea208d20d256ff3118fdf9af9a489497650f0638f6235b42bc1",
+      "inputEvidence": [
+        "ev-dc171b318f79"
+      ],
+      "generatedAt": "2026-10-02T15:56:54.952Z",
+      "callId": "9d5afd10-9d8d-441f-a160-e204e94dfdcd"
+    },
+    "reason": "[ev-dc171b318f79] lists `lbipam_services_matching_total` under \"Changed Metrics\" as renamed to `lbipam_services_matching`, but does not say that anything fails, is rejected or stops being honoured. A failure-class kind would therefore over-claim mandatory work. behavior-change (review) flags users of the old metric name for verification without asserting a failure the evidence doesn't state. Confidence is low because the evidence doesn't directly say what happens to things that still use the old name.",
+    "startedAt": "2026-10-02T15:56:39.504Z",
+    "decidedAt": "2026-10-02T15:56:54.952Z"
+  }
+}

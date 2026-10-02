@@ -48,7 +48,7 @@ var enums = []enumSet{
 	),
 	enumOf(
 		domain.SourceOK, domain.SourcePartial, domain.SourceNotFound,
-		domain.SourceUnavailable, domain.SourceSkipped, domain.SourceError,
+		domain.SourceUnavailable, domain.SourceThrottled, domain.SourceSkipped, domain.SourceError,
 	),
 	enumOf(domain.ChangeAdded, domain.ChangeRemoved, domain.ChangeUpdated, domain.ChangeUnchanged),
 	enumOf(domain.EnrichmentCluster, domain.EnrichmentMigrationSummary, domain.EnrichmentDiffExplanation, domain.EnrichmentRelated,
@@ -536,7 +536,7 @@ var descriptions = map[string]string{
 	"SourceStatus":         "What happened when a source was consulted; lets consumers tell \"nothing found\" from \"could not look\".",
 	"SourceStatus.kind":    "Locator kind, e.g. \"github-releases\", \"repo-file\" or \"oci\".",
 	"SourceStatus.version": "Release the status refers to; omitted for product-level sources.",
-	"SourceStatus.state":   "ok; partial (some data missing); not-found (reachable, nothing for this version); unavailable (unreachable, blocked or auth required); skipped (not applicable or disabled); error.",
+	"SourceStatus.state":   "ok; partial (some data missing); not-found (reachable, nothing for this version); unavailable (unreachable, blocked or auth required); throttled (reachable but rate limited; retrying later is expected to work); skipped (not applicable or disabled); error.",
 
 	// --- artifacts -----------------------------------------------------------
 	"ArtifactInstance":            "One concrete artifact (image, chart, manifest, ...) belonging to a release.",

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-550198906cd6",
+    "reviewItemId": "ri-6a58f6e494b6",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment's monitoring scrapes cert-manager's Prometheus metrics endpoint (consumes certmanager_* metrics)"
+        }
+      },
+      "statement": "cert-manager 1.18.0 adds the Prometheus metrics `certmanager_certificate_not_before_timestamp_seconds` and `certmanager_certificate_not_after_timestamp_seconds` exposing certificate issuance and expiration timestamps."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:5bae35bc2d50039ff946bf08014ac42074fc7f69549d5ebfc33daeed640931fb",
+      "inputEvidence": [
+        "ev-e8facc7cba98"
+      ],
+      "generatedAt": "2026-10-02T12:58:30.118Z",
+      "callId": "ec252c85-8450-4cda-b62b-51541084816c"
+    },
+    "reason": "[ev-e8facc7cba98] only says that two new Prometheus metrics (certmanager_certificate_not_before_timestamp_seconds and certmanager_certificate_not_after_timestamp_seconds) were added. It names no flag, value or resource that controls them, so there is no evidence for a precise predicate such as P3's --enable-metrics. An undecidable exposure that depends on whether the environment consumes cert-manager metrics is the honest condition. Because the consequence is none, this condition cannot create mandatory work.",
+    "startedAt": "2026-10-02T12:58:17.778Z",
+    "decidedAt": "2026-10-02T12:58:30.118Z"
+  }
+}

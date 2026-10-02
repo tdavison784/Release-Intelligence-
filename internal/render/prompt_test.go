@@ -75,3 +75,25 @@ func TestEnvironmentRendersNeverReachPromptsOrKnowledge(t *testing.T) {
 		}
 	}
 }
+
+// Two distinct changes whose environment excerpts look alike (values hidden)
+// must not share an evidence record; flag names show, positional args (which
+// may be values) do not.
+func TestEnvironmentEvidenceIsPerChange(t *testing.T) {
+	p := envGoldenPair(t)
+	obj := ObjectID{Group: "batch", Version: "v1", Kind: "Job", Namespace: "x", Name: "migrate"}
+	path := "spec.template.spec.containers[name=kubectl].args"
+	a := Change{Class: ContainerArgRemoved, Object: obj, Path: path, Pattern: path, Name: "--resource", Before: ptr(`"--resource=a"`)}
+	b := Change{Class: ContainerArgRemoved, Object: obj, Path: path, Pattern: path, Name: "--resource", Before: ptr(`"--resource=b"`)}
+	pos := Change{Class: ContainerArgRemoved, Object: obj, Path: path, Pattern: path, Name: "s3cr3t-token", Before: ptr(`"s3cr3t-token"`)}
+	ea, eb, ep := p.Evidence(a, false), p.Evidence(b, false), p.Evidence(pos, false)
+	if ea.ID == eb.ID {
+		t.Fatalf("distinct changes share evidence %s", ea.ID)
+	}
+	if !strings.Contains(ea.Locator, "[--resource]") || strings.Contains(ea.Locator+ea.Excerpt, "=a") {
+		t.Errorf("the flag name shows, its value does not: %s | %s", ea.Locator, ea.Excerpt)
+	}
+	if strings.Contains(ep.Locator+ep.Excerpt, "s3cr3t-token") {
+		t.Errorf("a positional argument leaked: %s | %s", ep.Locator, ep.Excerpt)
+	}
+}

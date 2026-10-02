@@ -75,7 +75,7 @@ server parses the page's start time and refuses a missing or future one.
 |---|---|---|
 | accept | – | `accepted` |
 | reject | reason | `rejected` (or `duplicate` + the fact id) + optional `wrong-*` |
-| correct | reason, ≥ 1 changed aspect | `corrected` + `wrong-*` (derived from the changed aspects unless ticked) |
+| correct | reason, ≥ 1 changed aspect **or** changed consequence statement/remediation | `corrected` + `wrong-*` (derived from the changed aspects unless ticked), plus `improved-statement` when the consequence prose changed too; a **prose-only** correction is exactly `[corrected, improved-statement]` (never `wrong-*`; ticking one is refused) |
 | need more evidence | reason | `insufficient-evidence` |
 | defer | – | none |
 

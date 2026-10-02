@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-15263abb98bb",
+  "promptDigest": "sha256:0a083e9cfcebc6fbd3defc5f0c02e982e37c9549aecf3fc62e5cd6d743eda5d6",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b1117a19-9981-47ce-b31b-5b20340cdf25",
+  "startedAt": "2026-10-02T12:47:53.977Z",
+  "decidedAt": "2026-10-02T12:48:05.357Z",
+  "durationMs": 10387,
+  "costUSD": 0.08960000000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-74fec6f20224] only says that the argocd CLI (\"fix(cli)\") stored the --no-proxy value in the wrong variable. That makes --no-proxy an option users pass when they run the client CLI, not a container argument of Argo CD's workloads. The proposed cli-flag{--no-proxy, set} condition checks container arguments, so it looks in the wrong place and would never match the users who are actually affected. No static input records whether operators run the CLI with --no-proxy, so exposure has to be undecidable.",
+    "citations": [
+      "ev-74fec6f20224"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The argocd CLI stored the value of its --no-proxy flag in the wrong variable. This is now fixed. Exposed environments are those whose operators run the argocd CLI with --no-proxy, which no static environment input can show.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run the argocd CLI client with the --no-proxy flag (a client-side invocation, not a container argument of Argo CD workloads)"
+        }
+      }
+    }
+  }
+}

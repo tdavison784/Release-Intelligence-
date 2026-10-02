@@ -1,0 +1,118 @@
+# Discovery report: cilium
+
+- Repository: `github.com/cilium/cilium` at `v1.20.2` (commit `e0dc92bd6dac…`)
+- Generated: 2026-10-02T12:33:06Z
+- LLM: not used (deterministic resolver only)
+- Tags: 885 tags: prefix "v", 340 stable, 137 prereleases (pre.N×30, rc.N×16, rcN×91), 408 junk; latest stable v1.20.2; lineage minor
+- Strict tag pattern: `^v(?P<version>\d+\.\d+\.\d+(?:-(?:pre\.\d+|rc\.\d+|rc\d+))?)$` (junk sample: 0.10.1, 1.0.4, 1.0.5, 1.0.6, 1.0.7, 1.1.0)
+- Scanned `github.com/cilium/cilium@v1.20.2` (source profile): 7666 files listed, 2640 read
+- Scanned `github.com/cilium/cilium.io@main` (docs profile): 3003 files listed, 69 read
+- Scanned `github.com/cilium/docsearch-scraper-webhook@master` (docs profile): 107 files listed, 3 read
+- Validation: done against v1.18.0, v1.18.14, v1.19.0, v1.19.8, v1.20.0, v1.20.2
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 3 | git-tags github.com/cilium/cilium |
+| release-notes | not-found | 0 |  |
+| changelog | found | 1 | repo-file github.com/cilium/cilium CHANGELOG.md |
+| helm-charts | found | 10 | cilium via oci:quay.io/cilium/charts/cilium, helm-repo:https://helm.cilium.io |
+| registries | found | 12 | quay.io/cilium |
+| images | found | 86 | quay.io/cilium/cilium:{{.Tag}}; quay.io/cilium/clustermesh-apiserver:{{.Tag}}; quay.io/cilium/hubble-relay:{{.Tag}}; quay.io/cilium/operator:{{.Tag}} |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 1 | github-advisories cilium/cilium |
+| version-relations | found | 3 | cilium-chart: lookup appVersion == {{.Version}}; crds: version = {{.Tag}}; cilium: version = {{.Tag}}; clustermesh-apiserver: version = {{.Tag}}; hubble-relay: version = {{.Tag}}; operator: version = {{.Tag}} |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:cilium | historically-validated | image.tag-from-release | https://github.com/cilium/cilium/blob/v1.20.2/Documentation/configuration/verify-image-signatures.rst#L35 |
+| artifact:cilium-chart | historically-validated | helm.appversion-lookup | https://github.com/cilium/cilium/blob/v1.20.2/install/kubernetes/cilium/Chart.yaml#L2 (+2) |
+| artifact:clustermesh-apiserver | historically-validated | image.tag-from-release | https://github.com/cilium/cilium/blob/v1.20.2/Documentation/helm-values.rst#L670 |
+| artifact:crds | historically-validated | crd.in-repo | https://github.com/cilium/cilium/blob/v1.20.2/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumbgpadvertisements.yaml#L3 (+2) |
+| artifact:hubble-relay | historically-validated | image.tag-from-release | https://github.com/cilium/cilium/blob/v1.20.2/Documentation/helm-values.rst#L2310 |
+| artifact:operator | historically-validated | image.tag-from-release | https://github.com/cilium/cilium/blob/v1.20.2/Documentation/contributing/development/introducing_new_crds.rst#L372 |
+| source:changelog | historically-validated | changelog.file | https://github.com/cilium/cilium/blob/v1.20.2/CHANGELOG.md#L3 |
+| artifact:certgen | unverified | image.tag-assumed-release | https://github.com/cilium/cilium/blob/v1.20.2/CHANGELOG.md#L262 |
+| artifact:cilium-envoy | unverified | image.tag-assumed-release | https://github.com/cilium/cilium/blob/v1.20.2/CHANGELOG.md#L107 |
+| artifact:hubble-ui | unverified | image.tag-assumed-release | https://github.com/cilium/cilium/blob/v1.20.2/Documentation/helm-values.rst#L2646 |
+| artifact:hubble-ui-backend | unverified | image.tag-assumed-release | https://github.com/cilium/cilium/blob/v1.20.2/Documentation/helm-values.rst#L2614 |
+| artifact:startup-script | unverified | image.tag-assumed-release | https://github.com/cilium/cilium/blob/v1.20.2/Documentation/contributing/development/images.rst#L96 |
+| artifact:ztunnel | unverified | image.tag-assumed-release | https://github.com/cilium/cilium/blob/v1.20.2/CHANGELOG.md#L1466 |
+| source:advisories | discovered | security.github-hosted-default | https://github.com/cilium/cilium/blob/v1.20.2/SECURITY.md#L1 |
+| source:tags | discovered | versions.git-tags | https://github.com/cilium/cilium/releases/tag/v1.20.2#refs/tags/v1.20.2 |
+| versioning | discovered | tags.scheme | https://github.com/cilium/cilium/releases/tag/v1.20.2#refs/tags/v1.20.2 (+2) |
+
+Statuses: 7 historically-validated, 3 discovered, 6 unverified.
+
+## Open questions for the reviewer
+
+- Ambiguity (registry-roles): 11 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (docs-sources): Documentation lives in another repository; no release-notes, upgrade-guide, compatibility source was derived from it.
+
+## Validation matrix
+
+| Element | Verdict | v1.18.0 | v1.18.14 | v1.19.0 | v1.19.8 | v1.20.0 | v1.20.2 |
+|---|---|---|---|---|---|---|---|
+| artifact:certgen | failing |  |  |  |  |  |  |
+| artifact:cilium | validated |  |  |  |  |  |  |
+| artifact:cilium-chart | validated |  |  |  |  |  |  |
+| artifact:cilium-envoy | failing |  |  |  |  |  |  |
+| artifact:clustermesh-apiserver | validated |  |  |  |  |  |  |
+| artifact:crds | validated |  |  |  |  |  |  |
+| artifact:hubble-relay | validated |  |  |  |  |  |  |
+| artifact:hubble-ui | failing |  |  |  |  |  |  |
+| artifact:hubble-ui-backend | failing |  |  |  |  |  |  |
+| artifact:operator | validated |  |  |  |  |  |  |
+| artifact:startup-script | failing |  |  |  |  |  |  |
+| artifact:ztunnel | failing |  |  |  |  |  |  |
+| content:cilium-chart/chart-metadata | validated |  |  |  |  |  |  |
+| content:cilium-chart/helm-values | validated |  |  |  |  |  |  |
+| content:crds/crds | validated |  |  |  |  |  |  |
+| source:changelog | validated |  |  |  |  |  |  |
+
+## Dropped elements
+
+- `artifact:certgen` (deterministic): failed validation: 1.18.0 fail (absent from quay.io/cilium/certgen:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/certgen:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/certgen:v1.19.0); 1.19.8 fail (absent from quay.io/cilium/certgen:v1.19.8); …
+- `artifact:cilium-envoy` (deterministic): failed validation: 1.18.0 fail (absent from quay.io/cilium/cilium-envoy:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/cilium-envoy:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/cilium-envoy:v1.19.0); 1.19.8 fail (absent from quay.io/cilium/cilium-envoy:v1.19.8); …
+- `artifact:hubble-ui` (deterministic): failed validation: 1.18.0 fail (absent from quay.io/cilium/hubble-ui:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/hubble-ui:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/hubble-ui:v1.19.0); 1.19.8 fail (absent from quay.io/cilium/hubble-ui:v1.19.8); …
+- `artifact:hubble-ui-backend` (deterministic): failed validation: 1.18.0 fail (absent from quay.io/cilium/hubble-ui-backend:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/hubble-ui-backend:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/hubble-ui-backend:v1.19.0); 1.19.8 fail (absent from quay.io/cilium/hubble-ui-backend:v1.19.8); …
+- `artifact:startup-script` (deterministic): failed validation: 1.18.0 fail (absent from quay.io/cilium/startup-script:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/startup-script:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/startup-script:v1.19.0); 1.19.8 fail (absent from quay.io/cilium/startup-script:v1.19.8); …
+- `artifact:ztunnel` (deterministic): failed validation: 1.18.0 fail (absent from quay.io/cilium/ztunnel:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/ztunnel:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/ztunnel:v1.19.0); 1.19.8 fail (absent from quay.io/cilium/ztunnel:v1.19.8); …
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 885 tags: prefix "v", 340 stable, 137 prereleases (pre.N×30, rc.N×16, rcN×91), 408 junk; latest stable v1.20.2; lineage minor; strict tagPattern excludes junk tags such as 0.10.1, 1.0.4, 1.0.5, 1.0.6 |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (885 tags: prefix "v", 340 stable, 137 prereleases (pre.N×30, rc.N×16, rcN×91), 408 junk; latest stable v1.20.2; lineage minor). |
+| source:changelog | include | changelog.file | heuristic | Changelog with 5 version sections, newest 1.20.2 (heading "## v1.20.2"). |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+| artifact:cilium-chart | include | helm.appversion-lookup | heuristic | Chart.yaml sets appVersion "1.20.2", which equals a release tag; the chart release for a product release is looked up by appVersion == {{.Version}} (the chart's own version moves independently). Published via 2 channel(s… |
+| artifact:crds | include | crd.in-repo | heuristic | 17 CRDs of the product's API groups in pkg/k8s/apis/cilium.io/client/crds/v2 at the release tag. |
+| artifact:certgen | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:cilium | include | image.tag-from-release | heuristic | Image tags equal the release tag in the build/publish configuration. |
+| artifact:cilium-envoy | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:clustermesh-apiserver | include | image.tag-from-release | heuristic | Image tags equal the release tag in the build/publish configuration. |
+| artifact:hubble-relay | include | image.tag-from-release | heuristic | Image tags equal the release tag in the build/publish configuration. |
+| artifact:hubble-ui | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:hubble-ui-backend | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:operator | include | image.tag-from-release | heuristic | Image tags equal the release tag in the build/publish configuration. |
+| artifact:startup-script | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:ztunnel | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:certgen | drop | validate.failed | computed | Relationship check failed: 1.18.0 fail (absent from quay.io/cilium/certgen:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/certgen:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/certgen:v1.19.0); 1.19.8 fail (abse… |
+| artifact:cilium-envoy | drop | validate.failed | computed | Relationship check failed: 1.18.0 fail (absent from quay.io/cilium/cilium-envoy:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/cilium-envoy:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/cilium-envoy:v1.19.0); 1.… |
+| artifact:hubble-ui | drop | validate.failed | computed | Relationship check failed: 1.18.0 fail (absent from quay.io/cilium/hubble-ui:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/hubble-ui:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/hubble-ui:v1.19.0); 1.19.8 fail… |
+| artifact:hubble-ui-backend | drop | validate.failed | computed | Relationship check failed: 1.18.0 fail (absent from quay.io/cilium/hubble-ui-backend:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/hubble-ui-backend:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/hubble-ui-backe… |
+| artifact:startup-script | drop | validate.failed | computed | Relationship check failed: 1.18.0 fail (absent from quay.io/cilium/startup-script:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/startup-script:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/startup-script:v1.19.… |
+| artifact:ztunnel | drop | validate.failed | computed | Relationship check failed: 1.18.0 fail (absent from quay.io/cilium/ztunnel:v1.18.0); 1.18.14 fail (absent from quay.io/cilium/ztunnel:v1.18.14); 1.19.0 fail (absent from quay.io/cilium/ztunnel:v1.19.0); 1.19.8 fail (abse… |
+
+155 candidates were found; 88 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/cilium.report.md
+proposed definition written to docs/rerun/discovery/cilium.proposed.yaml

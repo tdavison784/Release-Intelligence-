@@ -1,0 +1,72 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f8bafa08e0d3",
+  "promptDigest": "sha256:c5cd17b8b638738669f5bdb2e5c2d20e427154ba5dbd33b0b7eb8e322346c4d7",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "21b75520-f3e1-435c-a4d9-57c4b6d1473f",
+  "startedAt": "2026-10-02T16:04:42.502Z",
+  "decidedAt": "2026-10-02T16:05:02.087Z",
+  "durationMs": 18902,
+  "costUSD": 0.129168,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-5616a3c7f69a] says the 3.0 default is to store health outside the Application CR, and that you get the old behaviour back by setting `controller.resource.health.persist` to `true` in the `argocd-cmd-params-cm` ConfigMap. That is a ConfigMap data key, not a Helm values path, so the proposed values-key leaf points at the wrong input. The second branch, a blank `status.resourceHealthSource`, is the guide's check for whether health is persisted today. Because it is OR'ed in, it also flags environments that already set `true` explicitly and are protected, so the condition is too broad. Exposure should be \"the ConfigMap does not set the key\". Written as a negation, it also covers installs that have no such ConfigMap. Setting the key to `true` stays as the overlap.",
+    "citations": [
+      "ev-5616a3c7f69a"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In Argo CD 3.0.0, per-resource health is no longer persisted under the Application CR's status by default. Exposed environments are those using Applications where the argocd-cmd-params-cm ConfigMap does not set controller.resource.health.persist. Environments that set it to \"true\" keep the old persisting behaviour.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "Application"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "kind": "ConfigMap",
+                  "name": "argocd-cmd-params-cm",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"controller.resource.health.persist\"]",
+                      "state": "set"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "kind": "ConfigMap",
+          "name": "argocd-cmd-params-cm",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"controller.resource.health.persist\"]",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

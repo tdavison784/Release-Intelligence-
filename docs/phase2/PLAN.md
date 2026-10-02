@@ -66,6 +66,11 @@ The onboarding protocol and record format are in
   Verify each host when you onboard (records keep the truth of their moment),
   still declare the canonical channel first, and add reachable alternatives
   after it.
+  > **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** the "stay rate-limited or 401" remark held only for anonymous Docker
+  > Hub pulls of `minio/minio` (still 401 with a valid token, i.e. denied).
+  > `registry.k8s.io` (307 → Artifact Registry), `api.github.com`, `quay.io`,
+  > the `*.github.io` Helm repositories and the vendor hosts all answered during
+  > the live re-run; HTTP 429 is now a distinct `throttled` state.
 - **Trusted definitions are never mutated by tools.** Discovery and drift
   write proposals and reports; a human (or a reviewing agent) edits
   `products/*.yaml`.

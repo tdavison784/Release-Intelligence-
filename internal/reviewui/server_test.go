@@ -434,7 +434,7 @@ func TestDecideRefusals(t *testing.T) {
 		{"proxy provenance", decisionForm("accept", "proxyProvenance", "{}"), 400, "human decisions only"},
 		{"unknown action", decisionForm("approve"), 400, "unknown action"},
 		{"missing action", form("reviewer", "dana", "started", started), 400, "unknown action"},
-		{"correct without change", decisionForm("correct", "reason", "x", "c_statement", "same"), 422, "must change at least one aspect"},
+		{"correct without change", decisionForm("correct", "reason", "x", "c_statement", "same"), 422, "must change at least one aspect, or the consequence"},
 		{"outcome label by hand", decisionForm("accept", "label", "accepted"), 400, "cannot be set by hand"},
 		{"duplicate without fact", decisionForm("reject", "reason", "dup", "outcome", "duplicate"), 422, "names the fact"},
 		{"started missing", form("action", "accept", "reviewer", "dana"), 400, "start time"},
@@ -493,8 +493,8 @@ func TestCorrectKeepsTheOriginalAndTheClassFollowsTheKind(t *testing.T) {
 	if d.Corrected.Subject == nil || d.Corrected.Change == nil || d.Corrected.Applicability == nil {
 		t.Error("a correction dropped an aspect")
 	}
-	want := []domain.FeedbackLabel{domain.LabelCorrected, domain.LabelWrongConsequence}
-	if len(d.Labels) != 2 || d.Labels[0] != want[0] || d.Labels[1] != want[1] {
+	want := []domain.FeedbackLabel{domain.LabelCorrected, domain.LabelWrongConsequence, domain.LabelImprovedStatement} // the prose changed too
+	if len(d.Labels) != 3 || d.Labels[0] != want[0] || d.Labels[1] != want[1] || d.Labels[2] != want[2] {
 		t.Errorf("labels %v", d.Labels)
 	}
 	if err := d.Validate(); err != nil {
@@ -745,5 +745,69 @@ func TestProxyDecidedItemsLeavePendingAndAreMarked(t *testing.T) {
 	// and a human cannot re-decide it from the UI
 	if st, _, _ := r.post("/items/"+id+"/decision", decisionForm("accept")); st != 409 {
 		t.Errorf("%d", st)
+	}
+}
+
+// --- contract-5: a prose-only correction (consequence statement/remediation) ------------------------
+
+func TestProseOnlyCorrectionIsLabelledImprovedStatement(t *testing.T) {
+	r := newRig(t)
+	id := r.id("rotationPolicy")
+	it, _ := r.q.ItemRecord(id)
+	c := it.Proposed.Consequence
+	// kind and severity untouched (the form is pre-filled with them): only the prose differs
+	f := decisionForm("correct", "reason", "the statement named the wrong failure",
+		"c_cons_kind", string(c.Kind), "c_cons_severity", string(c.Severity),
+		"c_cons_statement", "Keys rotate on every renewal; clients that pin the key must be updated first.",
+		"c_cons_remediation", "Pin rotationPolicy: Never until the pinned clients are updated.")
+	st, body, _ := r.post("/items/"+id+"/decision", f)
+	if st != 303 {
+		t.Fatalf("%d %s", st, body)
+	}
+	d := r.q.Decisions()[len(r.q.Decisions())-1]
+	if d.Action != domain.ActionCorrect || len(d.Labels) != 2 || d.Labels[0] != domain.LabelCorrected || d.Labels[1] != domain.LabelImprovedStatement {
+		t.Fatalf("labels %v", d.Labels)
+	}
+	if d.Corrected == nil || d.Original == nil || d.Corrected.Digest() != d.Original.Digest() {
+		t.Error("a prose-only correction keeps the typed assertion and records both assertions")
+	}
+	if d.Corrected.Consequence.Remediation == d.Original.Consequence.Remediation || d.Original.Consequence.Statement != c.Statement {
+		t.Error("the original must be untouched and the corrected prose recorded")
+	}
+	if err := d.Validate(); err != nil {
+		t.Error(err)
+	}
+	// ticking a wrong-* label on a prose-only correction is refused (the typed assertion was right)
+	id2 := r.id("RSA keys below 2048")
+	it2, _ := r.q.ItemRecord(id2)
+	c2 := it2.Proposed.Consequence
+	st, body, _ = r.post("/items/"+id2+"/decision", decisionForm("correct", "reason", "x", "label", "wrong-consequence",
+		"c_cons_kind", string(c2.Kind), "c_cons_severity", string(c2.Severity), "c_cons_statement", "Different words."))
+	if st != 422 {
+		t.Fatalf("%d", st)
+	}
+	contains(t, body, "carries no wrong-* labels")
+	// changing the assertion statement alone is still no correction
+	st, _, _ = r.post("/items/"+id2+"/decision", decisionForm("correct", "reason", "x", "c_statement", "reworded"))
+	if st != 422 {
+		t.Fatalf("%d", st)
+	}
+}
+
+func TestTypedAndProseChangeTogetherAddsImprovedStatement(t *testing.T) {
+	r := newRig(t)
+	id := r.id("rotationPolicy")
+	f := decisionForm("correct", "reason", "wrong kind and a better sentence",
+		"c_cons_kind", "workload-failure", "c_cons_severity", "critical", "c_cons_statement", "Pinned clients fail.")
+	if st, body, _ := r.post("/items/"+id+"/decision", f); st != 303 {
+		t.Fatalf("%d %s", st, body)
+	}
+	d := r.q.Decisions()[len(r.q.Decisions())-1]
+	want := []domain.FeedbackLabel{domain.LabelCorrected, domain.LabelWrongConsequence, domain.LabelImprovedStatement}
+	if len(d.Labels) != 3 || d.Labels[0] != want[0] || d.Labels[1] != want[1] || d.Labels[2] != want[2] {
+		t.Errorf("labels %v", d.Labels)
+	}
+	if err := d.Validate(); err != nil {
+		t.Error(err)
 	}
 }

@@ -176,6 +176,14 @@ artifacts:
     name: controller-chroot
     availability: ">= 1.2.0"
     version: {strategy: template, template: "v{{.Version}}"}
+    exceptions:
+      - versions: [1.10.0]
+        reason: >-
+          controller-chroot:v1.10.0 was never published: registry.k8s.io redirects
+          to us-east5-docker.pkg.dev/k8s-artifacts-prod/images/ingress-nginx/
+          controller-chroot/manifests/v1.10.0 which answers 404, while v1.9.6,
+          v1.10.1, v1.10.6 and v1.11.0 answer 200 (the tag list jumps to v1.10.1).
+          Found by the live re-run of 2026-10-02 (docs/rerun/REPORT.md D1).
     channels:
       - kind: oci
         repository: registry.k8s.io/ingress-nginx/controller-chroot
@@ -340,3 +348,6 @@ provenance:
     kubernetes.github.io and the GitHub API were unreachable; the chart is
     verified through gh-pages/index.yaml and the controller image through the
     install manifests (or stays unverifiable).
+    Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):
+    registry.k8s.io, kubernetes.github.io and the GitHub API answer;
+    controller-chroot:v1.10.0 genuinely does not exist (exception added).

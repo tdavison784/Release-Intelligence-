@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-dfbc91aab1bb",
+  "promptDigest": "sha256:e5f9b524233918b4302f726d7279e21c2d5a7e12166a79a6ec653be94d7249b5",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "86a24378-ed6b-4dfe-b40e-315fff054ce9",
+  "startedAt": "2026-10-02T16:00:53.474Z",
+  "decidedAt": "2026-10-02T16:01:03.149Z",
+  "durationMs": 8759,
+  "costUSD": 0.09035599999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-18ac53d77b4b] says only that istio-clean-iptables failed to remove kube-virt-related iptables rules, and that this is now fixed. In the proposed condition, istio-clean-iptables is the name of the tool itself, not a container argument. Treating it as a cli-flag that is set would flag the wrong environments, or none of them. The evidence names no flag, value or setting that creates kube-virt rules. Exposure therefore depends on whether such rules exist on nodes when the clean tool runs, and no static input shows that.",
+    "citations": [
+      "ev-18ac53d77b4b"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The istio-clean-iptables tool now removes kube-virt-related iptables rules that it previously left in place. Environments are exposed only where kube-virt-related rules were installed and the clean tool runs; the release notes name no configuration that shows this.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether kube-virt-related iptables rules are installed on the environment's nodes when istio-clean-iptables runs; the release notes name no configuration setting that produces them"
+        }
+      }
+    }
+  }
+}

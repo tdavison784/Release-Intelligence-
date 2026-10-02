@@ -308,7 +308,7 @@ func unretrievedSources(r *domain.Release, role domain.SourceRole) []domain.Sour
 		switch s.State {
 		case domain.SourceOK, domain.SourcePartial:
 			return nil
-		case domain.SourceUnavailable, domain.SourceError, domain.SourceNotFound:
+		case domain.SourceUnavailable, domain.SourceThrottled, domain.SourceError, domain.SourceNotFound:
 			failed = append(failed, s)
 		}
 	}

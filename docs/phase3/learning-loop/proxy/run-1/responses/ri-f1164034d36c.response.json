@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f1164034d36c",
+  "promptDigest": "sha256:c330284ffc70b016a7c907894a31eeed2b5836e9fb7e8c908ab075478ce8d284",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "e5ada92b-1562-4d57-8009-378c4c343efb",
+  "startedAt": "2026-10-02T16:03:14.993Z",
+  "decidedAt": "2026-10-02T16:03:23.411Z",
+  "durationMs": 7452,
+  "costUSD": 0.092496,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-40e9ce81a63d] only says that the four citadel_server_*_expiry_* metrics now update when new certificates are loaded. It says nothing about a `--deployment-namespaces` flag or a citadel component, so that leaf is made up and flags environments the evidence does not support. Whether an environment notices the fix depends on runtime facts: whether certificates are reloaded while the server is running and whether anyone uses these metrics. No static configuration shows either, so the exposure should be only the undecidable leaf.",
+    "citations": [
+      "ev-40e9ce81a63d"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The citadel_server_root_cert_expiry_timestamp, citadel_server_root_cert_expiry_seconds, citadel_server_cert_chain_expiry_timestamp and citadel_server_cert_chain_expiry_seconds metrics now update when new certificates are loaded. Exposure cannot be decided from static configuration: it depends on whether certificates are reloaded at runtime and whether these metrics are used.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment reloads root/cert-chain certificates at runtime and uses the citadel_server_*_expiry_* metrics (e.g. for alerting or dashboards)"
+        }
+      }
+    }
+  }
+}

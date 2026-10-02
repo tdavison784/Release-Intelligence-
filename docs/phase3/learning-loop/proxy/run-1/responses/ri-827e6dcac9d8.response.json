@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-827e6dcac9d8",
+  "promptDigest": "sha256:4f9ed597d7048377ad473a7248bccbaec1801da15cb61fbbcbac9b7207998802",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "caceed0a-95aa-4db9-9ca3-4cbaf4a04230",
+  "startedAt": "2026-10-02T13:01:47.991Z",
+  "decidedAt": "2026-10-02T13:02:00.079Z",
+  "durationMs": 11164,
+  "costUSD": 0.09337599999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-3cf1259609e1] says only that waypoints needed DNSProxy enabled in order to consume auto-allocated IPs. So the affected environments are those that use waypoints with auto-allocated IPs and do not have DNSProxy enabled. The proposed feature-gate \"ambient\" condition is not mentioned anywhere in the evidence and is too broad: it would flag every ambient environment, including ones that use no waypoints, no auto-allocation, or that already enable DNSProxy. The evidence names no configuration key, flag or env var for waypoints, auto-allocation or DNSProxy, so the exposure can only be stated as undecidable until that is known.",
+    "citations": [
+      "ev-3cf1259609e1"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Waypoints no longer require DNSProxy to be enabled in order to consume auto-allocated IPs. Exposed environments are those that use waypoints with auto-allocated IPs while DNSProxy is not enabled. The evidence names no configuration key for any of these, so exposure cannot be decided statically.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which configuration shows that an environment uses waypoints, relies on auto-allocated IPs, and has DNSProxy disabled (the release note names no key, flag or env var for any of these)"
+        }
+      }
+    }
+  }
+}

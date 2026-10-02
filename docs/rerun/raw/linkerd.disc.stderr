@@ -1,0 +1,98 @@
+# Discovery report: linkerd2
+
+- Repository: `github.com/linkerd/linkerd2` at `edge-26.9.3` (commit `86d395080040…`)
+- Generated: 2026-10-02T12:36:41Z
+- LLM: not used (deterministic resolver only)
+- Tags: 463 tags: prefix "edge-", 378 stable, 0 prereleases (), 85 junk; latest stable edge-26.9.3; lineage minor
+- Strict tag pattern: `^edge-(?P<version>\d+\.\d+\.\d+)$` (junk sample: git-1a18ca8f, stable-2.0.0, stable-2.1.0, stable-2.10.0, stable-2.10.1, stable-2.10.2)
+- Scanned `github.com/linkerd/linkerd2@edge-26.9.3` (source profile): 1469 files listed, 246 read
+- Scanned `github.com/linkerd/website@main` (docs profile): 2549 files listed, 210 read
+- Validation: done against edge-26.7.2, edge-26.8.4, edge-26.9.2, edge-26.9.3
+- Error: list tags of github.com/linkerd/helm: git ls-remote --tags https://github.com/linkerd/helm: exit status 128: fatal: could not read Username for 'https://github.com': terminal prompts disabled
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 3 | git-tags github.com/linkerd/linkerd2; github-releases linkerd/linkerd2 |
+| release-notes | found | 0 | github-releases linkerd/linkerd2  @{{.Tag}} |
+| changelog | candidates-only | 1 |  |
+| helm-charts | candidates-only | 13 |  |
+| registries | candidates-only | 4 |  |
+| images | candidates-only | 36 |  |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 2 | github-advisories linkerd/linkerd2 |
+| version-relations | not-found | 0 |  |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| source:release-notes-github | historically-validated | notes.hosted-release-body | https://github.com/linkerd/linkerd2/blob/edge-26.9.3/.github/workflows/release.yml#L140 |
+| artifact:extension-init | unverified | image.tag-assumed-release | https://github.com/linkerd/linkerd2/blob/edge-26.9.3/multicluster/charts/linkerd-multicluster/values.yaml#L86 |
+| artifact:linkerd-control-plane-chart | unverified | helm.placeholder-version-follows-release | https://github.com/linkerd/linkerd2/blob/edge-26.9.3/charts/linkerd-control-plane/Chart.yaml#L12 (+1) |
+| artifact:linkerd-crds-chart | unverified | helm.placeholder-version-follows-release | https://github.com/linkerd/linkerd2/blob/edge-26.9.3/charts/linkerd-crds/Chart.yaml#L10 (+1) |
+| artifact:linkerd-multicluster-chart | unverified | helm.placeholder-version-follows-release | https://github.com/linkerd/linkerd2/blob/edge-26.9.3/multicluster/charts/linkerd-multicluster/Chart.yaml#L11 (+1) |
+| source:advisories | discovered | security.advisories-referenced | https://github.com/linkerd/linkerd2/blob/edge-26.9.3/SECURITY.md#L21 (+1) |
+| source:github-releases | discovered | versions.github-releases-fallback | https://github.com/linkerd/linkerd2/blob/edge-26.9.3/.github/workflows/release.yml#L140 |
+| source:tags | discovered | versions.git-tags | https://github.com/linkerd/linkerd2/releases/tag/edge-26.9.3#refs/tags/edge-26.9.3 |
+| versioning | discovered | tags.scheme | https://github.com/linkerd/linkerd2/releases/tag/edge-26.9.3#refs/tags/edge-26.9.3 (+1) |
+
+Statuses: 1 historically-validated, 4 discovered, 4 unverified.
+
+## Open questions for the reviewer
+
+- CHANGES.md stops at 18.9.1; confirm it is abandoned (release notes come from other sources).
+- Ambiguity (registry-roles): 4 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (docs-sources): Documentation lives in another repository; no release-notes, upgrade-guide, compatibility source was derived from it.
+- Ambiguity (main-chart): 3 charts are published; which one installs the product?
+- Ambiguity (chart-version): How do the versions of chart(s) linkerd-control-plane, linkerd-crds, linkerd-multicluster relate to the release version?
+
+## Validation matrix
+
+| Element | Verdict | edge-26.7.2 | edge-26.8.4 | edge-26.9.2 | edge-26.9.3 |
+|---|---|---|---|---|---|
+| artifact:extension-init | failing |  |  |  |  |
+| artifact:linkerd-control-plane-chart | failing |  |  |  |  |
+| artifact:linkerd-crds-chart | failing |  |  |  |  |
+| artifact:linkerd-multicluster-chart | failing |  |  |  |  |
+| content:linkerd-control-plane-chart/chart-metadata | validated |  |  |  |  |
+| content:linkerd-control-plane-chart/helm-values | validated |  |  |  |  |
+| content:linkerd-crds-chart/chart-metadata | validated |  |  |  |  |
+| content:linkerd-crds-chart/helm-values | validated |  |  |  |  |
+| content:linkerd-multicluster-chart/chart-metadata | validated |  |  |  |  |
+| content:linkerd-multicluster-chart/helm-values | validated |  |  |  |  |
+| source:release-notes-github | validated |  |  |  |  |
+
+## Dropped elements
+
+- `artifact:linkerd-control-plane-chart` (deterministic): failed validation: 26.7.2 fail (absent from https://helm.linkerd.io/stable linkerd-control-plane@26.7.2); 26.8.4 fail (absent from https://helm.linkerd.io/stable linkerd-control-plane@26.8.4); 26.9.2 fail (absent from https://helm.linkerd.io/stable linkerd-control-plane@26.9.2); 26.9.3 fail (absent from https://helm.linkerd.io/stable linkerd-control-plane@26.9.3)
+- `artifact:linkerd-crds-chart` (deterministic): failed validation: 26.7.2 fail (absent from https://helm.linkerd.io/stable linkerd-crds@26.7.2); 26.8.4 fail (absent from https://helm.linkerd.io/stable linkerd-crds@26.8.4); 26.9.2 fail (absent from https://helm.linkerd.io/stable linkerd-crds@26.9.2); 26.9.3 fail (absent from https://helm.linkerd.io/stable linkerd-crds@26.9.3)
+- `artifact:linkerd-multicluster-chart` (deterministic): failed validation: 26.7.2 fail (absent from https://helm.linkerd.io/stable linkerd-multicluster@26.7.2); 26.8.4 fail (absent from https://helm.linkerd.io/stable linkerd-multicluster@26.8.4); 26.9.2 fail (absent from https://helm.linkerd.io/stable linkerd-multicluster@26.9.2); 26.9.3 fail (absent from https://helm.linkerd.io/stable linkerd-multicluster@26.9.3)
+- `artifact:extension-init` (deterministic): failed validation: 26.7.2 fail (absent from cr.l5d.io/linkerd/extension-init:edge-26.7.2); 26.8.4 fail (absent from cr.l5d.io/linkerd/extension-init:edge-26.8.4); 26.9.2 fail (absent from cr.l5d.io/linkerd/extension-init:edge-26.9.2); 26.9.3 fail (absent from cr.l5d.io/linkerd/extension-init:edge-26.9.3)
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 463 tags: prefix "edge-", 378 stable, 0 prereleases (), 85 junk; latest stable edge-26.9.3; lineage minor; strict tagPattern excludes junk tags such as git-1a18ca8f, stable-2.0.0, stable-2.1.0, stable-2.10.0 |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (463 tags: prefix "edge-", 378 stable, 0 prereleases (), 85 junk; latest stable edge-26.9.3; lineage minor). |
+| source:github-releases | include | versions.github-releases-fallback | heuristic | Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list. |
+| source:release-notes-github | include | notes.hosted-release-body | heuristic | Hosted GitHub releases exist (assets are downloaded from them); their body may carry notes. |
+| source:advisories | include | security.advisories-referenced | heuristic | The security policy states that advisories are published as GitHub Security Advisories. |
+| artifact:linkerd-control-plane-chart | include | helm.placeholder-version-follows-release | heuristic | Chart.yaml carries placeholder version "0.0.0-undefined" replaced at release time; assumed to equal the release ({{.Version}}). Published via 1 channel(s); OCI locations first. |
+| artifact:linkerd-crds-chart | include | helm.placeholder-version-follows-release | heuristic | Chart.yaml carries placeholder version "0.0.0-undefined" replaced at release time; assumed to equal the release ({{.Version}}). Published via 1 channel(s); OCI locations first. |
+| artifact:linkerd-multicluster-chart | include | helm.placeholder-version-follows-release | heuristic | Chart.yaml carries placeholder version "0.0.0-undefined" replaced at release time; assumed to equal the release ({{.Version}}). Published via 1 channel(s); OCI locations first. |
+| artifact:extension-init | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:linkerd-control-plane-chart | drop | validate.failed | computed | Relationship check failed: 26.7.2 fail (absent from https://helm.linkerd.io/stable linkerd-control-plane@26.7.2); 26.8.4 fail (absent from https://helm.linkerd.io/stable linkerd-control-plane@26.8.4); 26.9.2 fail (absent… |
+| artifact:linkerd-crds-chart | drop | validate.failed | computed | Relationship check failed: 26.7.2 fail (absent from https://helm.linkerd.io/stable linkerd-crds@26.7.2); 26.8.4 fail (absent from https://helm.linkerd.io/stable linkerd-crds@26.8.4); 26.9.2 fail (absent from https://helm… |
+| artifact:linkerd-multicluster-chart | drop | validate.failed | computed | Relationship check failed: 26.7.2 fail (absent from https://helm.linkerd.io/stable linkerd-multicluster@26.7.2); 26.8.4 fail (absent from https://helm.linkerd.io/stable linkerd-multicluster@26.8.4); 26.9.2 fail (absent f… |
+| artifact:extension-init | drop | validate.failed | computed | Relationship check failed: 26.7.2 fail (absent from cr.l5d.io/linkerd/extension-init:edge-26.7.2); 26.8.4 fail (absent from cr.l5d.io/linkerd/extension-init:edge-26.8.4); 26.9.2 fail (absent from cr.l5d.io/linkerd/extens… |
+
+75 candidates were found; 57 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/linkerd.report.md
+proposed definition written to docs/rerun/discovery/linkerd.proposed.yaml

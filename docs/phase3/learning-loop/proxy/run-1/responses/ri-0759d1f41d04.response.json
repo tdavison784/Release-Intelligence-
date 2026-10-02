@@ -1,0 +1,51 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0759d1f41d04",
+  "promptDigest": "sha256:43c00b73f291c5e21837f64201a4f7ac4a941d3e2918fa717fb0259a3cede4a5",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9a7da67b-0218-498e-b46b-b2699613064d",
+  "startedAt": "2026-10-02T12:45:47.620Z",
+  "decidedAt": "2026-10-02T12:46:05.047Z",
+  "durationMs": 16719,
+  "costUSD": 0.11222,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-1fd772318bb8] says the status condition is written for binding an AuthorizationPolicy to a waypoint proxy via targetRefs, not for every AuthorizationPolicy. The proposed exposure (any use of AuthorizationPolicy, and only at v1beta1, a version the evidence never names) is broader than the affected environments. Exposure should be limited to AuthorizationPolicies with spec.targetRefs set. Whether the target is a waypoint proxy can't be decided from the evidence, so that part is marked undecidable.",
+    "citations": [
+      "ev-1fd772318bb8"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Istio now writes an experimental status condition on AuthorizationPolicy resources that are bound to a waypoint proxy through targetRefs. Policies with multiple targetRefs get a single condition. Exposed environments have an AuthorizationPolicy with spec.targetRefs pointing at a waypoint proxy.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "group": "security.istio.io",
+              "kind": "AuthorizationPolicy",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.targetRefs",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the AuthorizationPolicy targetRefs resolve to a waypoint proxy"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

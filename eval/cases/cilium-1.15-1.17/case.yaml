@@ -190,15 +190,23 @@ expected:
       - url: https://github.com/cilium/cilium/blob/1.17.0/install/kubernetes/cilium/values.yaml
         quote: "secretsBackend: ~"
     semantics:
-      subject: {family: helm-value, product: cilium, path: tls.secretsBackend}
-      change:
-        type: deprecated
-        replacedBy: {family: helm-value, product: cilium, path: tls.readSecretsOnlyFromSecretsNamespace}
-      consequence:
-        kind: deprecation
-        exposedClass: review-required
-        statement: the v1.17 chart still honours tls.secretsBackend when tls.readSecretsOnlyFromSecretsNamespace is unset (k8s → false, local → true; templates/_helpers.tpl at v1.17.0), but the key is deprecated in favour of the new one.
-        remediation: set tls.readSecretsOnlyFromSecretsNamespace (false keeps the k8s behaviour) and drop tls.secretsBackend
+      - subject: {family: helm-value, product: cilium, path: tls.secretsBackend}
+        change:
+          type: deprecated
+          replacedBy: {family: helm-value, product: cilium, path: tls.readSecretsOnlyFromSecretsNamespace}
+        consequence:
+          kind: deprecation
+          exposedClass: review-required
+          statement: the v1.17 chart still honours tls.secretsBackend when tls.readSecretsOnlyFromSecretsNamespace is unset (k8s → false, local → true; templates/_helpers.tpl at v1.17.0), but the key is deprecated in favour of the new one.
+          remediation: set tls.readSecretsOnlyFromSecretsNamespace (false keeps the k8s behaviour) and drop tls.secretsBackend
+      - subject: {family: helm-value, product: cilium, path: tls.secretSync.enabled}
+        change: {type: added, after: 'true'}
+        consequence:
+          kind: behavior-change
+          exposedClass: review-required
+          statement: clusters that set neither tls.secretSync.enabled nor upgradeCompatibility (<= 1.16) get the new-cluster default — the operator copies every Secret referenced by a TLS-intercepting CiliumNetworkPolicy into the cilium-secrets namespace and Envoy receives it via SDS (new Namespace, Roles and RoleBindings), and the agent reads policy secrets only from that namespace.
+          remediation: verify TLS interception after the upgrade, or keep the old mode with upgradeCompatibility 1.16 / tls.secretSync.enabled false
+        note: added 2026-10-02, motivated by pipeline output (render-4); same upstream bullet as the deprecation (upgrade.rst v1.17.0, tls-visibility.rst v1.17.0)
   # Change type covered: removal across the hop boundary (deprecated in hop 1, removed in hop 2).
   - id: E9
     title: WireGuard userspace-mode fallback (wireguard.userspaceFallback) removed in v1.17 after v1.16 deprecation; kernel WireGuard required

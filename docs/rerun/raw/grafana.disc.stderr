@@ -1,0 +1,88 @@
+# Discovery report: grafana
+
+- Repository: `github.com/grafana/grafana` at `v13.2.3` (commit `6193dc03311b…`)
+- Generated: 2026-10-02T12:35:00Z
+- LLM: not used (deterministic resolver only)
+- Tags: 739 tags: prefix "v", 551 stable, 78 prereleases (betaN×75, rcN×3), 110 junk; latest stable v13.2.3; lineage minor
+- Strict tag pattern: `^v(?P<version>\d+\.\d+\.\d+(?:-(?:beta\d+|rc\d+))?)$` (junk sample: 1.0.0, 6.1.6, 7.0.0, 7.2.1, dupa, list)
+- Scanned `github.com/grafana/grafana@v13.2.3` (source profile): 22415 files listed, 1942 read
+- Validation: done against v13.0.0, v13.0.10, v13.1.0, v13.1.7, v13.2.0, v13.2.3
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 2 | git-tags github.com/grafana/grafana; github-releases grafana/grafana |
+| release-notes | found | 0 | github-releases grafana/grafana  @{{.Tag}} |
+| changelog | candidates-only | 3 |  |
+| helm-charts | candidates-only | 3 |  |
+| registries | candidates-only | 44 |  |
+| images | candidates-only | 64 |  |
+| upgrade-docs | candidates-only | 1 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 0 | github-advisories grafana/grafana |
+| version-relations | found | 0 | crds: version = {{.Tag}} |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:crds | historically-validated | crd.in-repo | https://github.com/grafana/grafana/blob/v13.2.3/apps/alerting/notifications/definitions/receiver.notifications.alerting.grafana.app.yaml#L2 (+2) |
+| artifact:grafana-chart | unverified | chart.external-lookup-appversion | https://github.com/grafana/grafana/blob/v13.2.3/docs/sources/administration/enterprise-licensing/activate-aws-marketplace-license/activate-license-on-… |
+| source:advisories | discovered | security.github-hosted-default |  |
+| source:changelog | unverified | changelog.file | https://github.com/grafana/grafana/blob/v13.2.3/CHANGELOG.md#L3 |
+| source:github-releases | discovered | versions.github-releases-fallback | https://github.com/grafana/grafana/blob/v13.2.3/.github/workflows/sbom-on-release.yml#L85 |
+| source:release-notes-github | exception | notes.hosted-release-body | https://github.com/grafana/grafana/blob/v13.2.3/.github/workflows/sbom-on-release.yml#L85 |
+| source:tags | discovered | versions.git-tags | https://github.com/grafana/grafana/releases/tag/v13.2.3#refs/tags/v13.2.3 |
+| source:upgrade-guide | unverified | upgrade.versioned-doc | https://github.com/grafana/grafana/blob/v13.2.3/docs/sources/upgrade-guide/upgrade-v13.2/index.md# |
+| versioning | discovered | tags.scheme | https://github.com/grafana/grafana/releases/tag/v13.2.3#refs/tags/v13.2.3 |
+
+Statuses: 1 historically-validated, 4 discovered, 3 unverified, 1 exception.
+
+## Open questions for the reviewer
+
+- source:release-notes-github failed validation for one release and was kept: Holds for 5 releases but failed for one (13.0.0 fail (fetch https://api.github.com/repos/grafana/grafana/releases/tags/v13.0.0: not found (HTTP 404))); kept with a comment for review.
+- Ambiguity (registry-roles): 44 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (chart-version): How do the versions of chart(s) grafana relate to the release version?
+
+## Validation matrix
+
+| Element | Verdict | v13.0.0 | v13.0.10 | v13.1.0 | v13.1.7 | v13.2.0 | v13.2.3 |
+|---|---|---|---|---|---|---|---|
+| artifact:crds | validated |  |  |  |  |  |  |
+| artifact:grafana-chart | failing |  |  |  |  |  |  |
+| content:crds/crds | validated |  |  |  |  |  |  |
+| source:changelog | failing |  |  |  |  |  |  |
+| source:release-notes-github | failing |  |  |  |  |  |  |
+| source:upgrade-guide | failing |  |  |  |  |  |  |
+
+## Dropped elements
+
+- `source:changelog` (deterministic): failed validation: 13.0.0 fail (no section matching "^\\[?v?13\\.0\\.0\\]?(\\s|$)" in https://github.com/grafana/grafana/blob/v13.0.0/CHANGELOG.md); 13.1.0 fail (no section matching "^\\[?v?13\\.1\\.0\\]?(\\s|$)" in https://github.com/grafana/grafana/blob/v13.1.0/CHANGELOG.md); 13.2.0 fail (no section matching "^\\[?v?13\\.2\\.0\\]?(\\s|$)" in https://github.com/grafana/grafana/blob/v13.2.0/CHANGELOG.md)
+- `source:upgrade-guide` (deterministic): failed validation: 13.0.0 fail (fetch https://raw.githubusercontent.com/grafana/grafana/v13.0.0/docs/sources/upgrade-guide/upgrade-v13.0/index.md: not found (HTTP 404)); 13.0.10 not-applicable (not applicable to 13.0.10: release kinds minor,major (this is a patch release)); 13.1.0 fail (fetch https://raw.githubusercontent.com/grafana/grafana/v13.1.0/docs/sources/upgrade-guide/upgrade-v13.1/index.md: not found (HTTP 404)); 13.1.7 not-applicable (not applicable to 13.1.7: release kinds minor,major (this is a patch release)); …
+- `artifact:grafana-chart` (deterministic): failed validation: 13.0.0 fail (no chart version ships appVersion v13.0.0 (https://grafana-community.github.io/helm-charts (chart grafana) lists 851 versions)); 13.0.10 fail (no chart version ships appVersion v13.0.10 (https://grafana-community.github.io/helm-charts (chart grafana) lists 851 versions)); 13.1.0 fail (no chart version ships appVersion v13.1.0 (https://grafana-community.github.io/helm-charts (chart grafana) lists 851 versions)); 13.1.7 fail (no chart version ships appVersion v13.1.7 (https://grafana-community.github.io/helm-charts (chart grafana) lists 851 versions)); …
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 739 tags: prefix "v", 551 stable, 78 prereleases (betaN×75, rcN×3), 110 junk; latest stable v13.2.3; lineage minor; strict tagPattern excludes junk tags such as 1.0.0, 6.1.6, 7.0.0, 7.2.1 |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (739 tags: prefix "v", 551 stable, 78 prereleases (betaN×75, rcN×3), 110 junk; latest stable v13.2.3; lineage minor). |
+| source:github-releases | include | versions.github-releases-fallback | heuristic | Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list. |
+| source:release-notes-github | include | notes.hosted-release-body | heuristic | Hosted GitHub releases exist (assets are downloaded from them); their body may carry notes. |
+| source:changelog | include | changelog.file | heuristic | Changelog with 41 version sections, newest 13.2.3 (heading "# 13.2.3 (2026-09-29)"). |
+| source:upgrade-guide | include | upgrade.versioned-doc | heuristic | One upgrade document per release line (32 instances, newest docs/sources/upgrade-guide/upgrade-v13.2/index.md). |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+| artifact:grafana-chart | include | chart.external-lookup-appversion | heuristic | The chart lives in a separate repository with independent versions; the chart release for a product release is looked up by appVersion == release tag (GitHub Pages URL by the chart-releaser convention). |
+| artifact:crds | include | crd.in-repo | heuristic | 4 CRDs of the product's API groups in apps/alerting/notifications/definitions at the release tag. |
+| source:release-notes-github | annotate | validate.single-failure-kept | computed | Holds for 5 releases but failed for one (13.0.0 fail (fetch https://api.github.com/repos/grafana/grafana/releases/tags/v13.0.0: not found (HTTP 404))); kept with a comment for review. |
+| source:changelog | drop | validate.failed | computed | Relationship check failed: 13.0.0 fail (no section matching "^\\[?v?13\\.0\\.0\\]?(\\s\|$)" in https://github.com/grafana/grafana/blob/v13.0.0/CHANGELOG.md); 13.1.0 fail (no section matching "^\\[?v?13\\.1\\.0\\]?(\\s\|$)"… |
+| source:upgrade-guide | drop | validate.failed | computed | Relationship check failed: 13.0.0 fail (fetch https://raw.githubusercontent.com/grafana/grafana/v13.0.0/docs/sources/upgrade-guide/upgrade-v13.0/index.md: not found (HTTP 404)); 13.0.10 not-applicable (not applicable to … |
+| artifact:grafana-chart | drop | validate.failed | computed | Relationship check failed: 13.0.0 fail (no chart version ships appVersion v13.0.0 (https://grafana-community.github.io/helm-charts (chart grafana) lists 851 versions)); 13.0.10 fail (no chart version ships appVersion v13… |
+
+124 candidates were found; 66 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/grafana.report.md
+proposed definition written to docs/rerun/discovery/grafana.proposed.yaml

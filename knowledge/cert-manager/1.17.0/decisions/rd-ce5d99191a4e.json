@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ce5d99191a4e",
+    "reviewItemId": "ri-c2a144422b44",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "gvk",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "version": "v1",
+        "kind": "Certificate"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "A Certificate that is being deleted no longer creates CertificateRequest or Secret objects."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:a8050ba71a200f637f33a487ec64eb351dfaff49b18b7c80cb35df7eefb57262",
+      "inputEvidence": [
+        "ev-ab4bd1639399",
+        "ev-60054fcf0986",
+        "ev-84061d76ea1b"
+      ],
+      "generatedAt": "2026-10-02T15:56:56.444Z",
+      "callId": "8623df70-be4e-406c-8a63-336cc3f699f1"
+    },
+    "reason": "[ev-ab4bd1639399] says the Certificate object will no longer create CertificateRequest or Secret objects while it is being deleted. That is a change in what happens at runtime for the same Certificate configuration, so behavior-changed fits. No family fits exactly. The Certificate kind is the thing whose behavior changed, and protocol-behavior is meant for wire-level behavior, which this is not. [ev-60054fcf0986] and [ev-84061d76ea1b] confirm that cert-manager.io/v1 Certificate is served in both releases.",
+    "startedAt": "2026-10-02T15:56:46.93Z",
+    "decidedAt": "2026-10-02T15:56:56.444Z"
+  }
+}

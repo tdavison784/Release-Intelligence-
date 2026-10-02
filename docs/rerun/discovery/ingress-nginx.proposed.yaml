@@ -1,0 +1,204 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: ingress-nginx
+name: ingress-nginx
+homepage: https://github.com/kubernetes/ingress-nginx
+versioning:
+  scheme: semver
+  tagPrefix: helm-chart-
+  tagPattern: ^helm-chart-(?P<version>\d+\.\d+\.\d+(?:-(?:beta\.\d+))?)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/kubernetes/ingress-nginx
+      tagPattern: ^helm-chart-(?P<version>\d+\.\d+\.\d+(?:-(?:beta\.\d+))?)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: kubernetes/ingress-nginx
+    priority: 1
+  - id: release-notes-docs
+    roles:
+      - release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/kubernetes/ingress-nginx
+      path: charts/ingress-nginx/changelog/helm-chart-{{.Version}}.md
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: kubernetes/ingress-nginx
+      ref: '{{.Tag}}'
+    priority: 1
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: kubernetes/ingress-nginx
+artifacts:
+  - id: ingress-nginx-chart
+    type: helm-chart
+    name: ingress-nginx
+    version:
+      strategy: template
+      template: '{{.Version}}'
+    channels:
+      - kind: helm-repo
+        url: https://kubernetes.github.io/ingress-nginx
+        chart: ingress-nginx
+      - kind: helm-repo
+        url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/gh-pages
+        chart: ingress-nginx
+      - kind: helm-git
+        repository: github.com/kubernetes/ingress-nginx
+        path: charts/ingress-nginx
+        tagPattern: ^ingress-nginx-(?P<version>\d+\.\d+\.\d+)$
+    contents:
+      - kind: helm-values
+        locator:
+          kind: repo-file
+          repository: github.com/kubernetes/ingress-nginx
+          path: charts/ingress-nginx/values.yaml
+      - kind: chart-metadata
+        locator:
+          kind: repo-file
+          repository: github.com/kubernetes/ingress-nginx
+          path: charts/ingress-nginx/Chart.yaml
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: deploy-static-provider-aws-deploy
+    type: manifest
+    name: deploy.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/aws/deploy.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: deploy-static-provider-do-deploy
+    type: manifest
+    name: deploy.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/do/deploy.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: deploy-static-provider-scw-deploy
+    type: manifest
+    name: deploy.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/scw/deploy.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: deploy-static-provider-baremetal-deploy
+    type: manifest
+    name: deploy.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-file
+        repository: github.com/kubernetes/ingress-nginx
+        path: deploy/static/provider/baremetal/deploy.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 4.13.0
+      - 4.13.9
+      - 4.14.0
+      - 4.14.5
+      - 4.15.0
+      - 4.15.1
+  - id: defaultbackend-amd64
+    type: container-image
+    name: defaultbackend-amd64
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: oci
+        repository: eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultbackend-amd64
+      - kind: oci
+        repository: quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller/defaultbackend-amd64
+      - kind: oci
+        repository: quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller-arm/defaultbackend-amd64
+      - kind: oci
+        repository: quay.io/repository/kubernetes-ingress-controller/defaultbackend-amd64
+      - kind: oci
+        repository: k8s.gcr.io/kubernetes/defaultbackend-amd64
+    notes: 'Unverified by discovery (unverifiable: 4.13.0 unverifiable (absent from k8s.gcr.io/kubernetes/defaultbackend-amd64:helm-chart-4.13.0; not verifiable: eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultbackend-amd64:helm-chart-4.13.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller/defaultbackend-amd64:helm-chart-4.13.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller-arm/defaultbackend-amd64:helm-chart-4.13.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/defaultbackend-amd64:helm-chart-4.13.0 (oci: unavailable)); 4.13.9 unverifiable (absent from k8s.gcr.io/kubernetes/defaultbackend-amd64:helm-chart-4.13.9; not verifiable: eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultbackend-amd64:helm-chart-4.13.9 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller/defaultbackend-amd64:helm-chart-4.13.9 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller-arm/defaultbackend-amd64:helm-chart-4.13.9 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/defaultbackend-amd64:helm-chart-4.13.9 (oci: unavailable)); 4.14.0 unverifiable (absent from k8s.gcr.io/kubernetes/defaultbackend-amd64:helm-chart-4.14.0; not verifiable: eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultbackend-amd64:helm-chart-4.14.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller/defaultbackend-amd64:helm-chart-4.14.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller-arm/defaultbackend-amd64:helm-chart-4.14.0 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/defaultbackend-amd64:helm-chart-4.14.0 (oci: unavailable)); 4.14.5 unverifiable (absent from k8s.gcr.io/kubernetes/defaultbackend-amd64:helm-chart-4.14.5; not verifiable: eu.gcr.io/v2/k8s-artifacts-prod/ingress-nginx/kube-webhook-certgen/manifests/sha256/defaultbackend-amd64:helm-chart-4.14.5 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller/defaultbackend-amd64:helm-chart-4.14.5 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/nginx-ingress-controller-arm/defaultbackend-amd64:helm-chart-4.14.5 (oci: unavailable), quay.io/repository/kubernetes-ingress-controller/defaultbackend-amd64:helm-chart-4.14.5 (oci: unavailable)); …).'
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  validatedReleases:
+    - helm-chart-4.13.0
+    - helm-chart-4.13.9
+    - helm-chart-4.14.0
+    - helm-chart-4.14.5
+    - helm-chart-4.15.0
+    - helm-chart-4.15.1
+  notes: Proposed by automated discovery; relationship checks run against helm-chart-4.13.0, helm-chart-4.13.9, helm-chart-4.14.0, helm-chart-4.14.5, helm-chart-4.15.0, helm-chart-4.15.1.

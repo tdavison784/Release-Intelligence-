@@ -1,0 +1,32 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d736e0934cb0",
+  "promptDigest": "sha256:2bef2359dd45f4e152eaac8c5c4039228a6b973effe61929ef91a2170de4002d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "dd0188ef-f783-48bb-aa0f-60a5f450aca7",
+  "startedAt": "2026-10-02T15:59:21.602Z",
+  "decidedAt": "2026-10-02T15:59:31.183Z",
+  "durationMs": 8537,
+  "costUSD": 0.070452,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-ab4bd1639399] lists this under Bug or Regression and says only that a Certificate being deleted no longer creates CertificateRequest or Secret objects. Nothing fails, is rejected or must be migrated, so behavior-change with low severity is the right kind (review). However, the proposed statement adds \"in the finalizer cleanup phase\", which the evidence does not mention. I have corrected the statement to say only what the evidence says.",
+    "citations": [
+      "ev-ab4bd1639399"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "From cert-manager 1.17.0, a Certificate that is being deleted no longer causes CertificateRequest or Secret objects to be created. Before this release they could still be created during deletion. Nothing breaks, but the behaviour is different, so it is worth reviewing.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "low",
+        "statement": "While a Certificate is being deleted, cert-manager no longer creates CertificateRequest or Secret objects for it. Before 1.17.0 these could still be created during deletion."
+      }
+    }
+  }
+}

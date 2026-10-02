@@ -139,3 +139,10 @@ scope, exclude-blocked, atomic on queue refusal, correct/proxy refused).
 - For the ~211 high items: the inbox default limit is 200 (a "first 200 of 211" notice shows; select-all/bulk cover the shown rows) — run with `-limit 500` to see all.
   Bulk accept of high-priority items still requires opening each item first (the guard).
 - Screenshots `30-high-priority-filter-{light,dark}.png`.
+
+## dashboard-7 (branch `p3ll/dashboard-7`): prose-only corrections (contract-5)
+- `decision.go`: a CORRECT that changes only the consequence statement/remediation is accepted and labelled exactly `[corrected, improved-statement]`
+  (Original and Corrected kept); ticking `wrong-*` on it is refused; a typed change plus prose change gets `[corrected, wrong-*…, improved-statement]`; a
+  correction that changes nothing typed or prose (e.g. only the assertion's own statement) is still refused.
+- Tests: `TestProseOnlyCorrectionIsLabelledImprovedStatement`, `TestTypedAndProseChangeTogetherAddsImprovedStatement`, and a prose-only correction through the
+  real FileStore queue. The running review server of `human-review` was not touched.

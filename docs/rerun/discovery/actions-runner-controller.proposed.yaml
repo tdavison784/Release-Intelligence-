@@ -1,0 +1,107 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: actions-runner-controller
+name: actions-runner-controller
+homepage: https://github.com/actions/actions-runner-controller
+versioning:
+  scheme: semver
+  tagPrefix: v
+  tagPattern: ^v(?P<version>\d+\.\d+\.\d+)$
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/actions/actions-runner-controller
+      tagPattern: ^v(?P<version>\d+\.\d+\.\d+)$
+  - id: github-releases
+    roles:
+      - versions
+    locator:
+      kind: github-releases
+      repository: actions/actions-runner-controller
+    priority: 1
+  - id: release-notes-docs
+    roles:
+      - release-notes
+    locator:
+      kind: repo-file
+      repository: github.com/actions/actions-runner-controller
+      path: docs/releasenotes/{{.Major}}.{{.Minor}}.md
+    extract:
+      type: markdown-section
+      heading: ^v?{{regexQuote .Version}}$
+    fallbackGroup: release-notes
+    notes: 'Unverified by discovery (insufficient: 0.25.0 covered (covered by release-notes-github (fallback group release-notes): no section matching "^v?0\\.25\\.0$" in https://github.com/actions/actions-runner-controller/blob/v0.25.0/docs/releasenotes/0.25.md); 0.25.2 covered (covered by release-notes-github (fallback group release-notes): no section matching "^v?0\\.25\\.2$" in https://github.com/actions/actions-runner-controller/blob/v0.25.2/docs/releasenotes/0.25.md); 0.26.0 covered (covered by release-notes-github (fallback group release-notes): no section matching "^v?0\\.26\\.0$" in https://github.com/actions/actions-runner-controller/blob/v0.26.0/docs/releasenotes/0.26.md); 0.27.0 covered (covered by release-notes-github (fallback group release-notes): no section matching "^v?0\\.27\\.0$" in https://github.com/actions/actions-runner-controller/blob/v0.27.0/docs/releasenotes/0.27.md); …).'
+  - id: release-notes-github
+    roles:
+      - release-notes
+    locator:
+      kind: github-releases
+      repository: actions/actions-runner-controller
+      ref: '{{.Tag}}'
+    priority: 1
+    fallbackGroup: release-notes
+    validatedAgainst:
+      - 0.25.0
+      - 0.25.2
+      - 0.26.0
+      - 0.27.0
+      - 0.27.6
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: actions/actions-runner-controller
+    notes: 'Security policy: SECURITY.md'
+artifacts:
+  - id: actions-runner-controller-manifest
+    type: manifest
+    name: actions-runner-controller.yaml
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: http
+        url: https://github.com/actions/actions-runner-controller/releases/download/{{.Tag}}/actions-runner-controller.yaml
+    contents:
+      - kind: image-refs
+    validatedAgainst:
+      - 0.25.0
+      - 0.25.2
+      - 0.26.0
+      - 0.27.0
+      - 0.27.6
+  - id: crds
+    type: crd
+    name: CustomResourceDefinitions
+    version:
+      strategy: template
+      template: '{{.Tag}}'
+    channels:
+      - kind: repo-dir
+        repository: github.com/actions/actions-runner-controller
+        path: config/crd/bases
+        glob: '*.yaml'
+    contents:
+      - kind: crds
+    validatedAgainst:
+      - 0.25.0
+      - 0.25.2
+      - 0.26.0
+      - 0.27.0
+      - 0.27.6
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  validatedReleases:
+    - v0.25.0
+    - v0.25.2
+    - v0.26.0
+    - v0.27.0
+    - v0.27.6
+  notes: Proposed by automated discovery; relationship checks run against v0.25.0, v0.25.2, v0.26.0, v0.27.0, v0.27.6.

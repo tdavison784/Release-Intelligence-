@@ -72,22 +72,25 @@ environment:
       exposure: {op: values-key, path: dnsProxy.endpointMaxIpPerHostname, state: unset}
       environmentEvidence: values.yaml#L68-L71
     - expected: E4
-      relevance: not-affected
+      relevance: review        # corrected 2026-10-02 from not-affected, motivated by pipeline output (render-4; eval/CHANGELOG.md)
       why: >-
-        the cluster never configured tls.secretsBackend and does not set the
-        replacement either: the terminatingTLS secret lives in kube-system
-        under the 1.16 chart default `local` backend, so no deprecated key is
-        in use and nothing the upgrade honours-away is set. The new
-        tls.secretSync default that ships with SDS is a new-feature default,
-        not this deprecation item.
+        the cluster sets neither tls.secretSync.enabled nor upgradeCompatibility, so v1.17.0 applies the
+        new-cluster TLS-interception defaults (tls-visibility.rst v1.17.0: SDS mode is "default for new
+        clusters"; upgrade.rst: "The defaults for upgraded clusters (where upgradeCompatibility is v1.16) do
+        not enable SDS"). Its TLS-intercepting CiliumNetworkPolicy references a Secret in kube-system, which
+        the operator will now copy into the new cilium-secrets namespace (plus Roles/RoleBindings) and serve
+        to Envoy via SDS — a change in how this policy's key material is handled that the operator should
+        verify. The deprecated tls.secretsBackend itself is not set.
       exposure:
         op: all
         of:
-          - {op: values-key, path: tls.secretsBackend, state: set}
-          - {op: values-key, path: tls.readSecretsOnlyFromSecretsNamespace, state: unset}
-      environmentEvidence:
-        - values.yaml#L52-L55
-        - manifests/historian-scrape-cnp.yaml#L21-L24
+          - {op: values-key, path: tls.secretSync.enabled, state: unset}
+          - {op: values-key, path: upgradeCompatibility, state: unset}
+          - op: any
+            of:
+              - {op: resource, group: cilium.io, kind: CiliumNetworkPolicy, of: [{op: field, path: 'spec.egress[].toPorts[].terminatingTLS', state: set}]}
+              - {op: resource, group: cilium.io, kind: CiliumNetworkPolicy, of: [{op: field, path: 'spec.egress[].toPorts[].originatingTLS', state: set}]}
+      environmentEvidence: [values.yaml#L52-L55, manifests/historian-scrape-cnp.yaml#L5-L24]
     - expected: E3
       relevance: not-affected
       why: >-

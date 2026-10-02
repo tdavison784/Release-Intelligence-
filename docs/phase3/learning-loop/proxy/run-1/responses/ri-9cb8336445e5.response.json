@@ -1,0 +1,24 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-9cb8336445e5",
+  "promptDigest": "sha256:73189dce86467b44d50fef91fce5cbe9b254e3e5cc90af36146e50e124a6afcd",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "dddb7878-34e3-4375-8516-ad4e2b40888b",
+  "startedAt": "2026-10-02T13:05:08.707Z",
+  "decidedAt": "2026-10-02T13:05:23.407Z",
+  "durationMs": 13607,
+  "costUSD": 0.25008400000000003,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "The only upstream evidence is a one-line feature note saying conversion webhooks were added for v1 EC2NodeClass [ev-ab534de2a1e4]. It does not say which environments rely on conversion or what happens to them, so no exposure condition can be tied to a consequence. The rendered diffs show the storage version moving from v1beta1 to v1 [ev-6216d138f351][ev-b41bd26d4a09], and v1 was already served in 0.37.8 [ev-a7885a53e4bb][ev-4ab589aafe42]. That hints conversion matters mainly to objects stored or written as v1beta1, but the evidence does not say so. The proposed gvk-in-use{kind: EC2NodeClass} has no group or version, so it matches every environment that uses EC2NodeClass at all, which is broader than anything the evidence supports. To decide, we need upgrade-guide or PR text that states which EC2NodeClass API versions or stored objects depend on the webhook, and what happens if it is missing or not deployed.",
+    "citations": [
+      "ev-ab534de2a1e4",
+      "ev-6216d138f351",
+      "ev-b41bd26d4a09",
+      "ev-a7885a53e4bb",
+      "ev-4ab589aafe42"
+    ],
+    "confidence": "low"
+  }
+}

@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-background
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: background
+spec:
+  replicas: {{ .Values.replicas }}
+  selector: {matchLabels: {app: perm}}
+  template:
+    metadata: {labels: {app: perm}}
+    spec:
+      containers:
+        - name: controller
+          image: example.org/perm/controller:v1

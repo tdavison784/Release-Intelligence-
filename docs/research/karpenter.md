@@ -1,5 +1,7 @@
 # Karpenter (AWS) release-channel research (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** public.ecr.aws answers (sequential reads → 200). Bursts of parallel manifest reads were throttled with HTTP 429 "Rate exceeded": this is rate limiting, not unavailability (now reported as `throttled`, with backoff and a per-host concurrency limit). With those fixes the re-checked relationship report validates every subject; the saved baseline was replaced by it. The original text below is kept as the record of 2026-10-01.
+
 Legend: [200] = fetched with HTTP 200 / successful git operation in this sandbox. UNVERIFIED = could
 not be checked here. `RAW` = `https://raw.githubusercontent.com/aws/karpenter-provider-aws`. Product:
 Karpenter for AWS, the open-source node autoscaler (`NodePool`/`EC2NodeClass`/`NodeClaim`, EC2 fleet

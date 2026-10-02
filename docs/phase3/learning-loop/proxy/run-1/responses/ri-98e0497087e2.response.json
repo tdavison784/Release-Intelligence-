@@ -1,0 +1,52 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-98e0497087e2",
+  "promptDigest": "sha256:c5eab376218f306a465f3f8b020eaaed9b1650743b1516965fcff45c29aa85eb",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "304a0818-3cc1-4cbe-8dc1-18164bec45da",
+  "startedAt": "2026-10-02T13:04:44.476Z",
+  "decidedAt": "2026-10-02T13:04:53.806Z",
+  "durationMs": 8105,
+  "costUSD": 0.10638800000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-aa02449851f9] says the regression came in v1.16.0, only affected ACME ClusterIssuers, and is fixed in v1.16.1+ and v1.17.0+. So the version range 1.16.0 ≤ version < 1.16.1 is right. However, matching any ClusterIssuer with gvk-in-use is too broad: it would also flag environments whose ClusterIssuers use only non-ACME issuer types. The exposure condition should require a cert-manager.io ClusterIssuer that has spec.acme set ([ev-60054fcf0986] confirms that the cert-manager.io ClusterIssuer API exists in 1.17.0).",
+    "citations": [
+      "ev-aa02449851f9",
+      "ev-60054fcf0986"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Environments upgrading from cert-manager v1.16.0 (before 1.16.1) that have an ACME ClusterIssuer (spec.acme set) are affected: the v1.16.0 regression made these issuers look in the wrong namespace for issuance resources such as credential Secrets, and 1.17.0 fixes the lookup.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=1.16.0 <1.16.1"
+            },
+            {
+              "op": "resource",
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

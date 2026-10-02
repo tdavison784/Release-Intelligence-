@@ -1,0 +1,73 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-c7e1015f374b",
+  "promptDigest": "sha256:2ac7a1eea176d2b8523b7a1b1985bdb702fdfb5f0a83ac74b664e3e69d290def",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "e607abe0-a882-4070-a0fb-dacd91bba851",
+  "startedAt": "2026-10-02T15:57:25.051Z",
+  "decidedAt": "2026-10-02T15:57:45.588Z",
+  "durationMs": 19705,
+  "costUSD": 0.124624,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-80c52188197b] and [ev-927d998f5cdd] say same-hostname service resolution changed both without a `Sidecar` (Kubernetes Service first → same-namespace Service first) and with one (same-namespace Service, then arbitrary → same-namespace Service, then Kubernetes Service, then arbitrary). They also say Gateway API route ordering changed only where a `Sidecar` exists (arbitrary → local proxy namespace preferred). The proposed condition, \"a Sidecar resource is in use\", is therefore too narrow: it misses `Sidecar`-free environments with duplicate hostnames. It is also too broad: it flags `Sidecar` users with no conflicting services or routes. Exposure depends on cross-resource hostname and route collisions that no condition predicate can express, so those parts are undecidable.",
+    "citations": [
+      "ev-80c52188197b",
+      "ev-927d998f5cdd"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Istio 1.24.0 uses the same conflict-resolution rules whether or not a `Sidecar` resource is defined. Exposed: any environment where several Services or ServiceEntries share a hostname, with or without a `Sidecar`. Also exposed: environments using a `Sidecar` where several Gateway API routes are defined for the same service. Which of these conflicts exist cannot be expressed as a static predicate.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether multiple Services/ServiceEntries define the same hostname (e.g. across namespaces or Kubernetes Service vs ServiceEntry) as seen by a proxy"
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "gvk-in-use",
+                      "group": "networking.istio.io",
+                      "version": "v1",
+                      "kind": "Sidecar"
+                    },
+                    {
+                      "op": "gvk-in-use",
+                      "group": "networking.istio.io",
+                      "version": "v1alpha3",
+                      "kind": "Sidecar"
+                    },
+                    {
+                      "op": "gvk-in-use",
+                      "group": "networking.istio.io",
+                      "version": "v1beta1",
+                      "kind": "Sidecar"
+                    }
+                  ]
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "environment-visibility-gap",
+                  "needed": "whether multiple Gateway API routes in different namespaces are defined for the same service"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

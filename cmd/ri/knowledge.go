@@ -20,6 +20,8 @@ Subcommands:
   review-fact <fact-id>          open a re-review of a fact (reject retracts, correct supersedes)
   export [-o file]               the human-feedback dataset as JSONL
   metrics [-o text|json]         agreement, per-model accuracy, review cost, fact counts
+  proxy-prompt -o DIR [flags]    write blind proxy-review requests (scripts/proxy-review.sh answers them)
+  proxy-report [-ledger F]       the proxy run report: decisions, per-model outcomes, self-family split, cost
 	case "candidates", "propose":
 		return c.semanticCmd(append([]string{sub}, rest...))
 	case "validate":
@@ -43,6 +45,10 @@ func (c *cli) knowledge(args []string) error {
 		return c.knowledgeExport(rest)
 	case "metrics":
 		return c.knowledgeMetrics(rest)
+	case "proxy-prompt":
+		return c.knowledgeProxyPrompt(rest)
+	case "proxy-report":
+		return c.knowledgeProxyReport(rest)
 	case "candidates", "propose":
 		return c.semanticCmd(append([]string{sub}, rest...))
 	case "validate":
@@ -111,18 +117,29 @@ func (c *cli) knowledgeDecide(args []string) error {
 	correctedFile := fs.String("corrected", "", "JSON file with the corrected SemanticAssertion (action correct)")
 	duplicateOf := fs.String("duplicate-of", "", "fact id this item restates (action reject, label duplicate)")
 	started := fs.String("started-at", "", "RFC3339 time the reviewer started (default: now)")
+	pProvider := fs.String("proxy-provider", "anthropic", "proxy: provider that served the model (\"anthropic\", \"zai\", …)")
 	pModel := fs.String("proxy-model", "", "proxy: model that acted as reviewer")
 	pVersion := fs.String("proxy-model-version", "", "proxy: model version as reported")
 	pPromptV := fs.String("proxy-prompt-version", "", "proxy: prompt template version")
 	pPromptD := fs.String("proxy-prompt-digest", "", "proxy: digest of the rendered prompt")
 	pInput := fs.String("proxy-input-evidence", "", "proxy: comma-separated evidence ids the proxy was shown")
 	pConf := fs.String("proxy-confidence", "medium", "proxy: low|medium (never high)")
+	pCall := fs.String("proxy-call-id", "", "proxy: call/session id from the provider envelope")
+	pReq := fs.String("proxy-request", "", "proxy: the proxy-review request file (with -proxy-response)")
+	pResp := fs.String("proxy-response", "", "proxy: record the verdict in this proxy-review response file (all other decision flags come from it)")
+	pLedger := fs.String("proxy-ledger", "", "proxy: append the outcome (decided or refused) to this JSONL ledger")
 	pos, err := parse(fs, args)
 	if err != nil {
 		return err
 	}
 	if len(pos) != 1 {
 		return fmt.Errorf("%w: ri knowledge decide <review-item-id>", app.ErrUsage)
+	}
+	if *pResp != "" {
+		if *kind != string(domain.ReviewerProxy) || *pReq == "" {
+			return fmt.Errorf("%w: -proxy-response needs -reviewer-kind proxy and -proxy-request", app.ErrUsage)
+		}
+		return c.decideProxyResponse(c.knowledgeStore(*dir), pos[0], *pReq, *pResp, *pLedger)
 	}
 	if strings.TrimSpace(*reviewer) == "" {
 		return fmt.Errorf("%w: -reviewer is required", app.ErrUsage)
@@ -182,8 +199,8 @@ func (c *cli) knowledgeDecide(args []string) error {
 			return fmt.Errorf("%w: a proxy's confidence is capped at medium", app.ErrUsage)
 		}
 		gen := now
-		prov := domain.Provenance{Method: domain.MethodAI, Producer: "knowledge.proxy@v1", Confidence: domain.Confidence(*pConf),
-			Model: *pModel, ModelVersion: *pVersion, PromptVersion: *pPromptV, PromptDigest: *pPromptD, GeneratedAt: &gen}
+		prov := domain.Provenance{Method: domain.MethodAI, Producer: "knowledge.proxy@v1", Provider: *pProvider, Confidence: domain.Confidence(*pConf),
+			Model: *pModel, ModelVersion: *pVersion, PromptVersion: *pPromptV, PromptDigest: *pPromptD, GeneratedAt: &gen, CallID: *pCall}
 		for _, id := range splitList(*pInput) {
 			prov.InputEvidence = append(prov.InputEvidence, domain.EvidenceID(id))
 		}

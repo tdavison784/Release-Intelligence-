@@ -1,5 +1,7 @@
 # ingress-nginx release-channel map (research date 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** registry.k8s.io (307 → Artifact Registry → 200), k8s.gcr.io, kubernetes.github.io (Helm index), kubernetes.io (retirement blog, official CVE feed), api.osv.dev and api.github.com (0 advisories) answer; `gcr.io/k8s-staging-ingress-nginx` still answers 401. **Correction:** `controller-chroot:v1.10.0` was never published (404 at the registry backend; tags jump from the 1.9 line to v1.10.1), so "controller-chroot since v1.2.0" has one exception, now in the definition. The original text below is kept as the record of 2026-10-01.
+
 Scope: `github.com/kubernetes/ingress-nginx` (UP). One repository, two release trains (controller and Helm chart) and
 a project that is **retired and archived**. "RAW" = `https://raw.githubusercontent.com/kubernetes/ingress-nginx/<ref>/<path>`
 (HTTP 200 verified unless stated). Not to be confused with `nginx/nginx-ingress` (F5/NGINX Inc.'s `kubernetes-ingress`, a

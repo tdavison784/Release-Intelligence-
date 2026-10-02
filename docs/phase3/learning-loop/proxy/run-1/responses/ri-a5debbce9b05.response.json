@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a5debbce9b05",
+  "promptDigest": "sha256:239f2548cf7dd482367417ccda956815cdbbbefa5e0cbad735b2d92fd795127e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "44e0e35d-e257-45df-b7b8-c36908a5db52",
+  "startedAt": "2026-10-02T15:53:00.445Z",
+  "decidedAt": "2026-10-02T15:53:14.159Z",
+  "durationMs": 12805,
+  "costUSD": 0.09387200000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-f1e311e8bf49] only says Istio added optional support for gRPC headers and timeout settings when exporting traces to an OpenTelemetry Collector. The new setting is only relevant to environments that export traces this way. The proposed edge-from-version <1.24.0 condition flags every environment upgrading to 1.24.0, which is too broad. The evidence doesn't name the config field or provider setting, so the trace-export part can't be written as a static predicate and has to stay undecidable.",
+    "citations": [
+      "ev-f1e311e8bf49"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Istio 1.24.0 adds optional support for headers and timeout settings on gRPC requests that export traces to an OpenTelemetry Collector. This only concerns environments that upgrade from a version below 1.24.0 and export traces to an OpenTelemetry Collector over gRPC. The evidence does not name the configuration key that would show this.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.24.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "which configuration setting (tracing provider / extension provider) shows that the environment exports traces to an OpenTelemetry Collector over gRPC; the release note names no field or key"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

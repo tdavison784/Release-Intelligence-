@@ -274,7 +274,7 @@ expected:
     kind: migration-step
     importance: important
     actionRequired: true       # only for installs where the hook does not run
-    classification: not-affected   # this environment's class (link E7); generic reading: action-required (migration-required)
+    classification: informational   # this environment's class (link E7; corrected 2026-10-02 from not-affected, render-4 — eval/CHANGELOG.md); generic reading: action-required (migration-required)
     match:
       - text: '(?i)drops? deprecated API versions'
       - text: '(?i)kube-storage-version-migrator'
@@ -529,18 +529,27 @@ environment:
         - manifests/policyexceptions.yaml#L4-L5
         - manifests/policyexceptions.yaml#L26-L27
     - expected: E7
-      relevance: not-affected
+      relevance: informational   # corrected 2026-10-02 from not-affected, motivated by pipeline output (render-4; eval/CHANGELOG.md)
       why: >-
-        Kyverno is upgraded with Helm, crds.migration.enabled and templating.enabled are left at their
-        defaults (true / false), so the post-upgrade migrate-resources hook rewrites the stored objects;
-        the manual kube-storage-version-migrator step does not apply.
+        the cluster stores two PolicyExceptions as kyverno.io/v2beta1 (a version 1.13 drops), so the migration
+        does touch it; it is shielded because Kyverno is upgraded with Helm and crds.migration.enabled /
+        templating.enabled stay at their defaults, so the post-upgrade migrate-resources hook (whose resource
+        list at v1.13.0 includes policyexceptions.kyverno.io) rewrites them — "The migration is handled
+        automatically through Helm hook." Applies, appears safe; the hook only starts once E5's kubectl
+        image is mirrored.
       exposure:
         op: any
         of:
           - {op: values-key, path: crds.migration.enabled, state: equals, values: ['false']}
           - {op: values-key, path: templating.enabled, state: equals, values: ['true']}
-      environmentEvidence:
-        - values.yaml#L1-L5
+      overlap:
+        op: any
+        of:
+          - {op: gvk-in-use, group: kyverno.io, version: v2beta1, kind: PolicyException}
+          - {op: gvk-in-use, group: kyverno.io, version: v2beta1, kind: CleanupPolicy}
+          - {op: gvk-in-use, group: kyverno.io, version: v2beta1, kind: ClusterCleanupPolicy}
+          - {op: gvk-in-use, group: kyverno.io, version: v1beta1, kind: UpdateRequest}
+      environmentEvidence: [values.yaml#L1-L5, manifests/policyexceptions.yaml#L4-L5, manifests/policyexceptions.yaml#L26-L27]
     - expected: E8
       relevance: review
       why: >-

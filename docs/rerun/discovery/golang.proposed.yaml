@@ -1,0 +1,36 @@
+apiVersion: ri.dev/v1alpha1
+kind: ProductDefinition
+id: golang
+name: go
+homepage: https://github.com/golang/go
+versioning:
+  scheme: semver
+  tagPrefix: go
+  lineage: minor
+sources:
+  - id: tags
+    roles:
+      - versions
+    locator:
+      kind: git-tags
+      repository: github.com/golang/go
+  - id: advisories
+    roles:
+      - security
+    locator:
+      kind: github-advisories
+      repository: golang/go
+    notes: 'Security policy: SECURITY.md → https://go.dev/security/policy'
+artifacts: []
+provenance:
+  method: discovery
+  author: discovery.resolve@v1
+  updated: "2026-10-02"
+  validatedReleases:
+    - go1.25.0
+    - go1.25.14
+    - go1.26.0
+    - go1.26.8
+    - go1.27.0
+    - go1.27.1
+  notes: Proposed by automated discovery; relationship checks run against go1.25.0, go1.25.14, go1.26.0, go1.26.8, go1.27.0, go1.27.1.

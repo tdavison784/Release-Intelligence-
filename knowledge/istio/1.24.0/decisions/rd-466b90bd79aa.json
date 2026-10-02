@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-466b90bd79aa",
+    "reviewItemId": "ri-e902708f40c3",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "seLinuxOptions",
+          "state": "unset"
+        }
+      },
+      "statement": "The istio-cni Helm chart now includes a seLinuxOptions configuration value that can be set to work around SELinux constraints on platforms like OpenShift."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "seLinuxOptions.type",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the cluster platform (e.g. OpenShift) enforces SELinux constraints on hostPath volumes used by istio-cni-node pods"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "seLinuxOptions.type",
+          "state": "equals",
+          "values": [
+            "\"spc_t\""
+          ]
+        }
+      },
+      "statement": "A new value `seLinuxOptions` was added to the istio-cni chart. Exposed environments are those running on platforms with SELinux constraints on hostPath volumes (e.g. OpenShift) that do not set `seLinuxOptions.type`; there the istio-cni-node pods may fail to start. Environments that set `seLinuxOptions.type` to `spc_t` appear safe."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:70877400c037876b6de9510d1bedae927eaca1dddabc4d96b1d7ab4fc6f42c3e",
+      "inputEvidence": [
+        "ev-117557f906cd"
+      ],
+      "generatedAt": "2026-10-02T16:02:26.094Z",
+      "callId": "46910bf0-d8d2-4035-ae91-be8281664059"
+    },
+    "reason": "[ev-117557f906cd] says pods may fail to start only on some platforms (e.g. OpenShift) whose SELinux constraints affect hostPath volumes, and only when `seLinuxOptions.type` is not set to `spc_t`. The proposed condition, `seLinuxOptions` unset, would flag every istio-cni install that does not use the new value, including ones on platforms without these SELinux constraints, so it is too broad. No static input shows whether a platform enforces these SELinux constraints, so exposure should combine the unset `seLinuxOptions.type` with an undecidable platform condition. Environments that set the type to `spc_t` touch the subject but appear safe.",
+    "startedAt": "2026-10-02T16:02:13.954Z",
+    "decidedAt": "2026-10-02T16:02:26.094Z"
+  }
+}

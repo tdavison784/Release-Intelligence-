@@ -27,6 +27,9 @@ func (p *Pair) Evidence(c Change, showValues bool) domain.Evidence {
 	if c.Path != "" {
 		loc += " " + c.Path
 	}
+	if n := displayName(c); n != "" {
+		loc += " [" + n + "]"
+	}
 	if c.Source != "" {
 		loc = c.Source + " · " + loc
 	}
@@ -52,8 +55,12 @@ func (p *Pair) Evidence(c Change, showValues bool) domain.Evidence {
 	ev.Render = &rp
 	// the id covers the render scope and digests, so an environment record
 	// can never collide with a release record of the same excerpt
+	// the id also covers the change's own identity (name, class and a digest
+	// of its values), so two distinct changes whose displayed excerpts are
+	// alike (values hidden in environment scope) never share a record
 	ev.ID = domain.EvidenceID("ev-" + domain.ShortHash(string(ev.Kind), ev.URI, ev.Locator, ev.Excerpt, ev.ContentDigest,
-		string(rp.Scope), rp.ValuesDigest, rp.ChartDigest, from.ArtifactDigest))
+		string(rp.Scope), rp.ValuesDigest, rp.ChartDigest, from.ArtifactDigest,
+		string(c.Class), c.Name, domain.Digest([]byte(deref(c.Before)+"\x00"+deref(c.After)))))
 	return ev
 }
 
@@ -79,4 +86,18 @@ func (p *Pair) FailureEvidence() domain.Evidence {
 	}
 	return domain.NewEvidence(domain.EvidenceInput, Producer, "render:"+p.Target.ID,
 		fmt.Sprintf("%s %s→%s", p.Status, p.From, p.To), strings.TrimSpace(reason+": "+detail), "", time.Time{})
+}
+
+// displayName is the part of a change's name safe to show without values: a
+// flag ("--foo"), an env var, a label/annotation key, a port, a permission
+// or an image repository — never a positional argument (which may be a value).
+func displayName(c Change) string {
+	switch c.Class {
+	case ContainerArgAdded, ContainerArgRemoved, ContainerArgChanged:
+		if strings.HasPrefix(c.Name, "-") || c.Name == "(order)" {
+			return c.Name
+		}
+		return ""
+	}
+	return c.Name
 }

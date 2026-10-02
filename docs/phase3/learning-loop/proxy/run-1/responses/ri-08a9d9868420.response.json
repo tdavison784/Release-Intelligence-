@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-08a9d9868420",
+  "promptDigest": "sha256:33c75a0922301fbd96e8042971a68d8f81ca08b11cf1ad5a566501d6b752df7f",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d58f53d4-14db-4afb-bc44-28b685868d78",
+  "startedAt": "2026-10-02T12:46:10.154Z",
+  "decidedAt": "2026-10-02T12:46:21.329Z",
+  "durationMs": 10080,
+  "costUSD": 0.066224,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-a25845551580] describes a bugfix: pilot stops merging DestinationRules for the same host when their exportTo attributes are totally different. Setting ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false in the pilot deployment turns this behavior off. Nothing is said to fail, be rejected or need migration, so behavior-change (review) is the right kind. However, the proposed statement says merging stops for any \"different\" ExportTo and claims routing changes. The evidence limits the change to exportTo attributes that are \"totally different\", so the statement is corrected to match.",
+    "citations": [
+      "ev-a25845551580"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Istio 1.24.0, pilot no longer merges DestinationRules for the same host when their exportTo attributes are totally different. Such configurations keep working, but the effective DestinationRule applied may differ from before. Setting ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false in the pilot deployment turns this behavior off.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "statement": "DestinationRules on the same host whose exportTo attributes are totally different are no longer merged, so the effective DestinationRule configuration for that host may differ from earlier releases. Nothing is stated to fail or be rejected.",
+        "remediation": "Review DestinationRules that share a host but have totally different exportTo values. To turn this behavior off, set the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable to false in the pilot deployment.",
+        "severity": "medium"
+      }
+    }
+  }
+}

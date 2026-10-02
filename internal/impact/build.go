@@ -103,6 +103,8 @@ type builder struct {
 	factEvOrder     []domain.EvidenceID
 	extraLocal      map[domain.EvidenceID]domain.Evidence
 	extraLocalOrder []domain.EvidenceID
+
+	unset UnsetValuesEvaluator // CONTRACT-CHANGE(render): PO-3, nil without --render
 }
 
 func build(in Input) (*domain.ImpactReport, error) {
@@ -118,6 +120,7 @@ func build(in Input) (*domain.ImpactReport, error) {
 		seen: map[string]bool{}, edgeEv: map[domain.EvidenceID]bool{},
 		upCited: map[domain.EvidenceID]bool{}, locCited: map[domain.EvidenceID]bool{},
 		factEv: map[domain.EvidenceID]domain.Evidence{}, extraLocal: map[domain.EvidenceID]domain.Evidence{},
+		unset: in.Unset,
 	}
 	for _, e := range in.Edge.Evidence {
 		b.edgeEv[e.ID] = true
@@ -403,6 +406,13 @@ func (b *builder) valuesFamily() {
 			}
 		}
 		if len(matches) == 0 {
+			// CONTRACT-CHANGE(render): PO-3 — a changed default or new key
+			// left unset reaches the customer; rendering decides it
+			// (values-unset stays for removed keys only).
+			if kind == "default-changed" || kind == "added" {
+				b.unsetValues(b.unset, c, kind)
+				continue
+			}
 			title := fmt.Sprintf("Your values do not touch %s", codeList(c.Subjects, 3))
 			if len(c.Subjects) == 1 {
 				title = fmt.Sprintf("Your values do not set %s", code(c.Subjects[0]))

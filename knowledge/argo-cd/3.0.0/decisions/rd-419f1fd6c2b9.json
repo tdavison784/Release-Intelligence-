@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-419f1fd6c2b9",
+    "reviewItemId": "ri-bb55ba7c2964",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--redis-compress",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether redis compression is currently enabled or disabled in the environment before this upgrade"
+            }
+          ]
+        }
+      },
+      "statement": "A new global command-line flag `--redis-compress` was added to enable redis compression."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--redis-compress",
+          "state": "set"
+        }
+      },
+      "statement": "Argo CD 3.0.0 added a new global flag `--redis-compress` to set Redis compression. It is additive. The only exposed environments are those that set the flag, and there is no stated consequence."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:a880f23a03c5a8c4a91de4c2b77ecc3259fe0e93e1d8acb32e971d3c0d96ac1c",
+      "inputEvidence": [
+        "ev-17b4a92134a4"
+      ],
+      "generatedAt": "2026-10-02T15:55:48.764Z",
+      "callId": "a7e9c833-01f8-4f56-88aa-297462152848"
+    },
+    "reason": "The only evidence, [ev-17b4a92134a4], says a new global flag `--redis-compress` was added to set Redis compression. It does not mention any change to default compression behaviour, so nothing supports flagging every environment that leaves the flag unset, or adding an undecidable branch about the compression state before the upgrade. That proposed condition is far too broad. For a purely additive flag, the only environments that touch the subject are those that set the flag. Confidence is low because the evidence does not say whether this is a workload container argument or a flag of the client CLI.",
+    "startedAt": "2026-10-02T15:55:39.07Z",
+    "decidedAt": "2026-10-02T15:55:48.764Z",
+    "resultingFact": "vf-e580f4b26989"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6889b5a3de9b",
+    "reviewItemId": "ri-3a03a4c8c3a2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "istio",
+        "path": "securityContext.privileged",
+        "component": "istio-cni"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "statement": "istio-cni's securityContext.privileged is now false in favor of feature-specific permissions, though it remains a privileged container (CAP_SYS_ADMIN)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:50bab1799a5fde9de3f6ab9343987ed278379c51b00bd9cb45895af01abac19d",
+      "inputEvidence": [
+        "ev-61280517f4ea"
+      ],
+      "generatedAt": "2026-10-02T12:52:24.557Z",
+      "callId": "32194bb7-8d73-43dc-805d-10d0b1294902"
+    },
+    "reason": "[ev-61280517f4ea] says `securityContext.privileged` was \"Updated ... to false for istio-cni\", so the after value is false. Its remark that istio-cni stays privileged \"even without this flag\" implies the flag was true before. The setting is fixed in the istio-cni container, and the evidence never says it is a configurable Helm value, so config-key with component istio-cni and value-changed is the closest fit in the vocabulary. Confidence is low for three reasons: the before value is implied rather than stated, the true/false values are written as strings, and the render validator could not check the chart.",
+    "startedAt": "2026-10-02T12:52:11.204Z",
+    "decidedAt": "2026-10-02T12:52:24.557Z"
+  }
+}

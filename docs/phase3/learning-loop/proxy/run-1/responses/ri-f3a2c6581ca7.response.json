@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f3a2c6581ca7",
+  "promptDigest": "sha256:0a5034ead0be4f2324c365d389b71ed8fd24dd89b8ac8d85ccab33b33a6dfd97",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "6b8d5f77-1f43-4fe4-89c3-4423ecd4edf7",
+  "startedAt": "2026-10-02T16:03:42.532Z",
+  "decidedAt": "2026-10-02T16:03:51.258Z",
+  "durationMs": 7663,
+  "costUSD": 0.088696,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-01a5226ddc9a] says only that MTU auto-detection now runs continuously during the agent's lifetime, so a device MTU change no longer needs an agent restart. It does not tie exposure to any Kubernetes kind, so \"gvk-in-use Deployment\" is the wrong condition: it would flag nearly every cluster and has nothing to do with MTU. Exposure depends on two things: whether the environment relies on MTU auto-detection, and whether device MTUs change while the agent is running. The evidence names no configuration key for either, and the second is runtime behaviour, so the honest condition is undecidable.",
+    "citations": [
+      "ev-01a5226ddc9a"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "MTU auto-detection is now continuous during the agent's lifetime, so changing a device MTU no longer requires restarting the agent to pick up the new MTU. Exposed environments are those that rely on MTU auto-detection and change device MTUs while the agent is running. No static configuration key named in the evidence shows this.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment relies on Cilium MTU auto-detection (rather than an explicitly configured MTU) and changes network device MTUs while the agent is running; the release notes name no configuration key for this"
+        }
+      }
+    }
+  }
+}

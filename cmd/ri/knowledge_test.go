@@ -45,7 +45,7 @@ func seedKnowledge(t *testing.T) (dir string, item domain.ReviewItem) {
 	}
 	p := domain.SemanticProposal{CandidateID: c.ID, Task: domain.TaskFull, Provider: "zai", Assertion: a, Citations: []domain.EvidenceID{ev.ID},
 		Provenance: domain.Provenance{Method: domain.MethodAI, Producer: "semantic.propose@v1", Confidence: domain.ConfidenceMedium, Model: "glm-5.3-flash",
-			ModelVersion: "1", PromptVersion: "v1", PromptDigest: "sha256:x", InputEvidence: []domain.EvidenceID{ev.ID}, GeneratedAt: &at,
+			Provider: "zai", ModelVersion: "1", PromptVersion: "v1", PromptDigest: "sha256:x", InputEvidence: []domain.EvidenceID{ev.ID}, GeneratedAt: &at,
 			CallID: "call-1"}} // CONTRACT-CHANGE(contract-3): proposals carry a call id (PO-1)
 	p.ID = domain.ProposalID(p.CandidateID, p.Task, p.Provider, p.Provenance)
 	put(p)
@@ -86,6 +86,14 @@ func TestKnowledgeCLIRouteProxyDecideMetricsExport(t *testing.T) {
 	after, _ := knowledge.NewFileStore(dir).Load(context.Background(), knowledge.Query{})
 	if len(after.Facts) != 1 || after.Facts[0].Level() != domain.VerifiedProxy {
 		t.Fatalf("facts = %+v", after.Facts)
+	}
+	if len(after.Decisions) == 0 {
+		t.Fatal("no decisions")
+	}
+	for _, d := range after.Decisions {
+		if d.ProxyProvenance == nil || d.ProxyProvenance.Provider != "anthropic" || d.ProxyProvenance.ProviderName() != "anthropic" {
+			t.Fatalf("proxy provenance does not state the provider: %+v", d.ProxyProvenance)
+		}
 	}
 	out, err = kcli(t, "knowledge", "metrics", "-dir", dir, "-o", "json")
 	var m knowledge.LoopMetrics

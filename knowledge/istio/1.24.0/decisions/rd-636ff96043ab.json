@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-636ff96043ab",
+    "reviewItemId": "ri-0f1f45bf9cdf",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "global.waypoint.topologySpreadConstraints",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The waypoint pod topologySpreadConstraints is now configurable via the new Helm value `.Values.global.waypoint.topologySpreadConstraints`."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:cdec5e56ca618628cfadcbc71eb7748ece3ce80bf25337f6ad5c2fda0ad0407b",
+      "inputEvidence": [
+        "ev-c988c157ae16",
+        "ev-2139315891c3",
+        "ev-257bea760fce"
+      ],
+      "generatedAt": "2026-10-02T12:47:10.498Z",
+      "callId": "4bafa42f-224c-440e-9997-a5f9ff71553d"
+    },
+    "reason": "[ev-c988c157ae16] says waypoint pod topologySpreadConstraints can now be set through `.Values.global.waypoint.topologySpreadConstraints`. The values files show the key is missing from 1.23.4 [ev-2139315891c3] and present in 1.24.0 [ev-257bea760fce]. So the only environments the change touches are those that set this key. The proposed exposure, values-key global.waypoint.topologySpreadConstraints set, says exactly that. Wrapping it in a one-operand \"any\" doesn't change its meaning. Confidence is low because the evidence doesn't state the exposure directly; it comes from the canonical shape for an added value.",
+    "startedAt": "2026-10-02T12:47:01.709Z",
+    "decidedAt": "2026-10-02T12:47:10.498Z",
+    "resultingFact": "vf-d8878c0273d8"
+  }
+}

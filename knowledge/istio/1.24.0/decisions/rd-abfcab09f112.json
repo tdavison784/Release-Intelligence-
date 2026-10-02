@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-abfcab09f112",
+    "reviewItemId": "ri-7dd340d2c962",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "default-retry-policy-503"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "Istio's default retry policy no longer retries on 503; setting EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY to false reverts this, and the flag will be removed in future releases."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:56e41f1bf2f04d6aedb68873341aad6675a171334a6de308280363e2c87983d9",
+      "inputEvidence": [
+        "ev-28c263f19767"
+      ],
+      "generatedAt": "2026-10-02T13:01:01.6Z",
+      "callId": "8b2916b7-0026-48e9-a553-8b11af1c7ced"
+    },
+    "reason": "[ev-28c263f19767] says the default retry policy no longer retries on 503 responses. The configuration stays the same but the runtime retry behaviour is different, so behavior-changed is the right change type. The subject name \"default-retry-policy-503\" is a short kebab-case name made only from the evidence's own key words. The EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY flag is a backward-compatibility way to undo the change, not the change itself.",
+    "startedAt": "2026-10-02T13:00:55.901Z",
+    "decidedAt": "2026-10-02T13:01:01.6Z"
+  }
+}

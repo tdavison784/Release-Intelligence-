@@ -1,0 +1,50 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e2ff524c227c",
+  "promptDigest": "sha256:654b3e04d9218aeb548ba31f5ab82c95f3d95d1346a60df04e6cf17abb823e1b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "030e367c-50de-41b4-b218-9feca48cf9bd",
+  "startedAt": "2026-10-02T16:01:25.100Z",
+  "decidedAt": "2026-10-02T16:01:37.038Z",
+  "durationMs": 11012,
+  "costUSD": 0.09742800000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-0f35637a9823] says bypassing the overload manager for static listeners is now the default, and that setting BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false in the agent Deployment reverts it. So every environment that has not set the variable to false is exposed, and environments that set it to false are shielded. P1 has the right structure, but its literal is \"\\\"false\\\"\", a string that includes the quote characters. An env var set to plain false would never match it. That would flag shielded environments as exposed and leave the overlap matching nothing, so the value must be the bare literal false.",
+    "citations": [
+      "ev-0f35637a9823"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "Istio 1.24.0 now bypasses the overload manager for static listeners by default. Every environment that does not set BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS=false in the agent Deployment is exposed. Environments that set it to false keep the previous behaviour.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      }
+    },
+    "labels": [
+      "wrong-applicability"
+    ]
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-19247d97c855",
+    "product": "istio",
+    "release": "1.24.0",
+    "anchors": [
+      {
+        "release": "1.24.0",
+        "evidenceKeys": [
+          "ek-7b2edfbb7ae8"
+        ],
+        "statementKeys": [
+          "sk-dfe528ce8d54"
+        ],
+        "changeIds": [
+          "chg-1c01bd438ab2"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-e08e8f654c47"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "ambient-hostnetwork-pods"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.hostNetwork",
+                  "state": "equals",
+                  "values": [
+                    "true"
+                  ]
+                }
+              ],
+              "kind": "Pod"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the environment runs Istio in ambient mode with the hostNetwork pods in scope of ambient; the release note does not say what configuration enables ambient mode or enrolls pods"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Pods with hostNetwork enabled are now properly handled in ambient mode instead of being ignored.",
+        "severity": "medium"
+      },
+      "statement": "Fixed an issue causing `hostNetwork` pods to be ignored in ambient mode"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-6bbdcebe13a9"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-6bbdcebe13a9"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-538dcf3cbb87"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-12b4fdb07c34"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-93c0d3a62602",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/ambient-hostnetwork.yaml",
+        "locator": "ambient-hostnetwork.yaml L6-L7",
+        "excerpt": "- |\n    **Fixed** an issue causing `hostNetwork` pods to be ignored in ambient mode.",
+        "contentDigest": "sha256:c793303130daf949052a6135c61514c6a7fc9f41bd7f4d0cfa6761a077eb5e89",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T15:55:56.828Z"
+  }
+}

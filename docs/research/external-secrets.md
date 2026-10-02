@@ -1,5 +1,7 @@
 # External Secrets Operator release-channel map (verified 2026-10-01)
 
+> **Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):** api.github.com (7 advisories), charts.external-secrets.io, external-secrets.github.io, external-secrets.io and api.osv.dev answer; the canonical chart repository (declared first) validates for all 19 checked releases. The original text below is kept as the record of 2026-10-01.
+
 Scope: product `external-secrets` (github.com/external-secrets/external-secrets, "ESO"). One repository, three
 independently tagged release streams (operator, Helm chart, esoctl CLI).
 Method: `git ls-remote`, blobless clone read at tags (`git show <tag>:<path>`), raw.githubusercontent.com (incl. the

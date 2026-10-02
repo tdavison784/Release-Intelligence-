@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-960fe3aa22c2",
+    "reviewItemId": "ri-ee518830c84c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "cert-manager.io",
+          "version": "v1",
+          "kind": "Certificate"
+        }
+      },
+      "statement": "A new optional field spec.signatureAlgorithm is added to the Certificate v1 schema in cert-manager.io."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:4ed33d9037f6ec81a20c8bd5c5ae9d6a369091b8614ef34a83dfd8caeb0bcf4c",
+      "inputEvidence": [
+        "ev-60054fcf0986",
+        "ev-9b6164ce0df7"
+      ],
+      "generatedAt": "2026-10-02T16:03:07.168Z",
+      "callId": "9b7e7720-260b-41ee-938e-35254d214bec"
+    },
+    "reason": "The CRD files for the two releases [ev-60054fcf0986] [ev-9b6164ce0df7] and the validators confirm only one thing: spec.signatureAlgorithm is a new path in the cert-manager.io/v1 Certificate schema. Nothing shows a removal, a tighter validation or a changed default. Existing resources cannot already set a field that did not exist before. So the only environments this touches are those using cert-manager.io/v1 Certificate, which is what gvk-in-use{cert-manager.io, v1, Certificate} expresses. The consequence is none, so this condition creates no mandatory work. The evidence shown is only the file header, and no canonical exposure shape exists for an added field, so confidence is low.",
+    "startedAt": "2026-10-02T16:02:57.331Z",
+    "decidedAt": "2026-10-02T16:03:07.168Z",
+    "resultingFact": "vf-b0995e1038ee"
+  }
+}

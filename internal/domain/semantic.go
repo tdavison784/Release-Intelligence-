@@ -1529,6 +1529,9 @@ func (p SemanticProposal) Validate() error {
 	default:
 		bad("a model may request action-required or suggest review-required, informational or unknown, not %q", p.SuggestedClass)
 	}
+	if pv := p.Provenance.ProviderName(); pv != "" && pv != p.Provider {
+		bad("provenance provider %q differs from the proposal's provider %q", pv, p.Provider)
+	}
 	if strings.TrimSpace(p.Provenance.CallID) == "" {
 		bad("provenance.callId (the provider/CLI call id) is required, so separate calls are checkable")
 	}
@@ -1995,12 +1998,17 @@ const (
 	LabelWrongConsequence     FeedbackLabel = "wrong-consequence"
 	LabelWrongClassification  FeedbackLabel = "wrong-classification"
 	LabelDuplicate            FeedbackLabel = "duplicate"
+	// LabelImprovedStatement: a correction that changes only the consequence
+	// prose (Statement/Remediation) — the typed assertion was right, so it is
+	// NOT counted as a model error (contract-5).
+	LabelImprovedStatement FeedbackLabel = "improved-statement"
 )
 
 // FeedbackLabels lists every label.
 var FeedbackLabels = []FeedbackLabel{
 	LabelAccepted, LabelRejected, LabelCorrected, LabelInsufficientEvidence, LabelWrongSubject,
 	LabelWrongChangeType, LabelWrongApplicability, LabelWrongConsequence, LabelWrongClassification, LabelDuplicate,
+	LabelImprovedStatement,
 }
 
 func (l FeedbackLabel) wrong() bool { return strings.HasPrefix(string(l), "wrong-") }
@@ -2048,6 +2056,15 @@ func DecisionID(itemID, reviewer string, decidedAt time.Time) string {
 	return DecisionIDPrefix + ShortHash(itemID, reviewer, decidedAt.UTC().Format(time.RFC3339Nano))
 }
 
+// consequenceProse is the consequence's free text (statement, remediation),
+// which aspect digests deliberately ignore.
+func consequenceProse(a *SemanticAssertion) string {
+	if a == nil || a.Consequence == nil {
+		return ""
+	}
+	return a.Consequence.Statement + "\x00" + a.Consequence.Remediation
+}
+
 // Final is the assertion the decision settles on (Corrected, else Original).
 func (d ReviewDecision) Final() *SemanticAssertion {
 	if d.Corrected != nil {
@@ -2067,6 +2084,7 @@ func (d ReviewDecision) Duration() time.Duration {
 // Validate checks the action/label/value consistency and the reviewer rules.
 func (d ReviewDecision) Validate() error {
 	var errs []error
+	proseOnly := false // a correction of the consequence prose only (contract-5)
 	bad := func(format string, args ...any) {
 		errs = append(errs, fmt.Errorf("decision %s: %s", d.ID, fmt.Sprintf(format, args...)))
 	}
@@ -2125,7 +2143,10 @@ func (d ReviewDecision) Validate() error {
 		}
 		if d.Original != nil {
 			if d.Corrected.Digest() == d.Original.Digest() {
-				bad("a correction must change at least one aspect")
+				if consequenceProse(d.Original) == consequenceProse(d.Corrected) {
+					bad("a correction must change at least one aspect, or the consequence statement/remediation")
+				}
+				proseOnly = true
 			}
 			for _, x := range d.Original.Stated() {
 				if !d.Corrected.Has(x) {
@@ -2164,10 +2185,17 @@ func (d ReviewDecision) Validate() error {
 			bad("accept is labelled exactly [accepted]")
 		}
 	case ActionCorrect:
-		if !labels[LabelCorrected] || !wrong {
+		switch {
+		case proseOnly:
+			if !labels[LabelCorrected] || !labels[LabelImprovedStatement] || wrong || len(labels) != 2 {
+				bad("a prose-only correction (consequence statement/remediation) is labelled exactly [corrected, improved-statement]")
+			}
+		case !labels[LabelCorrected] || !wrong:
 			bad("correct is labelled corrected plus at least one wrong-* label")
+		case labels[LabelImprovedStatement] && consequenceProse(d.Original) == consequenceProse(d.Corrected):
+			bad("improved-statement requires the consequence statement/remediation to change")
 		}
-		only(LabelCorrected)
+		only(LabelCorrected, LabelImprovedStatement)
 	case ActionReject:
 		if !labels[LabelRejected] && !labels[LabelDuplicate] {
 			bad("reject is labelled rejected or duplicate")

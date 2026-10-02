@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-59ce28c3bb62",
+    "reviewItemId": "ri-bdc06f555bd0",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "RSA certificates with 3072/4096-bit keys are signed with SHA-384/SHA-512 as they rotate; widely supported, but errors may appear with clients that don't support these hashes.",
+        "severity": "low"
+      },
+      "statement": "RSA certificates with 3072- or 4096-bit keys are now signed with SHA-384 or SHA-512 respectively, which may cause errors with peers that don't support these hashes as keys rotate."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:b1128a3ed358f593bafd155a3a15e57370116c2f255e836cc5ededbcf08bf2bb",
+      "inputEvidence": [
+        "ev-463f236bf567"
+      ],
+      "generatedAt": "2026-10-02T15:56:10.01Z",
+      "callId": "b8714064-9b6b-46f8-a4d8-9cabde6a1549"
+    },
+    "reason": "[ev-463f236bf567] says RSA certificates with 3072- or 4096-bit keys will now use SHA-384 or SHA-512 respectively. It calls these algorithms widely supported and says the maintainers don't expect this to be an issue. It only advises watching for errors as larger RSA keys rotate. The evidence does not say that anything fails, is rejected or must be migrated, so the change still works but differently. That makes the consequence behavior-change (review) with low severity, as proposed.",
+    "startedAt": "2026-10-02T15:56:05.34Z",
+    "decidedAt": "2026-10-02T15:56:10.01Z"
+  }
+}

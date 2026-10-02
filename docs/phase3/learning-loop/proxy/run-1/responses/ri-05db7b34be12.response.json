@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-05db7b34be12",
+  "promptDigest": "sha256:aeadefe70a25a9294c4b5649ea59fd7b242e309afe1d7d7b5c6bfb390dd40753",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "945f69dc-171b-4ebb-81ff-0dd66ab43ce0",
+  "startedAt": "2026-10-02T12:45:31.140Z",
+  "decidedAt": "2026-10-02T12:45:48.343Z",
+  "durationMs": 16477,
+  "costUSD": 0.07306399999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-61280517f4ea] states the default securityContext.privileged for istio-cni is changed to false in favor of feature-specific permissions, i.e. the deployed pod's security context changes while istio-cni remains a privileged container per Pod Security Standards (CAP_SYS_ADMIN). Nothing is stated to fail, be rejected or stop being honoured, so no action-eligible kind is supported, but a changed default that keeps working is behavior-change (review), not none. Validators were inconclusive (chart unavailable), so this rests on the prose alone.",
+    "citations": [
+      "ev-61280517f4ea"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Istio 1.24.0 the istio-cni container's securityContext.privileged default changes to false in favor of feature-specific permissions; istio-cni still counts as a privileged container under Pod Security Standards (CAP_SYS_ADMIN), and it keeps working with a different security context.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "low",
+        "statement": "After upgrade the istio-cni pod runs with privileged: false and feature-specific capabilities instead of full privileged mode; it is still classified as privileged under Pod Security Standards (CAP_SYS_ADMIN). No failure is stated.",
+        "remediation": "Check that any policy or tooling that inspects istio-cni's securityContext (e.g. expecting privileged: true) still behaves as intended."
+      }
+    }
+  }
+}

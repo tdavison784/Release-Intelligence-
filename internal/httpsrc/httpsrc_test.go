@@ -173,6 +173,7 @@ func (ts *testServer) count(key string) int {
 func newAdapter(t *testing.T, cacheDir string, mode fetch.Mode) (*Adapter, *spy) {
 	t.Helper()
 	hc := fetch.NewHTTPClient(fetch.NewCache(cacheDir), mode)
+	hc.BackoffBase = time.Millisecond // fake 429s are retried; keep the test fast
 	sp := &spy{inner: hc}
 	a := New(sp)
 	a.now = func() time.Time { return time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC) }
@@ -271,7 +272,7 @@ func TestProbe(t *testing.T) {
 			wantExcerp: "HEAD " + ts.URL + "/releases/download/v9.9.9/cert-manager.yaml -> HTTP 404"},
 		{name: "410 means absent", path: "/gone/asset", wantExists: false, wantMethod: "HEAD"},
 		{name: "forbidden everywhere is unavailable", path: "/forbidden/asset", wantMethod: "HEAD,GET", wantErr: fetch.ErrUnavailable},
-		{name: "rate limited is unavailable", path: "/limited/asset", wantMethod: "HEAD", wantErr: fetch.ErrUnavailable},
+		{name: "rate limited is unavailable", path: "/limited/asset", wantMethod: "HEAD", wantErr: fetch.ErrThrottled},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -282,7 +283,7 @@ func TestProbe(t *testing.T) {
 				t.Errorf("requests = %s, want %s", got, tc.wantMethod)
 			}
 			if tc.wantErr != nil {
-				if !errors.Is(err, tc.wantErr) || fetch.StateFor(err) != domain.SourceUnavailable {
+				if !errors.Is(err, tc.wantErr) || !errors.Is(err, fetch.ErrUnavailable) {
 					t.Fatalf("err = %v, want %v", err, tc.wantErr)
 				}
 				return

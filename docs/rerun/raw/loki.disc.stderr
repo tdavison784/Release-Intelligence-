@@ -1,0 +1,119 @@
+# Discovery report: loki
+
+- Repository: `github.com/grafana/loki` at `helm-loki-7.3.0` (commit `50c738b4d5b2…`)
+- Generated: 2026-10-02T12:36:48Z
+- LLM: not used (deterministic resolver only)
+- Tags: 396 tags: prefix "helm-loki-", 247 stable, 0 prereleases (), 149 junk; latest stable helm-loki-7.3.0; lineage linear
+- Strict tag pattern: `^helm-loki-(?P<version>\d+\.\d+\.\d+)$` (junk sample: 2.8.3, helm-loki-5.41.9-distributed, helm-loki-5.41.9-distributed-rc2, helm-loki-6.19.0-weekly.227, helm-loki-6.20.0-weekly.229, helm-loki-6.22.0-weekly.230)
+- Scanned `github.com/grafana/loki@helm-loki-7.3.0` (source profile): 4084 files listed, 801 read
+- Validation: done against helm-loki-7.0.0, helm-loki-7.1.0, helm-loki-7.2.0, helm-loki-7.3.0
+- Error: default branch of github.com/grafana/docs: git ls-remote --symref https://github.com/grafana/docs HEAD: exit status 128: fatal: could not read Username for 'https://github.com': terminal prompts disabled
+- Error: list tags of github.com/grafana/loki-helm-test: git ls-remote --tags https://github.com/grafana/loki-helm-test: exit status 128: fatal: could not read Username for 'https://github.com': terminal prompts disabled
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 2 | git-tags github.com/grafana/loki; github-releases grafana/loki |
+| release-notes | not-found | 0 |  |
+| changelog | found | 3 | repo-file github.com/grafana/loki production/helm/loki/CHANGELOG.md |
+| helm-charts | found | 9 | loki via oci:ghcr.io/grafana-community/helm-charts/loki, helm-repo:https://grafana.github.io/helm-charts, helm-repo:https://grafana-community.github.io/helm-charts; loki.md via helm-repo:https://grafana.github.io/k8s-mon… |
+| registries | candidates-only | 7 |  |
+| images | found | 84 |  |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 0 | github-advisories grafana/loki |
+| version-relations | found | 1 | loki-chart: version = {{.Version}}; loki-md-chart: lookup appVersion == {{.Tag}}; operator-hack-addon-grafana-gateway-ocp: version = {{.Tag}}; operator-hack-addon-grafana-gateway-ocp-oauth: version = {{.Tag}}; crds: vers… |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:crds | historically-validated | crd.in-repo | https://github.com/grafana/loki/blob/helm-loki-7.3.0/operator/config/crd/bases/config.grafana.com_projectconfigs.yaml#L3 (+2) |
+| artifact:loki-chart | historically-validated | helm.version-matches-release | https://github.com/grafana/loki/blob/helm-loki-7.3.0/production/helm/loki/Chart.yaml#L2 (+2) |
+| artifact:operator-hack-addon-grafana-gateway-ocp | historically-validated | manifest.in-repo-install | https://github.com/grafana/loki/blob/helm-loki-7.3.0/operator/docs/user-guides/howto_connect_grafana.md#L57 |
+| artifact:operator-hack-addon-grafana-gateway-ocp-oauth | historically-validated | manifest.in-repo-install | https://github.com/grafana/loki/blob/helm-loki-7.3.0/operator/docs/user-guides/howto_connect_grafana.md#L45 |
+| source:changelog | historically-validated | changelog.file | https://github.com/grafana/loki/blob/helm-loki-7.3.0/production/helm/loki/CHANGELOG.md#L16 |
+| artifact:loki-binary | unverified | asset.hosted-release-download | https://github.com/grafana/loki/blob/helm-loki-7.3.0/CHANGELOG.md#L3254 |
+| artifact:loki-canary | unverified | image.tag-assumed-release | https://github.com/grafana/loki/blob/helm-loki-7.3.0/production/helm/loki/values.yaml#L837 |
+| artifact:loki-chart-2 | unverified | chart.external-lookup-appversion | https://github.com/grafana/loki/blob/helm-loki-7.3.0/CONTRIBUTING.md#L206 (+2) |
+| artifact:loki-md-chart | unverified | chart.external-lookup-appversion | https://github.com/grafana/loki/blob/helm-loki-7.3.0/docs/sources/operations/meta-monitoring/deploy.md#L87 |
+| artifact:loki-operator | unverified | image.tag-assumed-release | https://github.com/grafana/loki/blob/helm-loki-7.3.0/operator/bundle/community-openshift/manifests/loki-operator.clusterserviceversion.yaml#L2006 (+1) |
+| source:advisories | discovered | security.github-hosted-default |  |
+| source:github-releases | discovered | versions.github-releases-fallback | https://github.com/grafana/loki/blob/helm-loki-7.3.0/CHANGELOG.md#L3254 |
+| source:release-notes-github | unverified | notes.hosted-release-body | https://github.com/grafana/loki/blob/helm-loki-7.3.0/CHANGELOG.md#L3254 |
+| source:tags | discovered | versions.git-tags | https://github.com/grafana/loki/releases/tag/helm-loki-7.3.0#refs/tags/helm-loki-7.3.0 |
+| versioning | discovered | tags.scheme | https://github.com/grafana/loki/releases/tag/helm-loki-7.3.0#refs/tags/helm-loki-7.3.0 |
+
+Statuses: 5 historically-validated, 4 discovered, 6 unverified.
+
+## Open questions for the reviewer
+
+- CHANGELOG.md stops at 3.8.0; confirm it is abandoned (release notes come from other sources).
+- operator/CHANGELOG.md stops at 0.10.2; confirm it is abandoned (release notes come from other sources).
+- Ambiguity (registry-roles): 9 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (docs-sources): Documentation lives in another repository; no release-notes, upgrade-guide, compatibility source was derived from it.
+- Ambiguity (main-chart): 3 charts are published; which one installs the product?
+- Ambiguity (chart-version): How do the versions of chart(s) loki, loki.md relate to the release version?
+
+## Validation matrix
+
+| Element | Verdict | helm-loki-7.0.0 | helm-loki-7.1.0 | helm-loki-7.2.0 | helm-loki-7.3.0 |
+|---|---|---|---|---|---|
+| artifact:crds | validated |  |  |  |  |
+| artifact:loki-binary | failing |  |  |  |  |
+| artifact:loki-canary | failing |  |  |  |  |
+| artifact:loki-chart | validated |  |  |  |  |
+| artifact:loki-chart-2 | failing |  |  |  |  |
+| artifact:loki-md-chart | unverifiable |  |  |  |  |
+| artifact:loki-operator | failing |  |  |  |  |
+| artifact:operator-hack-addon-grafana-gateway-ocp | validated |  |  |  |  |
+| artifact:operator-hack-addon-grafana-gateway-ocp-oauth | validated |  |  |  |  |
+| content:crds/crds | validated |  |  |  |  |
+| content:loki-chart/chart-metadata | validated |  |  |  |  |
+| content:loki-chart/helm-values | validated |  |  |  |  |
+| content:operator-hack-addon-grafana-gateway-ocp-oauth/image-refs | validated |  |  |  |  |
+| content:operator-hack-addon-grafana-gateway-ocp/image-refs | validated |  |  |  |  |
+| source:changelog | validated |  |  |  |  |
+| source:release-notes-github | failing |  |  |  |  |
+
+## Dropped elements
+
+- `source:release-notes-github` (deterministic): failed validation: 7.0.0 fail (fetch https://api.github.com/repos/grafana/loki/releases/tags/helm-loki-7.0.0: not found (HTTP 404)); 7.1.0 fail (fetch https://api.github.com/repos/grafana/loki/releases/tags/helm-loki-7.1.0: not found (HTTP 404)); 7.2.0 fail (fetch https://api.github.com/repos/grafana/loki/releases/tags/helm-loki-7.2.0: not found (HTTP 404)); 7.3.0 fail (fetch https://api.github.com/repos/grafana/loki/releases/tags/helm-loki-7.3.0: not found (HTTP 404))
+- `artifact:loki-chart-2` (deterministic): failed validation: 7.0.0 fail (no chart version ships appVersion helm-loki-7.0.0 (https://grafana.github.io/helm-charts (chart loki) lists 344 versions)); 7.1.0 fail (no chart version ships appVersion helm-loki-7.1.0 (https://grafana.github.io/helm-charts (chart loki) lists 344 versions)); 7.2.0 fail (no chart version ships appVersion helm-loki-7.2.0 (https://grafana.github.io/helm-charts (chart loki) lists 344 versions)); 7.3.0 fail (no chart version ships appVersion helm-loki-7.3.0 (https://grafana.github.io/helm-charts (chart loki) lists 344 versions))
+- `artifact:loki-binary` (deterministic): failed validation: 7.0.0 fail (absent from https://github.com/grafana/loki/releases/download/helm-loki-7.0.0/loki-linux-amd64.zip); 7.1.0 fail (absent from https://github.com/grafana/loki/releases/download/helm-loki-7.1.0/loki-linux-amd64.zip); 7.2.0 fail (absent from https://github.com/grafana/loki/releases/download/helm-loki-7.2.0/loki-linux-amd64.zip); 7.3.0 fail (absent from https://github.com/grafana/loki/releases/download/helm-loki-7.3.0/loki-linux-amd64.zip)
+- `artifact:loki-canary` (deterministic): failed validation: 7.0.0 fail (absent from docker.io/grafana/loki-canary:helm-loki-7.0.0); 7.1.0 fail (absent from docker.io/grafana/loki-canary:helm-loki-7.1.0); 7.2.0 fail (absent from docker.io/grafana/loki-canary:helm-loki-7.2.0); 7.3.0 fail (absent from docker.io/grafana/loki-canary:helm-loki-7.3.0)
+- `artifact:loki-operator` (deterministic): failed validation: 7.0.0 fail (absent from docker.io/grafana/loki-operator:helm-loki-7.0.0, quay.io/openshift-logging/loki-operator:helm-loki-7.0.0); 7.1.0 fail (absent from docker.io/grafana/loki-operator:helm-loki-7.1.0, quay.io/openshift-logging/loki-operator:helm-loki-7.1.0); 7.2.0 fail (absent from docker.io/grafana/loki-operator:helm-loki-7.2.0, quay.io/openshift-logging/loki-operator:helm-loki-7.2.0); 7.3.0 fail (absent from docker.io/grafana/loki-operator:helm-loki-7.3.0, quay.io/openshift-logging/loki-operator:helm-loki-7.3.0)
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 396 tags: prefix "helm-loki-", 247 stable, 0 prereleases (), 149 junk; latest stable helm-loki-7.3.0; lineage linear; strict tagPattern excludes junk tags such as 2.8.3, helm-loki-5.41.9-distributed, helm-loki-5.41.9-dis… |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (396 tags: prefix "helm-loki-", 247 stable, 0 prereleases (), 149 junk; latest stable helm-loki-7.3.0; lineage linear). |
+| source:github-releases | include | versions.github-releases-fallback | heuristic | Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list. |
+| source:release-notes-github | include | notes.hosted-release-body | heuristic | Hosted GitHub releases exist (assets are downloaded from them); their body may carry notes. |
+| source:changelog | include | changelog.file | heuristic | Changelog with 41 version sections, newest 7.3.0 (heading "## 7.3.0"). |
+| source:advisories | include | security.github-hosted-default | heuristic | The repository is hosted on GitHub, whose security advisories are the default advisory feed. |
+| artifact:loki-chart | include | helm.version-matches-release | heuristic | Chart.yaml at the scanned release carries version "7.3.0", the release version; chart versions follow the release ({{.Version}}). Published via 3 channel(s); OCI locations first. |
+| artifact:loki-chart-2 | include | chart.external-lookup-appversion | heuristic | The chart lives in a separate repository with independent versions; the chart release for a product release is looked up by appVersion == release tag (GitHub Pages URL by the chart-releaser convention). |
+| artifact:loki-md-chart | include | chart.external-lookup-appversion | heuristic | The chart lives in a separate repository with independent versions; the chart release for a product release is looked up by appVersion == release tag (GitHub Pages URL by the chart-releaser convention). |
+| artifact:operator-hack-addon-grafana-gateway-ocp | include | manifest.in-repo-install | heuristic | Static install manifest in the tagged tree referencing the product image with the release tag. |
+| artifact:operator-hack-addon-grafana-gateway-ocp-oauth | include | manifest.in-repo-install | heuristic | Static install manifest in the tagged tree referencing the product image with the release tag. |
+| artifact:loki-binary | include | asset.hosted-release-download | heuristic | Downloaded from the hosted release of the tag (1 reference(s)). |
+| artifact:crds | include | crd.in-repo | heuristic | 5 CRDs of the product's API groups in operator/config/crd/bases at the release tag. |
+| artifact:loki-canary | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:loki-operator | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. Published to 2 registries; ordered by evidence strength. |
+| source:release-notes-github | drop | validate.failed | computed | Relationship check failed: 7.0.0 fail (fetch https://api.github.com/repos/grafana/loki/releases/tags/helm-loki-7.0.0: not found (HTTP 404)); 7.1.0 fail (fetch https://api.github.com/repos/grafana/loki/releases/tags/helm-… |
+| artifact:loki-chart-2 | drop | validate.failed | computed | Relationship check failed: 7.0.0 fail (no chart version ships appVersion helm-loki-7.0.0 (https://grafana.github.io/helm-charts (chart loki) lists 344 versions)); 7.1.0 fail (no chart version ships appVersion helm-loki-7… |
+| artifact:loki-md-chart | annotate | validate.unverifiable | computed | Kept unverified: 7.0.0 unverifiable (no version index answered: helm-repo index https://grafana.github.io/k8s-monitoring-helm (chart loki.md): not-found; helm-git index github.com/grafana/k8s-monitoring-helm:charts/k8s-m… |
+| artifact:loki-binary | drop | validate.failed | computed | Relationship check failed: 7.0.0 fail (absent from https://github.com/grafana/loki/releases/download/helm-loki-7.0.0/loki-linux-amd64.zip); 7.1.0 fail (absent from https://github.com/grafana/loki/releases/download/helm-l… |
+| artifact:loki-canary | drop | validate.failed | computed | Relationship check failed: 7.0.0 fail (absent from docker.io/grafana/loki-canary:helm-loki-7.0.0); 7.1.0 fail (absent from docker.io/grafana/loki-canary:helm-loki-7.1.0); 7.2.0 fail (absent from docker.io/grafana/loki-ca… |
+| artifact:loki-operator | drop | validate.failed | computed | Relationship check failed: 7.0.0 fail (absent from docker.io/grafana/loki-operator:helm-loki-7.0.0, quay.io/openshift-logging/loki-operator:helm-loki-7.0.0); 7.1.0 fail (absent from docker.io/grafana/loki-operator:helm-l… |
+
+149 candidates were found; 100 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/loki.report.md
+proposed definition written to docs/rerun/discovery/loki.proposed.yaml

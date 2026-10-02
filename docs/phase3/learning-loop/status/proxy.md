@@ -1,0 +1,91 @@
+# Lane `proxy` — status
+
+Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and usage: [proxy/README.md](../proxy/README.md).
+
+## Done
+
+- Step 1 (runner): `internal/proxyreview` builds the prompt and verdict schema and turns a verdict into a decision;
+  it also holds the ledger and the report. `ri knowledge proxy-prompt` writes the requests, `scripts/proxy-review.sh`
+  makes one stateless `claude -p --model claude-opus-5-5` call per item, and `ri knowledge decide -reviewer-kind
+  proxy -proxy-request R -proxy-response S -proxy-ledger L` records one decision per item.
+- Step 2 (provenance): complete `ProxyProvenance` (model, modelVersion from the CLI envelope, promptVersion
+  `proxy-review/v1`, promptDigest, callId = CLI session id, inputEvidence, generatedAt); StartedAt/DecidedAt = call
+  start/end. Failures and refusals go to the ledger; none are retried blindly.
+- Step 3 (self-review bias): the request and each ledger line record the proposal authors' models and families and
+  the self-model / self-family flags. `ri knowledge proxy-report` splits outcomes by who authored the proposed
+  assertion and per proposing model (self-model / self-family / other-family).
+- Pilot: 8 items on a scratch copy of the store, all recorded, about $0.06 and 6 s per call.
+
+## Next
+
+- Steps 4 and 6: done (below).
+- Step 5 (shadow pass on high items in `proxy-shadow/`): **waiting for the commander**.
+
+## Decisions taken (local)
+
+- **Proposals are anonymised (P1…Pn) in the prompt.** Model names are recorded in the request and ledger only.
+  This removes overt self-preference; stylistic self-recognition cannot be removed.
+- **The proxy sees no proxy decisions and no proxy-level facts.** One proxy error must not seed the next, and
+  each prompt depends only on human/validator knowledge. It sees earlier *human* decisions on other items (as the
+  brief asks) and never a decision on the item under review. `-no-human-context` exists for the shadow pass.
+- **Evidence-sufficiency items:** these verify no aspect, so they cannot be accepted. The verdict
+  `evidence-sufficient` is recorded as `defer` with the reason prefixed "evidence sufficient …"; the item stays
+  open for re-proposal or a human. `need-more-evidence` is recorded as `need-more-evidence`.
+- **Thinking off** (`MAX_THINKING_TOKENS=0`), as in `scripts/semantic-exchange.sh`; this is cost parity with the
+  proposers.
+- **Provider** is recorded as `Provenance.Rule = "provider:anthropic"`, because `domain.Provenance` has no provider
+  field. Proposal to the contract owner: add `Provenance.Provider` (additive).
+- **Wrong-* labels on corrections** are derived from the aspects that actually changed (`wrong-classification`
+  when the exposed class changed), plus the model's own labels, kept only if they name a verified aspect.
+
+## Files touched outside ownership (additive)
+
+- `cmd/ri/knowledge.go`: usage lines; the `proxy-prompt` and `proxy-report` subcommands; on `decide`, the flags
+  `-proxy-call-id` (the manual proxy path previously had no way to record a call id), `-proxy-request`,
+  `-proxy-response` and `-proxy-ledger`.
+- `internal/semantic/proxy_export.go` (new file): `semantic.Vocabulary(aspects)`, which exports the proposers'
+  vocabulary text.
+- `docs/KNOWLEDGE.md`: one CLI sentence linking the proxy README.
+
+## Test status
+
+`go build ./... && go vet ./... && go test ./...`: see the latest commit message.
+
+## GLM handoff log (2026-10-02, glm-5.3 as glm-proxy)
+
+- 08:10 CDT: took over the lane. Audited run-1 state: 952 requests in `.ri/proxy-run-1`, 567 answered
+  (561 decided: 246 accept / 67 correct / 21 reject / 200 need-more-evidence / 27 defer; 6 refused at
+  verdict stage — the 5 prose-only corrections and 1 >400-char statement already listed below), 7
+  `.failed` markers all reading "session limit · resets 10:50am (America/Chicago)". 385 items remain
+  (378 never called + 7 session-limit). `go build/vet/test` re-run to confirm the branch is green.
+- Plan: the account resets at 10:50 CDT; a scheduled step then probes the limit with one cheap call and,
+  if open, resumes `scripts/proxy-review.sh` (same arguments) after deleting the 7 session-limit
+  `.failed` markers and the `STOP` file. If the probe still fails, it reschedules ~30 min later. After
+  the run: step-6 REPORT.md via `ri knowledge proxy-report`, package requests/responses, commit.
+- 08:20 CDT: prompt v2 (`internal/proxyreview/prompt.go`): the decision rules now state the correction's hard
+  limits (statement ≤400 chars, consequence statement/remediation ≤600, aspect reason ≤400, ≤12 citations),
+  the exact checks `semantic.ProposalFromAnswer` refuses on; `PromptVersion` is `proxy-review/v2`. Run-1 is
+  unaffected: its requests are v1 files on disk, and `Decision` re-hashes the request file's own prompt, not
+  current code, so the remaining v1 responses still record. The shadow pass will build v2 prompts.
+  Deliberately NOT added: any text about no-op corrections — that is the open contract question below, and
+  embedding current recorder behaviour in the prompt would bias it before the commander decides.
+- Uncertain: nothing new. The two open contract questions (prose-only corrections; Provenance.Provider)
+  remain with the commander. Step 5 (shadow) still waits for the commander.
+
+## Run-1: DONE (2026-10-02 11:05 CDT): see [proxy/run-1/REPORT.md](../proxy/run-1/REPORT.md)
+
+- 952 items. 940 proxy decisions recorded (accept 400, correct 121, reject 42, need-more-evidence 323, defer 54).
+  12 verdicts were refused at recording; those items stay pending and were not retried. 96 proxy-level facts.
+- The 7 session-limit call failures were retried after the reset and decided. Those calls had never reached the
+  model, so the retry was not blind. The ledger keeps both lines.
+- Cost $60.10 CLI-reported; about 34 min of active calling at 4 in parallel.
+- I reviewed the GLM handoff work (prompt v2, the stated correction limits, the test) and kept it: the limits
+  match `semantic.checkLengths`, and run-1 kept its v1 requests on disk.
+- Open for the commander:
+  - **Prose-only corrections** account for 11 of the 12 refusals. Should a consequence statement/remediation
+    correction with an unchanged digest be allowed?
+  - `Provenance.Provider`.
+  - 3 proxy facts with an action-eligible consequence. They are capped at REVIEW by the ladder; a human look is
+    suggested.
+- Step 5 (shadow pass on the high items, in a copy at `proxy-shadow/`) **waits for the commander**: "the product
+  owner has finished the high items".

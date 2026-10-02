@@ -84,11 +84,22 @@ calls on a cache-refreshing first run. Flagged for the pipeline owner.
   eval/CHANGELOG.md "2026-10-02 (c)": falseActionRate 0.133 → 0.067, applicabilityAccuracy 0.467 →
   0.486, not-affected violations 1 → 0. kyverno E9 untouched (pending decision).
 
+## groundtruth-4 (2026-10-02, branch p3ll/groundtruth-4 from p3-learning-loop @ 6eb9cd4)
+- Judged the render lane's three rendered effects on not-affected links from upstream sources:
+  plant-edge E4 → review (SDS/secret-sync new-cluster defaults apply: no upgradeCompatibility, a
+  kube-system-backed TLS policy); kyverno E7 → informational (v2beta1 PolicyExceptions, shielded by the
+  migrate hook = overlap); plant-edge E3 stands (statusReport is BGPv2 status reporting, not the
+  metallb-bgp removal; reaches E3 only via the broad `(?i)bgpControlPlane` matcher — a PO decision).
+  Base cilium E4/E8 gained the `tls.secretSync.enabled` subject. Disclosed as render-4-motivated, with
+  before/after panels in eval/CHANGELOG.md "2026-10-02 (d)": plain applicability 0.495 → 0.476, render
+  0.495 → 0.514, render not-affected violations 3 → 1.
+
 ## Open for the commander
 - Decide on docs/phase3/learning-loop/UNDECIDED-SCORING.md (do not pre-register from this lane), and report applicabilityAccuracy split into
   affected-hit and not-affected-clean (the headline number is denominator-sensitive).
 - The CHANGELOG corrections that tighten or soften classes (D7 → review, istio E6 → action,
   cm-1.16 E1 → undecided) are upstream-grounded; veto any you disagree with.
+- Narrow the base cilium E3/E6 `(?i)bgpControlPlane` matcher (plant-edge E3 render violation; D12)?
 - Candidate new links on existing cases (strimzi E8, karpenter E5) are recorded, not added.
 
 ## Decisions

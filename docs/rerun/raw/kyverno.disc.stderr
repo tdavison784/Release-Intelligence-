@@ -1,0 +1,113 @@
+# Discovery report: kyverno
+
+- Repository: `github.com/kyverno/kyverno` at `v1.19.1` (commit `40ec788d48bb…`)
+- Generated: 2026-10-02T12:36:24Z
+- LLM: not used (deterministic resolver only)
+- Tags: 733 tags: prefix "v", 125 stable, 181 prereleases (alpha.N×10, beta.N×8, rc.N×81, rcN×82), 427 junk; latest stable v1.19.1; lineage minor
+- Strict tag pattern: `^v(?P<version>\d+\.\d+\.\d+(?:-(?:alpha\.\d+|beta\.\d+|rc\.\d+|rc\d+))?)$` (junk sample: 1.3.0-rc10, 1.6-dev, 1.7-dev, 1.8-dev, 1.9-dev, helm-chart-v.2.2.1)
+- Scanned `github.com/kyverno/kyverno@v1.19.1` (source profile): 9490 files listed, 7410 read
+- Scanned `github.com/kyverno/website@main` (docs profile): 946 files listed, 110 read
+- Validation: done against v1.17.0, v1.17.2, v1.18.0, v1.18.2, v1.19.0, v1.19.1
+
+## Coverage of the discovery targets
+
+| Target | Status | Candidates | In definition |
+|---|---|---|---|
+| release-source | found | 14 | git-tags github.com/kyverno/kyverno; github-releases kyverno/kyverno |
+| release-notes | found | 1 | repo-file github.com/kyverno/website src/content/blog/announcing-kyverno-release-{{.Major}}.{{.Minor}}/index.md @main; github-releases kyverno/kyverno  @{{.Tag}} |
+| changelog | candidates-only | 1 |  |
+| helm-charts | candidates-only | 8 |  |
+| registries | found | 2 | ghcr.io/kyverno |
+| images | found | 108 | ghcr.io/kyverno/readiness-checker:{{.Tag}} |
+| upgrade-docs | not-found | 0 |  |
+| compatibility | not-found | 0 |  |
+| security | found | 3 | github-advisories kyverno/kyverno |
+| version-relations | found | 1 | install-manifest: version = {{.Tag}}; crds: version = {{.Tag}}; readiness-checker: version = {{.Tag}} |
+
+## Proposed elements
+
+Every proposal carries a status from a closed vocabulary: `historically-validated` (the real relationship checker observed it for at least 3 historical releases), `discovered` (deterministic, grounded in the cited file, not yet checked), `inferred` (heuristic or AI answer, assumptions made), `unverified` (checks ran but the channel was unreachable or samples insufficient), `exception` (holds only with the recorded exceptions/availability).
+
+| Element | Status | Rule | Evidence |
+|---|---|---|---|
+| artifact:crds | historically-validated | crd.in-repo | https://github.com/kyverno/kyverno/blob/v1.19.1/cmd/cli/kubectl-kyverno/data/crds/cli.kyverno.io_clusterresources.yaml#L3 (+2) |
+| artifact:install-manifest | historically-validated | asset.hosted-release-download | https://github.com/kyverno/website/blob/77f297fdd586483469c5a963d749383c22d6634f/src/content/docs/docs/installation/installation.mdx#L144 |
+| artifact:kyverno-policies-chart | historically-validated | helm.appversion-lookup | https://github.com/kyverno/kyverno/blob/v1.19.1/charts/kyverno-policies/Chart.yaml#L3 (+2) |
+| source:release-notes-github | historically-validated | notes.hosted-release-body | https://github.com/kyverno/kyverno/blob/v1.19.1/.github/workflows/release.yaml#L301 (+2) |
+| source:release-notes-line | historically-validated | notes.per-line-file | https://github.com/kyverno/website/blob/77f297fdd586483469c5a963d749383c22d6634f/src/content/blog/announcing-kyverno-release-1.19/index.md# |
+| artifact:kyverno-chart | unverified | helm.independent-version | https://github.com/kyverno/kyverno/blob/v1.19.1/charts/kyverno/Chart.yaml#L3 (+2) |
+| artifact:kyverno-cli-with-arch-if-eq-amd64-x86-64-else-if-eq-386-i386 | unverified | asset.hosted-release-download | https://github.com/kyverno/kyverno/blob/v1.19.1/.goreleaser.yml#L47 |
+| artifact:readiness-checker | exception | image.tag-assumed-release | https://github.com/kyverno/kyverno/blob/v1.19.1/Makefile#L30 |
+| source:advisories | discovered | security.advisories-referenced | https://github.com/kyverno/website/blob/77f297fdd586483469c5a963d749383c22d6634f/src/content/docs/docs/guides/security.md#L23 (+2) |
+| source:github-releases | discovered | versions.github-releases-fallback | https://github.com/kyverno/kyverno/blob/v1.19.1/.github/workflows/release.yaml#L301 (+2) |
+| source:tags | discovered | versions.git-tags | https://github.com/kyverno/kyverno/releases/tag/v1.19.1#refs/tags/v1.19.1 |
+| versioning | discovered | tags.scheme | https://github.com/kyverno/kyverno/releases/tag/v1.19.1#refs/tags/v1.19.1 (+2) |
+
+Statuses: 5 historically-validated, 4 discovered, 2 unverified, 1 exception.
+
+## Open questions for the reviewer
+
+- Release workflow triggers on tags "kyverno-chart-v*", which does not match the tag prefix "v".
+- Release workflow triggers on tags "kyverno-policies-chart-v*", which does not match the tag prefix "v".
+- Release workflow triggers on tags "kyverno-chart-*", which does not match the tag prefix "v".
+- Release workflow triggers on tags "kyverno-policies-chart-*", which does not match the tag prefix "v".
+- CHANGELOG.md stops at 1.13.0; confirm it is abandoned (release notes come from other sources).
+- artifact:readiness-checker failed validation for one release and was kept: Holds for 5 releases but failed for one (1.17.0 fail (absent from ghcr.io/kyverno/readiness-checker:v1.17.0)); kept with a comment for review.
+- Ambiguity (registry-roles): 3 registry hosts/namespaces are referenced for product images; which are release channels?
+- Ambiguity (docs-sources): Documentation lives in another repository; no release-notes, upgrade-guide, compatibility source was derived from it.
+- Ambiguity (main-chart): 2 charts are published; which one installs the product?
+- Ambiguity (chart-version): How do the versions of chart(s) kyverno relate to the release version?
+
+## Validation matrix
+
+| Element | Verdict | v1.17.0 | v1.17.2 | v1.18.0 | v1.18.2 | v1.19.0 | v1.19.1 |
+|---|---|---|---|---|---|---|---|
+| artifact:crds | validated |  |  |  |  |  |  |
+| artifact:install-manifest | validated |  |  |  |  |  |  |
+| artifact:kyverno-chart | unverifiable |  |  |  |  |  |  |
+| artifact:kyverno-cli-with-arch-if-eq-amd64-x86-64-else-if-eq-386-i386 | unverifiable |  |  |  |  |  |  |
+| artifact:kyverno-policies-chart | validated |  |  |  |  |  |  |
+| artifact:readiness-checker | failing |  |  |  |  |  |  |
+| content:crds/crds | validated |  |  |  |  |  |  |
+| content:install-manifest/image-refs | validated |  |  |  |  |  |  |
+| content:kyverno-chart/chart-metadata | validated |  |  |  |  |  |  |
+| content:kyverno-chart/helm-values | validated |  |  |  |  |  |  |
+| content:kyverno-policies-chart/chart-metadata | validated |  |  |  |  |  |  |
+| content:kyverno-policies-chart/helm-values | validated |  |  |  |  |  |  |
+| source:release-notes-github | validated |  |  |  |  |  |  |
+| source:release-notes-line | validated |  |  |  |  |  |  |
+
+## Dropped elements
+
+- `artifact:kyverno-policies-chart` (deterministic): static validation: error: artifacts[0].channels[0]: template "ghcr.io/${{/kyverno-policies": template: :1: unexpected "/" in command
+- `artifact:kyverno-chart` (deterministic): static validation: error: artifacts[0].channels[1]: template "ghcr.io/${{/kyverno": template: :1: unexpected "/" in command
+- `artifact:kyverno-cli-with-arch-if-eq-amd64-x86-64-else-if-eq-386-i386` (deterministic): static validation: error: artifacts[1].channels[0]: template "https://github.com/kyverno/kyverno/releases/download/{{.Tag}}/kyverno-cli_{{.Tag}}_linux_\n{{- with .Arch -}}\n{{- if eq . \"amd64\" -}}x86_64{{- else if eq . \"386\" -}}i386{{- else -}}{{- . -}}{{- end -}}\n{{- end -}}\n{{- with .Arm -}}\n{{- if eq . \"6\" -}}hf{{- else -}}v{{- . -}}{{- end -}}\n{{- end -}}.tar.gz": template: :2:9: executing "" at <.Arch>: can't evaluate field Arch in type catalog.RenderContext
+
+## Decisions
+
+| Element | Action | Rule | Method | Rationale |
+|---|---|---|---|---|
+| versioning | include | tags.scheme | computed | 733 tags: prefix "v", 125 stable, 181 prereleases (alpha.N×10, beta.N×8, rc.N×81, rcN×82), 427 junk; latest stable v1.19.1; lineage minor; strict tagPattern excludes junk tags such as 1.3.0-rc10, 1.6-dev, 1.7-dev, 1.… |
+| source:tags | include | versions.git-tags | heuristic | Canonical versions come from the repository's git tags (733 tags: prefix "v", 125 stable, 181 prereleases (alpha.N×10, beta.N×8, rc.N×81, rcN×82), 427 junk; latest stable v1.19.1; lineage minor). |
+| source:github-releases | include | versions.github-releases-fallback | heuristic | Hosted GitHub releases are published (release tooling or release-asset downloads found); used as a fallback version list. |
+| source:release-notes-line | include | notes.per-line-file | heuristic | One notes document per release line (8 instances, newest src/content/blog/announcing-kyverno-release-1.19/index.md), used for X.Y.0 releases. |
+| source:release-notes-github | include | notes.hosted-release-body | heuristic | Hosted GitHub releases exist (assets are downloaded from them); their body may carry notes. |
+| source:advisories | include | security.advisories-referenced | heuristic | The security policy states that advisories are published as GitHub Security Advisories. |
+| artifact:kyverno-policies-chart | include | helm.appversion-lookup | heuristic | Chart.yaml sets appVersion "v1.19.1", which equals a release tag; the chart release for a product release is looked up by appVersion == {{.Tag}} (the chart's own version moves independently). Published via 2 channel(s); … |
+| artifact:kyverno-chart | include | helm.independent-version | heuristic | Chart has its own version "3.9.1" unrelated to the release. Published via 3 channel(s); OCI locations first. |
+| candidate:cand-a158dd63f398 | annotate | asset.integrity-file | heuristic | Checksum/signature/provenance asset; recorded but not modelled as an artifact. |
+| artifact:install-manifest | include | asset.hosted-release-download | heuristic | Downloaded from the hosted release of the tag (1 reference(s)). |
+| artifact:kyverno-cli-with-arch-if-eq-amd64-x86-64-else-if-eq-386-i386 | include | asset.hosted-release-download | heuristic | Downloaded from the hosted release of the tag (3 reference(s)). |
+| artifact:crds | include | crd.in-repo | heuristic | 20 CRDs of the product's API groups in cmd/cli/kubectl-kyverno/data/crds at the release tag. |
+| artifact:readiness-checker | include | image.tag-assumed-release | heuristic | No explicit tag evidence; assuming images are tagged with the release tag. |
+| artifact:kyverno-chart | annotate | validate.unverifiable | computed | Kept unverified: 1.17.0 unverifiable (artifact version is independent of the release version (strategy independent); not resolvable); 1.17.2 unverifiable (artifact version is independent of the release version (strategy … |
+| artifact:kyverno-cli-with-arch-if-eq-amd64-x86-64-else-if-eq-386-i386 | annotate | validate.unverifiable | computed | Kept unverified: 1.17.0 unverifiable (not verifiable: http channel (http: error)); 1.17.2 unverifiable (not verifiable: http channel (http: error)); 1.18.0 unverifiable (not verifiable: http channel (http: error)); 1.18.… |
+| artifact:readiness-checker | annotate | validate.single-failure-kept | computed | Holds for 5 releases but failed for one (1.17.0 fail (absent from ghcr.io/kyverno/readiness-checker:v1.17.0)); kept with a comment for review. |
+| artifact:kyverno-policies-chart | drop | proposer.static-validation | computed | error: artifacts[0].channels[0]: template "ghcr.io/${{/kyverno-policies": template: :1: unexpected "/" in command |
+| artifact:kyverno-chart | drop | proposer.static-validation | computed | error: artifacts[0].channels[1]: template "ghcr.io/${{/kyverno": template: :1: unexpected "/" in command |
+| artifact:kyverno-cli-with-arch-if-eq-amd64-x86-64-else-if-eq-386-i386 | drop | proposer.static-validation | computed | error: artifacts[1].channels[0]: template "https://github.com/kyverno/kyverno/releases/download/{{.Tag}}/kyverno-cli_{{.Tag}}_linux_\n{{- with .Arch -}}\n{{- if eq . \"amd64\" -}}x86_64{{- else if eq . \"386\" -}}i386{{-… |
+
+255 candidates were found; 178 were excluded by resolver rules (see the full report).
+
+report written to docs/rerun/discovery/kyverno.report.md
+proposed definition written to docs/rerun/discovery/kyverno.proposed.yaml

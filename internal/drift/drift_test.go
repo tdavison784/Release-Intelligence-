@@ -385,3 +385,48 @@ func evidenceByID(rep *Report, id domain.EvidenceID) (domain.Evidence, bool) {
 // Silence unused warnings for helpers used only by some tests.
 var _ = context.Background
 var _ = time.Now
+
+// A baseline saved from the same definition revision is current; one saved
+// from an older revision is stale (reported, never an event); a legacy report
+// without a digest is unrecorded. Staleness must not change the verdict.
+func TestBaselineDefinitionDigestStaleness(t *testing.T) {
+	cases := []struct {
+		name   string
+		mutate func(*ingest.RelationshipReport)
+		want   string
+	}{
+		{"same revision", nil, DigestCurrent},
+		{"older revision", func(r *ingest.RelationshipReport) { r.DefinitionDigest = "sha256:0123456789abcdef0123456789abcdef" }, DigestStale},
+		{"saved before digests were recorded", func(r *ingest.RelationshipReport) { r.DefinitionDigest = "" }, DigestUnrecorded},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			w := newWorld()
+			rep := analyzeWith(w, testDef(), "checks/acme.json", []string{"1.2.0", "1.2.1"}, baselineReleases, tc.mutate)
+			if rep.Baseline.DigestState != tc.want {
+				t.Fatalf("digest state %q, want %q (baseline %q, current %q)", rep.Baseline.DigestState, tc.want, rep.Baseline.DefinitionDigest, rep.DefinitionDigest)
+			}
+			if len(rep.Events) != 0 || rep.Summary.Drift+rep.Summary.Unverifiable+rep.Summary.Notes != 0 {
+				t.Fatalf("staleness must not create events: %+v", rep.Events)
+			}
+			var out strings.Builder
+			if err := RenderText(&out, rep); err != nil {
+				t.Fatal(err)
+			}
+			switch tc.want {
+			case DigestStale:
+				if !strings.Contains(out.String(), "stale baseline") {
+					t.Errorf("text report must flag the stale baseline:\n%s", out.String())
+				}
+			case DigestUnrecorded:
+				if !strings.Contains(out.String(), "records no definition digest") {
+					t.Errorf("text report must say the digest is unrecorded:\n%s", out.String())
+				}
+			default:
+				if strings.Contains(out.String(), "stale") || strings.Contains(out.String(), "no definition digest") {
+					t.Errorf("current baseline must not warn:\n%s", out.String())
+				}
+			}
+		})
+	}
+}

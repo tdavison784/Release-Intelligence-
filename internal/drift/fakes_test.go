@@ -316,9 +316,18 @@ func app_resolve(vl *ingest.VersionList, s string) (domain.Version, error) {
 // (checking semvers, baseline semvers; an empty baseline list means no saved
 // report).
 func analyze(w *world, def *catalog.ProductDefinition, baselinePath string, check, baseline []string) *Report {
+	return analyzeWith(w, def, baselinePath, check, baseline, nil)
+}
+
+// analyzeWith is analyze with a hook to alter the saved baseline report
+// before the analysis (e.g. to simulate an older definition's digest).
+func analyzeWith(w *world, def *catalog.ProductDefinition, baselinePath string, check, baseline []string, mutate func(*ingest.RelationshipReport)) *Report {
 	var baseRep *ingest.RelationshipReport
 	if len(baseline) > 0 {
 		baseRep, _, _ = runCheck(w, def, baseline)
+		if mutate != nil {
+			mutate(baseRep)
+		}
 	}
 	cur, rels, vl := runCheck(w, def, check)
 	rep, err := Analyze(context.Background(), Input{
