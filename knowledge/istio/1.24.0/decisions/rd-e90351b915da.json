@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e90351b915da",
+    "reviewItemId": "ri-539e518eca37",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any Telemetry API CEL expressions use the old attributes (filter_state[\"wasm.downstream_peer\"], filter_state[\"wasm.upstream_peer\"], node, or unqualified wasm attributes such as istio_responseClass)"
+        }
+      },
+      "statement": "Telemetry API CEL expressions must be updated to use standard Envoy attributes (filter_state.downstream_peer/upstream_peer, xds.node, fully qualified wasm.* attributes) instead of the custom Wasm extended attributes."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:7a40b2d55bf69fd06e32b3b59150e62a886f29a89c7664f734934b1fad497f48",
+      "inputEvidence": [
+        "ev-7e3267b542c5",
+        "ev-a3db376e8800"
+      ],
+      "generatedAt": "2026-10-02T12:55:11.995Z",
+      "callId": "172dc2ae-99ed-43c4-b093-ac1d81f66a6a"
+    },
+    "reason": "[ev-7e3267b542c5] and [ev-a3db376e8800] say that CEL expressions in the telemetry API must switch from the custom Wasm attributes to the standard Envoy attributes. The old forms are filter_state[\"wasm.downstream_peer\"]/[\"wasm.upstream_peer\"], node, and unqualified Wasm attributes such as istio_responseClass. So an environment is exposed only if its Telemetry CEL expressions use those old forms. Neither excerpt names the Telemetry resource field paths that hold CEL expressions, so a scoped resource/field predicate cannot be built from the evidence. An undecidable leaf whose \"needed\" lists exactly the old attributes is the right shape; the reason code could also be read as an evidence gap.",
+    "startedAt": "2026-10-02T12:55:00.629Z",
+    "decidedAt": "2026-10-02T12:55:11.995Z"
+  }
+}

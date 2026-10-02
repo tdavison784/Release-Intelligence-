@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-60efa8a4fd53",
+    "reviewItemId": "ri-29178589f64c",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "version": "apps/v1",
+          "kind": "Deployment"
+        }
+      },
+      "statement": "The allowPrivilegeEscalation field in the ztunnel security context is now explicitly set to true in the configuration, matching its actual enforced runtime behavior."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment deploys Istio's ztunnel component; the evidence names no image repository, workload kind, chart or values key that identifies ztunnel"
+        }
+      },
+      "statement": "Environments that deploy Istio's ztunnel component are exposed: ztunnel's securityContext now explicitly sets allowPrivilegeEscalation to true, which matches what was always enforced at runtime. The evidence does not name the image, workload kind or values key needed to detect ztunnel from configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:efaa00c2009f86e654089b2edbe2cb538b31dd0fed4445ebbd0099fe4f892a04",
+      "inputEvidence": [
+        "ev-5918eeb14ddb",
+        "ev-41d780f6ab39",
+        "ev-ad95ec08c00b"
+      ],
+      "generatedAt": "2026-10-02T12:50:44.306Z",
+      "callId": "38dc3f7d-fb76-417d-b631-6b6dda354ede"
+    },
+    "reason": "[ev-5918eeb14ddb] says only that ztunnel's securityContext now sets `allowPrivilegeEscalation` to `true`, so only environments that deploy ztunnel are affected. The proposed condition, gvk-in-use for any Deployment, is far too broad because it flags almost every cluster. Its version literal \"apps/v1\" also mixes up the group and the version. None of the evidence names an image, a workload kind or an existing values key that identifies ztunnel; the validators found that the P1 key is in neither release's values ([ev-41d780f6ab39], [ev-ad95ec08c00b]). So whether an environment runs ztunnel has to be marked undecidable from the evidence, not replaced with a guessed predicate.",
+    "startedAt": "2026-10-02T12:50:31.59Z",
+    "decidedAt": "2026-10-02T12:50:44.306Z"
+  }
+}

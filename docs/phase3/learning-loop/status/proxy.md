@@ -51,3 +51,20 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
 ## Test status
 
 `go build ./... && go vet ./... && go test ./...`: see the latest commit message.
+
+## Run-1 state (2026-10-02 08:05 CDT): PAUSED at the account session limit
+
+- About 560 of 952 non-high items were decided as proxy. The ledger is `proxy/run-1/ledger.jsonl`; the exchange
+  directory `.ri/proxy-run-1` is gitignored and holds a `STOP` file.
+- About 8 calls failed with "session limit" (`<item>.failed`, ledger stage `call`). These calls never reached the
+  model, so re-running them is not a blind retry. To resume after the 10:50 CDT reset: delete the `*.failed`
+  markers whose text says "session limit", `rm .ri/proxy-run-1/STOP`, and re-run `scripts/proxy-review.sh` with
+  the same arguments.
+- Refusals so far (recorded, not retried):
+  - **Prose-only corrections** (≈5): the proxy fixed a consequence statement or remediation (for example an
+    invented `--log-format` flag) but kept the kind. The aspect digests exclude prose, so `ReviewDecision.Validate`
+    refuses them as no-op corrections. A human on the dashboard would hit the same wall. **Contract question
+    for the commander:** should a prose-only correction be allowed?
+  - 1 statement longer than 400 characters: the v1 prompt does not state the length limits. Fix in a v2 prompt.
+- Still to do: finish step 4, write the step 6 REPORT.md (`ri knowledge proxy-report`), commit
+  responses/requests. Step 5 waits for the commander.

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-8b077bed3e84",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-de356338b90c"
+        ],
+        "statementKeys": [
+          "sk-c41039fa7503"
+        ],
+        "changeIds": [
+          "chg-7cc99e47d4c2"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-dc1b8ad7b73a"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "appset-gitlab-scm-haspath-404"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "ApplicationSet"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether any ApplicationSet uses the GitLab SCM provider generator with path-existence (HasPath) checks; the evidence gives no field path for this"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ApplicationSet generators using GitLab SCM provider with HasPath search will handle 404 HTTP responses differently, treating them as file-not-found rather than errors."
+      },
+      "statement": "55aab6efb6e8dd510050e23b876ff25792e39e54: fix(appset): reverted Gitlab SCM HasPath search and consider 404 errors as file not found"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-658c67e6a9a9"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-658c67e6a9a9"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-0292267a36d7"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-4fb3a60014a6"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-dc295e9fc56b",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L83-L83 (Changelog › Bug fixes)",
+        "excerpt": "* 55aab6efb6e8dd510050e23b876ff25792e39e54: fix(appset): reverted Gitlab SCM HasPath search and consider 404 errors as file not found (#16253) (#21597) (@prune998)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T12:57:20.224Z"
+  }
+}

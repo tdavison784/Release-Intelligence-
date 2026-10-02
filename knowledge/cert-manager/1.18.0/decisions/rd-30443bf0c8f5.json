@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-30443bf0c8f5",
+    "reviewItemId": "ri-1bc44623e9ab",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "acme-profiles-extension"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "cert-manager 1.18.0 patches its internal third_party/forked/acme package to support the ACME profiles extension; this is listed as a cleanup item with no stated effect on operators."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:c6b1cf61aebb5f05ec3c1af3265c7afcc78a2feecbdc2696730da0f4dcdd9f98",
+      "inputEvidence": [
+        "ev-8ec1fdd0d15f"
+      ],
+      "generatedAt": "2026-10-02T12:49:02.193Z",
+      "callId": "bc93f7f7-31fa-41a3-b4b4-e4a2ade8ee40"
+    },
+    "reason": "[ev-8ec1fdd0d15f] says cert-manager's vendored `third_party/forked/acme` package was patched \"with support for the ACME profiles extension\". That makes the subject a protocol behaviour, which I name \"acme-profiles-extension\" using the evidence's own words, and support that did not exist before is an \"added\" change. The forked package is an internal library, not a named component or binary that owns the subject, so it is right to leave component unset. The note is filed under Cleanup and does not say whether operators can see the change, so I am only partly sure that this counts as a product-level protocol change.",
+    "startedAt": "2026-10-02T12:48:53.022Z",
+    "decidedAt": "2026-10-02T12:49:02.193Z"
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9c50a7d3c8fa",
+    "reviewItemId": "ri-98a0fd5eecdb",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "statement": "Istio now honours DestinationRule certificates over metadata certificates for MESH_EXTERNAL services; setting env var PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES to false reverts this."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.location",
+                  "state": "equals",
+                  "values": [
+                    "\"MESH_EXTERNAL\""
+                  ]
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "ServiceEntry"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.trafficPolicy.tls",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.trafficPolicy.portLevelSettings[].tls",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "env-var",
+                  "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.location",
+                  "state": "equals",
+                  "values": [
+                    "\"MESH_EXTERNAL\""
+                  ]
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "ServiceEntry"
+            },
+            {
+              "op": "env-var",
+              "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "Istio now honours DestinationRule certificates instead of Metadata certificates for MESH_EXTERNAL services. This affects environments that have a MESH_EXTERNAL ServiceEntry and a DestinationRule with TLS settings, unless PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES is set to false. Setting the variable to false keeps the old behaviour."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:bca3c1aaf11e3cc8b4f6793d5fcb17ccd53d5da4844c5b6482c8344d41da3e73",
+      "inputEvidence": [
+        "ev-790b038b82b7"
+      ],
+      "generatedAt": "2026-10-02T13:04:59.496Z",
+      "callId": "0807a96f-9cec-4b28-bc42-65199e293fb9"
+    },
+    "reason": "[ev-790b038b82b7] says DestinationRule certificates are now honoured instead of Metadata certificates for MESH_EXTERNAL services, and that setting PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES to `false` reverts this. That means only environments with MESH_EXTERNAL services whose DestinationRules carry TLS settings, and that have not set the variable to false, are exposed. The proposed exposure ('not equals false' alone) is too broad: it flags every environment, including ones with no MESH_EXTERNAL services or no DestinationRule TLS. Its literal '\"false\"' also includes the quote characters, so it would never match a plain false value. The evidence does not name the exact DestinationRule certificate fields, so I used the presence of the tls block (top-level or port-level) as the closest stand-in.",
+    "startedAt": "2026-10-02T13:04:37.201Z",
+    "decidedAt": "2026-10-02T13:04:59.496Z"
+  }
+}

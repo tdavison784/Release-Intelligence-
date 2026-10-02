@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c6dcbe642267",
+    "reviewItemId": "ri-7f4af2d40304",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--probe",
+          "component": "cilium-health",
+          "state": "set"
+        }
+      },
+      "statement": "The cilium-health status --probe flag no longer runs synchronous probes; it now returns cached results and is hidden, scheduled for removal in a future release."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators or scripts invoke `cilium-health status --probe` and rely on it running a synchronous probe rather than returning cached results"
+        }
+      },
+      "statement": "Environments are exposed if operators or automation run `cilium-health status --probe` and expect a synchronous probe. In 1.17.0 that option is hidden and returns the most recent cached probe instead. No static environment input shows this usage, so exposure is undecidable."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:ae865a9c8df522353cb8944248ac15879e28be0f9e700ddac915a5bd592a71c1",
+      "inputEvidence": [
+        "ev-5f4aedc964f4"
+      ],
+      "generatedAt": "2026-10-02T13:01:23.238Z",
+      "callId": "bcf68806-bfcb-4cb7-94c7-66c9eb61ac3c"
+    },
+    "reason": "[ev-5f4aedc964f4] describes `cilium-health status --probe` as a CLI subcommand option that operators or scripts run, not a container argument of Cilium's workloads, which is what the cli-flag leaf evaluates. The proposed condition would therefore miss environments that actually use the command and could match unrelated container arguments. Whether an environment depends on synchronous probe results from this command shows up only at runtime, and no static input carries it, so exposure is undecidable.",
+    "startedAt": "2026-10-02T13:01:11.362Z",
+    "decidedAt": "2026-10-02T13:01:23.238Z",
+    "resultingFact": "vf-259e55e67367"
+  }
+}

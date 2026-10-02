@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f3c49e4ed5f6",
+    "reviewItemId": "ri-7c1c5b0e08df",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "kubernetes",
+              "state": "in-range",
+              "range": ">=1.0.0"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.24.0"
+            }
+          ]
+        }
+      },
+      "statement": "Istio 1.24.0 adds the Kubernetes recommended labels app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/part-of, app.kubernetes.io/version, app.kubernetes.io/managed-by, and helm.sh/chart to almost all resources."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<1.24.0"
+        }
+      },
+      "statement": "Istio 1.24.0 adds the app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/part-of, app.kubernetes.io/version, app.kubernetes.io/managed-by and helm.sh/chart labels to almost all resources. Any environment upgrading from a version before 1.24.0 gets these labels."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:086d378f944aa13a099246de4ecac1f51a233a6fc84aa2d107f892ce6aebfbef",
+      "inputEvidence": [
+        "ev-d4a0f83c6c05"
+      ],
+      "generatedAt": "2026-10-02T13:01:00.801Z",
+      "callId": "265c0645-c507-4d28-97b0-98f97a4f983e"
+    },
+    "reason": "[ev-d4a0f83c6c05] says only that Istio 1.24.0 adds the app.kubernetes.io/* and helm.sh/chart labels to almost all resources. Nothing in it ties this to a Kubernetes version, so the cluster-version \">=1.0.0\" operand is an unsupported filler. It adds nothing, and under three-valued logic it can leave environments unknown when their cluster version can't be seen. The evidence supports exposure for any environment upgrading from a release before 1.24.0. It doesn't say which resources are excluded, so no narrower rendered-change predicate can be written.",
+    "startedAt": "2026-10-02T13:00:45.943Z",
+    "decidedAt": "2026-10-02T13:01:00.801Z"
+  }
+}

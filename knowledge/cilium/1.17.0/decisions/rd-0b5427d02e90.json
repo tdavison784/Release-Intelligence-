@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0b5427d02e90",
+    "reviewItemId": "ri-858a04e2f3c2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "IPsec configurations using single key mode will automatically transition to per-tunnel keys; tunnel behavior may change depending on the per-tunnel key configuration.",
+        "severity": "medium"
+      },
+      "statement": "IPsec single key support (indicated by the + sign in secrets) has been removed; per-tunnel keys are now always used regardless of the + sign's presence."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:7e68b65729a8d9aa8fa499438e3846f6b262285d9907062b57b5183df2c9f2af",
+      "inputEvidence": [
+        "ev-a152c8cea30c"
+      ],
+      "generatedAt": "2026-10-02T13:02:26.574Z",
+      "callId": "6b9e1211-453a-40d8-b7c9-9dd6c96dfce7"
+    },
+    "reason": "[ev-a152c8cea30c] says single-key IPsec support is removed and that per-tunnel keys are now used whether or not the secret has the `+` sign. That describes a mechanism that changes automatically, not one that fails, rejects resources, ignores settings or needs a stated operator step. So behavior-change (review) is the kind the evidence supports; nothing there justifies a mandatory-work kind. Confidence is low because the excerpt also doesn't say outright that existing IPsec connectivity keeps working through the switch.",
+    "startedAt": "2026-10-02T13:02:17.932Z",
+    "decidedAt": "2026-10-02T13:02:26.574Z",
+    "resultingFact": "vf-62897569e74d"
+  }
+}

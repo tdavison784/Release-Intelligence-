@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e1e1852e7b11",
+    "reviewItemId": "ri-0d407347f431",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "Istio 1.24.0 adds support for using Destination Rule certificates instead of metadata certificates for MESH_EXTERNAL services, controlled via the PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES environment variable."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:3d31504baa6563b3e7a9c8c06b452024511c481caf867887c563d10bb91fc2a9",
+      "inputEvidence": [
+        "ev-790b038b82b7"
+      ],
+      "generatedAt": "2026-10-02T12:46:49.981Z",
+      "callId": "2ded12a4-e5cb-4c54-9ea7-25fba0759440"
+    },
+    "reason": "[ev-790b038b82b7] says Istio now honours DestinationRule certificates instead of metadata certificates for MESH_EXTERNAL services, and that setting PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES to `false` reverts this. So with the same configuration (the variable left unset), the behaviour is now different, which fits behavior-changed. The text names this variable as the control and spells it exactly as the subject does. It gives no earlier default value, so default-changed with before/after literals cannot be stated.",
+    "startedAt": "2026-10-02T12:46:40.689Z",
+    "decidedAt": "2026-10-02T12:46:49.981Z"
+  }
+}
