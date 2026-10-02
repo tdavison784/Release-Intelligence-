@@ -85,10 +85,20 @@ cert-manager v1.17.0 → v1.18.0, `--kubernetes 1.31`:
 
 ## Next
 
-(d) auto-approval policy + metrics (knowledge lane's `AutoApproveRenderVerifiable` landed the routing
-side — verify it demands the right render relation and wire `RenderedClasses` in if not); (e)
-`eval/render/` cases (authored from upstream sources before running the renderer, R16); docs/RENDER.md
+(e) `eval/render/` cases (authored from upstream sources before running the renderer, R16); docs/RENDER.md
 (path syntax, `ri render diff`, `ri impact --render`, evidence policy).
+
+## (d) auto-approval — verified, one join missing (commander decision)
+
+`AutoApproveRenderVerifiable` (knowledge lane, `internal/knowledge/autoapprove.go`) matches R10/G10:
+it gates on render-verifiable, verifies unconfirmed aspects by consensus of separate model calls
+(PO-1), and a refuted digest — e.g. contradicted-by-render from the `rendered-diff` validator — can
+never be auto-approved. Metrics incl. the audit sample are the knowledge lane's (`metrics.go`).
+**Gap:** `SemanticCandidate.Renderability` is set by no production code (fixtures only), so the policy
+is inert until the candidate-producing lane (or `RouteStore`) folds it — from this lane's
+`render.RenderabilityOf(family, changeType)` / `RenderedClasses` or the validator's `RenderRelation`.
+That wiring lives in `internal/knowledge` (knowledge lane's ownership), so it is flagged here rather
+than done during the handoff.
 
 ## Decisions (why)
 
@@ -143,7 +153,10 @@ Uncertainties for the returning agent:
   lane before building on it.
 - (d): knowledge lane's `AutoApproveRenderVerifiable` exists — check whether it requires a
   confirmed-by-render relation (and a complete-values render) before auto-approving; `RenderedClasses`
-  in `renderability.go` is the data source it should consult.
+  in `renderability.go` is the data source it should consult. **Verified:** it implements R10 as
+  specified (no per-fact render confirmation required; refutations veto), but
+  `SemanticCandidate.Renderability` is populated by nothing outside fixtures — see "(d)" section; the
+  join is a commander decision between lanes.
 - `recordedState(t)` in `cmd/ri` scrubs PATH (hermetic offline replays), so the impact-render test
   sees `renderer-unavailable` for kustomize; a machine with kubectl on PATH sees `kustomize-dependency`
   instead. The test accepts either (R13 wants an explicit failure, not a specific reason).
