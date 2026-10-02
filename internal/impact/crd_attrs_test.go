@@ -132,3 +132,15 @@ func TestCRDStorageChangedJoin(t *testing.T) {
 		t.Errorf("no CRDs/manifests: %s/%s", f.Classification, f.UnknownReason)
 	}
 }
+
+func TestCRDAttributeOtherServedVersionIsNotCleared(t *testing.T) {
+	eb, c := attrEdge(upgrade.RuleCRDDefaultChanged,
+		"Certificate v2 schema: default changed: `spec.privateKey.rotationPolicy`",
+		"Schema defaults changed in the cert-manager.io/v2 schema of certificates.cert-manager.io (old → new; defaults apply to objects that leave the field unset):\nspec.privateKey.rotationPolicy: \"Never\" → \"Always\"",
+		"spec.privateKey.rotationPolicy")
+	// the fixture's Certificates are cert-manager.io/v1: converted to v2 at runtime
+	f := onlyFinding(t, buildReport(t, eb.edge, condEnv(t, "", nil)), c.ID)
+	if f.Classification != domain.ImpactUnknown || f.UnknownReason != domain.UnknownRuntimeBehaviorGap {
+		t.Errorf("resources at another version: %s/%s/%s, want unknown/runtime-behavior-gap", f.Rule, f.Classification, f.UnknownReason)
+	}
+}

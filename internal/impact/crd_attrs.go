@@ -387,6 +387,16 @@ func (b *builder) crdAttribute(c domain.Change, toTag string) {
 			fmt.Sprintf("Cannot tell whether %s affects you: the change does not state its values machine-readably", c.Title),
 			"The change's detail does not list the old/new values per path, so resource values cannot be compared with them.",
 			c, c.Evidence, nil, fmt.Sprintf("machine-readable old/new values for %s", codeList(unparsed, 3)))
+	case len(otherVersions(b, s)) > 0:
+		// resources of the same kind at another API version are converted to
+		// the changed version by the API server: whether the change reaches
+		// them depends on the conversion, which no static input shows
+		others := otherVersions(b, s)
+		b.unknown(domain.UnknownRuntimeBehaviorGap, RuleInsufficientVisibility, c.ID,
+			fmt.Sprintf("Cannot rule out that %s affects you: your %s resources use another API version", c.Title, s.id.Kind),
+			fmt.Sprintf("No %s resource is affected, but %d resource(s) of the kind use %s; the API server converts them to %s, so the changed schema attribute may still apply to them.",
+				s.label, len(others), strings.Join(others, ", "), s.id.Version),
+			c, c.Evidence, nil, fmt.Sprintf("how %s objects stored at %s convert to %s (conversion is runtime behaviour)", s.id.Kind, strings.Join(others, ", "), s.id.Version))
 	case b.env.Health(env.DimManifests) != env.HealthOK:
 		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot rule out that %s affects you: manifests were only partially parsed", c.Title),
@@ -478,4 +488,19 @@ func firstNonEmpty(xs ...string) string {
 		}
 	}
 	return ""
+}
+
+// otherVersions lists the API versions (other than the scope's) at which the
+// manifests declare resources of the scope's group and kind.
+func otherVersions(b *builder, s attrScope) []string {
+	if s.id.Kind == "" || s.id.Version == "" {
+		return nil
+	}
+	var out []string
+	for _, r := range b.env.Select(env.GVKSelector{Group: s.id.Group, Kind: s.id.Kind}) {
+		if r.Version != s.id.Version {
+			out = appendUnique(out, apiVersionString(r.Group, r.Version))
+		}
+	}
+	return out
 }
