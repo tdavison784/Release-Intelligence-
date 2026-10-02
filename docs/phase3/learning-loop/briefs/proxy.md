@@ -1,7 +1,7 @@
 # Lane `proxy` — blind AI proxy review of the knowledge store (product owner decision 2026-10-02)
 
 Decision: a blind Opus proxy reviews every non-high-priority review item, labelled `proxy`; the product
-owner reviews the high-priority items himself on the dashboard; afterwards the proxy shadow-reviews those
+owner reviews the high-priority items on the dashboard; afterwards the proxy shadow-reviews those
 high items in a COPY so proxy-vs-human agreement can be measured without biasing the human.
 
 Read: `docs/phase3/learning-loop/FLEET.md` (binding), `MISSION.md` (Goals 6–15), `DESIGN.md` (§2.4–2.6,
