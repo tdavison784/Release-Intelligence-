@@ -69,6 +69,7 @@ Commands:
   render diff <product> <from> <to> render source/target with your configuration; semantic object diff
   knowledge <subcommand>            the learning loop: route, decide, export, metrics (ri knowledge help)
   review serve                      engineering review UI for the learning loop (-demo for fixtures)
+  semantic candidates|propose ...   learning loop: restatement clusters of an edge; multi-model semantic proposals
 
 Global flags:
 `
@@ -166,6 +167,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return c.knowledge(cmdArgs)
 	case "review":
 		return c.review(cmdArgs)
+	case "semantic":
+		return c.semanticCmd(cmdArgs)
 	default:
 		fs.Usage()
 		return fmt.Errorf("%w: unknown command %q", app.ErrUsage, cmd)

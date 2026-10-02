@@ -26,6 +26,8 @@ type CacheEntry struct {
 	GeneratedAt  time.Time `json:"generatedAt"`
 	// Origin is where the answer originally came from (api, exchange, fake).
 	Origin string `json:"origin"`
+	// CallID is the original call's id (replayed unchanged).
+	CallID string `json:"callId,omitempty"`
 	Text   string `json:"text"`
 }
 
@@ -82,7 +84,7 @@ func (c *Cache) Complete(ctx context.Context, req Request) (*Response, error) {
 			return nil, err
 		}
 		if e != nil {
-			return &Response{Text: e.Text, Model: e.Model, ModelVersion: e.ModelVersion, GeneratedAt: e.GeneratedAt, Origin: OriginCache}, nil
+			return &Response{Text: e.Text, Model: e.Model, ModelVersion: e.ModelVersion, GeneratedAt: e.GeneratedAt, Origin: OriginCache, CallID: e.CallID}, nil
 		}
 	}
 	if c.Inner == nil {
@@ -104,7 +106,7 @@ func (c *Cache) Complete(ctx context.Context, req Request) (*Response, error) {
 		out.GeneratedAt = now().UTC().Truncate(time.Second)
 	}
 	e := CacheEntry{PromptDigest: PromptDigest(req), Request: req, Model: out.Model, ModelVersion: out.ModelVersion,
-		GeneratedAt: out.GeneratedAt.UTC(), Origin: out.Origin, Text: out.Text}
+		GeneratedAt: out.GeneratedAt.UTC(), Origin: out.Origin, CallID: out.CallID, Text: out.Text}
 	if err := c.store(e); err != nil {
 		return nil, err
 	}
