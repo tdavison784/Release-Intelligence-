@@ -348,13 +348,54 @@ func buildCandidate(edge *domain.UpgradeEdge, us []*unit, rules map[string]bool,
 		Grouping:  grouping,
 		Category:  rep.c.Category,
 		Title:     oneLine(rep.c.Title),
-		Text:      strings.TrimSpace(rep.c.Detail),
+		Text:      candidateText(rep, us),
 		Evidence:  evidence,
 		Hints:     Hints(maxHints, texts...),
 		Producer:  CandidateProducer,
 		CreatedAt: now.UTC().Truncate(time.Second),
 	}
 }
+
+// candidateText makes the candidate self-contained (a proposer sees only
+// the candidate): the representative's detail, then every other member's
+// statement, computed members with their rule and subjects.
+func candidateText(rep *unit, us []*unit) string {
+	var b strings.Builder
+	if d := strings.TrimSpace(rep.c.Detail); d != "" {
+		b.WriteString(shorten(d, maxTextPerMember))
+	}
+	for _, u := range us {
+		if u == rep {
+			continue
+		}
+		if b.Len() > 0 {
+			b.WriteString("\n")
+		}
+		if u.prose {
+			s := strings.TrimSpace(u.c.Detail)
+			if s == "" || len(s) < len(u.c.Title) {
+				s = u.c.Title
+			}
+			fmt.Fprintf(&b, "- restated: %s", shorten(oneLine(s), maxTextPerMember))
+		} else {
+			fmt.Fprintf(&b, "- computed artifact diff (%s): %s; subjects: %s", u.c.Provenance.Rule, oneLine(u.c.Title),
+				strings.Join(capStrings(u.c.Subjects, maxSubjectsShown), ", "))
+			if d := strings.TrimSpace(u.c.Detail); d != "" {
+				fmt.Fprintf(&b, " — %s", shorten(oneLine(d), 300))
+			}
+		}
+	}
+	if rep.c.Provenance.Method == domain.MethodComputed {
+		head := fmt.Sprintf("computed artifact diff (%s); subjects: %s", rep.c.Provenance.Rule, strings.Join(capStrings(rep.c.Subjects, maxSubjectsShown), ", "))
+		if b.Len() > 0 {
+			return head + "\n" + b.String()
+		}
+		return head
+	}
+	return b.String()
+}
+
+const maxTextPerMember = 1500
 
 // securityFix mirrors the impact:security-fix rule (internal/impact): a
 // note-derived security remediation without a stronger signal is
