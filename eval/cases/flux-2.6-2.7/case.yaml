@@ -1,0 +1,456 @@
+id: flux-2.6-2.7
+product: flux
+from: v2.6.4
+to: v2.7.0
+researchedAt: "2026-10-01"
+sources:
+  - https://github.com/fluxcd/flux2/releases/tag/v2.7.0
+  - https://github.com/fluxcd/flux2/releases/tag/v2.6.0
+  - https://fluxcd.io/blog/2025/09/flux-v2.7.0/
+  - https://github.com/fluxcd/website/blob/main/content/en/blog/2025-09-29-announcing-flux-v2.7.0/index.md
+  - https://github.com/fluxcd/flux2/discussions/5572
+  - https://github.com/fluxcd/flux2/pull/5473
+  - https://github.com/fluxcd/flux2/pull/5533
+  - https://github.com/fluxcd/flux2/issues/5598
+  - https://github.com/fluxcd/flux2/blob/v2.7.0/cmd/flux/check.go
+  - https://github.com/fluxcd/flux2/blob/v2.6.4/cmd/flux/check.go
+  - https://github.com/fluxcd/flux2/blob/v2.7.0/cmd/flux/migrate.go
+  - https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml
+  - https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml
+  - https://github.com/fluxcd/flux2/blob/v2.6.4/manifests/bases/kustomize-controller/kustomization.yaml
+  - https://github.com/fluxcd/flux2/blob/v2.7.0/manifests/bases/kustomize-controller/kustomization.yaml
+  - https://github.com/fluxcd/source-controller/blob/v1.7.0/CHANGELOG.md
+  - https://github.com/fluxcd/kustomize-controller/blob/v1.7.0/CHANGELOG.md
+  - https://github.com/fluxcd/helm-controller/blob/v1.4.0/CHANGELOG.md
+  - https://github.com/fluxcd/notification-controller/blob/v1.7.0/CHANGELOG.md
+  - https://github.com/fluxcd/image-reflector-controller/blob/v1.0.0/CHANGELOG.md
+  - https://github.com/fluxcd/image-automation-controller/blob/v1.0.0/CHANGELOG.md
+  - https://github.com/fluxcd/image-reflector-controller/pull/786
+  - https://github.com/fluxcd/image-reflector-controller/blob/v0.35.2/main.go
+  - https://github.com/fluxcd/image-automation-controller/pull/931
+  - https://github.com/fluxcd/image-automation-controller/blob/v1.0.1/docs/spec/v1/imageupdateautomations.md
+  - https://github.com/fluxcd/kustomize-controller/blob/v1.6.1/internal/features/features.go
+  - https://github.com/fluxcd/kustomize-controller/blob/v1.7.0/internal/features/features.go
+  - https://github.com/fluxcd/helm-controller/blob/v1.4.0/internal/features/features.go
+  - https://github.com/fluxcd/image-automation-controller/blob/v0.41.2/internal/features/features.go
+  - https://github.com/fluxcd/image-automation-controller/blob/v1.0.1/internal/features/features.go
+expected:
+  - id: E1
+    title: Deprecated v1beta1 / v2beta1 Flux APIs removed from the CRDs (source, kustomize, helm, image, notification)
+    kind: removal
+    importance: critical
+    actionRequired: true         # manifests in Git at the removed versions must be bumped before the CRDs drop them
+    classification: action-required
+    match:
+      - text: '(?i)\b(v1beta1|v2beta1)\b.*(removed|end-of-life|no longer served)'
+      - text: '(?i)(removed|remove deprecated|dropped)\b.*\b(v1beta1|v2beta1)\b'
+      - text: '(?i)removed from the CRDs'
+    evidence:
+      - url: https://github.com/fluxcd/flux2/releases/tag/v2.7.0
+        quote: ":warning: The Flux APIs `v1beta1` and `v2beta1` (deprecated in 2023) have reached end-of-life and have been removed from the CRDs."
+      - url: https://fluxcd.io/blog/2025/09/flux-v2.7.0/
+        quote: "Note that in Flux v2.7, the following APIs have reached end-of-life and have been removed from the CRDs: source.toolkit.fluxcd.io/v1beta1, kustomize.toolkit.fluxcd.io/v1beta1, helm.toolkit.fluxcd.io/v2beta1, image.toolkit.fluxcd.io/v1beta1, notification.toolkit.fluxcd.io/v1beta1"
+      - url: https://github.com/fluxcd/helm-controller/blob/v1.4.0/CHANGELOG.md
+        quote: "Remove deprecated `helm.toolkit.fluxcd.io/v2beta1` API group"
+      - url: https://github.com/fluxcd/kustomize-controller/blob/v1.7.0/CHANGELOG.md
+        quote: "Remove deprecated APIs in group `kustomize.toolkit.fluxcd.io/v1beta1`"
+    references:
+      - https://github.com/fluxcd/flux2/discussions/5572
+    semantics:
+      - subject: {family: gvk, product: flux, group: source.toolkit.fluxcd.io, version: v1beta1, kind: GitRepository}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: source.toolkit.fluxcd.io, version: v1, kind: GitRepository}}
+        consequence: &gvkGone {kind: resource-rejected, exposedClass: action-required, severity: high, statement: "objects applied from Git at the removed apiVersion are rejected by the API server (the version is no longer in the CRD), so the Kustomization that applies them fails", remediation: "flux migrate -v 2.6 -f <repo> (or bump apiVersion by hand), push and reconcile before upgrading"}
+      - subject: {family: gvk, product: flux, group: source.toolkit.fluxcd.io, version: v1beta1, kind: HelmRepository}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: source.toolkit.fluxcd.io, version: v1, kind: HelmRepository}}
+        consequence: *gvkGone
+      - subject: {family: gvk, product: flux, group: source.toolkit.fluxcd.io, version: v1beta1, kind: HelmChart}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: source.toolkit.fluxcd.io, version: v1, kind: HelmChart}}
+        consequence: *gvkGone
+      - subject: {family: gvk, product: flux, group: source.toolkit.fluxcd.io, version: v1beta1, kind: Bucket}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: source.toolkit.fluxcd.io, version: v1, kind: Bucket}}
+        consequence: *gvkGone
+      - subject: {family: gvk, product: flux, group: kustomize.toolkit.fluxcd.io, version: v1beta1, kind: Kustomization}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: kustomize.toolkit.fluxcd.io, version: v1, kind: Kustomization}}
+        consequence: *gvkGone
+      - subject: {family: gvk, product: flux, group: helm.toolkit.fluxcd.io, version: v2beta1, kind: HelmRelease}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: helm.toolkit.fluxcd.io, version: v2, kind: HelmRelease}}
+        consequence: *gvkGone
+      - subject: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1beta1, kind: ImageRepository}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1, kind: ImageRepository}}
+        consequence: *gvkGone
+      - subject: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1beta1, kind: ImagePolicy}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1, kind: ImagePolicy}}
+        consequence: *gvkGone
+      - subject: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1beta1, kind: ImageUpdateAutomation}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1, kind: ImageUpdateAutomation}}
+        consequence: *gvkGone
+      - subject: {family: gvk, product: flux, group: notification.toolkit.fluxcd.io, version: v1beta1, kind: Alert}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: notification.toolkit.fluxcd.io, version: v1beta3, kind: Alert}}
+        consequence: *gvkGone
+      - subject: {family: gvk, product: flux, group: notification.toolkit.fluxcd.io, version: v1beta1, kind: Provider}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: notification.toolkit.fluxcd.io, version: v1beta3, kind: Provider}}
+        consequence: *gvkGone
+      - subject: {family: gvk, product: flux, group: notification.toolkit.fluxcd.io, version: v1beta1, kind: Receiver}
+        change: {type: removed, replacedBy: {family: gvk, product: flux, group: notification.toolkit.fluxcd.io, version: v1, kind: Receiver}}
+        consequence: *gvkGone
+
+  - id: E2
+    title: Run `flux migrate` before upgrading so the CRDs' stored versions no longer list v1beta1/v2beta1
+    kind: migration-step
+    importance: critical
+    actionRequired: true         # without it the v2.7.0 CRD update is rejected (storedVersions still lists the removed version)
+    classification: action-required
+    match:
+      - text: '(?i)flux migrate'
+      - text: '(?i)stored ?versions|cluster storage off|storage migration'
+    evidence:
+      - url: https://github.com/fluxcd/flux2/releases/tag/v2.7.0
+        quote: "you must run the `flux migrate` command on clusters before upgrading."
+      - url: https://github.com/fluxcd/helm-controller/blob/v1.4.0/CHANGELOG.md
+        quote: "⚠️ The `v2beta1` APIs were removed. Before upgrading the CRDs, Flux users must run `flux migrate` to migrate the cluster storage off `v2beta1`."
+      - url: https://github.com/fluxcd/flux2/discussions/5572
+        quote: "Migrate the Flux custom resources stored in Kubernetes etcd to their latest API version by running following command on each cluster:"
+      - url: https://github.com/fluxcd/flux2/issues/5598
+        quote: "status.storedVersions[0]: Invalid value: \"v2beta1\": missing from spec.versions; v2beta1 was previously a storage version, and must remain in spec.versions until a storage migration ensures no data remains persisted in v2beta1 and removes v2beta1 from status.storedVersions"
+    references:
+      - https://github.com/fluxcd/flux2/pull/5473
+      - https://github.com/fluxcd/flux2/issues/5598
+    semantics:
+      subject: {family: migration, product: flux, name: flux-migrate-stored-versions, component: flux-cli}
+      change: {type: migration-required}
+      consequence: {kind: migration-required, exposedClass: action-required, severity: critical, statement: "applying the v2.7.0 CRDs fails: the API server rejects a CRD whose status.storedVersions still lists v1beta1/v2beta1 once that version is gone from spec.versions, so the upgrade stops half-applied", remediation: "run `flux migrate` against each cluster (with a v2.7 CLI) before bootstrapping v2.7.0; Flux Operator installs migrate automatically"}
+
+  - id: E3
+    title: Minimum supported Kubernetes raised from 1.31 to 1.32
+    kind: compatibility
+    importance: important
+    actionRequired: true         # a 1.31 cluster must be upgraded first
+    classification: action-required
+    match:
+      - text: '(?i)Kubernetes 1\.32 as min'
+      - text: '(?i)kubernetes[^\n]*>= ?v?1\.32'
+      - text: '(?i)minimum[^\n]*\b1\.32\b'
+    evidence:
+      - url: https://github.com/fluxcd/flux2/releases/tag/v2.7.0
+        quote: "| `v1.32`            | `>= 1.32.0`      |"
+      - url: https://github.com/fluxcd/flux2/releases/tag/v2.7.0
+        quote: "Set Kubernetes 1.32 as min supported version by @stefanprodan in https://github.com/fluxcd/flux2/pull/5533"
+      - url: https://github.com/fluxcd/flux2/releases/tag/v2.6.0
+        quote: "| `v1.31`            | `>= 1.31.0`      |"
+      - url: https://fluxcd.io/blog/2025/09/flux-v2.7.0/
+        quote: "| Kubernetes   | 1.32, 1.33, 1.34 |"
+      - url: https://github.com/fluxcd/flux2/blob/v2.7.0/cmd/flux/check.go
+        quote: "var kubernetesConstraints = []string{\n\t\">=1.32.0-0\",\n}"
+    references:
+      - https://github.com/fluxcd/flux2/pull/5533
+      - https://github.com/fluxcd/flux2/pull/5473
+    semantics:
+      subject: {family: compatibility-boundary, product: flux, name: kubernetes}
+      change: {type: requirement-changed, before: '>=1.31.0', after: '>=1.32.0'}
+      consequence: {kind: upgrade-blocked, exposedClass: action-required, severity: high, statement: "Flux v2.7 is not supported on Kubernetes 1.31: `flux check --pre` (constraint >=1.32.0-0) fails, and the controllers built against Kubernetes 1.34 libraries are not tested against a 1.31 API server", remediation: "upgrade the cluster to Kubernetes >= 1.32 before upgrading Flux, or stay on Flux 2.6"}
+
+  - id: E4
+    title: image-reflector-controller autologin flags (--aws-autologin-for-ecr, --gcp-autologin-for-gcr, --azure-autologin-for-acr) removed
+    kind: removal
+    importance: important
+    actionRequired: true         # a Deployment still passing them crashes at start-up
+    classification: not-affected # environment class (link E4); generic class: action-required (workload-failure)
+    match:
+      - text: '(?i)auto-?login'
+    evidence:
+      - url: https://fluxcd.io/blog/2025/09/flux-v2.7.0/
+        quote: "The image-reflector-controller `autologin` flags which were deprecated since 2023 are now removed. Users should set `ImageRepository.spec.provider` to the appropriate cloud provider for their container registry."
+      - url: https://github.com/fluxcd/image-reflector-controller/blob/v1.0.0/CHANGELOG.md
+        quote: "The auto-login flags for cloud providers have been removed; users should now specify the `.spec.provider` field in `ImageRepository` resources for contextual authentication."
+      - url: https://github.com/fluxcd/image-reflector-controller/pull/786
+        quote: "After this change, using these flags will cause the controller to fail with \"flag provided but not defined\" error."
+    references:
+      - https://github.com/fluxcd/image-reflector-controller/pull/786
+    semantics:
+      - subject: {family: cli-flag, product: flux, name: --aws-autologin-for-ecr, component: image-reflector-controller}
+        change: {type: removed}
+        consequence: &autologin {kind: workload-failure, exposedClass: action-required, severity: critical, statement: "image-reflector-controller v1.0 exits at start-up with \"flag provided but not defined\", so no ImageRepository is scanned and image automation stops", remediation: "drop the flag and set ImageRepository.spec.provider (aws/gcp/azure)"}
+      - subject: {family: cli-flag, product: flux, name: --gcp-autologin-for-gcr, component: image-reflector-controller}
+        change: {type: removed}
+        consequence: *autologin
+      - subject: {family: cli-flag, product: flux, name: --azure-autologin-for-acr, component: image-reflector-controller}
+        change: {type: removed}
+        consequence: *autologin
+
+  - id: E5
+    title: ImageUpdateAutomation commit template fields .Updated and .Changed.ImageResult removed (automation stalls)
+    kind: breaking
+    importance: important
+    actionRequired: true         # templates must be rewritten to .Changed.*
+    classification: action-required
+    match:
+      - text: '(?i)\.Changed\.ImageResult'
+      - text: '(?i)`?\.?Updated`? template (field|data)'
+      - text: '(?i)commit template fields'
+    evidence:
+      - url: https://fluxcd.io/blog/2025/09/flux-v2.7.0/
+        quote: "The `ImageUpdateAutomation` commit template fields `.Updated` and `.Changed.ImageResult` which were deprecated since 2024 are now removed."
+      - url: https://github.com/fluxcd/image-automation-controller/blob/v1.0.1/docs/spec/v1/imageupdateautomations.md
+        quote: "Templates using `Updated` will result in an error and the ImageUpdateAutomation will be marked as Stalled."
+      - url: https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml
+        quote: "Note: The `Updated` template field has been removed. Use `Changed` instead."
+    references:
+      - https://github.com/fluxcd/image-automation-controller/pull/931
+    semantics:
+      subject: {family: crd-field, product: flux, group: image.toolkit.fluxcd.io, kind: ImageUpdateAutomation, path: spec.git.commit.messageTemplate}
+      change: {type: validation-tightened}
+      consequence: {kind: workload-failure, exposedClass: action-required, severity: high, statement: "a messageTemplate that references .Updated or .Changed.ImageResult fails to render; the ImageUpdateAutomation is marked Stalled and stops committing image updates", remediation: "rewrite the template with .Changed.FileChanges / .Changed.Objects / .Changed.Changes"}
+
+  - id: E6
+    title: Image automation APIs GA at image.toolkit.fluxcd.io/v1; v1beta2 deprecated (removed in Flux 2.9)
+    kind: deprecation
+    importance: important
+    actionRequired: true         # bump ImageRepository/ImagePolicy/ImageUpdateAutomation manifests to v1
+    classification: review-required
+    match:
+      - text: '(?i)General availability release of the Image Automation APIs'
+      - text: '(?i)image\.toolkit\.fluxcd\.io/v1beta2'
+      - text: '(?i)(ImagePolicy|ImageRepository|ImageUpdateAutomation)\b.*v1beta2.*deprecat'
+    evidence:
+      - url: https://github.com/fluxcd/flux2/releases/tag/v2.7.0
+        quote: "General availability release of the Image Automation APIs (`ImagePolicy`, `ImageRepository`, `ImageUpdateAutomation`)"
+      - url: https://github.com/fluxcd/image-reflector-controller/blob/v1.0.0/CHANGELOG.md
+        quote: "After the upgrade, all manifests in Git which contain `ImagePolicy`, `ImageRepository` and `ImageUpdateAutomation` definitions must be updated to:"
+      - url: https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml
+        quote: "v1beta2 ImagePolicy is deprecated, upgrade to v1"
+      - url: https://github.com/fluxcd/flux2/discussions/5572
+        quote: "In Flux v2.9,  the following deprecated API versions have been removed: - `image.toolkit.fluxcd.io/v1beta2` - `notification.toolkit.fluxcd.io/v1beta2`"
+    semantics:
+      - subject: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1beta2, kind: ImageRepository}
+        change: {type: deprecated, replacedBy: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1, kind: ImageRepository}}
+        consequence: &imgBeta2 {kind: deprecation, exposedClass: review-required, severity: medium, statement: "still served in 2.7 (and 2.8) with a deprecation warning; removed in Flux 2.9", remediation: "flux migrate -v 2.8 -f <repo> after the upgrade, then `flux migrate` on the cluster"}
+      - subject: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1beta2, kind: ImagePolicy}
+        change: {type: deprecated, replacedBy: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1, kind: ImagePolicy}}
+        consequence: *imgBeta2
+      - subject: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1beta2, kind: ImageUpdateAutomation}
+        change: {type: deprecated, replacedBy: {family: gvk, product: flux, group: image.toolkit.fluxcd.io, version: v1, kind: ImageUpdateAutomation}}
+        consequence: *imgBeta2
+
+  - id: E7
+    title: Provider .spec.proxy and the `proxy` key of the secretRef Secret deprecated in favour of .spec.proxySecretRef
+    kind: deprecation
+    importance: minor
+    actionRequired: false
+    classification: unknown      # environment class (undecided link E7); generic class: review-required (deprecation)
+    match:
+      - text: '(?i)proxySecretRef'
+      - text: '(?i)spec\.proxy\b.*deprecat'
+    evidence:
+      - url: https://github.com/fluxcd/notification-controller/blob/v1.7.0/CHANGELOG.md
+        quote: "The field `.spec.proxy` and the field `proxy` inside the Secret referenced by `.spec.secretRef` are now deprecated and will be removed in the Provider API v1 GA."
+      - url: https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml
+        quote: "Deprecated: Use ProxySecretRef instead. Will be removed in v1."
+      - url: https://fluxcd.io/blog/2025/09/flux-v2.7.0/
+        quote: "The `Provider` API now supports setting proxy via `spec.proxySecretRef` and mTLS via `spec.certSecretRef`."
+    semantics:
+      - subject: {family: crd-field, product: flux, group: notification.toolkit.fluxcd.io, kind: Provider, path: spec.proxy}
+        change: {type: deprecated, replacedBy: {family: crd-field, product: flux, group: notification.toolkit.fluxcd.io, kind: Provider, path: spec.proxySecretRef}}
+        consequence: {kind: deprecation, exposedClass: review-required, severity: low, statement: "still honoured in v1beta3; removed when the Provider API goes v1"}
+      - subject: {family: config-key, product: flux, path: proxy, component: notification-controller Provider secretRef Secret}
+        change: {type: deprecated}
+        consequence: {kind: deprecation, exposedClass: review-required, severity: low, statement: "the `proxy` key in the Provider's secretRef Secret still works in v1beta3; removed when the Provider API goes v1"}
+
+  - id: E8
+    title: New opt-in feature gates CancelHealthCheckOnNewRevision (kustomize-controller) and GitSparseCheckout (image-automation-controller)
+    kind: behaviour-change
+    importance: minor
+    actionRequired: false
+    classification: not-affected # environment class (link E8); generic class: informational (opt-in gates)
+    match:
+      - text: '(?i)CancelHealthChecks?OnNewRevision'
+      - text: '(?i)GitSparseCheckout'
+    evidence:
+      - url: https://github.com/fluxcd/flux2/releases/tag/v2.7.0
+        quote: "`CancelHealthCheckOnNewRevision` feature gate (kustomize-controller)"
+      - url: https://github.com/fluxcd/flux2/releases/tag/v2.7.0
+        quote: "`GitSparseCheckout` feature gate (image-automation-controller)"
+      - url: https://fluxcd.io/blog/2025/09/flux-v2.7.0/
+        quote: "To enable this optimization, the image-automation-controller can be configured with the `--feature-gates=GitSparseCheckout=true` flag."
+      - url: https://github.com/fluxcd/kustomize-controller/blob/v1.7.0/internal/features/features.go
+        quote: "// CancelHealthCheckOnNewRevision\n\t// opt-in from v1.7\n\tCancelHealthCheckOnNewRevision: false,"
+    semantics:
+      - subject: {family: feature-gate, product: flux, name: CancelHealthCheckOnNewRevision, component: kustomize-controller}
+        change: {type: added, after: 'false'}
+        consequence: {kind: none, exposedClass: informational, statement: "opt-in (default false); nothing changes unless --feature-gates enables it"}
+      - subject: {family: feature-gate, product: flux, name: GitSparseCheckout, component: image-automation-controller}
+        change: {type: added, after: 'false'}
+        consequence: {kind: none, exposedClass: informational, statement: "opt-in (default false); nothing changes unless --feature-gates enables it"}
+
+notExpected:
+  - title: the new source-watcher controller / ArtifactGenerator API is opt-in (--components-extra), not upgrade work
+    match: [{text: '(?i)source-watcher|ArtifactGenerator'}]
+    classification: action-required
+  - title: generated CLI changelog CI / dependency churn
+    match: [{text: '(?i)^(ci|build\(deps\)):|dependabot|gha-workflows'}]
+
+environment:
+  description: >-
+    Production EKS cluster on Kubernetes 1.31 running Flux v2.6.4 installed with
+    `flux bootstrap github` (no Flux Operator) and the image automation
+    controllers enabled. The cluster was first bootstrapped in 2021 on Flux v0.x
+    (image automation added in 2022) and upgraded in place, never migrated: the
+    installed Flux CRDs (crds/, exported with kubectl) still list v1beta1 (and
+    v2beta1 for HelmRelease) in status.storedVersions. Controller Deployments
+    (manifests/flux-system-controllers.yaml) carry the v2.6.4 pins; kustomize-controller
+    runs with --feature-gates=StrictPostBuildSubstitutions=true,DisableFailFastBehavior=true,
+    helm-controller with --feature-gates=OOMWatch=true, image-automation-controller with
+    no feature gates, and image-reflector-controller with no autologin flags: the
+    ImageRepository authenticates to ECR through spec.provider: aws. The fleet
+    repository mixes API versions: GitRepository and the flux-system Kustomization at
+    v1, an infra-legacy Kustomization still at kustomize.toolkit.fluxcd.io/v1beta1,
+    the apps Kustomization at v1beta2, the ingress-nginx HelmRelease at
+    helm.toolkit.fluxcd.io/v2beta1 and the podinfo HelmRelease at v2, HelmRepositories
+    at source v1beta2 and v1, the image automation objects at image.toolkit.fluxcd.io/v1beta2
+    with an ImageUpdateAutomation commit messageTemplate ranging over .Updated.Files and
+    .Updated.Images, and a Slack Provider/Alert at notification v1beta3 whose webhook
+    Secret (slack-webhook) is SOPS-encrypted and not part of the export.
+  kubernetes: "1.31"
+  expectedImpact:
+    - expected: E1
+      relevance: action-required
+      why: >-
+        the infra-legacy Kustomization (kustomize.toolkit.fluxcd.io/v1beta1) and the
+        ingress-nginx HelmRelease (helm.toolkit.fluxcd.io/v2beta1) are committed at
+        removed versions; after the upgrade the flux-system Kustomization cannot apply
+        them. The v1beta2 Kustomization/HelmRepository and v1beta2 image objects are
+        still served in 2.7 and are not part of this item.
+      exposure:
+        op: any
+        of:
+          - {op: gvk-in-use, group: source.toolkit.fluxcd.io, version: v1beta1, kind: GitRepository}
+          - {op: gvk-in-use, group: source.toolkit.fluxcd.io, version: v1beta1, kind: HelmRepository}
+          - {op: gvk-in-use, group: source.toolkit.fluxcd.io, version: v1beta1, kind: HelmChart}
+          - {op: gvk-in-use, group: source.toolkit.fluxcd.io, version: v1beta1, kind: Bucket}
+          - {op: gvk-in-use, group: kustomize.toolkit.fluxcd.io, version: v1beta1, kind: Kustomization}
+          - {op: gvk-in-use, group: helm.toolkit.fluxcd.io, version: v2beta1, kind: HelmRelease}
+          - {op: gvk-in-use, group: image.toolkit.fluxcd.io, version: v1beta1, kind: ImageRepository}
+          - {op: gvk-in-use, group: image.toolkit.fluxcd.io, version: v1beta1, kind: ImagePolicy}
+          - {op: gvk-in-use, group: image.toolkit.fluxcd.io, version: v1beta1, kind: ImageUpdateAutomation}
+          - {op: gvk-in-use, group: notification.toolkit.fluxcd.io, version: v1beta1, kind: Alert}
+          - {op: gvk-in-use, group: notification.toolkit.fluxcd.io, version: v1beta1, kind: Provider}
+          - {op: gvk-in-use, group: notification.toolkit.fluxcd.io, version: v1beta1, kind: Receiver}
+      environmentEvidence:
+        - manifests/gitops-objects.yaml#L30-L42
+        - manifests/gitops-objects.yaml#L68-L85
+    - expected: E2
+      relevance: action-required
+      why: >-
+        bootstrapped with flux bootstrap (no Flux Operator) and never migrated: the
+        installed Flux CRDs record v1beta1 / v2beta1 in status.storedVersions, so the
+        v2.7.0 CRDs (which drop those versions) are rejected until `flux migrate` runs
+      exposure:
+        op: resource
+        group: apiextensions.k8s.io
+        kind: CustomResourceDefinition
+        of:
+          - {op: field, path: spec.group, state: matches, pattern: '\.toolkit\.fluxcd\.io$'}
+          - {op: field, path: 'status.storedVersions[]', state: equals, values: ['"v1beta1"', '"v2beta1"']}
+      environmentEvidence:
+        - crds/flux-crds.yaml#L134-L160
+        - crds/flux-crds.yaml#L272-L298
+        - crds/flux-crds.yaml#L329-L355
+    - expected: E3
+      relevance: action-required
+      why: the cluster runs Kubernetes 1.31, below Flux v2.7's minimum (1.32); it must be upgraded before Flux
+      exposure: {op: cluster-version, name: kubernetes, state: out-of-range, range: '>=1.32.0'}
+      environmentEvidence: environment.kubernetes
+    - expected: E4
+      relevance: not-affected
+      why: >-
+        the image-reflector-controller Deployment passes none of the three removed
+        autologin flags; ECR access already uses the replacement (ImageRepository
+        spec.provider: aws), so the v1.0 controller starts normally
+      exposure:
+        op: any
+        of:
+          - {op: cli-flag, name: --aws-autologin-for-ecr, state: set}
+          - {op: cli-flag, name: --gcp-autologin-for-gcr, state: set}
+          - {op: cli-flag, name: --azure-autologin-for-acr, state: set}
+      environmentEvidence:
+        - manifests/flux-system-controllers.yaml#L141-L148
+        - manifests/image-automation.yaml#L2-L10
+    - expected: E5
+      relevance: action-required
+      why: >-
+        the flux-system ImageUpdateAutomation's messageTemplate ranges over
+        .Updated.Files and .Updated.Images; after the upgrade the template errors and
+        the automation is Stalled, so image updates stop being committed
+      exposure:
+        op: resource
+        group: image.toolkit.fluxcd.io
+        kind: ImageUpdateAutomation
+        of:
+          - {op: text-line, path: spec.git.commit.messageTemplate, state: exists, pattern: '\.Updated\b|\.Changed\.ImageResult'}
+      environmentEvidence: manifests/image-automation.yaml#L42-L55
+    - expected: E6
+      relevance: review
+      why: >-
+        ImageRepository, ImagePolicy and ImageUpdateAutomation are committed at
+        image.toolkit.fluxcd.io/v1beta2, still served in 2.7 but deprecated in favour of
+        v1 and removed in 2.9; they should be bumped after this upgrade
+      exposure:
+        op: any
+        of:
+          - {op: gvk-in-use, group: image.toolkit.fluxcd.io, version: v1beta2, kind: ImageRepository}
+          - {op: gvk-in-use, group: image.toolkit.fluxcd.io, version: v1beta2, kind: ImagePolicy}
+          - {op: gvk-in-use, group: image.toolkit.fluxcd.io, version: v1beta2, kind: ImageUpdateAutomation}
+      environmentEvidence:
+        - manifests/image-automation.yaml#L2-L3
+        - manifests/image-automation.yaml#L12-L13
+        - manifests/image-automation.yaml#L24-L25
+    - expected: E8
+      relevance: not-affected
+      why: >-
+        both new gates are opt-in; kustomize-controller sets --feature-gates but only
+        StrictPostBuildSubstitutions and DisableFailFastBehavior, and
+        image-automation-controller sets no gates, so neither new gate is enabled
+      exposure:
+        op: any
+        of:
+          - {op: feature-gate, name: CancelHealthCheckOnNewRevision, state: enabled}
+          - {op: feature-gate, name: GitSparseCheckout, state: enabled}
+      environmentEvidence:
+        - manifests/flux-system-controllers.yaml#L57-L64
+        - manifests/flux-system-controllers.yaml#L171-L176
+  undecidedImpact:
+    - expected: E7
+      reason: environment-visibility-gap
+      needed: the decrypted slack-webhook Secret in flux-system (whether it carries a `proxy` key); it is SOPS-encrypted in Git and not in the export
+      why: >-
+        the Slack Provider does not set spec.proxy, but the deprecation also covers the
+        `proxy` key inside the Secret its spec.secretRef names, and that Secret is not
+        visible; the honest answer is unknown, not not-affected
+      exposure:
+        op: any
+        of:
+          - op: resource
+            group: notification.toolkit.fluxcd.io
+            kind: Provider
+            of: [{op: field, path: spec.proxy, state: set}]
+          - op: resource
+            group: notification.toolkit.fluxcd.io
+            kind: Provider
+            of:
+              - op: ref
+                path: spec.secretRef
+                kind: Secret
+                of:
+                  - op: any
+                    of:
+                      - {op: field, path: data.proxy, state: set}
+                      - {op: field, path: stringData.proxy, state: set}
+      environmentEvidence: [manifests/notifications.yaml#L4-L13]
+  expectedFindings:
+    - id: F1
+      match:
+        rule: impact:kubernetes-below-range
+      why: the v2.7.0 release body's Kubernetes compatibility table starts at v1.32 (>= 1.32.0) and the cluster declares 1.31
+  notExpectedFindings:
+    - title: no Flux CRD is removed by this upgrade
+      match: {rule: impact:crd-removed}
+      why: the v2.7.0 install.yaml still ships all 13 CRDs v2.6.4 ships (it only adds externalartifacts.source.toolkit.fluxcd.io); only versions inside them are dropped
