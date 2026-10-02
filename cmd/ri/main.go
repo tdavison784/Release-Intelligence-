@@ -20,6 +20,9 @@
 //	                                    (eval/cases) against the pipeline;
 //	                                    -update rewrites eval/results after
 //	                                    review; non-zero exit on regression
+//	ri review serve [-addr A] [-demo]   engineering review UI (learning loop):
+//	                                    inbox, evidence, accept/reject/correct,
+//	                                    bulk review
 //
 // Global flags (before the command): -products DIR, -state DIR, -offline,
 // -refresh, -v.
@@ -56,6 +59,7 @@ Commands:
   discover <repository>             inspect an upstream repository and propose a definition
   stats [product ...]               measure onboarding: constructs, effort, discovery, validation
   eval [entries ...]                score the validation dataset (eval/cases) against the pipeline
+  review serve                      engineering review UI for the learning loop (-demo for fixtures)
 
 Global flags:
 `
@@ -147,6 +151,8 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		return c.stats(cmdArgs)
 	case "eval":
 		return c.eval(cmdArgs)
+	case "review":
+		return c.review(cmdArgs)
 	default:
 		fs.Usage()
 		return fmt.Errorf("%w: unknown command %q", app.ErrUsage, cmd)

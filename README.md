@@ -120,6 +120,7 @@ ri upgrade argo-cd v2.14.11 v3.0.6 -o json      # … as JSON (schemas/upgrade-e
 ri upgrade istio 1.29.2 1.30.1 -verbose         # include features, bug fixes, dependency updates
 ri upgrade cert-manager v1.17.0 v1.18.0 -enrich # + AI clusters/explanations with provenance (docs/ENRICHMENT.md)
 ri discover github.com/cert-manager/cert-manager -out proposed.yaml -report report.md
+ri review serve -demo                           # engineering review UI for the learning loop (docs/REVIEW_UI.md)
 ```
 
 Global flags go before the command:
