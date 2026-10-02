@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-5993b3cf9123",
+    "candidateId": "sc-6c62cef5daa7",
+    "product": "flux",
+    "release": "2.7.0",
+    "questionType": "applicability",
+    "question": "For \"Allow the Go runtime to dynamically set `GOMAXPROCS` by @stefanprodan in https://github.com/fluxcd/flux2/pull/5501\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "where the flux binary is run (e.g. operator machines or CPU-limited CI containers) and whether GOMAXPROCS is set explicitly there, since the dynamically set GOMAXPROCS depends on the process's runtime environment and not on anything in the cluster manifests"
+        }
+      },
+      "statement": "Flux 2.7.0 now allows the Go runtime to dynamically set GOMAXPROCS (listed in the release notes' CLI changelog), so the way the effective GOMAXPROCS value of the affected Flux binary is determined changes; the note describes no failure or required action."
+    },
+    "proposals": [
+      "sp-03f028da7bf8",
+      "sp-8109100eabcf",
+      "sp-8a440b4b7d09",
+      "sp-e8514d758b10"
+    ],
+    "validations": [
+      "val-8a195cc7e17f",
+      "val-abeb5542959a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:57:32Z"
+  }
+}

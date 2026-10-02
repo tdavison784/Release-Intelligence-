@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-1d36cb22e208",
+    "candidateId": "sc-3bc79c41ad32",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "questionType": "applicability",
+    "question": "For \"Namespaced composite resources: Crossplane v2 makes composite resources (XRs) namespaced by default\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.scope",
+              "state": "unset"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "version": "v2",
+          "kind": "CompositeResourceDefinition"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.scope",
+              "state": "set"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "version": "v2",
+          "kind": "CompositeResourceDefinition"
+        }
+      },
+      "statement": "The v2 CompositeResourceDefinition API adds a spec.scope field that defaults to Namespaced, so XRs are namespaced by default (v1 XRDs default to LegacyCluster)."
+    },
+    "proposals": [
+      "sp-aa3bf719a0ad",
+      "sp-af46b2470745"
+    ],
+    "validations": [
+      "val-30e7b18770fd",
+      "val-3bc76e6bf455",
+      "val-5649bc6e8c1a",
+      "val-5ac33cb89057",
+      "val-84ac12f96b8d",
+      "val-8c75f8f34384",
+      "val-b58fa246a3cc",
+      "val-c54f2e7a4e43"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T21:01:18Z"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-48dbb6ab09a8",
+    "candidateId": "sc-2df51b6789d6",
+    "proposalId": "sp-0d5de3a24bda",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "diff-ks-force-enabled"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For Kustomizations carrying the `force: enabled` annotation, `flux diff ks` results differ from previous releases because the command now takes the annotation into account.",
+        "remediation": "Re-run `flux diff ks` on Kustomizations carrying the `force: enabled` annotation and verify the reported diff matches expectations.",
+        "severity": "low"
+      },
+      "statement": "In Flux 2.7.0 the `flux diff ks` command now handles the `force: enabled` annotation, so its diff behaviour for Kustomizations carrying that annotation differs from earlier releases."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

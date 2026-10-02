@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-ab7b9c5aefc8",
+    "candidateId": "sc-8076d0a3c442",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Removal of wildcard roles: Prior versions of Kyverno included wildcard view permissions\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Wildcard view permissions have been replaced with a role binding to the system view role; this does not impact policy behaviors during admission controls but may impact users with mutate and generate policies for custom resources and reporting of policy results for validation rules on custom resources. A Helm option is available to upgrade without breaking existing policies.",
+        "remediation": "Review the upgrade guidance documentation for the Helm option that allows upgrading Kyverno without breaking existing policies.",
+        "severity": "medium"
+      },
+      "statement": "Wildcard view permissions in RBAC roles were removed and replaced with a system view role binding in Kyverno 1.13.0; this may impact users with mutate and generate policies or custom resource validation reporting, with a Helm option available to upgrade without breaking policies."
+    },
+    "proposals": [
+      "sp-5c79e72a8443",
+      "sp-71b88ae0d5b5",
+      "sp-df6422083a3a"
+    ],
+    "validations": [
+      "val-1f83070dcee7",
+      "val-2b9bf8981385",
+      "val-93731da84527"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed",
+        "validation-refuted"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:54:00Z"
+  }
+}

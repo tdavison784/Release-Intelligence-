@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6f0207aa9163",
+    "candidateId": "sc-006852306c28",
+    "proposalId": "sp-8268439d18c3",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "loki",
+        "name": "set-period-config-path-prefix"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store.key-prefix",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.shared-store.key-prefix",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the YAML shared_store_key_prefix setting is configured to a value other than index/"
+            }
+          ]
+        }
+      },
+      "statement": "If shared-store key-prefix was set to something other than `index/` for boltdb-shipper or tsdb, set `path_prefix` on all existing period configs using that index to the previously configured value."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

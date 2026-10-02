@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-182af2cc1c5a",
+    "candidateId": "sc-7560741348ad",
+    "proposalId": "sp-6c8ce69c2a5c",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "policyexceptions-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "kind": "PolicyException"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing PolicyException objects stay stored as v2beta1 until they are rewritten. Operators must run a storage version migration and update status.storedVersions before a later release removes v2beta1.",
+        "remediation": "After upgrading, rewrite all policyexceptions.kyverno.io objects so they are stored as v2. Then remove v2beta1 from the CRD's status.storedVersions.",
+        "severity": "medium"
+      },
+      "statement": "In 1.13.0 the policyexceptions.kyverno.io CRD's storage version moves from v2beta1 to v2, so existing PolicyException objects need a storage version migration and a status.storedVersions update before a later release removes v2beta1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7328ed2d4848",
+    "candidateId": "sc-be5f4f756888",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Pilot: Traefik Pilot is no longer available since October 4th, 2022\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--pilot.token",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the static configuration file (YAML/TOML) contains a pilot section"
+            }
+          ]
+        }
+      },
+      "statement": "Traefik Pilot static configuration (e.g. pilot.token) is no longer supported in v3 and prevents Traefik from starting; it must be removed from the static configuration."
+    },
+    "proposals": [
+      "sp-49653982bfb1"
+    ],
+    "validations": [
+      "val-b169a92eb669",
+      "val-f0edd6a77e2e"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:57:54Z"
+  }
+}

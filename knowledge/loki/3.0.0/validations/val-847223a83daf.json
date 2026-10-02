@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-847223a83daf",
+    "candidateId": "sc-b8d248ec34f5",
+    "proposalId": "sp-6d9e3e9e2576",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-tsdb.shipper.shared-store"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "-tsdb.shipper.shared-store",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If -tsdb.shipper.shared-store did not match object_store for a period using tsdb, access to the index for that period is lost.",
+        "remediation": "Move or copy the index tables to the store configured in object_store, and remove the deleted option.",
+        "severity": "high"
+      },
+      "statement": "The -tsdb.shipper.shared-store option is removed; if its value differed from object_store for a tsdb period, the index for that period becomes inaccessible until index tables are moved or copied to the object_store store."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

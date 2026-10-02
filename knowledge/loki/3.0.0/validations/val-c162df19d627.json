@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c162df19d627",
+    "candidateId": "sc-cf7c7afd323f",
+    "proposalId": "sp-561b23c0fe2f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "loki",
+        "name": "POST /ingester/flush_shutdown",
+        "component": "ingester"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--ingester.flush-on-shutdown",
+          "component": "ingester",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Requests to the `/ingester/flush_shutdown` endpoint will no longer be processed; this endpoint no longer exists.",
+        "remediation": "Update any scripts or monitoring that call `/ingester/flush_shutdown` to use alternative shutdown mechanisms or rely on the default ingester shutdown behavior configured via `--ingester.flush-on-shutdown`.",
+        "severity": "medium"
+      },
+      "statement": "The legacy ingester shutdown handler endpoint `/ingester/flush_shutdown` has been removed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:api-endpoint/removed",
+        "detail": "api-endpoint removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:api-endpoint/removed",
+        "detail": "api-endpoint removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

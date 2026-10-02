@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-749067ebb739",
+    "candidateId": "sc-73bed00eb372",
+    "proposalId": "sp-13c0e7bbb7d5",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "helm.toolkit.fluxcd.io",
+        "version": "v2",
+        "kind": "HelmRelease",
+        "path": "spec.chartRef.kind"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "null",
+        "after": "\"ExternalArtifact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.chartRef.kind",
+              "state": "set"
+            }
+          ],
+          "group": "helm.toolkit.fluxcd.io",
+          "version": "v2",
+          "kind": "HelmRelease"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "An exposed environment whose operator does nothing is unaffected: the removed-values list is empty, so no previously accepted spec.chartRef.kind value is rejected; the previously invalid value ExternalArtifact simply becomes accepted.",
+        "severity": "low"
+      },
+      "statement": "In the helm.toolkit.fluxcd.io/v2 HelmRelease schema, the enum of spec.chartRef.kind gained the allowed value ExternalArtifact (computed artifact diff between the v2.6.4 and v2.7.0 install bundles), with no values removed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

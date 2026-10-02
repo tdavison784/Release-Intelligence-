@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-b6572d175ec8",
+    "candidateId": "sc-dd35e147bb75",
+    "product": "external-secrets",
+    "release": "0.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Make sure there are no storedVersions on v1alpha1 for `externalsecrets`, `clusterexternalsecrets`, `secretstores` and `clustersecretstores` crds: Run the…\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Before upgrading to 0.16.0, v1alpha1 must be removed from storedVersions on the externalsecrets, secretstores, clustersecretstores, and clusterexternalsecrets CRDs, as v1alpha1 versions are no longer served in 0.16.0.",
+        "remediation": "Run the provided kubectl command to check for v1alpha1 in storedVersions; if present, remove it before upgrading.",
+        "severity": "high"
+      },
+      "statement": "The v1alpha1 API versions must be removed from storedVersions on externalsecrets, secretstores, clustersecretstores, and clusterexternalsecrets CRDs before upgrading to 0.16.0, where v1alpha1 support is removed from these CRDs."
+    },
+    "proposals": [
+      "sp-15f5e830c28e",
+      "sp-698d34e644d2",
+      "sp-7c759fb40168",
+      "sp-e369ee0247be"
+    ],
+    "validations": [
+      "val-27f56b4eb955",
+      "val-56c4d1dabfa3",
+      "val-b6d8df869b74",
+      "val-bef442bdf799",
+      "val-cd285fba28a3",
+      "val-ce6f5a98adc8",
+      "val-d023aa96beeb",
+      "val-de2d09ba9dbe"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:58:59Z"
+  }
+}

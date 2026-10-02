@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-976752b3234c",
+    "candidateId": "sc-f83f7d1d03e2",
+    "proposalId": "sp-8fa9c453df7f",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmChart",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmChart"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "The schema now rejects v1beta2 HelmChart objects whose status.artifact has no digest.",
+        "remediation": "Check that nothing writes v1beta2 HelmChart status with an artifact that has no digest, such as an older controller or a tool that restores status.",
+        "severity": "low"
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1beta2 HelmChart CRD schema, status.artifact.digest is now a required field, so HelmChart objects whose status.artifact leaves out a digest are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field",
+        "detail": "source.toolkit.fluxcd.io HelmChart status.artifact.digest is in the schema of both releases"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "crd-schema:tightened",
+        "detail": "source.toolkit.fluxcd.io HelmChart status.artifact.digest in v1beta2: now required"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

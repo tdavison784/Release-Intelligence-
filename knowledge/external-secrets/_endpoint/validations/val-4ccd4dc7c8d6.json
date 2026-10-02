@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4ccd4dc7c8d6",
+    "candidateId": "sc-f7e1d73d8b1e",
+    "proposalId": "sp-f2e545acad90",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterSecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[].value",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "kind": "ClusterSecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ClusterSecretStore resources with fake provider data entries that omit the value field are rejected during validation.",
+        "severity": "high"
+      },
+      "statement": "The spec.provider.fake.data[].value field in ClusterSecretStore v1beta1 is now required; existing resources omitting this field are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:crd-field/validation-tightened",
+        "detail": "the asserted condition differs from the canonical one (a narrower or different exposure needs a reviewer)"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

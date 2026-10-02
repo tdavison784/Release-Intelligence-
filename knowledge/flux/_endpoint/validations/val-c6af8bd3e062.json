@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c6af8bd3e062",
+    "candidateId": "sc-1007e5d829a0",
+    "proposalId": "sp-9be5c7cd9323",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "storage-version-migration",
+        "component": "imageupdateautomations.image.toolkit.fluxcd.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "image.toolkit.fluxcd.io",
+          "kind": "ImageUpdateAutomation"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImageUpdateAutomation objects stay stored as v1beta2 until they are rewritten. If no storage version migration runs and status.storedVersions is not updated, the objects will still be stored as v1beta2 when a later release removes that version.",
+        "remediation": "After the upgrade, rewrite all ImageUpdateAutomation objects so they are stored as v1. Then update the CRD's status.storedVersions to drop v1beta2.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the imageupdateautomations.image.toolkit.fluxcd.io CRD moves from v1beta2 to v1. Existing ImageUpdateAutomation objects stay stored as v1beta2 until they are rewritten, so a storage version migration (rewrite all objects and update status.storedVersions) has to run before a later release removes v1beta2."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4f482cfb3907",
+    "candidateId": "sc-c4cf61880e09",
+    "proposalId": "sp-44359628239d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "loki",
+        "name": "POST /ingester/flush_shutdown"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "api-endpoint",
+          "product": "loki",
+          "name": "POST /ingester/shutdown"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "HTTP requests to the `/ingester/flush_shutdown` endpoint will fail because the endpoint no longer exists; callers must migrate to `/ingester/shutdown?flush=true` instead.",
+        "remediation": "Update all ingester shutdown automation or monitoring scripts that call `/ingester/flush_shutdown` to use `/ingester/shutdown?flush=true` instead.",
+        "severity": "high"
+      },
+      "statement": "The deprecated `/ingester/flush_shutdown` API endpoint is removed in Loki 3.0.0 and replaced with `/ingester/shutdown?flush=true`."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:api-endpoint/removed",
+        "detail": "api-endpoint removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:api-endpoint/removed",
+        "detail": "api-endpoint removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

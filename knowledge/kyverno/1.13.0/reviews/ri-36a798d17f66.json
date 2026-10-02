@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-36a798d17f66",
+    "candidateId": "sc-f1a212791fb5",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "questionType": "applicability",
+    "question": "For \"Shallow evaluation of Variables: Kyverno performs nested variable substitution by default, this may not be desirable in certain situations\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "statement": "Kyverno 1.13.0 adds a `{{- ... }}` notation for shallow (one-time) variable substitution, letting a policy substitute rule data (e.g. an HCL string defined in a ConfigMap) without Kyverno attempting to resolve the nested `{{ }}` variables inside it."
+    },
+    "proposals": [
+      "sp-561d1d379df3",
+      "sp-d170af0a0cbb",
+      "sp-f65128342c88"
+    ],
+    "validations": [
+      "val-0d7e442200f6",
+      "val-2a3f1360b850",
+      "val-c6f2a23670de",
+      "val-dbd3524eda65",
+      "val-f715298caac5",
+      "val-f7cad01fb7fa"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:54:58Z"
+  }
+}

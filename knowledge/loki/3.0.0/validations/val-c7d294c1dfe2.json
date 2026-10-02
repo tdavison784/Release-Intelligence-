@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c7d294c1dfe2",
+    "candidateId": "sc-3fcd67ae459f",
+    "proposalId": "sp-178d331a8300",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "s3.sse-encryption"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "sse.type"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "s3.sse-encryption",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `s3.sse-encryption` configuration setting is no longer honoured; environments must migrate to `sse.type` to explicitly configure SSE type.",
+        "severity": "high"
+      },
+      "statement": "The `s3.sse-encryption` configuration key is removed in Loki 3.0.0; use `sse.type` instead to configure SSE type, as AWS now defaults encryption of all buckets to SSE-S3."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

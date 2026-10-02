@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-2fe6ba0d59a7",
+    "candidateId": "sc-2e72ec27733c",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"If you have not configured `-boltdb.shipper.shared-store`,`-tsdb.shipper.shared-store` or their corresponding YAML setting before, no changes are required as…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "boltdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "tsdb.shipper.shared-store",
+              "state": "set"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "not",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-boltdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "-tsdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "boltdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "tsdb.shipper.shared-store",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "The cli-flags -boltdb.shipper.shared-store and -tsdb.shipper.shared-store, and their corresponding YAML configuration keys, have been removed and are no longer honored in Loki 3.0.0; environments that had not configured these settings are unaffected."
+    },
+    "proposals": [
+      "sp-347acff018d6",
+      "sp-e7f5995e1f07"
+    ],
+    "validations": [
+      "val-20a756721ea6",
+      "val-e6e22c0220f7"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T16:18:05Z"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-583475b26e82",
+    "candidateId": "sc-0c956892d9f3",
+    "product": "flux",
+    "questionType": "classification",
+    "question": "Is fact vf-fb79bb6ccebd (Bucket v1 schema: 1 field now required: `status.artifact.digest`) still correct? Reject to retract it; correct to supersede it.",
+    "proposed": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "Bucket",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Bucket"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Bucket objects using the source.toolkit.fluxcd.io/v1 schema that omit status.artifact.digest are rejected.",
+        "remediation": "Ensure Bucket objects carry status.artifact.digest (e.g. re-reconcile the Bucket so its artifact entry includes a digest) so writes are not rejected by the new v1 schema validation.",
+        "severity": "medium"
+      },
+      "statement": "Bucket v1 schema: 1 field now required: `status.artifact.digest`"
+    },
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "auto-approved",
+        "consensus-cross-model",
+        "consensus-same-model",
+        "policy-general"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T16:07:21.728714-05:00"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-af7d261f8443",
+    "candidateId": "sc-57c2cabef60b",
+    "proposalId": "sp-1f008e336998",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "loki",
+        "name": "lambda-waf-s3-logs",
+        "component": "promtail"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--config.file",
+              "component": "promtail",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "PROMTAIL_CONFIG",
+              "component": "promtail",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Lambda-Promtail deployments can now ingest AWS WAF logs from S3 buckets; this is an additive feature with no impact on existing configurations."
+      },
+      "statement": "Loki 3.0.0 adds support for AWS WAF logs stored in S3 to Lambda-Promtail."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:feature-gate/added",
+        "detail": "no canonical exposure condition for feature-gate added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

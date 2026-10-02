@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ec1030d20dd8",
+    "candidateId": "sc-5996f84cf28b",
+    "proposalId": "sp-19ddadf25c6d",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "experimental.ruler.enable-api"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "ruler.enable-api"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the Loki configuration file or command-line flags set experimental.ruler.enable-api"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "A configuration still setting experimental.ruler.enable-api no longer has that option honoured, because it is removed.",
+        "remediation": "Use ruler.enable-api instead.",
+        "severity": "medium"
+      },
+      "statement": "The deprecated configuration option `experimental.ruler.enable-api` is removed in Loki 3.0.0; use `ruler.enable-api` instead."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

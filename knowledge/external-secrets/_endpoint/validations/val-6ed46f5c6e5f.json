@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6ed46f5c6e5f",
+    "candidateId": "sc-159bff8514d4",
+    "proposalId": "sp-8bf952a14fdb",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "SecretStore"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"storage version\"",
+        "after": "\"non-storage version\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "SecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing SecretStore objects stored as v1beta1 must be rewritten and status.storedVersions updated before v1beta1 is removed in a later release.",
+        "remediation": "Run a storage version migration to rewrite all SecretStore objects and update status.storedVersions on the CustomResourceDefinition.",
+        "severity": "high"
+      },
+      "statement": "The storage version of secretstores.external-secrets.io changes from v1beta1 to v1; existing v1beta1 objects remain stored in v1beta1 until rewritten via storage version migration."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

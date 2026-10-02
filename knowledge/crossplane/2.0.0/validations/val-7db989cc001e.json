@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7db989cc001e",
+    "candidateId": "sc-6292fc5118f9",
+    "proposalId": "sp-cbc0dac44a05",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "sequential-upgrade-v1-to-v2"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.20.0"
+            },
+            {
+              "op": "cluster-version",
+              "name": "crossplane",
+              "state": "in-range",
+              "range": ">=1.0.0,<2.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators must execute sequential upgrades through intermediate v1 minor versions before upgrading to v2.0; CRD migrations are performed at each minor release and skipping versions may result in incomplete migrations or upgrade failure.",
+        "severity": "high"
+      },
+      "statement": "Crossplane v2.0 requires sequential upgrade through intermediate v1 minor versions, with mandatory upgrade to v1.20 as the final v1 step before upgrading to v2.0; direct upgrade from earlier v1 versions to v2.0 is not supported."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

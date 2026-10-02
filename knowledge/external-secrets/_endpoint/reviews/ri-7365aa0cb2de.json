@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7365aa0cb2de",
+    "candidateId": "sc-967b47c048f1",
+    "product": "external-secrets",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"SecretStore v1beta1 schema: 1 field now required: `spec.provider.fake.data[].value`\", what happens, and is that review or action? proposed: resource-rejected",
+    "proposed": {
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "external-secrets.io/v1beta1 SecretStore objects (and, per the same rendered diff, ClusterSecretStore objects) whose spec.provider.fake.data[] entries omit value are rejected by the tightened CRD schema validation.",
+        "remediation": "Add a value to every spec.provider.fake.data[] entry in external-secrets.io/v1beta1 SecretStore (and ClusterSecretStore) objects before applying them against the release carrying the tightened schema.",
+        "severity": "medium"
+      },
+      "statement": "Between external-secrets 0.15.0 and 0.16.0 the required list for spec.provider.fake.data items in the external-secrets.io/v1beta1 SecretStore schema changed from [key] to [key,value] (the same diff shows the identical change for ClusterSecretStore), so objects that omit spec.provider.fake.data[].value are rejected."
+    },
+    "proposals": [
+      "sp-a845934629bd",
+      "sp-aa690e3a756d",
+      "sp-d24e9e2823dc",
+      "sp-f15c14b4c0d7"
+    ],
+    "validations": [
+      "val-0200de7f04ba",
+      "val-252b7a3e0acb",
+      "val-26b1027f9507",
+      "val-2abc984df348",
+      "val-33c7cefa31f7",
+      "val-35ab92fcc572",
+      "val-4ee4dea184de",
+      "val-55e448efbdf5",
+      "val-70486ed5ad98",
+      "val-73e4b33d6629",
+      "val-7c367edb3d4d",
+      "val-85a736f66710",
+      "val-9570a0acb731",
+      "val-cf2d2233f872",
+      "val-d90b2aac6522",
+      "val-f6d983613bdb"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T21:02:08Z"
+  }
+}

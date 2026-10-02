@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b67915b1a1cb",
+    "candidateId": "sc-9dfe98137c2d",
+    "proposalId": "sp-78ab7a77ff51",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "HelmChart",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"required\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "HelmChart"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmChart v1 objects whose status.artifact omits digest are rejected by the schema.",
+        "severity": "medium"
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1 HelmChart schema, status.artifact.digest is now required, and objects that omit it are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

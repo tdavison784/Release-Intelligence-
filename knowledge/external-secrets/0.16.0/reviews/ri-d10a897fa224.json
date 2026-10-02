@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-d10a897fa224",
+    "candidateId": "sc-dd35e147bb75",
+    "product": "external-secrets",
+    "release": "0.16.0",
+    "questionType": "applicability",
+    "question": "For \"Make sure there are no storedVersions on v1alpha1 for `externalsecrets`, `clusterexternalsecrets`, `secretstores` and `clustersecretstores` crds: Run the…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "status.storedVersions[]",
+                  "state": "exists",
+                  "pattern": "^v1alpha1$"
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "version": "v1",
+              "kind": "CustomResourceDefinition",
+              "name": "externalsecrets.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "status.storedVersions[]",
+                  "state": "exists",
+                  "pattern": "^v1alpha1$"
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "version": "v1",
+              "kind": "CustomResourceDefinition",
+              "name": "secretstores.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "status.storedVersions[]",
+                  "state": "exists",
+                  "pattern": "^v1alpha1$"
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "version": "v1",
+              "kind": "CustomResourceDefinition",
+              "name": "clustersecretstores.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "status.storedVersions[]",
+                  "state": "exists",
+                  "pattern": "^v1alpha1$"
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "version": "v1",
+              "kind": "CustomResourceDefinition",
+              "name": "clusterexternalsecrets.external-secrets.io"
+            }
+          ]
+        }
+      },
+      "statement": "The v1alpha1 API versions must be removed from storedVersions on externalsecrets, secretstores, clustersecretstores, and clusterexternalsecrets CRDs before upgrading to 0.16.0, where v1alpha1 support is removed from these CRDs."
+    },
+    "proposals": [
+      "sp-15f5e830c28e",
+      "sp-698d34e644d2",
+      "sp-7c759fb40168",
+      "sp-e369ee0247be"
+    ],
+    "validations": [
+      "val-27f56b4eb955",
+      "val-56c4d1dabfa3",
+      "val-b6d8df869b74",
+      "val-bef442bdf799",
+      "val-cd285fba28a3",
+      "val-ce6f5a98adc8",
+      "val-d023aa96beeb",
+      "val-de2d09ba9dbe"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:58:59Z"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-46277a1c7908",
+    "candidateId": "sc-06671e62c675",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"SwarmMode: In v3, the provider Docker has been split into 2 providers: - Docker provider (without Swarm support) - Swarm provider (Swarm support only) ???\", what happens, and is that review or action? proposed: upgrade-blocked",
+    "proposed": {
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "A configuration using the Docker provider with swarmMode is unsupported in v3 and prevents Traefik from starting.",
+        "remediation": "Do not use swarmMode with the Docker provider; use the Swarm provider instead.",
+        "severity": "high"
+      },
+      "statement": "In v3 the Docker provider's swarmMode option is unsupported (Swarm moved to a separate Swarm provider), and configuring providers.docker.swarmMode prevents Traefik from starting."
+    },
+    "proposals": [
+      "sp-fc87aa362c92"
+    ],
+    "validations": [
+      "val-0c0dbd280285",
+      "val-c4c36d2d04ae"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "single-model"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T16:16:37Z"
+  }
+}
