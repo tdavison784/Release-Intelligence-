@@ -1,0 +1,4148 @@
+{
+  "caseId": "traefik-2.11-3.0",
+  "recordedFrom": "traefik/edges/2.11.2_3.0.0.json (eval run of 2026-10-02 on p3ll/groundtruth, recorded after the case's expectations were committed)",
+  "missedAtRecording": [
+    "E6"
+  ],
+  "changes": [
+    {
+      "id": "chg-cfef77912306",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Content-Type Auto-Detection: In v3, the `Content-Type` header is not auto-detected anymore when it is not set by the backend",
+      "detail": "Content-Type Auto-Detection: In v3, the `Content-Type` header is not auto-detected anymore when it is not set by the backend. One should use the `ContentType` middleware to enable the `Content-Type` header value auto-detection.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-4c04141f82b5",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Endpoint.TLS.CAOptional: ConsulCatalog provider `endpoint.tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option…",
+      "detail": "Endpoint.TLS.CAOptional: ConsulCatalog provider `endpoint.tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see https://pkg.go.dev/crypto/tls#ClientAuthType). ??? example \"An example usage of the Endpoint.TLS.CAOptional option\" Remediation: The `endpoint.tls.caOptional` option should be removed from the ConsulCatalog provider static configuration.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-69d0bc84ab89",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Endpoint.TLS.CAOptional: Nomad provider `endpoint.tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…",
+      "detail": "Endpoint.TLS.CAOptional: Nomad provider `endpoint.tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see https://pkg.go.dev/crypto/tls#ClientAuthType). ??? example \"An example usage of the Endpoint.TLS.CAOptional option\" Remediation: The `endpoint.tls.caOptional` option should be removed from the Nomad provider static configuration.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-1acc647052b2",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Experimental Channel Resources (TLSRoute and TCPRoute): In v3, the Kubernetes Gateway API provider does not enable support for the experimental channel API…",
+      "detail": "Experimental Channel Resources (TLSRoute and TCPRoute): In v3, the Kubernetes Gateway API provider does not enable support for the experimental channel API resources by default. Remediation: The `experimentalChannel` option should be used to enable the support for the experimental channel API resources. ??? example \"An example usage of the Kubernetes Gateway API provider with experimental channel support enabled\"",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-571703cd9ef9",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "HTTP3: In v3, HTTP/3 is no longer an experimental feature",
+      "detail": "HTTP3: In v3, HTTP/3 is no longer an experimental feature. It can be enabled on entry points without the associated `experimental.http3` option, which is now removed. It is now unsupported and would prevent Traefik to start. ??? example \"An example usage of v2 Experimental `http3` option\" Remediation: The `http3` option should be removed from the static configuration experimental section.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-75d06aff5423",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "IPWhiteList: In v3, we renamed the `IPWhiteList` middleware to `IPAllowList` without changing anything to the configuration",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-a9602fa1c81c",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "InfluxDB v1: InfluxDB v1.x maintenance ended in 2021",
+      "detail": "InfluxDB v1: InfluxDB v1.x maintenance ended in 2021. In v3, the InfluxDB v1 metrics provider has been removed. ??? example \"An example of Traefik v2 InfluxDB v1 metrics configuration\" This configuration is now unsupported and would prevent Traefik to start. Remediation: All InfluxDB v1 metrics provider related configuration should be removed from the static configuration.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-79fc284d3f27",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Internal Resources Observability: In v3, observability for internal routers or services (e.g.: `ping@internal`) is disabled by default",
+      "detail": "Internal Resources Observability: In v3, observability for internal routers or services (e.g.: `ping@internal`) is disabled by default. To enable it one should use the new `addInternals` option for AccessLogs, Metrics or Tracing. Please take a look at the observability documentation for more information: - AccessLogs - Metrics - Tracing",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-9b0ad2c0c509",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Kubernetes CRDs API Group `traefik.containo.us`: In v3, the Kubernetes CRDs API Group `traefik.containo.us` has been removed",
+      "detail": "Kubernetes CRDs API Group `traefik.containo.us`: In v3, the Kubernetes CRDs API Group `traefik.containo.us` has been removed. Please use the API Group `traefik.io` instead.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-6124a28c9091",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Kubernetes Ingress API Group `networking.k8s.io/v1beta1`: In v3, the Kubernetes Ingress API Group `networking.k8s.io/v1beta1` (removed since Kubernetes v1.22)…",
+      "detail": "Kubernetes Ingress API Group `networking.k8s.io/v1beta1`: In v3, the Kubernetes Ingress API Group `networking.k8s.io/v1beta1` (removed since Kubernetes v1.22) support has been removed. Please use the API Group `networking.k8s.io/v1` instead.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-d7821e32fe67",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Marathon provider: Marathon maintenance ended on October 31, 2021",
+      "detail": "Marathon provider: Marathon maintenance ended on October 31, 2021. In v3, the Marathon provider has been removed. ??? example \"An example of v2 Marathon provider configuration\" This configuration is now unsupported and would prevent Traefik to start. Remediation: All Marathon provider related configuration should be removed from the static configuration.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-108b0ca3c0f6",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Pilot: Traefik Pilot is no longer available since October 4th, 2022",
+      "detail": "Pilot: Traefik Pilot is no longer available since October 4th, 2022. ??? example \"An example of v2 Pilot configuration\" In v2, Pilot configuration was deprecated and ineffective, it is now unsupported and would prevent Traefik to start. Remediation: All Pilot related configuration should be removed from the static configuration.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-1887ab395a9f",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Rancher v1 Provider: In v3, the Rancher v1 provider has been removed because Rancher v1 is no longer actively maintained, and Rancher v2 is supported as a…",
+      "detail": "Rancher v1 Provider: In v3, the Rancher v1 provider has been removed because Rancher v1 is no longer actively maintained, and Rancher v2 is supported as a standard Kubernetes provider. ??? example \"An example of Traefik v2 Rancher v1 configuration\" This configuration is now unsupported and would prevent Traefik to start. Remediation: Rancher 2.x requires Kubernetes and does not have a metadata endpoint of its own for Traefik to query. As such, Rancher 2.x users should utilize the Kubernetes CRD provider directly. Also, all Rancher provider related configuration should be removed from the static configuration.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-6f55ca308853",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Router Rule Matchers: In v3, a new rule matchers syntax has been introduced for HTTP and TCP routers",
+      "detail": "Router Rule Matchers: In v3, a new rule matchers syntax has been introduced for HTTP and TCP routers. The default rule matchers syntax is now the v3 one, but for backward compatibility this can be configured. The v2 rule matchers syntax is deprecated and its support will be removed in the next major version. For this reason, we encourage migrating to the new syntax. By default, the `defaultRuleSyntax` static option is automatically set to `v3`, meaning that the default rule is the new one. New V3 Syntax Notable Changes: The `Headers` and `HeadersRegexp` matchers have been renamed to `Header` and `HeaderRegexp` respectively. `PathPrefix` no longer uses regular expressions to match path prefixes. `QueryRegexp` has been introduced to match query values using a regular expression. `HeaderRegexp`, `HostRegexp`, `PathRegexp`, `QueryRegexp`, and `HostSNIRegexp` matchers now uses the Go regexp syntax. All matchers now take a single value (except `Header`, `HeaderRegexp`, `Query`, and `QueryRegexp` which take two) and should be explicitly combined using logical operators to mimic previous behavior. `Query` can take a single value to match is the query value that has no value (e.g.…",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-39447eba3d8b",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "SwarmMode: In v3, the provider Docker has been split into 2 providers: - Docker provider (without Swarm support) - Swarm provider (Swarm support only) ???",
+      "detail": "SwarmMode: In v3, the provider Docker has been split into 2 providers: - Docker provider (without Swarm support) - Swarm provider (Swarm support only) ??? example \"An example usage of v2 Docker provider with Swarm\" This configuration is now unsupported and would prevent Traefik to start. Remediation: In v3, the `swarmMode` should not be used with the Docker provider, and, to use Swarm, the Swarm provider should be used instead. ??? example \"An example usage of the Swarm provider\"",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-3433a3cf5170",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "TCP LoadBalancer `terminationDelay` option: The TCP LoadBalancer `terminationDelay` option has been removed",
+      "detail": "TCP LoadBalancer `terminationDelay` option: The TCP LoadBalancer `terminationDelay` option has been removed. This option can now be configured directly on the `TCPServersTransport` level, please take a look at this documentation",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-1bd4cfe6304e",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "TLS.CAOptional: Consul provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…",
+      "detail": "TLS.CAOptional: Consul provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see https://pkg.go.dev/crypto/tls#ClientAuthType). ??? example \"An example usage of the TLS.CAOptional option\" Remediation: The `tls.caOptional` option should be removed from the Consul provider static configuration.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-0653cc39ecf2",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "TLS.CAOptional: Docker provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…",
+      "detail": "TLS.CAOptional: Docker provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see https://pkg.go.dev/crypto/tls#ClientAuthType). ??? example \"An example usage of the TLS.CAOptional option\" Remediation: The `tls.caOptional` option should be removed from the Docker provider static configuration.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-73594e8d8cff",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "TLS.CAOptional: ETCD provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…",
+      "detail": "TLS.CAOptional: ETCD provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see https://pkg.go.dev/crypto/tls#ClientAuthType). ??? example \"An example usage of the TLS.CAOptional option\" Remediation: The `tls.caOptional` option should be removed from the ETCD provider static configuration.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-d9619525c07c",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "TLS.CAOptional: HTTP provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…",
+      "detail": "TLS.CAOptional: HTTP provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see https://pkg.go.dev/crypto/tls#ClientAuthType). ??? example \"An example usage of the TLS.CAOptional option\" Remediation: The `tls.caOptional` option should be removed from the HTTP provider static configuration.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-0efa652847cc",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "TLS.CAOptional: Redis provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…",
+      "detail": "TLS.CAOptional: Redis provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see https://pkg.go.dev/crypto/tls#ClientAuthType). ??? example \"An example usage of the TLS.CAOptional option\" Remediation: The `tls.caOptional` option should be removed from the Redis provider static configuration.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-67ec5ab80e67",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Tracing: In v3, the tracing feature has been revamped and is now powered exclusively by OpenTelemetry (OTel)",
+      "detail": "Tracing: In v3, the tracing feature has been revamped and is now powered exclusively by OpenTelemetry (OTel). !!! warning \"Important\" Traefik v3 no longer supports direct output formats for specific vendors such as Instana, Jaeger, Zipkin, Haystack, Datadog, and Elastic. Instead, it focuses on pure OpenTelemetry implementation, providing a unified and standardized approach for observability. Here are two possible transition strategies: - OTLP Ingestion Endpoints: Most vendors now offer OpenTelemetry Protocol (OTLP) ingestion endpoints. You can seamlessly integrate Traefik v3 with these endpoints to continue leveraging tracing capabilities. - Legacy Stack Compatibility: For legacy stacks that cannot immediately upgrade to the latest vendor agents supporting OTLP ingestion, using OpenTelemetry (OTel) collectors with appropriate exporters configuration is a viable solution. This allows continued compatibility with the existing infrastructure. Please check the OpenTelemetry Tracing provider documention for more information.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-27ef46919ee3",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Traefik RBAC Update: In v3, the support of `TCPServersTransport` has been introduced",
+      "detail": "Traefik RBAC Update: In v3, the support of `TCPServersTransport` has been introduced. When using the KubernetesCRD provider, it is therefore necessary to update RBAC and CRD manifests.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-94fa939a94ad",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "gRPC Metrics: In v3, the reported status code for gRPC requests is now the value of the `Grpc-Status` header",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-614e784fd796",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "namespace: The Consul provider `namespace` option was deprecated in v2 and is now removed in v3",
+      "detail": "namespace: The Consul provider `namespace` option was deprecated in v2 and is now removed in v3. It is now unsupported and would prevent Traefik to start. ??? example \"An example usage of v2 Consul `namespace` option\" Remediation: In v3, the `namespaces` option should be used instead of the `namespace` option. ??? example \"An example usage of Consul `namespaces` option\"",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-f74f893165ce",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "namespace: The ConsulCatalog provider `namespace` option was deprecated in v2 and is now removed in v3",
+      "detail": "namespace: The ConsulCatalog provider `namespace` option was deprecated in v2 and is now removed in v3. It is now unsupported and would prevent Traefik to start. ??? example \"An example usage of v2 ConsulCatalog `namespace` option\" Remediation: In v3, the `namespaces` option should be used instead of the `namespace` option. ??? example \"An example usage of ConsulCatalog `namespaces` option\"",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-9533b0785871",
+      "category": "migration",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "namespace: The Nomad provider `namespace` option was deprecated in v2 and is now removed in v3",
+      "detail": "namespace: The Nomad provider `namespace` option was deprecated in v2 and is now removed in v3. It is now unsupported and would prevent Traefik to start. ??? example \"An example usage of v2 Nomad `namespace` option\" Remediation: In v3, the `namespaces` option should be used instead of the `namespace` option. ??? example \"An example usage of Nomad `namespaces` option\"",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-f60383d638bb",
+      "category": "deprecation",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "The `forceSlash` option of the StripPrefix middleware has been removed",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-d95fd16e02ce",
+      "category": "deprecation",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "The `preferServerCipherSuites` option has been removed",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-3ebfa8563311",
+      "category": "deprecation",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "The `tls.caOptional` option has been removed from the ForwardAuth middleware, as well as from the HTTP, Consul, Etcd, Redis, ZooKeeper, Consul Catalog, and…",
+      "detail": "The `tls.caOptional` option has been removed from the ForwardAuth middleware, as well as from the HTTP, Consul, Etcd, Redis, ZooKeeper, Consul Catalog, and Docker providers.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-e7b2767fe851",
+      "category": "deprecation",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "The `tracing.datadog.globaltag` option has been removed",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-090e04a92b56",
+      "category": "deprecation",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "`sslRedirect`, `sslTemporaryRedirect`, `sslHost`, `sslForceHost` and `featurePolicy` options of the Headers middleware have been removed",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-6adbd01b1575",
+      "category": "api",
+      "breaking": true,
+      "actionRequired": true,
+      "title": "Traefik CRD API Version `apiextensions.k8s.io/v1beta1`: In v3, the Traefik CRD API Version `apiextensions.k8s.io/v1beta1` (removed since Kubernetes v1.22)…",
+      "detail": "Traefik CRD API Version `apiextensions.k8s.io/v1beta1`: In v3, the Traefik CRD API Version `apiextensions.k8s.io/v1beta1` (removed since Kubernetes v1.22) support has been removed. Please use the CRD definition with the API Version `apiextensions.k8s.io/v1` instead.",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-a09867a619ce",
+      "category": "crd-schema",
+      "breaking": true,
+      "actionRequired": false,
+      "title": "CRD `ingressroutes.traefik.containo.us` (IngressRoute) removed",
+      "detail": "v3.0.0 no longer ships this CustomResourceDefinition (versions v1alpha1). Existing IngressRoute resources are no longer reconciled; migrate or delete them before upgrading.",
+      "release": "",
+      "subjects": [
+        "ingressroutes.traefik.containo.us"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-efa43242b245",
+      "category": "crd-schema",
+      "breaking": true,
+      "actionRequired": false,
+      "title": "CRD `ingressroutetcps.traefik.containo.us` (IngressRouteTCP) removed",
+      "detail": "v3.0.0 no longer ships this CustomResourceDefinition (versions v1alpha1). Existing IngressRouteTCP resources are no longer reconciled; migrate or delete them before upgrading.",
+      "release": "",
+      "subjects": [
+        "ingressroutetcps.traefik.containo.us"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-c4f096a694d5",
+      "category": "crd-schema",
+      "breaking": true,
+      "actionRequired": false,
+      "title": "CRD `ingressrouteudps.traefik.containo.us` (IngressRouteUDP) removed",
+      "detail": "v3.0.0 no longer ships this CustomResourceDefinition (versions v1alpha1). Existing IngressRouteUDP resources are no longer reconciled; migrate or delete them before upgrading.",
+      "release": "",
+      "subjects": [
+        "ingressrouteudps.traefik.containo.us"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-661ac712ceeb",
+      "category": "crd-schema",
+      "breaking": true,
+      "actionRequired": false,
+      "title": "CRD `middlewares.traefik.containo.us` (Middleware) removed",
+      "detail": "v3.0.0 no longer ships this CustomResourceDefinition (versions v1alpha1). Existing Middleware resources are no longer reconciled; migrate or delete them before upgrading.",
+      "release": "",
+      "subjects": [
+        "middlewares.traefik.containo.us"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-6739b8507963",
+      "category": "crd-schema",
+      "breaking": true,
+      "actionRequired": false,
+      "title": "CRD `middlewaretcps.traefik.containo.us` (MiddlewareTCP) removed",
+      "detail": "v3.0.0 no longer ships this CustomResourceDefinition (versions v1alpha1). Existing MiddlewareTCP resources are no longer reconciled; migrate or delete them before upgrading.",
+      "release": "",
+      "subjects": [
+        "middlewaretcps.traefik.containo.us"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-0206d93ac6de",
+      "category": "crd-schema",
+      "breaking": true,
+      "actionRequired": false,
+      "title": "CRD `serverstransports.traefik.containo.us` (ServersTransport) removed",
+      "detail": "v3.0.0 no longer ships this CustomResourceDefinition (versions v1alpha1). Existing ServersTransport resources are no longer reconciled; migrate or delete them before upgrading.",
+      "release": "",
+      "subjects": [
+        "serverstransports.traefik.containo.us"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-fb0ff6770116",
+      "category": "crd-schema",
+      "breaking": true,
+      "actionRequired": false,
+      "title": "CRD `tlsoptions.traefik.containo.us` (TLSOption) removed",
+      "detail": "v3.0.0 no longer ships this CustomResourceDefinition (versions v1alpha1). Existing TLSOption resources are no longer reconciled; migrate or delete them before upgrading.",
+      "release": "",
+      "subjects": [
+        "tlsoptions.traefik.containo.us"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-6f46d366ebf5",
+      "category": "crd-schema",
+      "breaking": true,
+      "actionRequired": false,
+      "title": "CRD `tlsstores.traefik.containo.us` (TLSStore) removed",
+      "detail": "v3.0.0 no longer ships this CustomResourceDefinition (versions v1alpha1). Existing TLSStore resources are no longer reconciled; migrate or delete them before upgrading.",
+      "release": "",
+      "subjects": [
+        "tlsstores.traefik.containo.us"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-ccf897714c01",
+      "category": "crd-schema",
+      "breaking": true,
+      "actionRequired": false,
+      "title": "CRD `traefikservices.traefik.containo.us` (TraefikService) removed",
+      "detail": "v3.0.0 no longer ships this CustomResourceDefinition (versions v1alpha1). Existing TraefikService resources are no longer reconciled; migrate or delete them before upgrading.",
+      "release": "",
+      "subjects": [
+        "traefikservices.traefik.containo.us"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-b9a40eb7353c",
+      "category": "compatibility",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "Kubernetes chart kubeVersion narrowed: ≥ 1.16 → ≥ 1.22 (drops 1.16–1.21)",
+      "detail": "Helm refuses to install the chart on a cluster outside its kubeVersion constraint (≥ 1.22). Verify the cluster satisfies it before upgrading.",
+      "release": "",
+      "subjects": [
+        "kubernetes/chart-kubeVersion"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-6724f3878761",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-3ccp-42pg-hgv6 (CVE-2026-71324) still affects target v3.0.0: Cross-user response poisoning via proxied CONNECT on Traefik's shared backend keep-alive pool",
+      "detail": "Severity: high. Affected versions: <= 2.11.52 || >= 3.0.0, <= 3.6.23 || >= 3.7.0, <= 3.7.8. Patched: v2.11.53, v3.6.24, v3.7.9. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-3ccp-42pg-hgv6"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-3ccp-42pg-hgv6",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-3ccp-42pg-hgv6"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-71324"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-042e41ef7dcb",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-3q9r-p662-5j8m (CVE-2026-54764) still affects target v3.0.0: ForwardAuth middleware leaks X-Forwarded-Port spoofing via untrusted X-Forwarded-Proto when…",
+      "detail": "Severity: medium. Affected versions: <= 2.11.50 || >= 3.0.0, <= 3.6.21 || >= 3.7.0, <= 3.7.5. Patched: v2.11.51, v3.6.22, v3.7.6. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-3q9r-p662-5j8m"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-3q9r-p662-5j8m",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-3q9r-p662-5j8m"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-54764"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-6ae4ece91539",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-4hjq-9h5c-252j (CVE-2026-27141) still affects target v3.0.0: HTTP/2 frames can cause a running server to panic",
+      "detail": "Severity: high. Affected versions: <= 2.11.39 || <= 3.6.9. Patched: v2.11.40, v3.6.10. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-4hjq-9h5c-252j"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-4hjq-9h5c-252j",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-4hjq-9h5c-252j"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-27141"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-12d0dd187ae8",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-5w68-77r2-r64c still affects target v3.0.0: Complete authentication bypass in the `digestAuth` middleware",
+      "detail": "Severity: critical. Affected versions: <= 2.11.54 || >= 3.0.0, <= 3.7.10. Patched: v2.11.55, v3.7.11. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-5w68-77r2-r64c"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-5w68-77r2-r64c",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-5w68-77r2-r64c"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-7e6b0ff70eb8",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-62fc-8686-hfmq (CVE-2026-71325) still affects target v3.0.0: `allowCrossNamespace=false` bypass via `@kubernetescrd` TraefikService backendRef",
+      "detail": "Severity: medium. Affected versions: <= 2.11.53 || >= 3.0.0, <= 3.6.24 || >= 3.7.0, <= 3.7.9. Patched: v2.11.54, v3.6.25, v3.7.10. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-62fc-8686-hfmq"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-62fc-8686-hfmq",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-62fc-8686-hfmq"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-71325"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-d08e58dde6a8",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-67jx-r9pv-98rj (CVE-2026-32695) still affects target v3.0.0: Ingress Rule Injection Allows Host Restriction Bypass in Traefik",
+      "detail": "Severity: medium. Affected versions: <= 3.6.10, <= 3.7.0-ea.1. Patched: v3.6.11, v3.7.0-ea.2. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-67jx-r9pv-98rj"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-67jx-r9pv-98rj",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-67jx-r9pv-98rj"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-32695"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-daf8655374c0",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-7ghq-v6jf-g56c (CVE-2026-88012) still affects target v3.0.0: respondingTimeouts.readTimeout is not applied to HTTP/3, leaving slow-body uploads unbounded",
+      "detail": "Severity: medium. Affected versions: >= 2.8.2, <= 2.11.55 || >= 3.0.0, <= 3.7.11. Patched: v2.11.56, v3.7.12. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-7ghq-v6jf-g56c"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-7ghq-v6jf-g56c",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-7ghq-v6jf-g56c"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-88012"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-f00777bb611a",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-89p3-4642-cr2w (CVE-2026-25949) affects target v3.0.0: TCP readTimeout bypass via STARTTLS on Postgres",
+      "detail": "Severity: high. Affected versions: >= 3.0.0, <= 3.6.7. Patched: v3.6.8. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-89p3-4642-cr2w"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-89p3-4642-cr2w",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-89p3-4642-cr2w"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-25949"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-3ad5532774e8",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-8q2w-wr49-whqj (CVE-2026-29777) still affects target v3.0.0: Kubernetes gateway rule injection via unescaped backticks in HTTPRoute match values",
+      "detail": "Severity: medium. Affected versions: <= 3.6.9. Patched: v3.6.10. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-8q2w-wr49-whqj"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-8q2w-wr49-whqj",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-8q2w-wr49-whqj"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-29777"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-95971198f6d7",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-96qj-4jj5-wcjc (CVE-2026-44774) still affects target v3.0.0: Gateway API TraefikService backend accepts rest@internal, allowing unauthorized exposure of…",
+      "detail": "Severity: medium. Affected versions: <= 2.11.45 || >= 3.0.0, <= 3.6.16 || >= 3.7.0, <= 3.7.0. Patched: v2.11.46, v3.6.17, v3.7.1. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-96qj-4jj5-wcjc"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-96qj-4jj5-wcjc",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-96qj-4jj5-wcjc"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-44774"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-ca8ae76e1ace",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-9cr8-q42q-g8m7 (CVE-2026-53622) affects target v3.0.0: HTTP/3 mTLS bypass via exact SNI TLSOptions lookup for wildcard and mixed-case hosts",
+      "detail": "Severity: high. Affected versions: >= 3.0.0, <= 3.6.17 || >= 3.7.0, <= 3.7.1. Patched: v3.6.19, v3.7.3. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-9cr8-q42q-g8m7"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-9cr8-q42q-g8m7",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-9cr8-q42q-g8m7"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-53622"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-b2bb54e1ba9b",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-cxjq-mrr5-89rv still affects target v3.0.0: Authentication Bypass via Path Traversal in ReplacePathRegex Middleware",
+      "detail": "Severity: high. Affected versions: <= 2.11.51 || >= 3.0.0, <= 3.6.22 || >= 3.7.0, <= 3.7.6. Patched: v2.11.52, v3.6.23, v3.7.7. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-cxjq-mrr5-89rv"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-cxjq-mrr5-89rv",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-cxjq-mrr5-89rv"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-f5e82dabfd67",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-f52w-8j3h-j724 (CVE-2026-88009) still affects target v3.0.0: Rootless HTTP/1 request-target routes as \"/\" but is forwarded verbatim, bypassing path-scoped…",
+      "detail": "Severity: high. Affected versions: >= 3.0.0, <= 3.7.12 || <= 2.11.56. Patched: v3.7.13, v2.11.57. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-f52w-8j3h-j724"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-f52w-8j3h-j724",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-f52w-8j3h-j724"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-88009"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-506720df23de",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-fgjj-px3w-67xx (CVE-2026-71327) affects target v3.0.0: Gateway API route identity collision allows cross-namespace backend hijacking",
+      "detail": "Severity: high. Affected versions: >= 3.0.0, <= 3.6.24 || >= 3.7.0, <= 3.7.9. Patched: v3.6.25, v3.7.10. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-fgjj-px3w-67xx"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-fgjj-px3w-67xx",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-fgjj-px3w-67xx"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-71327"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-7e872ec3bb46",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-fw45-f5q2-2p4x (CVE-2026-26998) still affects target v3.0.0: ForwardAuth Middleware Allows Unbounded Response Body, Causing Potential Denial of Service",
+      "detail": "Severity: medium. Affected versions: <= 2.11.37 || <= 3.6.8. Patched: v2.11.38, v3.6.9. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-fw45-f5q2-2p4x"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-fw45-f5q2-2p4x",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-fw45-f5q2-2p4x"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-26998"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-ea0b5354f1af",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-g55h-rg46-x9c5 still affects target v3.0.0: TLS option confusion in multi-host routers can bypass mTLS for protected hosts",
+      "detail": "Severity: high. Affected versions: <= 2.11.54 || >= 3.0.0, <= 3.7.10. Patched: v2.11.55, v3.7.11. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-g55h-rg46-x9c5"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-g55h-rg46-x9c5",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-g55h-rg46-x9c5"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-1afe17723d46",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-p6hg-qh38-555r (CVE-2026-41181) still affects target v3.0.0: Errors middleware forwards Authorization and Cookie headers to separate error page service",
+      "detail": "Severity: medium. Affected versions: <= 2.11.43 || >= 3.0.0, <= 3.6.14 || >= 3.7.0-ea.1, <= 3.7.0-rc.2. Patched: v2.11.44, v3.6.15, v3.7.0-rc.3. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-p6hg-qh38-555r"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-p6hg-qh38-555r",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-p6hg-qh38-555r"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-41181"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-84d8bdb17985",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-qqjf-53cj-pwvv (CVE-2026-88007) still affects target v3.0.0: Traefik HTTP/3 Backend NTLM Connection Reuse",
+      "detail": "Severity: critical. Affected versions: >= 3.0.0, <= 3.7.12 || >= 2.11.0, <= 2.11.56. Patched: v3.7.13, v2.11.57. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-qqjf-53cj-pwvv"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-qqjf-53cj-pwvv",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-qqjf-53cj-pwvv"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-88007"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-00bbc44107f0",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-rf44-j88r-hh8c (CVE-2026-88011) still affects target v3.0.0: ForwardAuth identity spoofing via dot-form header alias",
+      "detail": "Severity: medium. Affected versions: <= 2.11.55 || >= 3.0.0, <= 3.7.11. Patched: v2.11.56, v3.7.12. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-rf44-j88r-hh8c"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-rf44-j88r-hh8c",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-rf44-j88r-hh8c"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-88011"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-0613c0d52795",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-x677-9fxg-v5c5 (CVE-2026-54763) still affects target v3.0.0: Incomplete fix for CVE-2026-33433 + CVE-2026-39858 cross-cohort: headerField…",
+      "detail": "Severity: high. Affected versions: <= 2.11.50 || >= 3.0.0, <= 3.6.21 || >= 3.7.0, <= 3.7.5. Patched: v2.11.51, v3.6.22, v3.7.6. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-x677-9fxg-v5c5"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-x677-9fxg-v5c5",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-x677-9fxg-v5c5"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-54763"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-37456bf79858",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-xf64-8mw2-4gr2 (CVE-2026-48020) still affects target v3.0.0: Traefik StripPrefix Route-Level Auth Bypass via Path Normalization",
+      "detail": "Severity: high. Affected versions: <= 2.11.46 || >= 3.0.0, <= 3.6.17 || >= 3.7.0, <= 3.7.1. Patched: v2.11.48, v3.6.19, v3.7.3. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-xf64-8mw2-4gr2"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-xf64-8mw2-4gr2",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-xf64-8mw2-4gr2"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-48020"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-95bba88b3a92",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": true,
+      "title": "GHSA-xw98-5q62-jx94 (CVE-2026-26999) still affects target v3.0.0: TLS Handshake Error Handling Allows Stalled Connections on TCP Routers",
+      "detail": "Severity: high. Affected versions: <= 2.11.37 || <= 3.6.8. Patched: v2.11.38, v3.6.9. Consider upgrading to a patched release instead.",
+      "release": "",
+      "subjects": [
+        "GHSA-xw98-5q62-jx94"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-xw98-5q62-jx94",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-xw98-5q62-jx94"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-26999"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-2578f3c84bdf",
+      "category": "deprecation",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Traefik Proxy v2.11.2 is end-of-life since 2026-09-07; the upgrade target v3.0.0 is not",
+      "detail": "Traefik Proxy v2 is end-of-life: v2.11, the last v2 minor, received security fixes for two years after v3.0.0 and that window ended on 2026-09-07 (older v2 minors ended earlier). New vulnerabilities are fixed in v3 only; plan the v2-to-v3 migration instead of v2 patch upgrades.",
+      "release": "",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-92360b446650",
+      "category": "crd-schema",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "IngressRoute v1alpha1 schema: 2 fields added: `spec.routes[].services[].sticky.cookie.maxAge`, `spec.routes[].syntax`",
+      "detail": "New paths in the traefik.io/v1alpha1 schema of ingressroutes.traefik.io:\nspec.routes[].services[].sticky.cookie.maxAge\nspec.routes[].syntax",
+      "release": "",
+      "subjects": [
+        "spec.routes[].services[].sticky.cookie.maxAge",
+        "spec.routes[].syntax"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-72827b8419f3",
+      "category": "crd-schema",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "IngressRouteTCP v1alpha1 schema: 3 fields added: `spec.routes[].services[].serversTransport`, `spec.routes[].services[].tls`, `spec.routes[].syntax`",
+      "detail": "New paths in the traefik.io/v1alpha1 schema of ingressroutetcps.traefik.io:\nspec.routes[].services[].serversTransport\nspec.routes[].services[].tls\nspec.routes[].syntax",
+      "release": "",
+      "subjects": [
+        "spec.routes[].services[].serversTransport",
+        "spec.routes[].services[].tls",
+        "spec.routes[].syntax"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-9222b8b8c1cf",
+      "category": "crd-schema",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Middleware v1alpha1 schema: 6 fields added: `spec.circuitBreaker.responseCode`, `spec.compress.includedContentTypes[]`, `spec.errors.service.sticky.cookie.maxA…",
+      "detail": "New paths in the traefik.io/v1alpha1 schema of middlewares.traefik.io:\nspec.circuitBreaker.responseCode\nspec.compress.includedContentTypes[]\nspec.errors.service.sticky.cookie.maxAge\nspec.forwardAuth.addAuthCookiesToResponse[]\nspec.grpcWeb\nspec.grpcWeb.allowOrigins[]\nspec.ipAllowList.rejectStatusCode",
+      "release": "",
+      "subjects": [
+        "spec.circuitBreaker.responseCode",
+        "spec.compress.includedContentTypes[]",
+        "spec.errors.service.sticky.cookie.maxAge",
+        "spec.forwardAuth.addAuthCookiesToResponse[]",
+        "spec.grpcWeb",
+        "spec.grpcWeb.allowOrigins[]",
+        "spec.ipAllowList.rejectStatusCode"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-cfaac6eb0182",
+      "category": "crd-schema",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "New CRD `serverstransporttcps.traefik.io` (ServersTransportTCP, v1alpha1)",
+      "detail": "Install or update CRDs before upgrading if you manage them separately from the release.",
+      "release": "",
+      "subjects": [
+        "serverstransporttcps.traefik.io"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-d293a3d7fbac",
+      "category": "crd-schema",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "ServersTransport v1alpha1 schema: 1 field added: `spec.spiffe`",
+      "detail": "New paths in the traefik.io/v1alpha1 schema of serverstransports.traefik.io:\nspec.spiffe\nspec.spiffe.ids[]\nspec.spiffe.trustDomain",
+      "release": "",
+      "subjects": [
+        "spec.spiffe",
+        "spec.spiffe.ids[]",
+        "spec.spiffe.trustDomain"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-e7760bccf3b6",
+      "category": "crd-schema",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "TraefikService v1alpha1 schema: 4 fields added: `spec.mirroring.mirrors[].sticky.cookie.maxAge`, `spec.mirroring.sticky.cookie.maxAge`…",
+      "detail": "New paths in the traefik.io/v1alpha1 schema of traefikservices.traefik.io:\nspec.mirroring.mirrors[].sticky.cookie.maxAge\nspec.mirroring.sticky.cookie.maxAge\nspec.weighted.services[].sticky.cookie.maxAge\nspec.weighted.sticky.cookie.maxAge",
+      "release": "",
+      "subjects": [
+        "spec.mirroring.mirrors[].sticky.cookie.maxAge",
+        "spec.mirroring.sticky.cookie.maxAge",
+        "spec.weighted.services[].sticky.cookie.maxAge",
+        "spec.weighted.sticky.cookie.maxAge"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-2e4842712fae",
+      "category": "helm-values",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "14 new Helm values under `ports.*`",
+      "detail": "Defaults in v3.0.0:\nports.web.transport.keepAliveMaxRequests = null\nports.web.transport.keepAliveMaxTime = null\nports.web.transport.lifeCycle.graceTimeOut = null\nports.web.transport.lifeCycle.requestAcceptGraceTimeout = null\nports.web.transport.respondingTimeouts.idleTimeout = null\nports.web.transport.respondingTimeouts.readTimeout = null\nports.web.transport.respondingTimeouts.writeTimeout = null\nports.websecure.transport.keepAliveMaxRequests = null\nports.websecure.transport.keepAliveMaxTime = null\nports.websecure.transport.lifeCycle.graceTimeOut = null\nports.websecure.transport.lifeCycle.requestAcceptGraceTimeout = null\nports.websecure.transport.respondingTimeouts.idleTimeout = null\nports.websecure.transport.respondingTimeouts.readTimeout = null\nports.websecure.transport.respondingTimeouts.writeTimeout = null",
+      "release": "",
+      "subjects": [
+        "ports.web.transport.keepAliveMaxRequests",
+        "ports.web.transport.keepAliveMaxTime",
+        "ports.web.transport.lifeCycle.graceTimeOut",
+        "ports.web.transport.lifeCycle.requestAcceptGraceTimeout",
+        "ports.web.transport.respondingTimeouts.idleTimeout",
+        "ports.web.transport.respondingTimeouts.readTimeout",
+        "ports.web.transport.respondingTimeouts.writeTimeout",
+        "ports.websecure.transport.keepAliveMaxRequests",
+        "ports.websecure.transport.keepAliveMaxTime",
+        "ports.websecure.transport.lifeCycle.graceTimeOut",
+        "ports.websecure.transport.lifeCycle.requestAcceptGraceTimeout",
+        "ports.websecure.transport.respondingTimeouts.idleTimeout",
+        "ports.websecure.transport.respondingTimeouts.readTimeout",
+        "ports.websecure.transport.respondingTimeouts.writeTimeout"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-06f2beef766f",
+      "category": "helm-values",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "16 new Helm values under `tracing.*`",
+      "detail": "Defaults in v3.0.0:\ntracing.addInternals = null  # Enables tracing for internal resources. Default: false.\ntracing.otlp.enabled = false  # See https://doc.traefik.io/traefik/v3.0/observability/tracing/opentelemetry/\ntracing.otlp.grpc.enabled = false  # Set to true in order to send metrics to the OpenTelemetry Collector using gRPC\ntracing.otlp.grpc.endpoint = null  # Format: <scheme>://<host>:<port><path>. Default: http://localhost:4318/v1/metrics\ntracing.otlp.grpc.insecure = null  # Allows reporter to send metrics to the OpenTelemetry Collector without using a secured protocol.\ntracing.otlp.grpc.tls.ca = null  # The path to the certificate authority, it defaults to the system bundle.\ntracing.otlp.grpc.tls.cert = null  # The path to the public certificate. When using this option, setting the key option is required.\ntracing.otlp.grpc.tls.insecureSkipVerify = null  # When set to true, the TLS connection accepts any certificate presented by the server regardless of the hostnames it covers.\ntracing.otlp.grpc.tls.key = null  # The path to the private key. When using this option, setting the cert option is required.\ntracing.otlp.http.enabled = false  # Set to true in order to send metrics to the OpenTelemetry Collector using HTTP.\ntracing.otlp.http.endpoint = null  # Format: <scheme>://<host>:<port><path>. Default: http://localhost:4318/v1/metrics\ntracing.otlp.http.headers = null  # Additional headers sent with metrics by the reporter to the OpenTelemetry Collector.\ntracing.otlp.http.tls.ca = null  # The path to the certificate authority, it defaults to the system bundle.\ntracing.otlp.http.tls.cert = null  # The path to the public certificate. When using this option, setting the key option is required.\ntracing.otlp.http.tls.insecureSkipVerify = null  # When set to true, the TLS connection accepts any certificate presented by the server regardless of the hostnames it covers.\ntracing.otlp.http.tls.key = null  # The path to the private key. When using this option, setting the cert option is required.",
+      "release": "",
+      "subjects": [
+        "tracing.addInternals",
+        "tracing.otlp.enabled",
+        "tracing.otlp.grpc.enabled",
+        "tracing.otlp.grpc.endpoint",
+        "tracing.otlp.grpc.insecure",
+        "tracing.otlp.grpc.tls.ca",
+        "tracing.otlp.grpc.tls.cert",
+        "tracing.otlp.grpc.tls.insecureSkipVerify",
+        "tracing.otlp.grpc.tls.key",
+        "tracing.otlp.http.enabled",
+        "tracing.otlp.http.endpoint",
+        "tracing.otlp.http.headers",
+        "tracing.otlp.http.tls.ca",
+        "tracing.otlp.http.tls.cert",
+        "tracing.otlp.http.tls.insecureSkipVerify",
+        "tracing.otlp.http.tls.key"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-fcdca182eefa",
+      "category": "helm-values",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "21 new Helm values under `metrics.*`",
+      "detail": "Defaults in v3.0.0:\nmetrics.addInternals = null  # Enable metrics for internal resources. Default: false\nmetrics.otlp.addEntryPointsLabels = null  # Enable metrics on entry points. Default: true\nmetrics.otlp.addRoutersLabels = null  # Enable metrics on routers. Default: false\nmetrics.otlp.addServicesLabels = null  # Enable metrics on services. Default: true\nmetrics.otlp.enabled = false  # Set to true in order to enable the OpenTelemetry metrics\nmetrics.otlp.explicitBoundaries = null  # Explicit boundaries for Histogram data points. Default: [.005, .01, .025, .05, .1, .25, .5, 1, 2.5, 5, 10]\nmetrics.otlp.grpc.enabled = false  # Set to true in order to send metrics to the OpenTelemetry Collector using gRPC\nmetrics.otlp.grpc.endpoint = null  # Format: <scheme>://<host>:<port><path>. Default: http://localhost:4318/v1/metrics\nmetrics.otlp.grpc.insecure = null  # Allows reporter to send metrics to the OpenTelemetry Collector without using a secured protocol.\nmetrics.otlp.grpc.tls.ca = null  # The path to the certificate authority, it defaults to the system bundle.\nmetrics.otlp.grpc.tls.cert = null  # The path to the public certificate. When using this option, setting the key option is required.\nmetrics.otlp.grpc.tls.insecureSkipVerify = null  # When set to true, the TLS connection accepts any certificate presented by the server regardless of the hostnames it covers.\nmetrics.otlp.grpc.tls.key = null  # The path to the private key. When using this option, setting the cert option is required.\nmetrics.otlp.http.enabled = false  # Set to true in order to send metrics to the OpenTelemetry Collector using HTTP.\nmetrics.otlp.http.endpoint = null  # Format: <scheme>://<host>:<port><path>. Default: http://localhost:4318/v1/metrics\nmetrics.otlp.http.headers = null  # Additional headers sent with metrics by the reporter to the OpenTelemetry Collector.\nmetrics.otlp.http.tls.ca = null  # The path to the certificate authority, it defaults to the system bundle.\nmetrics.otlp.http.tls.cert = null  # The path to the public certificate. When using this option, setting the key option is required.\nmetrics.otlp.http.tls.insecureSkipVerify = null  # When set to true, the TLS connection accepts any certificate presented by the server regardless of the hostnames it covers.\nmetrics.otlp.http.tls.key = null  # The path to the private key. When using this option, setting the cert option is required.\nmetrics.otlp.pushInterval = null  # Interval at which metrics are sent to the OpenTelemetry Collector. Default: 10s",
+      "release": "",
+      "subjects": [
+        "metrics.addInternals",
+        "metrics.otlp.addEntryPointsLabels",
+        "metrics.otlp.addRoutersLabels",
+        "metrics.otlp.addServicesLabels",
+        "metrics.otlp.enabled",
+        "metrics.otlp.explicitBoundaries",
+        "metrics.otlp.grpc.enabled",
+        "metrics.otlp.grpc.endpoint",
+        "metrics.otlp.grpc.insecure",
+        "metrics.otlp.grpc.tls.ca",
+        "metrics.otlp.grpc.tls.cert",
+        "metrics.otlp.grpc.tls.insecureSkipVerify",
+        "metrics.otlp.grpc.tls.key",
+        "metrics.otlp.http.enabled",
+        "metrics.otlp.http.endpoint",
+        "metrics.otlp.http.headers",
+        "metrics.otlp.http.tls.ca",
+        "metrics.otlp.http.tls.cert",
+        "metrics.otlp.http.tls.insecureSkipVerify",
+        "metrics.otlp.http.tls.key",
+        "metrics.otlp.pushInterval"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-0c4be3797b43",
+      "category": "helm-values",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Default of Helm value `logs.general.level` changed: \"ERROR\" → \"INFO\"",
+      "detail": "\"ERROR\" → \"INFO\"",
+      "release": "",
+      "subjects": [
+        "logs.general.level"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-1fe578842c67",
+      "category": "helm-values",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "New Helm value `core.defaultRuleSyntax`",
+      "detail": "Defaults in v3.0.0:\ncore.defaultRuleSyntax = null  # Can be used to use globally v2 router syntax See https://doc.traefik.io/traefik/v3.0/migration/v2-to-v3/#new-v3-syntax-notable-changes",
+      "release": "",
+      "subjects": [
+        "core.defaultRuleSyntax"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-32a167190055",
+      "category": "helm-values",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "New Helm value `logs.access.addInternals`",
+      "detail": "Defaults in v3.0.0:\nlogs.access.addInternals = null  # statuscodes: \"200,300-302\" retryattempts: true minduration: 10ms Enables accessLogs for internal resources. Default: false.",
+      "release": "",
+      "subjects": [
+        "logs.access.addInternals"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-feb47a594b57",
+      "category": "helm-values",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "New Helm values section `hub.*` (18 values)",
+      "detail": "Defaults in v3.0.0:\nhub.apimanagement.admission.listenAddr = null  # WebHook admission server listen address. Default: \"0.0.0.0:9943\".\nhub.apimanagement.admission.secretName = null  # Certificate of the WebHook admission server. Default: \"hub-agent-cert\".\nhub.apimanagement.enabled = null  # Set to true in order to enable API Management. Requires a valid license token.\nhub.ratelimit.redis.cluster = null  # Enable Redis Cluster. Default: true.\nhub.ratelimit.redis.database = null  # Database used to store information. Default: \"0\".\nhub.ratelimit.redis.endpoints = null  # Endpoints of the Redis instances to connect to. Default: \"\".\nhub.ratelimit.redis.password = null  # The password to use when connecting to Redis endpoints. Default: \"\".\nhub.ratelimit.redis.sentinel.masterset = null  # Name of the set of main nodes to use for main selection. Required when using Sentinel. Default: \"\".\nhub.ratelimit.redis.sentinel.password = null  # Password to use for sentinel authentication (can be different from endpoint password). Default: \"\".\nhub.ratelimit.redis.sentinel.username = null  # Username to use for sentinel authentication (can be different from endpoint username). Default: \"\".\nhub.ratelimit.redis.timeout = null  # Timeout applied on connection with redis. Default: \"0s\".\nhub.ratelimit.redis.tls.ca = null  # Path to the certificate authority used for the secured connection.\nhub.ratelimit.redis.tls.cert = null  # Path to the public certificate used for the secure connection.\nhub.ratelimit.redis.tls.insecureSkipVerify = null  # When insecureSkipVerify is set to true, the TLS connection accepts any certificate presented by the server. Default: false.\nhub.ratelimit.redis.tls.key = null  # Path to the private key used for the secure connection.\nhub.ratelimit.redis.username = null  # The username to use when connecting to Redis endpoints. Default: \"\".\nhub.sendlogs = null  # Enable export of errors logs to the platform. Default: true.\nhub.token = null  # Name of Secret with key 'token' set to a valid license token. It enables API Gateway.",
+      "release": "",
+      "subjects": [
+        "hub.apimanagement.admission.listenAddr",
+        "hub.apimanagement.admission.secretName",
+        "hub.apimanagement.enabled",
+        "hub.ratelimit.redis.cluster",
+        "hub.ratelimit.redis.database",
+        "hub.ratelimit.redis.endpoints",
+        "hub.ratelimit.redis.password",
+        "hub.ratelimit.redis.sentinel.masterset",
+        "hub.ratelimit.redis.sentinel.password",
+        "hub.ratelimit.redis.sentinel.username",
+        "hub.ratelimit.redis.timeout",
+        "hub.ratelimit.redis.tls.ca",
+        "hub.ratelimit.redis.tls.cert",
+        "hub.ratelimit.redis.tls.insecureSkipVerify",
+        "hub.ratelimit.redis.tls.key",
+        "hub.ratelimit.redis.username",
+        "hub.sendlogs",
+        "hub.token"
+      ],
+      "references": [],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-309880f52a0d",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-46wh-3698-f2cx (CVE-2026-33186): Fix CVE-2026-33186",
+      "detail": "Severity: high. Affected versions: <= 2.11.41, <= 3.6.11, <= 3.7.0-ea.2. Patched: v2.11.42, v3.6.12, v3.7.0-ea.3. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-46wh-3698-f2cx"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-46wh-3698-f2cx",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-46wh-3698-f2cx"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-33186"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-30eb3242055a",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-5m6w-wvh7-57vm (CVE-2026-39858): Forwarded alias spoofing top pre-auth decision bypass",
+      "detail": "Severity: high. Affected versions: <= 2.11.42, <= 3.6.13, <= 3.7.0-rc.1. Patched: v2.11.43, v3.6.14, v3.7.0-rc.2. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-5m6w-wvh7-57vm"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-5m6w-wvh7-57vm",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-5m6w-wvh7-57vm"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-39858"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-44238855b8b7",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-62c8-mh53-4cqv (CVE-2024-45410): HTTP client can remove the X-Forwarded headers",
+      "detail": "Severity: critical. Affected versions: <= 2.11.8, <= 3.1.2. Patched: v2.11.9, v3.1.3. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-62c8-mh53-4cqv"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-62c8-mh53-4cqv",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-62c8-mh53-4cqv"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2024-45410"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-f1a350e921b6",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-6384-m2mw-rf54 (CVE-2026-35051): ForwardAuth trustForwardHeader=false allows spoofed X-Forwarded-Prefix to bypass auth",
+      "detail": "Severity: high. Affected versions: <= 2.11.42, <= 3.6.13, <= 3.7.0-rc.1. Patched: v2.11.43, v3.6.14, v3.7.0-rc.2. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-6384-m2mw-rf54"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-6384-m2mw-rf54",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-6384-m2mw-rf54"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-35051"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-492d443581f1",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-6jwx-7vp4-9847 (CVE-2026-40912): StripPrefixRegex auth bypass via Path/RawPath desync",
+      "detail": "Severity: high. Affected versions: <= 2.11.42, <= 3.6.13, <= 3.7.0-rc.1. Patched: v2.11.43, v3.6.14, v3.7.0-rc.2. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-6jwx-7vp4-9847"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-6jwx-7vp4-9847",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-6jwx-7vp4-9847"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-40912"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-318de4334ae9",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-6p68-w45g-48j7 (CVE-2025-32431): Path Matchers Vulnerability",
+      "detail": "Severity: high. Affected versions: <= 2.11.22, <= 3.3.5, <= 3.4.0-rc1. Patched: v2.11.23, v3.3.6, v3.4.0-rc2. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-6p68-w45g-48j7"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-6p68-w45g-48j7",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-6p68-w45g-48j7"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2025-32431"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-98188ac52f6c",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-6x2q-h3cr-8j2h (CVE-2026-41263): BasicAuth middleware: timing side-channel vulnerability",
+      "detail": "Severity: medium. Affected versions: <= 2.11.42, <= 3.6.13, <= 3.7.0-rc.1. Patched: v2.11.43, v3.6.14, v3.7.0-rc.2. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-6x2q-h3cr-8j2h"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-6x2q-h3cr-8j2h",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-6x2q-h3cr-8j2h"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-41263"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-bf942077f89c",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-7jmw-8259-q9jx (CVE-2024-24790): Unexpected behavior with IPv4-mapped IPv6 addresses",
+      "detail": "Severity: medium. Affected versions: <= 2.11.3, <= 3.0.1. Patched: v2.11.4, v3.0.2. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-7jmw-8259-q9jx"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-7jmw-8259-q9jx",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-7jmw-8259-q9jx"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2024-24790"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-e1e144efb506",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-cwjm-3f7h-9hwq (CVE-2026-22045): ACME TLS-ALPN fast path lacks timeouts and close on handshake stall",
+      "detail": "Severity: medium. Affected versions: <= 2.11.34, <= 3.6.6. Patched: v2.11.35, v3.6.7. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-cwjm-3f7h-9hwq"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-cwjm-3f7h-9hwq",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-cwjm-3f7h-9hwq"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-22045"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-538ba2073e85",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-f7cq-5v43-8pwp (CVE-2024-24787): Malformed DNS message can cause infinite loop",
+      "detail": "Severity: medium. Affected versions: <= 2.11.2, <= 3.0.0. Patched: v2.11.3, v3.0.1. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-f7cq-5v43-8pwp"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-f7cq-5v43-8pwp",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-f7cq-5v43-8pwp"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2024-24787"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-f102ada0bab3",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-g3hg-j4jv-cwfr (CVE-2026-32595): BasicAuth Middleware Timing Attack Allows Username Enumeration",
+      "detail": "Severity: medium. Affected versions: <= 2.11.40, <= 3.6.10, <= 3.7.0-ea.1. Patched: v2.11.41, v3.6.11, v3.7.0-ea.2. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-g3hg-j4jv-cwfr"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-g3hg-j4jv-cwfr",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-g3hg-j4jv-cwfr"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-32595"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-4bfd032b2f6b",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-gm3x-23wp-hc2c (CVE-2025-66490): Path Normalization Bypass in Traefik Router + Middleware Rules",
+      "detail": "Severity: high. Affected versions: <= 2.11.31, <= 3.6.2. Patched: v2.11.32, v3.6.3. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-gm3x-23wp-hc2c"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-gm3x-23wp-hc2c",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-gm3x-23wp-hc2c"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2025-66490"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-bdaa080dcce0",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-gv8r-9rw9-9697 (CVE-2025-68121): TLS ClientAuth Bypass on HTTP/3",
+      "detail": "Severity: high. Affected versions: <= 2.11.36, <= 3.6.7. Patched: v2.11.37, v3.6.8. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-gv8r-9rw9-9697"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-gv8r-9rw9-9697",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-gv8r-9rw9-9697"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2025-68121"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-1afbf6ef0646",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-gxrv-wf35-62w9 (CVE-2024-39321): Bypassing IP allow-lists via HTTP/3 early data requests in QUIC 0-RTT handshakes",
+      "detail": "Severity: high. Affected versions: <= 2.11.5, <= 3.0.3, <= 3.1.0-rc2. Patched: v2.11.6, v3.0.4, v3.1.0-rc3. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-gxrv-wf35-62w9"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-gxrv-wf35-62w9",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-gxrv-wf35-62w9"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2024-39321"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-a209f3b6143d",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-h924-8g65-j9wg (CVE-2024-52003): X-Forwarded-Prefix Header allows for Open Redirect",
+      "detail": "Severity: low. Affected versions: <= 2.11.13, <= 3.2.0. Patched: v2.11.14, v3.2.1. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-h924-8g65-j9wg"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-h924-8g65-j9wg",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-h924-8g65-j9wg"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2024-52003"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-0f536ba0a3e7",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-hxr6-2p24-hf98 (CVE-2024-53259): Fix CVE-2024-53259",
+      "detail": "Severity: medium. Affected versions: <= 2.11.14, <= 3.2.1. Patched: v2.11.15, v3.2.2. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-hxr6-2p24-hf98"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-hxr6-2p24-hf98",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-hxr6-2p24-hf98"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2024-53259"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-b55cf6b3b9d0",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-q6gg-9f92-r9wg (CVE-2025-54386): Path Traversal in WASM Client Plugin",
+      "detail": "Severity: high. Affected versions: <= 2.11.27, <= 3.4.4, <= 3.5.0-rc2. Patched: v2.11.28, v3.4.5, v3.5.0. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-q6gg-9f92-r9wg"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-q6gg-9f92-r9wg",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-q6gg-9f92-r9wg"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2025-54386"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-7984c9d575e9",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-qr99-7898-vr7c (CVE-2026-33433): BasicAuth/DigestAuth Identity Spoofing via Non-Canonical headerField",
+      "detail": "Severity: medium. Affected versions: <= 2.11.41, <= 3.6.11, <= 3.7.0-ea.2. Patched: v2.11.42, v3.6.12, v3.7.0-ea.3. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-qr99-7898-vr7c"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-qr99-7898-vr7c",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-qr99-7898-vr7c"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-33433"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-0a0789f5713a",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-rvj4-q8q5-8grf (CVE-2024-35255): ACME DNS: Azure Identity Libraries Elevation of Privilege Vulnerability",
+      "detail": "Severity: medium. Affected versions: <= 2.11.4, <= 3.0.2. Patched: v2.11.4, v3.0.3. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-rvj4-q8q5-8grf"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-rvj4-q8q5-8grf",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-rvj4-q8q5-8grf"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2024-35255"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-19df961b662f",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-vrch-868g-9jx5 (CVE-2025-47952): Path traversal still possible using url encoding",
+      "detail": "Severity: low. Affected versions: <= 2.11.24, <= 3.4.0. Patched: v2.11.25, v3.4.1. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-vrch-868g-9jx5"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-vrch-868g-9jx5",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-vrch-868g-9jx5"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2025-47952"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-0037ad83b93c",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-wvvq-wgcr-9q48 (CVE-2026-32305): Potential mTLS Bypass via Fragmented TLS ClientHello Causing Pre-SNI Sniff Fallback to Default Non-mTLS TLS Config",
+      "detail": "Severity: high. Affected versions: <= 2.11.40, <= 3.6.10, <= 3.7.0-ea.1. Patched: v2.11.41, v3.6.11, v3.7.0-ea.2. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-wvvq-wgcr-9q48"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-wvvq-wgcr-9q48",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-wvvq-wgcr-9q48"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-32305"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-356431035357",
+      "category": "security",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fixes GHSA-xhjw-95fp-8vgq (CVE-2026-41174): Traefik Kubernetes CRD allows unauthorized cross-namespace middleware binding",
+      "detail": "Severity: medium. Affected versions: <= 2.11.42, <= 3.6.13, <= 3.7.0-rc.1. Patched: v2.11.43, v3.6.14, v3.7.0-rc.2. v2.11.2 is affected; v3.0.0 is not.",
+      "release": "3.0.0",
+      "subjects": [
+        "GHSA-xhjw-95fp-8vgq"
+      ],
+      "references": [
+        {
+          "type": "ghsa",
+          "id": "GHSA-xhjw-95fp-8vgq",
+          "url": "https://github.com/traefik/traefik/security/advisories/GHSA-xhjw-95fp-8vgq"
+        },
+        {
+          "type": "cve",
+          "id": "CVE-2026-41174"
+        }
+      ],
+      "provenance": {
+        "producer": "upgrade@v1"
+      }
+    },
+    {
+      "id": "chg-74c1eae85fb1",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Remove deprecated options (#9527 by sdelicata)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9527",
+          "url": "https://github.com/traefik/traefik/pull/9527"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-01a675025710",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[consul] ConsulCatalog StrictChecks (#10388 by djenriquez)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10388",
+          "url": "https://github.com/traefik/traefik/pull/10388"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-ba65730be974",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[ecs] Add option to keep only healthy ECS tasks (#8027 by Michampt)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#8027",
+          "url": "https://github.com/traefik/traefik/pull/8027"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-e21222d5d76d",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[healthcheck] Add a status option to the service health check (#9463 by guoard)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9463",
+          "url": "https://github.com/traefik/traefik/pull/9463"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-90c957a31a40",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[healthcheck] Support gRPC healthcheck (#8583 by jjacque)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#8583",
+          "url": "https://github.com/traefik/traefik/pull/8583"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-4a076c15e9eb",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[http3] Moves HTTP/3 outside the experimental section (#9570 by sdelicata)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9570",
+          "url": "https://github.com/traefik/traefik/pull/9570"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-fef0683c6784",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[http] Support custom headers when fetching configuration through HTTP (#9421 by kevinpollet)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9421",
+          "url": "https://github.com/traefik/traefik/pull/9421"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-f10cf06028db",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[k8s/crd,k8s] Allow to use internal node IPs for NodePort services (#10278 by jorisvergeer)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10278",
+          "url": "https://github.com/traefik/traefik/pull/10278"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-bdbc28feb189",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[k8s/gatewayapi] Add option to set Gateway status address (#10582 by kevinpollet)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10582",
+          "url": "https://github.com/traefik/traefik/pull/10582"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-3fb5e8a71dac",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[k8s/gatewayapi] Handle middlewares in filters extension reference (#10511 by youkoulayley)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10511",
+          "url": "https://github.com/traefik/traefik/pull/10511"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-5b7cef118427",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[k8s/gatewayapi] Toggle support for experimental channel (#10435 by SantoDE)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10435",
+          "url": "https://github.com/traefik/traefik/pull/10435"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-027fe7ddbc4b",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[k8s/ingress,k8s/crd,k8s,k8s/gatewayapi] Use runtime.Object in routerTransform (#10523 by juliens)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10523",
+          "url": "https://github.com/traefik/traefik/pull/10523"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-67bed5ff5bf7",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[logs,performance] New logger for the Traefik logs (#9515 by ldez)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9515",
+          "url": "https://github.com/traefik/traefik/pull/9515"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-252a7e6241e2",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[logs,plugins] Retry on plugin API calls (#9530 by ldez)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9530",
+          "url": "https://github.com/traefik/traefik/pull/9530"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-145ffabba991",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[logs,provider] Improve provider logs (#9562 by ldez)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9562",
+          "url": "https://github.com/traefik/traefik/pull/9562"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-ab2744216f39",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[logs] Improve test logger assertions (#9533 by ldez)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9533",
+          "url": "https://github.com/traefik/traefik/pull/9533"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-a0d17f1db1cb",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[metrics,tracing] Upgrade opentelemetry dependencies (#10472 by mmatur)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10472",
+          "url": "https://github.com/traefik/traefik/pull/10472"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-e9ed019e097e",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[metrics] Support gRPC and gRPC-Web protocol in metrics (#9483 by longit644)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9483",
+          "url": "https://github.com/traefik/traefik/pull/9483"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-ef9e533a5641",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[middleware,accesslogs] Log TLS client subject (#9285 by xmessi)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9285",
+          "url": "https://github.com/traefik/traefik/pull/9285"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-902eb5010e10",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[middleware,authentication,tracing] Add captured headers options for tracing (#10457 by rtribotte)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10457",
+          "url": "https://github.com/traefik/traefik/pull/10457"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-f225ef7b1e78",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[middleware,metrics,tracing,otel] Add OpenTelemetry tracing and metrics support (#8999 by tomMoulard)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#8999",
+          "url": "https://github.com/traefik/traefik/pull/8999"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-f9f419e1d9a1",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[middleware,metrics] Semconv OTLP stable HTTP metrics (#10421 by mmatur)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10421",
+          "url": "https://github.com/traefik/traefik/pull/10421"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-c8224b7993d4",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[middleware] Add gRPC-Web middleware (#9451 by juliens)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9451",
+          "url": "https://github.com/traefik/traefik/pull/9451"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-709b941ed7d8",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[middleware] Add support for Brotli (#9387 by glinton)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9387",
+          "url": "https://github.com/traefik/traefik/pull/9387"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-0d711ab2074c",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[middleware] Disable Content-Type auto-detection by default (#9546 by sdelicata)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9546",
+          "url": "https://github.com/traefik/traefik/pull/9546"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-052ad627dc7f",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[middleware] Renaming IPWhiteList to IPAllowList (#9457 by wxmbugu)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9457",
+          "url": "https://github.com/traefik/traefik/pull/9457"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-e21d7e3b22a1",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[nomad] Allow empty services (#10375 by chrispruitt)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10375",
+          "url": "https://github.com/traefik/traefik/pull/10375"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-f72fb8bc702f",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[nomad] Support multiple namespaces in the Nomad Provider (#9332 by 0teh)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9332",
+          "url": "https://github.com/traefik/traefik/pull/9332"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-eab7354da043",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[plugins] Upgrade http-wasm host to v0.6.0 to support clients using v0.4.0 (#10475 by jcchavezs)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10475",
+          "url": "https://github.com/traefik/traefik/pull/10475"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-ed778243f235",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[rules] Update routing syntax (#9531 by skwair)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9531",
+          "url": "https://github.com/traefik/traefik/pull/9531"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-3d6d2d285c94",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[server] Allow default entrypoints definition (#9100 by applejag)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9100",
+          "url": "https://github.com/traefik/traefik/pull/9100"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-072a3e422ea9",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[server] Rework servers load-balancer to use the WRR (#9431 by juliens)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9431",
+          "url": "https://github.com/traefik/traefik/pull/9431"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-6f398afae2b6",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[tls,service] Support SPIFFE mTLS between Traefik and Backend servers (#9394 by jlevesy)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9394",
+          "url": "https://github.com/traefik/traefik/pull/9394"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-a981719b1c9e",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[tls] Add Tailscale certificate resolver (#9237 by kevinpollet)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9237",
+          "url": "https://github.com/traefik/traefik/pull/9237"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-7905fc94f013",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[tls] Support SNI routing with Postgres STARTTLS connections (#9377 by rtribotte)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9377",
+          "url": "https://github.com/traefik/traefik/pull/9377"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-261eb83bab08",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[tracing] Support OTEL_PROPAGATORS to configure tracing propagation (#10465 by youkoulayley)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10465",
+          "url": "https://github.com/traefik/traefik/pull/10465"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-5d90dc59564d",
+      "category": "feature",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[webui,middleware,k8s/gatewayapi] Support RequestHeaderModifier filter (#10521 by rtribotte)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10521",
+          "url": "https://github.com/traefik/traefik/pull/10521"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-945019509f9d",
+      "category": "bugfix",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fix a regression on flags using spaces between key and value (#10445 by ldez)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10445",
+          "url": "https://github.com/traefik/traefik/pull/10445"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-e9deb273b8a1",
+      "category": "bugfix",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[docker] Fix struct names in comment (#10503 by hishope)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10503",
+          "url": "https://github.com/traefik/traefik/pull/10503"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-2ec5793e5baf",
+      "category": "bugfix",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[k8s/crd,k8s] Adds the missing circuit-breaker response code for CRD (#10625 by ldez)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10625",
+          "url": "https://github.com/traefik/traefik/pull/10625"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-b173cdfe0623",
+      "category": "bugfix",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[logs] Avoid cumulative send anonymous usage log (#10579 by mmatur)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10579",
+          "url": "https://github.com/traefik/traefik/pull/10579"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-23fac601b3c1",
+      "category": "bugfix",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[logs] Change traefik cmd error log to error level (#9569 by tomMoulard)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9569",
+          "url": "https://github.com/traefik/traefik/pull/9569"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-8f0bce895b57",
+      "category": "bugfix",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[logs] Fix log level (#9545 by ldez)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9545",
+          "url": "https://github.com/traefik/traefik/pull/9545"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-5f0b075d8823",
+      "category": "bugfix",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[metrics] Fix ServerUp metric (#9534 by kevinpollet)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9534",
+          "url": "https://github.com/traefik/traefik/pull/9534"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-e9d8ed9f8d05",
+      "category": "bugfix",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[rules] Rework Host and HostRegexp matchers (#9559 by tomMoulard)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9559",
+          "url": "https://github.com/traefik/traefik/pull/9559"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-e1e22cb3e474",
+      "category": "bugfix",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[rules] Support regexp in path/pathprefix in matcher v2 (#10546 by youkoulayley)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10546",
+          "url": "https://github.com/traefik/traefik/pull/10546"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-f49d4458a714",
+      "category": "bugfix",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[tls,service] Enforce default servers transport SPIFFE config (#9444 by jlevesy)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9444",
+          "url": "https://github.com/traefik/traefik/pull/9444"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-0f1687d11bd7",
+      "category": "bugfix",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[webui] Add missing Docker Swarm logo (#10529 by ldez)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10529",
+          "url": "https://github.com/traefik/traefik/pull/10529"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-0d28f619d236",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fix some typos in comments (#10626 by hidewrong)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10626",
+          "url": "https://github.com/traefik/traefik/pull/10626"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-01c769ee1de9",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fix typo and improve explanation on internal resources (#10563 by mloiseleur)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10563",
+          "url": "https://github.com/traefik/traefik/pull/10563"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-dc858266e76e",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fix typo in dialer_test.go (#10552 by eltociear)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10552",
+          "url": "https://github.com/traefik/traefik/pull/10552"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-598304a36784",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Fix typo in migration docs (#10478 by Eisberge)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10478",
+          "url": "https://github.com/traefik/traefik/pull/10478"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-375ef4938f1b",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Merge v2.11 into v3.0 (#10513 by mmatur)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10513",
+          "url": "https://github.com/traefik/traefik/pull/10513"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-d6772a818af5",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Merge v3.0 into master (#10418 by mmatur)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10418",
+          "url": "https://github.com/traefik/traefik/pull/10418"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-4ff576bf3e80",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Prepare release v3.0.0 rc3 (#10520 by rtribotte)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10520",
+          "url": "https://github.com/traefik/traefik/pull/10520"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-05244e395c69",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Prepare release v3.0.0-beta1 (#9577 by rtribotte)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9577",
+          "url": "https://github.com/traefik/traefik/pull/9577"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-02dfc8daf9e4",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Prepare release v3.0.0-beta2 (#9587 by tomMoulard)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#9587",
+          "url": "https://github.com/traefik/traefik/pull/9587"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-afe638e8303b",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Prepare release v3.0.0-rc2 (#10514 by rtribotte)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10514",
+          "url": "https://github.com/traefik/traefik/pull/10514"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-d1c1f45a69f5",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Prepare release v3.0.0-rc4 (#10588 by kevinpollet)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10588",
+          "url": "https://github.com/traefik/traefik/pull/10588"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-d12c460f4816",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "Prepare release v3.0.0-rc5 (#10605 by ldez)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10605",
+          "url": "https://github.com/traefik/traefik/pull/10605"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-12600965b159",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[k8s,k8s/gatewayapi] Add ReferenceGrants to Gateway API Traefik controller RBAC (#10462 by rtribotte)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10462",
+          "url": "https://github.com/traefik/traefik/pull/10462"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-00f5db58e303",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[k8s] Fix invalid version in docs about Gateway API on Traefik v3 (#10474 by mloiseleur)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10474",
+          "url": "https://github.com/traefik/traefik/pull/10474"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-75748cbea235",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[k8s] Update Kubernetes version for v3 Helm chart (#10637 by jnoordsij)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10637",
+          "url": "https://github.com/traefik/traefik/pull/10637"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-1bad804de082",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "[rules] Improve ruleSyntax option documentation (#10441 by rtribotte)",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [
+        {
+          "type": "pull-request",
+          "id": "traefik/traefik#10441",
+          "url": "https://github.com/traefik/traefik/pull/10441"
+        }
+      ],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    },
+    {
+      "id": "chg-ad6694b14f4c",
+      "category": "other",
+      "breaking": false,
+      "actionRequired": false,
+      "title": "v3.0.0 (2024-04-29): All Commits",
+      "detail": "",
+      "release": "3.0.0",
+      "subjects": [],
+      "references": [],
+      "provenance": {
+        "producer": "normalize.notes@v1"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-f7790a5f0a5e",
+      "uri": "https://github.com/traefik/traefik/releases/tag/v2.11.2"
+    },
+    {
+      "id": "ev-21b2cd1e0080",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/CHANGELOG.md"
+    },
+    {
+      "id": "ev-6568bde8a5b4",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/CHANGELOG.md"
+    },
+    {
+      "id": "ev-7f5373d4cf9f",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/CHANGELOG.md"
+    },
+    {
+      "id": "ev-95fc918927e9",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/CHANGELOG.md"
+    },
+    {
+      "id": "ev-1e7d24b02aaa",
+      "uri": "https://github.com/traefik/traefik/blob/master/docs/content/deprecation/releases.md"
+    },
+    {
+      "id": "ev-525d11df6567",
+      "uri": "https://github.com/traefik/traefik/blob/master/docs/content/deprecation/releases.md"
+    },
+    {
+      "id": "ev-70ec2899b453",
+      "uri": "https://registry-1.docker.io/v2/library/traefik/manifests/sha256:c6f6001dd1fc09fb0ae47ad2198102c40a8d9586c02d6040d561fd4fb7e91f45"
+    },
+    {
+      "id": "ev-abb76b066eb2",
+      "uri": "https://github.com/traefik/traefik/releases/download/v2.11.2/traefik_v2.11.2_linux_amd64.tar.gz"
+    },
+    {
+      "id": "ev-1c1bcfad5bf1",
+      "uri": "https://raw.githubusercontent.com/traefik/traefik/v2.11.2/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml"
+    },
+    {
+      "id": "ev-71fc22d68581",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.containo.us_ingressroutes.yaml"
+    },
+    {
+      "id": "ev-48d1ecd4b134",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.containo.us_ingressroutetcps.yaml"
+    },
+    {
+      "id": "ev-7e05fc1e5c59",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.containo.us_ingressrouteudps.yaml"
+    },
+    {
+      "id": "ev-eb26399b5dbb",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.containo.us_middlewares.yaml"
+    },
+    {
+      "id": "ev-198744ef4096",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.containo.us_middlewaretcps.yaml"
+    },
+    {
+      "id": "ev-788272feab62",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.containo.us_serverstransports.yaml"
+    },
+    {
+      "id": "ev-49bacb044ac2",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.containo.us_tlsoptions.yaml"
+    },
+    {
+      "id": "ev-74031352b156",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.containo.us_tlsstores.yaml"
+    },
+    {
+      "id": "ev-37cc33b409c3",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.containo.us_traefikservices.yaml"
+    },
+    {
+      "id": "ev-d68d5c203df6",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.io_ingressroutes.yaml"
+    },
+    {
+      "id": "ev-caea0ddc58f9",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.io_ingressroutetcps.yaml"
+    },
+    {
+      "id": "ev-e737e9be0d13",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.io_ingressrouteudps.yaml"
+    },
+    {
+      "id": "ev-4fd00a8d9fd6",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.io_middlewares.yaml"
+    },
+    {
+      "id": "ev-e664bb0d9d26",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.io_middlewaretcps.yaml"
+    },
+    {
+      "id": "ev-84f68d4b0c26",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.io_serverstransports.yaml"
+    },
+    {
+      "id": "ev-501210bb2f62",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.io_serverstransporttcps.yaml"
+    },
+    {
+      "id": "ev-54d04bd3a614",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.io_tlsoptions.yaml"
+    },
+    {
+      "id": "ev-6662f8dd5e6e",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.io_tlsstores.yaml"
+    },
+    {
+      "id": "ev-100ba7419139",
+      "uri": "https://github.com/traefik/traefik/blob/v2.11.2/docs/content/reference/dynamic-configuration/traefik.io_traefikservices.yaml"
+    },
+    {
+      "id": "ev-864c3d17976a",
+      "uri": "https://traefik.github.io/charts/index.yaml"
+    },
+    {
+      "id": "ev-bb4a9dd096f3",
+      "uri": "https://github.com/traefik/traefik-helm-chart/blob/v27.0.2/traefik/values.yaml"
+    },
+    {
+      "id": "ev-bd0136c8d468",
+      "uri": "https://github.com/traefik/traefik-helm-chart/blob/v27.0.2/traefik/Chart.yaml"
+    },
+    {
+      "id": "ev-2d805e200260",
+      "uri": "https://github.com/traefik/traefik-helm-chart/blob/v27.0.2/traefik/Chart.yaml"
+    },
+    {
+      "id": "ev-c20eb8e31aa0",
+      "uri": "https://github.com/traefik/traefik/releases/tag/v3.0.0"
+    },
+    {
+      "id": "ev-13f50c075ad1",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-46ef7856a4e3",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-351b6ab48cff",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-a63eb025d087",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-9e92c97ef99e",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-557f1044ff4e",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-a4518986637f",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-177a6106bc02",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-3f297f766443",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-636c346e8c61",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-4aa7e3fe937e",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-dd15d8ccb61e",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-8a2c7ab7a3a5",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-33c3af75761f",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-dcba186fd8d7",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-00bf6ae74af0",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-7328189b4db1",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-e7ee234202c6",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-f7d3abb12e99",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-9ddb01602beb",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-5ce528be35f7",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-ee73106833c6",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-83cbbcabe1b7",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-ae9158566d1b",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-a714bf0cb614",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-7b4ea0fc44f3",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-983fcb0d825d",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-9b56ac76a332",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-4ea791764206",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-bfb9c0ed4d28",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-fac54af24634",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-f387a976e3cf",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-2f28e1ec1c46",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-e60b03c8ec6d",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-7d645bb4f295",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-6c51e98dbb14",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-9f33f28bdfe0",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-53aef8a0056b",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-38adf39801bd",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-3fd7b427b94e",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-d77c45bb6b3f",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-1a93967aa9fb",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-b798a55da05a",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-da6dc6a7dbe9",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-9365c607d0c4",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-7cea1050ccfe",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-bede4495e31b",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-57c05cdbb7d0",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-0b1107200532",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-6fbb729f3958",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-b93f05e6d823",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-97aeaed89590",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-66d1adabbaf2",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-73928b86fdf8",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-d198ea1449b6",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-a63e5d3b46a1",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-509cd561e633",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-aa3c2f848388",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-bc4c31dbfaa7",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-97b1193af14a",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-2b7ccd442c68",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-ac50ea5bcb01",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-7eff9ef6c83e",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-4612678fa595",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-c793acd8bd7e",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-e660cc3b05ab",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-d319547c1a11",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/CHANGELOG.md"
+    },
+    {
+      "id": "ev-28b5cf6df888",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-c6ee7d3b73da",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-dac3a3c51ce8",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-5b58f5805519",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-2df1b23f32ac",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-3ab5da393af7",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-4685c9dd4dac",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-3faa5287ea4e",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-7482c113b845",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-482dffeba461",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-6c38c9ee7078",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-96141bfb2be5",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-c71146d39072",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-030a6d8de1b4",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-ebfb740bf1f8",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-9f184d231baf",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-a8010075f3de",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-9f3bf592e4e8",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-48d8875989c1",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-bea0311eb482",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-4a489b1e9ff3",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-689bc0108c6c",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-dbef3e2e8163",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-989a451dfcd4",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-d6a3846e479f",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-d1948f134793",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-a9bf79bb798d",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-f3d6519c3794",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-1d686f12770b",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-c160fecc6f71",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-be4f90e8abf9",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-aaffdc720dda",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-fd174730dfa6",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-093b8f2b924f",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md"
+    },
+    {
+      "id": "ev-b2bcfb3e70f4",
+      "uri": "https://registry-1.docker.io/v2/library/traefik/manifests/sha256:7996bdae8aaa70eaacf2978b6c949de5b68c0a24ddc3e40c06344ecc88cfaea3"
+    },
+    {
+      "id": "ev-a4fcc06eeb29",
+      "uri": "https://github.com/traefik/traefik/releases/download/v3.0.0/traefik_v3.0.0_linux_amd64.tar.gz"
+    },
+    {
+      "id": "ev-cf8e41d22163",
+      "uri": "https://raw.githubusercontent.com/traefik/traefik/v3.0.0/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml"
+    },
+    {
+      "id": "ev-8a887e659370",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.containo.us_middlewares.yaml"
+    },
+    {
+      "id": "ev-61dcce2c74af",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.io_ingressroutes.yaml"
+    },
+    {
+      "id": "ev-f7d1f0ce407c",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.io_ingressroutetcps.yaml"
+    },
+    {
+      "id": "ev-b4a823a5e4dc",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.io_ingressrouteudps.yaml"
+    },
+    {
+      "id": "ev-0842f8f3bd9d",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.io_middlewares.yaml"
+    },
+    {
+      "id": "ev-ecec44679e9d",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.io_middlewaretcps.yaml"
+    },
+    {
+      "id": "ev-d1fdfd690e23",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.io_serverstransports.yaml"
+    },
+    {
+      "id": "ev-ee88e8f5ea66",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.io_serverstransporttcps.yaml"
+    },
+    {
+      "id": "ev-011956bb7059",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.io_tlsoptions.yaml"
+    },
+    {
+      "id": "ev-72be921dc163",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.io_tlsstores.yaml"
+    },
+    {
+      "id": "ev-cfca42b941d5",
+      "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/reference/dynamic-configuration/traefik.io_traefikservices.yaml"
+    },
+    {
+      "id": "ev-e0955cf9586e",
+      "uri": "https://traefik.github.io/charts/index.yaml"
+    },
+    {
+      "id": "ev-3bdc943d6be1",
+      "uri": "https://github.com/traefik/traefik-helm-chart/blob/v28.1.0/traefik/values.yaml"
+    },
+    {
+      "id": "ev-43f6e52664fa",
+      "uri": "https://github.com/traefik/traefik-helm-chart/blob/v28.1.0/traefik/Chart.yaml"
+    },
+    {
+      "id": "ev-85468e8e011d",
+      "uri": "https://github.com/traefik/traefik-helm-chart/blob/v28.1.0/traefik/Chart.yaml"
+    },
+    {
+      "id": "ev-55ba1d7af7a5",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-3ccp-42pg-hgv6"
+    },
+    {
+      "id": "ev-b7e0b3b30ec6",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-3q9r-p662-5j8m"
+    },
+    {
+      "id": "ev-cb84c513605d",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-46wh-3698-f2cx"
+    },
+    {
+      "id": "ev-5a5f5e4dccc8",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-4hjq-9h5c-252j"
+    },
+    {
+      "id": "ev-b1949a316e75",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-5m6w-wvh7-57vm"
+    },
+    {
+      "id": "ev-dbc0eb01c651",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-5w68-77r2-r64c"
+    },
+    {
+      "id": "ev-2c6884c0534f",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-62c8-mh53-4cqv"
+    },
+    {
+      "id": "ev-3f09d92f9b0b",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-62fc-8686-hfmq"
+    },
+    {
+      "id": "ev-8edaf1414340",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-6384-m2mw-rf54"
+    },
+    {
+      "id": "ev-b0388e690de5",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-67jx-r9pv-98rj"
+    },
+    {
+      "id": "ev-5979d7bae42f",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-6jwx-7vp4-9847"
+    },
+    {
+      "id": "ev-c5e8f6ba3556",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-6p68-w45g-48j7"
+    },
+    {
+      "id": "ev-ecf9cf8a9d81",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-6x2q-h3cr-8j2h"
+    },
+    {
+      "id": "ev-f3e488d7198f",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-7ghq-v6jf-g56c"
+    },
+    {
+      "id": "ev-8d0e7fe4815c",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-7jmw-8259-q9jx"
+    },
+    {
+      "id": "ev-1910d75d9f40",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-89p3-4642-cr2w"
+    },
+    {
+      "id": "ev-0dece3d11f86",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-8q2w-wr49-whqj"
+    },
+    {
+      "id": "ev-667015605ecf",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-96qj-4jj5-wcjc"
+    },
+    {
+      "id": "ev-16b1c34abbbe",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-9cr8-q42q-g8m7"
+    },
+    {
+      "id": "ev-b5f2c19b2409",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-cwjm-3f7h-9hwq"
+    },
+    {
+      "id": "ev-b5596cb90dfc",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-cxjq-mrr5-89rv"
+    },
+    {
+      "id": "ev-2d9cb1160c8f",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-f52w-8j3h-j724"
+    },
+    {
+      "id": "ev-1d0e4bf6800d",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-f7cq-5v43-8pwp"
+    },
+    {
+      "id": "ev-62b64a0150d7",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-fgjj-px3w-67xx"
+    },
+    {
+      "id": "ev-84153a8d3f21",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-fw45-f5q2-2p4x"
+    },
+    {
+      "id": "ev-e5bf04884f1a",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-g3hg-j4jv-cwfr"
+    },
+    {
+      "id": "ev-72425df31df7",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-g55h-rg46-x9c5"
+    },
+    {
+      "id": "ev-48c0d48a8812",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-gm3x-23wp-hc2c"
+    },
+    {
+      "id": "ev-d89d54190414",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-gv8r-9rw9-9697"
+    },
+    {
+      "id": "ev-1f3882ff6ad9",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-gxrv-wf35-62w9"
+    },
+    {
+      "id": "ev-5443e869f031",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-h924-8g65-j9wg"
+    },
+    {
+      "id": "ev-1357672962fa",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-hxr6-2p24-hf98"
+    },
+    {
+      "id": "ev-d5e85d1909ca",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-p6hg-qh38-555r"
+    },
+    {
+      "id": "ev-ed8119ee9fe5",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-q6gg-9f92-r9wg"
+    },
+    {
+      "id": "ev-ca1dc9784d82",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-qqjf-53cj-pwvv"
+    },
+    {
+      "id": "ev-834360686659",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-qr99-7898-vr7c"
+    },
+    {
+      "id": "ev-bb6dc7cdc13c",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-rf44-j88r-hh8c"
+    },
+    {
+      "id": "ev-b05c92c98af8",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-rvj4-q8q5-8grf"
+    },
+    {
+      "id": "ev-084ccee2064d",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-vrch-868g-9jx5"
+    },
+    {
+      "id": "ev-69e604b9631c",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-wvvq-wgcr-9q48"
+    },
+    {
+      "id": "ev-6f28c0cfc3f7",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-x677-9fxg-v5c5"
+    },
+    {
+      "id": "ev-594eed973996",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-xf64-8mw2-4gr2"
+    },
+    {
+      "id": "ev-308d03df8e4f",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-xhjw-95fp-8vgq"
+    },
+    {
+      "id": "ev-604bace2a75a",
+      "uri": "https://github.com/traefik/traefik/security/advisories/GHSA-xw98-5q62-jx94"
+    }
+  ]
+}
