@@ -106,7 +106,8 @@ func Transfer(rs []EntryResult, contexts map[string][]string) TransferMetrics {
 // LevelReport is the result of one verification level.
 type LevelReport struct {
 	Level string `json:"level"`
-	// Gate marks the level whose numbers are the gate (human).
+	// Gate marks the level the gates were evaluated on (human by default,
+	// the DESIGN.md §7 gate number; `-min-verification` names another).
 	Gate      bool `json:"gate,omitempty"`
 	FactsUsed int  `json:"factsUsed"`
 	// Applicability and class quality.
@@ -212,9 +213,8 @@ func RenderLevels(w io.Writer, levels []LevelReport) {
 		switch {
 		case l.Gate:
 			name += " (gate)"
-		case l.Level == string(domain.VerifiedConsensus):
-			name += " (*)"
-		case l.Level == string(domain.VerifiedProxy):
+		}
+		if l.Level == string(domain.VerifiedConsensus) || l.Level == string(domain.VerifiedProxy) {
 			name += " (*)"
 		}
 		kf := fmt.Sprintf("%d", l.KnowledgeFindings)
@@ -226,5 +226,5 @@ func RenderLevels(w io.Writer, levels []LevelReport) {
 			l.Transfer.ApplicabilityAccuracy, l.Transfer.Excluded, l.ClassificationAccuracy, l.UnknownRate,
 			l.ActionFindings, l.FalseActionFindings, l.ActionFindingsUnsupported, kf)
 	}
-	fmt.Fprintf(w, "(*) consensus and proxy levels are reported and labelled, never the gate; the gate is the human level (deterministic ∪ human facts).\n")
+	fmt.Fprintf(w, "(*) consensus and proxy levels are reported and labelled; the gate number is the human level (deterministic ∪ human facts) unless -min-verification names another.\n")
 }

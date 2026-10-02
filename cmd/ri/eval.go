@@ -133,7 +133,9 @@ func (c *cli) eval(args []string) error {
 		}
 		knowledgeWarnings = ks.Warnings
 		for _, lr := range r.RunLevels(c.ctx, cases, ks.Facts, ks.Contexts) {
-			levels = append(levels, lr.Report)
+			rep := lr.Report
+			rep.Gate = rep.Level == string(lvl) // the gates below are evaluated on this level
+			levels = append(levels, rep)
 			switch lr.Report.Level {
 			case eval.LevelNone:
 				baseline = lr.Results

@@ -63,8 +63,8 @@ func TestE2EKnowledgeRotationPolicy(t *testing.T) {
 				Statement: "Private keys of Certificates without an explicit rotationPolicy are regenerated on every renewal."},
 			Statement: "The default Certificate.spec.privateKey.rotationPolicy changed from Never to Always.",
 		},
-		Evidence:  []domain.Evidence{mustEvidence(t, edge, restating[0])},
-		Status:    domain.FactActive, CreatedAt: fixedNow,
+		Evidence: []domain.Evidence{mustEvidence(t, edge, restating[0])},
+		Status:   domain.FactActive, CreatedAt: fixedNow,
 		Verification: []domain.AspectVerification{
 			{Aspect: domain.AspectSubject, Level: domain.VerifiedDeterministic, Basis: []string{"val-crd"}},
 			{Aspect: domain.AspectChange, Level: domain.VerifiedHuman, Basis: []string{"rd-change"}},
