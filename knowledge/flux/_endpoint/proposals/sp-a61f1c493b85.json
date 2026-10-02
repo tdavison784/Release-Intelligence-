@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a61f1c493b85",
+    "candidateId": "sc-b4d0f27d94a8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "storage-version-migration",
+        "component": "imagerepositories.image.toolkit.fluxcd.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "image.toolkit.fluxcd.io",
+              "version": "v1beta2",
+              "kind": "ImageRepository"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "image.toolkit.fluxcd.io",
+              "version": "v1",
+              "kind": "ImageRepository"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImageRepository objects stay stored as v1beta2 until rewritten; a storage version migration and a status.storedVersions update are needed before a later release removes v1beta2.",
+        "remediation": "Re-write all ImageRepository objects and update status.storedVersions of the CRD to drop v1beta2.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the ImageRepository CRD changes from v1beta2 to v1, so existing objects need a storage version migration and status.storedVersions must be updated before a later release removes v1beta2."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5a07f8b05f2fdf2980ceff39d1586a3789a78c28542a4622bbc9dc1b045fc39c",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:17:12Z",
+      "callId": "4b770741-0930-4fb8-b4c2-5541c29191bb"
+    }
+  }
+}

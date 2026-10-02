@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ecdf369701a4",
+    "candidateId": "sc-141ad9d4fd78",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "traefik",
+        "name": "--nomad.namespace"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "traefik",
+          "name": "--nomad.namespaces"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--nomad.namespace",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "nomad.namespace",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will not start if the Nomad provider namespace option is configured.",
+        "severity": "critical"
+      },
+      "statement": "The Nomad provider `namespace` configuration option was removed in v3.0.0 and must be replaced with `namespaces`."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-482dffeba461"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:55b790ed951665042e102daa79bb70d1528717424d08a2b680bc3bfd0f2e264c",
+      "inputEvidence": [
+        "ev-482dffeba461"
+      ],
+      "generatedAt": "2026-10-02T16:17:54Z",
+      "callId": "a4affb91-264c-4ace-9313-c3accd7968c2"
+    }
+  }
+}

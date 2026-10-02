@@ -60,6 +60,7 @@ export -f call_claude
 
 answer_one() {
   req=$1
+  [ -e "$DIR/.stop" ] && return 0 # a usage/session limit was hit: leave the rest pending
   resp="${req%.request.json}.response.json"
   [ -e "$resp" ] && return 0
   if [ "$(jq '.request.messages | length' "$req")" != 1 ] || [ "$(jq -r '.request.messages[0].role' "$req")" != user ]; then
@@ -72,6 +73,12 @@ answer_one() {
     --json-schema "$(jq -c '.request.jsonSchema' "$req")" --output-format json --no-session-persistence)
   if [ $? -ne 0 ] || [ "$(jq -r '.structured_output | type' <<<"$out" 2>/dev/null)" != object ]; then
     echo "FAIL $PROVIDER/$model $(basename "$req"): $(jq -c '{is_error,subtype,result}' <<<"$out" 2>/dev/null | head -c 400)" >>"$LOG"
+    # an account usage/session limit fails every later call the same way: stop asking (the
+    # remaining requests stay pending; re-run the script after the reset)
+    if grep -qi 'hit your .*limit\|usage limit\|rate.limit' <<<"$out"; then
+      echo "STOP: usage limit reached; remaining requests left pending" >>"$LOG"
+      touch "$DIR/.stop"
+    fi
     return 0
   fi
   echo "$out" >"${req%.request.json}.claude-p.json"
@@ -86,6 +93,7 @@ answer_one() {
 }
 export -f answer_one
 
+rm -f "$DIR/.stop"
 n=$(find "$DIR" -maxdepth 1 -name '*.request.json' | wc -l | tr -d ' ')
 find "$DIR" -maxdepth 1 -name '*.request.json' -print0 | xargs -0 -n1 -P "$PAR" bash -c 'answer_one "$0"'
 ok=$(find "$DIR" -maxdepth 1 -name '*.response.json' | wc -l | tr -d ' ')

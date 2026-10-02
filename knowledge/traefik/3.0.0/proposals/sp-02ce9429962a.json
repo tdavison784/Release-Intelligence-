@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-02ce9429962a",
+    "candidateId": "sc-4b9080e9db9b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.docker.tls.caOptional",
+        "component": "docker-provider"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.docker.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the static configuration file (YAML/TOML) sets providers.docker.tls.caOptional"
+            }
+          ]
+        }
+      },
+      "statement": "The Docker provider static option providers.docker.tls.caOptional was removed in v3 and should be removed from configuration."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The evidence says the option is removed and must be deleted from static configuration, but does not state what happens if it is left in place.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-dac3a3c51ce8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2a2899cb70c6fbee33d8e1286551295ae6f2d8bf3bbb37ddfcb57891352734ec",
+      "inputEvidence": [
+        "ev-dac3a3c51ce8"
+      ],
+      "generatedAt": "2026-10-02T21:02:37Z",
+      "callId": "e2ede8c8-e8a6-46ce-a2aa-99d5a36f7b62"
+    }
+  }
+}

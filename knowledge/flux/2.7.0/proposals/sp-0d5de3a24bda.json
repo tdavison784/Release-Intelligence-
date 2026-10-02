@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0d5de3a24bda",
+    "candidateId": "sc-2df51b6789d6",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "diff-ks-force-enabled"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For Kustomizations carrying the `force: enabled` annotation, `flux diff ks` results differ from previous releases because the command now takes the annotation into account.",
+        "remediation": "Re-run `flux diff ks` on Kustomizations carrying the `force: enabled` annotation and verify the reported diff matches expectations.",
+        "severity": "low"
+      },
+      "statement": "In Flux 2.7.0 the `flux diff ks` command now handles the `force: enabled` annotation, so its diff behaviour for Kustomizations carrying that annotation differs from earlier releases."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: the evidence does not state where the `force: enabled` annotation is set (its annotation key or field path) nor which resources carry it, and exposure also depends on operators actually running the `flux diff ks` command, so no environment predicate can be written without inventing a path",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5644801ced86"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:1cd21c2b5e3960b95513e83ea2e4341694c69f692b772635d5029ff487398e1a",
+      "inputEvidence": [
+        "ev-5644801ced86"
+      ],
+      "generatedAt": "2026-10-02T16:15:21Z",
+      "callId": "2c56e1b3-38e3-4b2b-9ef9-5bbdb8df9044"
+    }
+  }
+}

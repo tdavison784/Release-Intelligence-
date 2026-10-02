@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-be0078bfce5b",
+    "candidateId": "sc-3e520936a5c1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "consulCatalog.namespace",
+        "component": "consulCatalog"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "consulCatalog.namespaces",
+          "component": "consulCatalog"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "consulCatalog.namespace",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if the ConsulCatalog provider `namespace` option is configured; the option must be replaced with `namespaces`.",
+        "severity": "critical"
+      },
+      "statement": "The ConsulCatalog provider `namespace` configuration option was removed in v3; its presence prevents Traefik from starting and must be replaced with the `namespaces` option."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-3faa5287ea4e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3d12ed31e33a3323a22f4e882d9da81c5c8b35f106dfce9e7c06fa81ade89812",
+      "inputEvidence": [
+        "ev-3faa5287ea4e"
+      ],
+      "generatedAt": "2026-10-02T20:59:11Z",
+      "callId": "e6263f75-f883-42db-b848-59fc3b351d33"
+    }
+  }
+}

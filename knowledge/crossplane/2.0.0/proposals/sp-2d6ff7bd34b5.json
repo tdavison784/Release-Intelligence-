@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2d6ff7bd34b5",
+    "candidateId": "sc-af36bd24681f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "go-module-path-v2"
+      },
+      "change": {
+        "type": "migration-required",
+        "before": "\"github.com/crossplane/crossplane\"",
+        "after": "\"github.com/crossplane/crossplane/v2\""
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Go code importing crossplane or crossplane-runtime must update the go.mod module path and all import statements to the v2 module path when moving to v2+.",
+        "remediation": "Update go.mod and all imports to github.com/crossplane/crossplane/v2 and github.com/crossplane/crossplane-runtime/v2.",
+        "severity": "medium"
+      },
+      "statement": "The Go module path changed to github.com/crossplane/crossplane/v2 (and crossplane-runtime/v2); Go consumers must update go.mod and all import statements."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether the user's Go code imports crossplane or crossplane-runtime modules, which no static environment input (manifests, Helm values) carries.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d241daaf3863"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:1acd9645eddb458c7e22aae194b2d3747c401ba7d849df1cacb83cb984ec6a8e",
+      "inputEvidence": [
+        "ev-d241daaf3863"
+      ],
+      "generatedAt": "2026-10-02T20:56:55Z",
+      "callId": "06fc64f5-bc46-4a5b-a429-d6b57f5eacc8"
+    }
+  }
+}

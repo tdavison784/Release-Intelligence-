@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b74f78104e00",
+    "candidateId": "sc-89766083a832",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "traefik",
+        "name": "referencegrants",
+        "component": "gateway-api-controller"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "gateway.networking.k8s.io",
+          "version": "v1beta1",
+          "kind": "ReferenceGrant"
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "The Traefik Gateway API controller requires the ReferenceGrants RBAC permission to function; if not granted, the controller cannot access ReferenceGrant resources.",
+        "severity": "high"
+      },
+      "statement": "ReferenceGrants RBAC permission is added to the Gateway API Traefik controller in version 3.0.0."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b93f05e6d823"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2a3b5ef9654efb2c8cd047b3aacc7e419c7c326c5fa3193fe73ddc6133aee4e2",
+      "inputEvidence": [
+        "ev-b93f05e6d823"
+      ],
+      "generatedAt": "2026-10-02T20:52:43Z",
+      "callId": "d531f1d3-9fad-4200-8c8b-6f96ac38b145"
+    }
+  }
+}

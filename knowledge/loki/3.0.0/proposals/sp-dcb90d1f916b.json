@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dcb90d1f916b",
+    "candidateId": "sc-3e5ed0e52781",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store",
+        "component": "logcli"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "-schema-store",
+          "component": "logcli"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "component": "logcli",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-remote-schema",
+              "component": "logcli",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "-schema-store",
+          "component": "logcli",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "LogCLI used the store from -boltdb.shipper.shared-store to fetch remote schema; the store for remote schema is now configured with -schema-store.",
+        "remediation": "Set -schema-store to the store used for retrieving remote schema."
+      },
+      "statement": "LogCLI no longer takes the remote schema store from -boltdb.shipper.shared-store when -remote-schema is true; the new -schema-store flag replaces it."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-eec682284370"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:75274f41619e633f7deff0e33050b45c8c5ac37689e8b2c1e953246fc7845efe",
+      "inputEvidence": [
+        "ev-eec682284370"
+      ],
+      "generatedAt": "2026-10-02T16:17:52Z",
+      "callId": "34e9409d-4f88-4ed4-9858-adcaf968334c"
+    }
+  }
+}

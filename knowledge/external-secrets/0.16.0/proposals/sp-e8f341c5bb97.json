@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e8f341c5bb97",
+    "candidateId": "sc-8b9acf590523",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "bump-crds-before-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "CRDs installed separately must be bumped by applying the v0.16.1 CRD bundle and verifying no error occurs before migrating external-secrets to v0.16.1.",
+        "remediation": "Run kubectl apply -f https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.1/deploy/crds/bundle.yaml, verify no error, then upgrade external-secrets."
+      },
+      "statement": "If CRDs are installed separately, the operator must first apply the updated CRD bundle (kubectl apply of deploy/crds/bundle.yaml) and verify no error before migrating external-secrets to v0.16.1."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Whether CRDs are installed separately from the chart is not visible in a static input set; evidence gives no predicate.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4139b0de79e3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:426fb3cf846a62f7fd416c26994652914f8e1fbf063246d921daa3d21e33ad4a",
+      "inputEvidence": [
+        "ev-4139b0de79e3"
+      ],
+      "generatedAt": "2026-10-02T16:18:33Z",
+      "callId": "e67ebf34-7347-4e76-8a63-770f470e137a"
+    }
+  }
+}

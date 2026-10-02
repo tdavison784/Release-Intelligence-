@@ -1,0 +1,1525 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-f1a212791fb5",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "members": [
+      {
+        "changeId": "chg-c76a75f0af85",
+        "anchor": {
+          "release": "1.13.0",
+          "evidenceKeys": [
+            "ek-8402dec4a2dd"
+          ],
+          "statementKeys": [
+            "sk-50a0b6583cdc"
+          ],
+          "changeIds": [
+            "chg-c76a75f0af85"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "Shallow evaluation of Variables: Kyverno performs nested variable substitution by default, this may not be desirable in certain situations",
+    "text": "Shallow evaluation of Variables: Kyverno performs nested variable substitution by default, this may not be desirable in certain situations. Take the following ConfigMap as an example, it defines a `.hcl` string content using the same `{{ }}` notation which is used in Kyverno for variable syntax. In this case, Kyverno needs to be instructed to not attempt to resolve variables in the HCL, this can be achieved by `{{- ... }}` notation for shallow (one time only) substitution of variables. To only substitute the rule data with the HCL, and not perform nested substitutions, the following policy uses the declaration `{{- hcl }}` for shallow substitution.",
+    "evidence": [
+      {
+        "id": "ev-cc61618a6c99",
+        "kind": "document",
+        "sourceId": "release-notes-blog",
+        "uri": "https://github.com/kyverno/website/blob/main/src/content/blog/announcing-kyverno-release-1.13/index.md",
+        "locator": "L561-L580 (Other Features and Enhancements › Shallow evaluation of Variables)",
+        "excerpt": "### Shallow evaluation of Variables\n\nKyverno performs nested variable substitution by default, this may not be desirable in certain situations. Take the following ConfigMap as an example, it defines a `.hcl` string content using the same `{{ }}` notation which is used in Kyverno for variable syntax. In this case, Kyverno needs to be instructed to not attempt to resolve variables in the HCL, this can be achieved by `{{- ... }}` notation for shallow (one time only) substitution of variables.\n\n```yaml\napiVersion: v1\ndata:\n  config: |-\n    from_string\n    {{ some hcl tempalte }}\nkind: ConfigMap\nme…",
+        "contentDigest": "sha256:7003865f075ba01cdc5d733756c6473f3127141fc7a370118d60a3fe94c70652",
+        "retrievedAt": "2026-10-02T10:53:16Z"
+      },
+      {
+        "id": "ev-9348cb2d7f00",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_cleanuppolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//cleanuppolicies.kyverno.io spec.versions[name=v2].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/cleanuppolicies.kyverno.io spec.versions[name=v2].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//cleanuppolicies.kyverno.io",
+          "path": "spec.versions[name=v2].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-1f3623119395",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_cleanuppolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//cleanuppolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/cleanuppolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//cleanuppolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-a77e0fc2c18d",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clustercleanuppolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clustercleanuppolicies.kyverno.io spec.versions[name=v2].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clustercleanuppolicies.kyverno.io spec.versions[name=v2].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clustercleanuppolicies.kyverno.io",
+          "path": "spec.versions[name=v2].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-90e44cfd7601",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clustercleanuppolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clustercleanuppolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clustercleanuppolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clustercleanuppolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-e0408f021210",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-13c3ac894c61",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-e0d064dacf28",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-e25376a41cf1",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-098cc226b24b",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-829e35dd4733",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-34ffeb4c57ab",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-c756949b240f",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-0cc0e7232681",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-dcfc598b35a1",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-b63be075f380",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-b38ea1b958cb",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-10f476b3db03",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-8cc8fa472a4d",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-2fec92fb6175",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-b16173ee2a96",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-4569f14ea82d",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-d0b8f312ef56",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-f4d7f536bf4a",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-1096286e1c4f",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-36fde8fe87bf",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-e546520f1a69",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-907b5eac899c",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-32b7c6786a16",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-a18125f27167",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-524a4616ddd2",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-c130c001c1b6",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-35bde0b6c405",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-aca377f1d08b",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-04c1cddd0c08",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-b19808a6bf66",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.mutate.properties.targets.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-6a1436fac008",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default: ∅ → {\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.validate.properties.foreach.items.properties.context.items.properties.apiCall.properties.default",
+          "change": "field-added",
+          "after": "{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      }
+    ],
+    "hints": [
+      "code:hcl",
+      "code:- ...",
+      "code:- hcl"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:27Z"
+  }
+}

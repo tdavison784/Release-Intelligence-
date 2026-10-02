@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-20d6a536ce0c",
+    "candidateId": "sc-767b68dac593",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "loki",
+        "path": "write.lifecycle.preStop.exec.command"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"/ingester/shutdown\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Deployment"
+            },
+            {
+              "op": "values-key",
+              "path": "write",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Write pods now use the `/ingester/shutdown` endpoint for graceful shutdown during termination.",
+        "severity": "low"
+      },
+      "statement": "The Helm chart for Loki 3.0.0 uses `/ingester/shutdown` for the preStop hook in write pods."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-73055e956e96"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9a5c5a15cc7efe26fe4134d7ee32a233131a7ce81d05461b88f08979adcdc4b6",
+      "inputEvidence": [
+        "ev-73055e956e96"
+      ],
+      "generatedAt": "2026-10-02T20:54:29Z",
+      "callId": "996b2bd3-87a2-4676-861a-487d15bbbc89"
+    }
+  }
+}

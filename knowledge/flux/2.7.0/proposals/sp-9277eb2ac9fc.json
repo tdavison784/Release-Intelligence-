@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9277eb2ac9fc",
+    "candidateId": "sc-3caf50c85cc9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "flux-migrate"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether Flux Operator deploys the Flux controllers, and whether the cluster still stores Flux resources at the removed v1beta1/v2beta1 API versions (the evidence does not name the affected kinds)"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The Flux APIs v1beta1 and v2beta1 have been removed from the CRDs. Clusters that do not use Flux Operator to deploy the Flux controllers must run `flux migrate` before upgrading to 2.7.0.",
+        "remediation": "Run `flux migrate` on each cluster before upgrading, following the Flux v2.7 upgrade guide.",
+        "severity": "high"
+      },
+      "statement": "Flux 2.7.0 removes the v1beta1 and v2beta1 Flux APIs from the CRDs. Unless Flux Operator deploys the Flux controllers, operators must run `flux migrate` on their clusters before upgrading."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-82be76c03b0e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:53a8925acf305250582d8bc1fc608595f36047a86c15c9a6ebfe80198b9a4f7c",
+      "inputEvidence": [
+        "ev-82be76c03b0e"
+      ],
+      "generatedAt": "2026-10-02T20:59:00Z",
+      "callId": "98a29a28-e670-4a2d-9f72-2508db235871"
+    }
+  }
+}

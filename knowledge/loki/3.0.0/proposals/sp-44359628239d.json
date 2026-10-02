@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-44359628239d",
+    "candidateId": "sc-c4cf61880e09",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "loki",
+        "name": "POST /ingester/flush_shutdown"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "api-endpoint",
+          "product": "loki",
+          "name": "POST /ingester/shutdown"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "HTTP requests to the `/ingester/flush_shutdown` endpoint will fail because the endpoint no longer exists; callers must migrate to `/ingester/shutdown?flush=true` instead.",
+        "remediation": "Update all ingester shutdown automation or monitoring scripts that call `/ingester/flush_shutdown` to use `/ingester/shutdown?flush=true` instead.",
+        "severity": "high"
+      },
+      "statement": "The deprecated `/ingester/flush_shutdown` API endpoint is removed in Loki 3.0.0 and replaced with `/ingester/shutdown?flush=true`."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: exposure depends on runtime behavior of which Loki clients or monitoring systems call the legacy endpoint; no static configuration reveals this",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-707b74e58c3e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6f454915d1892c72ac63ce6e7e81931e27109cb967756ca32526b3b8887c2d99",
+      "inputEvidence": [
+        "ev-707b74e58c3e"
+      ],
+      "generatedAt": "2026-10-02T20:54:05Z",
+      "callId": "aff248e2-e5d0-4c82-8b11-3017ef9759d2"
+    }
+  }
+}

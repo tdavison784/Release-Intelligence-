@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4bed39a6a8fc",
+    "candidateId": "sc-45471c788722",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "external-secrets",
+        "name": "github/codeql-action"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"3.28.13\"",
+        "after": "\"3.28.15\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the operator's environment builds external-secrets from source using the repository's GitHub Actions CI, which is the only place github/codeql-action is used"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "github/codeql-action is a GitHub Actions CI dependency of the external-secrets repository, so this pinned-version bump (3.28.13 to 3.28.15) has no operational effect on an external-secrets deployment (chart values, CRDs, images or workloads)."
+      },
+      "statement": "external-secrets 0.16.0 bumped the repository's CI dependency github/codeql-action from 3.28.13 to 3.28.15 (PR #4645), which does not affect external-secrets deployments."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-ddadc146dd66"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:336aca3379a29f62edf327433fc4c4094009fe7741379c5f11b71d864e4466ad",
+      "inputEvidence": [
+        "ev-ddadc146dd66"
+      ],
+      "generatedAt": "2026-10-02T16:43:39Z",
+      "callId": "f7a3ee87-2dfd-4a34-b51a-b9b030800efa"
+    }
+  }
+}
