@@ -240,7 +240,10 @@ func loadEvalRenderCases(t *testing.T) []evalRenderCase {
 	}
 	var out []evalRenderCase
 	for _, en := range entries {
-		if !en.IsDir() || en.Name() == "results" {
+		// "results" holds run reports, "tools" the measurement scripts
+		// (r17_join.py); neither is a case. Anything else without a readable
+		// case.yaml fails below, so a broken case cannot be skipped silently.
+		if !en.IsDir() || en.Name() == "results" || en.Name() == "tools" {
 			continue
 		}
 		b, err := os.ReadFile(filepath.Join(dir, en.Name(), "case.yaml"))
