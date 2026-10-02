@@ -52,6 +52,20 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
 
 `go build ./... && go vet ./... && go test ./...`: see the latest commit message.
 
+## GLM handoff log (2026-10-02, glm-5.3 as glm-proxy)
+
+- 08:10 CDT: took over the lane. Audited run-1 state: 952 requests in `.ri/proxy-run-1`, 567 answered
+  (561 decided: 246 accept / 67 correct / 21 reject / 200 need-more-evidence / 27 defer; 6 refused at
+  verdict stage — the 5 prose-only corrections and 1 >400-char statement already listed below), 7
+  `.failed` markers all reading "session limit · resets 10:50am (America/Chicago)". 385 items remain
+  (378 never called + 7 session-limit). `go build/vet/test` re-run to confirm the branch is green.
+- Plan: the account resets at 10:50 CDT; a scheduled step then probes the limit with one cheap call and,
+  if open, resumes `scripts/proxy-review.sh` (same arguments) after deleting the 7 session-limit
+  `.failed` markers and the `STOP` file. If the probe still fails, it reschedules ~30 min later. After
+  the run: step-6 REPORT.md via `ri knowledge proxy-report`, package requests/responses, commit.
+- Uncertain: nothing new. The two open contract questions (prose-only corrections; Provenance.Provider)
+  remain with the commander. Step 5 (shadow) still waits for the commander.
+
 ## Run-1 state (2026-10-02 08:05 CDT): PAUSED at the account session limit
 
 - About 560 of 952 non-high items were decided as proxy. The ledger is `proxy/run-1/ledger.jsonl`; the exchange
