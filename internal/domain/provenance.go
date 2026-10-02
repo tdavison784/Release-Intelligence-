@@ -53,6 +53,12 @@ type Provenance struct {
 	PromptDigest  string       `json:"promptDigest,omitempty"`
 	InputEvidence []EvidenceID `json:"inputEvidence,omitempty"`
 	GeneratedAt   *time.Time   `json:"generatedAt,omitempty"`
+	// CallID identifies the single stateless model call that produced the
+	// answer — the request/message id or CLI session id from the provider's
+	// response envelope, never invented. It makes "separate calls" checkable
+	// (PO-1, docs/phase3/learning-loop/DECISIONS.md). Optional in general;
+	// required on SemanticProposals.
+	CallID string `json:"callId,omitempty"`
 }
 
 // Deterministic reports whether the provenance is not AI-derived.
@@ -63,7 +69,7 @@ func (p Provenance) Validate() error {
 	var errs []error
 	switch p.Method {
 	case MethodDeclared, MethodComputed, MethodHeuristic:
-		if p.Model != "" || p.PromptDigest != "" || p.ModelVersion != "" || p.PromptVersion != "" || len(p.InputEvidence) > 0 || p.GeneratedAt != nil {
+		if p.Model != "" || p.PromptDigest != "" || p.ModelVersion != "" || p.PromptVersion != "" || len(p.InputEvidence) > 0 || p.GeneratedAt != nil || p.CallID != "" {
 			errs = append(errs, fmt.Errorf("deterministic provenance (%s) must not carry model/prompt fields", p.Method))
 		}
 	case MethodAI:

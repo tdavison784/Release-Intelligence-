@@ -113,6 +113,7 @@ var enums = []enumSet{
 	enumOf(domain.FeedbackLabels...),
 	enumOf(domain.FactActive, domain.FactRetracted, domain.FactSuperseded),
 	enumOf(domain.RenderRelease, domain.RenderEnvironment),
+	enumOf(domain.ConsensusCrossModel, domain.ConsensusSameModel),
 	enumOf(domain.RenderConfirmed, domain.RenderNotVisible, domain.RenderContradicted, domain.RenderNotApplicable),
 	enumOf(domain.RenderVerifiable, domain.RenderPartiallyVerifiable, domain.RenderNotVerifiable),
 	enumOf(domain.RecordCandidate, domain.RecordProposal, domain.RecordValidation, domain.RecordReviewItem, domain.RecordDecision, domain.RecordFact),
@@ -255,11 +256,18 @@ func impactClassRules() []any {
 		o("if", o("required", []string{"unknownReason"}),
 			"then", classIs(domain.ImpactUnknown)),
 		// the trust ladder (docs/phase3/learning-loop/DESIGN.md §4): a finding
-		// evaluated from verified knowledge reaches action-required or
-		// not-affected only from a trusted (deterministic/human) fact
-		o("if", o("allOf", all(classIs(domain.ImpactActionRequired, domain.ImpactNotAffected), o("required", []string{"knowledge"}))),
+		// evaluated from verified knowledge reaches not-affected only from a
+		// trusted (deterministic/human) fact, and action-required from a
+		// trusted fact or a consensus-action fact (PO-2), never from proxy
+		o("if", o("allOf", all(classIs(domain.ImpactNotAffected), o("required", []string{"knowledge"}))),
 			"then", o("properties", o("knowledge", o("properties", o("verification",
 				o("enum", []any{string(domain.VerifiedDeterministic), string(domain.VerifiedHuman)})))))),
+		o("if", o("allOf", all(classIs(domain.ImpactActionRequired), o("required", []string{"knowledge"}))),
+			"then", o("properties", o("knowledge", o("anyOf", []any{
+				o("properties", o("verification", o("enum", []any{string(domain.VerifiedDeterministic), string(domain.VerifiedHuman)}))),
+				o("properties", o("verification", o("const", string(domain.VerifiedConsensus)), "consensusAction", o("const", true)),
+					"required", []string{"consensusAction"}),
+			})))),
 		// knowledge is carried exactly by impact:knowledge-* rules
 		o("if", o("required", []string{"knowledge"}),
 			"then", ruleIs(o("pattern", "^"+domain.KnowledgeRulePrefix)),
@@ -311,7 +319,7 @@ var descriptions = map[string]string{
 		"exactly one entity — a semantic candidate, a model proposal (AI, never collapsed with other models), a deterministic " +
 		"validation result, a review item, a review decision (human or proxy, labelled) or a verified release-level fact. " +
 		"Cross-record integrity (a fact's per-aspect verification resolves to confirming validations or to decisions by a " +
-		"reviewer of the claimed kind) is checked by domain.ValidateFactBasis in Go. See docs/phase3/learning-loop/DESIGN.md.",
+		"reviewer of the claimed kind, or to separate agreeing model calls for consensus) is checked by domain.ValidateFactRecords in Go. See docs/phase3/learning-loop/DESIGN.md.",
 	"Release": "Everything deterministically known about one product release, as produced by ingestion " +
 		"from the sources of a product definition. UpgradeEdges are computed from Releases. Contains no AI output.",
 
@@ -361,7 +369,7 @@ var descriptions = map[string]string{
 	"ImpactReport.enrichmentRun":    "Present when impact enrichment was attempted: how the AI enrichments were produced and what the validator rejected.",
 	"ImpactReport.generatedAt":      "When the report was built (UTC).",
 	"ImpactReport.definitionDigest": "Digest of the product definition revision the underlying edge was built from.",
-	"KnowledgeRef":                  "The verified fact a knowledge finding (rule impact:knowledge-*) was evaluated from, and the fact's verification level (its weakest aspect). Proxy-verified facts never yield action-required or not-affected.",
+	"KnowledgeRef":                  "The verified fact a knowledge finding (rule impact:knowledge-*) was evaluated from, and the fact's verification level (its weakest aspect). Only deterministic/human facts yield not-affected; action-required needs a deterministic/human fact or a consensus fact with consensusAction (PO-2, rendered \"ACTION REQUIRED · model consensus\"); proxy facts yield neither.",
 	"ImpactFinding.unknownReason":   "Why an unknown finding is unknown: release-knowledge-gap, environment-visibility-gap, cross-product-context-gap, runtime-behavior-gap, evidence-gap or semantic-ambiguity (docs/phase3/learning-loop/DESIGN.md §1.5). Unknown-only.",
 	"ImpactFinding": "One deterministic verdict of the applicability engine: an upstream change (or compatibility " +
 		"constraint, or moved image artifact) met the environment — or could not be evaluated. Affected classes " +

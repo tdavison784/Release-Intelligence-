@@ -94,3 +94,47 @@ The render-mission contract change (RENDER-MISSION R6, R10–R12, R19; briefs/re
 - **Docs and schemas:** DESIGN.md §2.3, §2.6, §4, §6 (auto-approval route), §7 (consensus level row,
   auto-approval and render-relation metrics); ACTION_CLASSIFICATION §8; schemas regenerated.
 - **Tests:** `go build`, `go vet` and `go test ./...` pass; goldens unchanged.
+
+---
+
+## contract-3 (branch `p3ll/contract-3`, from `p3-learning-loop` @ e93db45) — done
+
+The product-owner decisions PO-1 and PO-2 are recorded verbatim in `docs/phase3/learning-loop/DECISIONS.md`.
+
+**PO-1 — consensus is separate calls agreeing.**
+- `Provenance.CallID`: required on proposals, part of `ProposalID`, and forbidden on deterministic
+  provenance.
+- `SeparateCalls` replaces `IndependentModels`.
+- `ConsensusScope` labels each consensus `cross-model` or `same-model`. The label lives on
+  `AspectVerification` and `KnowledgeRef`, and `ValidateFactRecords` checks it.
+- No call may be counted twice.
+
+**PO-2 — consensus may produce ACTION REQUIRED.**
+- `SuggestedClass` may be `action-required`. It is a request and needs an action-eligible consequence.
+- `VerifiedFact.ConsensusAction`: conditions (a), (b) and (d), enforced by `Validate` and
+  `ValidateFactRecords`.
+- `KnowledgeRef.ConsensusAction` / `ActionLabel()` = "model consensus".
+- `ImpactReport.Validate` and the schema allow consensus ACTION only with `consensusAction`.
+  Condition (c) is the unchanged affected-class rule. NOT AFFECTED stays trusted-only. Proxy stays
+  capped. High confidence on a consensus finding is allowed only for a consensus-action ACTION.
+
+**Docs:** DESIGN §2.2, §2.6, §4 (a three-column ladder), §6 (a consensus-action route with 100%
+audit), §7 (per-level `falseActionRate`/`actionFindingEvidence`; gates on the combined output; new
+metrics); ACTION_CLASSIFICATION §8; MISSION Goal 21 note. `knowledge.FactMetrics` gains the
+consensus-by-scope and consensus-action audit fields.
+
+**Edits in the knowledge lane's package, minimal and marked `CONTRACT-CHANGE(contract-3)`:**
+- `autoapprove.go`: `SeparateCalls` instead of `IndependentModels`.
+- `decide.go`: sets the consensus scope label when minting.
+- `autoapprove_test.go`: the family test is rewritten to the PO-1 meaning.
+- `fixtures_test.go`, `cmd/ri/knowledge_test.go`: call ids added.
+
+**Left for the knowledge lane:**
+- `route.go` still counts agreement signals per model name. Under PO-1 it should count separate
+  calls.
+- Minting `ConsensusAction` facts and the 100% audit are not implemented yet.
+
+**Left for the applicability lane:** consensus ACTION findings (label, KnowledgeRef copying) and the
+per-level eval reporting.
+
+**Tests:** `go build`, `go vet` and `go test ./...` pass; goldens unchanged.

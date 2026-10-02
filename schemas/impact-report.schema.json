@@ -38,6 +38,7 @@
       ]
     },
     "Confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+    "ConsensusScope": {"type": "string", "enum": ["cross-model", "same-model"]},
     "DeterministicProvenance": {
       "description": "Provenance of deterministic knowledge: method is declared, computed or heuristic, and the AI-only fields (model, modelVersion, promptVersion, promptDigest, inputEvidence, generatedAt) must be absent. A Change can never be method \"ai\".",
       "allOf": [{"$ref": "#/$defs/Provenance"}],
@@ -485,7 +486,7 @@
             "allOf": [
               {
                 "properties": {
-                  "classification": {"enum": ["action-required", "not-affected"]}
+                  "classification": {"enum": ["not-affected"]}
                 },
                 "required": ["classification"]
               },
@@ -495,6 +496,35 @@
           "then": {
             "properties": {
               "knowledge": {"properties": {"verification": {"enum": ["deterministic", "human"]}}}
+            }
+          }
+        },
+        {
+          "if": {
+            "allOf": [
+              {
+                "properties": {
+                  "classification": {"enum": ["action-required"]}
+                },
+                "required": ["classification"]
+              },
+              {"required": ["knowledge"]}
+            ]
+          },
+          "then": {
+            "properties": {
+              "knowledge": {
+                "anyOf": [
+                  {"properties": {"verification": {"enum": ["deterministic", "human"]}}},
+                  {
+                    "properties": {
+                      "verification": {"const": "consensus"},
+                      "consensusAction": {"const": true}
+                    },
+                    "required": ["consensusAction"]
+                  }
+                ]
+              }
             }
           }
         },
@@ -660,11 +690,13 @@
     },
     "KnowledgeRef": {
       "type": "object",
-      "description": "The verified fact a knowledge finding (rule impact:knowledge-*) was evaluated from, and the fact's verification level (its weakest aspect). Proxy-verified facts never yield action-required or not-affected.",
+      "description": "The verified fact a knowledge finding (rule impact:knowledge-*) was evaluated from, and the fact's verification level (its weakest aspect). Only deterministic/human facts yield not-affected; action-required needs a deterministic/human fact or a consensus fact with consensusAction (PO-2, rendered \"ACTION REQUIRED · model consensus\"); proxy facts yield neither.",
       "required": ["fact", "verification"],
       "properties": {
         "fact": {"type": "string"},
         "verification": {"$ref": "#/$defs/VerificationLevel"},
+        "consensus": {"$ref": "#/$defs/ConsensusScope"},
+        "consensusAction": {"type": "boolean"},
         "statement": {"type": "string"}
       },
       "additionalProperties": false
@@ -727,7 +759,8 @@
           "type": "string",
           "format": "date-time",
           "description": "AI only: when the output was generated."
-        }
+        },
+        "callId": {"type": "string"}
       },
       "additionalProperties": false
     },

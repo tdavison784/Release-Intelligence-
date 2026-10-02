@@ -862,11 +862,10 @@ func (r UnknownReason) Valid() bool {
 //
 // Ordering (weakest-aspect semantics of VerifiedFact.Level):
 // deterministic ≡ human > consensus > proxy. Only deterministic and human are
-// TRUSTED. consensus is ranked above proxy because it is a structural test
-// (≥2 independent model families produced the identical aspect digest), not
-// one model's judgement — but the trust ladder treats both identically:
-// ≤ review-required, never not-affected, never action-required, confidence
-// ≤ medium (DESIGN.md §4).
+// TRUSTED (they alone may clear: NOT AFFECTED). consensus — two separate
+// stateless model calls agreeing (PO-1) — may produce ACTION REQUIRED only on
+// the PO-2 path (VerifiedFact.ConsensusAction; DESIGN.md §4), labelled "model
+// consensus"; proxy never may.
 type VerificationLevel string
 
 const (
@@ -874,9 +873,10 @@ const (
 	VerifiedDeterministic VerificationLevel = "deterministic"
 	// VerifiedHuman: a named human reviewer decided it.
 	VerifiedHuman VerificationLevel = "human"
-	// VerifiedConsensus: ≥2 proposals from independent models (distinct
-	// model families, see IndependentModels) asserted the identical aspect
-	// digest. Untrusted: treated exactly like proxy by the trust ladder.
+	// VerifiedConsensus: ≥2 proposals from SEPARATE stateless model calls
+	// (SeparateCalls; any models, including the same model twice — PO-1)
+	// asserted the identical aspect digest. Not trusted to clear; may back
+	// ACTION REQUIRED only via VerifiedFact.ConsensusAction (PO-2).
 	VerifiedConsensus VerificationLevel = "consensus"
 	// VerifiedProxy: an AI acting as reviewer decided it — always labelled,
 	// never trusted for ACTION REQUIRED or NOT AFFECTED.
@@ -929,7 +929,7 @@ func weaker(a, b VerificationLevel) VerificationLevel {
 
 // ModelFamily is the lineage of a model id: its leading name token,
 // lowercased ("claude-opus-5-5" → "claude", "glm-5.3-flash" → "glm",
-// "gpt-5" → "gpt"). Two models of one family are not independent.
+// "gpt-5" → "gpt"). Used only to label consensus (ConsensusScopeOf).
 func ModelFamily(model string) string {
 	m := strings.ToLower(strings.TrimSpace(model))
 	if i := strings.LastIndexByte(m, '/'); i >= 0 { // "zai/glm-5.3" → "glm-5.3"
@@ -945,12 +945,37 @@ func ModelFamily(model string) string {
 	return m[:end]
 }
 
-// IndependentModels reports whether two proposals come from independent
-// models: their model families differ. Distinct providers alone do not
-// suffice — the same model behind two gateways is one opinion.
-func IndependentModels(a, b SemanticProposal) bool {
-	fa, fb := ModelFamily(a.Provenance.Model), ModelFamily(b.Provenance.Model)
-	return fa != "" && fb != "" && fa != fb
+// SeparateCalls reports whether two proposals come from separate stateless
+// model calls (PO-1): distinct proposal ids and distinct, non-empty call ids
+// from the provider/CLI envelope. Any models qualify — two calls of the same
+// model too. A replayed cached answer keeps its original call id, so it never
+// counts twice.
+func SeparateCalls(a, b SemanticProposal) bool {
+	return a.ID != b.ID && a.Provenance.CallID != "" && b.Provenance.CallID != "" &&
+		a.Provenance.CallID != b.Provenance.CallID
+}
+
+// ConsensusScope labels a consensus: whether the agreeing calls span more
+// than one model family. It never gates anything; it lets the metrics
+// measure whether same-model agreement (correlated errors) is as reliable as
+// cross-model agreement.
+type ConsensusScope string
+
+const (
+	ConsensusCrossModel ConsensusScope = "cross-model"
+	ConsensusSameModel  ConsensusScope = "same-model"
+)
+
+// ConsensusScopeOf labels a set of agreeing proposals by ModelFamily.
+func ConsensusScopeOf(ps []SemanticProposal) ConsensusScope {
+	fams := map[string]bool{}
+	for _, p := range ps {
+		fams[ModelFamily(p.Provenance.Model)] = true
+	}
+	if len(fams) >= 2 {
+		return ConsensusCrossModel
+	}
+	return ConsensusSameModel
 }
 
 // ReviewerKind distinguishes human reviewers from AI proxies.
@@ -1383,16 +1408,20 @@ type SemanticProposal struct {
 	UndeterminedReason string   `json:"undeterminedReason,omitempty"`
 	// DuplicateOf names a known fact this candidate restates (task duplicate).
 	DuplicateOf string `json:"duplicateOf,omitempty"`
-	// SuggestedClass is the model's class suggestion: review-required,
-	// informational or unknown — never action-required or not-affected.
+	// SuggestedClass is the model's class suggestion or request:
+	// action-required (a REQUEST, PO-2 — it takes effect only through an
+	// agreed consensus fact, DESIGN.md §4), review-required, informational or
+	// unknown — never not-affected.
 	SuggestedClass ImpactClass  `json:"suggestedClass,omitempty"`
 	Citations      []EvidenceID `json:"citations,omitempty"`
 	Provenance     Provenance   `json:"provenance"`
 }
 
 // ProposalID derives a proposal id.
+// The call id is part of it, so two separate calls of the same model with the
+// same prompt are two proposals (PO-1).
 func ProposalID(candidateID string, task ProposalTask, provider string, p Provenance) string {
-	return ProposalIDPrefix + ShortHash(candidateID, string(task), provider, p.Model, p.ModelVersion, p.PromptDigest)
+	return ProposalIDPrefix + ShortHash(candidateID, string(task), provider, p.Model, p.ModelVersion, p.PromptDigest, p.CallID)
 }
 
 // Validate checks AI provenance, task scope, abstention and the class cap.
@@ -1458,8 +1487,15 @@ func (p SemanticProposal) Validate() error {
 	}
 	switch p.SuggestedClass {
 	case "", ImpactReviewRequired, ImpactInformational, ImpactUnknown:
+	case ImpactActionRequired:
+		if c := p.Assertion.Consequence; c == nil || !c.Kind.ActionEligible() {
+			bad("an action-required request must assert an action-eligible consequence")
+		}
 	default:
-		bad("a model may suggest review-required, informational or unknown, not %q", p.SuggestedClass)
+		bad("a model may request action-required or suggest review-required, informational or unknown, not %q", p.SuggestedClass)
+	}
+	if strings.TrimSpace(p.Provenance.CallID) == "" {
+		bad("provenance.callId (the provider/CLI call id) is required, so separate calls are checkable")
 	}
 	if (!p.Assertion.Empty() || p.DuplicateOf != "") && len(p.Citations) == 0 {
 		bad("an answer that asserts something must cite evidence")
@@ -2152,6 +2188,9 @@ type AspectVerification struct {
 	Aspect Aspect            `json:"aspect"`
 	Level  VerificationLevel `json:"level"`
 	Basis  []string          `json:"basis"`
+	// Consensus labels a consensus verification cross-model or same-model
+	// (set exactly when Level is consensus).
+	Consensus ConsensusScope `json:"consensus,omitempty"`
 }
 
 // VerifiedFact is reusable, release-level semantic knowledge (MISSION G11,
@@ -2180,8 +2219,16 @@ type VerifiedFact struct {
 	// (every aspect deterministic or consensus), so such facts can be
 	// sampled into human review to measure whether consensus + render
 	// confirmation matches human judgement (RENDER-MISSION R10, R19).
-	AutoApproved bool      `json:"autoApproved,omitempty"`
-	CreatedAt    time.Time `json:"createdAt"`
+	AutoApproved bool `json:"autoApproved,omitempty"`
+	// ConsensusAction marks a fact that may produce ACTION REQUIRED through
+	// model consensus (PO-2): every aspect at consensus or better (no proxy),
+	// at least one at consensus, an action-eligible consequence that every
+	// agreeing consequence proposal requested as action-required, and no
+	// validator refuting any aspect (ValidateFactRecords). Its findings read
+	// "ACTION REQUIRED · model consensus", and every such fact is sampled
+	// into human review (100%).
+	ConsensusAction bool      `json:"consensusAction,omitempty"`
+	CreatedAt       time.Time `json:"createdAt"`
 }
 
 // VerifiedFactID derives a verified-fact id from product, introducing
@@ -2311,6 +2358,22 @@ func (f VerifiedFact) Validate() error {
 	if f.AutoApproved != auto {
 		bad("autoApproved must be set exactly when no aspect rests on a human or proxy decision (all deterministic or consensus)")
 	}
+	for _, v := range f.Verification {
+		switch {
+		case v.Level == VerifiedConsensus && v.Consensus != ConsensusCrossModel && v.Consensus != ConsensusSameModel:
+			bad("%s: a consensus verification is labelled cross-model or same-model", v.Aspect)
+		case v.Level != VerifiedConsensus && v.Consensus != "":
+			bad("%s: the consensus label is for consensus verifications only", v.Aspect)
+		}
+	}
+	if f.ConsensusAction {
+		if f.Level() != VerifiedConsensus {
+			bad("consensusAction needs every aspect at consensus or better (no proxy) and at least one at consensus; level is %q", f.Level())
+		}
+		if c := f.Assertion.Consequence; c == nil || !c.Kind.ActionEligible() {
+			bad("consensusAction needs an action-eligible consequence")
+		}
+	}
 	for _, x := range Aspects {
 		if !seen[x] {
 			bad("%s has no verification", x)
@@ -2355,10 +2418,15 @@ func ValidateFactBasis(f VerifiedFact, validations map[string]ValidationResult, 
 //   - human / proxy: an accept/correct decision whose reviewerKind EQUALS the
 //     claimed level (a proxy cannot masquerade as human), whose item verifies
 //     that aspect and whose final assertion has the same aspect digest;
-//   - consensus: ≥2 proposals for one of the fact's candidates, from
-//     independent models (IndependentModels), each asserting the fact's
-//     aspect digest; an optional validation must not refute the aspect and
-//     must have checked the same digest.
+//   - consensus: ≥2 proposals for the fact's candidates from separate
+//     stateless calls (SeparateCalls; no call counted twice), each asserting
+//     the fact's aspect digest, labelled with ConsensusScopeOf; an optional
+//     validation must not refute the aspect and must have checked the same
+//     digest;
+//   - consensusAction (PO-2): if the consequence is consensus-verified,
+//     every agreeing consequence proposal requested action-required; and no
+//     validation of the fact's candidates in r.Validations refutes any aspect
+//     the fact asserts (callers pass ALL validations of those candidates).
 func ValidateFactRecords(f VerifiedFact, r FactRecords) error {
 	var errs []error
 	bad := func(format string, args ...any) {
@@ -2431,17 +2499,47 @@ func ValidateFactRecords(f VerifiedFact, r FactRecords) error {
 				bad("%s: basis %q is neither a validation, a decision nor a proposal", v.Aspect, id)
 			}
 		}
-		if v.Level == VerifiedConsensus && !anyIndependentPair(agreeing) {
-			bad("%s: consensus needs agreeing proposals from at least two independent model families", v.Aspect)
+		if v.Level == VerifiedConsensus {
+			calls := map[string]bool{}
+			for _, p := range agreeing {
+				if calls[p.Provenance.CallID] {
+					bad("%s: call %q is counted twice; consensus needs separate calls", v.Aspect, p.Provenance.CallID)
+				}
+				calls[p.Provenance.CallID] = true
+			}
+			if !anySeparatePair(agreeing) {
+				bad("%s: consensus needs agreeing proposals from at least two separate model calls", v.Aspect)
+			} else if want := ConsensusScopeOf(agreeing); v.Consensus != want {
+				bad("%s: consensus is labelled %q but the agreeing calls are %s", v.Aspect, v.Consensus, want)
+			}
+			if f.ConsensusAction && v.Aspect == AspectConsequence {
+				for _, p := range agreeing {
+					if p.SuggestedClass != ImpactActionRequired {
+						bad("consensusAction: agreeing proposal %s did not request action-required", p.ID)
+					}
+				}
+			}
+		}
+	}
+	if f.ConsensusAction {
+		for id, val := range r.Validations {
+			if !candidates[val.CandidateID] {
+				continue
+			}
+			for _, x := range Aspects {
+				if val.refutes(x) && val.Assertion.AspectDigest(x) == f.Assertion.AspectDigest(x) {
+					bad("consensusAction: validation %s refutes the %s aspect", id, x)
+				}
+			}
 		}
 	}
 	return errors.Join(errs...)
 }
 
-func anyIndependentPair(ps []SemanticProposal) bool {
+func anySeparatePair(ps []SemanticProposal) bool {
 	for i := range ps {
 		for j := i + 1; j < len(ps); j++ {
-			if IndependentModels(ps[i], ps[j]) {
+			if SeparateCalls(ps[i], ps[j]) {
 				return true
 			}
 		}
