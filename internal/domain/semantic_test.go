@@ -23,6 +23,13 @@ func crdEvidence() Evidence {
 		"rotationPolicy: default Always", "sha256:crd", t0)
 }
 
+func ptr[T any](v T) *T { return &v }
+
+// certificates scopes predicates to one cert-manager Certificate.
+func certificates(of ...Condition) Condition {
+	return Condition{Op: OpResource, Group: "cert-manager.io", Kind: "Certificate", Of: of}
+}
+
 func rotationSubject() *Subject {
 	return &Subject{Family: SubjectCRDField, Product: "cert-manager", Group: "cert-manager.io", Kind: "Certificate", Path: "spec.privateKey.rotationPolicy"}
 }
@@ -32,22 +39,26 @@ func rotationAssertion() SemanticAssertion {
 		Subject: rotationSubject(),
 		Change:  &ChangeSpec{Type: ChangeKindDefaultChanged, Before: str(`"Never"`), After: str(`"Always"`)},
 		Applicability: &Applicability{
-			Exposure: Condition{Op: OpResourceField, Group: "cert-manager.io", Kind: "Certificate", Path: "spec.privateKey.rotationPolicy", State: StateUnset},
-			Overlap:  &Condition{Op: OpResourceField, Group: "cert-manager.io", Kind: "Certificate", Path: "spec.privateKey.rotationPolicy", State: StateSet},
+			Exposure: certificates(Condition{Op: OpField, Path: "spec.privateKey.rotationPolicy", State: StateUnset}),
+			Overlap:  ptr(certificates(Condition{Op: OpField, Path: "spec.privateKey.rotationPolicy", State: StateSet})),
 		},
-		Consequence: &Consequence{Kind: ConsequenceBehaviorChange, Statement: "private keys are regenerated on every renewal", Severity: SeverityHigh},
-		Statement:   "Certificate.spec.privateKey.rotationPolicy default Never → Always",
+		// D11: the dataset labels this item review; the class is the reviewer's, carried by the fact.
+		Consequence: &Consequence{Kind: ConsequenceBehaviorChange, ExposedClass: ImpactReviewRequired,
+			Statement: "private keys are regenerated on every renewal", Severity: SeverityHigh},
+		Statement: "Certificate.spec.privateKey.rotationPolicy default Never → Always",
 	}
 }
 
 func anchor() ChangeAnchor {
-	return ChangeAnchor{ChangeID: "chg-rot", Release: "v1.18.0", EvidenceKeys: []string{EvidenceKey(upEvidence())}}
+	return ChangeAnchor{Release: "v1.18.0", EvidenceKeys: []string{EvidenceKey(upEvidence())},
+		StatementKeys: []string{StatementKey(upEvidence())}, ChangeIDs: []string{"chg-rot"}}
 }
 
 func validCandidate() SemanticCandidate {
 	a := anchor()
 	return SemanticCandidate{
-		ID: CandidateID("cert-manager", a), Product: "cert-manager", Release: a.Release, Anchor: a,
+		ID: CandidateID("cert-manager", a.Release, "chg-rot", &a), Product: "cert-manager", Release: a.Release,
+		ChangeID: "chg-rot", Anchor: &a,
 		Category: CategoryConfiguration, Title: "The default rotationPolicy is now Always",
 		Evidence: []Evidence{upEvidence(), crdEvidence()}, Producer: "semantic.candidates@v1", CreatedAt: t0,
 	}
@@ -111,7 +122,8 @@ func validDecision(item ReviewItem) ReviewDecision {
 
 func validFact(c SemanticCandidate, v ValidationResult, d ReviewDecision) VerifiedFact {
 	f := VerifiedFact{
-		Product: c.Product, Release: c.Release, Anchor: c.Anchor, CandidateID: c.ID, Assertion: rotationAssertion(),
+		Product: c.Product, Release: c.Release, Anchors: []ChangeAnchor{*c.Anchor}, Candidates: []string{c.ID},
+		Assertion: rotationAssertion(),
 		Verification: []AspectVerification{
 			{Aspect: AspectSubject, Level: VerifiedDeterministic, Basis: []string{v.ID}},
 			{Aspect: AspectChange, Level: VerifiedDeterministic, Basis: []string{v.ID}},
@@ -120,7 +132,7 @@ func validFact(c SemanticCandidate, v ValidationResult, d ReviewDecision) Verifi
 		},
 		Evidence: []Evidence{upEvidence(), crdEvidence()}, Status: FactActive, CreatedAt: t0,
 	}
-	f.ID = VerifiedFactID(f.Product, f.Anchor, f.Assertion)
+	f.ID = VerifiedFactID(f.Product, f.Release, f.Assertion)
 	return f
 }
 
@@ -189,9 +201,10 @@ func TestChangeSpecValidate(t *testing.T) {
 		{"requirement wrong family", ChangeSpec{Type: ChangeKindRequirementChanged, After: str(">=1")}, SubjectHelmValue, "applies to compatibility-boundary"},
 		{"migration family mismatch", ChangeSpec{Type: ChangeKindMigrationRequired}, SubjectHelmValue, "go together"},
 		{"migration ok", ChangeSpec{Type: ChangeKindMigrationRequired}, SubjectMigration, ""},
-		{"renamed without target", ChangeSpec{Type: ChangeKindRenamed}, SubjectHelmValue, "renamedTo is required"},
-		{"renamed across families", ChangeSpec{Type: ChangeKindRenamed, RenamedTo: &Subject{Family: SubjectEnvVar, Product: "p", Name: "X"}}, SubjectHelmValue, "differs from subject family"},
-		{"renamedTo on removal", ChangeSpec{Type: ChangeKindRemoved, RenamedTo: &Subject{Family: SubjectHelmValue, Product: "p", Path: "a"}}, SubjectHelmValue, "renamed only"},
+		{"renamed without target", ChangeSpec{Type: ChangeKindRenamed}, SubjectHelmValue, "replacedBy is required"},
+		{"renamed across families", ChangeSpec{Type: ChangeKindRenamed, ReplacedBy: &Subject{Family: SubjectEnvVar, Product: "p", Name: "X"}}, SubjectHelmValue, "differs from subject family"},
+		{"deprecated and replaced", ChangeSpec{Type: ChangeKindDeprecated, ReplacedBy: &Subject{Family: SubjectHelmValue, Product: "cilium", Path: "tls.readSecretsOnlyFromSecretsNamespace"}}, SubjectHelmValue, ""},
+		{"replacedBy on a default change", ChangeSpec{Type: ChangeKindDefaultChanged, Before: str("1"), After: str("2"), ReplacedBy: &Subject{Family: SubjectHelmValue, Product: "p", Path: "a"}}, SubjectHelmValue, "renamed/deprecated/removed only"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) { expectErr(t, c.c.Validate(c.family), c.want) })
@@ -200,6 +213,7 @@ func TestChangeSpecValidate(t *testing.T) {
 
 func TestConditionValidate(t *testing.T) {
 	leaf := Condition{Op: OpValuesKey, Path: "webhook.timeoutSeconds", State: StateUnset}
+	field := Condition{Op: OpField, Path: "spec.privateKey.rotationPolicy", State: StateUnset}
 	deep := leaf
 	for i := 0; i < MaxConditionDepth; i++ {
 		deep = Condition{Op: OpAll, Of: []Condition{deep}}
@@ -210,33 +224,56 @@ func TestConditionValidate(t *testing.T) {
 		want string
 	}{
 		{"values key unset", leaf, ""},
-		{"values key equals", Condition{Op: OpValuesKey, Path: "a", State: StateEquals, Values: []string{`"x"`, `2`}}, ""},
+		{"values key equals/in", Condition{Op: OpValuesKey, Path: "a", State: StateEquals, Values: []string{`"x"`, `2`}}, ""},
 		{"equals without values", Condition{Op: OpValuesKey, Path: "a", State: StateEquals}, "needs values"},
-		{"values with unset", Condition{Op: OpValuesKey, Path: "a", State: StateUnset, Values: []string{`1`}}, "only used with equals"},
+		{"values with unset", Condition{Op: OpValuesKey, Path: "a", State: StateUnset, Values: []string{`1`}}, "only used with"},
 		{"value not json", Condition{Op: OpValuesKey, Path: "a", State: StateEquals, Values: []string{"Never"}}, "not JSON-encoded"},
 		{"missing state", Condition{Op: OpValuesKey, Path: "a"}, "state is required"},
 		{"gate state on values", Condition{Op: OpValuesKey, Path: "a", State: StateEnabled}, "not allowed"},
 		{"foreign field", Condition{Op: OpValuesKey, Path: "a", State: StateSet, Kind: "Pod"}, "kind is not a field"},
 		{"unknown op", Condition{Op: "regex"}, "unknown op"},
 		{"empty combinator", Condition{Op: OpAny}, "at least one operand"},
-		{"combinator with fields", Condition{Op: OpAll, Of: []Condition{leaf}, Path: "x"}, "not allowed on a combinator"},
-		{"leaf with operands", Condition{Op: OpGVKInUse, Kind: "Ingress", Of: []Condition{leaf}}, "no operands"},
+		{"combinator with fields", Condition{Op: OpAll, Of: []Condition{leaf}, Path: "x"}, "path is not a field"},
+		{"leaf with operands", Condition{Op: OpGVKInUse, Kind: "Ingress", Of: []Condition{leaf}}, "takes no operands"},
 		{"nested error located", Condition{Op: OpAll, Of: []Condition{leaf, {Op: OpEnvVar}}}, "all[1]"},
 		{"too deep", deep, "deeper than"},
+		{"not takes one operand", Condition{Op: OpNot, Of: []Condition{leaf, leaf}}, "exactly one operand"},
+		{"not", Condition{Op: OpNot, Of: []Condition{leaf}}, ""},
+		{"scoped field", certificates(field), ""},
+		{"field outside a scope", field, "only valid inside a resource"},
+		{"environment-wide leaf inside a scope", certificates(leaf), "cannot appear inside"},
+		{"resource without operands", Condition{Op: OpResource, Kind: "Certificate"}, "at least one operand"},
+		{"regex on a field", certificates(Condition{Op: OpField, Path: "spec.metrics.overrides[].match.metric", State: StateMatches, Pattern: `filter_state\["wasm\.`}), ""},
+		{"bad regex", certificates(Condition{Op: OpField, Path: "a", State: StateMatches, Pattern: "("}), "pattern"},
+		{"pattern without matches", certificates(Condition{Op: OpField, Path: "a", State: StateSet, Pattern: "x"}), "exactly with state matches"},
+		{"token in a k=v list", Condition{Op: OpValuesKey, Path: "featureGates", State: StateHasTokenKey, Values: []string{"ValidateCAA"}}, ""},
+		{"token without values", Condition{Op: OpCLIFlag, Name: "--feature-gates", State: StateHasToken}, "needs values"},
+		{"separator without token state", Condition{Op: OpValuesKey, Path: "a", State: StateSet, Separator: ";"}, "separator is only used"},
+		{"no line matches (negated text-line)", Condition{Op: OpResource, Kind: "ConfigMap", Name: "argocd-rbac-cm", Of: []Condition{
+			{Op: OpNot, Of: []Condition{{Op: OpTextLine, Path: "data.policy\\.csv", State: StateMatches, Pattern: `^p,.*,applications,update/\*`}}},
+		}}, ""},
+		{"cross-resource ref", certificates(Condition{Op: OpRef, Path: "spec.issuerRef", Kind: "Issuer", Group: "cert-manager.io",
+			Of: []Condition{{Op: OpField, Path: "spec.ca", State: StateSet}}}), ""},
+		{"ref outside a scope", Condition{Op: OpRef, Path: "spec.issuerRef", Kind: "Issuer", Of: []Condition{field}}, "only valid inside"},
 		{"gvk no state", Condition{Op: OpGVKInUse, Group: "networking.k8s.io", Version: "v1beta1", Kind: "Ingress"}, ""},
 		{"gvk with state", Condition{Op: OpGVKInUse, Kind: "Ingress", State: StateSet}, "takes no state"},
 		{"product version", Condition{Op: OpProductVersion, Name: "ingress-nginx", State: StateOutOfRange, Range: ">=1.12.6"}, ""},
 		{"product version bad range", Condition{Op: OpProductVersion, Name: "ingress-nginx", State: StateInRange, Range: "recent"}, "range"},
 		{"product version no range", Condition{Op: OpProductVersion, Name: "ingress-nginx", State: StateInRange}, "range is required"},
+		{"upgrade from", Condition{Op: OpUpgradeFrom, State: StateOutOfRange, Range: ">=1.15.6"}, ""},
 		{"image any tag", Condition{Op: OpImageInUse, Name: "quay.io/jetstack/cert-manager-controller"}, ""},
 		{"image range without state", Condition{Op: OpImageInUse, Name: "quay.io/x", Range: "<1.18"}, "go together"},
 		{"feature gate", Condition{Op: OpFeatureGate, Name: "ServerSideApply", State: StateEnabled, Path: "featureGates"}, ""},
 		{"undecidable", Condition{Op: OpUndecidable, Reason: UnknownRuntimeBehaviorGap, Needed: "live ACME traffic"}, ""},
 		{"undecidable bad reason", Condition{Op: OpUndecidable, Reason: "vibes", Needed: "x"}, "unknown reason"},
 		{"undecidable without needed", Condition{Op: OpUndecidable, Reason: UnknownEvidenceGap}, "needed is required"},
+		{"old set and new unset (replacedBy)", Condition{Op: OpAll, Of: []Condition{
+			{Op: OpValuesKey, Path: "tls.secretsBackend", State: StateSet},
+			{Op: OpValuesKey, Path: "tls.readSecretsOnlyFromSecretsNamespace", State: StateUnset},
+		}}, ""},
 		{"cross-product composite", Condition{Op: OpAll, Of: []Condition{
-			{Op: OpProductVersion, Name: "ingress-nginx", State: StateOutOfRange, Range: ">=1.12.6"},
-			{Op: OpResourceField, Group: "acme.cert-manager.io", Kind: "Issuer", Path: "spec.acme.solvers.http01.ingress", State: StateSet},
+			{Op: OpProductVersion, Name: "ingress-nginx", State: StateOutOfRange, Range: "<1.12.0"},
+			{Op: OpResource, Group: "acme.cert-manager.io", Kind: "Issuer", Of: []Condition{{Op: OpField, Path: "spec.acme.solvers[].http01.ingress", State: StateSet}}},
 		}}, ""},
 	}
 	for _, c := range cases {
@@ -245,18 +282,43 @@ func TestConditionValidate(t *testing.T) {
 }
 
 func TestConsequence(t *testing.T) {
-	expectErr(t, Consequence{Kind: ConsequenceBehaviorChange}.Validate(), "statement")
-	expectErr(t, Consequence{Kind: ConsequenceNone}.Validate(), "")
-	expectErr(t, Consequence{Kind: ConsequenceDeprecation, Severity: "apocalyptic"}.Validate(), "unknown severity")
-	expectErr(t, Consequence{Kind: "explodes", Statement: "x"}.Validate(), "unknown kind")
-	for _, k := range ConsequenceKinds {
-		cls := k.ExposedClass()
-		if cls == ImpactActionRequired && !k.ActionEligible() {
-			t.Errorf("%s: only action-eligible kinds may map to action-required", k)
-		}
+	cases := []struct {
+		name string
+		c    Consequence
+		want string
+	}{
+		{"action with statement", Consequence{Kind: ConsequenceSettingIgnored, ExposedClass: ImpactActionRequired, Statement: "the value stops taking effect"}, ""},
+		{"action without statement", Consequence{Kind: ConsequenceSettingIgnored, ExposedClass: ImpactActionRequired}, "needs the statement"},
+		{"action on a deprecation", Consequence{Kind: ConsequenceDeprecation, ExposedClass: ImpactActionRequired, Statement: "x"}, "not action-eligible"},
+		{"review for an eligible kind", Consequence{Kind: ConsequenceBehaviorChange, ExposedClass: ImpactReviewRequired}, ""},
+		{"none must be informational", Consequence{Kind: ConsequenceNone, ExposedClass: ImpactReviewRequired}, "must be informational"},
+		{"exposed class not affected", Consequence{Kind: ConsequenceNone, ExposedClass: ImpactNotAffected}, "exposedClass must be"},
+		{"missing exposed class", Consequence{Kind: ConsequenceDeprecation}, "exposedClass must be"},
+		{"bad severity", Consequence{Kind: ConsequenceDeprecation, ExposedClass: ImpactReviewRequired, Severity: "apocalyptic"}, "unknown severity"},
+		{"unknown kind", Consequence{Kind: "explodes", ExposedClass: ImpactReviewRequired}, "unknown kind"},
 	}
-	if ConsequenceDeprecation.ExposedClass() != ImpactReviewRequired || ConsequenceNone.ExposedClass() != ImpactInformational {
-		t.Error("deprecation → review-required, none → informational")
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) { expectErr(t, c.c.Validate(), c.want) })
+	}
+	defaults := []struct {
+		change ChangeKind
+		kind   ConsequenceKind
+		want   ImpactClass
+	}{
+		{ChangeKindRemoved, ConsequenceSettingIgnored, ImpactActionRequired},
+		{ChangeKindDeprecated, ConsequenceDeprecation, ImpactReviewRequired},
+		{ChangeKindDefaultChanged, ConsequenceBehaviorChange, ImpactReviewRequired},
+		{ChangeKindDefaultChanged, ConsequenceNone, ImpactInformational},
+		{ChangeKindDeprecated, ConsequenceSettingIgnored, ImpactReviewRequired},
+	}
+	for _, d := range defaults {
+		if got := DefaultExposedClass(d.change, d.kind); got != d.want {
+			t.Errorf("DefaultExposedClass(%s, %s) = %s, want %s", d.change, d.kind, got, d.want)
+		}
+		c := Consequence{Kind: d.kind, ExposedClass: DefaultExposedClass(d.change, d.kind), Statement: "x"}
+		if err := c.Validate(); err != nil {
+			t.Errorf("the default suggestion for (%s, %s) must validate: %v", d.change, d.kind, err)
+		}
 	}
 }
 
@@ -297,23 +359,31 @@ func TestVerificationLevels(t *testing.T) {
 
 func TestChangeAnchorMatches(t *testing.T) {
 	ev := upEvidence()
-	moved := ev
-	moved.ContentDigest = "sha256:edited-elsewhere"
-	moved.ID = "ev-moved"
-	pool := map[EvidenceID]Evidence{ev.ID: ev, moved.ID: moved}
+	shifted := ev // the same statement after lines moved above it and markup changed
+	shifted.Locator, shifted.Excerpt, shifted.ContentDigest = "L40-L42", "The default `rotationPolicy` is now **Always**.", "sha256:v2"
+	shifted.ID = "ev-shifted"
+	other := NewEvidence(EvidenceDocument, "notes", ev.URI, "L90", "ACME profiles are supported", "sha256:doc", t0)
+	values := NewEvidence(EvidenceStructured, "chart", "https://example/values.yaml", "", "", "sha256:values", t0)
+	pool := map[EvidenceID]Evidence{ev.ID: ev, shifted.ID: shifted, other.ID: other, values.ID: values}
 	lookup := func(id EvidenceID) (Evidence, bool) { e, ok := pool[id]; return e, ok }
-	c := Change{ID: "chg-rot", Release: "v1.18.0", Evidence: []EvidenceID{ev.ID}}
+	declared := Provenance{Method: MethodDeclared, Producer: "normalize.notes@v1", Confidence: ConfidenceHigh}
+	computed := Provenance{Method: MethodComputed, Producer: "upgrade@v1", Confidence: ConfidenceHigh}
+	c := Change{ID: "chg-rot", Release: "v1.18.0", Evidence: []EvidenceID{ev.ID}, Provenance: declared}
 	a := NewChangeAnchor(c, lookup)
+	if len(a.StatementKeys) != 1 || a.ChangeIDs[0] != "chg-rot" {
+		t.Fatalf("anchor = %+v", a)
+	}
 	cases := []struct {
 		name string
 		c    Change
 		want bool
 	}{
 		{"same change", c, true},
-		{"same change, release unstated", Change{ID: "chg-rot", Evidence: []EvidenceID{ev.ID}}, true},
-		{"re-ingested: new id, same evidence text, digest changed", Change{ID: "chg-other", Release: "v1.18.0", Evidence: []EvidenceID{moved.ID}}, true},
-		{"same text in another release", Change{ID: "chg-rot", Release: "v1.19.0", Evidence: []EvidenceID{ev.ID}}, false},
-		{"unrelated change", Change{ID: "chg-x", Release: "v1.18.0"}, false},
+		{"release unstated", Change{ID: "chg-rot", Evidence: []EvidenceID{ev.ID}, Provenance: declared}, true},
+		{"re-ingested: new chg id, shifted lines, new markup", Change{ID: "chg-new", Release: "v1.18.0", Evidence: []EvidenceID{shifted.ID}, Provenance: declared}, true},
+		{"same chg id, different statement (never keyed on chg ids)", Change{ID: "chg-rot", Release: "v1.18.0", Evidence: []EvidenceID{other.ID}, Provenance: declared}, false},
+		{"same statement in another release", Change{ID: "chg-rot", Release: "v1.19.0", Evidence: []EvidenceID{ev.ID}, Provenance: declared}, false},
+		{"computed change sharing structured evidence", Change{ID: "chg-diff", Release: "v1.18.0", Evidence: []EvidenceID{ev.ID}, Provenance: computed}, false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -322,6 +392,32 @@ func TestChangeAnchorMatches(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("umbrella", func(t *testing.T) {
+		umbrella := Change{ID: "chg-u", Release: "v1.18.0", Evidence: []EvidenceID{ev.ID, other.ID}, Provenance: declared}
+		if !IsUmbrella(umbrella, lookup) {
+			t.Fatal("two distinct statements of one document make an umbrella")
+		}
+		listed := Change{ID: "chg-l", Release: "v1.18.0", Evidence: []EvidenceID{ev.ID}, Provenance: declared,
+			Detail: "Feature gate changes:\n- NameConstraints is beta\n- UseDomainQualifiedFinalizer is beta"}
+		if !IsUmbrella(listed, lookup) {
+			t.Fatal("a detail listing two items makes an umbrella")
+		}
+		restated := Change{ID: "chg-r", Release: "v1.18.0", Evidence: []EvidenceID{ev.ID, shifted.ID}, Provenance: declared}
+		if IsUmbrella(restated, lookup) {
+			t.Fatal("the same statement quoted twice is a restatement, not an umbrella")
+		}
+		cand := validCandidate()
+		v := validValidation(cand)
+		f := validFact(cand, v, validDecision(validItem(cand)))
+		if !f.AttachesByAnchor(c, lookup) || f.AttachesByAnchor(umbrella, lookup) {
+			t.Fatal("a fact attaches to its restatements and never to an umbrella")
+		}
+		f.Status = FactRetracted
+		if f.AttachesByAnchor(c, lookup) {
+			t.Fatal("a retracted fact attaches nowhere")
+		}
+	})
 }
 
 // --- entities ------------------------------------------------------------------
@@ -339,7 +435,15 @@ func TestCandidateValidate(t *testing.T) {
 			c.Evidence = append(c.Evidence, NewEvidence(EvidenceLocalFile, "", "values.yaml", "L1", "x: 1", "sha256:v", time.Time{}))
 		}, "release-level"},
 		{"release mismatch", func(c *SemanticCandidate) { c.Release = "v9" }, "differs from anchor"},
-		{"no anchor", func(c *SemanticCandidate) { c.Anchor.ChangeID = ""; c.ID = CandidateID(c.Product, c.Anchor) }, "changeId is required"},
+		{"anchor without statement keys", func(c *SemanticCandidate) {
+			c.Anchor.StatementKeys = nil
+			c.ID = CandidateID(c.Product, c.Release, c.ChangeID, c.Anchor)
+		}, "statement key is required"},
+		{"computed change, no anchor", func(c *SemanticCandidate) {
+			c.Anchor = nil
+			c.ID = CandidateID(c.Product, c.Release, c.ChangeID, nil)
+		}, ""},
+		{"no change id", func(c *SemanticCandidate) { c.ChangeID = "" }, "changeId"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -483,7 +587,7 @@ func TestReviewDecisionValidate(t *testing.T) {
 	rehash := func(d *ReviewDecision) { d.ID = DecisionID(d.ReviewItemID, d.Reviewer, d.DecidedAt) }
 	corrected := func() *SemanticAssertion {
 		a := rotationAssertion()
-		a.Consequence = &Consequence{Kind: ConsequenceNone}
+		a.Consequence = &Consequence{Kind: ConsequenceNone, ExposedClass: ImpactInformational}
 		return &a
 	}
 	cases := []struct {
@@ -575,7 +679,7 @@ func TestVerifiedFactValidate(t *testing.T) {
 		{"valid", func(*VerifiedFact) {}, ""},
 		{"incomplete assertion", func(f *VerifiedFact) {
 			f.Assertion.Consequence = nil
-			f.ID = VerifiedFactID(f.Product, f.Anchor, f.Assertion)
+			f.ID = VerifiedFactID(f.Product, f.Release, f.Assertion)
 		}, "consequence is required"},
 		{"aspect without verification", func(f *VerifiedFact) { f.Verification = f.Verification[:3] }, "consequence has no verification"},
 		{"verification without basis", func(f *VerifiedFact) { f.Verification[3].Basis = nil }, "no justifying"},
@@ -586,7 +690,7 @@ func TestVerifiedFactValidate(t *testing.T) {
 		}, "release-level"},
 		{"subject of another product", func(f *VerifiedFact) {
 			f.Assertion.Subject.Product = "ingress-nginx"
-			f.ID = VerifiedFactID(f.Product, f.Anchor, f.Assertion)
+			f.ID = VerifiedFactID(f.Product, f.Release, f.Assertion)
 		}, "differs from fact product"},
 		{"supersedes itself", func(f *VerifiedFact) { f.Supersedes = []string{f.ID} }, "not another fact id"},
 		{"unknown status", func(f *VerifiedFact) { f.Status = "draft" }, "unknown status"},
@@ -656,7 +760,7 @@ func TestValidateFactBasis(t *testing.T) {
 		{"decision settled on another consequence", func(x *fixture) {
 			for id, d := range x.decs {
 				a := rotationAssertion()
-				a.Consequence = &Consequence{Kind: ConsequenceNone}
+				a.Consequence = &Consequence{Kind: ConsequenceNone, ExposedClass: ImpactInformational}
 				d.Action, d.Corrected, d.Reason = ActionCorrect, &a, "x"
 				d.Labels = []FeedbackLabel{LabelCorrected, LabelWrongConsequence}
 				x.decs[id] = d
