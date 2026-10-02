@@ -33,3 +33,10 @@
 1. Should a human audit-accept upgrade an auto-approved fact to `human`? Currently no (keeps R19 measurement clean); the ladder keeps such facts capped.
 2. The committed `knowledge/` directory does not exist yet (no data authored by this lane); the integrity test skips until it does.
 3. Consensus facts rest on `sp-` basis; `ValidateFactBasis` cannot verify them, only `ValidateFactRecords` (used everywhere here). Other lanes reading facts should do the same.
+
+## Pending contract-3 (PO-1/PO-2), not implemented yet
+- PO-1 changes what consensus means: ≥2 separate stateless calls agreeing (same model twice counts), labelled cross-model vs same-model, proposals carry a call id.
+  Impact here: `ConsensusAspects` (currently independent families via `domain.IndependentModels`), the `signals`/agreement "distinct models" logic in `route.go` (single-model rule),
+  and the model-grouping in `metrics.go`. To be adapted after p3ll/contract-3 merges.
+- PO-2: consensus-ACTION facts need every agreeing proposal's `SuggestedClass` = action-required; auto-sampling of these into human review reuses `RouteOptions.AuditEvery`/`OpenFactReview`
+  (the audit sample for ACTION-labelled facts should probably be higher or 100%). Nothing built contradicts this: routing stays opt-in policy, audit accept never upgrades.
