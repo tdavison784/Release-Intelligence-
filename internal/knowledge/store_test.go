@@ -91,3 +91,60 @@ func TestSnapshotMinVerification(t *testing.T) {
 		t.Fatal("a proxy fact passed a human minimum")
 	}
 }
+
+func TestEnvironmentContextLabelIsTheCaseIDOrAbsent(t *testing.T) {
+	ctx := context.Background()
+	route := func(env *domain.EnvironmentContext) []domain.ReviewItem {
+		s := NewFileStore(t.TempDir())
+		c := fixtureCandidate()
+		mustPut(t, s, c)
+		mustPut(t, s, proposal(c, "zai", "glm", rotationAssertion(domain.ConsequenceBehaviorChange)))
+		if _, err := RouteStore(ctx, s, RouteOptions{Environment: env}, Query{}); err != nil {
+			t.Fatal(err)
+		}
+		snap, _ := s.Load(ctx, Query{})
+		return snap.ReviewItems
+	}
+	for _, it := range route(nil) {
+		if it.Context != nil {
+			t.Fatalf("environment-free routing set a context: %+v", it.Context)
+		}
+	}
+	items := route(&domain.EnvironmentContext{Label: "cert-manager-1.17-1.18", Digest: "sha256:env"})
+	if len(items) == 0 {
+		t.Fatal("no items")
+	}
+	for _, it := range items {
+		if it.Context == nil || it.Context.Label != "cert-manager-1.17-1.18" || it.Context.Digest != "sha256:env" {
+			t.Fatalf("context = %+v", it.Context)
+		}
+	}
+	for _, bad := range []string{"", " x", "a b", "eval/cases/x"} {
+		if ValidateEnvironment(&domain.EnvironmentContext{Label: bad}) == nil {
+			t.Errorf("label %q accepted", bad)
+		}
+	}
+}
+
+func TestFollowUpsInheritTheItemsEnvironment(t *testing.T) {
+	_, q, c, _ := seeded(t) // consequence item only; build a mapping item with context
+	s := NewFileStore(t.TempDir())
+	q = NewQueue(s, nil)
+	mustPut(t, s, c)
+	a := rotationAssertion(domain.ConsequenceBehaviorChange)
+	p := proposal(c, "zai", "glm", a)
+	mustPut(t, s, p)
+	prop := domain.SemanticAssertion{Subject: a.Subject, Change: a.Change}
+	it := newItem(c, domain.QuestionSemanticMapping, prop, domain.Routing{Route: domain.RouteReview, Priority: domain.PriorityNormal}, []domain.SemanticProposal{p}, nil, t0)
+	it.Context = &domain.EnvironmentContext{Label: "case-a"}
+	mustPut(t, s, it)
+	out, err := q.Decide(context.Background(), []domain.ReviewDecision{decision(it, "e", domain.ReviewerHuman, domain.ActionAccept, t0.Add(time.Hour))})
+	if err != nil || len(out[0].FollowUps) == 0 {
+		t.Fatalf("follow-ups = %+v, %v", out, err)
+	}
+	for _, f := range out[0].FollowUps {
+		if f.Context == nil || f.Context.Label != "case-a" {
+			t.Fatalf("follow-up lost the environment: %+v", f.Context)
+		}
+	}
+}
