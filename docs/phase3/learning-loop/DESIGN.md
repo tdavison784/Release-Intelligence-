@@ -414,6 +414,14 @@ Rule, Detail}`. A confirmation must cite the artifact evidence it rests on.
 Validators never confirm a consequence (that is a judgement); the one exception is
 kind `none` + `informational`.
 
+Render-based validators also set `ValidationResult.RenderRelation` (R6):
+`confirmed-by-render` (a confirmed check, citing rendered evidence),
+`contradicted-by-render` (a refuted check), `not-visible-in-render` /
+`render-not-applicable` (inconclusive checks only). A claim that is absent from
+the render is not wrong: some legitimate changes are runtime-only. Candidates
+carry `Renderability` (R12): `render-verifiable` | `partially-render-verifiable` |
+`not-render-verifiable`.
+
 **Rendered evidence.** A rendered object field cites the template file (Helm's
 `# Source:` comment) as URI/locator, plus `Evidence.Render`
 (`domain.RenderProvenance{Scope, Tool, ToolVersion, ChartDigest, ValuesDigest,
@@ -477,8 +485,31 @@ ProxyProvenance, Reason, StartedAt, DecidedAt, ResultingFact, DuplicateOf}`.
 ### 2.6 VerifiedFact and attachment (G11, G12; commander decision 1)
 
 `{ID, Product, Release, Anchors []ChangeAnchor (all prose members of its clusters), Candidates, Assertion,
-Verification []AspectVerification, Evidence, Status, Supersedes, CreatedAt}`;
-`AspectVerification{Aspect, Level deterministic|human|proxy, Basis []id}`.
+Verification []AspectVerification, Evidence, Status, Supersedes, AutoApproved, CreatedAt}`;
+`AspectVerification{Aspect, Level deterministic|human|consensus|proxy, Basis []id}`.
+
+**Verification levels** (contract-2, RENDER-MISSION R10/R11/R19):
+
+| Level | Basis | Trusted? |
+|---|---|---|
+| `deterministic` | `val-…` confirming the aspect | yes |
+| `human` | `rd-…` by a human reviewer | yes |
+| `consensus` | ≥2 `sp-…` from **independent models** asserting the identical aspect digest (+ optionally a `val-…` that does not refute it) | **no** — treated exactly like proxy |
+| `proxy` | `rd-…` by an AI acting as reviewer | no |
+
+Ordering for `fact.Level()` (the weakest aspect): deterministic ≡ human >
+consensus > proxy. Consensus ranks above proxy because it is a structural test
+(two independent lineages produced the same digest), not one model's judgement;
+the trust ladder treats the two identically anyway. "Independent" means distinct
+**model families** (`domain.ModelFamily`: `claude`, `glm`, `gpt`, …;
+`domain.IndependentModels`). Distinct providers alone are not enough: the same
+model behind two gateways is one opinion, and two Claude models are one family.
+
+**`AutoApproved`** is set exactly when no aspect rests on a human or proxy
+decision (every aspect is deterministic or consensus). Such facts are minted
+without anyone looking, so the knowledge lane samples them into human review
+(R19), and the result answers "does consensus + render confirmation match human
+judgement?".
 
 The identity key is product + introducing release + assertion (which contains
 the subject); the evidence locators live in `Anchors`. Invariants (`Validate()`):
@@ -488,8 +519,11 @@ is upstream only (`local-file`/`input` are rejected, so a fact never names an
 environment); anchors share the fact's release. `fact.Level()` is the weakest
 aspect level.
 
-`domain.ValidateFactBasis(fact, validations, decisions, items)` re-proves each
-aspect from its records. A `val-` basis must confirm that aspect on an assertion
+`domain.ValidateFactRecords(fact, FactRecords{Validations, Decisions, Items,
+Proposals})` re-proves each aspect from its records (`ValidateFactBasis` is the
+earlier proposal-free wrapper, and it fails on consensus facts). A `sp-` basis
+must answer one of the fact's candidates and assert the fact's aspect digest,
+and the agreeing proposals must include two independent model families. A `val-` basis must confirm that aspect on an assertion
 with the same aspect digest. An `rd-` basis must be an accept/correct whose
 `ReviewerKind` **equals** the claimed level, whose item's question verifies that
 aspect, and whose final assertion has the same aspect digest.
@@ -539,9 +573,10 @@ are used.
 
 Inputs per (fact F, environment): `L` = F.Level(); `C` = F's
 `Consequence.ExposedClass`; `X` = Exposure evaluated; `O` = Overlap evaluated
-(false if absent). "Trusted" means `deterministic` or `human`.
+(false if absent). "Trusted" means `deterministic` or `human`; `consensus` and
+`proxy` are untrusted and share the right-hand column.
 
-| X | O | L trusted | L proxy |
+| X | O | L trusted | L consensus / proxy |
 |---|---|---|---|
 | true | – | **C** (action-required only with the confidence `high` the evaluation earns; see rule 1) | min(C, **review-required**), confidence medium, flagged `verification: proxy` |
 | false | true | informational | informational |
@@ -559,8 +594,11 @@ that carry `ImpactFinding.Knowledge` (rule prefix `impact:knowledge-`):
    the existing affected-class rule); and confidence `high` (the existing
    demotion rule).
 2. **not-affected** from knowledge requires a trusted verification and checks.
-3. A **proxy**-verified knowledge finding is review-required, informational or
-   unknown: never action-required, never not-affected, never high confidence.
+3. A **consensus**- or **proxy**-verified knowledge finding is review-required,
+   informational or unknown: never action-required, never not-affected, never
+   high confidence. A render difference plus model consensus therefore never
+   produces ACTION REQUIRED (R11): rendering proves the structural change, not the
+   operational consequence.
 4. **Model proposals alone never change a classification.** `impact.Build`
    receives facts (`[]VerifiedFact`), never proposals. The existing
    `SuggestedClassification` path (impactenrich) is unchanged and stays
@@ -624,15 +662,20 @@ each hypothesis later.
 
 | Signals | Route | Priority |
 |---|---|---|
-| validation `confirmed` for every aspect | `auto-verify` (no review item; fact at `deterministic`) | – |
+| validation `confirmed` for every aspect | `auto-verify` (no review item; fact at `deterministic`, `autoApproved`) | – |
+| **auto-approval (R10)**: the candidate's class is in the policy's eligible list (render-verifiable: resource added/removed, field changed, image, RBAC, container args/env, service), subject + change are `confirmed-by-render`, and ≥2 independent models agree on the remaining aspects | `auto-verify` (fact with those aspects at `consensus`, `autoApproved`; capped at REVIEW by §4) | – |
 | models agree on the open aspects + validation confirmed the rest | `review` | low |
 | models agree, no validation possible | `review` | normal |
 | models disagree on any aspect, or a validation `refuted` a proposal | `review` | normal (high if `high-impact`) |
 | every model abstained | `missing-evidence` | low |
 | any proposal's consequence kind is action-eligible (`high-impact`) | `review` | high |
 
-"Agree" means equal aspect digests across ≥2 proposals from **distinct models**.
-A single-model proposal carries `single-model` and never counts as agreement.
+"Agree" means equal aspect digests across ≥2 proposals from **independent model
+families** (`domain.IndependentModels`). A single-model proposal carries
+`single-model` and never counts as agreement. The auto-approval policy is data
+(eligible classes, required agreement, required render relation), owned by the
+knowledge lane with the render lane, and every auto-approval is recorded.
+Runtime-behaviour changes without rendered evidence follow normal review.
 
 ## 7. Measuring the loop honestly
 
@@ -644,6 +687,7 @@ runs the dataset at each level and reports each separately (G21, FLEET):
 | `none` | no facts | today's baseline |
 | `deterministic` | facts whose every aspect is deterministic | reported |
 | `human` | deterministic ∪ human | **the gate number** |
+| `consensus` | deterministic ∪ human ∪ consensus | reported, labelled consensus (auto-approved knowledge), never the gate |
 | `proxy` | all active facts | reported, labelled proxy, never presented as the gate |
 
 A proxy fact can reach review-required, which is an affected class, so it counts
@@ -675,6 +719,8 @@ class than their label by design (D11).
 | per model: FP / FN per aspect vs final facts | proposals vs facts |
 | review volume per release / product / question type | review items |
 | median and p90 time to decision | decisions |
+| auto-approval: auto-approved facts by class; the share sampled into human review; **agreement of sampled auto-approved facts with the human verdict**, per class (R19: which render-diff classes are safe to auto-approve) | facts (`autoApproved`) + audit decisions |
+| render relation per proposal and model: confirmed / contradicted / not visible (R17) | validations (`renderRelation`) |
 | batch vs individual: decision counts, accept/correct/reject rates, timing, number of batches — always reported **separately** (bulk accepts must not inflate the per-item acceptance rate or deflate the per-item time) | decisions (`BatchID`, `BatchSize`) |
 | auto-validation rate | facts with all aspects deterministic / all facts |
 | acceptance / correction / rejection rate | decisions |
@@ -774,7 +820,7 @@ func ComputeMetrics(s *knowledge.Snapshot) knowledge.LoopMetrics
 ```
 
 Every minted fact passes `VerifiedFact.Validate()` **and**
-`domain.ValidateFactBasis`. The integrity test (§7) lives here.
+`domain.ValidateFactRecords`. The integrity test (§7) lives here.
 
 ### `applicability` — fact × environment in the engine (G17, G18, G20, G21)
 
@@ -886,6 +932,6 @@ ingress-nginx ≥ 1.12 rejects them under strict path validation.
 | exposure | `all[product-version{ingress-nginx, in-range, ">=1.12.0"}, resource{Issuer, [field{spec.acme.solvers[].http01.ingress, set}]}]` |
 | environment | the fixture inventory declares ingress-nginx v1.12.1 (app-kind, declared) **and** the manifests contain an Issuer with an HTTP01 ingress solver → both leaves true, with evidence |
 | classification | trusted fact + exposure true **deterministically on both chains** + action-eligible kind ⇒ **ACTION REQUIRED** (`impact:knowledge-exposed`, confidence high) |
-| guard | if either leaf is unknown (no inventory, only a chart-kind version, an undeclared-complete inventory without the product, partial manifests) ⇒ UNKNOWN with the leaf's reason. If the fact were proxy-verified ⇒ REVIEW at most. |
+| guard | if either leaf is unknown (no inventory, only a chart-kind version, an undeclared-complete inventory without the product, partial manifests) ⇒ UNKNOWN with the leaf's reason. If the fact were consensus- or proxy-verified ⇒ REVIEW at most. |
 
 > Machines propose. Evidence constrains. Engineers resolve ambiguity. Verified knowledge compounds.

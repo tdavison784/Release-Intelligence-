@@ -859,6 +859,14 @@ func (r UnknownReason) Valid() bool {
 }
 
 // VerificationLevel is how an aspect (or a whole fact) was verified.
+//
+// Ordering (weakest-aspect semantics of VerifiedFact.Level):
+// deterministic ≡ human > consensus > proxy. Only deterministic and human are
+// TRUSTED. consensus is ranked above proxy because it is a structural test
+// (≥2 independent model families produced the identical aspect digest), not
+// one model's judgement — but the trust ladder treats both identically:
+// ≤ review-required, never not-affected, never action-required, confidence
+// ≤ medium (DESIGN.md §4).
 type VerificationLevel string
 
 const (
@@ -866,43 +874,83 @@ const (
 	VerifiedDeterministic VerificationLevel = "deterministic"
 	// VerifiedHuman: a named human reviewer decided it.
 	VerifiedHuman VerificationLevel = "human"
+	// VerifiedConsensus: ≥2 proposals from independent models (distinct
+	// model families, see IndependentModels) asserted the identical aspect
+	// digest. Untrusted: treated exactly like proxy by the trust ladder.
+	VerifiedConsensus VerificationLevel = "consensus"
 	// VerifiedProxy: an AI acting as reviewer decided it — always labelled,
 	// never trusted for ACTION REQUIRED or NOT AFFECTED.
 	VerifiedProxy VerificationLevel = "proxy"
 )
 
 // VerificationLevels lists every level, most trusted first.
-var VerificationLevels = []VerificationLevel{VerifiedDeterministic, VerifiedHuman, VerifiedProxy}
+var VerificationLevels = []VerificationLevel{VerifiedDeterministic, VerifiedHuman, VerifiedConsensus, VerifiedProxy}
+
+var levelRank = map[VerificationLevel]int{VerifiedDeterministic: 0, VerifiedHuman: 0, VerifiedConsensus: 1, VerifiedProxy: 2}
 
 // Valid reports whether l is a known level.
 func (l VerificationLevel) Valid() bool {
-	return l == VerifiedDeterministic || l == VerifiedHuman || l == VerifiedProxy
+	_, ok := levelRank[l]
+	return ok
 }
 
 // Trusted reports whether the level may back ACTION REQUIRED / NOT AFFECTED.
 func (l VerificationLevel) Trusted() bool { return l == VerifiedDeterministic || l == VerifiedHuman }
 
-// AtLeast reports whether l satisfies the minimum level min. deterministic and
-// human are equally trusted; proxy satisfies only a proxy minimum.
+// AtLeast reports whether l satisfies the minimum level min:
+// deterministic → only deterministic; human → deterministic or human;
+// consensus → those or consensus; proxy → any level.
 func (l VerificationLevel) AtLeast(min VerificationLevel) bool {
+	if !l.Valid() {
+		return false
+	}
 	switch min {
-	case VerifiedProxy:
-		return l.Valid()
-	case VerifiedHuman:
-		return l.Trusted()
 	case VerifiedDeterministic:
 		return l == VerifiedDeterministic
+	case VerifiedHuman, VerifiedConsensus, VerifiedProxy:
+		return levelRank[l] <= levelRank[min]
 	}
 	return false
 }
 
-// weaker returns the less trusted of two levels.
+// weaker returns the less trusted of two levels (human when deterministic
+// and human tie, so a fact is only "deterministic" when every aspect is).
 func weaker(a, b VerificationLevel) VerificationLevel {
-	rank := map[VerificationLevel]int{VerifiedDeterministic: 0, VerifiedHuman: 1, VerifiedProxy: 2}
-	if rank[b] > rank[a] {
+	switch {
+	case levelRank[b] > levelRank[a]:
 		return b
+	case levelRank[a] > levelRank[b]:
+		return a
+	case a == VerifiedHuman || b == VerifiedHuman:
+		return VerifiedHuman
 	}
 	return a
+}
+
+// ModelFamily is the lineage of a model id: its leading name token,
+// lowercased ("claude-opus-5-5" → "claude", "glm-5.3-flash" → "glm",
+// "gpt-5" → "gpt"). Two models of one family are not independent.
+func ModelFamily(model string) string {
+	m := strings.ToLower(strings.TrimSpace(model))
+	if i := strings.LastIndexByte(m, '/'); i >= 0 { // "zai/glm-5.3" → "glm-5.3"
+		m = m[i+1:]
+	}
+	end := len(m)
+	for i, r := range m {
+		if r == '-' || r == '_' || r == '.' || r == ':' || (r >= '0' && r <= '9') {
+			end = i
+			break
+		}
+	}
+	return m[:end]
+}
+
+// IndependentModels reports whether two proposals come from independent
+// models: their model families differ. Distinct providers alone do not
+// suffice — the same model behind two gateways is one opinion.
+func IndependentModels(a, b SemanticProposal) bool {
+	fa, fb := ModelFamily(a.Provenance.Model), ModelFamily(b.Provenance.Model)
+	return fa != "" && fb != "" && fa != fb
 }
 
 // ReviewerKind distinguishes human reviewers from AI proxies.
@@ -1174,14 +1222,17 @@ type SemanticCandidate struct {
 	Members []CandidateMember `json:"members"`
 	// Grouping names the deterministic rule that clustered the members
 	// ("single", "same-statement", "title-jaccard", "subject-named", …).
-	Grouping  string     `json:"grouping"`
-	Category  Category   `json:"category"`
-	Title     string     `json:"title"`
-	Text      string     `json:"text,omitempty"`
-	Evidence  []Evidence `json:"evidence"`
-	Hints     []string   `json:"hints,omitempty"` // deterministic pre-extractions (tokens), never conclusions
-	Producer  string     `json:"producer"`
-	CreatedAt time.Time  `json:"createdAt"`
+	Grouping string `json:"grouping"`
+	// Renderability: whether the change's effect can be seen in rendered
+	// manifests (set by the semantic/render lanes; "" = not assessed).
+	Renderability Renderability `json:"renderability,omitempty"`
+	Category      Category      `json:"category"`
+	Title         string        `json:"title"`
+	Text          string        `json:"text,omitempty"`
+	Evidence      []Evidence    `json:"evidence"`
+	Hints         []string      `json:"hints,omitempty"` // deterministic pre-extractions (tokens), never conclusions
+	Producer      string        `json:"producer"`
+	CreatedAt     time.Time     `json:"createdAt"`
 }
 
 // CandidateID derives a candidate id from product, release and the sorted
@@ -1220,6 +1271,11 @@ func (c SemanticCandidate) Validate() error {
 	}
 	if len(c.Members) == 0 {
 		bad("no members")
+	}
+	switch c.Renderability {
+	case "", RenderVerifiable, RenderPartiallyVerifiable, RenderNotVerifiable:
+	default:
+		bad("unknown renderability %q", c.Renderability)
 	}
 	seen := map[string]bool{}
 	for i, m := range c.Members {
@@ -1453,9 +1509,43 @@ type ValidationResult struct {
 	Assertion SemanticAssertion `json:"assertion"`
 	Checks    []AspectCheck     `json:"checks"`
 	// Evidence are the artifact records the checks rest on (upstream kinds only).
-	Evidence  []Evidence `json:"evidence,omitempty"`
-	CheckedAt time.Time  `json:"checkedAt"`
+	Evidence []Evidence `json:"evidence,omitempty"`
+	// RenderRelation is set by render-based validators (rendered-diff): how
+	// the release-level render relates to the asserted change
+	// (RENDER-MISSION R6). A claim absent from the render is not wrong —
+	// some legitimate changes are runtime-only.
+	RenderRelation RenderRelation `json:"renderRelation,omitempty"`
+	CheckedAt      time.Time      `json:"checkedAt"`
 }
+
+// RenderRelation classifies what a render says about an asserted change.
+type RenderRelation string
+
+const (
+	// RenderConfirmed: the render shows the asserted change (≥1 check confirmed).
+	RenderConfirmed RenderRelation = "confirmed-by-render"
+	// RenderNotVisible: the render cannot show it (checks inconclusive only).
+	RenderNotVisible RenderRelation = "not-visible-in-render"
+	// RenderContradicted: the render shows something else (≥1 check refuted).
+	RenderContradicted RenderRelation = "contradicted-by-render"
+	// RenderNotApplicable: the change is not of a renderable kind (checks inconclusive only).
+	RenderNotApplicable RenderRelation = "render-not-applicable"
+)
+
+// Renderability says whether a change's effect can be seen in rendered
+// manifests at all (RENDER-MISSION R12). The renderer is never universal truth.
+type Renderability string
+
+const (
+	// RenderVerifiable: resources, RBAC, images, args, env vars, ports, labels,
+	// annotations, API versions.
+	RenderVerifiable Renderability = "render-verifiable"
+	// RenderPartiallyVerifiable: defaults, feature activation, cross-resource relationships.
+	RenderPartiallyVerifiable Renderability = "partially-render-verifiable"
+	// RenderNotVerifiable: runtime controller behaviour, protocol semantics,
+	// migrations, external services, performance, internal algorithms.
+	RenderNotVerifiable Renderability = "not-render-verifiable"
+)
 
 // ValidationID derives a validation id.
 func ValidationID(candidateID, validator string, a SemanticAssertion) string {
@@ -1516,8 +1606,46 @@ func (v ValidationResult) Validate() error {
 	if v.Confirms() && len(v.Evidence) == 0 {
 		bad("a confirmation must cite the artifact evidence it rests on")
 	}
+	refuted := false
+	for _, c := range v.Checks {
+		refuted = refuted || c.Outcome == OutcomeRefuted
+	}
+	switch v.RenderRelation {
+	case "":
+	case RenderConfirmed:
+		if !v.Confirms() || refuted {
+			bad("confirmed-by-render needs a confirmed check and no refuted one")
+		}
+		rendered := false
+		for _, e := range v.Evidence {
+			rendered = rendered || e.Render != nil
+		}
+		if !rendered {
+			bad("confirmed-by-render must cite rendered evidence (Evidence.Render)")
+		}
+	case RenderContradicted:
+		if !refuted {
+			bad("contradicted-by-render needs a refuted check")
+		}
+	case RenderNotVisible, RenderNotApplicable:
+		if v.Confirms() || refuted {
+			bad("%s concludes nothing: its checks must all be inconclusive", v.RenderRelation)
+		}
+	default:
+		bad("unknown renderRelation %q", v.RenderRelation)
+	}
 	errs = append(errs, validateUpstreamEvidence("validation "+v.ID, v.Evidence)...)
 	return errors.Join(errs...)
+}
+
+// refutes reports whether the result refutes the aspect.
+func (v ValidationResult) refutes(x Aspect) bool {
+	for _, c := range v.Checks {
+		if c.Aspect == x && c.Outcome == OutcomeRefuted {
+			return true
+		}
+	}
+	return false
 }
 
 // Confirms reports whether the result confirms any aspect; with an argument,
@@ -2030,7 +2158,12 @@ type VerifiedFact struct {
 	Evidence     []Evidence           `json:"evidence"`
 	Status       FactStatus           `json:"status"`
 	Supersedes   []string             `json:"supersedes,omitempty"`
-	CreatedAt    time.Time            `json:"createdAt"`
+	// AutoApproved marks a fact minted without any human or proxy decision
+	// (every aspect deterministic or consensus), so such facts can be
+	// sampled into human review to measure whether consensus + render
+	// confirmation matches human judgement (RENDER-MISSION R10, R19).
+	AutoApproved bool      `json:"autoApproved,omitempty"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
 
 // VerifiedFactID derives a verified-fact id from product, introducing
@@ -2137,8 +2270,28 @@ func (f VerifiedFact) Validate() error {
 				bad("%s: deterministic verification must rest on validation records (%s…), got %q", v.Aspect, ValidationIDPrefix, id)
 			case (v.Level == VerifiedHuman || v.Level == VerifiedProxy) && !strings.HasPrefix(id, DecisionIDPrefix):
 				bad("%s: %s verification must rest on decision records (%s…), got %q", v.Aspect, v.Level, DecisionIDPrefix, id)
+			case v.Level == VerifiedConsensus && !strings.HasPrefix(id, ProposalIDPrefix) && !strings.HasPrefix(id, ValidationIDPrefix):
+				bad("%s: consensus verification rests on agreeing proposals (%s…) and optionally a validation (%s…), got %q", v.Aspect, ProposalIDPrefix, ValidationIDPrefix, id)
 			}
 		}
+		if v.Level == VerifiedConsensus {
+			n := 0
+			for _, id := range v.Basis {
+				if strings.HasPrefix(id, ProposalIDPrefix) {
+					n++
+				}
+			}
+			if n < 2 {
+				bad("%s: consensus needs at least two agreeing proposals, has %d", v.Aspect, n)
+			}
+		}
+	}
+	auto := true
+	for _, v := range f.Verification {
+		auto = auto && (v.Level == VerifiedDeterministic || v.Level == VerifiedConsensus)
+	}
+	if f.AutoApproved != auto {
+		bad("autoApproved must be set exactly when no aspect rests on a human or proxy decision (all deterministic or consensus)")
 	}
 	for _, x := range Aspects {
 		if !seen[x] {
@@ -2162,35 +2315,67 @@ func (f VerifiedFact) Validate() error {
 	return errors.Join(errs...)
 }
 
+// FactRecords are the records a fact's verification may cite.
+type FactRecords struct {
+	Validations map[string]ValidationResult
+	Decisions   map[string]ReviewDecision
+	Items       map[string]ReviewItem
+	Proposals   map[string]SemanticProposal
+}
+
 // ValidateFactBasis proves a fact's per-aspect verification from the records
-// it cites: every basis id resolves; a validation basis confirms that aspect
-// on an assertion with the same aspect digest; a decision basis is an
-// accept/correct whose reviewerKind EQUALS the claimed level (a proxy cannot
-// masquerade as human), whose item verifies that aspect, and whose final
-// assertion has the same aspect digest.
+// it cites (see ValidateFactRecords). It resolves no proposals, so a fact
+// with consensus aspects fails it; use ValidateFactRecords for those.
 func ValidateFactBasis(f VerifiedFact, validations map[string]ValidationResult, decisions map[string]ReviewDecision, items map[string]ReviewItem) error {
+	return ValidateFactRecords(f, FactRecords{Validations: validations, Decisions: decisions, Items: items})
+}
+
+// ValidateFactRecords proves a fact's per-aspect verification from the
+// records it cites; every basis id must resolve:
+//   - deterministic: a validation confirming that aspect on an assertion with
+//     the same aspect digest;
+//   - human / proxy: an accept/correct decision whose reviewerKind EQUALS the
+//     claimed level (a proxy cannot masquerade as human), whose item verifies
+//     that aspect and whose final assertion has the same aspect digest;
+//   - consensus: ≥2 proposals for one of the fact's candidates, from
+//     independent models (IndependentModels), each asserting the fact's
+//     aspect digest; an optional validation must not refute the aspect and
+//     must have checked the same digest.
+func ValidateFactRecords(f VerifiedFact, r FactRecords) error {
 	var errs []error
 	bad := func(format string, args ...any) {
 		errs = append(errs, fmt.Errorf("fact %s: %s", f.ID, fmt.Sprintf(format, args...)))
 	}
+	candidates := map[string]bool{}
+	for _, id := range f.Candidates {
+		candidates[id] = true
+	}
 	for _, v := range f.Verification {
 		want := f.Assertion.AspectDigest(v.Aspect)
+		var agreeing []SemanticProposal
 		for _, id := range v.Basis {
 			switch {
 			case strings.HasPrefix(id, ValidationIDPrefix):
-				val, ok := validations[id]
+				val, ok := r.Validations[id]
 				switch {
 				case !ok:
 					bad("%s: basis %s does not resolve", v.Aspect, id)
+				case v.Level == VerifiedConsensus:
+					if val.refutes(v.Aspect) {
+						bad("%s: validation %s refutes it; a refuted aspect cannot be consensus-verified", v.Aspect, id)
+					}
+					if val.Assertion.AspectDigest(v.Aspect) != want {
+						bad("%s: validation %s checked a different %s", v.Aspect, id, v.Aspect)
+					}
 				case v.Level != VerifiedDeterministic:
-					bad("%s: validation %s can only back deterministic verification", v.Aspect, id)
+					bad("%s: validation %s can only back deterministic or consensus verification", v.Aspect, id)
 				case !val.Confirms(v.Aspect):
 					bad("%s: validation %s does not confirm it", v.Aspect, id)
 				case val.Assertion.AspectDigest(v.Aspect) != want:
 					bad("%s: validation %s confirmed a different %s", v.Aspect, id, v.Aspect)
 				}
 			case strings.HasPrefix(id, DecisionIDPrefix):
-				d, ok := decisions[id]
+				d, ok := r.Decisions[id]
 				if !ok {
 					bad("%s: basis %s does not resolve", v.Aspect, id)
 					continue
@@ -2201,7 +2386,7 @@ func ValidateFactBasis(f VerifiedFact, validations map[string]ValidationResult, 
 				if string(d.ReviewerKind) != string(v.Level) {
 					bad("%s: claims %s verification but decision %s was made by a %s reviewer", v.Aspect, v.Level, id, d.ReviewerKind)
 				}
-				item, ok := items[d.ReviewItemID]
+				item, ok := r.Items[d.ReviewItemID]
 				if !ok {
 					bad("%s: decision %s's review item %s does not resolve", v.Aspect, id, d.ReviewItemID)
 				} else if !containsAspect(item.Aspects(), v.Aspect) {
@@ -2210,12 +2395,40 @@ func ValidateFactBasis(f VerifiedFact, validations map[string]ValidationResult, 
 				if fin := d.Final(); fin == nil || fin.AspectDigest(v.Aspect) != want {
 					bad("%s: decision %s settled on a different %s", v.Aspect, id, v.Aspect)
 				}
+			case strings.HasPrefix(id, ProposalIDPrefix):
+				p, ok := r.Proposals[id]
+				switch {
+				case !ok:
+					bad("%s: basis %s does not resolve", v.Aspect, id)
+				case v.Level != VerifiedConsensus:
+					bad("%s: proposal %s can only back consensus verification", v.Aspect, id)
+				case !candidates[p.CandidateID]:
+					bad("%s: proposal %s answers candidate %s, not one of the fact's", v.Aspect, id, p.CandidateID)
+				case p.Assertion.AspectDigest(v.Aspect) != want:
+					bad("%s: proposal %s asserted a different %s", v.Aspect, id, v.Aspect)
+				default:
+					agreeing = append(agreeing, p)
+				}
 			default:
-				bad("%s: basis %q is neither a validation nor a decision", v.Aspect, id)
+				bad("%s: basis %q is neither a validation, a decision nor a proposal", v.Aspect, id)
 			}
+		}
+		if v.Level == VerifiedConsensus && !anyIndependentPair(agreeing) {
+			bad("%s: consensus needs agreeing proposals from at least two independent model families", v.Aspect)
 		}
 	}
 	return errors.Join(errs...)
+}
+
+func anyIndependentPair(ps []SemanticProposal) bool {
+	for i := range ps {
+		for j := i + 1; j < len(ps); j++ {
+			if IndependentModels(ps[i], ps[j]) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // --- feedback dataset and the record envelope ----------------------------------------------------
