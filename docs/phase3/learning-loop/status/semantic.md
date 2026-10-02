@@ -49,6 +49,14 @@ Branch `p3ll/semantic` (base `p3-learning-loop` @ 1174492, knowledge-3 merged).
   `case "candidates": return c.semanticCandidates(rest)` / `case "propose": return c.semanticPropose(rest)`
   and drop the stub assertion in `knowledge_test.go`.
 - Real run complete (see "Real run" below; full record in `docs/phase3/learning-loop/runs/semantic-v2/`).
+- Reviewed the second handoff (22aa879, 4e15ca1, 86ec7de, 0239d20). The run record, integrity test,
+  analyzers and same-model experiment are sound: separate exchange dirs/caches, 0 shared call ids,
+  identical prompt digests across the two call-sets. One correction: the *reading*. It called the
+  Claude pairs "cross-model" (they are one family: scope `same-model`) and compared a strimzi-only
+  same-model floor with all-edge agreement. Like for like, strimzi S↔H is 2/13 vs S↔S 2/11. The driver
+  is free-form-name subject families (see Contract changes). README and this file are corrected;
+  nothing reverted. GLM wrote the artifacts to the primary checkout's gitignored
+  `.ri/semantic-run-v2/` (fine; that path is the durable copy).
 
 ## Real run
 
@@ -57,7 +65,7 @@ Brief scope: the 8 environment-case edges, sonnet + haiku everywhere, opus on 4
 `claude -p` calls ($50.08), 1 122 proposals + 63 recorded failures in a
 knowledge-layout store, 0 invalid records (env-gated integrity test). Full numbers,
 agreement tables and reproduction steps: `docs/phase3/learning-loop/runs/semantic-v2/README.md`.
-Headlines: cross-model aspect agreement (both asserted) sonnet↔haiku 44/68/29/34 %,
+Headlines: cross-tier (one family: consensus scope same-model) aspect agreement (both asserted) sonnet↔haiku 44/68/29/34 %,
 opus↔sonnet 59/73/46/62 % (subject/change/applicability/consequence); full abstention
 sonnet 159 / haiku 113 / opus 33; `action-required` requests haiku 47 / sonnet 5 / opus 6
 (both S+H on 5 candidates); confidence only low/medium; mean citations per asserting
@@ -67,14 +75,12 @@ importing it into the committed `knowledge/` tree is left to the commander (know
 ownership). The run also fixed d5387fd (proposals built on another candidate variant are
 now refused) and completed 2 initially-failed haiku calls (1 recovered, 1 recorded refusal).
 
-PO-1 same-model consensus measurement (second GLM handoff): two independent sonnet
-call-sets on strimzi (62 calls, $2.46, 0 shared call ids, 0 proposal-id overlap).
-Same-model self-agreement is *low* — subject 2/11, change 9/16, applicability 1/11,
-consequence 7/13 (both-asserted, strict digests) — below sonnet↔haiku cross-model
-agreement, while `action-required` requests are stable across calls (5 common of 6/5).
-Two calls of one model are checkably separate measurements that do not converge on typed
-detail; consensus signal is cross-model + deterministic validation, as the contract's
-consensus-scope rules encode. Full record: `runs/semantic-v2/README.md` § Same-model.
+PO-1 same-model measurement (second GLM handoff; reading corrected by the Claude agent): two
+separate sonnet call-sets on strimzi (62 calls, $2.46; 0 shared call ids). Subject agreement
+2/11, the same floor as sonnet↔haiku *on the same edge* (2/13). The driver is free-form-name
+families, not scope. Across all edges, structured-family subjects agree exactly 68 % (S↔H) / 94 % (O↔S),
+free-form-family subjects 8 % / 31 %. All pairs in this run are one family (scope `same-model`);
+no cross-model measurement exists yet (needs GLM/Codex). See `runs/semantic-v2/README.md` § Same-model.
 
 ## Next
 
@@ -83,6 +89,8 @@ consensus-scope rules encode. Full record: `runs/semantic-v2/README.md` § Same-
 - Commander decision requested: import `.ri/semantic-run-v2/knowledge` into the committed
   `knowledge/` tree (or keep per-run scratch stores), and route `ri knowledge candidates|propose`
   through the semantic subcommands (stub drop listed above).
+- Measure a real cross-model pair (GLM-5.3-Flash via Z.AI, or Codex after quota) on the 147-candidate
+  Opus subset: the commands are ready; every pair so far is one family.
 - Possible follow-up the real run suggests (needs product-owner judgement, not done): the 58 haiku
   refusals are dominated by typed-constraint violations (empty `all` conditions, missing
   gvk/crd-field identity fields, `before`/`after` on value-changed) — prompt-vocabulary examples for
@@ -110,7 +118,20 @@ consensus-scope rules encode. Full record: `runs/semantic-v2/README.md` § Same-
 
 ## Contract changes
 
-none proposed (PO-1/PO-2 implementations follow contract-3 as merged).
+None made. **Proposed for the contract owner (from the real run, not implemented):** subjects of
+free-form-name families (protocol-behavior, migration, api-endpoint, and the name of
+product-relationship/compatibility-boundary) practically never agree by `AspectDigest` (exact
+subject key): 8 % S↔H, 31 % O↔S, against 68 % / 94 % for structured families. The names are invented
+per call (`pod-restart-event-regardingobject` vs `…-events-…`). Since a candidate is one change, two
+proposals *for the same candidate* that assert the same free-form family and the same change describe
+the same subject by construction. Options:
+(a) for those families, compare the subject aspect by family (+ component when stated), with the name
+    recorded but not compared;
+(b) a canonical-name rule chosen at review (the first accepted name wins and later proposals are mapped
+    onto it);
+(c) keep exact digests and accept that these subjects always route to human review.
+(c) is today's behaviour and is safe; (a) would let consensus reach these subjects. Product
+decision.
 
 ## Test status
 

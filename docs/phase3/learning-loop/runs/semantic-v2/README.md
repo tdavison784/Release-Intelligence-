@@ -45,7 +45,7 @@ from the kept CLI envelopes).
 Per-model distributions: `analysis-permodel.txt`. Pairwise agreement (both models asserted
 the aspect on the same candidate; digests compare every field, product excluded from subject):
 
-| pair | shared cands | subject | change | applicability | consequence |
+| pair (all one family: consensus scope same-model) | shared cands | subject | change | applicability | consequence |
 |---|---|---|---|---|---|
 | sonnet↔haiku | 458 | 44 % | 68 % | 29 % | 34 % |
 | opus↔sonnet | 145 | 59 % | 73 % | 46 % | 62 % |
@@ -102,12 +102,34 @@ Both calls fully abstain on 2; `action-required` requests are much more stable t
 typed aspects (call-1 6, call-2 5, both 5 — the ZooKeeper/KRaft-removal class). Caveats:
 one edge, small both-asserted denominators, digests compare every field.
 
-Reading: the same-model self-consistency floor is **low** — lower than sonnet↔haiku
-cross-model agreement on the same aspects (44/68/29/34 %). Two calls of one model are
-genuinely separate measurements (PO-1 mechanics hold: distinct call ids, distinct
-proposals), but they do not converge on typed detail by themselves; the consensus signal
-that matters is cross-model (opus↔sonnet 59–73 %) plus deterministic validation, exactly
-the shape the contract's consensus-scope rules and `VerifiedConsensus` level encode.
+Reading (corrected by the lane's Claude agent after the GLM handoff). The first reading compared
+this strimzi-only floor with all-edge Sonnet↔Haiku agreement and concluded that the consensus
+signal is "cross-model". Both halves were wrong:
+
+- **Labels.** Sonnet, Haiku and Opus are one model family, so every pair in this run has domain
+  consensus scope `same-model` (`domain.ConsensusScopeOf`). No `cross-model` pair exists here; the
+  tables above are *cross-tier, same-family* agreement. A cross-model measurement needs GLM or Codex.
+- **Like for like.** On the same edge (strimzi, both asserted), Sonnet↔Haiku subject agreement is
+  2/13 and Opus↔Sonnet 6/15. Separate calls of one model (2/11) sit at the same floor. The edge is
+  the cause, not the scope.
+- **What actually drives it: free-form names.** Across all edges, subject agreement splits by
+  family class:
+
+  | pair | structured families (helm-value, crd-field, cli-flag, env-var, gvk, …) | free-form-name families (protocol-behavior, migration, product-relationship, compatibility-boundary, api-endpoint) |
+  |---|---|---|
+  | sonnet↔haiku | exact 86/126 (68 %); same family 120/126 | exact 7/84 (8 %); same family 50/84 |
+  | opus↔sonnet | exact 29/31 (94 %); same family 31/31 | exact 12/39 (31 %); same family 32/39 |
+
+  The same-model pairs above disagree the same way: `pod-restart-event-regardingobject` vs
+  `pod-restart-events-regardingobject`, or an optional `component` present in one call only.
+  Strimzi's subjects are mostly free-form, which explains its low floor.
+
+Consequence for the loop: exact-digest agreement can confirm subjects of structured families
+(their identity is a path or name copied from the text or artifacts), but practically never subjects
+of free-form families, whatever the consensus scope. Those subjects need either a canonical-name rule
+(contract/prompt input: proposed in the lane status file) or human review. The change aspect agrees far more
+often (56–73 %), because it is enumerated. `action-required` *requests* are stable across separate
+calls (both calls 5 of 6/5).
 
 Artifacts: `same-model/reports/report{1,2}.txt`, `same-model/ex-{1,2}/exchange.log` (in
 `.ri/semantic-run-v2/`), `analysis-same-model.txt`, `analyze_same.py` (in this dir).
