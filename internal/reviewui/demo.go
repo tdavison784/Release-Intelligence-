@@ -367,7 +367,7 @@ func (b demoBuilder) proposal(c domain.SemanticCandidate, task domain.ProposalTa
 		UndeterminedReason: reason, SuggestedClass: class,
 		Provenance: domain.Provenance{Method: domain.MethodAI, Producer: "semantic.propose@v1", Confidence: conf,
 			Model: model, ModelVersion: model + "-2026-09", PromptVersion: "semantic/v1", PromptDigest: "sha256:" + domain.ShortHash(model, c.ID),
-			InputEvidence: input, GeneratedAt: &at},
+			InputEvidence: input, GeneratedAt: &at, CallID: "call-" + domain.ShortHash(model, c.ID, string(task))},
 	}
 	if !a.Empty() {
 		p.Citations = []domain.EvidenceID{c.Evidence[0].ID}
