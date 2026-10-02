@@ -123,3 +123,10 @@ scope, exclude-blocked, atomic on queue refusal, correct/proxy refused).
   - Not done (deliberately): no `-limit` demo flag to preview truncation in `-demo` mode (demo has ~10 pending items); say the
     word and it's a three-line addition to `cmd/ri/review.go`.
 - No worktrees other than this one were touched; no merge/rebase/push; every commit subject starts `[glm-handoff] `.
+
+## dashboard-5: demo data is unmistakable
+- `-demo` → `Options.Demo`: persistent red "DEMO DATA — fixtures, not real upstream evidence" banner on every page (inbox, item, detail, bulk confirm, error;
+  light + dark; the sticky header sits below it), and `fixture` / `fixture excerpt` tags on the upstream statement, evidence records and excerpts. Absent
+  without `-demo`. Test: `TestDemoModeBannerAndFixtureTags`.
+- `ri review serve -limit N` (3 lines) so the truncation notice is demonstrable (`TestInboxLimitShowsTheTruncationNotice`; snapshot `inbox-truncated.html`).
+- Screenshots and HTML snapshots re-taken (all 25 PNGs carry the banner); the Firefox script still passes.

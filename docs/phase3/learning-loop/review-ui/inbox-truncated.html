@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ri-d1f6b449f374 · Release Intelligence review</title>
+<title>Inbox · Release Intelligence review</title>
 <script>try{var t=localStorage.getItem("ri-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <style>/* Review UI — hand-written, no build step. Design tokens first. */
 :root {
@@ -183,282 +183,151 @@ body.demo .sticky { top: var(--demo-h); }
 <body class="demo">
 <div class="demo-banner" role="alert">DEMO DATA — fixtures, not real upstream evidence</div>
 
-<header class="bar sticky">
+<header class="bar sticky" id="topbar">
   <div class="bar-row">
     <a class="brand" href="/">Release Intelligence <span>review</span></a>
     <div class="spacer"></div>
+    <label class="reviewer">Reviewer
+      <input type="text" id="reviewer" name="reviewer_display" value="" placeholder="your name (required)" autocomplete="name">
+    </label>
     <button class="btn ghost" type="button" id="theme" aria-label="Toggle light/dark theme">◐</button>
     <button class="btn ghost" type="button" id="helpbtn" aria-label="Keyboard shortcuts">?</button>
   </div>
+  <nav class="tiles" aria-label="Inbox counts">
+    <a class="tile accent" href="/?status=pending" title="open questions"><b>10</b><span>Pending</span></a><a class="tile warn" href="/?disagreement=yes&amp;status=pending" title="proposals disagree on an aspect"><b>2</b><span>Model disagreement</span></a><a class="tile " href="/?question=semantic-mapping&amp;status=pending" title="what changed, exactly?"><b>7</b><span>Needs semantic mapping</span></a><a class="tile " href="/?question=applicability&amp;status=pending" title="who is exposed?"><b>0</b><span>Applicability</span></a><a class="tile " href="/?status=needs-evidence" title="waiting for evidence"><b>1</b><span>Needs more evidence</span></a><a class="tile " href="/?status=deferred" title="parked"><b>1</b><span>Deferred</span></a>
+  </nav>
 </header>
-<main class="page item-page" data-id="ri-d1f6b449f374">
-  <p><a class="back" href="/">← Inbox</a></p>
-  
-  <section class="hero">
-    <div class="meta">
-      <span class="badge">cert-manager v1.18.0</span>
-      <span class="badge soft">consequence</span>
-      <span class="badge prio-high">high priority</span>
-      <span class="badge st-accent">pending</span>
-      <code class="id">ri-d1f6b449f374</code>
-    </div>
-    <h1 class="question">Audit: two separate model calls agree this is ACTION REQUIRED. Is a Certificate with an RSA key below 2048 bits really rejected, and is that action-eligible?</h1>
-    <p class="muted">RSA keys below 2048 bits are rejected</p>
-  </section>
-  
-<div class="detail-body" data-id="ri-d1f6b449f374">
-  
-  
 
-  <section class="panel">
-    <h3>Upstream statement</h3>
-    <span class="badge fixture" title="invented fixture text">fixture</span><blockquote class="statement">Webhook rejects small RSA keys.</blockquote>
-    <p class="muted small">cert-manager v1.18.0 · configuration · 1 restating member · grouping single</p>
-  </section>
-
-  <section class="panel">
-    <h3>Evidence <span class="count">1</span></h3>
-    <ul class="evidence">
+<main class="page">
+  
+  <details class="filterbox" id="filterbox" >
+    <summary>Filters</summary>
+  <form class="filters" method="get" action="/" id="filters">
+    <label>Status
+      <select name="status">
+        <option value="pending" selected>pending</option>
+        <option value="needs-evidence" >needs evidence</option>
+        <option value="deferred" >deferred</option>
+        <option value="decided" >decided</option>
+        <option value="all" >all</option>
+      </select></label>
+    <label>Product <input name="product" value="" placeholder="cert-manager"></label>
+    <label>Release <input name="release" value="" placeholder="v1.18.0" size="8"></label>
+    <label>Subject type
+      <select name="subject"><option value="">any</option><option value="crd-field" >crd-field</option><option value="helm-value" >helm-value</option><option value="gvk" >gvk</option><option value="feature-gate" >feature-gate</option><option value="image" >image</option><option value="config-key" >config-key</option><option value="rbac-permission" >rbac-permission</option><option value="cli-flag" >cli-flag</option><option value="env-var" >env-var</option><option value="compatibility-boundary" >compatibility-boundary</option><option value="api-endpoint" >api-endpoint</option><option value="protocol-behavior" >protocol-behavior</option><option value="terraform-attribute" >terraform-attribute</option><option value="product-relationship" >product-relationship</option><option value="migration" >migration</option></select></label>
+    <label>Question
+      <select name="question"><option value="">any</option><option value="semantic-mapping" >semantic-mapping</option><option value="applicability" >applicability</option><option value="consequence" >consequence</option><option value="classification" >classification</option><option value="relationship" >relationship</option><option value="duplicate" >duplicate</option><option value="evidence-sufficiency" >evidence-sufficiency</option></select></label>
+    <label>Severity
+      <select name="severity"><option value="">any</option><option value="critical" >critical</option><option value="high" >high</option><option value="medium" >medium</option><option value="low" >low</option></select></label>
+    <label>Confidence
+      <select name="confidence"><option value="">any</option><option value="high" >high</option><option value="medium" >medium</option><option value="low" >low</option></select></label>
+    <label>Model <input name="model" value="" placeholder="claude-opus" size="10"></label>
+    <label>Models
+      <select name="disagreement"><option value="">any</option><option value="yes" >disagree</option><option value="no" >agree / single</option></select></label>
+    <label>Evidence source <input name="source" value="" placeholder="github.com/…" size="12"></label>
+    <label>Reviewer <input name="reviewer" value="" size="8"></label>
+    <button class="btn" type="submit">Filter</button>
     
-      <li>
-        <div class="ev-head">
-          <span class="badge soft">document</span> <span class="badge fixture" title="invented fixture text; the URL is not a real citation">fixture</span>
-          <a href="https://github.com/cert-manager/cert-manager/releases/tag/v1.18.0" target="_blank" rel="noopener noreferrer">https://github.com/cert-manager/cert-manager/releases/tag/v1.18.0</a>
-          <code>## Breaking changes</code>
+  </form>
+  </details>
+  <div class="toolbar">
+    <label class="check"><input type="checkbox" id="selectall"> Select all 3 shown</label>
+    <div class="spacer"></div>
+    <button class="btn ghost" type="button" id="expandall">Expand all</button>
+    <button class="btn ghost" type="button" id="collapseall">Collapse all</button>
+  </div>
+  <div class="truncated" role="note">Showing the first 3 of 10 matching items, highest priority first — narrow the filters to reach the rest. Bulk actions cover the items shown above.</div>
+
+  
+  <ol class="cards" id="cards">
+  
+    <li class="card" data-id="ri-9cdea0ac1732" tabindex="-1">
+      <div class="card-head">
+        <input type="checkbox" class="sel" name="item" value="ri-9cdea0ac1732" form="bulkform" aria-label="Select ri-9cdea0ac1732" >
+        <button type="button" class="toggle" aria-expanded="false" aria-controls="d-ri-9cdea0ac1732" data-detail="/items/ri-9cdea0ac1732/detail?return=%2F">
+          <span class="chev" aria-hidden="true">›</span>
+          <span class="q">
+            <span class="title">The default privateKey.rotationPolicy is now Always</span>
+            <span class="qtext">If a Certificate with rotationPolicy unset does nothing during the upgrade, what happens — and is that review or action?</span>
+          </span>
+        </button>
+        <div class="meta">
+          <span class="badge">cert-manager v1.18.0</span>
+          <span class="badge soft">consequence</span>
+          <span class="badge sev-high">high</span>
+          <span class="badge prio-high">high priority</span>
+          <span class="badge agree-disagree" title="claude-opus-5-5, claude-sonnet-5-5, glm-5.3-flash · 3 separate call(s)">models disagree</span>
+          <span class="badge st-accent">pending</span>
+          <a class="open" href="/items/ri-9cdea0ac1732?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
-        <span class="badge fixture">fixture excerpt</span><blockquote class="excerpt">Certificates whose private key is RSA smaller than 2048 bits are now rejected by the webhook.</blockquote>
-        <div class="muted small">
-          digest sha256:rsa11… · retrieved 2026-10-01 09:00 UTC
-           · cited by claude-opus-5-5, glm-5.3-flash
-          
+      </div>
+      <div class="detail" id="d-ri-9cdea0ac1732" role="region"><div class="detail-inner"></div></div>
+    </li>
+  
+    <li class="card" data-id="ri-d1f6b449f374" tabindex="-1">
+      <div class="card-head">
+        <input type="checkbox" class="sel" name="item" value="ri-d1f6b449f374" form="bulkform" aria-label="Select ri-d1f6b449f374" >
+        <button type="button" class="toggle" aria-expanded="false" aria-controls="d-ri-d1f6b449f374" data-detail="/items/ri-d1f6b449f374/detail?return=%2F">
+          <span class="chev" aria-hidden="true">›</span>
+          <span class="q">
+            <span class="title">RSA keys below 2048 bits are rejected</span>
+            <span class="qtext">Audit: two separate model calls agree this is ACTION REQUIRED. Is a Certificate with an RSA key below 2048 bits really rejected, and is that action-eligible?</span>
+          </span>
+        </button>
+        <div class="meta">
+          <span class="badge">cert-manager v1.18.0</span>
+          <span class="badge soft">consequence</span>
+          <span class="badge sev-high">high</span>
+          <span class="badge prio-high">high priority</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, glm-5.3-flash · 2 separate call(s)">consensus · cross-model · 2 calls</span>
+          <span class="badge st-accent">pending</span>
+          <a class="open" href="/items/ri-d1f6b449f374?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
-      </li>
-    
-    </ul>
-  </section>
-
-  <section class="panel">
-    <h3>Proposed assertion <span class="muted small">— what you accept or correct</span></h3>
-    
-    <dl class="aspects">
-      <dt>subject</dt><dd><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.size</pre></dd><dt>change</dt><dd><pre class="wrap">validation-tightened</pre></dd><dt>applicability</dt><dd><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.algorithm` equals &#34;RSA&#34;
-  field `spec.privateKey.size` equals 1024</pre></dd><dt>consequence <span class="badge accent">verifies</span></dt><dd><pre class="wrap">resource-rejected → action-required · high
-Applying a Certificate with an RSA key below 2048 bits is rejected by the webhook.
-remediation: Raise spec.privateKey.size to 2048 or more.</pre></dd>
-    </dl>
-    
-    <p class="muted small">Routing: review, high priority · signals <span class="badge soft">models-agree</span> <span class="badge soft">high-impact</span> </p>
-  </section>
-
-  
-  <section class="panel">
-    <h3>Proposals by call <span class="muted small">— never merged; same letter = same answer; consensus = two separate calls agree</span></h3>
-    <div class="flash flash-warn consensus-action" role="note"><b>Consensus requests ACTION REQUIRED</b> · cross-model — separate calls agree on an action-eligible consequence and every agreeing call requested action-required. A fact built on this would render as <b>ACTION REQUIRED · model consensus</b> (not “verified”), and every such fact is sampled into human review: this is that review. Consensus never produces NOT AFFECTED.</div>
-    <div class="scroll">
-    <table class="matrix">
-      <thead><tr><th>Aspect</th><th>Proposed</th><th><b>claude-opus-5-5</b><br><span class="muted small">anthropic · medium</span><br><span class="muted small mono" title="separate stateless call">call-claude-opus-5-5-012</span><br><span class="badge req-action-required" title="the class this call suggested or requested">requests action-required</span></th><th><b>glm-5.3-flash</b><br><span class="muted small">zai · medium</span><br><span class="muted small mono" title="separate stateless call">call-glm-5.3-flash-013</span><br><span class="badge req-action-required" title="the class this call suggested or requested">requests action-required</span></th></tr></thead>
-      <tbody>
-      
-        <tr class="m-agree">
-          <th scope="row">subject<div class="agree-chip agree-agree">consensus · cross-model · 2 calls</div></th>
-          <td><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.size</pre></td>
-          
-            <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.size</pre>
-              
-            </td>
-          
-            <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">crd-field · cert-manager · cert-manager.io / Certificate / spec.privateKey.size</pre>
-              
-            </td>
-          
-        </tr>
-      
-        <tr class="m-agree">
-          <th scope="row">change<div class="agree-chip agree-agree">consensus · cross-model · 2 calls</div></th>
-          <td><pre class="wrap">validation-tightened</pre></td>
-          
-            <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">validation-tightened</pre>
-              
-            </td>
-          
-            <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">validation-tightened</pre>
-              
-            </td>
-          
-        </tr>
-      
-        <tr class="m-agree">
-          <th scope="row">applicability<div class="agree-chip agree-agree">consensus · cross-model · 2 calls</div></th>
-          <td><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.algorithm` equals &#34;RSA&#34;
-  field `spec.privateKey.size` equals 1024</pre></td>
-          
-            <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.algorithm` equals &#34;RSA&#34;
-  field `spec.privateKey.size` equals 1024</pre>
-              
-            </td>
-          
-            <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">exposed when resource cert-manager.io/Certificate where:
-  field `spec.privateKey.algorithm` equals &#34;RSA&#34;
-  field `spec.privateKey.size` equals 1024</pre>
-              
-            </td>
-          
-        </tr>
-      
-        <tr class="m-agree">
-          <th scope="row">consequence<div class="agree-chip agree-agree">consensus · cross-model · 2 calls</div></th>
-          <td><pre class="wrap">resource-rejected → action-required · high
-Applying a Certificate with an RSA key below 2048 bits is rejected by the webhook.
-remediation: Raise spec.privateKey.size to 2048 or more.</pre></td>
-          
-            <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">resource-rejected → action-required · high
-Applying a Certificate with an RSA key below 2048 bits is rejected by the webhook.
-remediation: Raise spec.privateKey.size to 2048 or more.</pre>
-              
-            </td>
-          
-            <td class="g g-A as-proposed">
-              <span class="grp">A</span><pre class="wrap">resource-rejected → action-required · high
-Applying a Certificate with an RSA key below 2048 bits is rejected by the webhook.
-remediation: Raise spec.privateKey.size to 2048 or more.</pre>
-              
-            </td>
-          
-        </tr>
-      
-      </tbody>
-    </table>
-    </div>
-  </section>
-  
-
-  
-
-  <section class="panel">
-    <h3>Validation results <span class="count">0</span></h3>
-    <p class="muted">No deterministic validator produced a result for this item.</p>
-    
-  </section>
-
-  
-
-  <section class="panel">
-    <h3>Previous related decisions <span class="count">0</span></h3>
-    <p class="muted">None for this subject.</p>
-    <ul class="related">
-    
-    
-    </ul>
-  </section>
-
-  <section class="panel decide" id="decide-ri-d1f6b449f374">
-    <h3>Decide <span class="muted small">— recorded as a human decision</span></h3>
-    
-    <form class="actions" method="post" action="/items/ri-d1f6b449f374/decision" data-item="ri-d1f6b449f374">
-      <input type="hidden" name="started" value="2026-10-02T05:55:19.341409Z">
-      <input type="hidden" name="return" value="/">
-      <div class="row">
-        <label class="reviewer">Reviewer <input type="text" name="reviewer" value="" required placeholder="your name"></label>
-        <label class="grow">Reason <span class="muted small">(required for reject, need more evidence)</span>
-          <textarea name="reason" rows="2" placeholder="Why? Cite the evidence."></textarea></label>
       </div>
-      <details class="more"><summary>Labels &amp; duplicate</summary>
-        <div class="labelbox">
-          <label class="check"><input type="checkbox" name="label" value="wrong-subject" > wrong-subject</label><label class="check"><input type="checkbox" name="label" value="wrong-change-type" > wrong-change-type</label><label class="check"><input type="checkbox" name="label" value="wrong-applicability" > wrong-applicability</label><label class="check"><input type="checkbox" name="label" value="wrong-consequence" > wrong-consequence</label><label class="check"><input type="checkbox" name="label" value="wrong-classification" > wrong-classification</label>
+      <div class="detail" id="d-ri-d1f6b449f374" role="region"><div class="detail-inner"></div></div>
+    </li>
+  
+    <li class="card" data-id="ri-bbf01d9230ed" tabindex="-1">
+      <div class="card-head">
+        <input type="checkbox" class="sel" name="item" value="ri-bbf01d9230ed" form="bulkform" aria-label="Select ri-bbf01d9230ed" >
+        <button type="button" class="toggle" aria-expanded="false" aria-controls="d-ri-bbf01d9230ed" data-detail="/items/ri-bbf01d9230ed/detail?return=%2F">
+          <span class="chev" aria-hidden="true">›</span>
+          <span class="q">
+            <span class="title">HTTP01 solver needs ingress-nginx &gt;= 1.12</span>
+            <span class="qtext">Does cert-manager v1.18 require ingress-nginx ≥ 1.12 for HTTP01 — and which environments are exposed?</span>
+          </span>
+        </button>
+        <div class="meta">
+          <span class="badge">cert-manager v1.18.0</span>
+          <span class="badge soft">relationship</span>
+          
+          <span class="badge prio-normal">normal priority</span>
+          <span class="badge agree-agree" title="claude-opus-5-5, claude-sonnet-5-5 · 2 separate call(s)">consensus · cross-model · 2 calls</span>
+          <span class="badge st-accent">pending</span>
+          <a class="open" href="/items/ri-bbf01d9230ed?return=%2F" title="Open as a page (deep link)">open ↗</a>
         </div>
-        <div class="row">
-          <label>Reject as <select name="outcome"><option value="rejected">rejected</option><option value="duplicate">duplicate of a known fact</option></select></label>
-          <label>Duplicate of <input type="text" name="duplicate_of" placeholder="vf-…" value=""></label>
-        </div>
-      </details>
-      <div class="buttons">
-        <button type="submit" name="action" value="accept" class="btn ok" data-key="a" data-needs-reason="0"><u>A</u>ccept</button>
-        <button type="submit" name="action" value="reject" class="btn danger" data-key="r" data-needs-reason="1"><u>R</u>eject</button>
-        <button type="button" class="btn" data-key="c" data-correct="1"><u>C</u>orrect…</button>
-        <button type="submit" name="action" value="need-more-evidence" class="btn" data-key="e" data-needs-reason="1">Need more <u>e</u>vidence</button>
-        <button type="submit" name="action" value="defer" class="btn" data-key="d" data-needs-reason="0"><u>D</u>efer</button>
-        <span class="armed-hint small muted" aria-live="polite"></span>
       </div>
-    </form>
-
-    
-    <form class="correct" method="post" action="/items/ri-d1f6b449f374/decision" id="correct-ri-d1f6b449f374" hidden>
-      <input type="hidden" name="action" value="correct">
-      <input type="hidden" name="started" value="2026-10-02T05:55:19.341409Z">
-      <input type="hidden" name="return" value="/">
-      <h4>Correct the assertion <span class="muted small">— pre-filled with the proposal; the original is kept in the decision</span></h4>
-      <div class="row">
-        <label class="reviewer">Reviewer <input type="text" name="reviewer" value="" required></label>
-        <label class="grow">Reason (required) <textarea name="reason" rows="2"></textarea></label>
-      </div>
-      <fieldset><legend>Subject</legend><div class="grid">
-        <label>Family <select name="c_subject_family"><option selected>crd-field</option><option >helm-value</option><option >gvk</option><option >feature-gate</option><option >image</option><option >config-key</option><option >rbac-permission</option><option >cli-flag</option><option >env-var</option><option >compatibility-boundary</option><option >api-endpoint</option><option >protocol-behavior</option><option >terraform-attribute</option><option >product-relationship</option><option >migration</option></select></label>
-        <label>Product <input name="c_subject_product" value="cert-manager"></label>
-        <label>Group <input name="c_subject_group" value="cert-manager.io"></label>
-        <label>Version <input name="c_subject_version" value=""></label>
-        <label>Kind <input name="c_subject_kind" value="Certificate"></label>
-        <label>Path <input name="c_subject_path" value="spec.privateKey.size"></label>
-        <label>Name <input name="c_subject_name" value=""></label>
-        <label>Component <input name="c_subject_component" value=""></label>
-      </div></fieldset>
-      <fieldset><legend>Change</legend><div class="grid">
-        <label>Type <select name="c_change_type"><option >added</option><option >removed</option><option >renamed</option><option >default-changed</option><option >value-changed</option><option >behavior-changed</option><option >deprecated</option><option >now-required</option><option selected>validation-tightened</option><option >requirement-changed</option><option >migration-required</option></select></label>
-        <label>Before <span class="muted small">(JSON scalar, e.g. "Never")</span> <input name="c_change_before" value=""></label>
-        <label>After <input name="c_change_after" value=""></label>
-      </div>
-      <label>Replaced by <span class="muted small">(subject JSON, renamed / deprecated / removed only)</span><textarea name="c_change_replacedby" rows="3" class="mono"></textarea></label></fieldset>
-      <fieldset><legend>Applicability</legend>
-        <label>Exposure condition <span class="muted small">(JSON, DESIGN §1.3)</span><textarea name="c_app_exposure" rows="8" class="mono">{
-  &#34;op&#34;: &#34;resource&#34;,
-  &#34;of&#34;: [
-    {
-      &#34;op&#34;: &#34;field&#34;,
-      &#34;path&#34;: &#34;spec.privateKey.algorithm&#34;,
-      &#34;state&#34;: &#34;equals&#34;,
-      &#34;values&#34;: [
-        &#34;\&#34;RSA\&#34;&#34;
-      ]
-    },
-    {
-      &#34;op&#34;: &#34;field&#34;,
-      &#34;path&#34;: &#34;spec.privateKey.size&#34;,
-      &#34;state&#34;: &#34;equals&#34;,
-      &#34;values&#34;: [
-        &#34;1024&#34;
-      ]
-    }
-  ],
-  &#34;group&#34;: &#34;cert-manager.io&#34;,
-  &#34;kind&#34;: &#34;Certificate&#34;
-}</textarea></label>
-        <label>Overlap condition <span class="muted small">(optional; shielded state)</span><textarea name="c_app_overlap" rows="5" class="mono"></textarea></label></fieldset>
-      <fieldset><legend>Consequence</legend><div class="grid">
-        <label>Kind <select name="c_cons_kind" class="kind"><option value="upgrade-blocked" data-class="action-required" >upgrade-blocked</option><option value="resource-rejected" data-class="action-required" selected>resource-rejected</option><option value="setting-ignored" data-class="action-required" >setting-ignored</option><option value="behavior-change" data-class="review-required" >behavior-change</option><option value="permission-lost" data-class="action-required" >permission-lost</option><option value="workload-failure" data-class="action-required" >workload-failure</option><option value="migration-required" data-class="action-required" >migration-required</option><option value="deprecation" data-class="review-required" >deprecation</option><option value="none" data-class="informational" >none</option></select></label>
-        <label>Severity <select name="c_cons_severity"><option value="">—</option><option >critical</option><option selected>high</option><option >medium</option><option >low</option></select></label>
-        <div class="classbox">Class that follows: <b class="class-out">action-required</b><div class="muted small">the class follows the kind; the trust ladder may still cap it</div></div>
-      </div>
-      <label>Statement <span class="muted small">(what exactly fails if nothing is done)</span><textarea name="c_cons_statement" rows="2">Applying a Certificate with an RSA key below 2048 bits is rejected by the webhook.</textarea></label>
-      <label>Remediation <textarea name="c_cons_remediation" rows="2">Raise spec.privateKey.size to 2048 or more.</textarea></label></fieldset>
-      <label>Assertion statement <span class="muted small">(prose; never compared)</span><input name="c_statement" value="Certificate.spec.privateKey.size below 2048 (RSA) is rejected"></label>
-      <p class="muted small">Labels: <code>corrected</code> plus a <code>wrong-*</code> label per changed aspect (set automatically unless you tick labels in the form above).</p>
-      <button class="btn ok" type="submit">Record correction</button>
-    </form>
-    
-    
-  </section>
-</div>
-
+      <div class="detail" id="d-ri-bbf01d9230ed" role="region"><div class="detail-inner"></div></div>
+    </li>
+  
+  </ol>
 </main>
+
+<form id="bulkform" class="bulkbar" method="post" action="/bulk" hidden>
+  <input type="hidden" name="started" value="2026-10-02T05:55:17.756761Z">
+  <input type="hidden" name="return" value="/">
+  <input type="hidden" name="reviewer" value="" id="bulk-reviewer">
+  <div class="bulk-count"><b id="bulkcount">0</b> selected</div>
+  <input type="text" name="reason" placeholder="Shared reason (required for reject / need more evidence)" class="grow">
+  <details class="labels"><summary>Labels</summary>
+    <div class="labelbox"><label class="check"><input type="checkbox" name="label" value="wrong-subject"> wrong-subject</label><label class="check"><input type="checkbox" name="label" value="wrong-change-type"> wrong-change-type</label><label class="check"><input type="checkbox" name="label" value="wrong-applicability"> wrong-applicability</label><label class="check"><input type="checkbox" name="label" value="wrong-consequence"> wrong-consequence</label><label class="check"><input type="checkbox" name="label" value="wrong-classification"> wrong-classification</label></div>
+  </details>
+  <button class="btn ok" name="action" value="accept" type="submit">Accept</button>
+  <button class="btn danger" name="action" value="reject" type="submit">Reject</button>
+  <button class="btn" name="action" value="need-more-evidence" type="submit">Need evidence</button>
+  <button class="btn" name="action" value="defer" type="submit">Defer</button>
+  <span class="muted small">Correct is per item only. You will confirm before anything is recorded.</span>
+</form>
 
 <div id="help" class="help" hidden role="dialog" aria-label="Keyboard shortcuts">
   <div class="help-card">
