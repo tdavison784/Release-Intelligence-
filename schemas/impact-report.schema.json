@@ -275,7 +275,8 @@
           "type": "array",
           "items": {"$ref": "#/$defs/EvidenceID"},
           "description": "Environment evidence proving a directly-supplied input (the --kubernetes / --images flag); file-backed dimensions are audited through environment.files digests."
-        }
+        },
+        "render": {"$ref": "#/$defs/RenderCheck"}
       },
       "additionalProperties": false
     },
@@ -389,7 +390,8 @@
           "$ref": "#/$defs/UnknownReason",
           "description": "Why an unknown finding is unknown: release-knowledge-gap, environment-visibility-gap, cross-product-context-gap, runtime-behavior-gap, evidence-gap or semantic-ambiguity (docs/phase3/learning-loop/DESIGN.md §1.5). Unknown-only."
         },
-        "knowledge": {"$ref": "#/$defs/KnowledgeRef"}
+        "knowledge": {"$ref": "#/$defs/KnowledgeRef"},
+        "refinedFrom": {"$ref": "#/$defs/Refinement"}
       },
       "additionalProperties": false,
       "allOf": [
@@ -544,6 +546,65 @@
                 ]
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {"const": "impact:values-default-applies"}
+            },
+            "required": ["rule"]
+          },
+          "then": {
+            "properties": {
+              "classification": {"enum": ["review-required"]}
+            },
+            "required": ["classification"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "rule": {"enum": ["impact:values-default-no-effect", "impact:values-default-unrendered"]}
+            },
+            "required": ["rule"]
+          },
+          "then": {
+            "properties": {
+              "classification": {"enum": ["not-affected"]}
+            },
+            "required": ["classification"]
+          }
+        },
+        {
+          "if": {"required": ["refinedFrom"]},
+          "then": {
+            "allOf": [
+              {
+                "properties": {
+                  "rule": {"const": "impact:knowledge-refined"}
+                },
+                "required": ["rule"]
+              },
+              {
+                "properties": {
+                  "classification": {"enum": ["action-required", "review-required", "informational"]}
+                },
+                "required": ["classification"]
+              },
+              {
+                "required": ["knowledge"],
+                "properties": {
+                  "knowledge": {"properties": {"verification": {"enum": ["deterministic", "human"]}}}
+                }
+              }
+            ]
+          },
+          "else": {
+            "properties": {
+              "rule": {"not": {"const": "impact:knowledge-refined"}}
+            },
+            "required": ["rule"]
           }
         },
         {
@@ -720,7 +781,8 @@
         "verification": {"$ref": "#/$defs/VerificationLevel"},
         "consensus": {"$ref": "#/$defs/ConsensusScope"},
         "consensusAction": {"type": "boolean"},
-        "statement": {"type": "string"}
+        "statement": {"type": "string"},
+        "subject": {"$ref": "#/$defs/Subject"}
       },
       "additionalProperties": false
     },
@@ -787,6 +849,16 @@
       },
       "additionalProperties": false
     },
+    "Refinement": {
+      "type": "object",
+      "required": ["classification", "rule"],
+      "properties": {
+        "classification": {"$ref": "#/$defs/ImpactClass"},
+        "rule": {"type": "string"},
+        "severity": {"$ref": "#/$defs/ImpactSeverity"}
+      },
+      "additionalProperties": false
+    },
     "RenderArtifact": {
       "type": "object",
       "required": ["name", "version", "digest"],
@@ -798,6 +870,18 @@
       },
       "additionalProperties": false
     },
+    "RenderCheck": {
+      "type": "object",
+      "required": ["outcome", "key"],
+      "properties": {
+        "outcome": {"$ref": "#/$defs/RenderOutcome"},
+        "key": {"type": "string"},
+        "counterfactual": {"type": "boolean"},
+        "reason": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "RenderOutcome": {"type": "string", "enum": ["attributable-change", "no-attributable-change", "unavailable"]},
     "RenderProvenance": {
       "type": "object",
       "required": ["scope", "tool", "toolVersion", "chartDigest"],
@@ -829,6 +913,41 @@
         "release-asset",
         "http-document",
         "registry-manifest"
+      ]
+    },
+    "Subject": {
+      "type": "object",
+      "required": ["family", "product"],
+      "properties": {
+        "family": {"$ref": "#/$defs/SubjectFamily"},
+        "product": {"$ref": "#/$defs/ProductID"},
+        "group": {"type": "string"},
+        "version": {"type": "string"},
+        "kind": {"type": "string"},
+        "path": {"type": "string"},
+        "name": {"type": "string"},
+        "component": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "SubjectFamily": {
+      "type": "string",
+      "enum": [
+        "crd-field",
+        "helm-value",
+        "gvk",
+        "feature-gate",
+        "image",
+        "config-key",
+        "rbac-permission",
+        "cli-flag",
+        "env-var",
+        "compatibility-boundary",
+        "api-endpoint",
+        "protocol-behavior",
+        "terraform-attribute",
+        "product-relationship",
+        "migration"
       ]
     },
     "UnknownReason": {

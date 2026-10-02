@@ -89,6 +89,8 @@ var consequenceDocs = []consequenceDoc{
 	{domain.ConsequenceMigrationRequired, "a mandatory operator step must run before/after the upgrade"},
 	{domain.ConsequenceBehaviorChange, "it still works, but differently (e.g. a new default applies); worth verifying"},
 	{domain.ConsequenceDeprecation, "works today, scheduled to break in a later release"},
+	// CONTRACT-CHANGE(contract-4): PO-4 consequence kind.
+	{domain.ConsequenceSupersededUpstream, "removed or changed, but its function is replaced by an upstream mechanism; verify the replacement covers your use"},
 	{domain.ConsequenceNone, "no operational consequence for an operator"},
 }
 

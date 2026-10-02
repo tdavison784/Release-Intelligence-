@@ -1266,3 +1266,209 @@ func TestConsensusActionFact(t *testing.T) {
 		})
 	}
 }
+
+// --- PO-3: unset changed defaults and new keys are decided by rendering ------------
+
+func renderEvidence(scope RenderScope) Evidence {
+	e := NewEvidence(EvidenceLocalFile, "render", "render://to/apps/v1/Deployment/kyverno/kyverno-cleanup", "spec.template.spec.containers[0].image",
+		"image: bitnami/kubectl:1.30.2", "sha256:render", time.Time{})
+	e.Render = &RenderProvenance{Scope: scope, Tool: "helm", ToolVersion: "v3.16.4", ChartDigest: "sha256:chart", ValuesDigest: "sha256:values"}
+	return e
+}
+
+func TestValuesDefaultRenderVerdicts(t *testing.T) {
+	// valuesDefault turns the report's single finding into a PO-3 verdict.
+	valuesDefault := func(r *ImpactReport, rule string, class ImpactClass, outcome RenderOutcome, scope RenderScope) *ImpactFinding {
+		ev := renderEvidence(scope)
+		r.EnvironmentEvidence = append(r.EnvironmentEvidence, ev)
+		f := &r.Findings[0]
+		f.Rule, f.Provenance.Rule, f.Classification = rule, rule, class
+		r.Summary = ImpactSummary{UpstreamChanges: 3}
+		switch class {
+		case ImpactReviewRequired:
+			f.Provenance.Confidence = ConfidenceMedium
+			f.Matches = []ImpactMatch{{Kind: MatchRenderedChange, Subject: "Deployment/kyverno/kyverno-cleanup: image changed", Evidence: []EvidenceID{ev.ID}}}
+			f.EnvironmentEvidence = []EvidenceID{ev.ID}
+			r.Summary.AffectEnvironment, r.Summary.ReviewRequired = 1, 1
+		case ImpactActionRequired:
+			f.Matches = []ImpactMatch{{Kind: MatchRenderedChange, Subject: "x", Evidence: []EvidenceID{ev.ID}}}
+			f.EnvironmentEvidence = []EvidenceID{ev.ID}
+			r.Summary.AffectEnvironment, r.Summary.ActionRequired = 1, 1
+		case ImpactNotAffected:
+			f.Matches, f.EnvironmentEvidence = nil, nil
+			chk := ImpactCheck{Dimension: DimensionRender, Facts: 2, Subjects: []string{"policyReportsCleanup.image.tag"},
+				Render: &RenderCheck{Outcome: outcome, Key: "policyReportsCleanup.image.tag", Counterfactual: true}}
+			if outcome == RenderUnavailable {
+				chk.Render.Reason, chk.Render.Counterfactual, chk.Facts = "helm not installed", false, 0
+			} else {
+				chk.Evidence = []EvidenceID{ev.ID}
+			}
+			f.Checks = []ImpactCheck{chk}
+			r.Summary.NotAffected = 1
+		}
+		return f
+	}
+	cases := []struct {
+		name string
+		mut  func(*ImpactReport)
+		want string
+	}{
+		{"applies: review with a rendered change", func(r *ImpactReport) {
+			valuesDefault(r, RuleValuesDefaultApplies, ImpactReviewRequired, "", RenderEnvironment)
+		}, ""},
+		{"applies cannot be action on its own", func(r *ImpactReport) {
+			valuesDefault(r, RuleValuesDefaultApplies, ImpactActionRequired, "", RenderEnvironment)
+		}, "is review-required"},
+		{"applies backed by a chart-default render", func(r *ImpactReport) {
+			valuesDefault(r, RuleValuesDefaultApplies, ImpactReviewRequired, "", RenderRelease)
+		}, "backed by environment-render evidence"},
+		{"no effect: both renders, nothing attributable", func(r *ImpactReport) {
+			valuesDefault(r, RuleValuesDefaultNoEffect, ImpactNotAffected, RenderNoAttributableChange, RenderEnvironment)
+		}, ""},
+		{"no effect claimed without a render", func(r *ImpactReport) {
+			valuesDefault(r, RuleValuesDefaultNoEffect, ImpactNotAffected, RenderUnavailable, RenderEnvironment)
+		}, "no-attributable-change render check"},
+		{"no effect without render evidence", func(r *ImpactReport) {
+			f := valuesDefault(r, RuleValuesDefaultNoEffect, ImpactNotAffected, RenderNoAttributableChange, RenderEnvironment)
+			f.Checks[0].Evidence = nil
+		}, "must cite environment-render evidence"},
+		{"unrendered: not-affected, visibly unavailable (PO choice)", func(r *ImpactReport) {
+			valuesDefault(r, RuleValuesDefaultUnrendered, ImpactNotAffected, RenderUnavailable, RenderEnvironment)
+		}, ""},
+		{"unrendered without a reason", func(r *ImpactReport) {
+			f := valuesDefault(r, RuleValuesDefaultUnrendered, ImpactNotAffected, RenderUnavailable, RenderEnvironment)
+			f.Checks[0].Render.Reason = ""
+		}, "must say why"},
+		{"unrendered hiding the missing render", func(r *ImpactReport) {
+			f := valuesDefault(r, RuleValuesDefaultUnrendered, ImpactNotAffected, RenderUnavailable, RenderEnvironment)
+			f.Checks[0].Dimension, f.Checks[0].Render = DimensionValues, nil
+		}, "visible unavailable render check"},
+		{"render record on a values check", func(r *ImpactReport) {
+			f := valuesDefault(r, RuleValuesDefaultUnrendered, ImpactNotAffected, RenderUnavailable, RenderEnvironment)
+			f.Checks[0].Dimension = DimensionValues
+		}, "carried exactly by render-dimension checks"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			r := validReport()
+			tc.mut(r)
+			expectErr(t, r.Validate(), tc.want)
+		})
+	}
+}
+
+// --- PO-4: narrow refinement of deterministic findings by trusted facts -------------
+
+func TestSupersededUpstream(t *testing.T) {
+	k := ConsequenceSupersededUpstream
+	if k.ActionEligible() || k.ExposedClass() != ImpactReviewRequired {
+		t.Fatalf("superseded-upstream: eligible=%v class=%s, want review-required and not action-eligible", k.ActionEligible(), k.ExposedClass())
+	}
+	expectErr(t, Consequence{Kind: k, ExposedClass: ImpactActionRequired, Statement: "x"}.Validate(), "must be review-required")
+}
+
+func TestSubjectCoversMatch(t *testing.T) {
+	hv := Subject{Family: SubjectHelmValue, Product: "kyverno", Path: "cleanupJobs"}
+	img := Subject{Family: SubjectImage, Product: "kyverno", Name: "bitnami/kubectl"}
+	crd := Subject{Family: SubjectCRDField, Product: "p", Group: "g", Kind: "K", Path: "spec.resources"}
+	cases := []struct {
+		s    Subject
+		m    ImpactMatch
+		want bool
+	}{
+		{hv, ImpactMatch{Kind: MatchValuesKey, Subject: "cleanupJobs"}, true},
+		{hv, ImpactMatch{Kind: MatchValuesKey, Subject: "cleanupJobs.admissionReports.threshold"}, true},
+		{hv, ImpactMatch{Kind: MatchValuesKey, Subject: "cleanupJobsExtra.x"}, false},
+		{hv, ImpactMatch{Kind: MatchManifestField, Subject: "cleanupJobs"}, false},
+		{img, ImpactMatch{Kind: MatchImage, Subject: "bitnami/kubectl:1.28.5"}, true},
+		{img, ImpactMatch{Kind: MatchImage, Subject: "registry.corp.example/bitnami/kubectl:1.28.5"}, false},
+		{crd, ImpactMatch{Kind: MatchManifestField, Subject: "spec.resources[]"}, true},
+		{Subject{Family: SubjectFeatureGate, Product: "p", Name: "X"}, ImpactMatch{Kind: MatchValuesKey, Subject: "X"}, false},
+	}
+	for _, c := range cases {
+		if got := c.s.CoversMatch(c.m); got != c.want {
+			t.Errorf("%s covers %s %q = %v, want %v", c.s.Key(), c.m.Kind, c.m.Subject, got, c.want)
+		}
+	}
+}
+
+func TestRefinementRules(t *testing.T) {
+	// refine turns the report's values-removed ACTION (match replicaCount)
+	// into a refined review-required finding from a human-verified fact.
+	refine := func(r *ImpactReport) *ImpactFinding {
+		f := &r.Findings[0]
+		f.RefinedFrom = &Refinement{Classification: f.Classification, Rule: f.Rule, Severity: f.Severity}
+		f.Rule, f.Provenance.Rule = RuleKnowledgeRefined, RuleKnowledgeRefined
+		f.Classification = ImpactReviewRequired
+		f.Knowledge = &KnowledgeRef{Fact: "vf-1", Verification: VerifiedHuman,
+			Subject: &Subject{Family: SubjectHelmValue, Product: "p", Path: "replicaCount"}}
+		r.Summary.ActionRequired, r.Summary.ReviewRequired = 0, 1
+		return f
+	}
+	cases := []struct {
+		name string
+		mut  func(*ImpactReport)
+		want string
+	}{
+		{"human fact downgrades ACTION to review (kyverno E9 shape)", func(r *ImpactReport) { refine(r) }, ""},
+		{"deterministic fact may refine", func(r *ImpactReport) { refine(r).Knowledge.Verification = VerifiedDeterministic }, ""},
+		{"to informational", func(r *ImpactReport) {
+			refine(r).Classification = ImpactInformational
+			r.Summary.ReviewRequired, r.Summary.Informational = 0, 1
+		}, ""},
+		{"proxy fact tries to refine", func(r *ImpactReport) {
+			f := refine(r)
+			f.Knowledge.Verification, f.Provenance.Confidence = VerifiedProxy, ConfidenceMedium
+		}, "only a trusted"},
+		{"consensus-action fact tries to refine", func(r *ImpactReport) {
+			f := refine(r)
+			f.Knowledge.Verification, f.Knowledge.Consensus, f.Knowledge.ConsensusAction = VerifiedConsensus, ConsensusCrossModel, true
+			f.Provenance.Confidence = ConfidenceMedium
+		}, "only a trusted"},
+		{"refine to not-affected", func(r *ImpactReport) {
+			f := refine(r)
+			f.Classification, f.Matches, f.EnvironmentEvidence = ImpactNotAffected, nil, nil
+			f.Checks = []ImpactCheck{{Dimension: DimensionValues, Facts: 1, Subjects: []string{"replicaCount"}}}
+			r.Summary.ReviewRequired, r.Summary.AffectEnvironment, r.Summary.NotAffected = 0, 0, 1
+		}, "never yields \"not-affected\""},
+		{"refine to unknown", func(r *ImpactReport) {
+			f := refine(r)
+			f.Classification, f.Matches, f.EnvironmentEvidence = ImpactUnknown, nil, nil
+			f.NeededToDetermine = []string{"x"}
+			r.Summary.ReviewRequired, r.Summary.AffectEnvironment, r.Summary.Unknown = 0, 0, 1
+		}, "never yields \"unknown\""},
+		{"subject mismatch (sibling key)", func(r *ImpactReport) {
+			refine(r).Knowledge.Subject.Path = "replica"
+		}, "lies outside the refining fact's subject"},
+		{"subject of another family", func(r *ImpactReport) {
+			refine(r).Knowledge.Subject = &Subject{Family: SubjectFeatureGate, Product: "p", Name: "replicaCount"}
+		}, "lies outside the refining fact's subject"},
+		{"refining fact without subject", func(r *ImpactReport) { refine(r).Knowledge.Subject = nil }, "states its subject"},
+		{"original finding kept next to the refinement", func(r *ImpactReport) {
+			orig := r.Findings[0]
+			refine(r)
+			orig.ID = "imp-orig"
+			r.Findings = append(r.Findings, orig)
+			r.Summary.ActionRequired, r.Summary.AffectEnvironment = 1, 2
+		}, "must be replaced, not kept"},
+		{"no class change", func(r *ImpactReport) {
+			f := refine(r)
+			f.Classification = ImpactActionRequired
+			r.Summary.ActionRequired, r.Summary.ReviewRequired = 1, 0
+		}, "changes the class"},
+		{"refining an unknown record", func(r *ImpactReport) { refine(r).RefinedFrom.Classification = ImpactUnknown }, "only an affected deterministic finding"},
+		{"refining a knowledge finding", func(r *ImpactReport) { refine(r).RefinedFrom.Rule = "impact:knowledge-exposed" }, "must name the deterministic join rule"},
+		{"refinedFrom on another rule", func(r *ImpactReport) {
+			f := refine(r)
+			f.Rule = "impact:knowledge-exposed"
+		}, "carried exactly by rule impact:knowledge-refined"},
+		{"refined rule without refinedFrom", func(r *ImpactReport) { refine(r).RefinedFrom = nil }, "carried exactly by rule impact:knowledge-refined"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			r := validReport()
+			tc.mut(r)
+			expectErr(t, r.Validate(), tc.want)
+		})
+	}
+}
