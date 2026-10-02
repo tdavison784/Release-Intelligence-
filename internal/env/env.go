@@ -107,9 +107,10 @@ type Inputs struct {
 	// Inventory is empty.
 	Inventory string
 	// ManifestsComplete declares that Manifests (and repo-discovered
-	// manifests) are every workload the environment runs, so a workload
-	// missing from them is genuinely absent (--manifests-complete). Without
-	// it a missing workload is "not shown", never "not running".
+	// manifests) are every object the environment runs — workloads and the
+	// resources they reference — so an object missing from them is genuinely
+	// absent (--manifests-complete). Without it a missing workload or an
+	// unresolved reference is "not shown", never "not there".
 	ManifestsComplete bool
 	// ProductHints let images be recognised as catalog products (see
 	// HintsFromCatalog); without them only declared and Helm/Argo/Flux
@@ -445,7 +446,7 @@ func Load(in Inputs) (*Environment, error) {
 	l.env.Supplied.Images = len(in.Images) > 0 || len(l.env.Images) > 0
 	if in.ManifestsComplete && l.env.Supplied.Manifests {
 		l.env.ManifestsDeclaredComplete = true
-		l.env.ManifestsCompleteEvidence = []domain.EvidenceID{l.evInput("flag:--manifests-complete", "the supplied manifests are every workload this environment runs")}
+		l.env.ManifestsCompleteEvidence = []domain.EvidenceID{l.evInput("flag:--manifests-complete", "the supplied manifests are every object this environment runs")}
 	}
 
 	// A dimension is "supplied" when anything reached the loader for it —
