@@ -31,6 +31,7 @@ func (c *cli) impact(args []string) error {
 	repo := fs.String("repo", "", "directory mode: discover values/manifests/Argo CD/Flux inputs in a repository tree by convention (explicit flags compose with, and are applied after, the discovered files)")
 	values := fs.String("values", "", "comma-separated Helm values files of the environment")
 	manifests := fs.String("manifests", "", "comma-separated manifest files or directories (multi-document YAML)")
+	manifestsComplete := fs.Bool("manifests-complete", false, "declare that the supplied manifests are every workload this environment runs (a workload missing from them is then genuinely absent; without it, missing means not shown)")
 	crds := fs.String("crds", "", "comma-separated CustomResourceDefinition files or directories")
 	images := fs.String("images", "", "comma-separated image references, or one file listing them (one per line)")
 	inventory := fs.String("inventory", "", "declared product inventory: a YAML list of {product, version, note?} (which other products run here, e.g. ingress-nginx 1.12.1); in --repo mode <repo>/inventory.yaml is used when present")
@@ -59,6 +60,7 @@ func (c *cli) impact(args []string) error {
 	in.Environment.Inventory = *inventory
 	in.Environment.ValuesFiles = splitList(*values)
 	in.Environment.Manifests = splitList(*manifests)
+	in.Environment.ManifestsComplete = *manifestsComplete
 	in.Environment.CRDs = splitList(*crds)
 	in.Environment.Images, err = imageList(*images)
 	if err != nil {

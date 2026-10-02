@@ -3,6 +3,37 @@
 **State: done** (branch `p3ll/applicability`; contract, contract-2 and contract-3 merged).
 `go build ./... && go vet ./... && go test ./...` green. Schemas regenerated (`go run ./internal/domain/schemagen`).
 
+## applicability-3 (branch `p3ll/applicability-3`, from p3-learning-loop @ 62afad6) — done
+
+Safety fix from LOOP-DIAGNOSIS.md §7.8. A `cli-flag` / `env-var` / `feature-gate` leaf naming a component
+(container name) whose workload is not in the supplied manifests returned FALSE, so a trusted fact scoped to
+`component: controller` could clear a change from silence (Helm-installed controllers are rarely in the
+customer's manifests). Now:
+
+- no container of that name → **unknown · environment-visibility-gap**, needed: that workload's manifests;
+- false only when the manifests are **declared complete** (`ri impact --manifests-complete` →
+  `env.Inputs.ManifestsComplete` → `Environment.ManifestsDeclaredComplete` + input evidence) **and** parsed
+  healthily; the check cites the declaration;
+- a present container that does not pass the flag is false as before (its name fact is the examined
+  evidence); a feature gate stated in the values key at `path` still decides.
+- Reversed tested decision documented in docs/IMPACT.md ("Decision reversed (2026-10-02)"): it treated
+  *parsed completely* as *complete*. `condition_test.go` case updated; new `TestEvaluateConditionNamedComponentAbsent`.
+- Adversarial `eval/adversarial/knowledge-named-component-absent`: a human fact scoped to `component:
+  controller`; the old evaluator produces `impact:knowledge-clear` (verified: the trap fails on the pre-fix
+  code), the fix produces `impact:knowledge-undecided`.
+- Full eval, base (p3-learning-loop) vs fix, same cache: `ri eval` JSON byte-identical without knowledge and with
+  `-knowledge knowledge -min-verification proxy`; the per-level text panel identical (applicability 0.476/0.495,
+  ACTION 17 with 1 false — the pre-existing kyverno E9 — at every level, unknownHonesty 1.00). **No new false
+  ACTION.** All 8 component-scoped facts in `knowledge/` are proxy-level (they could not clear anyway). Per
+  finding (`ri impact -knowledge -min-verification proxy` over all 19 environments): 8 knowledge-undecided findings
+  in 6 environments change reason release-knowledge-gap → environment-visibility-gap (cert-manager-1.16-1.17 and
+  --eu-platform: CAInjectorMerging gate; cert-manager-1.17-1.18: two ingress-shim flags; cilium-1.16-1.17 and
+  --plant-edge: hubble-relay `--dial-timeout`, cilium-agent `--k8s-watcher-endpoint-selector`); no class or
+  summary changed. Once those facts are human-verified this is the difference between UNKNOWN and a silent
+  NOT AFFECTED.
+- Residual (not changed): the `ref` leaf's "unresolved ⇒ false" still keys on parse health
+  (`RefResolution.ManifestsComplete`), not on a declaration — same class of issue, envparse/contract decision.
+
 ## applicability-2 (branch `p3ll/applicability-2`, from p3-learning-loop @ e7cc4e7) — done
 
 Product-owner decision: adopt `unknownHonesty` (docs/phase3/learning-loop/UNDECIDED-SCORING.md) as a

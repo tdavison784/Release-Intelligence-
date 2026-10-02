@@ -84,6 +84,29 @@ products:
   - {product: ingress-nginx, version: v1.12.1}
 ```
 
+The same rule holds for workloads. A `cli-flag` / `env-var` / `feature-gate`
+condition that names a component (a container name, e.g. `component:
+controller`) and finds **no container of that name** in the supplied manifests
+is **unknown** (`environment-visibility-gap`, needed: that workload's
+manifests) — not false. A missing workload is "not shown", not "not running":
+a Helm-installed controller's Deployment is rarely among the manifests a
+customer commits, so a trusted fact scoped to that component would otherwise
+clear the change from silence. Only `ri impact --manifests-complete` (the
+supplied manifests are every workload this environment runs, recorded as input
+evidence) together with healthy manifests makes the absence genuine: then the
+leaf is false, with a check citing the declaration. A feature gate stated in
+the values key at the condition's `path` still decides, workload or not; a
+present container that does not pass the flag is false as before.
+
+*Decision reversed (2026-10-02).* The earlier rule read a named component
+absent from fully parsed manifests as false, "like an absent resource kind".
+That treated *parsed completely* as *complete*, and the two differ exactly for
+operator workloads installed by a chart. LOOP-DIAGNOSIS.md §7.8 flagged it as
+residual risk, and the adversarial fixture
+`eval/adversarial/knowledge-named-component-absent` pins the new behaviour (the
+old evaluator clears that change). Zero resources of a *kind* inside a
+`resource` scope keep the documented zero-resources convention.
+
 `ri eval --knowledge knowledge/` runs the dataset once per verification level
 (`none`, `deterministic`, `human`, `consensus`, `proxy`) and reports each
 separately: applicability accuracy overall and on the **transfer subset**
