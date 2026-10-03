@@ -336,6 +336,7 @@ func Validate(d *ProductDefinition) ValidationReport {
 		v.exceptions(p+".exceptions", a.Exceptions)
 	}
 	v.lifecycle(d)
+	v.configSources(d)
 	return v.r
 }
 

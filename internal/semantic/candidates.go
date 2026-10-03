@@ -37,6 +37,20 @@ var noJoinRules = map[string]bool{
 	upgrade.RuleImageAdded:        true,
 	upgrade.RuleCRDDefaultChanged: true, upgrade.RuleCRDEnumChanged: true,
 	upgrade.RuleCRDFieldRequired: true, upgrade.RuleCRDFieldTypeChange: true,
+	// captured statement lines (an artifact's own "Deprecated: …" / "has been
+	// removed" lines; LOOP-DIAGNOSIS-2 L4): one line, one subject
+	upgrade.RuleLinesAdded: true, upgrade.RuleLinesRemoved: true,
+}
+
+// admitRoutine reports whether a routine note still becomes a candidate
+// (LOOP-DIAGNOSIS-2 L4): the routine detector keeps maintenance churn out of
+// the upgrade narrative, but a non-dependency routine note that names a
+// subject (a key, flag, metric or field; a non-empty subject signature) can
+// still change what an operator configures or monitors. Dependency bumps stay
+// out: they name packages, not configuration, and security-relevant bumps
+// are the impact:security-fix rule's.
+func admitRoutine(c domain.Change) bool {
+	return c.RoutineKind != upgrade.RoutineDependency && len(subjectSignature(leadSentence(c.Title))) > 0
 }
 
 // joinRules are the computed diff rules the join already evaluates
@@ -101,6 +115,7 @@ type unit struct {
 	roots    []string // computed: subject roots
 	kind     string   // computed crd:*: the kind/label parsed from the title
 	chart    string   // computed values:*: the subchart named in the title ("(chart cni)")
+	routine  bool     // an admitted routine note (L4): clusters only with other routine notes
 }
 
 // CandidateOptions add optional, deterministic context to candidates.
@@ -143,7 +158,7 @@ func BuildCandidatesWith(edge *domain.UpgradeEdge, now time.Time, opts Candidate
 		switch c.Provenance.Method {
 		case domain.MethodDeclared, domain.MethodHeuristic:
 			switch {
-			case c.Routine:
+			case c.Routine && !admitRoutine(c):
 				rep.Skipped = append(rep.Skipped, Skip{ChangeID: c.ID, Reason: SkipRoutine, Detail: c.RoutineKind})
 				continue
 			case securityFix(c):
@@ -161,7 +176,7 @@ func BuildCandidatesWith(edge *domain.UpgradeEdge, now time.Time, opts Candidate
 				rep.Skipped = append(rep.Skipped, Skip{ChangeID: c.ID, Reason: SkipNoEvidence, Detail: "no evidence record resolves in the edge"})
 				continue
 			}
-			u := &unit{idx: i, c: c, prose: true, sig: subjectSignature(leadSentence(c.Title)), tokens: tokens(c.Title), lead: tokens(leadSentence(c.Title)), anchor: &a, stmtKeys: map[string]bool{}}
+			u := &unit{idx: i, c: c, prose: true, routine: c.Routine, sig: subjectSignature(leadSentence(c.Title)), tokens: tokens(c.Title), lead: tokens(leadSentence(c.Title)), anchor: &a, stmtKeys: map[string]bool{}}
 			for _, k := range a.StatementKeys {
 				u.stmtKeys[k] = true
 			}
@@ -208,7 +223,10 @@ func BuildCandidatesWith(edge *domain.UpgradeEdge, now time.Time, opts Candidate
 	for i := 0; i < len(prose); i++ {
 		for j := i + 1; j < len(prose); j++ {
 			a, b := prose[i], prose[j]
-			if a.c.Release != b.c.Release {
+			// admitted routine notes (L4) cluster only among themselves, so
+			// admitting them never changes an existing cluster's members (and
+			// thus its id)
+			if a.c.Release != b.c.Release || a.routine != b.routine {
 				continue
 			}
 			rule := ""
@@ -247,6 +265,7 @@ func BuildCandidatesWith(edge *domain.UpgradeEdge, now time.Time, opts Candidate
 		members []*unit
 		rules   map[string]bool
 		sig     map[string]bool
+		routine bool
 	}
 	byRoot := map[int]*cluster{}
 	var clusters []*cluster
@@ -254,7 +273,7 @@ func BuildCandidatesWith(edge *domain.UpgradeEdge, now time.Time, opts Candidate
 		r := find(i)
 		cl, ok := byRoot[r]
 		if !ok {
-			cl = &cluster{rules: rules[r], sig: sigOf[r]}
+			cl = &cluster{rules: rules[r], sig: sigOf[r], routine: u.routine}
 			byRoot[r] = cl
 			clusters = append(clusters, cl)
 		}
@@ -270,6 +289,9 @@ func BuildCandidatesWith(edge *domain.UpgradeEdge, now time.Time, opts Candidate
 	for _, u := range append(append([]*unit{}, primary...), secondary...) {
 		var hit []*cluster
 		for _, cl := range clusters {
+			if cl.routine {
+				continue // L4 routine clusters never take computed members (stable ids)
+			}
 			if namesComputed(cl.sig, cl.members, u) {
 				hit = append(hit, cl)
 			}

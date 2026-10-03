@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/knowledge"
 	"github.com/tdavison784/release-intelligence/internal/llm"
@@ -18,7 +19,7 @@ func TestPromptContentAndStance(t *testing.T) {
 		t.Fatal(err)
 	}
 	sys, user := pr.Request.System, pr.Request.Messages[0].Content
-	for _, want := range []string{"semantic-full/v1", "untrusted data", "Undetermined is a normal, cheap", "never \"not affected\"", "canonical", "behavior-change"} {
+	for _, want := range []string{"semantic-full/v2", "untrusted data", "Undetermined is a normal, cheap", "never \"not affected\"", "canonical", "behavior-change"} {
 		if !strings.Contains(strings.ToLower(sys), strings.ToLower(want)) {
 			t.Errorf("system prompt lacks %q", want)
 		}
@@ -70,7 +71,7 @@ func TestPromptRenderedEvidenceSeam(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if pr.PromptVersion != "semantic-full/v1+rendered" || !strings.Contains(pr.Request.Messages[0].Content, "chart-defaults") {
+	if pr.PromptVersion != "semantic-full/v2+rendered" || !strings.Contains(pr.Request.Messages[0].Content, "chart-defaults") {
 		t.Errorf("version %s; rendered evidence must be marked", pr.PromptVersion)
 	}
 }
@@ -129,7 +130,34 @@ func TestBuildCandidatesWithRenderedEvidence(t *testing.T) {
 		t.Errorf("unrelated candidates get no rendered evidence: %d records", len(other.Evidence))
 	}
 	pr, err := BuildPrompt(knowledge.ProposalRequest{Candidate: helm, Task: domain.TaskFull}, "m")
-	if err != nil || pr.PromptVersion != "semantic-full/v1+rendered" || strings.Contains(pr.Request.Messages[0].Content, "customer") {
+	if err != nil || pr.PromptVersion != "semantic-full/v2+rendered" || strings.Contains(pr.Request.Messages[0].Content, "customer") {
 		t.Fatalf("prompt %v %v", pr.PromptVersion, err)
+	}
+}
+
+func TestPromptShowsConfigSources(t *testing.T) {
+	c := rotationCandidate(t)
+	hints := ConfigSourceHints([]catalog.ConfigSource{
+		{ID: "server", Channel: catalog.ChannelConfigMapFile, Component: "server", Summary: "main config", File: "config.yaml", Format: "yaml", ConfigMap: "widget-config"},
+		{ID: "chart", Channel: catalog.ChannelHelmValues, Summary: "chart values", ValuesPath: "."},
+		{ID: "gates", Channel: catalog.ChannelFeatureGates, Summary: "gates", Flag: "--feature-gates", ValuesPath: "featureGates"},
+		{ID: "cr", Channel: catalog.ChannelCustomResource, Summary: "global config", Resource: &catalog.ConfigResource{Group: "example.io", Kind: "Settings"}},
+	})
+	pr, err := BuildPrompt(knowledge.ProposalRequest{Candidate: c, Task: domain.TaskFull, Context: knowledge.ProposalContext{ConfigSources: hints}}, "m")
+	if err != nil {
+		t.Fatal(err)
+	}
+	user := pr.Request.Messages[0].Content
+	for _, want := range []string{"CONFIG SOURCES", `text-line{path: 'data["config.yaml"]'`, "name: widget-config", "values-key{path: <key>}",
+		"feature-gate{name: <Gate>, state: enabled|disabled|unset, path: featureGates}", "resource{group: example.io, kind: Settings"} {
+		if !strings.Contains(user, want) {
+			t.Errorf("prompt lacks %q", want)
+		}
+	}
+	if !strings.Contains(pr.Request.System, "UNDECIDABLE (strict)") {
+		t.Error("the v2 system prompt states the undecidable rule")
+	}
+	if strings.Contains(string(pr.Request.JSONSchema), `"environment-visibility-gap"`) {
+		t.Error("the schema must not offer environment-visibility-gap to a model")
 	}
 }

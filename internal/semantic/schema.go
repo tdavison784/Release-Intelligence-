@@ -26,6 +26,21 @@ import (
 // Gateways that do not enforce the schema (GLM via Z.AI) are covered by
 // validating every answer against the same schema before use.
 
+// UndecidableReasons are the reasons a model may give an `undecidable` leaf
+// (prompt v2, LOOP-DIAGNOSIS-2 L1). `undecidable` means "not statically
+// decidable": exposure that depends on runtime behaviour, on evidence that
+// does not state the condition, or on an identity that cannot be pinned.
+// environment-visibility-gap and cross-product-context-gap are the engine's
+// verdicts about one environment's missing inputs or inventory (a decidable
+// predicate exists: values-key, field, text-line, cli-flag, env-var,
+// feature-gate, product-version); release-knowledge-gap describes the
+// absence of a fact, never a condition inside one. Those three are not a
+// model's to assert, so the schema does not offer them and the answer
+// validator refuses them (avoidableUndecidable).
+var UndecidableReasons = []domain.UnknownReason{
+	domain.UnknownRuntimeBehaviorGap, domain.UnknownEvidenceGap, domain.UnknownSemanticAmbiguity,
+}
+
 // maxConditionLevels bounds the condition tree a model can express (the
 // domain allows 8; real conditions need 3–4: all → resource → ref → field).
 const maxConditionLevels = 4
@@ -110,7 +125,7 @@ func conditionLevel(level int) obj {
 		"pattern":   str(),
 		"separator": str(),
 		"range":     str(),
-		"reason":    enum(strEnum(domain.UnknownReasons)),
+		"reason":    enum(strEnum(UndecidableReasons)),
 		"needed":    str(),
 	}
 	if level < maxConditionLevels {

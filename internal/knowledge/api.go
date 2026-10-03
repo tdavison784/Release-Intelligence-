@@ -109,6 +109,28 @@ type ProposalContext struct {
 	GVKs        []string // group/version/kind served by the target release
 	Images      []string // image repositories of the target release
 	Truncated   bool     // the lists were capped; the prompt says so
+	// ConfigSources are where the product reads its configuration (the
+	// catalog's upstream-documented configSources), so a proposer can write
+	// a decidable predicate on that channel instead of `undecidable`
+	// (LOOP-DIAGNOSIS-2 L1). Release-level data, never environment data.
+	// CONTRACT-CHANGE(semantic): additive field for L1; the proxy reviewer
+	// may show the same hints.
+	ConfigSources []ConfigSourceHint
+}
+
+// ConfigSourceHint is one configuration channel of a product, as a prompt
+// shows it (catalog.ConfigSource without its citations).
+type ConfigSourceHint struct {
+	Channel    string // configmap-file | config-file | helm-values | cli-flags | env-vars | feature-gates | custom-resource
+	Component  string
+	Summary    string
+	File       string // config file / ConfigMap data key
+	Format     string
+	ConfigMap  string
+	ValuesPath string
+	Flag       string
+	Group      string // custom-resource
+	Kind       string // custom-resource
 }
 
 // FactSummary identifies a known fact for duplicate detection.
