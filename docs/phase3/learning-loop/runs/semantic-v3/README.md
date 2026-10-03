@@ -115,6 +115,15 @@ answer both exchanges (`scripts/semantic-exchange.sh`), re-run `run4.sh`'s two l
 table per model, abstentions, rendered-evidence citations on the with-side; repeated calls of one
 model collapse to the latest answer).
 
+**GLM half answered (2026-10-03, zai exchange, 51/51, 0 failures, $ billed by Z.AI): 45 proposals +
+6 recorded refusals** (the familiar typed-constraint shapes: `resource` without operand, `gvk`
+without version, `crd-field` without group/kind). Interim GLM pair (33 candidates answered both
+ways, `analysis-render-ab.txt`): subject 24/1/1/7, change 29/0/0/4, applicability 26/1/1/5,
+consequence 27/1/0/5 (both/only-with/only-without/neither); full abstention 10 with vs 10 without;
+rendered evidence cited on the with-side 22/33. **Reading: GLM cites the render when shown but its
+aspect decisions barely depend on it** (1–2 flips per aspect, both directions). Whether the Claude
+models behave the same is what the pending 153-call claude half will tell.
+
 ## Files
 
 - `knowledge/<product>/` (committed): 573 candidates + 1 423 proposals, written through

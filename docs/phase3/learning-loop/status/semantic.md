@@ -269,6 +269,57 @@ Uncertainties / for the commander:
   them via vocabulary examples is a prompt-version change I did not make unilaterally — it
   would move the ground the just-finished run measured.
 
+## GLM handoff log (fourth handoff)
+
+GLM-5.3 again; the Claude agent is paused for a fresh usage-limit window. Takeover state: the
+semantic-3 run was fully complete (committed, recorded, imported), but the working tree held an
+uncommitted, **build-breaking** context sync — the paused agent (or the handoff prep) had copied
+integration content (proxy-agreement CLI wiring, loop-diagnosis-2 docs, proxy-shadow view) without
+`internal/proxyreview/agreement.go`. What I did (all `[glm-handoff] `):
+
+1. `14b1de6a` restored the green build by landing `agreement.go` + its two test files verbatim from
+   p3-learning-loop (258d9490) — the file the copy was missing. `go build/vet/test ./...` green.
+2. `5c5fee3c` committed the rest of the sync verbatim (LOOP-DIAGNOSIS-2.md, proxy-shadow view,
+   lines/ref-resolution docs) — all byte-identical to integration, so the commander's later merge
+   is a no-op for these paths. This is how this branch learned of the L1–L8 levers without a merge.
+3. `5754899e` delivered the two offline analyses the diagnosis's semantic levers need
+   (`runs/semantic-v3/PROMPT-LEVERS.md` + `analyze_undecidable.py`): 157 undecidable exposure
+   leaves on 152/995 exposure-bearing proposals (106 pure; Opus writes 39 — a prompt gap, not a
+   weak-model artifact); the `needed` texts split into decidable-with-the-right-operator (the L1
+   channel-context fix; `text-line` is used by only 13 leaves) vs genuinely-runtime (55, must stay
+   undecidable). L4 is **blocked on integration** (no `lines:*` kinds, no `cc:feat` classifier on
+   this branch; ES/prom-op skip 0 routine notes) and its cost is measured for when it lands
+   (admitting all routine notes = +20 % candidates, dominated by loki's 68 metrics notes).
+4. `18cf2eb8` staged **run4**, the controlled with/without rendered-evidence measurement the run
+   README names as the addendum's open step: `ri semantic propose -only FILE` (new, tested) +
+   `run4.sh` + committed id lists (`run4-only/`, 51 candidates — ES 12, kyverno 28, prom-op 8,
+   traefik 3, all SUB edges) + `analyze_render_ab.py` (synthetic-store smoke-tested). Pass 1 ran
+   offline: 204 plain `semantic-full/v1` requests written, 51 candidates in the run4 store, 0
+   missed ids, no rendered evidence in any prompt (verified; the schema's `rendered-change` enum
+   and the verb "rendering" are the only occurrences).
+5. Answered the **GLM half** of run4 via the zai exchange (51 stateless calls, 51/51, 0 failures;
+   the claude half stays untouched while the account sits in its limit window) and ingested it:
+   **45 proposals + 6 recorded refusals** (the familiar typed-constraint shapes). Interim GLM pair
+   (33 candidates answered both ways): aspect decisions barely depend on the render — 1–2 flips per
+   aspect out of 33, both directions, abstention 10 vs 10 — while the render is cited 22/33 when
+   shown. The claude half (153 calls ≈ $6–8) completes the measurement; see the run README.
+
+Remaining to finish run4 (one command each, any session): answer
+`.ri/semantic-run-v3/run4/exchange-claude` with `scripts/semantic-exchange.sh <dir> "" 8 anthropic`
+(153 calls ≈ $6–8), re-run `run4.sh`'s two loops to ingest, then
+`python3 analyze_render_ab.py knowledge .ri/semantic-run-v3/run4/knowledge`.
+
+Uncertainties / for the commander:
+- **Merge p3-learning-loop into this lane before L4 work** — both halves of L4 (lines:* changes
+  and the cc:feat classifier) exist only there. FLEET says wait for your word.
+- The L1/L5 prompt redesign (channel context per product, vocabulary for decidable shapes) is
+  deliberately NOT started: the brief reserves prompt design to the Claude agent, and a prompt
+  change without budget to re-measure would move the ground the runs measure. PROMPT-LEVERS.md is
+  the input for that session.
+- run4's claude half (~$6–8) was left pending rather than spending the limited account from a
+  handoff; the GLM half was answered because the zai path is the FLEET's documented optional
+  provider and completes the opus↔glm pair.
+
 ## semantic-3 (Claude agent, after the third GLM handoff)
 
 - Reviewed the handoff commits (a46206e, d4cfeb9, 5873b0f). The analyzers were committed verbatim and
