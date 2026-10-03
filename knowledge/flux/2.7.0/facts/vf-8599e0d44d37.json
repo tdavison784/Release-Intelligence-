@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-8599e0d44d37",
+    "product": "flux",
+    "release": "2.7.0",
+    "anchors": [
+      {
+        "release": "2.7.0",
+        "evidenceKeys": [
+          "ek-f004d8910b23"
+        ],
+        "statementKeys": [
+          "sk-e448e0206c62"
+        ],
+        "changeIds": [
+          "chg-475c10211981"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-54fbd7bb2a92"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "latest-version-determination",
+        "component": "fluxcd/flux2/action"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the operator's CI workflows (e.g. .github/workflows files) use the fluxcd/flux2/action GitHub Action to resolve the latest Flux version"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments using the fluxcd/flux2 GitHub Action, the latest version is now determined without calling the GitHub API; the action otherwise continues to work.",
+        "remediation": "No operator action required; if the mechanism by which the action resolves the latest Flux version matters to your CI setup, verify the workflow behaves as expected.",
+        "severity": "low"
+      },
+      "statement": "`fluxcd/flux2/action`: Determine latest version without using GitHub API by @RussellAult in https://github.com/fluxcd/flux2/pull/5509"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-2bce65077ed2"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-2bce65077ed2"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-0c4d0f6952d6"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-9c22773603ef"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-a884587f873c",
+        "kind": "document",
+        "sourceId": "release-notes",
+        "uri": "https://github.com/fluxcd/flux2/releases/tag/v2.7.0",
+        "locator": "L132-L132 (CLI changelog)",
+        "excerpt": "* `fluxcd/flux2/action`: Determine latest version without using GitHub API by @RussellAult in https://github.com/fluxcd/flux2/pull/5509",
+        "contentDigest": "sha256:88bc939a89a38580b3522726fe8b6e9ed58b049224371c8cacbe410c4ee19e84",
+        "retrievedAt": "2026-10-02T10:53:01Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:07:11.18Z"
+  }
+}

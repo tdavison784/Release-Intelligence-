@@ -113,3 +113,17 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
   run: proxy-report + metrics + REPORT.md + packaging like run-1, then commit with provenance.
 - Uncertain: nothing new. Open items unchanged: prose-only corrections (now 6 more in run-2, total 17
   refused-at-recording items pending), `Provenance.Provider`, step 5 waits for the commander.
+
+## proxy-2 (branch `p3ll/proxy-2`, commander order 2026-10-02): Claude resumed 20:52 CDT
+
+- I reviewed GLM takeover 2: the merge script and integrity test are committed unchanged, and the run-2 WIP (471
+  decisions plus the ledger) is committed. Kept. Two corrections to its log:
+  - **Step 5 is no longer waiting.** The commander ordered the shadow pass (proxy-2 brief: run the non-high items in
+    the real store, shadow the high items in a COPY at `proxy-shadow/knowledge/`, build a merged
+    `proxy-shadow/eval-knowledge/` view labelled proxy-incl-shadow, and report).
+  - **The "must cite evidence" refusal is a runner gap, not the prose-only contract question.** The proxy cited only
+    validator artifact evidence. `semantic.ProposalFromAnswer` needs a candidate (upstream) citation, and the
+    runner keeps only those. Fix for a v3 prompt: tell the proxy that a correction must cite at least one UPSTREAM
+    EVIDENCE id. Citations are not invented.
+- Run-2 resumed at 20:52 after the 8:50pm reset: the 5 session-limit markers were cleared (those calls never reached
+  the model) and the log rotated to `proxy-review.log.1`.

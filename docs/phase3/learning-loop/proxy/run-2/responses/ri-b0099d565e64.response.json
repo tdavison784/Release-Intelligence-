@@ -1,0 +1,38 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-b0099d565e64",
+  "promptDigest": "sha256:42c71c92a701b1371186505b4ad35502d5aa50d3dad4fab5bb470e91a8df508d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "be1784a9-76b2-4bef-88f1-4ef72fffda13",
+  "startedAt": "2026-10-03T01:57:10.788Z",
+  "decidedAt": "2026-10-03T01:57:20.735Z",
+  "durationMs": 9057,
+  "costUSD": 0.09067599999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-4f0f13cefd09] says only that lambda-promtail panicked when the DROP_LABELS env var was empty. The proposed exposure, DROP_LABELS \"set\", is too broad because it would also flag environments with a non-empty DROP_LABELS value, and the evidence does not say those were affected. The exposure should be DROP_LABELS equal to the empty string. Unlike P1, the value should be a true empty string, not literal quote characters. The evidence does not say whether an unset variable also triggered the panic, so confidence is low.",
+    "citations": [
+      "ev-4f0f13cefd09"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "lambda-promtail no longer panics when the DROP_LABELS environment variable is empty; exposed environments are those running lambda-promtail with DROP_LABELS set to an empty value.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "env-var",
+          "name": "DROP_LABELS",
+          "component": "lambda-promtail",
+          "state": "equals",
+          "values": [
+            ""
+          ]
+        }
+      }
+    }
+  }
+}

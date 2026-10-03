@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-25917b8c5e90",
+    "reviewItemId": "ri-dab748e861f5",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "loki",
+        "name": "GET /prometheus/api/v1/rules",
+        "component": "ruler"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "The Loki Ruler endpoint GET /prometheus/api/v1/rules gains support for filtering results by rule_name, rule_group, file and type."
+    },
+    "corrected": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "loki",
+        "name": "GET /prometheus/api/v1/rules",
+        "component": "ruler"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "The Loki Ruler's existing GET /prometheus/api/v1/rules endpoint now supports filtering results by rule_name, rule_group, file and type."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:4c818e1870fa4dd513d87a353deab04c38dc90341e87bf7921b1cb562b61c2dd",
+      "inputEvidence": [
+        "ev-d93690b5448d"
+      ],
+      "generatedAt": "2026-10-03T02:03:22.239Z",
+      "callId": "98177af9-f8c8-4736-a318-d1201bfe007a"
+    },
+    "reason": "[ev-d93690b5448d] says the Ruler adds \"support for filtering results of `/prometheus/api/v1/rules` endpoint\", which means the endpoint already existed and only gained optional filters (rule_name, rule_group, file, type). So \"added\" is the wrong change type; behavior-changed on the existing endpoint fits. The subject is right. The text names the Ruler component, but it never states the HTTP method, so GET is an inference.",
+    "startedAt": "2026-10-03T02:03:13.506Z",
+    "decidedAt": "2026-10-03T02:03:22.239Z"
+  }
+}

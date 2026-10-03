@@ -1,0 +1,50 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-85c0ba146fbc",
+  "promptDigest": "sha256:f4b16fcc61613b93f68eb74e06d921776f7a9f29d8420bef0e5ad837065ec1e0",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "2a5a86ba-5da5-4cb2-abcf-0dc6fe310632",
+  "startedAt": "2026-10-03T01:52:17.372Z",
+  "decidedAt": "2026-10-03T01:52:29.770Z",
+  "durationMs": 11484,
+  "costUSD": 0.09595599999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-28c263f19767] says the default retry policy now excludes 503. It also says the old behaviour can be restored by setting the \"EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY\" flag to false. So the proposal is right that environments that have not set this flag to false are exposed, and those that have are shielded. However, the proposed condition matches the literal \"\\\"false\\\"\", which includes the quote characters, while the env var value itself would be false; I have corrected the value literal in both exposure and overlap.",
+    "citations": [
+      "ev-28c263f19767"
+    ],
+    "confidence": "medium",
+    "correction": {
+      "statement": "Istio 1.24.0's default retry policy no longer retries on 503. Environments are exposed unless EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY is set to false. Setting it to false keeps the old 503 retries, but only temporarily because the flag will be removed in a future release.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      }
+    },
+    "labels": [
+      "wrong-applicability"
+    ]
+  }
+}

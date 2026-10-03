@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e65b244d5670",
+  "promptDigest": "sha256:d75b440ae2f30aba59d6067892e5ff62e5273cff8b158b083581ffab8315cdcd",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ea609c3b-1864-4c96-8f15-fbc34a73f3d8",
+  "startedAt": "2026-10-03T02:04:52.231Z",
+  "decidedAt": "2026-10-03T02:05:05.673Z",
+  "durationMs": 12606,
+  "costUSD": 0.106408,
+  "output": {
+    "action": "correct",
+    "reason": "The CRD validator confirms that the object-level default of spec.metadataOptions changed only httpPutResponseHopLimit, from 2 to 1 [ev-8998581760b8][ev-451bd6a12e72]. Nothing in the evidence says anything fails or is rejected, so behavior-change (review) is the right kind. However, the proposed statement says any object that leaves httpPutResponseHopLimit unset now gets 1. The validator refuted that: the sub-field's own default in the target schema is still 2. Only objects that leave spec.metadataOptions unset entirely are affected, so I corrected the statement's scope.",
+    "citations": [
+      "ev-8998581760b8",
+      "ev-451bd6a12e72"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In the karpenter.k8s.aws/v1beta1 EC2NodeClass schema, the default of spec.metadataOptions now sets httpPutResponseHopLimit to 1 instead of 2 (other entries unchanged). v1beta1 EC2NodeClass objects that leave spec.metadataOptions unset get hop limit 1; this is a behavior change to review.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "statement": "v1beta1 EC2NodeClass objects that leave spec.metadataOptions unset now get the default httpPutResponseHopLimit 1 instead of 2. The httpEndpoint \"enabled\", httpProtocolIPv6 \"disabled\" and httpTokens \"required\" defaults are unchanged. Objects that set spec.metadataOptions but omit httpPutResponseHopLimit still get the field-level default of 2.",
+        "severity": "medium",
+        "remediation": "If a hop limit of 2 is needed, set spec.metadataOptions explicitly on the EC2NodeClass, including httpPutResponseHopLimit: 2."
+      }
+    }
+  }
+}

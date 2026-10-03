@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-b830744aa6c4",
+  "promptDigest": "sha256:37588c3ccd7a5962161c32ce333c3925364c617d59c70b9bb07f39c476f24dab",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "0e22e453-1b50-4992-9349-36dc4e955c65",
+  "startedAt": "2026-10-03T01:58:09.947Z",
+  "decidedAt": "2026-10-03T01:58:25.631Z",
+  "durationMs": 15000,
+  "costUSD": 0.135768,
+  "output": {
+    "action": "correct",
+    "reason": "The render diff shows that external-secrets.io/v1 of ExternalSecret was absent in 0.15.0 and is served in 0.16.0 [ev-09b8aa472138][ev-9e957ffda511][ev-b80f52507eed]. Adding a version on its own requires no operator action, so kind \"none\" holds. The proposed statement also says existing v1beta1 resources \"continue to work without changes\", but the evidence does not support that. The same CRD diff shows v1beta1 is no longer the storage version, v1alpha1 was removed, the conversion webhook was removed, and v1beta1 engineVersion now only accepts \"v2\" [ev-10a72c580d6b][ev-4a1f27e04efd][ev-7a082965d61c][ev-dedabc51d637]. Those are separate changes, so the statement should only cover what this addition does.",
+    "citations": [
+      "ev-9e957ffda511",
+      "ev-09b8aa472138",
+      "ev-b80f52507eed",
+      "ev-10a72c580d6b",
+      "ev-dedabc51d637",
+      "ev-4a1f27e04efd",
+      "ev-7a082965d61c"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "The ExternalSecret CRD now serves the new API version external-secrets.io/v1. The addition alone has no operational consequence.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "statement": "The new API version external-secrets.io/v1 of ExternalSecret can now be used. Adding it does not on its own require any operator action. Other ExternalSecret CRD changes in this release (v1beta1 no longer the storage version, v1alpha1 removed, conversion webhook removed, engineVersion enum narrowed) are separate changes and are not covered by this assertion."
+      }
+    }
+  }
+}

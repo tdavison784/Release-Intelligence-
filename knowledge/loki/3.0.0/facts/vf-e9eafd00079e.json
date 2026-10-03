@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-e9eafd00079e",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-85842433541d"
+        ],
+        "statementKeys": [
+          "sk-91d0e3933581"
+        ],
+        "changeIds": [
+          "chg-47a8f6cb40fd"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-40aecbe6e0b2"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "metrics_namespace"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "metrics_namespace",
+              "state": "equals",
+              "values": [
+                "\"cortex\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "metrics_namespace",
+          "state": "equals",
+          "values": [
+            "\"cortex\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Listed metrics are exposed with the `loki_` prefix instead of `cortex_`, so queries, dashboards or alerts using the old names will not match unless metrics_namespace is set to `cortex`.",
+        "remediation": "Set metrics_namespace to `cortex` to keep old names, or update dashboards and alerts.",
+        "severity": "medium"
+      },
+      "statement": "Metrics namespace: Some Loki metrics started with the prefix `cortex_`. In this release they will be changed so they start with `loki_`. To keep them at…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-e634d61fbe91"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-e634d61fbe91"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-8bd00de6a13b"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-e29d3f7a9136"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-1f419676f177",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L666-L738 (3.0.0 › Loki 3.0.0 › Metrics namespace)",
+        "excerpt": "#### Metrics namespace\n\nSome Loki metrics started with the prefix `cortex_`. In this release they will be changed so they start with `loki_`. To keep them at `cortex_` change the `metrics_namespace` from the default `loki` to `cortex`. These metrics will be changed:\n\n- `cortex_distributor_ingester_clients`\n- `cortex_dns_failures_total`\n- `cortex_dns_lookups_total`\n- `cortex_dns_provider_results`\n- `cortex_frontend_query_range_duration_seconds_bucket`\n- `cortex_frontend_query_range_duration_seconds_count`\n- `cortex_frontend_query_range_duration_seconds_sum`\n- `cortex_ingester_flush_queue_length…",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T01:53:27.616Z"
+  }
+}

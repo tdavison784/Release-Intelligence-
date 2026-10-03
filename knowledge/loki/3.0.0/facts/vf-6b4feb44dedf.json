@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-6b4feb44dedf",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-10e5690916c9"
+        ],
+        "statementKeys": [
+          "sk-5fcc73cdfb2a"
+        ],
+        "changeIds": [
+          "chg-33295e745441"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-8f899185ace7"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "query_range.results_cache"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "release-knowledge-gap",
+          "needed": "the config keys that enable or disable results caching for stats, volume, label and series queries (and their old defaults), so environments that have explicitly turned these caches off can be told apart from exposed ones"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Query results for stats, volume, label, and series requests will now be cached by default to the in-memory results_cache, changing query performance characteristics and memory usage patterns.",
+        "severity": "medium"
+      },
+      "statement": "More results caching is enabled by default: The TSDB index type has support for caching results for 'stats' and 'volume' queries which are now enabled by…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-27d86af0becb"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-27d86af0becb"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-393bc332469c"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-e8e5d3e8d0a3"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-959df790f1d4",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L638-L644 (3.0.0 › Loki 3.0.0 › More results caching is enabled by default)",
+        "excerpt": "#### More results caching is enabled by default\n\nThe TSDB index type has support for caching results for 'stats' and 'volume' queries which are now enabled by default.\n\n'label' and 'series' requests can be cached now too and this is enabled by default.\n\nAll of these are cached to the `results_cache` which is configured in the `query_range` config section.  By default, an in memory cache is used.",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:03:44.091Z"
+  }
+}

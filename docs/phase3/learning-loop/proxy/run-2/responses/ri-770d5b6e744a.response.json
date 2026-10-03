@@ -1,0 +1,31 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-770d5b6e744a",
+  "promptDigest": "sha256:414d0dd4a6a011eaced421f0d88e988bfdedfeec26d5dc4c31de83567166769e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "c6df6453-73b2-485a-8722-51d4cb7161f6",
+  "startedAt": "2026-10-02T23:18:46.756Z",
+  "decidedAt": "2026-10-02T23:19:04.471Z",
+  "durationMs": 17041,
+  "costUSD": 0.505308,
+  "output": {
+    "action": "evidence-sufficient",
+    "reason": "[ev-e6df95267b63] says the wildcard view permissions were removed in 1.13 and replaced with a role binding to the system view role. It says admission-control behaviour is unchanged, but mutate and generate policies for custom resources, and reporting of validation results on custom resources, may be affected. The rendered diffs name the removed permissions exactly: */*:get, list and watch are gone from the ClusterRoles kyverno:admission-controller:core [ev-6af5be55b5f4, ev-cd36d7f61ae5, ev-d0c5cc15642f], kyverno:background-controller:core [ev-0ae726bec846, ev-bd2ca738e58d, ev-13d9875783a0] and kyverno:reports-controller:core [ev-fbb2a078179b, ev-8034700c2e78, ev-2e7e175db33a]; only the kyverno.io/* rules remain [ev-686e3f03e42c]. That is enough to write the subject (those wildcard rules), the change (removed, replaced by the system view binding) and the consequence (permission lost for custom resources outside the view role). Two gaps remain: the Helm option that avoids breaking policies is not named (the text only points to the upgrade guide), and exposure depends on whether an environment has policies targeting custom resources. Both affect remediation and later evaluation, not what the change means.",
+    "citations": [
+      "ev-e6df95267b63",
+      "ev-6af5be55b5f4",
+      "ev-cd36d7f61ae5",
+      "ev-d0c5cc15642f",
+      "ev-0ae726bec846",
+      "ev-bd2ca738e58d",
+      "ev-13d9875783a0",
+      "ev-fbb2a078179b",
+      "ev-8034700c2e78",
+      "ev-2e7e175db33a",
+      "ev-575e1935f511",
+      "ev-686e3f03e42c"
+    ],
+    "confidence": "medium"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-dea9205a3df2",
+  "promptDigest": "sha256:35e077fc7766aa8120b28b29d98865cab113e856c24ed32a445a531841754baf",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "3067d0d9-1c83-418c-8ed0-b2f95e737a45",
+  "startedAt": "2026-10-03T02:03:49.876Z",
+  "decidedAt": "2026-10-03T02:04:03.581Z",
+  "durationMs": 12752,
+  "costUSD": 0.05923200000000001,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "The evidence excerpts [ev-782bc47d120d] and [ev-c2c6c790d6b2] contain only \"apiVersion: v1\". They show nothing about the HelmRepository schema's required list, so they neither confirm nor refute that \"objects that omit status.artifact.digest are rejected\". The field is also under status, so the source-controller writes it, not operators. Nothing shown says whether the upgraded controller always sets digest or whether existing objects would hit a rejected write. Without that, I can't tell whether resource-rejected (mandatory work) is right or whether this is really behavior-change or none, or whether the remediation to \"ensure the field is populated\" is something an operator can actually do. Needed: the CRD schema excerpts for both releases showing status.artifact's required fields, plus upstream text on how the controller fills status.artifact.digest.",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low"
+  }
+}

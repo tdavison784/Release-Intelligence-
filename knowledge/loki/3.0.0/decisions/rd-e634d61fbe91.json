@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e634d61fbe91",
+    "reviewItemId": "ri-8f5eb1a5d008",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "metrics_namespace"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"cortex_*\"",
+        "after": "\"loki_*\""
+      },
+      "statement": "Loki 3.0.0 changes metrics namespace prefix from `cortex_` to `loki_`; the `metrics_namespace` config key can be set to `cortex` to retain the old prefix, but this setting is deprecated and will be removed in the next minor release."
+    },
+    "corrected": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "metrics_namespace"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "In Loki 3.0.0, metrics that started with `cortex_` now start with `loki_`, because they follow `metrics_namespace` (default `loki`). Setting `metrics_namespace` to `cortex` keeps the old prefix. The setting is deprecated and will be removed in the next minor release."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:e81a1e47475d5ae47439b97be597900187bc85b330f3c611b060b99d5435b21f",
+      "inputEvidence": [
+        "ev-1f419676f177"
+      ],
+      "generatedAt": "2026-10-03T01:53:27.616Z",
+      "callId": "81146b84-cd4f-409d-8eb2-9346916bf581"
+    },
+    "reason": "[ev-1f419676f177] says some metrics that used the `cortex_` prefix now start with `loki_`, and that `metrics_namespace` defaults to `loki` (set it to `cortex` to keep the old names). The subject config-key `metrics_namespace` is right. The change is wrong: `cortex_*` and `loki_*` are metric-name prefixes, not values of the key. The evidence also never says the key's previous default was `cortex`, so neither value-changed nor default-changed is supported. The supported reading is behavior-changed: with the key at its default `loki`, the listed metrics are now emitted with the `loki_` prefix.",
+    "startedAt": "2026-10-03T01:53:15.288Z",
+    "decidedAt": "2026-10-03T01:53:27.616Z",
+    "resultingFact": "vf-e9eafd00079e"
+  }
+}
