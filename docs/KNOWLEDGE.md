@@ -60,6 +60,18 @@ identical value stays deterministic; a proxy never overrides a trusted aspect. R
 candidate's anchors to the named fact. Retraction/supersession: `OpenFactReview` / `ri knowledge review-fact`.
 All decisions of a call (bulk review shares a `BatchID`) are validated before anything is written.
 
+### Composition never assembles an invalid assertion
+
+Aspects verified on different items of one candidate can each be sound alone and still not compose (the real case:
+a validator-confirmed `gvk` subject plus a proxy-accepted `migration-required` change, which the domain allows only on a
+`migration` subject; proxy-shadow REPORT.md finding 3). `candidateState` therefore repairs the accumulated tuple: it reopens
+the smallest set of non-trusted aspects (least trusted first; ties protect the subject) so that the rest composes, the
+decision is recorded, and the follow-up items re-ask the reopened aspects coherently against the survivors (`proposedFor`
+only composes valid combinations, taking open aspects from one proposal). A conflict between trusted aspects cannot be
+repaired: the decision is still recorded, no fact is built, and `DecisionOutcome.Conflict` reports it (`ri knowledge
+decide` prints it). A verdict is never refused or lost. Regression tests replay the two real refused verdicts from the
+committed proxy-shadow store (`realrecord_test.go`).
+
 ### Prose-only corrections (improved-statement)
 
 A correction that changes only the consequence `Statement`/`Remediation` (aspect digests ignore prose) is labelled

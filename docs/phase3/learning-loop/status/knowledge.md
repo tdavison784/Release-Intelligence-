@@ -56,3 +56,8 @@
 ## knowledge-6
 - Prose-only (improved-statement) corrections: `IsProseOnlyCorrection`, `FactFromDecision`/`candidateState` apply the corrected consequence prose under the same fact id (mint or update; proxy never overrides human prose), FileStore allows consequence statement/remediation as a mutable fact field, metrics count `ProseEdits` separately (additive fields, CONTRACT-CHANGE).
 - `Provenance.Provider` set in the proxy decide path (`-proxy-provider`, default anthropic) and in test fixtures; the knowledge lane has no other provenance writers.
+
+## knowledge-7: composition never assembles an invalid assertion
+- `candidateState` repairs a non-composing tuple by reopening the least-trusted aspects (GLM handoff commit 706c23b6, reviewed and kept); follow-ups re-ask them coherently. New: a conflict between trusted aspects no longer aborts `Decide` — the decision is recorded, no fact is built, `DecisionOutcome.Conflict` reports it (additive, CONTRACT-CHANGE).
+- Regression tests replay the two real refused verdicts (external-secrets `ri-936e84e2656e` correct, kyverno `ri-a52785036b5e` accept) against copies of the committed proxy-shadow store; with `repairState` disabled they fail with the exact ledger errors.
+- Handoff review: the glm-knowledge agent mis-read "knowledge-7" as the L1 channels work and committed it on this branch (channels machinery, four `channels.json`, proxy prompt v3, l1-rerun artifacts). That is not what knowledge-7 asked for, so it was moved untouched to branch `p3ll/glm-handoff-l1` for the commander to decide; this branch holds only the composition fix.

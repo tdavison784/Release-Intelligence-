@@ -445,3 +445,157 @@ func TestDatasetAndMetrics(t *testing.T) {
 		t.Fatalf("grounded = %v", m.Models[0].GroundedCitations)
 	}
 }
+
+// tuples for the cross-aspect conflict tests: a migration subject+change (the
+// coherent tuple two calls propose) and a gvk subject whose change is removed.
+func migrationTuple() domain.SemanticAssertion {
+	cons := &domain.Consequence{Kind: domain.ConsequenceBehaviorChange, ExposedClass: domain.ConsequenceBehaviorChange.ExposedClass(), Severity: domain.SeverityHigh}
+	if domain.ConsequenceBehaviorChange.ActionEligible() {
+		cons.Statement = "stored objects break"
+	}
+	return domain.SemanticAssertion{
+		Subject:       &domain.Subject{Family: domain.SubjectMigration, Product: "cert-manager", Name: "storage-version-migration"},
+		Change:        &domain.ChangeSpec{Type: domain.ChangeKindMigrationRequired},
+		Applicability: &domain.Applicability{Exposure: certificates(domain.Condition{Op: domain.OpField, Path: "spec.privateKey.rotationPolicy", State: domain.StateUnset})},
+		Consequence:   cons,
+		Statement:     "existing objects need a storage version migration",
+	}
+}
+
+func gvkTuple() domain.SemanticAssertion {
+	cons := &domain.Consequence{Kind: domain.ConsequenceBehaviorChange, ExposedClass: domain.ConsequenceBehaviorChange.ExposedClass(), Severity: domain.SeverityHigh}
+	if domain.ConsequenceBehaviorChange.ActionEligible() {
+		cons.Statement = "stored objects break"
+	}
+	return domain.SemanticAssertion{
+		Subject:       &domain.Subject{Family: domain.SubjectGVK, Product: "cert-manager", Group: "cert-manager.io", Kind: "Certificate", Version: "v1"},
+		Change:        &domain.ChangeSpec{Type: domain.ChangeKindRemoved},
+		Applicability: &domain.Applicability{Exposure: certificates(domain.Condition{Op: domain.OpField, Path: "spec.privateKey.rotationPolicy", State: domain.StateUnset})},
+		Consequence:   cons,
+		Statement:     "the v1 version of the CRD is removed",
+	}
+}
+
+// routedConflict seeds a candidate whose mapping item coherently proposes the
+// migration tuple, then confirms the gvk SUBJECT by validation after routing
+// (items are snapshots; the state moves under them). It returns the three
+// items in route order.
+func routedConflict(t *testing.T, extraValidations ...domain.ValidationResult) (Store, Queue, []domain.ReviewItem) {
+	t.Helper()
+	s := NewFileStore(t.TempDir())
+	q := NewQueue(s, func() time.Time { return t0.Add(time.Hour) })
+	c := fixtureCandidate()
+	mustPut(t, s, c)
+	p1 := proposal(c, "zai", "glm-5.3-flash", migrationTuple())
+	p2 := proposal(c, "anthropic", "claude-haiku-4-5", migrationTuple())
+	p3 := proposal(c, "anthropic", "claude-sonnet-5-5", gvkTuple())
+	mustPut(t, s, p1)
+	mustPut(t, s, p2)
+	mustPut(t, s, p3)
+	res := Route(c, []domain.SemanticProposal{p1, p2, p3}, nil)
+	if len(res.ReviewItems) != 3 {
+		t.Fatalf("route built %d items; want mapping, applicability, consequence", len(res.ReviewItems))
+	}
+	for _, it := range res.ReviewItems {
+		mustPut(t, s, it)
+	}
+	for _, v := range extraValidations {
+		mustPut(t, s, v)
+	}
+	return s, q, res.ReviewItems
+}
+
+func itemFor(items []domain.ReviewItem, q domain.QuestionType) domain.ReviewItem {
+	for _, it := range items {
+		if it.QuestionType == q {
+			return it
+		}
+	}
+	return domain.ReviewItem{}
+}
+
+// proxy-shadow REPORT.md finding 3: aspects verified on different items of one
+// candidate (a validated gvk subject, a proxy-accepted migration-required
+// change) can each be sound alone while the tuple is invalid. The decisions
+// must be recorded and the conflicting change reopened as coherent follow-up
+// review, not refuse the call and lose the verdicts.
+func TestConflictingAspectsAreReopenedNotLost(t *testing.T) {
+	s, q, items := routedConflict(t, validation(fixtureCandidate(), gvkTuple(), domain.AspectSubject))
+	ctx := context.Background()
+	mapping := itemFor(items, domain.QuestionSemanticMapping)
+	if mapping.Proposed.Subject.Family != domain.SubjectMigration {
+		t.Fatalf("mapping item proposes %+v", mapping.Proposed.Subject)
+	}
+	out, err := q.Decide(ctx, []domain.ReviewDecision{
+		decision(itemFor(items, domain.QuestionConsequence), "proxy-opus", domain.ReviewerProxy, domain.ActionAccept, t0.Add(2*time.Hour)),
+		decision(mapping, "proxy-opus", domain.ReviewerProxy, domain.ActionAccept, t0.Add(3*time.Hour)),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	last := out[len(out)-1]
+	if last.Fact != nil {
+		t.Fatalf("an invalid tuple minted fact %s", last.Fact.ID)
+	}
+	// the change aspect the domain forbids on the gvk subject is reopened;
+	// the applicability aspect was never decided
+	open := map[domain.Aspect]bool{}
+	for _, x := range last.OpenAspects {
+		open[x] = true
+	}
+	if !open[domain.AspectChange] || !open[domain.AspectApplicability] {
+		t.Fatalf("open aspects = %v", last.OpenAspects)
+	}
+	snap, err := s.Load(ctx, Query{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(snap.Decisions) != 2 {
+		t.Fatalf("%d decisions recorded; want both verdicts kept", len(snap.Decisions))
+	}
+	if len(snap.Facts) != 0 {
+		t.Fatalf("%d facts minted from an invalid tuple", len(snap.Facts))
+	}
+	// the follow-up re-asks the change coherently against the surviving gvk
+	// subject: a valid change on that subject, not the forbidden combination
+	var followUp *domain.ReviewItem
+	for i, it := range snap.ReviewItems {
+		if it.ID == mapping.ID || it.Status != domain.ReviewPending || it.QuestionType != domain.QuestionSemanticMapping {
+			continue
+		}
+		followUp = &snap.ReviewItems[i]
+	}
+	if followUp == nil {
+		t.Fatal("no follow-up item re-asks the conflicting change")
+	}
+	if followUp.Proposed.Subject.Family != domain.SubjectGVK || followUp.Proposed.Change.Type == domain.ChangeKindMigrationRequired {
+		t.Fatalf("follow-up proposes subject %s, change %s", followUp.Proposed.Subject.Family, followUp.Proposed.Change.Type)
+	}
+	if err := followUp.Proposed.Validate(false); err != nil {
+		t.Fatalf("follow-up proposal does not validate: %v", err)
+	}
+}
+
+// a conflict between trusted (here: validator-confirmed) aspects cannot be
+// repaired by reopening: no fact is assembled, but the reviewer's verdict is
+// still recorded and the conflict is reported (never silently lost, never an
+// invalid fact).
+func TestConflictingTrustedAspectsAreRecordedAndReported(t *testing.T) {
+	c := fixtureCandidate()
+	s, q, items := routedConflict(t,
+		validation(c, gvkTuple(), domain.AspectSubject),
+		validation(c, migrationTuple(), domain.AspectChange, domain.AspectApplicability))
+	ctx := context.Background()
+	d := decision(itemFor(items, domain.QuestionConsequence), "proxy-opus", domain.ReviewerProxy, domain.ActionAccept, t0.Add(2*time.Hour))
+	out, err := q.Decide(ctx, []domain.ReviewDecision{d})
+	if err != nil {
+		t.Fatalf("the verdict was refused: %v", err)
+	}
+	if out[0].Fact != nil || !strings.Contains(out[0].Conflict, "go together") {
+		t.Fatalf("fact %v, conflict %q", out[0].Fact != nil, out[0].Conflict)
+	}
+	snap, _ := s.Load(ctx, Query{})
+	if len(snap.Decisions) != 1 || len(snap.Facts) != 0 {
+		t.Fatalf("decisions %d, facts %d", len(snap.Decisions), len(snap.Facts))
+	}
+}

@@ -325,6 +325,10 @@ type DecisionOutcome struct {
 	OpenAspects []domain.Aspect
 	// FollowUps are review items created because aspects remain open.
 	FollowUps []domain.ReviewItem
+	// Conflict, when set, says the candidate's verified aspects cannot compose
+	// into a valid fact (a conflict between trusted aspects). The decision is
+	// recorded and no fact is built. CONTRACT-CHANGE(knowledge): additive.
+	Conflict string
 }
 
 // --- metrics (knowledge lane; DESIGN.md §7) ---------------------------------------------

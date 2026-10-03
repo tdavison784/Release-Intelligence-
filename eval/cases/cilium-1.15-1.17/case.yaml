@@ -19,8 +19,11 @@ expected:
     actionRequired: true        # the upgrade path itself is version-gated
     classification: not-affected      # corrected 2026-10-01 (eval/CHANGELOG.md): this case's edge starts at v1.15.6, which already meets the precondition
     match:
+      # narrowed 2026-10-02 (eval/CHANGELOG.md (h)): the bare '(?i)toFQDNs'
+      # alternative over-selected three unrelated toFQDNs-adjacent changes
+      # (dnsProxy default, cilium_fqdn_selectors metric); the item's subject
+      # is the version precondition its own quote states verbatim.
       - text: '(?i)toFQDNs.*1\.15\.6|1\.15\.6 or newer'
-      - text: '(?i)toFQDNs'
     evidence:
       - url: https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst
         quote: "To avoid drops during upgrades in clusters with ``toFQDNs`` policies, it is required to run Cilium v1.15.6 or newer before upgrading to Cilium v1.16."
