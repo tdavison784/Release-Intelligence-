@@ -64,7 +64,8 @@ type ConfigSource struct {
 	// (helm-values; "." = chart root), or the key that sets this source
 	// (feature-gates, configmap-file).
 	ValuesPath string `yaml:"valuesPath,omitempty" json:"valuesPath,omitempty"`
-	// Flag is the flag carrying the gate list (feature-gates).
+	// Flag carries the gate list (feature-gates): a command-line flag
+	// ("--feature-gates") or an environment variable ("STRIMZI_FEATURE_GATES").
 	Flag string `yaml:"flag,omitempty" json:"flag,omitempty"`
 	// Resource is the custom resource the product reads (custom-resource).
 	Resource *ConfigResource `yaml:"resource,omitempty" json:"resource,omitempty"`
@@ -84,6 +85,8 @@ type ConfigReference struct {
 	URL   string `yaml:"url" json:"url"`
 	Quote string `yaml:"quote" json:"quote"`
 }
+
+var envVarNameRe = regexp.MustCompile(`^[A-Z][A-Z0-9_]*$`)
 
 var configSourceIDRe = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`)
 
@@ -155,8 +158,8 @@ func (v *validator) configSources(d *ProductDefinition) {
 		if s.Format != "" && !containsStr(ConfigFormats, s.Format) {
 			v.errf(p+".format", "unknown format %q (one of %v)", s.Format, ConfigFormats)
 		}
-		if s.Flag != "" && !strings.HasPrefix(s.Flag, "-") {
-			v.errf(p+".flag", "must be a flag (leading -), got %q", s.Flag)
+		if s.Flag != "" && !strings.HasPrefix(s.Flag, "-") && !envVarNameRe.MatchString(s.Flag) {
+			v.errf(p+".flag", "must be a flag (leading -) or an environment variable name, got %q", s.Flag)
 		}
 		if s.Resource != nil && strings.TrimSpace(s.Resource.Kind) == "" {
 			v.errf(p+".resource.kind", "required")

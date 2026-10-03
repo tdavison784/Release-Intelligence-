@@ -208,3 +208,63 @@ provenance:
     ftp.postgresql.org, www.postgresql.org and git.postgresql.org are
     unreachable from the sandbox, so the tarball and the security page are
     declared but unverified.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: postgresql-conf
+  channel: config-file
+  component: postgres
+  summary: Server run-time parameters are set as name = value lines in postgresql.conf in the data directory (it
+    may include further files via include directives).
+  file: postgresql.conf
+  format: text
+  references:
+  - url: https://www.postgresql.org/docs/current/config-setting.html
+    quote: The most fundamental way to set these parameters is to edit the file postgresql.conf, which is normally
+      kept in the data directory.
+- id: postgresql-auto-conf
+  channel: config-file
+  component: postgres
+  summary: Parameters set with the ALTER SYSTEM SQL command are written to postgresql.auto.conf in the data directory
+    (same format as postgresql.conf, not hand-edited) and override postgresql.conf.
+  file: postgresql.auto.conf
+  format: text
+  references:
+  - url: https://www.postgresql.org/docs/current/config-setting.html
+    quote: This file holds settings provided through the ALTER SYSTEM command.
+  - url: https://www.postgresql.org/docs/current/config-setting.html
+    quote: Settings in postgresql.auto.conf override those in postgresql.conf.
+- id: pg-hba-conf
+  channel: config-file
+  component: postgres
+  summary: Client authentication rules (which hosts/users/databases may connect and with which method) are configured
+    in pg_hba.conf in the data directory.
+  file: pg_hba.conf
+  format: text
+  references:
+  - url: https://www.postgresql.org/docs/current/auth-pg-hba-conf.html
+    quote: Client authentication is controlled by a configuration file, which traditionally is named pg_hba.conf
+      and is stored in the database cluster's data directory.
+- id: postgres-cli
+  channel: cli-flags
+  component: postgres
+  summary: Any run-time parameter can be passed at server start with -c name=value (or --name=value), overriding
+    postgresql.conf and ALTER SYSTEM; -D sets the data/config directory.
+  references:
+  - url: https://www.postgresql.org/docs/current/config-setting.html
+    quote: During server startup, parameter settings can be passed to the postgres command via the -c name=value
+      command-line parameter, or its equivalent --name=value variation.
+  - url: https://www.postgresql.org/docs/current/app-postgres.html
+    quote: Sets a named run-time parameter.
+- id: server-env-vars
+  channel: env-vars
+  component: postgres
+  summary: The server reads a few environment variables such as PGDATA (default data directory) and PGPORT (default
+    port); per-session parameter defaults can be supplied by libpq clients through PGOPTIONS.
+  references:
+  - url: https://www.postgresql.org/docs/current/app-postgres.html
+    quote: PGDATA Default data directory location
+  - url: https://www.postgresql.org/docs/current/config-setting.html
+    quote: parameter settings can be specified using the PGOPTIONS environment variable.

@@ -517,3 +517,63 @@ provenance:
     release notes and the cumulative upgrade guide at main, the community
     chart lookup by unprefixed appVersion, release-asset packages, and the
     promtail end-of-life statement. Verified with `ri check loki`.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: loki-config
+  channel: configmap-file
+  component: loki (all targets)
+  summary: All Loki server and component settings live in one YAML file passed with -config.file; the Helm chart
+    renders it into the config.yaml key of a ConfigMap (or Secret, per loki.configStorageType) from loki.config,
+    with loki.structuredConfig taking precedence.
+  file: config.yaml
+  format: yaml
+  valuesPath: loki.config
+  references:
+  - url: https://grafana.com/docs/loki/latest/configure/
+    quote: Grafana Loki is configured in a YAML file (usually referred to as loki.yaml) which contains information
+      on the Loki server and its individual components
+  - url: https://raw.githubusercontent.com/grafana-community/helm-charts/main/charts/loki/templates/config.yaml
+    quote: 'config.yaml: |'
+  - url: https://raw.githubusercontent.com/grafana-community/helm-charts/main/charts/loki/values.yaml
+    quote: '# -- Structured loki configuration, takes precedence over `loki.config`, `loki.schemaConfig`, `loki.storageConfig`'
+- id: runtime-config
+  channel: configmap-file
+  component: loki (all targets)
+  summary: Per-tenant limit overrides go in a runtime config file (-runtime-config.file) that Loki reloads without
+    restart; the chart renders it into the runtime-config.yaml key of a runtime ConfigMap from loki.runtimeConfig.
+  file: runtime-config.yaml
+  format: yaml
+  valuesPath: loki.runtimeConfig
+  references:
+  - url: https://grafana.com/docs/loki/latest/operations/overrides-exporter/
+    quote: Configuration updates to tenant limits can be applied to Loki without restart via the runtime_config
+      feature.
+  - url: https://raw.githubusercontent.com/grafana-community/helm-charts/main/charts/loki/templates/runtime-configmap.yaml
+    quote: 'runtime-config.yaml: |'
+  - url: https://raw.githubusercontent.com/grafana-community/helm-charts/main/charts/loki/values.yaml
+    quote: '# -- Provides a reloadable runtime configuration file for some specific configuration'
+- id: helm-values
+  channel: helm-values
+  component: loki chart
+  summary: The Loki Helm chart (now maintained in grafana-community/helm-charts rather than the grafana/loki repository)
+    carries Loki settings under loki.* and per-component workload settings under top-level keys.
+  valuesPath: loki
+  references:
+  - url: https://grafana.com/docs/loki/latest/setup/install/helm/
+    quote: Grafana Community Champions now maintain the Loki Helm charts in the Grafana-community/helm-charts repo.
+  - url: https://raw.githubusercontent.com/grafana-community/helm-charts/main/charts/loki/values.yaml
+    quote: '# -- Config file contents for Loki'
+- id: cli-flags
+  channel: cli-flags
+  component: loki
+  summary: Every config option has a CLI flag that overrides the file (defaults < config file < flags); -config.file
+    selects the file and -config.expand-env=true enables ${VAR} environment references inside it.
+  references:
+  - url: https://grafana.com/docs/loki/latest/configure/
+    quote: To specify which configuration file to load, pass the -config.file flag at the command line.
+  - url: https://grafana.com/docs/loki/latest/configure/
+    quote: You can use environment variable references in the configuration file to set values that need to be configurable
+      during deployment.

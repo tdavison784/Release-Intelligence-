@@ -25,6 +25,7 @@ func TestConfigSourcesValid(t *testing.T) {
 		ConfigSource{ID: "chart", Channel: ChannelHelmValues, Summary: "chart values", ValuesPath: ".", References: ref},
 		ConfigSource{ID: "flags", Channel: ChannelCLIFlags, Component: "server", Summary: "flags", References: ref},
 		ConfigSource{ID: "gates", Channel: ChannelFeatureGates, Summary: "gates", Flag: "--feature-gates", ValuesPath: "featureGates", References: ref},
+		ConfigSource{ID: "envgates", Channel: ChannelFeatureGates, Summary: "gates in env", Flag: "DEMO_FEATURE_GATES", References: ref},
 		ConfigSource{ID: "global", Channel: ChannelCustomResource, Summary: "global CR", Resource: &ConfigResource{Group: "demo.io", Kind: "Config"}, References: ref},
 	)
 	if errs := lifecycleErrors(d); len(errs) != 0 {

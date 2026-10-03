@@ -302,6 +302,11 @@ func configSourceLine(h knowledge.ConfigSourceHint) string {
 	case "env-vars":
 		pred = "env-var{name: <VAR>" + compOf(h) + "}"
 	case "feature-gates":
+		if h.Flag != "" && !strings.HasPrefix(h.Flag, "-") {
+			// gates passed in an environment variable: its token list
+			pred = fmt.Sprintf("env-var{name: %s%s, state: has-token|has-token-key, values: [<Gate token as the docs spell it>]}", h.Flag, compOf(h))
+			break
+		}
 		pred = "feature-gate{name: <Gate>, state: enabled|disabled|unset"
 		if h.ValuesPath != "" {
 			pred += ", path: " + h.ValuesPath

@@ -343,3 +343,60 @@ provenance:
     no artifacts (there are none in the repo: binaries are built and attached
     by the release workflow outside the tree) and no upgrade guides (they live
     under website/docs/guides/, found by research).
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: provider-block
+  channel: config-file
+  component: terraform-provider-aws
+  summary: Arguments of the aws provider block in the Terraform configuration (region, profile, access_key/secret_key,
+    assume_role, allowed_account_ids, ...); they take precedence over every other source.
+  file: '*.tf'
+  format: text
+  references:
+  - url: https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/website/docs/index.html.markdown
+    quote: 'Configuration for the AWS Provider can be derived from several sources, which are applied in the following
+      order:'
+  - url: https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/website/docs/index.html.markdown
+    quote: 1. Parameters in the provider configuration
+  - url: https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/website/docs/index.html.markdown
+    quote: Credentials can be provided by adding an `access_key`, `secret_key`, and optionally `token`, to the `aws`
+      provider block.
+- id: aws-env-vars
+  channel: env-vars
+  component: terraform-provider-aws
+  summary: AWS_* environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN, AWS_REGION
+    / AWS_DEFAULT_REGION, AWS_PROFILE, AWS_CONFIG_FILE, AWS_SHARED_CREDENTIALS_FILE) supply settings not given in
+    the provider block.
+  references:
+  - url: https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/website/docs/index.html.markdown
+    quote: Credentials can be provided by using the `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and optionally
+      `AWS_SESSION_TOKEN` environment variables.
+  - url: https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/website/docs/index.html.markdown
+    quote: The Region can be set using the `AWS_REGION` or `AWS_DEFAULT_REGION` environment variables.
+- id: aws-shared-config
+  channel: config-file
+  component: terraform-provider-aws
+  summary: The AWS shared configuration file ($HOME/.aws/config, overridable with AWS_CONFIG_FILE) supplies profile
+    settings such as region; the named profile is chosen with the profile argument or AWS_PROFILE.
+  file: config
+  format: ini
+  references:
+  - url: https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/website/docs/index.html.markdown
+    quote: The AWS Provider can source credentials and other settings from the [shared configuration and credentials
+      files](https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html).
+  - url: https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/website/docs/index.html.markdown
+    quote: Use the `profile` parameter or `AWS_PROFILE` environment variable to specify a named profile.
+- id: aws-shared-credentials
+  channel: config-file
+  component: terraform-provider-aws
+  summary: The AWS shared credentials file ($HOME/.aws/credentials, overridable with AWS_SHARED_CREDENTIALS_FILE)
+    supplies per-profile access keys.
+  file: credentials
+  format: ini
+  references:
+  - url: https://raw.githubusercontent.com/hashicorp/terraform-provider-aws/main/website/docs/index.html.markdown
+    quote: By default, these files are located at `$HOME/.aws/config` and `$HOME/.aws/credentials` on Linux and
+      macOS,

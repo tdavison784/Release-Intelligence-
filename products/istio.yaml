@@ -351,3 +351,71 @@ provenance:
     Corrected 2026-10-02 after live re-run (docs/rerun/REPORT.md):
     blob.istio.io, registry.istio.io (token flow) and the GitHub API are
     reachable.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: istiod-helm-values
+  channel: helm-values
+  component: istiod
+  summary: The istiod (istio-discovery) chart, plus base, gateway, cni and ztunnel charts; values are set directly
+    at the chart root (meshConfig, pilot settings, global, env, ...).
+  valuesPath: .
+  references:
+  - url: https://istio.io/latest/docs/setup/install/helm/
+    quote: Default configuration values can be changed using one or more --set <parameter>=<value> arguments.
+  - url: https://raw.githubusercontent.com/istio/istio/master/manifests/charts/istio-control/istio-discovery/values.yaml
+    quote: '# For instance, instead of `--set _internal_defaults_do_not_set.foo=bar``, just set `--set foo=bar`.'
+- id: mesh-config
+  channel: configmap-file
+  component: istiod
+  summary: Mesh-wide MeshConfig YAML in the mesh key of the istio ConfigMap (istio-<revision> for revisioned installs),
+    read by pilot-discovery --meshConfig; rendered from the chart's meshConfig value.
+  file: mesh
+  format: yaml
+  configMap: istio
+  valuesPath: meshConfig
+  references:
+  - url: https://istio.io/latest/docs/reference/config/istio.mesh.v1alpha1/
+    quote: MeshConfig defines mesh-wide settings for the Istio service mesh.
+  - url: https://raw.githubusercontent.com/istio/istio/master/manifests/charts/istio-control/istio-discovery/values.yaml
+    quote: '# meshConfig defines runtime configuration of components, including Istiod and istio-agent behavior'
+  - url: https://raw.githubusercontent.com/istio/istio/master/manifests/charts/istio-control/istio-discovery/templates/configmap.yaml
+    quote: 'name: istio{{- if not (eq .Values.revision "") }}-{{ .Values.revision }}{{- end }}'
+  - url: https://istio.io/latest/docs/reference/commands/pilot-discovery/
+    quote: --meshConfig <string>File name for Istio mesh configuration. If not specified, a default mesh will be
+      used.
+- id: istiod-env
+  channel: env-vars
+  component: istiod
+  summary: pilot-discovery reads a documented set of environment variables (PILOT_*, ENABLE_*, ISTIO_* ...) that
+    toggle istiod behaviour; set on the istiod container, e.g. through the chart's env value.
+  references:
+  - url: https://istio.io/latest/docs/reference/commands/pilot-discovery/
+    quote: These environment variables affect the behavior of the pilot-discovery command.
+- id: istio-operator
+  channel: custom-resource
+  component: istioctl
+  summary: IstioOperator YAML passed as a file to istioctl install / istioctl manifest generate (not applied to
+    the cluster); meshConfig and values fields map onto MeshConfig and chart values.
+  resource:
+    group: install.istio.io
+    kind: IstioOperator
+  references:
+  - url: https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/
+    quote: Configuration affecting Istio control plane installation version and shape. This resource is passed as
+      a file input
+  - url: https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/
+    quote: Overrides for default values.yaml. This is a validated pass-through to Helm templates.
+- id: pilot-discovery-flags
+  channel: cli-flags
+  component: istiod
+  summary: pilot-discovery discovery command-line flags (mesh config file path, addresses, logging, ...).
+  references:
+  - url: https://istio.io/latest/docs/reference/commands/pilot-discovery/
+    quote: Istio Pilot provides mesh-wide traffic management, security and policy capabilities in the Istio Service
+      Mesh.
+  - url: https://istio.io/latest/docs/reference/commands/pilot-discovery/
+    quote: --meshConfig <string>File name for Istio mesh configuration. If not specified, a default mesh will be
+      used.

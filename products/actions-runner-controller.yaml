@@ -264,3 +264,41 @@ provenance:
     chart contents (no CI lag at the tag), CRDs and manifest from the
     discovery proposal kept, and a deprecated lifecycle statement carrying
     the legacy-modes evidence.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: controller-helm-values
+  channel: helm-values
+  component: controller-manager
+  summary: 'The gha-runner-scale-set-controller chart: controller-manager options under flags.*, metrics, env and
+    workload settings at the chart root.'
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/actions/actions-runner-controller/master/charts/gha-runner-scale-set-controller/values.yaml
+    quote: '# Default values for gha-runner-scale-set-controller.'
+  - url: https://docs.github.com/en/actions/tutorials/use-actions-runner-controller/deploy-runner-scale-sets
+    quote: To enable metrics for ARC, configure the metrics property in the values.yaml file of the gha-runner-scale-set-controller
+      chart.
+- id: scale-set-helm-values
+  channel: helm-values
+  component: runner scale set (listener and runners)
+  summary: 'The gha-runner-scale-set chart (one release per scale set): githubConfigUrl, githubConfigSecret, minRunners/maxRunners,
+    runnerScaleSetName, containerMode and the runner pod template.'
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/actions/actions-runner-controller/master/charts/gha-runner-scale-set/values.yaml
+    quote: '## githubConfigUrl is the GitHub url for where you want to configure runners'
+  - url: https://docs.github.com/en/actions/tutorials/use-actions-runner-controller/deploy-runner-scale-sets
+    quote: Make sure to pass the values.yaml file in your helm install command.
+- id: controller-flags
+  channel: cli-flags
+  component: controller-manager
+  summary: controller-manager command-line flags (--log-level, --log-format, --watch-single-namespace, ...), rendered
+    from the controller chart's flags.* values.
+  references:
+  - url: https://raw.githubusercontent.com/actions/actions-runner-controller/master/charts/gha-runner-scale-set-controller/templates/deployment.yaml
+    quote: '- "--log-level={{ . }}"'
+  - url: https://raw.githubusercontent.com/actions/actions-runner-controller/master/charts/gha-runner-scale-set-controller/values.yaml
+    quote: '## Restricts the controller to only watch resources in the desired namespace.'

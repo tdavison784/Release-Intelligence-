@@ -478,3 +478,57 @@ provenance:
     missing images come from the release workflow, the kyverno-api pin from
     Chart.yaml, the upgrade guide and support policy from the website
     repository, and the stale in-repo CHANGELOG.md was rejected.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: kyverno-configmap
+  channel: configmap-file
+  component: kyverno controllers
+  summary: Engine behaviour (resourceFilters, webhooks namespace/object selectors, excludeGroups, excludeUsernames,
+    defaultRegistry, generateSuccessEvents, updateRequestThreshold) is set as keys of the kyverno ConfigMap, which
+    Kyverno watches and reloads; the chart renders it from config.*.
+  configMap: kyverno
+  valuesPath: config
+  references:
+  - url: https://kyverno.io/docs/installation/customization/
+    quote: The following keys are used to control the behavior of Kyverno and must be set in the Kyverno ConfigMap.
+      Kyverno watches for changes to this ConfigMap and will load any updates which occur.
+  - url: https://kyverno.io/docs/installation/customization/
+    quote: The default name of this ConfigMap is kyverno but can be changed by modifying the value of the environment
+      variable INIT_CONFIG in the Kyverno deployment spec.
+  - url: https://raw.githubusercontent.com/kyverno/kyverno/main/charts/kyverno/values.yaml
+    quote: '# -- Resource types to be skipped by the Kyverno policy engine.'
+- id: metrics-configmap
+  channel: configmap-file
+  component: kyverno controllers
+  summary: Which metrics are exposed, label dropping, namespace include/exclude and histogram bucket boundaries
+    are set in the kyverno-metrics ConfigMap, rendered by the chart from metricsConfig.*.
+  configMap: kyverno-metrics
+  valuesPath: metricsConfig
+  references:
+  - url: https://kyverno.io/docs/monitoring/
+    quote: While installing Kyverno via Helm, you also have the ability to configure which metrics to expose, this
+      configuration will be stored in the kyverno-metrics ConfigMap.
+- id: helm-values
+  channel: helm-values
+  component: kyverno chart (admission, background, reports, cleanup controllers)
+  summary: The in-repo kyverno chart configures the ConfigMaps (config, metricsConfig), feature toggles (features.*)
+    and per-controller deployments (admissionController, backgroundController, reportsController, cleanupController,
+    each with container.extraArgs).
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/kyverno/kyverno/main/charts/kyverno/values.yaml
+    quote: '# -- Enables the feature'
+  - url: https://raw.githubusercontent.com/kyverno/kyverno/main/charts/kyverno/values.yaml
+    quote: '# -- Additional container args.'
+- id: container-flags
+  channel: cli-flags
+  component: kyverno admission, background, reports and cleanup controllers
+  summary: Advanced controller behaviour is set by container arguments on the controllers' main containers (e.g.
+    --enablePolicyException, --backgroundScanInterval, --webhookServerPort, --tlsKeyAlgorithm).
+  references:
+  - url: https://kyverno.io/docs/installation/customization/
+    quote: The following flags can be used to control the advanced behavior of the various Kyverno controllers and
+      should be set on the main container in the form of arguments.
