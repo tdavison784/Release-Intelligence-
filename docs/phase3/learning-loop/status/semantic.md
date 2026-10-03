@@ -335,3 +335,40 @@ Uncertainties / for the commander:
   (change 79 %, consequence 70 %), and free-form subject names remain the bottleneck. Rendered evidence
   is cited in 57–68 % of proposals where shown; a controlled with/without measurement is the open next
   step. Full record: `runs/semantic-v3/README.md`.
+
+## semantic-4 (L1 + L4) — Claude agent, after the fourth GLM handoff
+
+Review of the fourth handoff (on `p3ll/semantic-3`, carried into `p3ll/semantic-4`):
+- 14b1de6a / 5c5fee3c: files copied in from integration. Verified byte-identical to `p3-learning-loop`.
+- 5754899e (undecidable-leaf analysis, PROMPT-LEVERS.md): sound, and it is the design input for L1. Its
+  "L4 blocked" note was measured before the integration merge; on the merged branch `lines:*` diffs and
+  the routine classifier exist.
+- 18cf2eb8 / 0caf8055 / 6e320cd9 (`-only` filter; the controlled with/without-render run, GLM half
+  answered): kept. The Claude half (153 staged calls) is not part of this wave's order, so it stays
+  staged until the ordered steps are done.
+
+Step 1, code, committed (8c935d2f, d1e01ebe): configSources format + validation + docs; prompt v2 with
+CONFIG SOURCES and the `undecidable` rule (schema + `ErrAvoidableUndecidable`); L4 candidates
+(lines:* + subject-naming non-dependency routine notes, clustered only among themselves). Checked on all
+15 environment edges against the pre-change binary: L4 removes no existing candidate id. Product config
+data from upstream docs: in progress (research agents; committed separately with citations).
+
+Step 2, sizing of the property-selected v2 re-proposal (`runs/semantic-v4/select_candidates.py`; each
+candidate assigned to the first environment edge that generates it; never by eval link):
+
+| rule | candidates |
+|---|---|
+| R1: `undecidable` leaf on an existing VERIFIED FACT | 59 |
+| R1b: `undecidable` leaf on an existing proposal (no fact leaf) | 78 |
+| R2: has proposals, all fully abstained | 210 |
+| R3: new L4 candidate (a member is `lines:*` or a routine note) | 102 |
+| **total** | **449** |
+
+Undecidable leaf reasons on R1/R1b: environment-visibility-gap 90, runtime-behavior-gap 52,
+evidence-gap 22, release-knowledge-gap 4, cross-product-context-gap 1. So 95 leaves now have a reason v2
+forbids. New candidates *not* from L4 (integration edge drift, no proposals yet; not selected):
+external-secrets 24, prometheus-operator 18, cilium 13, istio 2.
+
+Estimate: 449 × (Sonnet + Opus + GLM) = 1 347 calls. Claude side at the semantic-3 per-call rates
+(Sonnet $0.047, Opus $0.102) is about $67, ~$75 with v2's longer prompts: **within the ~$100 budget,
+so no priority cut**. GLM: 449 calls, billed by Z.AI.
