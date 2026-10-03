@@ -520,3 +520,70 @@ spec:
 		}
 	})
 }
+
+// --- 9. loop-diagnosis-2: without --crds, manifest usage of the changed
+// CRD's API group is positive evidence, decided on the ladder's group-only
+// rung (review-required, kind unconfirmed) instead of an UNKNOWN that never
+// looked at the manifests. It never yields action or not-affected: only the
+// installed CRDs can pin the kind or prove absence.
+//
+// Regression (traefik-2.11-3.0, crossplane-1.20-2.0): IngressRoutes of
+// traefik.containo.us (whose CRDs v3 removes) and CompositeResourceDefinitions
+// at apiextensions.crossplane.io/v1 (deprecated in v2) were UNKNOWN only
+// because no crds/ directory was supplied.
+func TestCRDChangesWithoutInstalledCRDsUseManifestGroupEvidence(t *testing.T) {
+	eb := newEdge()
+	eb.change(upgrade.RuleCRDRemoved, "CRD `ingressroutes.legacy.example.io` (IngressRoute) removed", "ingressroutes.legacy.example.io")
+	eb.change(upgrade.RuleCRDRemoved, "CRD `unused.other.example.io` (Unused) removed", "unused.other.example.io")
+	// same API group as the manifests, but the differ names another kind
+	eb.change(upgrade.RuleCRDRemoved, "CRD `legacyconfigs.legacy.example.io` (LegacyConfig) removed", "legacyconfigs.legacy.example.io")
+	eb.change(upgrade.RuleCRDVersionDeprecated, "API version `legacy.example.io/v1alpha1` of IngressRoute deprecated", "ingressroutes.legacy.example.io/v1alpha1")
+	eb.change(upgrade.RuleCRDVersionRemoved, "API version `legacy.example.io/v1alpha1` of IngressRoute removed", "ingressroutes.legacy.example.io/v1alpha1")
+	dir := t.TempDir()
+	manifests := writeFile(t, dir, "routes.yaml", `apiVersion: legacy.example.io/v1alpha1
+kind: IngressRoute
+metadata: {name: web, namespace: apps}
+spec:
+  routes:
+    - match: Host("example.com")
+`)
+	e := buildReport(t, eb.edge, loadEnv(t, env.Inputs{Manifests: []string{manifests}}))
+	for _, rule := range []string{RuleCRDRemoved, RuleCRDVersionDeprecated, RuleCRDVersionRemoved} {
+		fs := findingsByRule(e, rule)
+		if len(fs) != 1 {
+			t.Fatalf("%s: want one finding from the manifests' group usage, got %+v (all %+v)", rule, fs, e.Findings)
+		}
+		if fs[0].Classification != domain.ImpactReviewRequired || len(fs[0].EnvironmentEvidence) == 0 {
+			t.Errorf("%s: group usage without installed CRDs is review-required with environment evidence: %+v", rule, fs[0])
+		}
+	}
+	if fs := findingsByClass(e, domain.ImpactActionRequired); len(fs) != 0 {
+		t.Errorf("no ACTION without the installed CRDs pinning the kind: %+v", fs)
+	}
+	if fs := findingsByClass(e, domain.ImpactNotAffected); len(fs) != 0 {
+		t.Errorf("absence cannot be proven without the installed CRDs: %+v", fs)
+	}
+	// the CRD whose group no manifest uses stays unknown (it is not cleared)
+	var unknownUnused bool
+	for _, f := range findingsByRule(e, RuleInsufficientVisibility) {
+		if strings.Contains(f.Title, "unused.other.example.io") {
+			unknownUnused = true
+		}
+	}
+	if !unknownUnused {
+		t.Errorf("a removed CRD whose group no manifest uses must stay unknown: %+v", e.Findings)
+	}
+	// regression (crossplane ControllerConfig): a removed CRD of a used group
+	// whose kind the differ names is not flagged by other kinds of the group
+	for _, f := range e.Findings {
+		if strings.Contains(f.Title, "legacyconfigs.legacy.example.io") && f.Classification != domain.ImpactUnknown {
+			t.Errorf("a removed kind no manifest uses must not be flagged through its group: %+v", f)
+		}
+	}
+	if got := kindFromCRDTitle("API version `apiextensions.crossplane.io/v1` of CompositeResourceDefinition deprecated"); got != "CompositeResourceDefinition" {
+		t.Errorf("kind from version title = %q", got)
+	}
+	if got := kindFromCRDTitle("CRD `foos.example.io` (foos.example.io) removed"); got != "" {
+		t.Errorf("a CRD-name label is not a kind: %q", got)
+	}
+}

@@ -584,6 +584,103 @@ func pluralIs(subjects []string) string {
 	return "are"
 }
 
+// crdGroupUseWithoutCRDs decides a crd:removed / crd:version-* change when
+// the installed CRDs were not supplied but manifests were: a manifest that
+// declares a resource of the changed CRD's API group (and version, for the
+// version rules) is positive evidence of usage, so the ladder's group-only
+// rung applies exactly as it does when the CRDs are supplied but do not
+// include the changed one: review-required at medium confidence, "kind
+// unconfirmed" (another CRD of the group could serve the kind). When the
+// differ's title names the kind, only manifests of that kind count. It never
+// yields action (only an installed CRD pins the kind) and never not-affected
+// (absence needs the installed CRDs). Subjects whose group no manifest uses
+// stay unknown. It reports whether it decided the change.
+func (b *builder) crdGroupUseWithoutCRDs(c domain.Change, toTag string, versioned bool, rule string, sev domain.ImpactSeverity, what string) bool {
+	if !b.env.Supplied.Manifests {
+		return false
+	}
+	var rest []string
+	decided := false
+	for _, s := range c.Subjects {
+		var group, version, name string
+		if versioned {
+			id, ok := parseCRDNameVersion(s)
+			if !ok {
+				rest = append(rest, s)
+				continue
+			}
+			group, version, name = id.Group, id.Version, id.Name
+		} else {
+			n, g, ok := parseCRDName(s)
+			if !ok {
+				rest = append(rest, s)
+				continue
+			}
+			group, name = g, n
+		}
+		kind := kindFromCRDTitle(c.Title)
+		uses := b.gvkUses(func(u env.GVKUsage) bool {
+			return u.Group == group && (version == "" || u.Version == version) && (kind == "" || u.Kind == kind)
+		})
+		if len(uses) == 0 {
+			rest = append(rest, s)
+			continue
+		}
+		decided = true
+		scope := group
+		if version != "" {
+			scope += "/" + version
+		}
+		g := newGVKLines(b, name, nil)
+		detail := fmt.Sprintf("%s %s %s, and your manifests use its API group %s — but the installed CustomResourceDefinitions were not supplied, so the kind cannot be pinned: another CRD of the same group could serve it. Supply the installed CRDs (--crds) to decide whether %s is the one in use.\n%s",
+			toTag, what, code(s), code(scope), code(name), strings.Join(g.lines(uses), "\n"))
+		b.add(rule, domain.ImpactReviewRequired, sev, domain.ConfidenceMedium,
+			fmt.Sprintf("Manifests use the API group of %s (%s %s it) — kind unconfirmed, installed CRDs not supplied", code(s), toTag, what),
+			detail, c, gvkMatches(uses), c.Evidence...)
+	}
+	if !decided {
+		return false
+	}
+	if len(rest) > 0 {
+		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID+":rest",
+			fmt.Sprintf("Cannot tell whether %s affect(s) you: installed CRDs were not supplied", codeList(rest, 3)),
+			"No supplied manifest uses the API group of these subjects; whether the cluster runs them is decided against the installed CRDs, which were not supplied.",
+			c, c.Evidence, nil, "installed CustomResourceDefinitions (--crds) not supplied")
+	}
+	return true
+}
+
+// kindFromCRDTitle returns the kind the differ's own crd:removed /
+// crd:version-* title states ("CRD `name` (Kind) removed", "API version
+// `g/v` of Kind deprecated"); "" when the title carries the CRD name instead
+// (the snapshot knew no kind) or has another shape.
+func kindFromCRDTitle(title string) string {
+	var label string
+	switch {
+	case strings.HasPrefix(title, "CRD "):
+		i, j := strings.Index(title, " ("), strings.LastIndex(title, ")")
+		if i < 0 || j <= i {
+			return ""
+		}
+		label = title[i+2 : j]
+	case strings.Contains(title, "API version "):
+		i := strings.Index(title, "` of ")
+		if i < 0 {
+			return ""
+		}
+		rest := title[i+len("` of "):]
+		if sp := strings.IndexByte(rest, ' '); sp > 0 {
+			label = rest[:sp]
+		} else {
+			label = rest
+		}
+	}
+	if label == "" || strings.ContainsAny(label, ". `,") {
+		return "" // a CRD name, not a kind
+	}
+	return label
+}
+
 // crdRemoved joins a crd:removed change. Ladder: installed CRD + manifest
 // usage of its kind → action (high); group-only usage (kind not pinned) →
 // review at most (medium, demoted); installed but no manifest of the kind →
@@ -594,6 +691,9 @@ func (b *builder) crdRemoved(c domain.Change, toTag string) {
 	// deciding dimension: installed CRDs (authoritative for what the cluster
 	// runs). Manifests refine the verdict; both are recorded.
 	if !b.env.Supplied.CRDs {
+		if b.crdGroupUseWithoutCRDs(c, toTag, false, RuleCRDRemoved, domain.SeverityCritical, "removes") {
+			return
+		}
 		checks := b.partialChecks([]domain.ImpactCheck{b.apiVersionsCheck(c.Subjects)}, b.env.Supplied.Manifests)
 		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether the removed CRD affects you: installed CRDs were not supplied (%s)", c.Title),
@@ -701,6 +801,13 @@ func (b *builder) crdRemoved(c domain.Change, toTag string) {
 // silently skipped).
 func (b *builder) crdVersionGone(c domain.Change, toTag string) {
 	if !b.env.Supplied.CRDs {
+		gone := "removes"
+		if c.Provenance.Rule == upgrade.RuleCRDVersionUnserved {
+			gone = "stops serving"
+		}
+		if b.crdGroupUseWithoutCRDs(c, toTag, true, RuleCRDVersionRemoved, domain.SeverityCritical, gone) {
+			return
+		}
 		checks := b.partialChecks([]domain.ImpactCheck{b.apiVersionsCheck(c.Subjects)}, b.env.Supplied.Manifests)
 		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether the removed API version affects you: installed CRDs were not supplied (%s)", c.Title),
@@ -804,6 +911,9 @@ func (b *builder) crdVersionGone(c domain.Change, toTag string) {
 // manifests supplied is not-affected.
 func (b *builder) crdVersionDeprecated(c domain.Change, toTag string) {
 	if !b.env.Supplied.CRDs {
+		if b.crdGroupUseWithoutCRDs(c, toTag, true, RuleCRDVersionDeprecated, domain.SeverityMedium, "deprecates") {
+			return
+		}
 		checks := b.partialChecks([]domain.ImpactCheck{b.apiVersionsCheck(c.Subjects)}, b.env.Supplied.Manifests)
 		b.unknown(domain.UnknownEnvironmentVisibilityGap, RuleInsufficientVisibility, c.ID,
 			fmt.Sprintf("Cannot tell whether the deprecated API version affects you: installed CRDs were not supplied (%s)", c.Title),
