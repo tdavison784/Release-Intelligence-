@@ -205,3 +205,18 @@ lane ownership; no eval data, gates, expectations or knowledge facts edited.
   Proxy-level applicability goes 0.581 → 0.600 and knowledge-free 0.524 → 0.543. No regression
   against eval/results; falseActionRate unchanged.
 - Temporary harness deleted (never committed). `go build/vet/test ./...` green.
+
+## Trust-audit (branch `p3ll/trust-audit`)
+
+**State: DONE.** Deliverable `docs/phase3/learning-loop/TRUST-AUDIT.md`.
+
+- (1) The shadow proxy denominator 62 was a bug. A rendered-change false check lacked its render
+  record, so the kyverno report failed `Validate()`, and the evaluator silently dropped the case.
+  Both are fixed; the row is now 0.673 (40/71).
+- (2) The real-store false ACTIONs are kyverno E9 (deterministic, TRUSTFIX dispute) and flux E6
+  (consensus-action fact vf-d2375ef40b74, same-model glm-5.3 consequence). PO-2 is met to the
+  letter. Two contract gaps are reported: class dissent is not counted, and the 100% sample does not
+  gate the ACTION.
+- (3) No refinement anywhere, so no PO-4 violation. The E9 ACTION vanished with the discarded
+  report and is back after the fix.
+- Commits `9d94e17d` (render), `31ca0578` (eval). Tests green; no regression against eval/results.
