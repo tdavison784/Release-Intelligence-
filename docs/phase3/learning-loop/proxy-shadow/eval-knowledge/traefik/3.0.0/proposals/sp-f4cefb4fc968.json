@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f4cefb4fc968",
+    "candidateId": "sc-4cda841ab3a0",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "traefik",
+        "name": "OTEL_PROPAGATORS",
+        "component": "tracing"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "OTEL_PROPAGATORS",
+              "component": "tracing",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether tracing is enabled and configured to use OTEL propagation standards"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new OTEL_PROPAGATORS environment variable provides an additional standard way to configure tracing propagation without affecting existing tracing configurations."
+      },
+      "statement": "Traefik 3.0.0 adds support for the OTEL_PROPAGATORS environment variable to configure OpenTelemetry tracing propagation."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-9f33f28bdfe0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:8f2025b73b426212a13a82deec7a3b60ffc130c82eb407bb407fb1096b41186c",
+      "inputEvidence": [
+        "ev-9f33f28bdfe0"
+      ],
+      "generatedAt": "2026-10-02T16:11:35Z",
+      "callId": "a322cf11-b963-404e-9910-e5114d347027"
+    }
+  }
+}

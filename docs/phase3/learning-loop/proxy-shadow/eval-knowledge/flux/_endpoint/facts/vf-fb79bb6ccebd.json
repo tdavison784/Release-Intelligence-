@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-fb79bb6ccebd",
+    "product": "flux",
+    "candidates": [
+      "sc-0c956892d9f3"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "Bucket",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Bucket"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Bucket objects using the source.toolkit.fluxcd.io/v1 schema that omit status.artifact.digest are rejected.",
+        "remediation": "Ensure Bucket objects carry status.artifact.digest (e.g. re-reconcile the Bucket so its artifact entry includes a digest) so writes are not rejected by the new v1 schema validation.",
+        "severity": "medium"
+      },
+      "statement": "Bucket v1 schema: 1 field now required: `status.artifact.digest`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-1ce290af1be3",
+          "val-3a0e4c454f7c",
+          "val-6b2465d027be",
+          "val-839a628e5904",
+          "val-9a0c61f41f5b",
+          "val-a56bdd7ac900",
+          "val-ac2b5dec3830",
+          "val-cfb17c771c41"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "consensus",
+        "basis": [
+          "sp-53c06dbdc999",
+          "sp-6537c3fbf034",
+          "sp-c1074a1572e5"
+        ],
+        "consensus": "cross-model"
+      },
+      {
+        "aspect": "applicability",
+        "level": "consensus",
+        "basis": [
+          "sp-6537c3fbf034",
+          "sp-fda093b5449b"
+        ],
+        "consensus": "same-model"
+      },
+      {
+        "aspect": "consequence",
+        "level": "consensus",
+        "basis": [
+          "sp-53c06dbdc999",
+          "sp-fda093b5449b"
+        ],
+        "consensus": "cross-model"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "status": "active",
+    "autoApproved": true,
+    "createdAt": "2026-10-02T21:02:15Z"
+  }
+}

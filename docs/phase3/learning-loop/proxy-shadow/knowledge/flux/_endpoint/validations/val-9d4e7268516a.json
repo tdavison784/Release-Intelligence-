@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9d4e7268516a",
+    "candidateId": "sc-d3c98f01eaa1",
+    "proposalId": "sp-753d64a5d09f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "imagepolicy-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "image.toolkit.fluxcd.io",
+              "kind": "ImagePolicy"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether existing ImagePolicy objects are still stored as v1beta2 (CRD status.storedVersions includes v1beta2)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImagePolicy objects stay stored as v1beta2 until rewritten; a storage version migration and an update of status.storedVersions must be done before a later release removes v1beta2.",
+        "remediation": "Re-write all ImagePolicy objects so they are stored as v1, then remove v1beta2 from the imagepolicies.image.toolkit.fluxcd.io CRD's status.storedVersions.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the imagepolicies.image.toolkit.fluxcd.io CRD changes from v1beta2 to v1. Existing ImagePolicy objects stay stored as v1beta2 until rewritten, so they need a storage version migration and a status.storedVersions update before a later release removes v1beta2."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

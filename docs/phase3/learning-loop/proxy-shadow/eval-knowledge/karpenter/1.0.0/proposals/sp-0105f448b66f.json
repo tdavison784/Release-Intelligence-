@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0105f448b66f",
+    "candidateId": "sc-1dc9088fb8f9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "v1-migration-upgrade-procedure"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<1.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The upgrade guide says not to upgrade to 1.0.0+ without following the v1 Migration Upgrade Procedure. Conversion webhooks serve stored v1beta1 NodePools, EC2NodeClasses and NodeClaims as v1 for now. v1beta1 stops being served at v1.1.0, when the webhooks are dropped.",
+        "remediation": "Follow the v1 Migration Upgrade Procedure and migrate all stored manifests to v1 API versions on Karpenter v1.0+.",
+        "severity": "high"
+      },
+      "statement": "Upgrading to Karpenter 1.0.0+ introduces v1 APIs and requires following the v1 Migration Upgrade Procedure; stored v1beta1 manifests must be migrated to v1 before v1beta1 stops being served at v1.1.0."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-bfb089d90d84"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:45328ff65143a06e87f31457d475fc5dcfa7f23abb43a03e924ff863d660157e",
+      "inputEvidence": [
+        "ev-bfb089d90d84"
+      ],
+      "generatedAt": "2026-10-02T05:57:38Z",
+      "callId": "54268b70-692a-47c3-9381-f47d06e9d4b7"
+    }
+  }
+}

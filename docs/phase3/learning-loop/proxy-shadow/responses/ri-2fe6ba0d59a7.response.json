@@ -1,0 +1,49 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-2fe6ba0d59a7",
+  "promptDigest": "sha256:61ec6b38cac97e38ae0167c871cd853664793d1cb64a0d0da5b00904de5d5d17",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "c46ccd8b-11a3-49fd-ac98-f63d0eecf850",
+  "startedAt": "2026-10-03T02:14:48.575Z",
+  "decidedAt": "2026-10-03T02:15:07.601Z",
+  "durationMs": 18307,
+  "costUSD": 0.113668,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-0483f04624d3] says no changes are needed if `-boltdb.shipper.shared-store`, `-tsdb.shipper.shared-store` or their corresponding YAML setting were not configured, so exposure is: at least one of these is set. The proposed overlap (an environment that has none of them set) is wrong, because those environments don't touch the subject and aren't 'shielded'. The values-key paths `boltdb.shipper.shared-store`/`tsdb.shipper.shared-store` are the flag names recast as Helm paths; the evidence never gives the YAML key path, so that part has to be an undecidable operand rather than a made-up path.",
+    "citations": [
+      "ev-0483f04624d3"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Environments that set -boltdb.shipper.shared-store or -tsdb.shipper.shared-store, or the corresponding YAML shipper shared_store setting, are exposed by the 3.0.0 removal of shared_store from shipper configuration; environments that never configured them need no changes.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the exact YAML/Helm values path of the boltdb/tsdb shipper shared_store setting, which the evidence does not name"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

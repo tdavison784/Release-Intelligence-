@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9a7b1cb9a97e",
+    "reviewItemId": "ri-f4e24fbe2dea",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "linux",
+              "state": "in-range",
+              "range": ">=6.6.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether third-party old-style tc BPF users are present in the environment"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "bpf.enableTCX",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      },
+      "statement": "For Linux kernels 6.6 or newer, Cilium 1.16.0 defaults to tcx BPF links for tc BPF program attachment instead of old-style tc BPF attachment; environments with third-party old-style tc BPF users can disable this via Helm value bpf.enableTCX=false to maintain backward compatibility."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "linux",
+              "state": "in-range",
+              "range": ">=6.6.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "bpf.enableTCX",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "bpf.enableTCX",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "statement": "In Cilium 1.16.0, on Linux kernels 6.6 or newer, Cilium attaches its tc BPF programs with tcx BPF links by default. Environments on such kernels that do not set bpf.enableTCX=false are exposed to the switch. Environments that set bpf.enableTCX=false keep the old-style tc BPF attachment."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:e6c5b907efd2b8dabe65417ef89b7ce8c81717dbc62dc2ad0f7d84a448a3706a",
+      "inputEvidence": [
+        "ev-736cdc5fc0d2",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T16:04:09.984Z",
+      "callId": "f7018088-f8bc-4f2c-b083-7c4d1bdebec2"
+    },
+    "reason": "[ev-736cdc5fc0d2] says that on Linux kernels 6.6 or newer Cilium now attaches its tc BPF programs with tcx links by default, and that setting `bpf.enableTCX=false` keeps the old attachment mode. So environments that set the value to false do not get the switch. The proposed exposure never checks bpf.enableTCX, so it also flags those shielded environments, which makes it too broad. The key exists only in the target release's values [ev-28e0ccb5774a, ev-39a22d88e2f5], so an environment upgrading without setting it uses the new default. The switch itself happens on every 6.6+ kernel with the default setting. Third-party tc BPF users are what makes the switch risky, but the switch happens either way, so I dropped the undecidable operand instead of making exposure depend on it.",
+    "startedAt": "2026-10-02T16:03:51.638Z",
+    "decidedAt": "2026-10-02T16:04:09.984Z",
+    "resultingFact": "vf-f02bf562b67f"
+  }
+}

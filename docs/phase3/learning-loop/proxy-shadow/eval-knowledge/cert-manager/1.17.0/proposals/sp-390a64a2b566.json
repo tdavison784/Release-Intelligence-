@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-390a64a2b566",
+    "candidateId": "sc-f117b7291fa1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "logging-format"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment uses log matching/parsing on cert-manager log output"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Log message parsing or string matching patterns that depend on the previous unstructured log format will no longer work with structured logs, potentially breaking log aggregation, alerting, or monitoring integrations.",
+        "remediation": "Update log parsing rules, regex patterns, and monitoring configurations that depend on specific log message strings to work with the new structured log format.",
+        "severity": "high"
+      },
+      "statement": "Unstructured log messages in cert-manager have been replaced with structured logs, which breaks log string matching patterns."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-df7847de6bcb"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:60357721fd0a72be99391c84b0237b1657e076c4562626dcd0eda24184c8e2b8",
+      "inputEvidence": [
+        "ev-df7847de6bcb"
+      ],
+      "generatedAt": "2026-10-02T05:56:31Z",
+      "callId": "84762e60-df3a-48ce-a6b7-7522ddaeaea8"
+    }
+  }
+}

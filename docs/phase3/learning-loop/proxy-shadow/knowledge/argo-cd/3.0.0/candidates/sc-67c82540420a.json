@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-67c82540420a",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-d6d289bfb24e",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-e4105a125d40"
+          ],
+          "statementKeys": [
+            "sk-99a172926e74"
+          ],
+          "changeIds": [
+            "chg-d6d289bfb24e"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "Changes to RBAC with Dex SSO Authentication: When using Dex, the `sub` claim returned in the authentication was used as the subject for RBAC",
+    "text": "Changes to RBAC with Dex SSO Authentication: When using Dex, the `sub` claim returned in the authentication was used as the subject for RBAC. That value depends on the Dex internal implementation and should not be considered an immutable value that represents the subject. The new behavior will request the `federated:id` scope from Dex, and the new value used as the RBAC subject will be based on the `federated_claims.user_id` claim instead of the `sub` claim. If you were using the Dex sub claim in RBAC policies, you will need to update them to maintain the same access. You can know the correct `user_id` to use by decoding the current `sub` claims defined in your policies. You can also configure which value is used as `user_id` for some connectors. If authenticating with the CLI, make sure to use the new version as well to obtain an authentication token with the appropriate claims.",
+    "evidence": [
+      {
+        "id": "ev-0b6150153730",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L93-L126 (v2.14 to 3.0 › Breaking Changes › Changes to RBAC with Dex SSO Authentication)",
+        "excerpt": "### Changes to RBAC with Dex SSO Authentication\n\nWhen using Dex, the `sub` claim returned in the authentication was used as the subject for RBAC. That value depends on\nthe Dex internal implementation and should not be considered an immutable value that represents the subject.\n\nThe new behavior will request the\n`federated:id` [scope](https://dexidp.io/docs/configuration/custom-scopes-claims-clients/) from Dex, and the new value\nused as the RBAC subject will be based\non the `federated_claims.user_id` claim instead of the `sub` claim.\n\nIf you were using the Dex sub claim in RBAC policies, you wil…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "hints": [
+      "code:sub",
+      "code:federated:id",
+      "code:federated_claims.user_id",
+      "code:user_id",
+      "path:federated_claims.user_id"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

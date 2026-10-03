@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-007335b5c10a",
+    "candidateId": "sc-a1d88092526a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "cluster.inClusterEnabled",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"false\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "cluster.inClusterEnabled",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Applications targeting the in-cluster cluster go to an Unknown state and cannot sync resources; new in-cluster Applications cannot be created; deleting an existing Application does not delete previously managed resources.",
+        "remediation": "Before upgrading, clean up or migrate existing in-cluster Applications; to clean up after migration, temporarily enable in-cluster.",
+        "severity": "high"
+      },
+      "statement": "With cluster.inClusterEnabled explicitly \"false\", in-cluster Applications become Unknown and cannot sync, new in-cluster Applications cannot be created, and deleting an Application no longer deletes its previously managed resources."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-adf2ed32df1c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:19763c6e6e476e9ee2c9493f32d9de3df71cb7dd17790a705f534123470ce56e",
+      "inputEvidence": [
+        "ev-adf2ed32df1c"
+      ],
+      "generatedAt": "2026-10-02T06:06:41Z",
+      "callId": "6efbb2cc-80ac-40aa-8f42-67d8393d7c2f"
+    }
+  }
+}

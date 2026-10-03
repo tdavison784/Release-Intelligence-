@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-b34efd8dd130",
+  "promptDigest": "sha256:2b45d101b8cdbf0e31480ffe8d6ce22d803e0d736b48196f231585a31ff8665b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ee33f1ae-fc94-494a-ae83-ac6e1430be65",
+  "startedAt": "2026-10-03T02:28:40.111Z",
+  "decidedAt": "2026-10-03T02:28:54.522Z",
+  "durationMs": 13575,
+  "costUSD": 0.08227999999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-17b3774eb9ee] tells operators to make sure the StableConnectIdentities feature gate is enabled and StrimziPodSets are used before upgrading. That is a mandatory step before the upgrade, so migration-required (action) is the right kind. The proposed statement leaves out the scope \"upgrading from Strimzi 0.38 or older\", so it reads as if every Connect or MirrorMaker 2 user must do this. The evidence also does not say what fails if the step is skipped, so the corrected statement says that rather than inventing a failure.",
+    "citations": [
+      "ev-17b3774eb9ee"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "When upgrading to Strimzi 0.46.0 from Strimzi 0.38 or older with Kafka Connect or Kafka MirrorMaker 2 operands, the StableConnectIdentities feature gate must be enabled and StrimziPodSets used before the upgrade (migration-required).",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "migration-required",
+        "severity": "high",
+        "statement": "Operators upgrading from Strimzi 0.38 or older who run Kafka Connect or Kafka MirrorMaker 2 must enable the StableConnectIdentities feature gate and use StrimziPodSets before upgrading to 0.46.0. The evidence does not say what fails if this step is skipped.",
+        "remediation": "On the current (0.38 or older) operator, enable the StableConnectIdentities feature gate and make sure StrimziPodSets are used for Connect and MirrorMaker 2, then upgrade."
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-71e902edd5a2",
+    "candidateId": "sc-cc1d78205e7e",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "push-artifact-insecure-registry"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the operator runs `flux push artifact` against insecure registries (e.g. in CI pipelines), which no static environment input carries"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "`flux push artifact` now works against insecure registries where it previously failed; nothing breaks and no operator action is required — the fix only removes the failure.",
+        "remediation": "none; environments pushing to insecure registries simply get the corrected behavior after upgrading the flux CLI to 2.7.0",
+        "severity": "low"
+      },
+      "statement": "Flux 2.7.0 fixes the `flux push artifact` CLI command so that it works with insecure registries, where it previously failed."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-2172e85c5351"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6d7b437caf03ad93847159a86e40af73fd7f3cf006d7e5a238c89dade050dc3a",
+      "inputEvidence": [
+        "ev-2172e85c5351"
+      ],
+      "generatedAt": "2026-10-02T16:51:01Z",
+      "callId": "eff45482-1855-4565-92a4-1f4c0d16dee8"
+    }
+  }
+}

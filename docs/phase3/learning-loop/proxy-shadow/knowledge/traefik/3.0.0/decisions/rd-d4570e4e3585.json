@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d4570e4e3585",
+    "reviewItemId": "ri-d5b72f1f8c9a",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "servers-load-balancer-wrr"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "The servers load-balancer was reworked to use the WRR (weighted round robin) implementation; the evidence does not say what operators must do."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "servers-load-balancer"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "The traefik servers load-balancer was reworked to use the WRR (weighted round robin) implementation, a change to how it balances traffic across servers."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:13b9af3dfa9ca788a96c62fabfb61e4a33a093634ed4f909ec7900afcf9c98a1",
+      "inputEvidence": [
+        "ev-f387a976e3cf"
+      ],
+      "generatedAt": "2026-10-03T02:02:57.558Z",
+      "callId": "a73ca09b-6254-4e19-8785-1aa1a1c54b6a"
+    },
+    "reason": "The only evidence is a changelog line [ev-f387a976e3cf]. It says the servers load-balancer was reworked to use the WRR. That supports behavior-changed on the servers load-balancer's runtime behaviour, with no before/after values stated. What changed is the servers load-balancer itself; WRR is its new implementation, so putting \"wrr\" in the identity mixes the new value into the subject's name. The subject should be named \"servers-load-balancer\", without a component, because \"[server]\" is a changelog area tag and not a named binary.",
+    "startedAt": "2026-10-03T02:02:40.896Z",
+    "decidedAt": "2026-10-03T02:02:57.558Z"
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ac134b68c5b6",
+    "candidateId": "sc-58a03c7aeac6",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "kyverno",
+        "name": "generated-validatingadmissionpolicy-policyexceptions"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"the resources specified in a PolicyException populate matchConstraints.excludeResourceRules of the ValidatingAdmissionPolicy auto-generated from a validate.cel policy\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].validate.cel",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].validate.cel",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                }
+              ]
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "PolicyException"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For the same Kyverno policy and PolicyException configuration, the ValidatingAdmissionPolicy auto-generated from a validate.cel policy now excludes the resources specified in the PolicyException, so admission enforcement for those resources differs from the previous release.",
+        "remediation": "After upgrading, review the ValidatingAdmissionPolicies auto-generated from validate.cel policies and confirm the matchConstraints.excludeResourceRules entries match the intended PolicyExceptions.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13 now applies PolicyException declarations when auto-generating Kubernetes ValidatingAdmissionPolicies from Kyverno policies that use the validate.cel subrule, populating the generated policy's matchConstraints.excludeResourceRules with the excepted resources."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b9ece170da60"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:37f83f946910c32fb0fa34e05ce1014db97b78cc88553e98f45062603c2b2ada",
+      "inputEvidence": [
+        "ev-b9ece170da60",
+        "ev-a5eba5775d07",
+        "ev-4cd26225bffa",
+        "ev-52c07595c637",
+        "ev-54749e1a631c",
+        "ev-8dbdd0d2ff64",
+        "ev-e8169ff3d009",
+        "ev-892e45421732",
+        "ev-72f16d281831"
+      ],
+      "generatedAt": "2026-10-02T16:42:15Z",
+      "callId": "e4466c55-e0f0-45f9-bdd5-05979fc13839"
+    }
+  }
+}

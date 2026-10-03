@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f37760e10b78",
+    "candidateId": "sc-a4e098e26189",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "istio",
+        "path": "securityContext.privileged",
+        "component": "istio-cni"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "istio-cni remains a privileged container per Pod Security Standards since it keeps CAP_SYS_ADMIN; no operational consequence is stated.",
+        "severity": "low"
+      },
+      "statement": "istio-cni's securityContext.privileged is now false in favor of feature-specific permissions, though it remains a privileged container (CAP_SYS_ADMIN)."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: evidence does not say which environments are affected or how; the text names no configuration condition",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-61280517f4ea"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5dfd16bcbdb8a706fd9b8870190b60f51f6919a1f387e0676a5f402d96103c7a",
+      "inputEvidence": [
+        "ev-61280517f4ea"
+      ],
+      "generatedAt": "2026-10-02T05:53:33Z",
+      "callId": "cd7d2a68-70cb-4618-be0c-8ea3bd69c765"
+    }
+  }
+}

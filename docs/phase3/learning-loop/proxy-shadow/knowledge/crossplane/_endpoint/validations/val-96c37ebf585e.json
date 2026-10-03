@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-96c37ebf585e",
+    "candidateId": "sc-ace4f1a895e7",
+    "proposalId": "sp-1ff4e93b4ac8",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "version": "v1",
+        "kind": "Composition",
+        "path": "spec.mode"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"Resources\"",
+        "after": "\"Pipeline\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "apiextensions.crossplane.io",
+              "version": "v1",
+              "kind": "Composition"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.mode",
+                  "state": "unset"
+                }
+              ],
+              "group": "apiextensions.crossplane.io",
+              "kind": "Composition"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.mode",
+              "state": "set"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "kind": "Composition"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Composition resources created without an explicit spec.mode value will now default to Pipeline mode instead of Resources mode, changing the default composition behavior.",
+        "severity": "medium"
+      },
+      "statement": "The default value of the spec.mode field in Composition resources (apiextensions.crossplane.io/v1) changed from \"Resources\" to \"Pipeline\"."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

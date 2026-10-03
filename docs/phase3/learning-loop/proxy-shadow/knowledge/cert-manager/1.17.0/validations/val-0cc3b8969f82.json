@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0cc3b8969f82",
+    "candidateId": "sc-9cd4a1953216",
+    "proposalId": "sp-19d61b0556c9",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Issuer",
+        "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Issuer"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This adds an optional AzureDNS managed-identity setting, `tenantID`, for multi-tenant environments. Existing configurations do not need to change.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds an optional `tenantID` setting to the AzureDNS DNS01 solver's managed identity configuration, so users can specify the tenant ID; existing configurations need no changes."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: fetch https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: not in cache (offline mode); oci channel: oci: get manifest quay.io/jetstack/charts/cert-manager:v1.16.0: fetch https://quay.io/v2/jetstack/charts/cert-manager/manifests/v1.16.0: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: fetch https://charts.jetstack.io/charts/cert-manager-v1.16.0.tgz: not in cache (offline mode); oci channel: oci: get manifest quay.io/jetstack/charts/cert-manager:v1.16.0: fetch https://quay.io/v2/jetstack/charts/cert-manager/manifests/v1.16.0: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

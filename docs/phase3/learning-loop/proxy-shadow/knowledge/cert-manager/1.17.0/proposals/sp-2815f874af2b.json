@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2815f874af2b",
+    "candidateId": "sc-78b10a313e23",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates issued for 3072- and 4096-bit RSA keys are now signed using SHA-384/SHA-512 instead of the previously used hash algorithm; the guide states these algorithms are widely supported and expects no issue, so nothing fails, but clients that do not support them could error as such certificates rotate.",
+        "remediation": "No action expected; if errors do appear when larger RSA keys rotate, check that the systems consuming the issued certificates accept SHA-384/SHA-512 signatures.",
+        "severity": "low"
+      },
+      "statement": "From cert-manager 1.17.0, RSA certificates with keys of length 3072 or 4096 are signed using SHA-384 or SHA-512 respectively as hash algorithms; the upgrade guide says these algorithms are widely supported and it does not expect this to be an issue, but it is worth bearing in mind if errors appear as larger RSA keys rotate."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence states the exposure only in product terms (RSA certificates with keys of length 3072 or 4096) but names no resource field, values key or other configuration that records the RSA key length, and no artifact context is provided, so no verified condition tree can be built without inventing a field path.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-463f236bf567"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:8099432eef452b2d455f3c2dd9479aae9fc582f8e69836a4ce18e4b4e36aa4df",
+      "inputEvidence": [
+        "ev-463f236bf567"
+      ],
+      "generatedAt": "2026-10-02T11:23:20Z",
+      "callId": "70293da7-30e6-4b2d-830d-562764df6d00"
+    }
+  }
+}

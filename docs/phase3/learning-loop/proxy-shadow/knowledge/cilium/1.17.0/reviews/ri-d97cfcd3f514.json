@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-d97cfcd3f514",
+    "candidateId": "sc-5211de5a6cde",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`lbipam_ips_used_total` has been renamed to `lbipam_ips_used`\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Monitoring systems, dashboards, and alerting rules that reference the metric lbipam_ips_used_total will no longer find the metric under its previous name, causing metric collection and alerts to fail or stop reporting.",
+        "remediation": "Update all Prometheus scrape configurations, Grafana dashboards, alerting rules, and any monitoring queries to use the new metric name lbipam_ips_used instead of lbipam_ips_used_total.",
+        "severity": "high"
+      },
+      "statement": "The Cilium metric lbipam_ips_used_total has been renamed to lbipam_ips_used."
+    },
+    "proposals": [
+      "sp-d424bfbd2cb7",
+      "sp-da69437286f1"
+    ],
+    "validations": [
+      "val-3e8e263775ba",
+      "val-d7294731b582",
+      "val-f7f8f9425db3"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:06:38Z"
+  }
+}

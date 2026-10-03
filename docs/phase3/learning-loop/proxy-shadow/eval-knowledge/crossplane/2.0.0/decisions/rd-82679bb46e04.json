@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-82679bb46e04",
+    "reviewItemId": "ri-b252e612a27b",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "crossplane",
+        "name": "helm"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": ">=v3.2.0"
+      },
+      "statement": "Crossplane 2.0.0 requires Helm version v3.2.0 or later."
+    },
+    "corrected": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "crossplane",
+        "name": "helm"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": ">=3.2.0"
+      },
+      "statement": "The Crossplane 2.0 upgrade prerequisites require Helm version 3.2.0 or later (>=3.2.0)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:30c9bfe6b53bf80c3e2f0c815a225f309293d4e18c3380e33954b7757705b6a4",
+      "inputEvidence": [
+        "ev-13abab392283"
+      ],
+      "generatedAt": "2026-10-03T02:28:39.403Z",
+      "callId": "08346b25-ea9c-4550-bd8d-af921c4f76fb"
+    },
+    "reason": "[ev-13abab392283] lists \"Helm version v3.2.0 or later\" as a prerequisite in the Crossplane v2 upgrade guide. Helm is a separate tool used alongside Crossplane, so the subject product-relationship name=helm is right. The change type requirement-changed with only an \"after\" value is also right. The \"after\" value should be written as a plain semver constraint, \">=3.2.0\", following the vocabulary's \">=1.12.0\" form; the proposal's leading \"v\" (\">=v3.2.0\") breaks that form and won't compare cleanly with other answers. Note that the evidence gives no earlier Helm requirement, so it doesn't show that the requirement moved in this release.",
+    "startedAt": "2026-10-03T02:28:25.008Z",
+    "decidedAt": "2026-10-03T02:28:39.403Z"
+  }
+}

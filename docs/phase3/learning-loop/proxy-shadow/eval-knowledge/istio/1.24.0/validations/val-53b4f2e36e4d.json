@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-53b4f2e36e4d",
+    "candidateId": "sc-a847d032ada6",
+    "proposalId": "sp-1f03fc23d461",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "base.enableCRDTemplates"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "base.enableCRDTemplates",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "base.enableCRDTemplates still works (setting it to false enables the legacy behavior) but will be removed in a future release; it now defaults to true.",
+        "remediation": "Stop setting base.enableCRDTemplates to false and use the default templated CRD installation.",
+        "severity": "low"
+      },
+      "statement": "The Helm value base.enableCRDTemplates is deprecated, now defaults to true so templated CRD installation in the base chart is on by default, and it will be removed in a future release."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

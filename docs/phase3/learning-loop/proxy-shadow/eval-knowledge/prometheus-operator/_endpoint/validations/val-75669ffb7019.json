@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-75669ffb7019",
+    "candidateId": "sc-0b440661e117",
+    "proposalId": "sp-448bfced6fa9",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "kind": "ServiceMonitor",
+        "path": "status.bindings[].resource"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "monitoring.coreos.com",
+          "version": "v1",
+          "kind": "ServiceMonitor"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The enum of the ServiceMonitor status.bindings[].resource field only gains the values \"alertmanagers\" and \"thanosrulers\" and loses none, so no value that was accepted before is now rejected.",
+        "severity": "low"
+      },
+      "statement": "In the monitoring.coreos.com/v1 ServiceMonitor schema, the allowed values of status.bindings[].resource now also include \"alertmanagers\" and \"thanosrulers\", and none were removed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-dc07dd2898e1",
+    "candidateId": "sc-53468e9ccf05",
+    "proposalId": "sp-6af9f2bfa475",
+    "validator": "semvalidate.values@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "serviceAccount.annotations"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "serviceAccount.annotations",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Service account annotations are now properly rendered when containing boolean values, where they were previously mishandled by the template.",
+        "severity": "medium"
+      },
+      "statement": "The service account Helm template is fixed to properly incorporate boolean values in annotations."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "helm-values:exists",
+        "detail": "serviceAccount.annotations is in no chart's values, but its parent section is: optional keys that default to unset are often not in the defaults file"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "helm-values:exists",
+        "detail": "serviceAccount.annotations is in no chart's values, but its parent section is: optional keys that default to unset are often not in the defaults file"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-717ddb6f40cd",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:7ec69688c8da46d802f4937e30bcbe0dd9f5b1ed5d040e013206bc2c9a7c7bfb",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-7a67f12867b2",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:dc315b31797c80f06c2d0302a5050307ff94e0bd83a7c681d0956fc4dc3e2224",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:07:45Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

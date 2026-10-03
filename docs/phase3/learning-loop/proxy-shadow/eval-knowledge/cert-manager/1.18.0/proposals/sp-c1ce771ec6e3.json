@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c1ce771ec6e3",
+    "candidateId": "sc-292ab9525adb",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Existing Certificate resources without an explicit revisionHistoryLimit will now limit old CertificateRequest revisions to 1, causing automatic garbage collection of accumulated stale CertificateRequest resources.",
+        "severity": "medium"
+      },
+      "statement": "The default value of the Certificate custom resource's revisionHistoryLimit field changed from nil (no limit) to 1, causing automatic garbage collection of old CertificateRequest revisions."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-bbe29a5fdc19",
+      "ev-04b3e69b5e24"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4bc02a271559f127db7cfba299a20a85d2b11aa3372b2f19e6018102248795fd",
+      "inputEvidence": [
+        "ev-bbe29a5fdc19",
+        "ev-04b3e69b5e24"
+      ],
+      "generatedAt": "2026-10-02T06:04:10Z",
+      "callId": "ce0a9ade-f3a1-4cc1-956f-d1702b17a0c8"
+    }
+  }
+}

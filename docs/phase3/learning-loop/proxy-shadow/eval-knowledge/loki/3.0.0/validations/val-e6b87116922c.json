@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e6b87116922c",
+    "candidateId": "sc-d1ce6cfcdaf0",
+    "proposalId": "sp-aa424cd04b59",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "excludepath",
+        "component": "promtail"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"excludepath not evaluated on newly added files\"",
+        "after": "\"excludepath evaluated on newly added files\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--excludepath",
+          "component": "promtail",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Promtail now correctly evaluates the excludepath setting on newly added files, fixing incorrect behavior in previous versions where these files were not filtered according to the excludepath rules.",
+        "severity": "low"
+      },
+      "statement": "Promtail's excludepath configuration is now correctly evaluated on newly added files, fixing a bug where it was previously ignored."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/behavior-changed",
+        "detail": "no canonical exposure condition for config-key behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

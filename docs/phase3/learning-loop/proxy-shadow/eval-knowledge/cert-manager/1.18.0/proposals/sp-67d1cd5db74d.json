@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-67d1cd5db74d",
+    "candidateId": "sc-8a2c665fc582",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates that do not set spec.revisionHistoryLimit now get a default of 1, so only one CertificateRequest revision is kept.",
+        "remediation": "If you need to keep more CertificateRequest revisions, set spec.revisionHistoryLimit explicitly on those Certificates.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, Certificate spec.revisionHistoryLimit now defaults to 1, so Certificates that leave it unset keep only one CertificateRequest revision."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-330bb03a882f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:93767b32cc591d1f5404f37326ddc3f3b71d44dc9e8bd14eccc3c3a5a0b9c6be",
+      "inputEvidence": [
+        "ev-330bb03a882f"
+      ],
+      "generatedAt": "2026-10-02T06:10:40Z",
+      "callId": "97fb3541-13dd-4dc5-a95b-b3c149131fba"
+    }
+  }
+}

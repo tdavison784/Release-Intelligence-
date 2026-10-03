@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2594ca23f887",
+    "candidateId": "sc-c346d6ba5578",
+    "proposalId": "sp-5619adf13aa2",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "split_recent_metadata_queries_by_interval"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "split_recent_metadata_queries_by_interval",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "split_recent_metadata_queries_by_interval",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments can now independently configure the split interval for recent metadata queries, enabling better control over caching behavior for metadata query results.",
+        "severity": "low"
+      },
+      "statement": "Loki 3.0.0 introduces a new configuration parameter `split_recent_metadata_queries_by_interval` to separately control the split interval for `recent_metadata_query_window` queries to improve caching of recent metadata results."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/added",
+        "detail": "no canonical exposure condition for config-key added"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1fed26691185",
+    "candidateId": "sc-d36d7e8ce169",
+    "proposalId": "sp-47851f2870e7",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "traefik",
+        "group": "traefik.io",
+        "kind": "Middleware",
+        "path": "spec.ipWhiteList"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "traefik",
+          "group": "traefik.io",
+          "kind": "Middleware",
+          "path": "spec.ipAllowList"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipWhiteList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "Middleware"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipWhiteList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "MiddlewareTCP"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipAllowList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "Middleware"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ipAllowList",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "MiddlewareTCP"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Resources using spec.ipWhiteList will not be honoured; the configuration must be migrated to spec.ipAllowList.",
+        "remediation": "Rename spec.ipWhiteList to spec.ipAllowList in all Middleware and MiddlewareTCP resources. The configuration structure remains identical.",
+        "severity": "high"
+      },
+      "statement": "The IPWhiteList middleware field is renamed to IPAllowList in Traefik v3.0.0 without configuration changes; existing resources using spec.ipWhiteList must be updated to spec.ipAllowList."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/renamed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/renamed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d1d7ab334580",
+    "reviewItemId": "ri-3e0966bc1667",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--disable-ui",
+              "component": "ui",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "statement": "The Argo CD UI now splits arrays in YAML display to fix ambiguous collapse behavior when array items contain nested objects."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether users view resource YAML containing arrays of nested objects in the Argo CD web UI"
+        }
+      },
+      "statement": "The Argo CD UI now splits arrays in YAML views to fix ambiguous collapse when array items have nested objects. This only affects users who view such YAML in the web UI, which no static configuration can show."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:947dcfe14eac4ae411003a60f12936a4dfa55c575f9517b4d2e77c344946276e",
+      "inputEvidence": [
+        "ev-392c5d206c38"
+      ],
+      "generatedAt": "2026-10-02T12:52:46.552Z",
+      "callId": "5f567bee-eeeb-439f-b139-25a2ae7213c6"
+    },
+    "reason": "[ev-392c5d206c38] describes only a UI feature: YAML arrays are now split so collapsing is no longer ambiguous when array items contain nested objects. The evidence never mentions a --disable-ui flag or any other setting that controls this, so the proposed cli-flag condition is made up and cannot be checked against the evidence. The only exposure the text supports is someone viewing such YAML in the web UI. No static configuration shows that, so it is undecidable.",
+    "startedAt": "2026-10-02T12:52:37.753Z",
+    "decidedAt": "2026-10-02T12:52:46.552Z"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-4b12252b3e30",
+    "product": "istio",
+    "release": "1.24.0",
+    "anchors": [
+      {
+        "release": "1.24.0",
+        "evidenceKeys": [
+          "ek-ec5fc15bcc63"
+        ],
+        "statementKeys": [
+          "sk-9ea2d4db566f"
+        ],
+        "changeIds": [
+          "chg-349c6e6d2b6b"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-cacb159a2363"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_DEFERRED_STATS_CREATION",
+        "component": "agent"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "ENABLE_DEFERRED_STATS_CREATION",
+          "component": "agent",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Envoy statistics are now created lazily by default, which saves memory and CPU cycles when stats are not referenced; the previous behavior of creating all statistics upfront can be restored by setting ENABLE_DEFERRED_STATS_CREATION to false.",
+        "severity": "low"
+      },
+      "statement": "Added an experimental feature to enable lazily create subset of Envoy staistics"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-f34c6bb25c26"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-f34c6bb25c26"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-3ca0179dc70a"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-37e47cee1726"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-62f858bc5c83",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/deferred_stats_creation.yaml",
+        "locator": "deferred_stats_creation.yaml L6-L10",
+        "excerpt": "- |\n  **Added** an experimental feature to enable lazily create subset of Envoy staistics.\n  This will save memory and CPU cycles when creating the objects that own these stats,\n  if those stats are never referenced throughout the lifetime of the process.\n  This can be disabled by setting ENABLE_DEFERRED_STATS_CREATION to false in agent Deployment.",
+        "contentDigest": "sha256:3e1cf2b653d0511705563bef306b5eaa4178d4111ad10e085e27f5291bf53039",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:00:48.915Z"
+  }
+}

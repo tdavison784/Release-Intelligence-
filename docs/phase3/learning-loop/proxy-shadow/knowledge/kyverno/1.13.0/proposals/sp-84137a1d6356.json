@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-84137a1d6356",
+    "candidateId": "sc-f0397237fdc5",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.emitWarning"
+      },
+      "change": {
+        "type": "added",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "version": "v1",
+          "kind": "ClusterPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments using ClusterPolicy or Policy resources can now opt-in to emit API response warnings for policy violations and mutations by setting spec.emitWarning to true, which extends admission request processing times.",
+        "severity": "low"
+      },
+      "statement": "The `spec.emitWarning` field was added to the ClusterPolicy and Policy custom resources to enable API response warnings for mutate policy rules or validate policy rules with validationFailureAction set to Audit, with a default value of false."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-e47234304fa3",
+      "ev-fb4370b76542",
+      "ev-4cfdef775223",
+      "ev-6aaf9d482a51",
+      "ev-50d874fa9a77"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:94abdb9123ff7c9d05169320ee80a1b93ff1fb8bc5d5eb909527b3e2546c5045",
+      "inputEvidence": [
+        "ev-e47234304fa3",
+        "ev-fb4370b76542",
+        "ev-4cfdef775223",
+        "ev-6aaf9d482a51",
+        "ev-50d874fa9a77"
+      ],
+      "generatedAt": "2026-10-02T20:52:25Z",
+      "callId": "0af14e63-4b04-4c07-afb0-94b6f2744729"
+    }
+  }
+}

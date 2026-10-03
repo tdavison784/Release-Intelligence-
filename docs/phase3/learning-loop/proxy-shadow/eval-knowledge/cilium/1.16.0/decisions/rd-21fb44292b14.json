@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-21fb44292b14",
+    "reviewItemId": "ri-7c7524ca4fac",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The option is deprecated and has no effect; setting it does nothing."
+      },
+      "statement": "Helm value enableRuntimeDeviceDetection is deprecated and is a no-op in 1.16."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Any value configured for the Helm option enableRuntimeDeviceDetection is ignored from 1.16.0 on, because the option is a no-op.",
+        "remediation": "Remove enableRuntimeDeviceDetection from your Helm values. Check that the behaviour you get without it is acceptable."
+      },
+      "statement": "In Cilium 1.16.0 the Helm value enableRuntimeDeviceDetection is deprecated and is a no-op, so any value set for it is no longer honoured."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:b5d16ebfc1ded1fa67b3be3a6756c23698ed90ece20c36694fd17e392f9e6321",
+      "inputEvidence": [
+        "ev-99f86df45975",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-03T02:22:58.637Z",
+      "callId": "30c3c73c-b2b7-4be0-96ae-70ac494968d5"
+    },
+    "reason": "[ev-99f86df45975] says the Helm option `enableRuntimeDeviceDetection` \"is now deprecated and is a no-op\" in 1.16. A no-op means a configured value is no longer honoured starting with this release. That matches setting-ignored, not deprecation, which covers an option that still works and breaks only in a later release. The proposed statement itself says setting the option \"does nothing\", which contradicts the deprecation kind.",
+    "startedAt": "2026-10-03T02:22:48.759Z",
+    "decidedAt": "2026-10-03T02:22:58.637Z"
+  }
+}

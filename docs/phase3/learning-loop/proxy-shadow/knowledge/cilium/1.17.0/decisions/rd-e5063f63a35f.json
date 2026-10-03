@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e5063f63a35f",
+    "reviewItemId": "ri-cbb883aa9be5",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "doublewrite_identity_kvstore_total_count",
+        "component": "cilium-agent"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "cilium",
+          "path": "doublewrite_identity_kvstore_total",
+          "component": "cilium-agent"
+        }
+      },
+      "statement": "The Prometheus metric `doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total` in Cilium 1.17.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:8ea419d60f1b919efca7989618d5fb2338d833fc72db8ce6c81a87239f7156e1",
+      "inputEvidence": [
+        "ev-d6005e84dee9"
+      ],
+      "generatedAt": "2026-10-03T02:30:54.602Z",
+      "callId": "11658ca9-dba3-47da-90c0-756c965906d1"
+    },
+    "reason": "[ev-d6005e84dee9] lists this rename under \"Changed Metrics\", so `doublewrite_identity_kvstore_total_count` is a metric name, not a key in a configuration file or ConfigMap. That makes the config-key subject wrong. The excerpt also never names cilium-agent as the component. None of the available subject families describes a metric, so the evidence doesn't support any corrected assertion in this vocabulary.",
+    "startedAt": "2026-10-03T02:30:47.153Z",
+    "decidedAt": "2026-10-03T02:30:54.602Z"
+  }
+}

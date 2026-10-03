@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-59595cf2d56a",
+    "reviewItemId": "ri-c38ddc8eb0bd",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ExternalSecret",
+        "path": "spec.target.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.target.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ExternalSecret v1beta1 resources with spec.target.template.engineVersion set to v1 are rejected by the API server since the value is removed from the enum.",
+        "remediation": "Change engineVersion to an allowed value (e.g. remove v1 setting) before applying.",
+        "severity": "high"
+      },
+      "statement": "ExternalSecret v1beta1 schema: allowed values changed: `spec.target.template.engineVersion`"
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:065b0b5bbadaa12c84cac6371c593fd9eb9439cd617fdd3190785fed383dba0e",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-03T02:30:24.533Z",
+      "callId": "52f8fbf1-adc6-48fe-80bb-6a634c4e40d5"
+    },
+    "reason": "The artifact diff was computed from the CRD bundles of v0.15.0 [ev-9889c9b8706d] and v0.16.0 [ev-e08924afdc47]. It shows that \"v1\" was removed from the allowed values of spec.target.template.engineVersion in the ExternalSecret v1beta1 schema, and nothing was added. When a value is removed from a CRD schema's allowed list, the API server's validation rejects resources that use it, so resource-rejected for ExternalSecrets that set engineVersion to v1 matches the diff. Confidence is low because the excerpts only show the bundles' apiVersion line, not the enum lists themselves.",
+    "startedAt": "2026-10-03T02:30:13.634Z",
+    "decidedAt": "2026-10-03T02:30:24.533Z",
+    "resultingFact": "vf-4856fecff791"
+  }
+}

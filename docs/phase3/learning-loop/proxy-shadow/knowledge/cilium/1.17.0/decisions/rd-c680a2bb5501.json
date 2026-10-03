@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c680a2bb5501",
+    "reviewItemId": "ri-dee93cf470a4",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The `--cluster` flag now returns a different set of flows, including those from nodes outside the specified cluster name (both incoming and outgoing), whereas previously it only showed flows emitted from nodes within that cluster. Existing queries using this flag will see different results.",
+        "severity": "medium"
+      },
+      "statement": "The `--cluster` flag behavior changed to show flows emitted from nodes outside of the provided cluster name (either coming from or going to the target cluster), rather than only flows within that cluster."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:9ce01e87674bf9afb6ec7067dcad5976b81c901561c6694f3ca5c76a70f0d27b",
+      "inputEvidence": [
+        "ev-868456a7673f"
+      ],
+      "generatedAt": "2026-10-02T16:00:45.351Z",
+      "callId": "a2a91467-3665-4990-b293-ea2879f7dbda"
+    },
+    "reason": "[ev-868456a7673f] says the Hubble CLI `--cluster` filter now also shows flows emitted from nodes outside the named cluster that go to or come from it. It also says the old behavior can be reproduced with `--node-name foo/`. Nothing fails, is rejected or stops being honoured; the query results just get wider, so behavior-change (review) is the right kind. The proposed statement matches the evidence.",
+    "startedAt": "2026-10-02T16:00:36.278Z",
+    "decidedAt": "2026-10-02T16:00:45.351Z",
+    "resultingFact": "vf-cdf0025bdf3e"
+  }
+}

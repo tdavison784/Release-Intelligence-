@@ -1,0 +1,41 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-6ad96c3600a0",
+  "promptDigest": "sha256:8b53d2b87b72de0f0b75b7d6e7605800ad9574c547ef0b846fb246662a26108a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b22c8684-7451-4c21-abde-7619b1789ccd",
+  "startedAt": "2026-10-03T02:20:56.170Z",
+  "decidedAt": "2026-10-03T02:21:06.881Z",
+  "durationMs": 9795,
+  "costUSD": 0.076692,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-7994b2163342] lists `ces-write-qps-limit` among the Cilium Operator flags that \"have been deprecated and their usage will be ignored\", and names `ces-rate-limits` as the way to supply a custom configuration. The subject is right. The change type is wrong: \"deprecated\" means the flag still works, but the evidence says setting it is ignored. That is \"removed\" (no longer honoured), with --ces-rate-limits as the replacement.",
+    "citations": [
+      "ev-7994b2163342"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "The Cilium Operator flag --ces-write-qps-limit is deprecated and its usage is ignored (no longer honoured); custom CiliumEndpointSlice rate limits are now supplied via --ces-rate-limits (or Helm value ciliumEndpointSlice.rateLimits).",
+      "subject": {
+        "family": "cli-flag",
+        "determination": "asserted",
+        "name": "--ces-write-qps-limit",
+        "component": "cilium-operator"
+      },
+      "change": {
+        "type": "removed",
+        "determination": "asserted",
+        "replacedBy": {
+          "family": "cli-flag",
+          "name": "--ces-rate-limits",
+          "component": "cilium-operator"
+        }
+      }
+    }
+  }
+}

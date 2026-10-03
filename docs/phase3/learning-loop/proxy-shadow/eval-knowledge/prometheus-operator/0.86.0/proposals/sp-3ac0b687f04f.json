@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3ac0b687f04f",
+    "candidateId": "sc-3dcc79cc0550",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "compatibility-boundary",
+        "product": "prometheus-operator",
+        "name": "kubernetes"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": ">=1.16.0"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cluster-version",
+          "name": "kubernetes",
+          "state": "out-of-range",
+          "range": ">=1.16.0"
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "On a Kubernetes cluster older than v1.16.0, prometheus-operator cannot be installed or upgraded because it uses apiextensions.k8s.io/v1 CustomResourceDefinitions, which require Kubernetes >= v1.16.0.",
+        "remediation": "Upgrade the Kubernetes cluster to v1.16.0 or later before upgrading prometheus-operator.",
+        "severity": "high"
+      },
+      "statement": "prometheus-operator 0.86.0 uses apiextensions.k8s.io/v1 CustomResourceDefinitions and therefore requires Kubernetes >= v1.16.0."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-eacfddf95197"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:5be339ce000552055cd3ec9b10beb89d365f730aa195985f6d46ad4f99e82b93",
+      "inputEvidence": [
+        "ev-eacfddf95197",
+        "ev-f240b6ac3b67",
+        "ev-83fc26f44be6"
+      ],
+      "generatedAt": "2026-10-02T16:50:58Z",
+      "callId": "60698994-d325-46b2-9d6b-07c1d86c8b4d"
+    }
+  }
+}

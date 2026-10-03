@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-50eee92ebbc8",
+    "candidateId": "sc-178716874e9a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "sidecar-scope-conflict-resolution"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Conflict resolution for duplicate-hostname services and multiple Gateway API routes now follows a unified order (same namespace as proxy first, then Kubernetes Service over ServiceEntry), so the selected service or route may differ from before.",
+        "severity": "medium"
+      },
+      "statement": "Istio unifies service conflict resolution (same-hostname services, Gateway API routes) so behavior is the same with or without a Sidecar resource, changing which service or route is picked."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on runtime service/hostname conflicts across namespaces; the opt-out setting is truncated in the evidence.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-80c52188197b",
+      "ev-927d998f5cdd"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6bb6ac7c49e5c6686ff80977c18a2d102640f1eb19b151426ba3847a04e82853",
+      "inputEvidence": [
+        "ev-80c52188197b",
+        "ev-927d998f5cdd"
+      ],
+      "generatedAt": "2026-10-02T06:05:38Z",
+      "callId": "6b34b729-0855-480a-a86f-1a5047c96230"
+    }
+  }
+}

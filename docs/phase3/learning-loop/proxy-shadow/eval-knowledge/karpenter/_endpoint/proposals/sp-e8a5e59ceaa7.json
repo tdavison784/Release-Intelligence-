@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e8a5e59ceaa7",
+    "candidateId": "sc-29fa48f19d84",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "storage-version-migration",
+        "component": "ec2nodeclasses.karpenter.k8s.aws"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "karpenter.k8s.aws",
+          "version": "v1beta1",
+          "kind": "EC2NodeClass"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing EC2NodeClass objects stay stored as v1beta1 until rewritten; a storage version migration (re-write all objects) and a status.storedVersions update must be done before a later release removes v1beta1.",
+        "remediation": "Re-write all EC2NodeClass objects and update status.storedVersions before a later release removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the ec2nodeclasses.karpenter.k8s.aws CRD changes from v1beta1 to v1; existing objects remain stored as v1beta1 until rewritten, so a storage version migration and a status.storedVersions update are needed before a later release removes v1beta1."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-8998581760b8",
+      "ev-451bd6a12e72"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b7db068dd348d70c456b338f9370d9f5362b70c7c25495b2f1c18f8e81dc9603",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-02T05:54:50Z",
+      "callId": "9ca3da74-8f31-46d2-a5ad-3c2b5476b0c8"
+    }
+  }
+}

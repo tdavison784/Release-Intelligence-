@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e0fc1e428832",
+    "reviewItemId": "ri-3cc23e546654",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "dex-rbac-subject-claim"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"sub claim\"",
+        "after": "\"federated_claims.user_id claim\""
+      },
+      "statement": "With Dex SSO, Argo CD 3.0 bases the RBAC subject on the federated_claims.user_id claim (requesting the federated:id scope) instead of the sub claim, so RBAC policies that reference the Dex sub claim must be updated to keep the same access."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:20868b849ab6e0951830da0ee3963803b24c4063068f5c904cc7975f3ed76336",
+      "inputEvidence": [
+        "ev-0b6150153730"
+      ],
+      "generatedAt": "2026-10-03T02:16:16.098Z",
+      "callId": "f5e1db1a-dd49-4559-a5a9-78c1cebc01e0"
+    },
+    "reason": "[ev-0b6150153730] says that with Dex, the RBAC subject used to come from the `sub` claim. In 3.0 it comes from the `federated_claims.user_id` claim, and Argo CD now requests the `federated:id` scope. The configuration stays the same but its meaning changes, so behavior-changed with before \"sub claim\" and after \"federated_claims.user_id claim\" matches the text. The subject name dex-rbac-subject-claim is built only from the evidence's own words. It fits protocol-behavior (how a token claim is used) better than rbac-permission, because no permission is granted or removed.",
+    "startedAt": "2026-10-03T02:16:08.166Z",
+    "decidedAt": "2026-10-03T02:16:16.098Z"
+  }
+}

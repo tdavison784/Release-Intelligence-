@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-ee5a3d56460b",
+    "product": "karpenter",
+    "release": "1.0.0",
+    "members": [
+      {
+        "changeId": "chg-200c343270b7",
+        "anchor": {
+          "release": "1.0.0",
+          "evidenceKeys": [
+            "ek-fcdfc7acfb89"
+          ],
+          "statementKeys": [
+            "sk-2887c0a0eb3f"
+          ],
+          "changeIds": [
+            "chg-200c343270b7"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "removal",
+    "title": "Breaking API (Manual Migration Needed): * Ubuntu is dropped as a first class supported AMI Family * `karpenter.sh/do-not-consolidate` (annotation)…",
+    "text": "Breaking API (Manual Migration Needed): * Ubuntu is dropped as a first class supported AMI Family * `karpenter.sh/do-not-consolidate` (annotation), `karpenter.sh/do-not-evict` (annotation), and `karpenter.sh/managed-by` (tag) are all removed. `karpenter.sh/managed-by`, which currently stores the cluster name in its value, will be replaced by eks:eks-cluster-name * The taint used to mark nodes for disruption and termination changed from `karpenter.sh/disruption=disrupting:NoSchedule` to `karpenter.sh/disrupted:NoSchedule`. It is not recommended to tolerate this taint, however, if you were tolerating it in your applications, you'll need to adjust your taints to reflect this.",
+    "evidence": [
+      {
+        "id": "ev-f83dc72c2c99",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md",
+        "locator": "L61-L64 (Upgrading to `1.0.0`+)",
+        "excerpt": "* Breaking API (Manual Migration Needed):\n  * Ubuntu is dropped as a first class supported AMI Family\n  * `karpenter.sh/do-not-consolidate` (annotation), `karpenter.sh/do-not-evict` (annotation), and `karpenter.sh/managed-by` (tag) are all removed. `karpenter.sh/managed-by`, which currently stores the cluster name in its value, will be replaced by eks:eks-cluster-name\n  * The taint used to mark nodes for disruption and termination changed from `karpenter.sh/disruption=disrupting:NoSchedule` to `karpenter.sh/disrupted:NoSchedule`. It is not recommended to tolerate this taint, however, if you we…",
+        "contentDigest": "sha256:95be50527b8b1cab258c86b9fc665dc9657fa30655d6de614fe8527fcc341da5",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      }
+    ],
+    "hints": [
+      "code:karpenter.sh/do-not-consolidate",
+      "code:karpenter.sh/do-not-evict",
+      "code:karpenter.sh/managed-by",
+      "code:karpenter.sh/disruption=disrupting:NoSchedule",
+      "code:karpenter.sh/disrupted:NoSchedule"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

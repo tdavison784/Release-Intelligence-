@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b16e73f81c02",
+    "candidateId": "sc-87e07dd001ae",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "istio",
+        "name": "istio-csr"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If istio-csr (v0.12.0, without the fix) is used as the CA, Istio's gRPC connection fails with 'transport: authentication handshake failed: credentials: cannot check peer: missing selected ALPN property'.",
+        "remediation": "Install Istio with the workaround settings given in the upgrade notes, or use an istio-csr version containing the upstream fix.",
+        "severity": "high"
+      },
+      "statement": "Istio 1.24 adds stricter validation (ALPN) in its internal gRPC communication to the control plane, which breaks third-party CA istio-csr (v0.12.0 has no fix) with a handshake error unless a workaround setting is applied."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Text says istio-csr is impacted, but how an environment uses istio-csr (e.g. which values or resources) is not stated in the excerpt; the workaround settings are truncated.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-f0029965e392"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5be94050ad643334da69a1c1dc60ad04bb0c17015b21239fbba50b5c000a204a",
+      "inputEvidence": [
+        "ev-f0029965e392"
+      ],
+      "generatedAt": "2026-10-02T06:02:06Z",
+      "callId": "bd590f77-0437-4bbe-aece-3a3b39ae6f7e"
+    }
+  }
+}

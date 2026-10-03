@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-581b2914bcc6",
+    "candidateId": "sc-b5337b9186fc",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1alpha1",
+        "kind": "ScrapeConfig",
+        "path": "spec.ovhcloudSDConfigs[].service"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ovhcloudSDConfigs[].service",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.ovhcloudSDConfigs[].service",
+                  "state": "not-equals",
+                  "values": [
+                    "\"DedicatedServer\"",
+                    "\"VPS\""
+                  ]
+                }
+              ]
+            }
+          ],
+          "group": "monitoring.coreos.com",
+          "version": "v1alpha1",
+          "kind": "ScrapeConfig"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "A ScrapeConfig whose spec.ovhcloudSDConfigs[].service is set to a value other than \"DedicatedServer\" or \"VPS\" is rejected by the API server, since the field is now enum-constrained where it previously had no such restriction.",
+        "remediation": "Set spec.ovhcloudSDConfigs[].service to one of the allowed values \"DedicatedServer\" or \"VPS\" (or remove the ovhcloud SD config) before applying or updating ScrapeConfig resources against the new release.",
+        "severity": "medium"
+      },
+      "statement": "In the monitoring.coreos.com/v1alpha1 schema of scrapeconfigs.monitoring.coreos.com, the allowed values of spec.ovhcloudSDConfigs[].service changed: no enum values were removed and \\\"DedicatedServer\\\" and \\\"VPS\\\" were added, so the field is now restricted to those two values and any other value is rejected by the API server."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-db02f66824cd",
+      "ev-e33dbbb0c01a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ee5be15fc3269feb1c60fa43c65e4f5f294cccee444b5b913c2f909f1880a483",
+      "inputEvidence": [
+        "ev-3cc85997b394",
+        "ev-e032811a0e26",
+        "ev-22d6be11fa2f",
+        "ev-04344c7b3dae",
+        "ev-7d96c48a5c71",
+        "ev-cc90e86e2643",
+        "ev-676b63c80565",
+        "ev-db02f66824cd",
+        "ev-7a53a3520025",
+        "ev-f22afebcad15",
+        "ev-197df9b33168",
+        "ev-84bcfc39962d",
+        "ev-e0e139d1a1a8",
+        "ev-dfadc763c00b",
+        "ev-4393a79e776d",
+        "ev-c87966ce90d5",
+        "ev-767e1a45572f",
+        "ev-e33dbbb0c01a",
+        "ev-13be12903c5c",
+        "ev-542432da4381"
+      ],
+      "generatedAt": "2026-10-02T16:38:15Z",
+      "callId": "2c09f8e4-efd7-4f29-be4f-1d9b95b70a6c"
+    }
+  }
+}

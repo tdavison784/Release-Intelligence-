@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-192a9aac0e87",
+    "candidateId": "sc-5c3e51b15ff9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_INBOUND_RETRY_POLICY"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "ENABLE_INBOUND_RETRY_POLICY",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "ENABLE_INBOUND_RETRY_POLICY",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Inbound requests the service has not seen/processed are now automatically retried/reset by default; this can be reverted by setting ENABLE_INBOUND_RETRY_POLICY to false.",
+        "remediation": "Set ENABLE_INBOUND_RETRY_POLICY to false to revert."
+      },
+      "statement": "Istio 1.24.0 adds a retry policy for inbound requests that automatically resets requests the service has not seen/processed; setting ENABLE_INBOUND_RETRY_POLICY to false reverts it."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e09c6cbd06dc"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:88c8fd48ce052024314088db6f51efa416a36dfbeb6edb1b0a2119fffe2ae594",
+      "inputEvidence": [
+        "ev-e09c6cbd06dc"
+      ],
+      "generatedAt": "2026-10-02T06:06:47Z",
+      "callId": "8c1ed91a-73c9-497e-9cf2-9b0303b64391"
+    }
+  }
+}

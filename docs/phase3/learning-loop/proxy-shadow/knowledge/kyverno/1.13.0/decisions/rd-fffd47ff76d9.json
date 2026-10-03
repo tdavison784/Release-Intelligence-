@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-fffd47ff76d9",
+    "reviewItemId": "ri-ff5ead8a5c1e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing resources at the dropped kyverno.io/v2alpha1 API versions (CleanupPolicy, ClusterCleanupPolicy, PolicyException) must be migrated: the Helm chart performs this migration automatically through its hook, but installations upgraded without Helm (or without the hook) must migrate existing resources themselves, e.g. via kube-storage-version-migrator.",
+        "remediation": "Upgrade through the Helm chart so its migration hook runs automatically, or run kube-storage-version-migrator to migrate existing resources when upgrading without Helm (or without the hook).",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 drops the deprecated kyverno.io/v2alpha1 API versions of the CleanupPolicy, ClusterCleanupPolicy and PolicyException CRDs, and existing resources at the dropped versions must be migrated — automatically by the Helm chart's migration hook, or via kube-storage-version-migrator when upgrading without Helm (or without the hook)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:ae0af58d278d310c85f6a2e5c4ed63254b58ee38cc528810a2f73638f6d050d6",
+      "inputEvidence": [
+        "ev-816adf94e987",
+        "ev-d4e66123c4de",
+        "ev-0cc54c6e1585",
+        "ev-9fdd5d1096ef",
+        "ev-238274d981e4",
+        "ev-b8120a2bb840",
+        "ev-08e1559e3c95",
+        "ev-c2e6033ce1d5",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-03T02:35:52.421Z",
+      "callId": "04ab89cf-1d06-417e-9442-7266f9cb088f"
+    },
+    "reason": "[ev-816adf94e987] says 1.13 drops deprecated CRD API versions and treats migrating existing resources as part of the upgrade. The Helm hook runs that migration automatically. Upgrades without Helm or without the hook have to migrate existing resources themselves, for example with kube-storage-version-migrator. So migration-required (mandatory work) fits, and the statement correctly says Helm installs are handled. The rendered diffs [ev-d4e66123c4de][ev-9fdd5d1096ef][ev-b8120a2bb840] confirm that v2alpha1 is removed from CleanupPolicy, ClusterCleanupPolicy and PolicyException, as the statement says. Confidence is low because the text says operators \"can migrate\" and does not say what fails if they skip it.",
+    "startedAt": "2026-10-03T02:35:39.962Z",
+    "decidedAt": "2026-10-03T02:35:52.421Z",
+    "resultingFact": "vf-e27da15297c4"
+  }
+}

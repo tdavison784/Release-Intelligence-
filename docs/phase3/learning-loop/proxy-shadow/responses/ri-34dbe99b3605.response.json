@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-34dbe99b3605",
+  "promptDigest": "sha256:7ce46f389af8d7ff058c45b3630b3da418b400f343872a387ece18a4e5611676",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "47df8edf-53df-403d-9c81-78cd9f0c2ba6",
+  "startedAt": "2026-10-03T02:15:14.155Z",
+  "decidedAt": "2026-10-03T02:15:32.062Z",
+  "durationMs": 17197,
+  "costUSD": 0.07776720000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-10a72c580d6b] shows the externalsecrets.external-secrets.io CRD's v1beta1 version going from storage: true to false between 0.15.0 and 0.16.0. That means every ExternalSecret object created before the upgrade is stored as v1beta1, whichever apiVersion its manifest used. The change text says these objects must be rewritten and status.storedVersions updated. The proposed condition, gvk-in-use limited to v1beta1, is too narrow: it misses environments whose manifests already use another served version but whose stored objects are still v1beta1. Exposure should be any ExternalSecret in use when upgrading from a release before 0.16.0.",
+    "citations": [
+      "ev-10a72c580d6b"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The ExternalSecret CRD's storage version changes from v1beta1 to v1 in 0.16.0. Any environment that has ExternalSecret objects and upgrades from a release before 0.16.0 holds objects stored as v1beta1. These must be rewritten and status.storedVersions updated before v1beta1 is removed.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "external-secrets.io",
+              "kind": "ExternalSecret"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.16.0"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

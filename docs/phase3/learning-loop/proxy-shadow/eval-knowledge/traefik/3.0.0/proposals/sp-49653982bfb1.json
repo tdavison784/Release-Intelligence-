@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-49653982bfb1",
+    "candidateId": "sc-be5f4f756888",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "pilot"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--pilot.token",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the static configuration file (YAML/TOML) contains a pilot section"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Traefik will not start if any Pilot configuration remains in the static configuration.",
+        "remediation": "Remove all Pilot related configuration from the static configuration.",
+        "severity": "high"
+      },
+      "statement": "Traefik Pilot static configuration (e.g. pilot.token) is no longer supported in v3 and prevents Traefik from starting; it must be removed from the static configuration."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9f3bf592e4e8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:48adcb1a49063935a54e7347b5ca5d546c260bf122a9c44900f49d02fe1a5688",
+      "inputEvidence": [
+        "ev-9f3bf592e4e8"
+      ],
+      "generatedAt": "2026-10-02T20:57:54Z",
+      "callId": "be40ab05-e305-40f3-b276-c872e2514d14"
+    }
+  }
+}

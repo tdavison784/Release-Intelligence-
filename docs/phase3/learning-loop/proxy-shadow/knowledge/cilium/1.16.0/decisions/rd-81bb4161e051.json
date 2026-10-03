@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-81bb4161e051",
+    "reviewItemId": "ri-1a6abfcf4fa9",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.13.3"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the environment has active service connections using Direct-Server-Return that were established before the upgrade"
+            }
+          ]
+        }
+      },
+      "statement": "Service connections using Direct-Server-Return that were established prior to Cilium v1.13.3 will be disrupted during the upgrade to v1.16.0 and must be re-established."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment has active Direct-Server-Return service connections that were established while Cilium older than v1.13.3 was running and are still open at upgrade time"
+        }
+      },
+      "statement": "Upgrading to Cilium 1.16.0 disrupts service connections that use Direct-Server-Return and were established while running a Cilium version older than v1.13.3. Those connections must be re-established. Exposure depends on whether such connections still exist at upgrade time, whatever version is running now."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:1335f925d5ff62aa66f683e510838c1dbe93447b495bf18d8444152f357f9aa4",
+      "inputEvidence": [
+        "ev-89034c5d2c74"
+      ],
+      "generatedAt": "2026-10-03T02:12:36.622Z",
+      "callId": "7a0c882a-d00b-4ba1-9643-41afe2efeeeb"
+    },
+    "reason": "[ev-89034c5d2c74] says the disruption hits DSR service connections that were \"established prior to Cilium v1.13.3\". It does not say it hits environments upgrading from a version below 1.13.3. A long-lived connection opened under 1.13.2 can survive later upgrades and still be open on 1.14 or 1.15. Requiring edge-from-version <1.13.3 would miss those environments, so the condition is too narrow. The evidence names no DSR configuration key, and whether such connections exist is runtime state, so exposure should be undecidable alone.",
+    "startedAt": "2026-10-03T02:12:25.958Z",
+    "decidedAt": "2026-10-03T02:12:36.622Z"
+  }
+}

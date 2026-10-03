@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7e78e07e28a7",
+    "candidateId": "sc-a4e95a096f92",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Added `SECRET_GRACE_PERIOD_RATIO_JITTER` with a default value of `0.01` to introduce a randomized offset in `SECRET_GRACE_PERIOD_RATIO`. Without this…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificate renewal requests for proxies deployed at the same time will now be distributed with randomized jitter (±approximately 15 minutes around the default 12-hour renewal period) instead of occurring simultaneously.",
+        "severity": "medium"
+      },
+      "statement": "Environment variable `SECRET_GRACE_PERIOD_RATIO_JITTER` was added with default value `0.01` to introduce randomized jitter in certificate renewal timing, preventing synchronized renewal requests across proxies."
+    },
+    "proposals": [
+      "sp-52bea1f8b611",
+      "sp-b20cb5d3404d"
+    ],
+    "validations": [
+      "val-2165a8b3198d",
+      "val-38faed38f429",
+      "val-44a63f9f987f",
+      "val-e6eaad47d941"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T05:56:07Z"
+  }
+}

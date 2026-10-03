@@ -1,0 +1,53 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-7db63fa6b494",
+  "promptDigest": "sha256:4f00bd26a12e23b3549864b5499aca60e5a26cbe5c5428f8452df534a7b713e4",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ec2013d1-ed88-4466-ac22-b1c4fec7f86a",
+  "startedAt": "2026-10-03T02:23:09.052Z",
+  "decidedAt": "2026-10-03T02:23:30.039Z",
+  "durationMs": 20259,
+  "costUSD": 0.152832,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-d6a3846e479f] lists the removal under the migration guide's general \"Dynamic configuration\" section. It is not limited to Kubernetes CRDs, so TLS options defined through other dynamic-configuration providers also appear to be exposed. The proposed condition only checks traefik.io TLSOption resources, so it is too narrow. The CRD validator found the field still in the v3.0.0 TLSOption schema [ev-011956bb7059, ev-54d04bd3a614], so setting it is still the right exposure test for the CRD. TLS options set outside the CRD need an undecidable operand, because no static input shown here carries them.",
+    "citations": [
+      "ev-d6a3846e479f",
+      "ev-011956bb7059",
+      "ev-54d04bd3a614"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Exposed environments are those that set preferServerCipherSuites in a TLS option. This covers traefik.io TLSOption resources with spec.preferServerCipherSuites set, and TLS options from other dynamic-configuration providers that set the option. Static inputs cannot show the second case.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "group": "traefik.io",
+              "kind": "TLSOption",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.preferServerCipherSuites",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether TLS options defined in non-CRD dynamic configuration (e.g. file provider tls.options) set preferServerCipherSuites"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

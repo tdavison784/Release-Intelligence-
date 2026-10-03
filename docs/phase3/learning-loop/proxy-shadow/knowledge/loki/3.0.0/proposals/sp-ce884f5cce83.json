@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ce884f5cce83",
+    "candidateId": "sc-46ac425d220e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "write_dedupe_cache"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "write_dedupe_cache",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data",
+                  "state": "exists",
+                  "pattern": "write_dedupe_cache"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The write dedupe cache setting continues to function but is scheduled for removal in a future Loki release as it is no longer required by tsdb and boltdb-shipper indexes.",
+        "severity": "low"
+      },
+      "statement": "The write dedupe cache configuration is deprecated in Loki 3.0.0 as it is not required by newer single store indexes (tsdb and boltdb-shipper)."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4e830661fba0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0e17787ae85d88052d1a59fce07b274de6a2d1e03d20b811c168d20f3eb4c487",
+      "inputEvidence": [
+        "ev-4e830661fba0"
+      ],
+      "generatedAt": "2026-10-02T16:16:34Z",
+      "callId": "003bf0f7-9766-47de-b14f-117b9b750109"
+    }
+  }
+}

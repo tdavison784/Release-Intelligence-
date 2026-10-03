@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-19d61b0556c9",
+    "candidateId": "sc-9cd4a1953216",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Issuer",
+        "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Issuer"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This adds an optional AzureDNS managed-identity setting, `tenantID`, for multi-tenant environments. Existing configurations do not need to change.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds an optional `tenantID` setting to the AzureDNS DNS01 solver's managed identity configuration, so users can specify the tenant ID; existing configurations need no changes."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-cd466139dded"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:c1b4c33d1cdcbfdf1ee9e9acd0886cacba5ec23d652dd90aa7d60edaad7c96ba",
+      "inputEvidence": [
+        "ev-cd466139dded"
+      ],
+      "generatedAt": "2026-10-02T06:12:27Z",
+      "callId": "13035859-5c2b-44b1-a3f3-e7b5bfabea30"
+    }
+  }
+}

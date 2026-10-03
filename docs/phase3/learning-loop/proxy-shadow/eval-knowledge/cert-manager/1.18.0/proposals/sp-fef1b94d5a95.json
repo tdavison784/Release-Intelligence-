@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fef1b94d5a95",
+    "candidateId": "sc-c094933998fc",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "route53-not-found-error-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment uses AWS Route53 for DNS-01 record deletion and Route53 returns not-found errors during those deletions at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments using AWS Route53, deletion of DNS records now correctly detects not-found errors, so the record-deletion/cleanup path behaves differently than in the previous release when Route53 reports a not-found error during deletion.",
+        "remediation": "No operator action stated; verify Route53 DNS-01 challenge cleanup completes normally after upgrading.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 fixes detection of AWS Route53 not-found errors during deletion of DNS records, changing the runtime behavior of DNS record cleanup for environments using Route53."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-23e99dfde8d0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3e4aac1521337c0109e2af90d41fcf794ad07a14dbee6f5a40be934d3f099792",
+      "inputEvidence": [
+        "ev-23e99dfde8d0"
+      ],
+      "generatedAt": "2026-10-02T11:42:08Z",
+      "callId": "0ebf5223-e706-4bbf-bbda-9e222c7faefb"
+    }
+  }
+}

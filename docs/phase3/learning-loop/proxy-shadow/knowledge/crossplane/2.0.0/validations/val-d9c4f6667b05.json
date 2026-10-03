@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d9c4f6667b05",
+    "candidateId": "sc-876cdafc88ba",
+    "proposalId": "sp-43fa50f0303b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "crossplane",
+        "path": "default-mrap"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"default MRAP activating all managed resources (*)\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<2.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Crossplane v2 automatically creates and activates a default managed resource activation policy (MRAP) that activates all managed resources (*), changing the activation behavior from v1.",
+        "severity": "medium"
+      },
+      "statement": "Crossplane v2 automatically creates a default MRAP that activates all managed resources (*) by default."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/added",
+        "detail": "no canonical exposure condition for config-key added"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4d822877d199",
+    "reviewItemId": "ri-b7e70b463605",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run `flux push artifact --provider azure` from Azure DevOps runners (CLI usage in CI pipelines, not cluster configuration)"
+        }
+      },
+      "statement": "In Flux 2.7.0, `flux push artifact --provider azure` is allowed to call the Azure CLI when it runs on Azure DevOps runners."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:395c600f94cfd0044e7e3479b85010cfe7144a99e4eb12175bc002126353701e",
+      "inputEvidence": [
+        "ev-b4b297bb4480"
+      ],
+      "generatedAt": "2026-10-03T01:58:06.551Z",
+      "callId": "cedd1c5e-8899-4eaf-94b1-93888d35795f"
+    },
+    "reason": "[ev-b4b297bb4480] limits the fix to `flux push artifact --provider azure` running on Azure DevOps runners. That is a CLI call in a CI pipeline, and no Helm values, manifests or cluster setting record it. An undecidable exposure with environment-visibility-gap, asking exactly whether operators run that command on DevOps runners, covers the same scope as the evidence and is neither broader nor narrower.",
+    "startedAt": "2026-10-03T01:58:00.84Z",
+    "decidedAt": "2026-10-03T01:58:06.551Z",
+    "resultingFact": "vf-fe7c5f4f585c"
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-7ab7824c9143",
+    "reviewItemId": "ri-e973191e4c09",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--datapath-mode",
+              "component": "cilium",
+              "state": "equals",
+              "values": [
+                "\"lb-only\""
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enable-k8s",
+              "component": "cilium",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "statement": "Operating Cilium in --datapath-mode=lb-only for plain Docker mode now requires an additional --enable-k8s=false flag on the command line; without it, Kubernetes is assumed to be present."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--datapath-mode",
+              "component": "cilium",
+              "state": "equals",
+              "values": [
+                "\"lb-only\""
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enable-k8s",
+              "component": "cilium",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether Cilium is operated in plain Docker mode without Kubernetes rather than inside a Kubernetes cluster"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--datapath-mode",
+              "component": "cilium",
+              "state": "equals",
+              "values": [
+                "\"lb-only\""
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enable-k8s",
+              "component": "cilium",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "Cilium running with --datapath-mode=lb-only in plain Docker mode (without Kubernetes) and without --enable-k8s=false now assumes Kubernetes is present. Setting --enable-k8s=false explicitly avoids this."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:f3c96ac7a4fd377c480e35f5195365293e470430cefd57c5d87a1970830ca9c7",
+      "inputEvidence": [
+        "ev-09d5e26554e5"
+      ],
+      "generatedAt": "2026-10-03T02:34:00.644Z",
+      "callId": "bab5955a-738d-4d37-be5d-7486a0f9accb"
+    },
+    "reason": "[ev-09d5e26554e5] limits the requirement to Cilium running with `--datapath-mode=lb-only` in plain Docker mode. In that case, leaving out `--enable-k8s=false` makes Cilium assume Kubernetes is present. The proposed condition omits the plain-Docker qualifier, so it also flags lb-only deployments that really run on Kubernetes, where assuming Kubernetes is correct. That makes it too broad. No static input shows plain-Docker operation, so it is added as an undecidable operand. The value literal is also corrected from a quoted string to lb-only, and environments that already set `--enable-k8s=false` are listed as overlap.",
+    "startedAt": "2026-10-03T02:33:47.967Z",
+    "decidedAt": "2026-10-03T02:34:00.644Z",
+    "resultingFact": "vf-d1070a4c9a03"
+  }
+}

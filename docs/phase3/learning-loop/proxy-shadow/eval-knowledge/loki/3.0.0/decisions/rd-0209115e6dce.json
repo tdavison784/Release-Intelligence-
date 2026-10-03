@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0209115e6dce",
+    "reviewItemId": "ri-deca6f46958b",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:78b3642d01e3921aea0da56d21bc81502c6eac538a737027d45f2e85f8023fd9",
+      "inputEvidence": [
+        "ev-fff1292f7fe3"
+      ],
+      "generatedAt": "2026-10-03T02:03:59.598Z",
+      "callId": "ddda5bd5-a2b3-4ce6-9cc3-b1649db8311c"
+    },
+    "reason": "The only evidence is one changelog line [ev-fff1292f7fe3]. It says lambda-promtail no longer evaluates an empty string for drop_labels. It does not name a PROMTAIL_CONFIG environment variable, and it does not say how drop_labels is configured (env var, flag or config key). It also does not say which setups were affected before the fix, for example an unset or empty drop_labels. The proposed env-var condition is therefore unsupported, and it may also be too broad. Settling the exposure needs the linked PR #11074 or commit 94169a0, showing which input carries drop_labels and which values triggered the old behaviour.",
+    "startedAt": "2026-10-03T02:03:52.234Z",
+    "decidedAt": "2026-10-03T02:03:59.598Z"
+  }
+}

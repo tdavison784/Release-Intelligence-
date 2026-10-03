@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2a6e0176bfa6",
+    "candidateId": "sc-22716bcf1be8",
+    "proposalId": "sp-c045c5dae4e4",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "controller.resource.health.persist",
+        "component": "argocd-cmd-params-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"controller.resource.health.persist\"]",
+              "state": "unset"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cmd-params-cm"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"controller.resource.health.persist\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cmd-params-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Health status is no longer stored in the Application CR's .status.resources[].health by default; tools or CLI commands parsing that field must use the argocd CLI/API instead.",
+        "remediation": "Set controller.resource.health.persist to true in argocd-cmd-params-cm, or update tools to use the argocd CLI/API to get health status.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0 no longer persists per-resource health under .status.resources[].health in the Application CR by default; set controller.resource.health.persist to true in argocd-cmd-params-cm to revert."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/default-changed",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: fetch https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://raw.githubusercontent.com/argoproj/argo-helm/gh-pages/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/argoproj/argo-helm/argo-cd:7.8.11: fetch https://ghcr.io/v2/argoproj/argo-helm/argo-cd/manifests/7.8.11: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/default-changed",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: fetch https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://raw.githubusercontent.com/argoproj/argo-helm/gh-pages/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/argoproj/argo-helm/argo-cd:7.8.11: fetch https://ghcr.io/v2/argoproj/argo-helm/argo-cd/manifests/7.8.11: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

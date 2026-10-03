@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4bda0656bebf",
+    "candidateId": "sc-5dcbbe4e02ea",
+    "proposalId": "sp-26c67a5ab73a",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "traefik",
+        "group": "traefik.io",
+        "kind": "IngressRouteTCP",
+        "path": "spec.routes[].services[].terminationDelay"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "traefik",
+          "group": "traefik.io",
+          "kind": "ServersTransportTCP",
+          "path": "spec.terminationDelay"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.routes[].services[].terminationDelay",
+              "state": "set"
+            }
+          ],
+          "group": "traefik.io",
+          "kind": "IngressRouteTCP"
+        }
+      },
+      "statement": "The TCP LoadBalancer terminationDelay option (IngressRouteTCP service level) is removed; it is now configured on the TCPServersTransport (ServersTransportTCP spec.terminationDelay)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

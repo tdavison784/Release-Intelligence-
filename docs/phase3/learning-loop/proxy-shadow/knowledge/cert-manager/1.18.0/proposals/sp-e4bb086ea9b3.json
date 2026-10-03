@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e4bb086ea9b3",
+    "candidateId": "sc-292ab9525adb",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates without revisionHistoryLimit now keep only 1 revision, and all stale CertificateRequest resources are garbage collected on upgrade to 1.18.",
+        "remediation": "Explicitly set revisionHistoryLimit on Certificate resources if more CertificateRequest history must be retained.",
+        "severity": "medium"
+      },
+      "statement": "The default of Certificate spec.revisionHistoryLimit changed from nil to 1, so stale CertificateRequests are garbage collected on upgrade unless the field is set explicitly."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-bbe29a5fdc19",
+      "ev-04b3e69b5e24"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:bd71ef6cb8d43a2456d2b2e79f9d6a4d57e3f6b2d9e6b83a46599bd9f388abab",
+      "inputEvidence": [
+        "ev-bbe29a5fdc19",
+        "ev-04b3e69b5e24"
+      ],
+      "generatedAt": "2026-10-02T06:03:10Z",
+      "callId": "4e879de5-01dd-4571-8cf9-56b1fde3b322"
+    }
+  }
+}

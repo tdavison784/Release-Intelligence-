@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b1654a34595c",
+    "candidateId": "sc-42ee0d13e402",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1alpha1",
+        "kind": "ClusterPushSecret",
+        "path": "spec.pushSecretSpec.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.pushSecretSpec.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1alpha1",
+          "kind": "ClusterPushSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "The API server rejects ClusterPushSecret objects that set spec.pushSecretSpec.template.engineVersion to the removed value \"v1\".",
+        "remediation": "Before applying these manifests, change spec.pushSecretSpec.template.engineVersion in ClusterPushSecrets from \"v1\" to a value the new schema allows.",
+        "severity": "medium"
+      },
+      "statement": "In the external-secrets.io/v1alpha1 ClusterPushSecret schema, \"v1\" was removed from the allowed values of spec.pushSecretSpec.template.engineVersion. The API server now rejects ClusterPushSecrets that set it to \"v1\"."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:949a2cecd347e5ea3d341e5abe192f346b4356492e8dcaf34fcf1022a0fcda10",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-02T21:01:16Z",
+      "callId": "b0ca6d46-b8f6-4036-8a35-7a313f9bb00a"
+    }
+  }
+}

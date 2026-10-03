@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f7e4e41dbb6d",
+    "candidateId": "sc-df4d0167852e",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "gateway-tls-passthrough-listeners"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.listeners[].tls.mode",
+              "state": "equals",
+              "values": [
+                "\"Passthrough\""
+              ]
+            }
+          ],
+          "group": "gateway.networking.k8s.io",
+          "kind": "Gateway"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager now skips Gateway TLS listeners in Passthrough mode, so Gateways with a TLS listener in Passthrough mode are handled differently than in previous releases.",
+        "remediation": "Review Gateway TLS listeners configured with Passthrough mode if you relied on cert-manager processing them.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, Gateway TLS listeners configured in Passthrough mode are skipped by cert-manager instead of being processed."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-1861adfd42be"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e59a3190bbb587031c0fcac0bb012db8b73d8d60ab75894de2c35abaf5986d19",
+      "inputEvidence": [
+        "ev-1861adfd42be"
+      ],
+      "generatedAt": "2026-10-02T11:34:32Z",
+      "callId": "a7810ba2-0455-477d-a520-a0fa82d4fdd2"
+    }
+  }
+}

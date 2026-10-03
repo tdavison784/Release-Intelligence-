@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-afcf91611cd1",
+    "candidateId": "sc-c770479afc97",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "version": "v1",
+        "kind": "Certificate"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Certificate objects create CertificateRequest or Secret objects while being deleted\"",
+        "after": "\"Certificate objects no longer create CertificateRequest or Secret objects while being deleted\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "cert-manager.io",
+          "version": "v1",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificate objects will no longer create CertificateRequest or Secret objects during deletion, preventing spurious resource creation in the finalizer cleanup phase.",
+        "severity": "low"
+      },
+      "statement": "The Certificate object's behavior during deletion changes: it will no longer create CertificateRequest or Secret objects while being deleted."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-ab4bd1639399"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ad4eb6d48cb453516656157566ee55cb7ac2267b789e2eeb2f4c53b13eb4eb67",
+      "inputEvidence": [
+        "ev-ab4bd1639399"
+      ],
+      "generatedAt": "2026-10-02T05:55:11Z",
+      "callId": "9a783646-b386-4346-b46a-6490bddbcf07"
+    }
+  }
+}

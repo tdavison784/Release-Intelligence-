@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-85d55ba8e865",
+    "candidateId": "sc-1007e5d829a0",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "storage-version-migration",
+        "component": "imageupdateautomations.image.toolkit.fluxcd.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "image.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "ImageUpdateAutomation"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImageUpdateAutomation objects stay stored as v1beta2 until rewritten; a storage version migration must be run and status.storedVersions updated before a later release removes v1beta2.",
+        "remediation": "Re-write all ImageUpdateAutomation objects and update status.storedVersions on the CRD.",
+        "severity": "medium"
+      },
+      "statement": "The ImageUpdateAutomation CRD storage version changes from v1beta2 to v1, so existing objects stay stored as v1beta2 until a storage version migration is run and status.storedVersions is updated before a later release removes v1beta2."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:bef4983dbc240d2ab94ae62d53de3063dca5c471be3be42eed401ee2689d8f7a",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:16:29Z",
+      "callId": "49ebd220-707b-479b-a5c0-fc8106912592"
+    }
+  }
+}

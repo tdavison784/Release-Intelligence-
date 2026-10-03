@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2d45c171f7a9",
+    "reviewItemId": "ri-2d5ea1ff34d1",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--extra-certificate-annotations",
+          "component": "ingress-shim",
+          "state": "set"
+        }
+      },
+      "statement": "The ingress-shim component adds a new command-line flag --extra-certificate-annotations that allows specifying annotation keys to be copied from Ingress-like resources to resulting Certificate objects."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:39ec3ecc8401c2b92d634db883f164486ced87bb286420a6549544c209b12255",
+      "inputEvidence": [
+        "ev-dde3ce032096"
+      ],
+      "generatedAt": "2026-10-02T12:51:03.814Z",
+      "callId": "36970191-2618-4c90-a279-e76520615c5e"
+    },
+    "reason": "[ev-dde3ce032096] describes a new opt-in ingress-shim option, `--extra-certificate-annotations`, that copies the listed annotation keys from Ingress-like objects to the resulting Certificate. Only environments that pass this flag get the new copying behaviour, so cli-flag{name, set} is exactly the exposed state. The evidence calls this an \"ingress-shim option\" but does not name the container or binary that takes the argument. That makes the component qualifier \"ingress-shim\" the weakest part of the condition, so confidence is low.",
+    "startedAt": "2026-10-02T12:50:55.658Z",
+    "decidedAt": "2026-10-02T12:51:03.814Z"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2b9bf8981385",
+    "candidateId": "sc-8076d0a3c442",
+    "proposalId": "sp-df6422083a3a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "kyverno",
+        "name": "*"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment has mutate or generate policies, or validation rules, that target custom resources, and whether the unnamed Helm upgrade option from the upgrade guide is set"
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "Kyverno no longer has wildcard view permissions. Admission-control policy behaviour is not affected, but mutate and generate policies for custom resources, and policy-result reporting for validation rules on custom resources, may be affected.",
+        "remediation": "Follow the Kyverno 1.13 upgrade guide and set the Helm option that was added so the upgrade does not break existing policies, or grant the needed permissions on the custom resources.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 removes its wildcard view RBAC permissions and replaces them with a role binding to the system view role. This may affect mutate and generate policies for custom resources, and policy-result reporting for validation rules on custom resources."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:rbac-permission/removed",
+        "detail": "no canonical exposure condition for rbac-permission removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

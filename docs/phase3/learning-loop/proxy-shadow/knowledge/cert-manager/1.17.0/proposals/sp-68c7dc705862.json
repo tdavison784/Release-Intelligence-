@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-68c7dc705862",
+    "candidateId": "sc-66c07691e032",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "log-line-format"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the operator filters or parses cert-manager logs using grep or similar tools, which is not visible in any static configuration"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Operators who filter cert-manager logs using grep or similar tools may find their filters no longer match, because some log lines have changed format after more structured logging information was added.",
+        "remediation": "Review and update any grep-based or text-based log filtering and parsing to account for the new structured log line format.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds more structured logging information to certain log lines, so some log lines have changed format, which may affect operators who filter logs with grep or similar tools."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-95c9a508db46"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3f0f8ff71becb8b461883e0c1ea6fadfb6c2192a7dec978914a090b5a405943c",
+      "inputEvidence": [
+        "ev-95c9a508db46"
+      ],
+      "generatedAt": "2026-10-02T11:42:09Z",
+      "callId": "668082c3-3a6d-4a20-b4bc-8981643f2b22"
+    }
+  }
+}

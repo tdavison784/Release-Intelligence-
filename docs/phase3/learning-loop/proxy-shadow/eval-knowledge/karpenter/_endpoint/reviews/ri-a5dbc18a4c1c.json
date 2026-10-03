@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-a5dbc18a4c1c",
+    "candidateId": "sc-29fa48f19d84",
+    "product": "karpenter",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Storage version of `ec2nodeclasses.karpenter.k8s.aws` changes v1beta1 → v1\", what happens, and is that review or action? proposed: deprecation",
+    "proposed": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "Existing EC2NodeClass objects stay stored as v1beta1 until they are rewritten. They must be migrated to v1, and status.storedVersions updated, before a later release removes v1beta1.",
+        "remediation": "Run a storage version migration that rewrites all EC2NodeClass objects, then update status.storedVersions on the ec2nodeclasses.karpenter.k8s.aws CRD.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the ec2nodeclasses.karpenter.k8s.aws CRD changes from v1beta1 to v1. Existing EC2NodeClass objects stay stored as v1beta1 until they are rewritten, so a storage version migration and an update of status.storedVersions are needed before a later release removes v1beta1."
+    },
+    "proposals": [
+      "sp-9d443570860e",
+      "sp-e7f03e41aa70",
+      "sp-e8a5e59ceaa7"
+    ],
+    "validations": [
+      "val-08ba49139e8e",
+      "val-3d82f783ec84",
+      "val-b441ac9c8143",
+      "val-bb871190e31f",
+      "val-d7db2cf2ea04",
+      "val-f5b0de01b9c1"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:13:34Z"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3738d455c637",
+    "candidateId": "sc-8f899185ace7",
+    "proposalId": "sp-57223ead0bd4",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "query_range.results_cache"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"results caching was not enabled by default\"",
+        "after": "\"results caching for stats, volume, label, and series queries is enabled by default\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "loki.query_range.results_cache",
+              "state": "unset"
+            },
+            {
+              "op": "gvk-in-use",
+              "version": "v1",
+              "kind": "LokiStack"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Query results for stats, volume, label, and series requests will now be cached by default to the in-memory results_cache, changing query performance characteristics and memory usage patterns.",
+        "severity": "medium"
+      },
+      "statement": "Results caching for 'stats', 'volume', 'label', and 'series' queries in the TSDB index type is now enabled by default, caching to the results_cache configured in the query_range config section using an in-memory cache by default."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

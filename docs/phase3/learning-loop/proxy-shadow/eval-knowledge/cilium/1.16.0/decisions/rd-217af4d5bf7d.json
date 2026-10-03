@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-217af4d5bf7d",
+    "reviewItemId": "ri-ef4eccf040c9",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "migration",
+        "product": "cilium",
+        "name": "dsr-service-connections-reestablish"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "Service connections using Direct-Server-Return that were established before Cilium v1.13.3 will be disrupted on upgrade and must be re-established."
+    },
+    "corrected": {
+      "subject": {
+        "family": "migration",
+        "product": "cilium",
+        "name": "direct-server-return-connections-reestablish"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "When upgrading to Cilium 1.16.0, Service connections that use Direct-Server-Return and were established before Cilium v1.13.3 will be disrupted and need to be re-established."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:14041982f9d21de8a81ede5a570a93a7a781a5a99c09c7db5964e3e868ac1771",
+      "inputEvidence": [
+        "ev-89034c5d2c74"
+      ],
+      "generatedAt": "2026-10-03T02:34:25.864Z",
+      "callId": "10cef6b6-6aca-4be4-acb0-0e8ba5ee70ee"
+    },
+    "reason": "[ev-89034c5d2c74] is a 1.16 upgrade note saying that Service connections using `Direct-Server-Return` and established before v1.13.3 will be disrupted and need to be re-established. That is a required operator step, so the migration family with migration-required is right. The text doesn't say what underlying behaviour changed, which is why I don't use protocol-behavior. The name has to be built only from the evidence's own words, and \"dsr\" doesn't appear in it, so I spelled the key words out in kebab-case.",
+    "startedAt": "2026-10-03T02:34:13.238Z",
+    "decidedAt": "2026-10-03T02:34:25.864Z",
+    "resultingFact": "vf-7077160702a6"
+  }
+}

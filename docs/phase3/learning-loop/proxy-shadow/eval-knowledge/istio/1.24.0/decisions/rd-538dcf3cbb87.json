@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-538dcf3cbb87",
+    "reviewItemId": "ri-b2fa65b868f9",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.hostNetwork",
+                      "state": "equals",
+                      "values": [
+                        "true"
+                      ]
+                    }
+                  ],
+                  "kind": "Pod"
+                }
+              ]
+            },
+            {
+              "op": "feature-gate",
+              "name": "ambient",
+              "state": "enabled"
+            }
+          ]
+        }
+      },
+      "statement": "An issue causing pods with hostNetwork enabled to be ignored in Istio ambient mode has been fixed."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.hostNetwork",
+                  "state": "equals",
+                  "values": [
+                    "true"
+                  ]
+                }
+              ],
+              "kind": "Pod"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the environment runs Istio in ambient mode with the hostNetwork pods in scope of ambient; the release note does not say what configuration enables ambient mode or enrolls pods"
+            }
+          ]
+        }
+      },
+      "statement": "Exposed environments run Pods with spec.hostNetwork=true under Istio ambient mode. Those pods were previously ignored and are now handled. The release note does not say how ambient mode or pod enrollment is configured, so that part cannot be expressed as a configuration predicate from this evidence."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:cf41b25dc22fbefa3b4699d9d3a991db49bfdd0eb55c020ea482584d154edcec",
+      "inputEvidence": [
+        "ev-93c0d3a62602"
+      ],
+      "generatedAt": "2026-10-02T15:55:02.58Z",
+      "callId": "f01bd660-dcbb-4c51-ab00-92718c5932c1"
+    },
+    "reason": "[ev-93c0d3a62602] only says that `hostNetwork` pods were ignored in ambient mode and that this is fixed. That supports a Pod with spec.hostNetwork=true as part of the exposure condition. It does not support a feature gate named \"ambient\": the evidence never says how ambient mode is turned on or how pods join it. That leaf is invented, so I replace it with an undecidable operand that states what is missing.",
+    "startedAt": "2026-10-02T15:54:50.311Z",
+    "decidedAt": "2026-10-02T15:55:02.58Z"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-b5c0c815218d",
+    "candidateId": "sc-42a411d9011e",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "applicability",
+    "question": "For \"TLS Visibility can now pass secrets to Envoy via SDS instead of inline via NPDS\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "tls.secretsBackend",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "tls.readSecretsOnlyFromSecretsNamespace",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "tls.readSecretsOnlyFromSecretsNamespace",
+          "state": "set"
+        }
+      },
+      "statement": "The Helm value tls.secretsBackend (local or k8s) is deprecated and replaced by tls.readSecretsOnlyFromSecretsNamespace as part of TLS Visibility moving to SDS."
+    },
+    "proposals": [
+      "sp-4663154e727a",
+      "sp-55408de6e4fa"
+    ],
+    "validations": [
+      "val-0609e710fe95",
+      "val-1069fef0fcb7",
+      "val-1ec2f83e8384",
+      "val-4bfb27cafc1b",
+      "val-6502d2fc3e3a",
+      "val-a5635486d1d6",
+      "val-c6a12ee82876",
+      "val-fe07a7c1dc07"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T05:59:19Z"
+  }
+}

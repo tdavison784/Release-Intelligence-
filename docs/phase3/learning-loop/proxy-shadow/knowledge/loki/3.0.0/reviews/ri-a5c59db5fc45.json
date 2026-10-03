@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-a5c59db5fc45",
+    "candidateId": "sc-da7cf178d59f",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"promtail: chore(promtail): Improve default configuration that is shipped with rpm/deb packages to avoid possible high CPU utilisation if there are lots of…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--config",
+              "component": "promtail",
+              "state": "unset"
+            },
+            {
+              "op": "image-in-use",
+              "name": "grafana/promtail"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "Promtail's default configuration in rpm/deb packages was improved to reduce CPU utilization when many files exist in /var/log."
+    },
+    "proposals": [
+      "sp-38f6e2aa1f83",
+      "sp-46fced27dedb"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T16:13:45Z"
+  }
+}

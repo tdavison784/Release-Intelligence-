@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dd20c4dc8e5d",
+    "candidateId": "sc-1b3949284e45",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "metadata.annotations[\"policy.cilium.io/proxy-visibility\"]",
+        "component": "Pod"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "metadata.annotations[\"policy.cilium.io/proxy-visibility\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "Pod"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Pod annotations using policy.cilium.io/proxy-visibility will no longer be honored and L7 protocol visibility configuration via this annotation will be ignored.",
+        "severity": "medium"
+      },
+      "statement": "Pod annotation policy.cilium.io/proxy-visibility, deprecated since v1.15, has been removed in Cilium 1.17.0."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-7424e74176c0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6674ad29d9582522aa7b16c62bee34f721b6624a57fbb63f28d8baa63ea92003",
+      "inputEvidence": [
+        "ev-7424e74176c0"
+      ],
+      "generatedAt": "2026-10-02T06:01:57Z",
+      "callId": "8bd12439-a48b-4962-a41c-789f18af63cf"
+    }
+  }
+}

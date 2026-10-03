@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-136de2765f72",
+    "candidateId": "sc-c71a084ba3c7",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "clustermesh.apiserver.kvstoremesh.enabled"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.kvstoremesh.enabled",
+              "state": "unset"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.16.0"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "clustermesh.apiserver.kvstoremesh.enabled",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "KVStoreMesh becomes enabled by default in Clustermesh deployments unless explicitly disabled during the upgrade."
+      },
+      "statement": "The default value of the Helm value clustermesh.apiserver.kvstoremesh.enabled changed from false to true in Cilium 1.16.0."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4e1e10256713"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2435743d9e5aff0f83ffc510d0f9f86c8850e4c383632fc2d62f544ac7664da2",
+      "inputEvidence": [
+        "ev-4e1e10256713",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T06:07:13Z",
+      "callId": "8955afb5-8f08-42df-bc80-388f0b8c12c2"
+    }
+  }
+}

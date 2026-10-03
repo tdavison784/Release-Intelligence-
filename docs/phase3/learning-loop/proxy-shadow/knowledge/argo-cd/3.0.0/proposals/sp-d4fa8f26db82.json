@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d4fa8f26db82",
+    "candidateId": "sc-4d86bb805e56",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "selfheal-backoff-calculation"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--self-heal",
+              "state": "set"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "Application"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Self-healing backoff delay calculation now correctly handles cases exceeding the maximum delay value, fixing incorrect behavior in the previous version.",
+        "severity": "medium"
+      },
+      "statement": "SelfHealBackOff delay calculation when exceeding maximum is fixed to work correctly."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-8a18453dbaf5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2d39b3e2b7be01b0c5c0c80759dec4e057002c26672d655cb22be34dafa6628b",
+      "inputEvidence": [
+        "ev-8a18453dbaf5"
+      ],
+      "generatedAt": "2026-10-02T05:56:06Z",
+      "callId": "82037177-e893-4f4c-9541-08c5187376d6"
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fc3a6ca663fa",
+    "candidateId": "sc-2a33dcd96146",
+    "proposalId": "sp-f13b8a4410cb",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "cilium",
+        "name": "tofqdns-selector-identity-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.15.6"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.egress[].toFQDNs[]",
+                  "state": "set"
+                }
+              ],
+              "group": "cilium.io",
+              "kind": "CiliumNetworkPolicy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Temporary packet drops may occur for connections allowed by toFQDNs policies during the initial endpoint regeneration on Cilium v1.16 when upgrading from a version older than v1.15.6.",
+        "remediation": "Upgrade to Cilium v1.15.6 or newer before upgrading to v1.16.",
+        "severity": "medium"
+      },
+      "statement": "Upgrading to Cilium 1.16 from a version older than 1.15.6 with toFQDNs policies may cause temporary packet drops during initial endpoint regeneration; run v1.15.6 or newer first."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

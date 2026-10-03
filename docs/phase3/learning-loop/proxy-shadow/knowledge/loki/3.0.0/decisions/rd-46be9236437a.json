@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-46be9236437a",
+    "reviewItemId": "ri-ff34cf1d728c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The removed `-s3.sse-encryption` config is no longer honoured; S3 server-side encryption must be configured with the `-s3.sse.*` settings.",
+        "remediation": "Replace `-s3.sse-encryption` with the `-s3.sse.*` settings."
+      },
+      "statement": "The deprecated Loki config `-s3.sse-encryption` is removed in favor of the `-s3.sse.*` settings."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:25054e1c588b3f18b42303b3ed4e524e6d91bb2ac7ea41e38de4d14206f75b99",
+      "inputEvidence": [
+        "ev-621f5e4bbeea"
+      ],
+      "generatedAt": "2026-10-03T02:35:47.038Z",
+      "callId": "4832e3b3-6c88-463c-aa71-7c5dc3e3b415"
+    },
+    "reason": "[ev-621f5e4bbeea] says the deprecated `-s3.sse-encryption` config was removed and the `-s3.sse.*` settings replace it. A removed setting is no longer honoured, which is exactly what setting-ignored covers (\"removed/renamed key\"), and swapping in the `-s3.sse.*` settings is the right remediation. The evidence does not say whether a leftover value is silently ignored or makes startup fail, so setting-ignored is the minimum the evidence supports, not a proven outcome.",
+    "startedAt": "2026-10-03T02:35:35.597Z",
+    "decidedAt": "2026-10-03T02:35:47.038Z",
+    "resultingFact": "vf-73af9e8ae138"
+  }
+}

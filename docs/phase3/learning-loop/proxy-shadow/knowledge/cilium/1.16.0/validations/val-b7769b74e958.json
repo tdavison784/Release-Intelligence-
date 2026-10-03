@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b7769b74e958",
+    "candidateId": "sc-24aa4e50837e",
+    "proposalId": "sp-7bb4f0e5b79b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumLoadBalancerIPPool",
+        "path": "spec.allowFirstLastIPs"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"no\"",
+        "after": "\"yes\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.allowFirstLastIPs",
+              "state": "unset"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.allowFirstLastIPs",
+              "state": "set"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Unless allowFirstLastIPs is set explicitly, the first and last IP addresses of the pool become available for allocation.",
+        "remediation": "If you rely on the previous behavior, set allowFirstLastIPs: no in the IP pool before upgrading.",
+        "severity": "low"
+      },
+      "statement": "The default of CiliumLoadBalancerIPPool.spec.allowFirstLastIPs changed to \"yes\", so the first and last IPs of a pool become allocatable unless configured otherwise."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

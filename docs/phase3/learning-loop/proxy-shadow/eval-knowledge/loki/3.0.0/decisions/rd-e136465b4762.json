@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e136465b4762",
+    "reviewItemId": "ri-4cb131f8dc2e",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "experimental.ruler.enable-api",
+          "state": "set"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "ruler.enable-api",
+          "state": "set"
+        }
+      },
+      "statement": "The `experimental.ruler.enable-api` configuration option is removed in Loki 3.0.0; users must migrate to `ruler.enable-api` instead."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment's Loki configuration (config file or container arguments) still sets the removed option experimental.ruler.enable-api"
+        }
+      },
+      "statement": "Loki 3.0.0 removes the configuration option `experimental.ruler.enable-api` (use `ruler.enable-api`). An environment is exposed if its Loki configuration still sets this option, but the evidence does not say where that would show up, so exposure cannot be decided statically."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:e8ae64f1eb74da1aaac1a2afed0b5956ba194c2ab7e0c25ba1fdf1a0dac23114",
+      "inputEvidence": [
+        "ev-8fea3a0e7308"
+      ],
+      "generatedAt": "2026-10-03T02:17:57.281Z",
+      "callId": "a2f1ac21-75df-413e-b55e-d47680ac66ff"
+    },
+    "reason": "[ev-8fea3a0e7308] says only that the Loki configuration option `experimental.ruler.enable-api` is removed and that `ruler.enable-api` replaces it. Nothing in it shows the option is a Helm chart value, so the values-key path `experimental.ruler.enable-api` has no support. The evidence also does not say whether the option is set in the Loki config file or as a container argument, so no static predicate can be derived from it. The proposed overlap is wrong too: setting `ruler.enable-api` does not protect an environment that still sets the removed option.",
+    "startedAt": "2026-10-03T02:17:44.217Z",
+    "decidedAt": "2026-10-03T02:17:57.281Z"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-87d161c59ee8",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "members": [
+      {
+        "changeId": "chg-e4f5f001ae5f",
+        "anchor": {
+          "release": "1.18.0",
+          "evidenceKeys": [
+            "ek-4ece7fc9c025"
+          ],
+          "statementKeys": [
+            "sk-8f2e1a1cd0fa"
+          ],
+          "changeIds": [
+            "chg-e4f5f001ae5f"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "other",
+    "title": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.…",
+    "text": "ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`. This security feature ensures that the challenge path (which is an exact path) is not misinterpreted as a regular expression or some other Ingress-specific (`ImplementationSpecific`) parsing. This allows HTTP01 challenges to be solved when using standards compliant Ingress controllers such as Cilium. This change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controller. Versions of `ingress-nginx >=1.8.0` support a `strict-validate-path-type` configuration option which, when enabled, disallows `.` (dot) in the path value. This is a bug which makes it impossible to use various legitimate URL paths, including the `http://<YOUR_DOMAIN>/.well-known/acme-challenge/<TOKEN>` URLs used for ACME HTTP01. To make matters worse, the buggy validation is enabled by default in `ingress-nginx >= 1.12.0`. You will see errors like this in the cert-manager controller logs: Error presenting challenge: admission webhook `validate.nginx.ingress.kubernetes.io` denied the request: ingress contains invalid…",
+    "evidence": [
+      {
+        "id": "ev-110340e9c914",
+        "kind": "document",
+        "sourceId": "website-major-themes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L28-L89 (Major Themes › ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes)",
+        "excerpt": "### ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes\n\n> ⚠️ Breaking change\n\nWe have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.\nThis security feature ensures that the challenge path (which is an exact path)\nis not misinterpreted as a regular expression or some other Ingress-specific\n(`ImplementationSpecific`) parsing.\nThis allows HTTP01 challenges to be solved when using standards compliant\nIngress controllers such as Cilium.\n\nThis change is incompatible with certain versions and configurations of the `ingress-nginx` Ingress controlle…",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "hints": [
+      "code:PathType",
+      "code:Exact",
+      "code:ImplementationSpecific",
+      "code:ingress-nginx",
+      "code:ingress-nginx >=1.8.0",
+      "code:strict-validate-path-type",
+      "code:http://<YOUR_DOMAIN>/.well-known/acme-challenge/<TOKEN>",
+      "code:ingress-nginx >= 1.12.0",
+      "code:validate.nginx.ingress.kubernetes.io",
+      "env:YOUR_DOMAIN",
+      "constraint:>=1.8.0",
+      "constraint:>=1.12.0",
+      "version:1.8.0",
+      "version:1.12.0"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

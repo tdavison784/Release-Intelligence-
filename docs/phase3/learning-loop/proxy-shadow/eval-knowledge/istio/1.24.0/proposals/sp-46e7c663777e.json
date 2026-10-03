@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-46e7c663777e",
+    "candidateId": "sc-4330cdde4865",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.exportTo",
+              "state": "set"
+            }
+          ],
+          "group": "networking.istio.io",
+          "kind": "DestinationRule"
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRules on the same host with totally different exportTo values are no longer merged, so effective traffic policy may differ from before.",
+        "remediation": "Set ENABLE_ENHANCED_DESTINATIONRULE_MERGE to false in the pilot deployment to restore the previous merging.",
+        "severity": "low"
+      },
+      "statement": "Istio pilot no longer merges DestinationRules for the same host when their exportTo attributes are totally different; setting ENABLE_ENHANCED_DESTINATIONRULE_MERGE=false in the pilot deployment restores the old merging."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a25845551580"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:652a4122eef345a262976055d4e29f211c350a95c2428584d111ebf10c396f6b",
+      "inputEvidence": [
+        "ev-a25845551580"
+      ],
+      "generatedAt": "2026-10-02T05:59:59Z",
+      "callId": "2484c193-2e8c-487d-8ea5-a9fdd7899b3d"
+    }
+  }
+}

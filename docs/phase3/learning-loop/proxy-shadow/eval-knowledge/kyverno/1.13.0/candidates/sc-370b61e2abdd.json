@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-370b61e2abdd",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "members": [
+      {
+        "changeId": "chg-a1bf569ffc7c",
+        "anchor": {
+          "release": "1.13.0",
+          "evidenceKeys": [
+            "ek-77fbae1a69eb"
+          ],
+          "statementKeys": [
+            "sk-03e544c0241d"
+          ],
+          "changeIds": [
+            "chg-a1bf569ffc7c"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "API Call Retry: Kyverno’s GlobalContextEntry provides a powerful mechanism to fetch external data and use it within policies",
+    "text": "API Call Retry: Kyverno’s GlobalContextEntry provides a powerful mechanism to fetch external data and use it within policies. When leveraging the apiCall feature to retrieve data from an API, transient network issues can sometimes hinder successful retrieval. To address this, Kyverno now offers built-in retry logic for API calls within GlobalContextEntry. You can now optionally specify a retryLimit for your API calls: The `retryLimit` field determines the number of times Kyverno will attempt to make the API call if it initially fails. This field is optional and defaults to 3, ensuring a reasonable level of resilience against temporary network hiccups. By incorporating this retry mechanism, Kyverno further strengthens its ability to reliably fetch external data, ensuring your policies can function smoothly even in the face of occasional connectivity issues. This enhancement improves the overall robustness and dependability of your Kubernetes policy enforcement framework.",
+    "evidence": [
+      {
+        "id": "ev-a6027c299092",
+        "kind": "document",
+        "sourceId": "release-notes-blog",
+        "uri": "https://github.com/kyverno/website/blob/main/src/content/blog/announcing-kyverno-release-1.13/index.md",
+        "locator": "L496-L516 (Other Features and Enhancements › GlobalContextEntries Enhancements › API Call Retry)",
+        "excerpt": "#### API Call Retry\n\nKyverno’s GlobalContextEntry provides a powerful mechanism to fetch external data and use it within policies. When leveraging the apiCall feature to retrieve data from an API, transient network issues can sometimes hinder successful retrieval.\n\nTo address this, Kyverno now offers built-in retry logic for API calls within GlobalContextEntry. You can now optionally specify a retryLimit for your API calls:\n\n```yaml\napiVersion: kyverno.io/v2alpha1\nkind: GlobalContextEntry\nmetadata:\n  name: gctxentry-apicall-correct\nspec:\n  apiCall:\n    urlPath: '/apis/apps/v1/namespaces/test…",
+        "contentDigest": "sha256:7003865f075ba01cdc5d733756c6473f3127141fc7a370118d60a3fe94c70652",
+        "retrievedAt": "2026-10-02T10:53:16Z"
+      },
+      {
+        "id": "ev-eb301d25a0b7",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_globalcontextentries.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//globalcontextentries.kyverno.io spec.versions[name=v2alpha1].schema.openAPIV3Schema.properties.spec.properties.apiCall.properties.retryLimit",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/globalcontextentries.kyverno.io spec.versions[name=v2alpha1].schema.openAPIV3Schema.properties.spec.properties.apiCall.properties.retryLimit: ∅ → {\"default\":3,\"description\":\"RetryLimit defines the number of times the APICall should be retried in case of failure.\",\"minimum\":1,\"type\":\"integer\"}",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//globalcontextentries.kyverno.io",
+          "path": "spec.versions[name=v2alpha1].schema.openAPIV3Schema.properties.spec.properties.apiCall.properties.retryLimit",
+          "change": "field-added",
+          "after": "{\"default\":3,\"description\":\"RetryLimit defines the number of times the APICall should be retried in case of failure.\",\"minimum\":1,\"type\":\"integer\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      }
+    ],
+    "hints": [
+      "code:retryLimit"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:27Z"
+  }
+}

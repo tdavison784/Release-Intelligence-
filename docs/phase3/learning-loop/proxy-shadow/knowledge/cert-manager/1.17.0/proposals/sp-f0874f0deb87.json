@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f0874f0deb87",
+    "candidateId": "sc-c9e607a2cdf4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "log-messages-structured-data"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether external log tooling (alerts, parsers, searches) matches literal strings in cert-manager log lines"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Log lines now include more structured context data, so tooling that matches literal strings in cert-manager logs may stop matching.",
+        "remediation": "Check any log-based alerts, parsers or searches that match literal cert-manager log strings, and update them for the new structured log output.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0, log messages now carry better contextual structured data, so anything that matches literal strings in log lines may break."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-775b7a64f057"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ea2dd11857265ace512e2d33f000332d0ab4222097a9a7973ba6aa1dd0ff25be",
+      "inputEvidence": [
+        "ev-775b7a64f057"
+      ],
+      "generatedAt": "2026-10-02T06:12:51Z",
+      "callId": "b7d600f6-2c71-4b30-a431-fab52da00ab5"
+    }
+  }
+}

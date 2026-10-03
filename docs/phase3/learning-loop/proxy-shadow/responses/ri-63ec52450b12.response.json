@@ -1,0 +1,36 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-63ec52450b12",
+  "promptDigest": "sha256:0d79ff5f34083f8a50935c2bff880ff2c0e160aa2b7dafd39c45d737ad7678e8",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "384139b8-134b-4a12-af31-6c24c3046ce1",
+  "startedAt": "2026-10-03T02:19:56.707Z",
+  "decidedAt": "2026-10-03T02:20:09.521Z",
+  "durationMs": 11900,
+  "costUSD": 0.097108,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-f07fad593227] only shows that spec.versions[name=v1beta1].storage on secretstores.external-secrets.io changes from true to false between 0.15.0 and 0.16.0, and the validator using [ev-9889c9b8706d] and [ev-e08924afdc47] confirms v1beta1 is still served and not deprecated at the target. Nothing in the evidence says anything fails, is rejected or must be migrated for this upgrade. The migration is only needed before some future, unspecified release removes v1beta1. Existing objects keep working, so this is behavior-change (review), not migration-required (action).",
+    "citations": [
+      "ev-f07fad593227",
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "After the upgrade, secretstores.external-secrets.io stores objects as v1 instead of v1beta1. v1beta1 is still served. Existing SecretStore objects keep working but stay stored as v1beta1 until they are rewritten.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "statement": "Nothing fails in this release. New or rewritten SecretStore objects are stored as v1, and existing objects stay stored as v1beta1 until rewritten. A storage version migration and a status.storedVersions update will be needed before any later release that removes v1beta1.",
+        "remediation": "Optionally rewrite all SecretStore objects (storage version migration) and remove v1beta1 from status.storedVersions on the CRD before upgrading to a release that drops v1beta1.",
+        "severity": "low"
+      }
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-fe7c5f4f585c",
+    "product": "flux",
+    "release": "2.7.0",
+    "anchors": [
+      {
+        "release": "2.7.0",
+        "evidenceKeys": [
+          "ek-2df0707e6aa3"
+        ],
+        "statementKeys": [
+          "sk-9968f7c6ae88"
+        ],
+        "changeIds": [
+          "chg-0f1616b5eef2"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-55aa41cb3e29"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "flux",
+        "name": "--provider",
+        "component": "flux push artifact"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run `flux push artifact --provider azure` from Azure DevOps runners (CLI usage in CI pipelines, not cluster configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "A bug fix: on Azure DevOps runners, `flux push artifact --provider azure` can now call the Azure CLI. Operators do not need to do anything.",
+        "remediation": "None needed. If your CI pipelines on Azure DevOps had a workaround for this, check that it is still needed.",
+        "severity": "low"
+      },
+      "statement": "fix: Allow Azure CLI calls in `flux push artifact --provider azure` on DevOps runners by @matheuscscp in https://github.com/fluxcd/flux2/pull/5390"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-3c23ec351435"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-3c23ec351435"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-4d822877d199"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-e32500f73a04"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-b4b297bb4480",
+        "kind": "document",
+        "sourceId": "release-notes",
+        "uri": "https://github.com/fluxcd/flux2/releases/tag/v2.7.0",
+        "locator": "L80-L80 (CLI changelog)",
+        "excerpt": "* fix: Allow Azure CLI calls in `flux push artifact --provider azure` on DevOps runners by @matheuscscp in https://github.com/fluxcd/flux2/pull/5390",
+        "contentDigest": "sha256:88bc939a89a38580b3522726fe8b6e9ed58b049224371c8cacbe410c4ee19e84",
+        "retrievedAt": "2026-10-02T10:53:01Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T01:58:06.551Z"
+  }
+}

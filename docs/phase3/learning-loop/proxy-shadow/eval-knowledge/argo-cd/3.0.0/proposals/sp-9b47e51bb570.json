@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9b47e51bb570",
+    "candidateId": "sc-faffd3489419",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.customizations.ignoreResourceUpdates",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"resource.customizations.ignoreResourceUpdates.ConfigMap\"]",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"resource.customizations.ignoreResourceUpdates.Endpoints\"]",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"resource.customizations.ignoreResourceUpdates.ConfigMap\"]",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"resource.customizations.ignoreResourceUpdates.all\"]",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Watched resources' .status changes and common mutated resources will be ignored by default, reducing load on Argo CD; this changes behavior from v2.14 where these were processed.",
+        "remediation": "If v2 behavior is required, override or remove the resource.customizations.ignoreResourceUpdates configuration in the argocd-cm ConfigMap.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 adds a default configuration for resource.customizations.ignoreResourceUpdates in the argocd-cm ConfigMap that excludes common mutated resources and always ignores .status changes; the v2 behavior can be preserved by overriding or removing this configuration."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-94989021db77"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4033b5f3f7b72b8f4b70bd8e8023d10af06606b7315d14b6dfdf804e49204378",
+      "inputEvidence": [
+        "ev-94989021db77"
+      ],
+      "generatedAt": "2026-10-02T05:59:33Z",
+      "callId": "8aa2d69c-b7ee-4d74-9909-c6e65ea7bce4"
+    }
+  }
+}

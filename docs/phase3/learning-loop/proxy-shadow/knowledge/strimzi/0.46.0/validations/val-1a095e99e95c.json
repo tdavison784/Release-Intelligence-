@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1a095e99e95c",
+    "candidateId": "sc-5851fd4cdacf",
+    "proposalId": "sp-f87abe8fcfbe",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "metric.reporters"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=4.0.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.kafka.metricsConfig",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kafka.strimzi.io",
+                  "kind": "Kafka"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether JMXReporter is already explicitly listed in metric.reporters in the Kafka broker configuration (the evidence does not state where metric.reporters is configured in the Kafka resources)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On Kafka 4.0.0 or later, if the operator does nothing the JMXReporter is not enabled; it is enabled only by enabling metrics in `.spec.kafka.metrics` or by explicitly adding JMXReporter in `metric.reporters`.",
+        "remediation": "Either enable metrics in `.spec.kafka.metrics` (the Kafka resource's metrics configuration, spec.kafka.metricsConfig in v1beta2), or explicitly add JMXReporter in `metric.reporters`.",
+        "severity": "medium"
+      },
+      "statement": "From Kafka 4.0.0, the JMXReporter must be enabled explicitly — either by enabling metrics in `.spec.kafka.metrics` or by explicitly adding JMXReporter in `metric.reporters` — instead of being available without these steps."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/behavior-changed",
+        "detail": "no canonical exposure condition for config-key behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

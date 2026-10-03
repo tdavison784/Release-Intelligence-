@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c9b79e54df07",
+    "reviewItemId": "ri-b15d325280f1",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators run `flux diff ks` against Kustomization resources that carry the `force: enabled` annotation"
+        }
+      },
+      "statement": "In Flux 2.7.0, the `flux diff ks` CLI command handles the `force: enabled` annotation."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:aeb06d25fbb6e6b0420a4a5f77a43ee8444a17166b9ab2f1e4a095d1cc243e7c",
+      "inputEvidence": [
+        "ev-5644801ced86"
+      ],
+      "generatedAt": "2026-10-03T01:57:20.666Z",
+      "callId": "fa41f3ec-867c-48ff-bbe5-6fa2e2deb82c"
+    },
+    "reason": "[ev-5644801ced86] is a one-line CLI changelog entry saying only that the `flux diff ks` command now handles the `force: enabled` annotation. It does not give the annotation key or say which resources carry it. Exposure also depends on operators actually running a client-side CLI command, and no static environment input records that. So an undecidable exposure that names the missing information is the right condition. P2's cli-flag{\"diff ks\"} is wrong because a subcommand is not a container argument of the product's workloads.",
+    "startedAt": "2026-10-03T01:57:12.813Z",
+    "decidedAt": "2026-10-03T01:57:20.666Z",
+    "resultingFact": "vf-f1185df0f562"
+  }
+}

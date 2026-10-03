@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-71868bd375fa",
+    "product": "istio",
+    "release": "1.24.0",
+    "anchors": [
+      {
+        "release": "1.24.0",
+        "evidenceKeys": [
+          "ek-1dbea16b455d"
+        ],
+        "statementKeys": [
+          "sk-9bdaddf20c32"
+        ],
+        "changeIds": [
+          "chg-0dd802953478"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-1ba13d17afbf"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "istioctl-experimental-injector-list",
+        "component": "istioctl"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run `istioctl experimental injector list` (an operator-side CLI command, not a workload argument) against clusters that also contain mutating webhooks not related to istio"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The istioctl experimental injector list output now excludes webhooks not related to istio; no operational impact.",
+        "severity": "low"
+      },
+      "statement": "Fixed `istioctl experimental injector list` prints webhooks not related to istio"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-8b4687a5ff91"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-8b4687a5ff91"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-047c2d642f07"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-c8172f8dbadf"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-a486e34929cd",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/53571.yaml",
+        "locator": "53571.yaml L5-L6",
+        "excerpt": "- |\n  **Fixed** `istioctl experimental injector list` prints webhooks not related to istio.",
+        "contentDigest": "sha256:0879ed540de88e75b21a67e93fa7a8a62844a75096ef08feea10dd7ded6e0f39",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T15:58:09.038Z"
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-845ae2080369",
+    "candidateId": "sc-e1a977f0036f",
+    "proposalId": "sp-2f7bdb67a1b5",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "kyverno",
+        "group": "*",
+        "name": "*/view"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].generate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].generate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the custom resources matched by those mutate or generate policies are viewable through the cluster's default view role (for example via aggregated CRD permissions)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "Kyverno controllers lose the wildcard view permission (replaced by a role binding to the default `view` role): admission-control policies are unaffected, but reports may be impacted, and mutate or generate policies that target custom resources may no longer be able to view those custom resources.",
+        "remediation": "Consult the Role Based Access Controls documentation referenced in the upgrade guide and grant the Kyverno controllers the view permissions they need for any custom resources used by mutate and generate policies.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 removes the wildcard view permission that previously allowed Kyverno controllers to view all resources including secrets and adds a role binding to the default `view` role instead; policies during admission controls are unaffected, but reports may be impacted and the controller may no longer be able to view custom resources used by mutate and generate policies."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/removed",
+        "detail": "rbac-permission:kyverno|group=*|name=*/view: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/removed",
+        "detail": "rbac-permission:kyverno|group=*|name=*/view: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

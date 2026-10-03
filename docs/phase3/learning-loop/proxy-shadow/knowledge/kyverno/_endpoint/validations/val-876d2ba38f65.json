@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-876d2ba38f65",
+    "candidateId": "sc-4474a977a709",
+    "proposalId": "sp-38834c0779ae",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterCleanupPolicy",
+        "path": "spec.versions[].storage"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"v2beta1\"",
+        "after": "\"v2\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "version": "v2beta1",
+          "kind": "ClusterCleanupPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ClusterCleanupPolicy objects stay stored as v2beta1 until rewritten; a storage version migration and status.storedVersions update are needed before a later release removes v2beta1.",
+        "remediation": "Re-write all ClusterCleanupPolicy objects (storage version migration) and update status.storedVersions of the CRD before upgrading to a release that removes v2beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the clustercleanuppolicies.kyverno.io CRD changes from v2beta1 to v2 (1.12.6 → 1.13.0), so existing objects need storage migration before v2beta1 is removed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:crd-field/value-changed",
+        "detail": "no canonical exposure condition for crd-field value-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

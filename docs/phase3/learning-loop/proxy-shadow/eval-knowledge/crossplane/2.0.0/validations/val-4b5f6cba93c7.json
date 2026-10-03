@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4b5f6cba93c7",
+    "candidateId": "sc-af36bd24681f",
+    "proposalId": "sp-99ed6f6b75f0",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "crossplane",
+        "name": "crossplane"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "product-relationship",
+          "product": "crossplane",
+          "name": "crossplane/v2"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "crossplane",
+              "state": "in-range",
+              "range": ">=2.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "cross-product-context-gap",
+              "needed": "whether the environment has Go code that imports crossplane or crossplane-runtime as a module dependency"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Any Go code that imports crossplane or crossplane-runtime must have its import statements and go.mod entries updated to use the new v2 module paths before building or deploying against Crossplane v2.0.0.",
+        "severity": "high"
+      },
+      "statement": "The Go module path for Crossplane and Crossplane Runtime has changed from `github.com/crossplane/crossplane` and `github.com/crossplane/crossplane-runtime` to include a `v2` suffix: `github.com/crossplane/crossplane/v2` and `github.com/crossplane/crossplane-runtime/v2`; all import statements in code must be updated."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:product-relationship/renamed",
+        "detail": "no canonical exposure condition for product-relationship renamed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-b6cadb3343c5",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-b3534beea2d0"
+        ],
+        "statementKeys": [
+          "sk-de9197cce9d1"
+        ],
+        "changeIds": [
+          "chg-1ee8b8646a0d"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-ee8d17efbe0b"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-boltdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "evidence-gap",
+                  "needed": "whether the Loki YAML configuration sets the boltdb shipper shared_store setting (the YAML/Helm path is not given in the evidence)"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the configured shared-store value differs from object_store for any schema period that uses boltdb-shipper as its index type"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "If `-boltdb.shipper.shared-store` does not match the `object_store` configuration for periods using boltdb-shipper, the operator loses access to indexes for those periods and must manually move or copy index tables to the store configured in `object_store` to make them queryable.",
+        "severity": "high"
+      },
+      "statement": "If you have configured `-boltdb.shipper.shared-store` or its YAML setting: - If it matches the value of `object_store` for all the periods that use…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-09d79913cbaf"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-09d79913cbaf"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-37bebd1af4d3"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-4a2b71990749"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-7d2769e8c602",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L501-L504 (3.0.0 › Loki 3.0.0 › Removed `shared_store` and `shared_store_key_prefix` from shipper configuration)",
+        "excerpt": "- If you have configured `-boltdb.shipper.shared-store` or its YAML setting:\n  - If it matches the value of `object_store` for all the periods that use `boltdb-shipper` as index type, no additional changes are required besides removing the usage of the deleted configuration option.\n  - If there is a mismatch, you lose access to the index for periods where `-boltdb.shipper.shared-store` does not match `object_store`.\n    - To make these indexes queryable, index tables need to moved or copied to the store configured in `object_store`.",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:19:50.298Z"
+  }
+}

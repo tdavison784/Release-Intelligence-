@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fe8162a685e7",
+    "candidateId": "sc-eb856233046a",
+    "proposalId": "sp-da26d63014a1",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "zookeeper"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kafka.strimzi.io",
+              "version": "v1beta2",
+              "kind": "Kafka"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kafka.strimzi.io",
+              "version": "v1beta1",
+              "kind": "Kafka"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.zookeeper",
+                  "state": "set"
+                }
+              ],
+              "group": "kafka.strimzi.io",
+              "kind": "Kafka"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Kafka resources configured with ZooKeeper (spec.zookeeper field set) will be rejected during cluster reconciliation in Strimzi 0.46.0, as ZooKeeper-based cluster support has been removed. Environments running ZooKeeper-based Kafka clusters must migrate to KRaft mode before upgrading.",
+        "remediation": "Migrate all ZooKeeper-based Kafka clusters to KRaft (Kraft controller) mode before upgrading to Strimzi 0.46.0. This requires updating Kafka resources to remove the spec.zookeeper configuration and ensure spec.kraft is properly configured.",
+        "severity": "critical"
+      },
+      "statement": "Support for ZooKeeper-based Apache Kafka clusters and for KRaft migration has been removed from Strimzi 0.46.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/removed",
+        "detail": "product-relationship removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/removed",
+        "detail": "product-relationship removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8201d7828cb8",
+    "candidateId": "sc-de248ee0f359",
+    "proposalId": "sp-889387ef693a",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "nodeSelector"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "rendered-change",
+          "kind": "Deployment",
+          "path": "spec.template.spec.nodeSelector",
+          "state": "changed"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The chart now emits nodeSelector values as quoted strings, so environments that set nodeSelector values see the rendered nodeSelector output change (notably values that are not plain strings, which are now rendered as strings).",
+        "remediation": "No action required; if your nodeSelector values are not plain strings (e.g. numbers or booleans), verify the rendered manifests after upgrade.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0 the Helm chart now quotes nodeSelector values, rendering them as quoted strings in the chart's generated manifests."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/behavior-changed",
+        "detail": "helm-value behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

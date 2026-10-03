@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-527bd8f0ed13",
+    "candidateId": "sc-ed7b17f5ccdf",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"TLS.CAOptional: Redis provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.redis.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.redis.tls.caOptional",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Redis provider's tls.caOptional configuration option has been removed in Traefik v3.0.0."
+    },
+    "proposals": [
+      "sp-279ca887a52f",
+      "sp-462642e87d9c"
+    ],
+    "validations": [
+      "val-438b43f01541",
+      "val-567cd71c56b3",
+      "val-64ae8036dad2",
+      "val-bab77a371f3a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T16:12:32Z"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cb8ff1889e77",
+    "candidateId": "sc-a121f4492c54",
+    "proposalId": "sp-6632c46558a2",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1alpha1",
+        "kind": "AlertmanagerConfig",
+        "path": "spec.receivers[].opsgenieConfigs[].responders[].type"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.receivers[].opsgenieConfigs[].responders[].type",
+              "state": "not-equals",
+              "values": [
+                "\"escalation\"",
+                "\"schedule\"",
+                "\"team\"",
+                "\"teams\"",
+                "\"user\""
+              ]
+            }
+          ],
+          "group": "monitoring.coreos.com",
+          "version": "v1alpha1",
+          "kind": "AlertmanagerConfig"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "If an AlertmanagerConfig v1alpha1 object sets an Opsgenie responder type that is not escalation, schedule, team, teams or user, the API server would reject it under the new schema enum.",
+        "remediation": "Change every Opsgenie responder type to one of escalation, schedule, team, teams or user before you upgrade the CRDs.",
+        "severity": "medium"
+      },
+      "statement": "The AlertmanagerConfig v1alpha1 schema field spec.receivers[].opsgenieConfigs[].responders[].type now has an allowed-values list (escalation, schedule, team, teams, user), where no enum values were listed before."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

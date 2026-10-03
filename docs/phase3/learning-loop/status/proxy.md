@@ -127,3 +127,13 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
     EVIDENCE id. Citations are not invented.
 - Run-2 resumed at 20:52 after the 8:50pm reset: the 5 session-limit markers were cleared (those calls never reached
   the model) and the log rotated to `proxy-review.log.1`.
+- **proxy-2 DONE (2026-10-02 ~22:30 CDT)**; see [proxy-shadow/REPORT.md](../proxy-shadow/REPORT.md).
+  - Run-2: 866 decisions in the real store, 20 refused, $59.07.
+  - Shadow pass: 538 decisions in the copy, 10 + 2 refused, 87 new proxy facts, $46.76. The real store's 550 high
+    items are untouched.
+  - Eval view: `proxy-shadow/eval-knowledge/` (proxy-incl-shadow, 265 facts).
+  - New: `ri knowledge proxy-agreement` (human vs shadow; 0 overlap today);
+    `internal/knowledge/integrity_shadow_test.go` (blind-authoring scan of both shadow stores).
+  - New knowledge-lane finding: composition proposes facts the domain rejects (migration-required on a gvk subject).
+  - Still open for the commander: prose-only corrections; `Provenance.Provider`.
+  - Later: proxy-vs-human agreement once the product owner finishes.

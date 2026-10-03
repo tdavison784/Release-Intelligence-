@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5d78db2b2613",
+    "reviewItemId": "ri-b35173eb4705",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether cert-manager performs FindZoneByFqdn DNS zone-discovery lookups at runtime (e.g. while solving DNS challenges) and the TTLs of the responses being cached"
+        }
+      },
+      "statement": "In cert-manager 1.18.0, FindZoneByFqdn now caches the full DNS response and handles TTL expiration of the cached response during DNS zone discovery."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:58a65be3f3022acb5044618861c623374aa9642ad376024498e894aa6ecfac6b",
+      "inputEvidence": [
+        "ev-d4918828336e"
+      ],
+      "generatedAt": "2026-10-02T15:54:57.416Z",
+      "callId": "b8f5828e-6f36-4842-ac83-904c3e922fb2"
+    },
+    "reason": "[ev-d4918828336e] says only that `FindZoneByFqdn` now caches the full DNS response and handles TTL expiration. It names no Helm value, resource field, flag, feature gate or configuration that controls when this happens. The excerpt does not tie the function to any setting an operator can see, so a static predicate would be a guess. An undecidable exposure with reason runtime-behavior-gap, saying that what matters is whether these lookups happen at runtime and what the cached TTLs are, is the honest condition.",
+    "startedAt": "2026-10-02T15:54:51.303Z",
+    "decidedAt": "2026-10-02T15:54:57.416Z"
+  }
+}

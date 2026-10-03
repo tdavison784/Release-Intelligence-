@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ddc8483facee",
+    "candidateId": "sc-37a323ca3c11",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "kafka-connect-configuration-configmap"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kafka.strimzi.io",
+          "kind": "KafkaConnect"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments using Kafka Connect, the operator now supplies the Kafka Connect configuration through the ConfigMap it creates instead of the previous delivery mechanism; the evidence states no failure, rejection or required operator action.",
+        "remediation": "No operator action is stated as required; after upgrading, verify Kafka Connect deployments still receive and apply their configuration as before.",
+        "severity": "low"
+      },
+      "statement": "In 0.46.0 the Kafka Connect configuration is moved into the ConfigMap created by the operator, changing how that configuration is delivered to Kafka Connect."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-12b17c85ab22"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:fb5cdd5bfc0286a240355c3b7b57459c1e407d06c9eba3bc44dcaf821624c4dc",
+      "inputEvidence": [
+        "ev-12b17c85ab22"
+      ],
+      "generatedAt": "2026-10-02T11:47:15Z",
+      "callId": "d663d544-cf7e-44d1-b5b0-56b5c3bc77d8"
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ff021985f852",
+    "reviewItemId": "ri-8b554428d22a",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.ca",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "Issuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.ca",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "ClusterIssuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.selfSigned",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "Issuer"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.selfSigned",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cert-manager.io",
+                  "kind": "ClusterIssuer"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the signing RSA key is 3072 bits or larger, and whether the systems relying on the issued certificates support SHA-384/SHA-512"
+            }
+          ]
+        }
+      },
+      "statement": "In cert-manager 1.17.0, the CA and SelfSigned issuers sign with SHA-512 when the RSA key is 4096 bits or larger and with SHA-384 when it is 3072 bits or larger, so operators using larger RSA CA keys should check that their systems support these hash algorithms."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:8ebce0a83cb1befe1858d199a151a476318598be405221b4b29a247927d1797c",
+      "inputEvidence": [
+        "ev-53fb690413df"
+      ],
+      "generatedAt": "2026-10-02T13:03:02.37Z",
+      "callId": "868996e5-e5cc-4b05-86a9-ab4c9b506bb2"
+    },
+    "reason": "[ev-53fb690413df] limits the change to the CA and SelfSigned issuers, and only when they sign with RSA keys of 3072 bits or more. The proposed exposure matches this. It requires an Issuer or ClusterIssuer with spec.ca or spec.selfSigned set. It then adds an undecidable operand for the signing key size and for whether downstream systems support SHA-384/SHA-512. Static configuration does not show either of these. Without the issuer-type operand the condition would be too broad, and without the undecidable key-size operand it would flag issuers that use smaller or non-RSA keys.",
+    "startedAt": "2026-10-02T13:02:53.062Z",
+    "decidedAt": "2026-10-02T13:03:02.37Z"
+  }
+}

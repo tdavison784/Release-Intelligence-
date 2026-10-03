@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6580e7a4ade2",
+    "candidateId": "sc-6292fc5118f9",
+    "proposalId": "sp-6e3d451238c3",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "sequential-minor-upgrade-via-v1.20"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "out-of-range",
+          "range": ">=1.20.0 <2.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators must upgrade sequentially one minor version at a time and be on a v1.20 version before upgrading to v2.0, so CRD migrations run at each minor release.",
+        "remediation": "Upgrade sequentially through each v1 minor up to v1.20, then upgrade to v2.0."
+      },
+      "statement": "Upgrading to Crossplane v2.0 should be done from v1.20, going sequentially through each v1 minor version, because each minor upgrade migrates CRDs so the latest versions are stored."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

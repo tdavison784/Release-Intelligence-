@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d7a3be6c2173",
+    "candidateId": "sc-f7e1d73d8b1e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterSecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required",
+        "before": "\"[\\\"key\\\"]\"",
+        "after": "\"[\\\"key\\\",\\\"value\\\"]\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[].value",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterSecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ClusterSecretStore v1beta1 objects with fake provider data entries that omit value are rejected by the schema.",
+        "remediation": "Set value on every spec.provider.fake.data[] entry.",
+        "severity": "medium"
+      },
+      "statement": "In the ClusterSecretStore external-secrets.io/v1beta1 schema, spec.provider.fake.data[].value becomes required, so objects omitting it are rejected."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-9fd85560a485"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:07daa60f62e45b5ddc60f8ef4d7c6c23f175b71d1974429f71b9dbc51d600db6",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9fd85560a485",
+        "ev-fa52e4e4e831",
+        "ev-210dbd3942ad",
+        "ev-d98b7e27e53d"
+      ],
+      "generatedAt": "2026-10-02T20:59:55Z",
+      "callId": "b13e8124-90a0-4e6f-a424-7d548edd414e"
+    }
+  }
+}

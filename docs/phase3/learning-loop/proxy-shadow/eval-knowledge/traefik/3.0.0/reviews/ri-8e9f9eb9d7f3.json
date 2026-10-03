@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-8e9f9eb9d7f3",
+    "candidateId": "sc-9819c3b5051d",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"TLS.CAOptional: Consul provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.consul.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the static configuration file sets providers.consul.tls.caOptional"
+            }
+          ]
+        }
+      },
+      "statement": "The Consul provider static option `tls.caOptional` is removed in v3 and should be removed from configuration."
+    },
+    "proposals": [
+      "sp-9e79e36600eb",
+      "sp-bce6699c87dd"
+    ],
+    "validations": [
+      "val-43ded068dbe0",
+      "val-94bd17e0d639",
+      "val-ee533dedceff"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T21:02:18Z"
+  }
+}

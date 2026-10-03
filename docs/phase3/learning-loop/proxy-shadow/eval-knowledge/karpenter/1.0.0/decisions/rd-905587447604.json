@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-905587447604",
+    "reviewItemId": "ri-075a478af33c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<1.0.0"
+        }
+      },
+      "statement": "Upgrading to Karpenter 1.0.0+ introduces v1 APIs and requires following the v1 Migration Upgrade Procedure; stored v1beta1 manifests must be migrated to v1 before v1beta1 stops being served at v1.1.0."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:aee98539334620e3482eb516847b95f0d93c0f30097637b3cc9515d89828b9c6",
+      "inputEvidence": [
+        "ev-bfb089d90d84"
+      ],
+      "generatedAt": "2026-10-03T02:10:39.627Z",
+      "callId": "7e3507af-3b5c-482b-975f-39a0537c9c6b"
+    },
+    "reason": "[ev-bfb089d90d84] says \"Do not upgrade to 1.0.0+ without referencing the v1 Migration Upgrade Procedure\". That applies to every upgrade that starts below 1.0.0, so edge-from-version in-range \"<1.0.0\" captures exactly the exposed environments. The v1beta1 manifest migration it also mentions only affects environments coming from pre-1.0 releases, so it is covered by the same condition. P3's alternative (v1beta1 GVKs in use) would miss pre-1.0 environments that still have to follow the upgrade procedure.",
+    "startedAt": "2026-10-03T02:10:31.724Z",
+    "decidedAt": "2026-10-03T02:10:39.627Z"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1b9c7fd13959",
+    "candidateId": "sc-bda23741737a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "query_range.split_queries_by_interval"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "limits_config.split_queries_by_interval"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "query_range.split_queries_by_interval",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The split_queries_by_interval setting configured in the query_range YAML section will be ignored; it must be moved to limits_config to take effect.",
+        "remediation": "Migrate split_queries_by_interval from query_range section to limits_config section in your Loki configuration.",
+        "severity": "high"
+      },
+      "statement": "The configuration key split_queries_by_interval is removed from the query_range YAML section in Loki 3.0.0 and must be configured in Limits Config instead."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-3f6039ca92c8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:1ad3b16d2895cf0a0594600745611b6d15737463eb71495292249b0e61a0dfeb",
+      "inputEvidence": [
+        "ev-3f6039ca92c8"
+      ],
+      "generatedAt": "2026-10-02T16:17:25Z",
+      "callId": "f2dcac4b-c758-43a6-9fe7-42cb232295ce"
+    }
+  }
+}

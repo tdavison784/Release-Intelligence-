@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-728c5343fe5f",
+    "candidateId": "sc-2bc48827dd02",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumLoadBalancerIPPool",
+        "path": "spec.cidrs"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "cilium",
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool",
+          "path": "spec.blocks"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.cidrs",
+              "state": "set"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "CiliumLoadBalancerIPPool resources using spec.cidrs must be migrated to spec.blocks before upgrading to v1.16; the cidrs field will be removed.",
+        "remediation": "Update all CiliumLoadBalancerIPPool resources to use spec.blocks instead of spec.cidrs before upgrading to Cilium v1.16.",
+        "severity": "high"
+      },
+      "statement": "The CiliumLoadBalancerIPPool.spec.cidrs field is removed in v1.16; environments must migrate to spec.blocks before upgrading."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-a6c56e62cf47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:76deb2188087b319c72d38f19c7039454fcdbd8b978bb8004694228bd096e45c",
+      "inputEvidence": [
+        "ev-a6c56e62cf47"
+      ],
+      "generatedAt": "2026-10-02T05:57:31Z",
+      "callId": "001d73bf-49ee-477b-a0df-1447c3dff7ae"
+    }
+  }
+}

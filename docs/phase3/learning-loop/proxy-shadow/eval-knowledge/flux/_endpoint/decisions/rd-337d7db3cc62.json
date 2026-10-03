@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-337d7db3cc62",
+    "reviewItemId": "ri-7f6620ad50a9",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "HelmChart"
+        }
+      },
+      "statement": "The source.toolkit.fluxcd.io/v1 HelmChart CRD schema now requires status.artifact.digest, so HelmChart objects with a status.artifact that omits the digest are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:54231a30a77d05be652c5d89cf6005332a534062d94c4a5908d6dc9083561c39",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T02:23:39.663Z",
+      "callId": "11474a6f-44db-4f7d-864b-24aec1dc8471"
+    },
+    "reason": "The validator confirmed from the two install manifests [ev-782bc47d120d] and [ev-c2c6c790d6b2] that status.artifact.digest becomes required in the v1 HelmChart schema, and the computed diff lists only this field as newly required. A required nested field is only checked when its parent object (status.artifact) is present. So the exposed objects are v1 HelmCharts that set status.artifact but leave out digest, which is exactly the proposed condition. The broader condition (just \"digest unset\") would also flag HelmCharts that have no artifact at all, and those are not rejected.",
+    "startedAt": "2026-10-03T02:23:30.762Z",
+    "decidedAt": "2026-10-03T02:23:39.663Z"
+  }
+}

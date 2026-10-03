@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-42a411d9011e",
+    "product": "cilium",
+    "release": "1.17.0",
+    "members": [
+      {
+        "changeId": "chg-5630efd4738a",
+        "anchor": {
+          "release": "1.17.0",
+          "evidenceKeys": [
+            "ek-308766c77cfc"
+          ],
+          "statementKeys": [
+            "sk-cd6cd0dba94d"
+          ],
+          "changeIds": [
+            "chg-5630efd4738a"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "TLS Visibility can now pass secrets to Envoy via SDS instead of inline via NPDS",
+    "text": "TLS Visibility can now pass secrets to Envoy via SDS instead of inline via NPDS. This comes with some configuration changes: * The Helm value `tls.secretsBackend`, which could be set to `local` or `k8s` (which would grant the Agent read access to all Secrets in the cluster so it could send Secrets inline) has been deprecated and replaced with `tls.readSecretsOnlyFromSecretsNamespace`, which defaults to `true` (the agent can only read TLS Visibility Secrets from the namespace configured in the new `tls.secretsNamespace` setting) or `false` (the agent can read TLS Visibility Secrets from anywhere in the cluster, equivalent to `tls.secretsBackend: k8s`) * A new Helm value `tls.secretSync` has been added, which controls if TLS Visibility Secrets will be synchronized to the configured secrets namespace (`tls.secretsNamespace.name`) by the Cilium Operator, and if SDS will be used. SDS usage requires that secret synchronization be enabled. * The defaults for new clusters enable SDS via `tls.readSecretsOnlyFromSecretsNamespace: true` and `tls.secretSync.enabled: true` * The defaults for upgraded clusters (where `upgradeCompatibility` is `v1.16`) do not enable SDS. They are…",
+    "evidence": [
+      {
+        "id": "ev-ed86f8eb85bf",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L340-L356 (1.17 Upgrade Notes)",
+        "excerpt": "* TLS Visibility can now pass secrets to Envoy via SDS instead of inline via NPDS. This comes with\n  some configuration changes:\n\n  * The Helm value `tls.secretsBackend`, which could be set to `local` or `k8s` (which would\n    grant the Agent read access to all Secrets in the cluster so it could send Secrets inline) has\n    been deprecated and replaced with `tls.readSecretsOnlyFromSecretsNamespace`, which defaults to\n    `true` (the agent can only read TLS Visibility Secrets from the namespace configured in the \n    new `tls.secretsNamespace` setting) or `false` (the agent can read TLS Visibil…",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "hints": [
+      "code:tls.secretsBackend",
+      "code:local",
+      "code:k8s",
+      "code:tls.readSecretsOnlyFromSecretsNamespace",
+      "code:true",
+      "code:tls.secretsNamespace",
+      "code:false",
+      "code:tls.secretsBackend: k8s",
+      "code:tls.secretSync",
+      "code:tls.secretsNamespace.name",
+      "code:tls.readSecretsOnlyFromSecretsNamespace: true",
+      "code:tls.secretSync.enabled: true",
+      "code:upgradeCompatibility",
+      "code:v1.16",
+      "path:tls.secretsBackend",
+      "path:tls.readSecretsOnlyFromSecretsNamespace",
+      "path:tls.secretsNamespace",
+      "path:tls.secretSync",
+      "path:tls.secretsNamespace.name",
+      "path:tls.secretSync.enabled",
+      "version:v1.16"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

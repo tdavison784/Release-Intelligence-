@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-e2dee0acc35c",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-25e38c5c17cf"
+        ],
+        "statementKeys": [
+          "sk-6e9754ccde46"
+        ],
+        "changeIds": [
+          "chg-4374f03d0599"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-5211de5a6cde"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-used-total-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_ips_used_total\"",
+        "after": "\"lbipam_ips_used\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-used-metric"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment monitors lbipam metrics or has Prometheus scrape configurations referencing the old metric name"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The LB-IPAM IPs-used metric is now exposed as lbipam_ips_used, not lbipam_ips_used_total. Monitoring that refers to the old name should be checked against the new name.",
+        "remediation": "Review Prometheus queries, recording/alerting rules and dashboards that reference lbipam_ips_used_total and update them to lbipam_ips_used.",
+        "severity": "medium"
+      },
+      "statement": "`lbipam_ips_used_total` has been renamed to `lbipam_ips_used`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-645a87631761"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-645a87631761"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-22fa8a379537"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-98e75b6b70a0"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-1bf87d491deb",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L457-L457 (1.17 Upgrade Notes › Changed Metrics)",
+        "excerpt": "* `lbipam_ips_used_total` has been renamed to `lbipam_ips_used`",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:35:00.003Z"
+  }
+}

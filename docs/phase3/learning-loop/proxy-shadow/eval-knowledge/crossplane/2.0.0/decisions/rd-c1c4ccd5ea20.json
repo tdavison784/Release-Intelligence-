@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c1c4ccd5ea20",
+    "reviewItemId": "ri-378407159187",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "s3.aws.m.upbound.io",
+              "version": "v1beta1",
+              "kind": "Bucket"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "complete list of managed resource kinds in use across the environment"
+            }
+          ]
+        }
+      },
+      "statement": "Crossplane v2 makes all managed resources namespaced, enabling namespace-scoped resource isolation instead of cluster-wide scoping."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:a44f20ccde258eba18d46ed0876e5c52fe027dc5a0730875692aaf052c6679e5",
+      "inputEvidence": [
+        "ev-f9df8ec77b1f",
+        "ev-914f3976650c"
+      ],
+      "generatedAt": "2026-10-02T23:10:41.39Z",
+      "callId": "97c73ae0-1e1b-48bd-95c3-860ea0fdbd21"
+    },
+    "reason": "[ev-914f3976650c] is only a suggestion under \"Start using v2 features\" to try a getting-started guide. It describes no change that leaves an environment exposed. [ev-f9df8ec77b1f] shows the s3.aws.m.upbound.io/v1beta1 Bucket only as an example of what a new namespaced MR looks like. Using it as the exposure flags environments that have already adopted the feature, not ones affected by a change. The undecidable operand is too vague to be a real condition, and the excerpts don't say what happens to existing cluster-scoped MRs, so they don't support a correct exposure condition.",
+    "startedAt": "2026-10-02T23:10:30.153Z",
+    "decidedAt": "2026-10-02T23:10:41.39Z"
+  }
+}

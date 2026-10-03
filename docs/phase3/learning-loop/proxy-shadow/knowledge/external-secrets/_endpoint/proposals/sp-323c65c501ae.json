@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-323c65c501ae",
+    "candidateId": "sc-be31a2c6779c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ExternalSecret",
+        "path": "spec.target.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.target.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ExternalSecret v1beta1 resources with spec.target.template.engineVersion set to v1 are rejected by the API server since the value is removed from the enum.",
+        "remediation": "Change engineVersion to an allowed value (e.g. remove v1 setting) before applying.",
+        "severity": "high"
+      },
+      "statement": "The value \"v1\" is removed from the allowed enum of spec.target.template.engineVersion in the ExternalSecret external-secrets.io/v1beta1 schema, so ExternalSecrets setting engineVersion: v1 are rejected by the API server."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5eb43852eee9b9ff1d1e6a36f1d49075350a592879aa799b75d3520e34cb12b9",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-02T16:10:57Z",
+      "callId": "e27779f7-4db3-4b1e-9a8e-bb6df2e91bf2"
+    }
+  }
+}

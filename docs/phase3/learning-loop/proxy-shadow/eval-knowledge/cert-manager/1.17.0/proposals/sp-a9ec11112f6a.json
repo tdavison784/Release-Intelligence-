@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a9ec11112f6a",
+    "candidateId": "sc-ecb389afb721",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.keystores.jks",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.keystores.pkcs12",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is a new optional feature; existing Certificate resources using passwordSecretRef continue to work without changes."
+      },
+      "statement": "JKS and PKCS12 keystore password fields can now accept literal values as an alternative to passwordSecretRef in Certificate resources."
+    },
+    "undetermined": [
+      "subject",
+      "change"
+    ],
+    "undeterminedReason": "subject: evidence describes the feature as allowing literal password values but does not specify the exact field names or paths for the new password fields; artifact context only shows existing passwordSecretRef paths; change: evidence states the feature allows literal password values mutually exclusive with passwordSecretRef, but does not specify the exact field name, structure, or before/after values for the new password fields",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-d308231cd8ab"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d7893a7a22f49ccb91bd501889c0b8f02ef987ec2f0e59d1db67885b654e988f",
+      "inputEvidence": [
+        "ev-d308231cd8ab"
+      ],
+      "generatedAt": "2026-10-02T05:59:59Z",
+      "callId": "2a0db8e1-4736-40b9-9908-68976293e02a"
+    }
+  }
+}

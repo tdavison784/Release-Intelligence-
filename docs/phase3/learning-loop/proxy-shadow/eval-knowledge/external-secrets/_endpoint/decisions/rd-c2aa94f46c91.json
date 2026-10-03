@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c2aa94f46c91",
+    "reviewItemId": "ri-47bd4a4548ab",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ExternalSecret"
+        }
+      },
+      "statement": "Between 0.15.0 and 0.16.0, the external-secrets.io/v1beta1 ExternalSecret schema gained a new field, spec.refreshPolicy (CreatedOnce, Periodic or OnChange)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:578f55ec5c5c66adead990f69bd4884bdd144a022c9a1e622e1858dc6987c274",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9beeb11a214a",
+        "ev-efc5158ff817"
+      ],
+      "generatedAt": "2026-10-02T23:12:18.994Z",
+      "callId": "f6281ec0-a5e9-42ea-8663-83ce4330ef76"
+    },
+    "reason": "[ev-efc5158ff817] shows spec.refreshPolicy being added to the externalsecrets.external-secrets.io v1beta1 schema between 0.15.0 and 0.16.0. It is a new optional field, and the evidence shows no change for existing resources. So the only environments the change touches are those that use ExternalSecret external-secrets.io/v1beta1, and gvk-in-use for that kind and version scopes this informational change correctly without claiming any extra exposure. The matching ClusterExternalSecret field in [ev-9beeb11a214a] belongs to a different subject and does not belong in this condition. Confidence is low because no canonical exposure shape exists for an added CRD field, and the excerpt is cut off before it shows any default value.",
+    "startedAt": "2026-10-02T23:12:09.562Z",
+    "decidedAt": "2026-10-02T23:12:18.994Z",
+    "resultingFact": "vf-3f41a07f949c"
+  }
+}

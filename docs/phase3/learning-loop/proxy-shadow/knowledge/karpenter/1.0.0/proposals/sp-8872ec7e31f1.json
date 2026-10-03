@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8872ec7e31f1",
+    "candidateId": "sc-fefd9182a45e",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the AMIs the environment's node classes resolve to are non-AL2023 (the resolved AMI identities behind the environment's AMI selection are not visible in static configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that use non-AL2023 AMIs get updated AMIFamily handling after upgrading to 1.0.0, so node provisioning from those AMIs should be verified.",
+        "remediation": "After upgrading to 1.0.0, verify that nodes launched from non-AL2023 AMIs are still provisioned as intended.",
+        "severity": "low"
+      },
+      "statement": "Karpenter v1.0.0 updates AMIFamily for non-AL2023 AMIs (bugfix #6638), so environments that use non-AL2023 AMIs will see changed AMIFamily handling after upgrading."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the evidence names only 'AMIFamily' without the owning resource group/kind or field path needed to pin the subject's identity, and no artifact context is provided",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e21588eef5b6"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5a9a18dcd1161dd2389f19669f59064853c32960ebb90055b318faf4fd4a2d4b",
+      "inputEvidence": [
+        "ev-e21588eef5b6"
+      ],
+      "generatedAt": "2026-10-02T11:39:38Z",
+      "callId": "111f10f0-8e84-4ffe-9980-91d5b8b0ac12"
+    }
+  }
+}

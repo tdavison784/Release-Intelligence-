@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-3bc79c41ad32",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "members": [
+      {
+        "changeId": "chg-14a6d2d71ca7",
+        "anchor": {
+          "release": "2.0.0",
+          "evidenceKeys": [
+            "ek-cdfe59d69206"
+          ],
+          "statementKeys": [
+            "sk-335448fe81dc"
+          ],
+          "changeIds": [
+            "chg-14a6d2d71ca7"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "other",
+    "title": "Namespaced composite resources: Crossplane v2 makes composite resources (XRs) namespaced by default",
+    "text": "Namespaced composite resources: Crossplane v2 makes composite resources (XRs) namespaced by default. A namespaced XR can compose any resource (not just Crossplane resources) in its namespace. A namespaced XR looks like this: Crossplane v2 moves all an XR's \"Crossplane machinery\" under `spec.crossplane`. This makes it easier for users to tell which fields are important to them, and which are just \"Crossplane stuff\" they can ignore. Composite resource definitions (XRDs) now have a `scope` field. The `scope` field defaults to `Namespaced` in the new v2 version of the XRD API. You can also set the `scope` field to `Cluster` to create a cluster scoped XR. A cluster scoped XR can compose any cluster scoped resource. A cluster scoped XR can also compose any namespaced resource in any namespace. With namespaced XRs there's no longer a need for claims. The new namespaced and cluster scoped XRs in Crossplane v2 don't support claims. Crossplane v2 is backward compatible with v1-style XRs. When you use v1 of the XRD API `scope` defaults to a special `LegacyCluster` mode. `LegacyCluster` XRs support claims and don't use `spec.crossplane`. Read more about Crossplane v2's backward compatibility.",
+    "evidence": [
+      {
+        "id": "ev-4b260bcbe57b",
+        "kind": "document",
+        "sourceId": "whats-new-major-archive",
+        "uri": "https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/whats-new/_index.md",
+        "locator": "L55-L124 (Namespaced composite resources)",
+        "excerpt": "## Namespaced composite resources\n\nCrossplane v2 makes composite resources (XRs) namespaced by default.\n\nA namespaced XR can compose any resource ([not just Crossplane resources](#compose-any-resource))\nin its namespace.\n\nA namespaced XR looks like this:\n\n```yaml\napiVersion: example.crossplane.io/v1\nkind: App\nmetadata:\n  namespace: default\n  name: my-app\nspec:\n  image: nginx\n  crossplane:\n    compositionRef:\n      name: app-kcl\n    compositionRevisionRef:\n      name: app-kcl-41b6efe\n    resourceRefs:\n    - apiVersion: apps/v1\n      kind: Deployment\n      name: my-app-9bj8j\n    - apiVersion: v1…",
+        "contentDigest": "sha256:4a6fd052d961d255ba90d6a14e53d985f6cf338cd1ef7b0e40b5688946909310",
+        "retrievedAt": "2026-10-02T10:52:56Z"
+      }
+    ],
+    "hints": [
+      "code:spec.crossplane",
+      "code:scope",
+      "code:Namespaced",
+      "code:Cluster",
+      "code:LegacyCluster",
+      "path:spec.crossplane"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:22Z"
+  }
+}

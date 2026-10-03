@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3be9a498f497",
+    "reviewItemId": "ri-f544942d0ee4",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether scripts or CI invoke istioctl manifest diff or istioctl manifest profile diff"
+        }
+      },
+      "statement": "The `istioctl manifest diff` and `istioctl manifest profile diff` commands were removed; generic YAML comparison tools are suggested instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:0e85424b6b722c23b8b0bcde9d28dc54ab1a93a3b71c52f434db7eba1a64d160",
+      "inputEvidence": [
+        "ev-0307de1909a6"
+      ],
+      "generatedAt": "2026-10-03T02:34:44.871Z",
+      "callId": "9f1b03b0-b935-47a4-99ca-67dd628f46f4"
+    },
+    "reason": "[ev-0307de1909a6] says the `istioctl manifest diff` and `istioctl manifest profile diff` commands were removed. These are client-side istioctl subcommands that operators or their scripts run, not container arguments of Istio's workloads. That means P1's cli-flag leaf checks the wrong thing. No static environment input shows whether a customer's scripts or CI call these commands, so an undecidable exposure with an environment-visibility gap is the right condition.",
+    "startedAt": "2026-10-03T02:34:39.666Z",
+    "decidedAt": "2026-10-03T02:34:44.871Z"
+  }
+}

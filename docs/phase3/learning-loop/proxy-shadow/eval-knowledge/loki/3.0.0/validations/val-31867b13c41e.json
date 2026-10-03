@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-31867b13c41e",
+    "candidateId": "sc-ee8d17efbe0b",
+    "proposalId": "sp-9c6cc37341e0",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "-boltdb.shipper.shared-store",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "If `-boltdb.shipper.shared-store` does not match the `object_store` configuration for periods using boltdb-shipper, the operator loses access to indexes for those periods and must manually move or copy index tables to the store configured in `object_store` to make them queryable.",
+        "severity": "high"
+      },
+      "statement": "The `-boltdb.shipper.shared-store` configuration option and its YAML setting have been removed; operators lose access to indexes for periods where the old value does not match `object_store`."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

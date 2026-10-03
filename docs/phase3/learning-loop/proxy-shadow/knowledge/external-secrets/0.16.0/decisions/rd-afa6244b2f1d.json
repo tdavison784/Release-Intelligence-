@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-afa6244b2f1d",
+    "reviewItemId": "ri-820bd15c0f5c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Installing 0.16.0 can fail with the error \"spec.conversion.webhookClientConfig: Forbidden: should not be set when strategy is not set to Webhook\".",
+        "remediation": "Use 0.16.1 instead of 0.16.0 on your installation path.",
+        "severity": "medium"
+      },
+      "statement": "Installing or upgrading to 0.16.0 can fail with \"spec.conversion.webhookClientConfig: Forbidden: should not be set when strategy is not set to Webhook\"; upstream says to use 0.16.1 instead, where this is fixed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:ecb362b25d799b81fb249825bf0b4acc19530fffb181eb7e85af79dd7b9f40e7",
+      "inputEvidence": [
+        "ev-0eb3d16492e3",
+        "ev-558ba9e85f76",
+        "ev-1265a0fa1fc4",
+        "ev-678654f153b4",
+        "ev-5e86077f4adc",
+        "ev-4cac666b69f8",
+        "ev-07e78d40dd67",
+        "ev-7a082965d61c",
+        "ev-07eab10f591f",
+        "ev-f97dcf83b9d2",
+        "ev-c86883e648c4",
+        "ev-cf5b0dbb9f73",
+        "ev-a31efa6e7bb0",
+        "ev-5e94a01f7dbe",
+        "ev-34ba994b9e84",
+        "ev-11604edd4eac",
+        "ev-728cc9a57b79",
+        "ev-accae151c859",
+        "ev-0afe39b45a54",
+        "ev-1e54120ce3cb",
+        "ev-f9b6cb924705"
+      ],
+      "generatedAt": "2026-10-03T02:23:50.628Z",
+      "callId": "e0b6025f-6e57-4049-ba05-62e9db82ccde"
+    },
+    "reason": "[ev-0eb3d16492e3] sits in the Troubleshooting section of the guide to promoting to 0.16. It quotes the API server's \"Forbidden\" rejection of spec.conversion.webhookClientConfig and says to use 0.16.1 instead of 0.16.0 on the installation path because the problem is fixed there. That means applying 0.16.0 can fail with this error, which matches upgrade-blocked (install or upgrade fails) and its hedged \"can fail\" statement and remediation. The rendered diffs ([ev-558ba9e85f76], [ev-7a082965d61c]) show 0.16.0 changing the CRDs' spec.conversion, which fits this, but the guide does not say directly that the install fails, so confidence is low.",
+    "startedAt": "2026-10-03T02:23:41.045Z",
+    "decidedAt": "2026-10-03T02:23:50.628Z"
+  }
+}

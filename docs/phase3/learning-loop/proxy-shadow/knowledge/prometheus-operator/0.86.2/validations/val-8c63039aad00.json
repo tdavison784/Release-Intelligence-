@@ -1,0 +1,557 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8c63039aad00",
+    "candidateId": "sc-64939cd9016f",
+    "proposalId": "sp-5139109128cf",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "prometheus-operator",
+        "name": "events/create"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "prometheus-operator",
+          "component": "prometheus-operator",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The operator can now properly emit Kubernetes events; this is a fix enabling correct operation."
+      },
+      "statement": "The prometheus-operator's RBAC permissions are fixed to allow the operator to emit Kubernetes events."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "rendered-diff:rbac-permission/added",
+        "detail": "rbac-permission:prometheus-operator|name=events/create: source render 1× [core/events:create], target render 2× [core/events:create, events.k8s.io/events:create] — already present in the source"
+      },
+      {
+        "aspect": "change",
+        "outcome": "refuted",
+        "rule": "rendered-diff:rbac-permission/added",
+        "detail": "rbac-permission:prometheus-operator|name=events/create: source render 1× [core/events:create], target render 2× [core/events:create, events.k8s.io/events:create] — already present in the source"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-28316fb74c0f",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus-operator/clusterrole.yaml · rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules [endpointslices/create]",
+        "excerpt": "0.85.0 → 0.86.2: rbac-permission-added ClusterRole/prometheus-operator-kube-p-operator rules discovery.k8s.io/endpointslices:create",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "path": "rules",
+          "change": "rbac-permission-added",
+          "after": "\"discovery.k8s.io/endpointslices:create\""
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      },
+      {
+        "id": "ev-8247468c298e",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus-operator/clusterrole.yaml · rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules [endpointslices/delete]",
+        "excerpt": "0.85.0 → 0.86.2: rbac-permission-added ClusterRole/prometheus-operator-kube-p-operator rules discovery.k8s.io/endpointslices:delete",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "path": "rules",
+          "change": "rbac-permission-added",
+          "after": "\"discovery.k8s.io/endpointslices:delete\""
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      },
+      {
+        "id": "ev-c90e35f857f5",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus-operator/clusterrole.yaml · rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules [endpointslices/get]",
+        "excerpt": "0.85.0 → 0.86.2: rbac-permission-added ClusterRole/prometheus-operator-kube-p-operator rules discovery.k8s.io/endpointslices:get",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "path": "rules",
+          "change": "rbac-permission-added",
+          "after": "\"discovery.k8s.io/endpointslices:get\""
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      },
+      {
+        "id": "ev-f1a64fa3899b",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus-operator/clusterrole.yaml · rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules [endpointslices/list]",
+        "excerpt": "0.85.0 → 0.86.2: rbac-permission-added ClusterRole/prometheus-operator-kube-p-operator rules discovery.k8s.io/endpointslices:list",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "path": "rules",
+          "change": "rbac-permission-added",
+          "after": "\"discovery.k8s.io/endpointslices:list\""
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      },
+      {
+        "id": "ev-b717c3338be5",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus-operator/clusterrole.yaml · rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules [endpointslices/update]",
+        "excerpt": "0.85.0 → 0.86.2: rbac-permission-added ClusterRole/prometheus-operator-kube-p-operator rules discovery.k8s.io/endpointslices:update",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "path": "rules",
+          "change": "rbac-permission-added",
+          "after": "\"discovery.k8s.io/endpointslices:update\""
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      },
+      {
+        "id": "ev-df0b9c64ea3c",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus-operator/clusterrole.yaml · rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules [endpointslices/watch]",
+        "excerpt": "0.85.0 → 0.86.2: rbac-permission-added ClusterRole/prometheus-operator-kube-p-operator rules discovery.k8s.io/endpointslices:watch",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "path": "rules",
+          "change": "rbac-permission-added",
+          "after": "\"discovery.k8s.io/endpointslices:watch\""
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      },
+      {
+        "id": "ev-e59f6c1596ce",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus-operator/clusterrole.yaml · rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules [events/create]",
+        "excerpt": "0.85.0 → 0.86.2: rbac-permission-added ClusterRole/prometheus-operator-kube-p-operator rules events.k8s.io/events:create",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "path": "rules",
+          "change": "rbac-permission-added",
+          "after": "\"events.k8s.io/events:create\""
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      },
+      {
+        "id": "ev-25cf4daec27b",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus-operator/clusterrole.yaml · rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules [events/patch]",
+        "excerpt": "0.85.0 → 0.86.2: rbac-permission-added ClusterRole/prometheus-operator-kube-p-operator rules events.k8s.io/events:patch",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "path": "rules",
+          "change": "rbac-permission-added",
+          "after": "\"events.k8s.io/events:patch\""
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      },
+      {
+        "id": "ev-7e18e362ec43",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus-operator/clusterrole.yaml · rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules [podmonitors/status/*]",
+        "excerpt": "0.85.0 → 0.86.2: rbac-permission-added ClusterRole/prometheus-operator-kube-p-operator rules monitoring.coreos.com/podmonitors/status:*",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "path": "rules",
+          "change": "rbac-permission-added",
+          "after": "\"monitoring.coreos.com/podmonitors/status:*\""
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      },
+      {
+        "id": "ev-835f6288ec0b",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus-operator/clusterrole.yaml · rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules [probes/status/*]",
+        "excerpt": "0.85.0 → 0.86.2: rbac-permission-added ClusterRole/prometheus-operator-kube-p-operator rules monitoring.coreos.com/probes/status:*",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "path": "rules",
+          "change": "rbac-permission-added",
+          "after": "\"monitoring.coreos.com/probes/status:*\""
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      },
+      {
+        "id": "ev-84ddd688a00f",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus-operator/clusterrole.yaml · rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules [scrapeconfigs/status/*]",
+        "excerpt": "0.85.0 → 0.86.2: rbac-permission-added ClusterRole/prometheus-operator-kube-p-operator rules monitoring.coreos.com/scrapeconfigs/status:*",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "path": "rules",
+          "change": "rbac-permission-added",
+          "after": "\"monitoring.coreos.com/scrapeconfigs/status:*\""
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      },
+      {
+        "id": "ev-f8233e3fcf69",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-77.14.0/kube-prometheus-stack-77.14.0.tgz",
+        "locator": "state rbac-permission:prometheus-operator|name=events/create",
+        "excerpt": "release render of prometheus-operator 0.85.0: rbac-permission:prometheus-operator|name=events/create at rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules = core/events:create",
+        "contentDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "change": "state"
+        },
+        "retrievedAt": "2026-10-02T21:06:55Z"
+      },
+      {
+        "id": "ev-be3ca9c6446f",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "state rbac-permission:prometheus-operator|name=events/create",
+        "excerpt": "release render of prometheus-operator 0.86.2: rbac-permission:prometheus-operator|name=events/create at rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules = core/events:create; rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator rules = events.k8s.io/events:create",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "object": "rbac.authorization.k8s.io/v1/ClusterRole//prometheus-operator-kube-p-operator",
+          "change": "state"
+        },
+        "retrievedAt": "2026-10-02T21:06:56Z"
+      }
+    ],
+    "renderRelation": "contradicted-by-render",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

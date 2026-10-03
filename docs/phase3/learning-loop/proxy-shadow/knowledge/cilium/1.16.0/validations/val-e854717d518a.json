@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e854717d518a",
+    "candidateId": "sc-2bc48827dd02",
+    "proposalId": "sp-728c5343fe5f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumLoadBalancerIPPool",
+        "path": "spec.cidrs"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "cilium",
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool",
+          "path": "spec.blocks"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.cidrs",
+              "state": "set"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "CiliumLoadBalancerIPPool resources using spec.cidrs must be migrated to spec.blocks before upgrading to v1.16; the cidrs field will be removed.",
+        "remediation": "Update all CiliumLoadBalancerIPPool resources to use spec.blocks instead of spec.cidrs before upgrading to Cilium v1.16.",
+        "severity": "high"
+      },
+      "statement": "The CiliumLoadBalancerIPPool.spec.cidrs field is removed in v1.16; environments must migrate to spec.blocks before upgrading."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f11efde9c1c0",
+    "reviewItemId": "ri-7ffa3dfbd6a8",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "networking.istio.io",
+              "version": "v1",
+              "kind": "DestinationRule"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.subsets[].trafficPolicy.portLevelSettings",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "DestinationRule"
+            }
+          ]
+        }
+      },
+      "statement": "portLevelSettings in DestinationRules for waypoints are now honored instead of being ignored."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.trafficPolicy.portLevelSettings",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.subsets[].trafficPolicy.portLevelSettings",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "networking.istio.io",
+                  "kind": "DestinationRule"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the hosts targeted by DestinationRules with portLevelSettings are served through an ambient waypoint"
+            }
+          ]
+        }
+      },
+      "statement": "Environments are exposed if a DestinationRule sets portLevelSettings, either at the top level (spec.trafficPolicy) or in a subset (spec.subsets[].trafficPolicy), and that DestinationRule applies to traffic handled by an ambient waypoint. Before 1.24.0 these settings were ignored for waypoints; in 1.24.0 they are applied."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:0291c939dbc2270eafab93636b45b16f2a8b920123c9e89919752d6c249f720e",
+      "inputEvidence": [
+        "ev-a3e90b78f6fa"
+      ],
+      "generatedAt": "2026-10-02T13:01:35.517Z",
+      "callId": "35f31b0c-d93b-499d-8548-978d37ead3f2"
+    },
+    "reason": "[ev-a3e90b78f6fa] says *any* `portLevelSettings` in DestinationRules were ignored for waypoints. The proposed exposure only checks `spec.subsets[].trafficPolicy.portLevelSettings`, so it misses DestinationRules that set the top-level `spec.trafficPolicy.portLevelSettings`. The extra gvk-in-use v1 operand adds nothing, and it narrows the condition to one API version the evidence never names. The fix also only matters for traffic handled by a waypoint, and nothing shown in the evidence lets a static check decide that. So that part should be marked undecidable rather than assumed for every DestinationRule.",
+    "startedAt": "2026-10-02T13:01:23.407Z",
+    "decidedAt": "2026-10-02T13:01:35.517Z"
+  }
+}

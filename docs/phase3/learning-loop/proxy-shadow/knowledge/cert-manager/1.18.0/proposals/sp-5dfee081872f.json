@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5dfee081872f",
+    "candidateId": "sc-f7925b79e2e4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "global.rbac.disableHTTPChallengesRole"
+      },
+      "change": {
+        "type": "added",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.rbac.disableHTTPChallengesRole",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new value defaults to false, so nothing changes unless the operator opts in. If set, HTTP-01 ACME challenges are disabled and cert-manager drops its permission to create pods.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 adds the opt-in Helm value `global.rbac.disableHTTPChallengesRole`, which defaults to false; setting it disables HTTP-01 ACME challenges so cert-manager no longer needs permission to create pods."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-861cb2d69752",
+      "ev-7a67f12867b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:bcee97e942d3ee7690dd314b1de02f66d2d7803022cb18db8e4ce4dec49a3124",
+      "inputEvidence": [
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2",
+        "ev-861cb2d69752"
+      ],
+      "generatedAt": "2026-10-02T06:13:22Z",
+      "callId": "fe1c2846-d6cc-4986-a9e9-faf20b4ea92e"
+    }
+  }
+}

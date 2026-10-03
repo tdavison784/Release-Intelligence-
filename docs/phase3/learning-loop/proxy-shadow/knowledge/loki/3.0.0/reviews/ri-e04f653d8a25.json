@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-e04f653d8a25",
+    "candidateId": "sc-930198f08f58",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Ingester configuration `max_transfer_retries` is removed: The setting `max_transfer_retries` (`-ingester.max-transfer-retries`) is removed in favor of the…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--ingester.max-transfer-retries",
+              "component": "ingester",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "ingester.max_transfer_retries",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The ingester configuration setting `max_transfer_retries` and its corresponding CLI flag `-ingester.max-transfer-retries` are removed in Loki 3.0.0 in favor of the Write Ahead Log (WAL)."
+    },
+    "proposals": [
+      "sp-449c8c81a341",
+      "sp-8c090d4611b2"
+    ],
+    "validations": [
+      "val-874493f19133",
+      "val-a6a61ccb1737",
+      "val-d9bf7bb33daf",
+      "val-f06bddf07a51"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:54:43Z"
+  }
+}

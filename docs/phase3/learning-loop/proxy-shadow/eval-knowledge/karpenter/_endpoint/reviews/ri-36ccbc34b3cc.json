@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-36ccbc34b3cc",
+    "candidateId": "sc-42373ba011a8",
+    "product": "karpenter",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Storage version of `nodepools.karpenter.sh` changes v1beta1 → v1\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodePool objects remain stored as v1beta1 until rewritten; a storage version migration must re-write all objects and update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "Re-write all NodePool objects (storage version migration) and update status.storedVersions.",
+        "severity": "medium"
+      },
+      "statement": "The NodePool CRD (nodepools.karpenter.sh) storage version changes from v1beta1 to v1, so existing objects stay stored as v1beta1 until a storage version migration rewrites them and status.storedVersions is updated before a later release removes v1beta1."
+    },
+    "proposals": [
+      "sp-74e05846520b",
+      "sp-74f72c7dd2f8",
+      "sp-ac0a2a293490",
+      "sp-c8304b08b8b4"
+    ],
+    "validations": [
+      "val-185f26c46ab2",
+      "val-2982f0ae492b",
+      "val-5cf858c4d484",
+      "val-639c8e8065ba",
+      "val-6e3ed5ed5991",
+      "val-73c72c8e1a12",
+      "val-81678315f844",
+      "val-953cc0ede8e2",
+      "val-b1e80500d149",
+      "val-f8a0bfd1b656"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T11:30:45Z"
+  }
+}

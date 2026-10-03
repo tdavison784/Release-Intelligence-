@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d510551aa5fd",
+    "candidateId": "sc-1007e5d829a0",
+    "proposalId": "sp-a56e0669419b",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "flux",
+        "group": "image.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "ImageUpdateAutomation"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "gvk",
+          "product": "flux",
+          "group": "image.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "ImageUpdateAutomation"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions",
+              "state": "has-token",
+              "values": [
+                "v1beta2"
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "imageupdateautomations.image.toolkit.fluxcd.io"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImageUpdateAutomation objects stay stored as v1beta2 until rewritten, so a storage version migration (re-write all objects and update status.storedVersions on the imageupdateautomations.image.toolkit.fluxcd.io CRD) must be completed before a later release removes v1beta2.",
+        "remediation": "After upgrading, run the storage version migration: re-write all ImageUpdateAutomation objects so they are stored at v1, then update status.storedVersions on the imageupdateautomations.image.toolkit.fluxcd.io CRD to drop v1beta2, before upgrading to the later release that removes v1beta2.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the imageupdateautomations.image.toolkit.fluxcd.io CRD changes from v1beta2 to v1, so existing ImageUpdateAutomation objects stay stored as v1beta2 until a storage version migration (re-writing all objects and updating status.storedVersions) is run before a later release removes v1beta2."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "restatement:crd:version-deprecated",
+        "detail": "computed change chg-758d5de6c376 names gvk:flux|group=image.toolkit.fluxcd.io|version=v1beta2|kind=ImageUpdateAutomation"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "restatement:crd:version-deprecated",
+        "detail": "computed change chg-758d5de6c376 states the same deprecated: \"API version `image.toolkit.fluxcd.io/v1beta2` of ImageUpdateAutomation deprecated\""
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-46a3340b4677",
+    "candidateId": "sc-819834200127",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"crd\"",
+        "after": "\"all\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "none",
+              "pattern": "ignoreResourceStatusField"
+            }
+          ],
+          "version": "v1",
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "ignoreResourceStatusField"
+            }
+          ],
+          "version": "v1",
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Differences in status fields are no longer detected for all resources by default; users relying on status being part of desired state see different diff results.",
+        "remediation": "Set ignoreResourceStatusField: crd in resource.compareoptions of argocd-cm to preserve the v2 default."
+      },
+      "statement": "The default of ignoreResourceStatusField in argocd-cm resource.compareoptions changed from `crd` to `all`, so status field differences are no longer detected for any resource."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-c5faeec10a04"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f8ef3f4619ad62dce9cf6dd566b4c538907984f171057cf63018cca11ede6fe9",
+      "inputEvidence": [
+        "ev-c5faeec10a04"
+      ],
+      "generatedAt": "2026-10-02T06:06:12Z",
+      "callId": "f62f008b-a81b-4675-9b69-e6b1ba17949e"
+    }
+  }
+}

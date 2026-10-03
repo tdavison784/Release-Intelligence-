@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-fd2e52deb226",
+    "reviewItemId": "ri-3536454469a0",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "venafi-vcert"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"version with RSA 3072 bit key bug\"",
+        "after": "\"version with RSA 3072 bit key bug fixed\""
+      },
+      "statement": "Venafi vCert library upgraded to fix RSA 3072 bit key size handling in TPP certificate enrollment."
+    },
+    "corrected": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "venafi-vcert"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "cert-manager 1.17.0 upgrades its Venafi vCert library dependency. This changes behaviour: TPP certificate enrollment with an RSA 3072 bit key size, which previously did not work, now works."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:7544e91743c326d7a6193f11935305f9595560c05d5f3a2cc1aabe648bfd2680",
+      "inputEvidence": [
+        "ev-12d2733c5dd3"
+      ],
+      "generatedAt": "2026-10-02T12:51:46.225Z",
+      "callId": "2f5e4d14-c87a-4b60-b70b-be59e0915744"
+    },
+    "reason": "[ev-12d2733c5dd3] says cert-manager upgrades the Venafi `vCert` library and that this fixes RSA 3072 bit key enrollment for TPP, so the subject (product-relationship venafi-vcert) fits. The change type does not. value-changed needs literal before and after values, but the evidence gives no vCert versions. The proposed \"version with RSA 3072 bit key bug\" and \"…bug fixed\" are paraphrases, not values from the text. What the evidence does support is a behaviour change with no literal before/after values: TPP enrollment with RSA 3072 keys did not work and now does.",
+    "startedAt": "2026-10-02T12:51:34.419Z",
+    "decidedAt": "2026-10-02T12:51:46.225Z"
+  }
+}

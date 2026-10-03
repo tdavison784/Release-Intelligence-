@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-acc02a326131",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-caebdad22993"
+        ],
+        "statementKeys": [
+          "sk-a0d119bd0082"
+        ],
+        "changeIds": [
+          "chg-ee38761cd77e"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-91d1feb7a7d7"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "repositories",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.repositories",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "data[\"repository.credentials\"]",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "data[\"helm.repositories\"]",
+                  "state": "set"
+                }
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Repositories configured in argocd-cm (repositories, repository.credentials, helm.repositories) are no longer supported in Argo CD 3.0 and will not be honoured.",
+        "remediation": "Convert the repositories to Secrets following the documentation for declarative management of repositories.",
+        "severity": "high"
+      },
+      "statement": "Removed support for legacy repo config in argocd-cm: Before repositories were managed as Secrets, they were configured in the argocd-cm ConfigMap"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-8152481f5493"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-8152481f5493"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-ffa1edfee209"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-09daa99628aa"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-ea324615706c",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L128-L147 (v2.14 to 3.0 › Breaking Changes › Removed support for legacy repo config in argocd-cm)",
+        "excerpt": "### Removed support for legacy repo config in argocd-cm\n\nBefore repositories were managed as Secrets, they were configured in the argocd-cm ConfigMap. The argocd-cm option has\nbeen deprecated for some time and is no longer available in Argo CD 3.0.\n\n#### Detection\n\nTo check whether you have any repositories configured in argocd-cm, run the following command:\n\n```shell\nkubectl get cm argocd-cm -o=jsonpath=\"[{.data.repositories}, {.data['repository.credentials']}, {.data['helm.repositories']}]\"\n```\n\nIf you have no repositories configured in argocd-cm, the output will be `[, , ]`, and you are not…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:24:46.331Z"
+  }
+}

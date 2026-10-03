@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1de6c5f1a822",
+    "candidateId": "sc-b39edc535b31",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "podDisruptionBudget.minAvailable"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "podDisruptionBudget.minAvailable",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "podDisruptionBudget.maxAvailable",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Previously configured podDisruptionBudget values continue to work; percentage format is now also accepted, expanding configuration options."
+      },
+      "statement": "Helm chart values for podDisruptionBudget.minAvailable and podDisruptionBudget.maxAvailable now accept percentage values."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-d176cffb7417"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:79d418da203282eddaa229b65d83403f2625d694d56b69c79302b78229b8d501",
+      "inputEvidence": [
+        "ev-d176cffb7417"
+      ],
+      "generatedAt": "2026-10-02T06:03:43Z",
+      "callId": "bc267d0d-855e-463c-bde6-f3b462794e18"
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-0eb6d5a4908b",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-d5c56edc8b09"
+        ],
+        "statementKeys": [
+          "sk-38bd10c2f428"
+        ],
+        "changeIds": [
+          "chg-571703cd9ef9"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-ea58236c92a6"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "experimental.http3"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--experimental.http3",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the Traefik static configuration file (YAML/TOML) sets experimental.http3"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if the removed `experimental.http3` configuration option is present in the static configuration.",
+        "severity": "critical"
+      },
+      "statement": "HTTP3: In v3, HTTP/3 is no longer an experimental feature"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-f4f8f795a3ff"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-f4f8f795a3ff"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-cf1393bce83f"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-cb1a63eb0289"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-2df1b23f32ac",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L125-L149 (Migration Guide: From v2 to v3 › Static configuration › Experimental Configuration › HTTP3)",
+        "excerpt": "#### HTTP3\n\nIn v3, HTTP/3 is no longer an experimental feature.\nIt can be enabled on entry points without the associated `experimental.http3` option, which is now removed.\nIt is now unsupported and would prevent Traefik to start.\n\n??? example \"An example usage of v2 Experimental `http3` option\"\n\n    ```yaml tab=\"File (YAML)\"\n    experimental:\n      http3: true\n    ```\n\n    ```toml tab=\"File (TOML)\"\n    [experimental]\n        http3=true\n    ```\n\n    ```bash tab=\"CLI\"\n    --experimental.http3=true\n    ```\n\n##### Remediation\n\nThe `http3` option should be removed from the static configuration expe…",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:19:34.793Z"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f0d5299451f2",
+    "candidateId": "sc-87e07dd001ae",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "grpc-control-plane-alpn-validation"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "cert-manager-istio-csr",
+          "state": "out-of-range",
+          "range": ">=0.12.1"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "gRPC communication to the control plane fails with authentication handshake errors when using cert-manager's istio-csr versions prior to v0.12.1, due to increased validation checks for ALPN properties.",
+        "remediation": "Upgrade cert-manager's istio-csr to v0.12.1 or later, or apply the workaround settings mentioned in the release notes.",
+        "severity": "high"
+      },
+      "statement": "Istio 1.24.0 introduces increased validation checks in gRPC communication to the control plane that are incompatible with cert-manager's istio-csr versions prior to v0.12.1, causing authentication handshake failures."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-f0029965e392"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ea6a00e0be5f6fa6a44c7e60b7e924dd61453601ab9d963925f71878e7311d09",
+      "inputEvidence": [
+        "ev-f0029965e392"
+      ],
+      "generatedAt": "2026-10-02T06:03:49Z",
+      "callId": "1dff2533-e7dc-40d2-a326-560a0214853d"
+    }
+  }
+}

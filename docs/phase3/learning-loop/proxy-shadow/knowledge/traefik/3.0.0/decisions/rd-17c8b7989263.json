@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-17c8b7989263",
+    "reviewItemId": "ri-a0905a7477d7",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `tls.caOptional` option in Consul provider static configuration will no longer be honoured in v3.0.0.",
+        "remediation": "Remove the `tls.caOptional` option from the Consul provider static configuration.",
+        "severity": "high"
+      },
+      "statement": "The Consul provider's `tls.caOptional` configuration option has been removed in Traefik v3.0.0 because TLS client authentication is a server-side concern."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `tls.caOptional` option in Consul provider static configuration has been removed in v3.0.0 and is no longer honoured.",
+        "remediation": "Remove the `tls.caOptional` option from the Consul provider static configuration (file or `--providers.consul.tls.caOptional` CLI flag).",
+        "severity": "medium"
+      },
+      "statement": "In Traefik v3.0.0 the Consul provider static option `tls.caOptional` has been removed, so a configured value is no longer honoured. It should be removed from the static configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:8320f80c3ef8fc5e6cd391db3b51c699d949109cc638c4a3076d8567eda7ee00",
+      "inputEvidence": [
+        "ev-4685c9dd4dac"
+      ],
+      "generatedAt": "2026-10-03T02:26:56.072Z",
+      "callId": "15a7a352-6cb8-4b67-a4f6-764b76d9b7da"
+    },
+    "reason": "[ev-4685c9dd4dac] says the Consul provider `tls.CAOptional` option \"has been removed in v3\" and that it should be removed from the static configuration. A removed configuration key fits setting-ignored, so the kind and action class are correct. The severity of high is not supported: the evidence explains that client authentication is a server-side option, which means this client-side setting had no real effect. It also does not say that startup or traffic fails, so I lowered the severity to medium.",
+    "startedAt": "2026-10-03T02:26:42.705Z",
+    "decidedAt": "2026-10-03T02:26:56.072Z"
+  }
+}

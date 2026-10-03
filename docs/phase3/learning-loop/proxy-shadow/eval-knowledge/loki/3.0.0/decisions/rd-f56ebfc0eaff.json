@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f56ebfc0eaff",
+    "reviewItemId": "ri-e04f653d8a25",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--ingester.max-transfer-retries",
+              "component": "ingester",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "ingester.max_transfer_retries",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The ingester configuration setting `max_transfer_retries` and its corresponding CLI flag `-ingester.max-transfer-retries` are removed in Loki 3.0.0 in favor of the Write Ahead Log (WAL)."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-ingester.max-transfer-retries",
+              "component": "ingester",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the environment's Loki configuration file (ingester block) sets max_transfer_retries; the evidence does not say which Helm values path or ConfigMap key holds it"
+            }
+          ]
+        }
+      },
+      "statement": "Environments are exposed if they pass -ingester.max-transfer-retries to Loki, or if their Loki config sets ingester max_transfer_retries. The config-file location and Helm values path are not given in the release evidence."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:c673ab3af564a70415b4560c1b4dd742b4ff8263a366be277fcb52d62699f103",
+      "inputEvidence": [
+        "ev-c6e07f70e7d9"
+      ],
+      "generatedAt": "2026-10-03T02:32:58.756Z",
+      "callId": "15219f83-268b-4438-89d0-bdf311678357"
+    },
+    "reason": "[ev-c6e07f70e7d9] names two forms of the removed setting: the ingester config key `max_transfer_retries` and the flag `-ingester.max-transfer-retries` (single dash). The flag leaf is supported, but the evidence gives no Helm values path, so the values-key `ingester.max_transfer_retries` is a guess. Because the setting lives in Loki's config file, I replaced that leaf with an undecidable operand rather than invent a path. I also kept the flag spelling exactly as the evidence gives it.",
+    "startedAt": "2026-10-03T02:32:43.474Z",
+    "decidedAt": "2026-10-03T02:32:58.756Z"
+  }
+}

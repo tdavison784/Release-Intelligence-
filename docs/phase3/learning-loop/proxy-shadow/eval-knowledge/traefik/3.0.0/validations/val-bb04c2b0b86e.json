@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-bb04c2b0b86e",
+    "candidateId": "sc-8cbba7c9363b",
+    "proposalId": "sp-af918d1d4875",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "traefik",
+        "group": "traefik.io",
+        "kind": "Middleware",
+        "path": "spec.headers.sslRedirect"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.headers.sslRedirect",
+              "state": "set"
+            }
+          ],
+          "group": "traefik.io",
+          "kind": "Middleware"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Middleware resources with spec.headers.sslRedirect field will be rejected as the field is no longer served in v3.0.0.",
+        "severity": "high"
+      },
+      "statement": "The sslRedirect option of the Headers middleware has been removed in Traefik 3.0.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

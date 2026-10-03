@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-217c5f0fd11e",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "anchors": [
+      {
+        "release": "2.0.0",
+        "evidenceKeys": [
+          "ek-a5bfb04b97ca"
+        ],
+        "statementKeys": [
+          "sk-8ec709ff5c93"
+        ],
+        "changeIds": [
+          "chg-c5d7ffddcc15"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-7966c351e471"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "crossplane",
+        "name": "--registry"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.package",
+                  "state": "matches",
+                  "pattern": "^([^/.:]+/|[^/]+$)"
+                }
+              ],
+              "group": "pkg.crossplane.io",
+              "kind": "Provider"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.package",
+                  "state": "matches",
+                  "pattern": "^([^/.:]+/|[^/]+$)"
+                }
+              ],
+              "group": "pkg.crossplane.io",
+              "kind": "Configuration"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.package",
+                  "state": "matches",
+                  "pattern": "^([^/.:]+/|[^/]+$)"
+                }
+              ],
+              "group": "pkg.crossplane.io",
+              "kind": "Function"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The `--registry` flag for a default package registry is removed and all packages must now use fully qualified names including the registry host name. The upgrade guide requires updating any package without a registry host name before upgrading.",
+        "remediation": "Run `kubectl get pkg -o wide` and, before upgrading, update any package reference without a registry host name to a fully qualified name, e.g. `crossplane-contrib/provider-aws-s3:v1.23.0` -> `xpkg.crossplane.io/crossplane-contrib/provider-aws-s3:v1.23.0`.",
+        "severity": "high"
+      },
+      "statement": "Default registry flag: Removed: `--registry` flag for default package registry All packages must now use fully qualified names including the registry host name"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-96227edfdb51"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-96227edfdb51"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-370ce5ef06b4"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-92de3dfe48c9"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-430fc91e4c1d",
+        "kind": "document",
+        "sourceId": "upgrade-to-v2-archive",
+        "uri": "https://github.com/crossplane/docs/blob/v2.0-archive/content/v2.0/guides/upgrade-to-crossplane-v2.md",
+        "locator": "L109-L121 (Removed features › Default registry flag)",
+        "excerpt": "### Default registry flag\n**Removed**: `--registry` flag for default package registry\n\nAll packages must now use fully qualified names including the registry\nhost name. Check your packages with:\n\n```shell\nkubectl get pkg -o wide\n```\n\nUpdate any packages without registry host names before upgrading. For example:\n- ❌ `crossplane-contrib/provider-aws-s3:v1.23.0`\n- ✅ `xpkg.crossplane.io/crossplane-contrib/provider-aws-s3:v1.23.0`",
+        "contentDigest": "sha256:9573df98bd97eb85e60f8c53683a475ad7aaf7ecfa5bd8a789751281cc2e74fd",
+        "retrievedAt": "2026-10-02T10:52:56Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:33:22.549Z"
+  }
+}

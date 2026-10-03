@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a1d29fbd9d91",
+    "candidateId": "sc-3e8896f66ab7",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "cluster-ca-cert-secret-handling",
+        "component": "user-operator"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "release-knowledge-gap",
+          "needed": "whether the environment runs the standalone User Operator with TLS not needed and without the Cluster CA cert Secret (the evidence names no chart values, environment variables or Secret name identifying this configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "A standalone User Operator deployed without the Cluster CA cert Secret while TLS is not needed is now handled by the operator; the changelog does not state what its previous behavior was or that any action is required.",
+        "remediation": "No action is described; if the standalone User Operator runs without TLS and without the Cluster CA cert Secret, verify it now operates as expected.",
+        "severity": "low"
+      },
+      "statement": "Strimzi 0.46.0 updates the standalone User Operator so that it handles the Cluster CA certificate Secret being missing when TLS is not needed."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-35ea1afad43d"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:000aea8f7b1a64649a035b0f878777ba8f989cbacd444cb2a429262f50012575",
+      "inputEvidence": [
+        "ev-35ea1afad43d"
+      ],
+      "generatedAt": "2026-10-02T11:31:22Z",
+      "callId": "92395c13-f89d-4917-ad3f-3d1d72f63070"
+    }
+  }
+}

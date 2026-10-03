@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-62a6a9b8176e",
+    "candidateId": "sc-3fcd67ae459f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "s3.sse-encryption"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "sse.type"
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The `s3.sse-encryption` option is removed; AWS now defaults bucket encryption to SSE-S3, and `sse.type` should be used to set the SSE type.",
+        "remediation": "Use `sse.type` to set the SSE type.",
+        "severity": "low"
+      },
+      "statement": "The `s3.sse-encryption` configuration option is removed; use `sse.type` to set the SSE type instead."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The config-key is a Loki config file/CLI option, and the evidence does not state which environment predicates expose it; no static input is clearly available for it.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-c8a8a9c16d41"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e60870085e151b76c6453bd16982ec56cd31641b1535a791d99b874189039c21",
+      "inputEvidence": [
+        "ev-c8a8a9c16d41"
+      ],
+      "generatedAt": "2026-10-02T21:00:46Z",
+      "callId": "78a7f67d-eb82-459c-b052-c1e6058bd8ef"
+    }
+  }
+}

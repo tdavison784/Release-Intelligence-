@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a347b1de74f8",
+    "candidateId": "sc-27082ab547c4",
+    "proposalId": "sp-2ee61449d024",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "helm.toolkit.fluxcd.io",
+        "version": "v2beta2",
+        "kind": "HelmRelease",
+        "path": "spec.kubeConfig.configMapRef"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "helm.toolkit.fluxcd.io",
+          "version": "v2beta2",
+          "kind": "HelmRelease"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A new schema field becomes available on the HelmRelease v2beta2 API; the computed diff reports only an addition with no removal, rejection or required action, so no operational consequence follows from the addition itself.",
+        "severity": "low"
+      },
+      "statement": "The HelmRelease v2beta2 CRD schema gained a new field spec.kubeConfig.configMapRef, including its subfield spec.kubeConfig.configMapRef.name."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:crd-field/added",
+        "detail": "no canonical exposure condition for crd-field added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "confirmed",
+        "rule": "canonical:added/none",
+        "detail": "a newly added subject has no consequence for existing environments"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

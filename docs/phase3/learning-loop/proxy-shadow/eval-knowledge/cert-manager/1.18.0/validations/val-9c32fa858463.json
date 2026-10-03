@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9c32fa858463",
+    "candidateId": "sc-a7ff62a3be31",
+    "proposalId": "sp-bd0a86fe7f38",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "operatorhub"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether cert-manager in this environment is installed or updated through OperatorHub (RedHat OpenShift OperatorHub or operatorhub.io, via OLM) rather than another distribution method"
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "An installation that gets cert-manager from OperatorHub cannot be upgraded to v1.18.0 through OperatorHub: cert-manager no longer publishes packages there and v1.16.5 is the last release available on RedHat OpenShift OperatorHub and operatorhub.io, so it remains on v1.16.5 unless the operator switches to another distribution method.",
+        "remediation": "Move the cert-manager installation off OperatorHub/OLM to another distribution method to upgrade past v1.16.5; the cert-manager-olm repository is archived.",
+        "severity": "high"
+      },
+      "statement": "cert-manager 1.18.0 no longer publishes packages to OperatorHub: v1.16.5 is the last release offered on RedHat OpenShift OperatorHub and on operatorhub.io, and the cert-manager-olm repository is archived."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/removed",
+        "detail": "product-relationship removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/removed",
+        "detail": "product-relationship removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2505fc8cf7c9",
+    "candidateId": "sc-a8771d6dc75d",
+    "proposalId": "sp-68c46bf0f6e1",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "stable-connect-identities-enable"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.38.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "version": "v1beta2",
+                  "kind": "KafkaConnect"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "version": "v1beta2",
+                  "kind": "KafkaMirrorMaker2"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Before upgrading to Strimzi 0.46.0, the StableConnectIdentities feature gate must be enabled and StrimziPodSets must be used when operating Kafka Connect or Kafka MirrorMaker 2.",
+        "severity": "high"
+      },
+      "statement": "When upgrading from Strimzi 0.38 or older with Kafka Connect or Kafka MirrorMaker 2 operands, the StableConnectIdentities feature gate must be enabled and StrimziPodSets must be used before upgrading to 0.46.0."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

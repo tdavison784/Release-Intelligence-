@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-199783d8212a",
+    "candidateId": "sc-e57c1f16262d",
+    "proposalId": "sp-3beae09c1216",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "kind": "PrometheusRule",
+        "path": "status"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "monitoring.coreos.com",
+              "version": "v1",
+              "kind": "PrometheusRule"
+            },
+            {
+              "op": "feature-gate",
+              "name": "StatusForConfigurationResources",
+              "state": "enabled"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This adds a read-only status subresource field. The operator only fills it in when the StatusForConfigurationResources feature gate is enabled, and existing PrometheusRule specs keep working without changes.",
+        "severity": "low"
+      },
+      "statement": "The monitoring.coreos.com/v1 PrometheusRule CRD schema adds a read-only `status` field (with status.bindings[] and their conditions). The status is still under active development and is only updated when the \"StatusForConfigurationResources\" feature gate is enabled."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9367e16ce804",
+    "candidateId": "sc-f68243010efc",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "clustermesh.apiserver.podSecurityContext"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "\"drop all capabilities and run as non-root user\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "clustermesh.apiserver.podSecurityContext",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Clustermesh-apiserver pods will run with restricted security contexts (dropped capabilities, non-root user) by default if the operator does not explicitly override these values.",
+        "severity": "medium"
+      },
+      "statement": "The clustermesh-apiserver's Helm chart values for `podSecurityContext` and `securityContext` now default to dropping all capabilities and running as a non-root user."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-da6e6a1ea917"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:59169b3ac2dcd57d2c3f3aa0b79507896cf312291749a6fb14cdb27f89677047",
+      "inputEvidence": [
+        "ev-da6e6a1ea917"
+      ],
+      "generatedAt": "2026-10-02T06:05:21Z",
+      "callId": "51dda8e4-1e6f-4c3b-ad80-e14b65393a98"
+    }
+  }
+}

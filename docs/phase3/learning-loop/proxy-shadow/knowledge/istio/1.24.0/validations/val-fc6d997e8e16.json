@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fc6d997e8e16",
+    "candidateId": "sc-b038ac70b042",
+    "proposalId": "sp-2dbf92c5adab",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Static listeners now bypass the overload manager by default; it still works, but differently.",
+        "remediation": "Set BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false in the agent Deployment to revert."
+      },
+      "statement": "Istio now bypasses the overload manager for static listeners; setting env var BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false in the agent Deployment reverts this."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:env-var/added",
+        "detail": "no canonical exposure condition for env-var added"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

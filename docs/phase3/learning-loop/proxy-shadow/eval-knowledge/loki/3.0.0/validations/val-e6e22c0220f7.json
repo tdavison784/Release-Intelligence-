@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e6e22c0220f7",
+    "candidateId": "sc-2e72ec27733c",
+    "proposalId": "sp-e7f5995e1f07",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store",
+        "component": "shipper"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "boltdb.shipper.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "tsdb.shipper.shared-store",
+              "state": "set"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "not",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-boltdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "-tsdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "boltdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "tsdb.shipper.shared-store",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The -boltdb.shipper.shared-store and -tsdb.shipper.shared-store configuration settings, if present, are no longer honored during upgrade to Loki 3.0.0.",
+        "severity": "high"
+      },
+      "statement": "The cli-flags -boltdb.shipper.shared-store and -tsdb.shipper.shared-store, and their corresponding YAML configuration keys, have been removed and are no longer honored in Loki 3.0.0; environments that had not configured these settings are unaffected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

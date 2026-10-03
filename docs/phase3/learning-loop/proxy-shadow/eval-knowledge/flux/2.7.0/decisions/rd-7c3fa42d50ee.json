@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-7c3fa42d50ee",
+    "reviewItemId": "ri-65e4aaef86cc",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<2.7.0"
+        }
+      },
+      "statement": "The Flux 2.7.0 upgrade guide instructs operators to update the Flux CLI to the latest release, using `flux check --pre` to detect whether a newer Flux version is available and `flux --version` to verify the running version."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:9d37557607ec9e54e5bf667d26d186c93ab33a6b65d7119c215498997eb2fb39",
+      "inputEvidence": [
+        "ev-2d6ff80d75f9"
+      ],
+      "generatedAt": "2026-10-03T02:20:25.984Z",
+      "callId": "1d3fc941-4508-41dd-937e-6fd6380d78cb"
+    },
+    "reason": "[ev-2d6ff80d75f9] is general upgrade-guide text: run `flux check --pre`, update the CLI from a package manager or GitHub releases, then check with `flux --version`. It does not tie this to 2.7.0, and it does not say that anything changed, fails or must be migrated in that release. The CLI binary runs on the operator's machine and is not part of the environment's configuration. So the condition edge-from-version <2.7.0 would flag every upgrade with a step the evidence never makes specific to this release, and no other exposure condition follows from the text.",
+    "startedAt": "2026-10-03T02:20:18.598Z",
+    "decidedAt": "2026-10-03T02:20:25.984Z"
+  }
+}

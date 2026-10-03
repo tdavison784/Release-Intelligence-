@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1c41b949505f",
+    "candidateId": "sc-f7925b79e2e4",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "global.rbac.disableHTTPChallengesRole"
+      },
+      "change": {
+        "type": "added",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "global.rbac.disableHTTPChallengesRole",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Operators who leave the new value unset are unaffected: the default (false) keeps HTTP-01 ACME challenges enabled and cert-manager's pod-creation permission in place, so nothing changes on upgrade.",
+        "remediation": "Optionally set global.rbac.disableHTTPChallengesRole=true if HTTP-01 ACME challenges are not required, to drop cert-manager's permission to create pods.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 adds the Helm value global.rbac.disableHTTPChallengesRole (default false), which when set disables HTTP-01 ACME challenges so cert-manager can drop its permission to create pods."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-861cb2d69752"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:307f465a9db5a567d15ecdc5a9f9403306c26d746be80c1f30d8ebf6ab94487b",
+      "inputEvidence": [
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2",
+        "ev-861cb2d69752"
+      ],
+      "generatedAt": "2026-10-02T11:51:10Z",
+      "callId": "987615de-609c-48f0-b8c2-9cfd13fcbd41"
+    }
+  }
+}

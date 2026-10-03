@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1ed739bd2306",
+    "candidateId": "sc-819834200127",
+    "proposalId": "sp-52dbf4c6222c",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"crd\"",
+        "after": "\"all\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"resource.compareoptions\"]",
+                      "state": "unset"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"resource.compareoptions\"]",
+                      "state": "none",
+                      "pattern": "ignoreResourceStatusField"
+                    }
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "ignoreResourceStatusField.*crd"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Status field differences are no longer detected by default for all resources; previously only custom resources had status fields ignored by default.",
+        "remediation": "If you rely on detecting status field differences, set ignoreResourceStatusField to 'crd' in the argocd-cm ConfigMap's resource.compareoptions to preserve v2 behavior.",
+        "severity": "medium"
+      },
+      "statement": "By default, Argo CD's compare options to ignore the status field changed from applying to 'crd' (custom resources) to 'all' resource types, meaning status field differences are no longer detected unless explicitly configured."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/value-changed",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: fetch https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://raw.githubusercontent.com/argoproj/argo-helm/gh-pages/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/argoproj/argo-helm/argo-cd:7.8.11: fetch https://ghcr.io/v2/argoproj/argo-helm/argo-cd/manifests/7.8.11: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/value-changed",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: fetch https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://raw.githubusercontent.com/argoproj/argo-helm/gh-pages/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/argoproj/argo-helm/argo-cd:7.8.11: fetch https://ghcr.io/v2/argoproj/argo-helm/argo-cd/manifests/7.8.11: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

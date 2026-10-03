@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-c87ae1cbf554",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-f9def79ed6f8"
+        ],
+        "statementKeys": [
+          "sk-23a7992e2cb0"
+        ],
+        "changeIds": [
+          "chg-d19c3b3199e4"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-cd46ebca5f3e"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "server.rbac.disableApplicationFineGrainedRBACInheritance",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"update/delete policies also apply to sub-resources\"",
+        "after": "\"update/delete policies apply only to the application itself\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"server.rbac.disableApplicationFineGrainedRBACInheritance\"]",
+                      "state": "equals",
+                      "values": [
+                        "\"false\""
+                      ]
+                    }
+                  ],
+                  "kind": "ConfigMap",
+                  "name": "argocd-cm"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the environment defines RBAC policies granting update or delete on Applications (evidence does not state where such policies are stored)"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"server.rbac.disableApplicationFineGrainedRBACInheritance\"]",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "RBAC policies granting update or delete permissions on Applications no longer automatically grant those permissions on managed sub-resources; operators must define separate policies with update/* or delete/* verbs to maintain access to application-managed resources.",
+        "remediation": "Define new RBAC policies with update/* and delete/* verbs for managed resources, or set server.rbac.disableApplicationFineGrainedRBACInheritance to false in argocd-cm to preserve v2 behavior.",
+        "severity": "high"
+      },
+      "statement": "Fine-Grained RBAC for application `update` and `delete` sub-resources: The default behavior of fine-grained policies have changed so they no longer apply to…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-60517a4f4f8e"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-60517a4f4f8e"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-9ffeed337a7d"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-367b0d9166be"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-d0cda25040fe",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L12-L24 (v2.14 to 3.0 › Breaking Changes › Fine-Grained RBAC for application `update` and `delete` sub-resources)",
+        "excerpt": "### Fine-Grained RBAC for application `update` and `delete` sub-resources\n\nThe default behavior of fine-grained policies have changed so they no longer apply to sub-resources.\nPrior to v3, policies granting `update` or `delete` to an application also applied to any of its sub-resources.\n\nStarting with v3, the `update` or `delete` actions only apply to the application itself. New policies must be defined\nto allow the `update/*` or `delete/*` actions on an Application's managed resources.\n\nThe v2 behavior can be preserved by setting the config value `server.rbac.disableApplicationFineGrainedRBAC…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:31:54.09Z"
+  }
+}

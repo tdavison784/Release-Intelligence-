@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0c2b2b3ce496",
+  "promptDigest": "sha256:b12641e8ff3e232ce950e51a5034401645ea8b416dfa1971a0883290edef52ca",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "2de92393-daa2-4745-9b22-f3df603831fb",
+  "startedAt": "2026-10-03T02:11:06.770Z",
+  "decidedAt": "2026-10-03T02:11:20.903Z",
+  "durationMs": 13305,
+  "costUSD": 0.09858800000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-110340e9c914] marks this as a breaking change. It says the Exact PathType is incompatible with ingress-nginx >=1.8.0 when strict-validate-path-type is enabled, and that this option is on by default in >=1.12.0. In that case the admission webhook validate.nginx.ingress.kubernetes.io denies the challenge Ingress and the controller logs \"Error presenting challenge\". So the kind workload-failure (the ingress-nginx integration breaks), severity high and the statement are supported. The remediation, however, recommends upgrading to an ingress-nginx version that fixes the bug, and the evidence shown names no such version, so that advice is removed.",
+    "citations": [
+      "ev-110340e9c914"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In cert-manager 1.18.0, ACME HTTP01 Ingress challenges use PathType Exact. With ingress-nginx >=1.8.0 and strict-validate-path-type enabled (the default in >=1.12.0), the admission webhook denies the challenge Ingress because its path contains a dot, so HTTP01 challenges cannot be presented or solved.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "workload-failure",
+        "severity": "high",
+        "statement": "ACME HTTP01 challenges fail when ingress-nginx >= 1.12.0 runs with its default strict-validate-path-type setting, or when ingress-nginx >= 1.8.0 has strict-validate-path-type explicitly enabled. The validate.nginx.ingress.kubernetes.io admission webhook denies the challenge Ingress because the /.well-known/acme-challenge/<TOKEN> path contains a dot. The cert-manager controller logs 'Error presenting challenge: admission webhook ... denied the request'.",
+        "remediation": "Disable the ingress-nginx strict-validate-path-type configuration option, or use a standards-compliant Ingress controller (e.g. Cilium) for HTTP01 challenges."
+      }
+    }
+  }
+}

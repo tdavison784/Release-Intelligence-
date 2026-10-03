@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0bf7c0d9162a",
+    "reviewItemId": "ri-3689d4743189",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The operator must execute the documented upgrade steps (helm repo add, helm upgrade, and pod verification) to complete the migration to Crossplane v2.0.0; failure to follow these steps will prevent successful upgrade completion.",
+        "severity": "high"
+      },
+      "statement": "Upgrading Crossplane to v2.0.0 requires executing the documented migration steps: adding the Crossplane Helm repository, upgrading via helm upgrade, and verifying the upgrade completion."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:9a993c575c6a1fdecdf868ed0800414bd34ab907124c16803b1229166c5e696e",
+      "inputEvidence": [
+        "ev-c28095f20093"
+      ],
+      "generatedAt": "2026-10-03T02:15:33.761Z",
+      "callId": "e7ccea5a-884a-449f-9d62-2720802509ad"
+    },
+    "reason": "[ev-c28095f20093] is just the standard procedure for upgrading: add the Helm repo, run helm upgrade, then check the pods. It does not describe a change, and it does not say that anything fails, is rejected or must be migrated if these steps are skipped. Running these commands is the upgrade itself, so the claim that skipping them would 'prevent successful upgrade completion' says nothing more than the steps do. migration-required (mandatory work) therefore over-claims, and the evidence supports no assertion about a change.",
+    "startedAt": "2026-10-03T02:15:25.681Z",
+    "decidedAt": "2026-10-03T02:15:33.761Z"
+  }
+}

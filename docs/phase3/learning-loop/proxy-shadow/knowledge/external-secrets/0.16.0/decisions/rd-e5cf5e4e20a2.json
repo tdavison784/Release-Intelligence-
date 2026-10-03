@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e5cf5e4e20a2",
+    "reviewItemId": "ri-2e8b72a73f31",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment builds external-secrets from source via the repository's GitHub Actions release workflows that reference goreleaser/goreleaser-action"
+        }
+      },
+      "statement": "The external-secrets release workflow's pinned goreleaser/goreleaser-action was bumped from 6.2.1 to 6.3.0 — a build/CI dependency change with no stated effect on deployed environments."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:4693daceaab3de948fb5be25312dc100eb7ee810085c1812b90c59c100b806f2",
+      "inputEvidence": [
+        "ev-be0806689d1e"
+      ],
+      "generatedAt": "2026-10-02T23:09:26.435Z",
+      "callId": "3bec54a1-2402-4b89-b7ab-b12681b0a622"
+    },
+    "reason": "[ev-be0806689d1e] says only that a Dependabot \"chore(deps)\" bump moved the GitHub Action goreleaser/goreleaser-action from 6.2.1 to 6.3.0. Nothing in it points to anything an operator deploys, configures or runs. The proposed undecidable condition assumes a customer environment that builds external-secrets through the project's own release workflows. The evidence never describes such an environment, and the condition would mark every environment as \"unknown\" instead of not exposed. No exposure condition follows from the evidence, so the applicability cannot be corrected and is rejected.",
+    "startedAt": "2026-10-02T23:09:15.943Z",
+    "decidedAt": "2026-10-02T23:09:26.435Z"
+  }
+}

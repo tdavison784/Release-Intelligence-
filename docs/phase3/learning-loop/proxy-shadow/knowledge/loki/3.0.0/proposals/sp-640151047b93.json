@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-640151047b93",
+    "candidateId": "sc-635ece4ca068",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--metrics-namespace"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"loki\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--metrics-namespace",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "--metrics-namespace",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "With the flag unset, the metrics namespace defaults to 'loki' rather than the cortex namespace the metrics used before, so dashboards or alerts relying on the old namespace may need review.",
+        "remediation": "Set --metrics-namespace explicitly if the old namespace is needed, or update queries.",
+        "severity": "low"
+      },
+      "statement": "Loki adds a `metrics-namespace` flag to change the namespace of metrics that used cortex as namespace, and its default is 'loki'."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-02fbed176b8e",
+      "ev-e38f07e9bdb1"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6f70066e824973805b9b28f88ebb827481517ebdf6f3763dd65ea4810175d3b0",
+      "inputEvidence": [
+        "ev-02fbed176b8e",
+        "ev-e38f07e9bdb1"
+      ],
+      "generatedAt": "2026-10-02T20:53:01Z",
+      "callId": "b6452350-b372-4606-9ac5-20930a1ab2ea"
+    }
+  }
+}

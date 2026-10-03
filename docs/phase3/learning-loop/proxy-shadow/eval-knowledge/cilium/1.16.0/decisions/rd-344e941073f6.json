@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-344e941073f6",
+    "reviewItemId": "ri-d56d6c95eaeb",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Before upgrading, clusters using external workloads must have a cluster name and ID specified, or explicitly opt out of KVStoreMesh, because KVStoreMesh is now enabled by default.",
+        "remediation": "Specify the cluster name and ID before upgrading, or explicitly disable KVStoreMesh.",
+        "severity": "medium"
+      },
+      "statement": "KVStoreMesh is now enabled by default; clusters using external workloads must set a cluster name and ID before upgrading, or explicitly opt out of KVStoreMesh."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:a4b778845c4676d88ecfc9ba765e965de810adf0b8ece11667b24009846895a8",
+      "inputEvidence": [
+        "ev-b62da9c1ceb5"
+      ],
+      "generatedAt": "2026-10-03T02:31:45.69Z",
+      "callId": "80fd0a48-81f8-4f83-a706-1e78e18790ad"
+    },
+    "reason": "[ev-b62da9c1ceb5] tells operators who use external workloads to make sure the cluster has a Cluster name and ID before upgrading, or to opt out of KVStoreMesh explicitly, because KVStoreMesh is now on by default. That is a required operator step before the upgrade, which is what migration-required means. The proposed statement and remediation repeat the evidence's two options without adding anything. The evidence does not say exactly what breaks if the step is skipped, so the consequence statement correctly describes only the required step.",
+    "startedAt": "2026-10-03T02:31:38.586Z",
+    "decidedAt": "2026-10-03T02:31:45.69Z"
+  }
+}

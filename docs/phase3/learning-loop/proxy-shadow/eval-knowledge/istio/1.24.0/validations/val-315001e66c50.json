@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-315001e66c50",
+    "candidateId": "sc-67a485dccf6c",
+    "proposalId": "sp-fbd10afef7f1",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "logAsJson",
+        "name": "ztunnel"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logAsJson",
+              "state": "unset"
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "kind": "Deployment"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new logAsJson helm value is optional and does not impact existing deployments that do not explicitly set it."
+      },
+      "statement": "The logAsJson helm value was added to the ztunnel helm chart."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "restatement:values:added",
+        "detail": "computed change chg-fc955eb464b2 names helm-value:istio|path=logAsJson|name=ztunnel"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "restatement:values:added",
+        "detail": "computed change chg-fc955eb464b2 states the same added: \"New Helm value `logAsJson` (chart ztunnel)\""
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-6cb82fc97edf",
+        "kind": "structured",
+        "sourceId": "chart-ztunnel",
+        "uri": "https://github.com/istio/istio/blob/1.23.4/manifests/charts/ztunnel/values.yaml",
+        "locator": "manifests/charts/ztunnel/values.yaml",
+        "excerpt": "# \"defaults\" is a workaround for Helm limitations. Users should NOT set \".defaults\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:b5d4b5ed6c86a79ca0b007ece236bfd6e06b6a4cdba1530bdf9e4c43e9a15207",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T11:33:50Z"
+      },
+      {
+        "id": "ev-f6a7efc3e762",
+        "kind": "structured",
+        "sourceId": "chart-ztunnel",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/manifests/charts/ztunnel/values.yaml",
+        "locator": "manifests/charts/ztunnel/values.yaml",
+        "excerpt": "# \"_internal_defaults_do_not_set\" is a workaround for Helm limitations. Users should NOT set \"._internal_defaults_do_not_set\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:464fd32fdf1b061064ce840b898f4abb0d2ab8c937643bc6cc32e535b4225fd3",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:50Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

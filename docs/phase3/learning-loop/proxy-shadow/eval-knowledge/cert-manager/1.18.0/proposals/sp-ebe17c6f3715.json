@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ebe17c6f3715",
+    "candidateId": "sc-7ae1b93c2b58",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.commonName"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"IP addresses in commonName added to the DNS subjectAlternativeName list\"",
+        "after": "\"IP addresses in commonName added to the ipAddresses field\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.commonName",
+              "state": "matches",
+              "pattern": "^(\\d{1,3}\\.){3}\\d{1,3}$|^[0-9a-fA-F:]*:[0-9a-fA-F:]*$"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For Certificates whose commonName is an IP address, the IP address is no longer added to the DNS subjectAlternativeName list. It is added to the ipAddresses field instead.",
+        "remediation": "Check that any clients or validation that relied on the IP address being listed as a DNS SAN accept it as an IP SAN.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, an IP address in a certificate's `commonName` is no longer added to the DNS `subjectAlternativeName` list. It is added to the `ipAddresses` field instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a8c04d9f0485"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e7c27a41ae6fe58cb0514df2d5d4ba9dd8180f92b6cda898e3db1466964c795f",
+      "inputEvidence": [
+        "ev-a8c04d9f0485"
+      ],
+      "generatedAt": "2026-10-02T06:13:07Z",
+      "callId": "7892e7e3-7bcd-488c-9f49-07ee8ca16894"
+    }
+  }
+}

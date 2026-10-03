@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-13fe35665c12",
+    "reviewItemId": "ri-beb51a931be3",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The configuration setting `use_boltdb_shipper_as_backup` is no longer recognized; any explicit configuration will be ignored and the previous default value `false` will be applied.",
+        "remediation": "Remove the `use_boltdb_shipper_as_backup` setting (and `-tsdb.shipper.use-boltdb-shipper-as-backup` CLI flag) from your Loki configuration, as the TSDB index is now the stable and recommended type.",
+        "severity": "low"
+      },
+      "statement": "The configuration setting `use_boltdb_shipper_as_backup` (CLI flag `-tsdb.shipper.use-boltdb-shipper-as-backup`) has been removed; environments that explicitly set it will have that setting ignored and the previous default value `false` applied."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:b782e2eb7299291e92736b68c6e73421e27a37543131ce92f99a086f078ffe31",
+      "inputEvidence": [
+        "ev-cd1836b0f962",
+        "ev-4c9440970051"
+      ],
+      "generatedAt": "2026-10-03T02:29:58.833Z",
+      "callId": "1eb5c284-12b0-4e39-b6e0-6c7201331ac0"
+    },
+    "reason": "[ev-cd1836b0f962] says `use_boltdb_shipper_as_backup` (`-tsdb.shipper.use-boltdb-shipper-as-backup`) \"was removed\" and that \"the previous default value `false` is applied\". So a value an operator set explicitly is no longer honoured, which is what setting-ignored means. [ev-4c9440970051] confirms the removal in 3.0.0. The proposed statement, remediation and low severity match this evidence and do not claim anything more.",
+    "startedAt": "2026-10-03T02:29:51.801Z",
+    "decidedAt": "2026-10-03T02:29:58.833Z",
+    "resultingFact": "vf-c54b24fe35c7"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-7166e0a2a56e",
+    "reviewItemId": "ri-0b3f73b8116b",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[]",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[].value",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "SecretStore"
+        }
+      },
+      "statement": "In the SecretStore external-secrets.io/v1beta1 schema, spec.provider.fake.data[].value becomes required (items required changes from [\"key\"] to [\"key\",\"value\"]), so SecretStores omitting it are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:054d1f5026b57ef07041da49571c682d902ba9c348ee69d1bce664d5acf454cf",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9fd85560a485",
+        "ev-fa52e4e4e831",
+        "ev-210dbd3942ad",
+        "ev-d98b7e27e53d"
+      ],
+      "generatedAt": "2026-10-03T02:11:06.026Z",
+      "callId": "146df9aa-5876-4982-8ce4-2acbca6a8ae6"
+    },
+    "reason": "[ev-210dbd3942ad] shows that in the secretstores.external-secrets.io v1beta1 schema, the required list for spec.provider.fake.data items changed from [\"key\"] to [\"key\",\"value\"]. Only SecretStore objects with a fake data entry that has no value are exposed. That is exactly the proposed condition: a v1beta1 SecretStore resource where data[] is set and data[].value is unset. The same change in ClusterSecretStore ([ev-9fd85560a485]) is in a different CRD, so it belongs to its own change and should not be added here.",
+    "startedAt": "2026-10-03T02:10:57.109Z",
+    "decidedAt": "2026-10-03T02:11:06.026Z"
+  }
+}

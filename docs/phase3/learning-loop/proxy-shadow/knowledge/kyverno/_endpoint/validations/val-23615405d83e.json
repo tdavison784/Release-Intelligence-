@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-23615405d83e",
+    "candidateId": "sc-7560741348ad",
+    "proposalId": "sp-6c8ce69c2a5c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "policyexceptions-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "kind": "PolicyException"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing PolicyException objects stay stored as v2beta1 until they are rewritten. Operators must run a storage version migration and update status.storedVersions before a later release removes v2beta1.",
+        "remediation": "After upgrading, rewrite all policyexceptions.kyverno.io objects so they are stored as v2. Then remove v2beta1 from the CRD's status.storedVersions.",
+        "severity": "medium"
+      },
+      "statement": "In 1.13.0 the policyexceptions.kyverno.io CRD's storage version moves from v2beta1 to v2, so existing PolicyException objects need a storage version migration and a status.storedVersions update before a later release removes v2beta1."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

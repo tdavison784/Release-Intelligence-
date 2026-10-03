@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-bc90ef5db907",
+    "reviewItemId": "ri-7c284193babd",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "external-secrets",
+        "name": "markdown"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"3.7\"",
+        "after": "\"3.8\""
+      },
+      "statement": "The release bumps the markdown dependency from 3.7 to 3.8 in the /hack/api-docs documentation tooling, which is an internal build dependency with no stated effect on operators."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:124f898fcdc9215ab4f49cbb29e4a9e3872d616ba8b0a81c00d2750ade26ba97",
+      "inputEvidence": [
+        "ev-ad50e5e6820c"
+      ],
+      "generatedAt": "2026-10-02T23:19:27.529Z",
+      "callId": "beb04d4d-5820-4927-ba03-dd44ff8147ed"
+    },
+    "reason": "[ev-ad50e5e6820c] only says that dependabot bumped markdown from 3.7 to 3.8 in /hack/api-docs. That directory is the repository's API-docs generation tooling, not the shipped external-secrets product. Nothing in the evidence says deployed external-secrets depends on or interacts with markdown, so recording this as a product-relationship gives it an identity the text doesn't support, and no other subject family fits. The before/after literals also wrap the version in extra quotes (\"\\\"3.7\\\"\") instead of the plain 3.7 and 3.8 the text states.",
+    "startedAt": "2026-10-02T23:19:17.449Z",
+    "decidedAt": "2026-10-02T23:19:27.529Z"
+  }
+}

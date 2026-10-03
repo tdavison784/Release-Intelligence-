@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9e6be263a6d9",
+    "candidateId": "sc-b39719683d97",
+    "proposalId": "sp-77d30331804b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "pilot.enabled"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "pilot.enabled",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `pilot.enabled` configuration value will no longer be honored in the `istiod-remote` and `istio-discovery` charts if it was previously set.",
+        "severity": "medium"
+      },
+      "statement": "The helm-value `pilot.enabled` has been removed from the `istiod-remote` and `istio-discovery` charts."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator (subject inconclusive)"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

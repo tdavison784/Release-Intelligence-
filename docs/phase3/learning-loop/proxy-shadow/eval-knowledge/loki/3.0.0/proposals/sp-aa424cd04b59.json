@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-aa424cd04b59",
+    "candidateId": "sc-d1ce6cfcdaf0",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "excludepath",
+        "component": "promtail"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"excludepath not evaluated on newly added files\"",
+        "after": "\"excludepath evaluated on newly added files\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--excludepath",
+          "component": "promtail",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Promtail now correctly evaluates the excludepath setting on newly added files, fixing incorrect behavior in previous versions where these files were not filtered according to the excludepath rules.",
+        "severity": "low"
+      },
+      "statement": "Promtail's excludepath configuration is now correctly evaluated on newly added files, fixing a bug where it was previously ignored."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-5660e882c2ce"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:92b2a38a300c1da634a7b0416b3215256e4e03454f9741081b3c31c1d7931ca1",
+      "inputEvidence": [
+        "ev-5660e882c2ce"
+      ],
+      "generatedAt": "2026-10-02T16:19:40Z",
+      "callId": "6a6faf57-c4fd-40b4-bfd8-eb75ee8c2889"
+    }
+  }
+}

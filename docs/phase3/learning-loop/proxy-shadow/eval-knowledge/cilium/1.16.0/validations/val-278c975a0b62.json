@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-278c975a0b62",
+    "candidateId": "sc-b00d0f605f87",
+    "proposalId": "sp-880f1833dc89",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "wireguard.userspaceFallback"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "wireguard.userspaceFallback",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The userspace fallback still works but will be removed in a future version; WireGuard transparent encryption will require a Linux kernel with WireGuard support.",
+        "remediation": "Use a Linux kernel with WireGuard support and stop relying on wireguard.userspaceFallback.",
+        "severity": "low"
+      },
+      "statement": "Helm value wireguard.userspaceFallback is deprecated and will be removed in a future Cilium version; WireGuard users must use a Linux kernel with WireGuard support."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/deprecated",
+        "detail": "no canonical exposure condition for helm-value deprecated"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

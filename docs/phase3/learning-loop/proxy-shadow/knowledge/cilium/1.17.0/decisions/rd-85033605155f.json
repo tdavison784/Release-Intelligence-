@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-85033605155f",
+    "reviewItemId": "ri-e4652d794f98",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Prometheus scrape configurations or monitoring queries that reference the metric `doublewrite_identity_kvstore_total_count` will no longer find that metric; the metric is only available under its new name `doublewrite_identity_kvstore_total`.",
+        "remediation": "Update Prometheus scrape configurations, dashboards, and alerting rules to reference the new metric name `doublewrite_identity_kvstore_total` instead of the old name `doublewrite_identity_kvstore_total_count`.",
+        "severity": "medium"
+      },
+      "statement": "The Prometheus metric `doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total` in Cilium 1.17.0."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium exposes this metric as `doublewrite_identity_kvstore_total` instead of `doublewrite_identity_kvstore_total_count`. Dashboards, alerts or queries that use the old name will not match the renamed metric.",
+        "remediation": "Update dashboards, recording or alerting rules and queries to use `doublewrite_identity_kvstore_total` instead of `doublewrite_identity_kvstore_total_count`.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric `doublewrite_identity_kvstore_total_count` is renamed to `doublewrite_identity_kvstore_total`. The metric is still emitted under the new name, so consumers of the old name should review their usage."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:3bd7b7f3318544868f5a69945b9f1ccd1e6330a945843ac055b776464acd6826",
+      "inputEvidence": [
+        "ev-d6005e84dee9"
+      ],
+      "generatedAt": "2026-10-03T02:33:29.329Z",
+      "callId": "ccc3da12-0404-442e-9375-c85d5ee67813"
+    },
+    "reason": "[ev-d6005e84dee9] says, under the upgrade notes' \"Changed Metrics\" heading, only that the metric `doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total`. A metric is something Cilium emits, not a value an operator configures, so setting-ignored does not fit. The evidence does not say that anything fails, so a mandatory-work kind would over-claim. The metric is still emitted under its new name, so the observable effect is a behavior-change: anything that queries the old name should be reviewed.",
+    "startedAt": "2026-10-03T02:33:15.412Z",
+    "decidedAt": "2026-10-03T02:33:29.329Z"
+  }
+}

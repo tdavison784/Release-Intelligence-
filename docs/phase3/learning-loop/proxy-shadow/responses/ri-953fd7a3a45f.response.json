@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-953fd7a3a45f",
+  "promptDigest": "sha256:af540e7c35e4d079669497011727b17c6caa81910181b89085b2816623eb0f0f",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "9d5ab918-a9a2-4b85-a6ec-c821e6348968",
+  "startedAt": "2026-10-03T02:25:38.576Z",
+  "decidedAt": "2026-10-03T02:25:48.679Z",
+  "durationMs": 9227,
+  "costUSD": 0.098164,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-5a31c0781dc5] and [ev-1295567312b0] say the `istiod-remote` Helm chart was merged into `istio-discovery`, so the clusters affected are the ones installed with `helm install istiod-remote istio/istiod-remote`. The proposed condition `global.profile` unset is far too broad: it flags every istiod install that doesn't set a profile, including ordinary local control planes that the change doesn't touch. None of the predicates in the vocabulary can say which chart a Helm release came from, so the exposure has to be marked undecidable, with a note on what information would settle it.",
+    "citations": [
+      "ev-5a31c0781dc5",
+      "ev-1295567312b0"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The istiod-remote Helm chart is merged into the istio-discovery (istio/istiod) chart; only clusters installed with the istio/istiod-remote chart for a remote/external control plane are exposed and must install istio/istiod with --set profile=remote.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the cluster's Istio installation was deployed from the istio/istiod-remote Helm chart (remote/external control plane)"
+        }
+      }
+    }
+  }
+}

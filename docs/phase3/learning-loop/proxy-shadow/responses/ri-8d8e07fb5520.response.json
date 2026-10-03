@@ -1,0 +1,46 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-8d8e07fb5520",
+  "promptDigest": "sha256:c25ccfdb9691c90d555e4023d898af4aea49a60166bd3b6ead17907af4822cf1",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "462e7eac-60d4-49d8-926c-55f8a07bc79c",
+  "startedAt": "2026-10-03T02:24:31.378Z",
+  "decidedAt": "2026-10-03T02:24:44.635Z",
+  "durationMs": 12329,
+  "costUSD": 0.11096400000000001,
+  "output": {
+    "action": "correct",
+    "reason": "The CRD diff between v0.15.0 [ev-9889c9b8706d] and v0.16.0 [ev-e08924afdc47] shows that \"v1\" was removed from the enum for spec.template.engineVersion in the v1alpha1 PushSecret schema. Validators confirmed this (\"enum lost \\\"v1\\\"\"). Only resources whose field holds the value v1 are rejected, so equals is the right test. It is narrower than the canonical \"set\", but correct for removing one enum value. The proposed literal is wrong, though: it is \"\\\"v1\\\"\", a string that contains the quote characters, so it would never match a field whose value is v1. The literal must be v1.",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In the external-secrets.io/v1alpha1 PushSecret schema, the value v1 was removed from the allowed values of spec.template.engineVersion. The API server rejects any PushSecret whose spec.template.engineVersion is v1, so those environments are exposed.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "external-secrets.io",
+          "version": "v1alpha1",
+          "kind": "PushSecret",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "v1"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

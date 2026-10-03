@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-cab175175bbc",
+    "reviewItemId": "ri-4299c02bf80a",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Temporary packet drops may occur for connections allowed by toFQDNs policies during the initial endpoint regeneration on Cilium v1.16 when upgrading from a version older than v1.15.6.",
+        "remediation": "Upgrade to Cilium v1.15.6 or newer before upgrading to v1.16.",
+        "severity": "medium"
+      },
+      "statement": "Upgrading to Cilium 1.16 from a version older than 1.15.6 with toFQDNs policies may cause temporary packet drops during initial endpoint regeneration; run v1.15.6 or newer first."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:8e32f38c3f94178ac12035b51715211ddfcd96c83fb1cd02a0c1eed54093dd0a",
+      "inputEvidence": [
+        "ev-25984c3785d4"
+      ],
+      "generatedAt": "2026-10-03T02:16:54.207Z",
+      "callId": "9c8893ae-8c59-4f83-91d8-193f625980ff"
+    },
+    "reason": "[ev-25984c3785d4] is the 1.16 upgrade note on the toFQDNs overhaul. Its excerpt is cut off at \"To avoid drops during up…\", but the full text of the same change says clusters must run v1.15.6 or newer before moving to v1.16 to avoid drops. It also says upgrading from an older version may cause temporary packet drops for connections that toFQDNs policies allow, during the first endpoint regeneration. Connections that break if the operator does nothing count as a workload-failure (action class), so the proposed kind, statement, remediation and medium severity (the drops are temporary) are all supported.",
+    "startedAt": "2026-10-03T02:16:45.072Z",
+    "decidedAt": "2026-10-03T02:16:54.207Z",
+    "resultingFact": "vf-c7e40030d679"
+  }
+}

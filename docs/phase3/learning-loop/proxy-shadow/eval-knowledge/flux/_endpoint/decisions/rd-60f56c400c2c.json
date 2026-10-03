@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-60f56c400c2c",
+    "reviewItemId": "ri-ab7c9dfac9a4",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.chartRef.kind",
+              "state": "equals",
+              "values": [
+                "\"\""
+              ]
+            }
+          ],
+          "group": "helm.toolkit.fluxcd.io",
+          "version": "v2",
+          "kind": "HelmRelease"
+        }
+      },
+      "statement": "The enum values for spec.chartRef.kind in HelmRelease v2 schema changed: removed an empty value, added ExternalArtifact."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:59773932a2011594a5dfaa7d57ca61f9ce4c0119d1a9fa0b97db8d4e8c9a31b8",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T02:28:03.821Z",
+      "callId": "05454468-4e61-452a-87dd-2f8c7198bad3"
+    },
+    "reason": "The computed diff between the v2.6.4 and v2.7.0 install bundles [ev-782bc47d120d] [ev-c2c6c790d6b2] reads \"removed [], added [\\\"ExternalArtifact\\\"]\". That means no allowed value was removed. It does not mean an empty-string value was removed. The proposed exposure, HelmRelease resources whose spec.chartRef.kind equals \"\", comes from misreading that empty list. No environment gets rejected because of it, and the condition targets a state that has nothing to do with this change. The diff only widens the enum, so it supports no rejection-style exposure condition. Another validator also reports the enum as unchanged, which is a further reason to doubt any narrowing.",
+    "startedAt": "2026-10-03T02:27:51.491Z",
+    "decidedAt": "2026-10-03T02:28:03.821Z"
+  }
+}

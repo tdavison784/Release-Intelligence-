@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6c26eacf590d",
+    "candidateId": "sc-faffd3489419",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.customizations.ignoreResourceUpdates",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "configs.cm[\"resource.customizations.ignoreResourceUpdates.all\"]",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Updates to commonly mutated resources and .status changes are ignored by default, reducing load, which differs from v2 behavior.",
+        "remediation": "Override or remove the default resource.customizations.ignoreResourceUpdates settings in the argocd-cm ConfigMap to preserve v2 behavior.",
+        "severity": "low"
+      },
+      "statement": "The Argo CD manifest now ships a default resource.customizations.ignoreResourceUpdates configuration in argocd-cm that ignores updates for commonly mutated resources, and .status changes are always ignored; override or remove the defaults to keep v2 behavior."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-94989021db77"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:8750c634c5da7aba5e456a793cbddfbc06283704ca0cdd729ac564748dfd6c10",
+      "inputEvidence": [
+        "ev-94989021db77"
+      ],
+      "generatedAt": "2026-10-02T05:55:01Z",
+      "callId": "a3a1566a-77d2-404f-8eda-251589a0d66c"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2a3f1360b850",
+    "candidateId": "sc-f1a212791fb5",
+    "proposalId": "sp-f65128342c88",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "kyverno",
+        "name": "shallow-variable-substitution"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"{{- ... }}\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Existing policies keep nested variable substitution unless they adopt the new notation; using `{{- ... }}` limits substitution to one pass so Kyverno does not attempt to resolve `{{ }}` content inside the substituted data (e.g. an HCL string from a ConfigMap).",
+        "remediation": "Where substituted rule data contains `{{ }}` that Kyverno must not resolve, use the `{{- ... }}` declaration (e.g. `{{- hcl }}`) for shallow substitution.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds a `{{- ... }}` notation for shallow (one-time) variable substitution, letting a policy substitute rule data (e.g. an HCL string defined in a ConfigMap) without Kyverno attempting to resolve the nested `{{ }}` variables inside it."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/added",
+        "detail": "no canonical exposure condition for protocol-behavior added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

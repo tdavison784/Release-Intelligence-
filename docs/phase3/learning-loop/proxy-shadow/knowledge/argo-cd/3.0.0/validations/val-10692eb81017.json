@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-10692eb81017",
+    "candidateId": "sc-5fad4fea330e",
+    "proposalId": "sp-b39d40bf4c90",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "logging-format"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"text\"",
+        "after": "\"JSON\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--log-format",
+                  "state": "set"
+                },
+                {
+                  "op": "env-var",
+                  "name": "ARGOCD_LOG_FORMAT",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Argo CD log output format defaults to JSON instead of text; existing log parsing, monitoring, and alerting rules expecting text format logs may need to be updated.",
+        "remediation": "Review and update log parsing and monitoring tools to handle JSON-formatted logs, or explicitly set the logging format to text by configuring the --log-format flag or ARGOCD_LOG_FORMAT environment variable if text format is required.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 switches the default logging output format from text to JSON."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/default-changed",
+        "detail": "protocol-behavior default-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/default-changed",
+        "detail": "protocol-behavior default-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

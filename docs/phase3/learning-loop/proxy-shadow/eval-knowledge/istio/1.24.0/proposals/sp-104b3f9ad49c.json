@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-104b3f9ad49c",
+    "candidateId": "sc-5ef925810f27",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "cert-expiry-timestamp-metrics"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The timestamp metrics do not record negative numbers for expired certificates; users relying on that should check the sign of rootCertExpirySeconds and certChainExpirySeconds instead. The text says this was never the actual behavior.",
+        "severity": "low"
+      },
+      "statement": "The metrics rootCertExpiryTimestamp and certChainExpiryTimestamp no longer record a negative number for expired certs/chains (docs corrected to match actual behavior); users should check the signs of rootCertExpirySeconds and certChainExpirySeconds instead."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Metric consumption (dashboards/alerts relying on negative timestamp values) is not visible in static configuration.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-c3da9e3c81f1"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f97f98e3b3d7638180ddbf5e5a914b284f0df8c285195c89f4ba9b9a2258534c",
+      "inputEvidence": [
+        "ev-c3da9e3c81f1"
+      ],
+      "generatedAt": "2026-10-02T06:03:49Z",
+      "callId": "8771148e-4a6f-489a-b04d-c5f7af46743f"
+    }
+  }
+}

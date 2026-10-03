@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-798d2517b1ad",
+    "reviewItemId": "ri-69b748640e25",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The remoteNodeIdentity Helm value is no longer honoured; remote nodes will always use remote-node identity. Network policies based on enable-remote-node-identity=false must be updated.",
+        "remediation": "Remove remoteNodeIdentity from Helm values. Review and update any network policies that were based on enable-remote-node-identity=false to align with the new always-enabled remote-node identity behavior.",
+        "severity": "medium"
+      },
+      "statement": "The deprecated Helm value remoteNodeIdentity has been removed in Cilium 1.16.0; environments with this value explicitly set must update their configuration and any related network policies."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:c09163bd944bfb27f6a00c2db0d1536a0f2ce97dc87442985edf5f2717e88349",
+      "inputEvidence": [
+        "ev-40ebe1cf329c",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-03T02:20:52.815Z",
+      "callId": "1a16ce08-ba54-4f99-a617-aec98bb74b6e"
+    },
+    "reason": "[ev-40ebe1cf329c] says the Helm option `remoteNodeIdentity` has been removed and that remote nodes will now always use `remote-node` identity. A configured value (in particular false) therefore no longer takes effect, which is a removed key that stops being honoured: setting-ignored. The same note says network policies based on enable-remote-node-identity=false must be updated, which the statement and remediation reflect. The validators confirm the key is in the 1.15.6 values and absent from the 1.17.0 values [ev-28e0ccb5774a][ev-39a22d88e2f5].",
+    "startedAt": "2026-10-03T02:20:42.725Z",
+    "decidedAt": "2026-10-03T02:20:52.815Z",
+    "resultingFact": "vf-001dce10de5b"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-985f07bc0493",
+    "reviewItemId": "ri-dac87bd7e8b0",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "image-in-use",
+              "name": "grafana/loki",
+              "state": "out-of-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 fixes a regression that was adding newlines to HTTP error response bodies, which broke client integrations."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "undecidable",
+              "reason": "release-knowledge-gap",
+              "needed": "which released Loki versions contained the newline regression in HTTP error response bodies (PR 11606)"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "which client integrations parse or depend on the exact formatting of Loki HTTP error response bodies"
+            }
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 fixes a regression that added newlines to HTTP error response bodies. Exposure can't be decided from the evidence: it depends on which released versions had the regression and on clients that parse error response bodies at runtime."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:80dd02c0a7aea44a5577886f4e0715bbbb857e4a008a01fc03ed85287d48b933",
+      "inputEvidence": [
+        "ev-ac878fc82910"
+      ],
+      "generatedAt": "2026-10-03T02:03:30.366Z",
+      "callId": "db46bb1a-4c03-4316-8c88-b16f6a711216"
+    },
+    "reason": "[ev-ac878fc82910] says only that 3.0.0 fixes a regression that added newlines to HTTP error response bodies. It does not say which released versions had the regression, so flagging every upgrade from below 3.0.0 is broader than the evidence supports. The image-in-use leaf is out-of-range of \"<3.0.0\", so it flags environments already running 3.x, which is wrong. Whether an environment is affected also depends on how clients parse error bodies at runtime, which no static input shows.",
+    "startedAt": "2026-10-03T02:03:18.514Z",
+    "decidedAt": "2026-10-03T02:03:30.366Z",
+    "resultingFact": "vf-0f49e03aa26f"
+  }
+}

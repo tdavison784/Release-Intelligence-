@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0718f83ad5b4",
+    "candidateId": "sc-d3794906bf05",
+    "proposalId": "sp-57e674696b73",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ExternalSecret"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ExternalSecret objects stored as v1beta1 must be rewritten (storage version migration) before a later release removes v1beta1 support to ensure they are migrated to v1 storage.",
+        "severity": "high"
+      },
+      "statement": "The storage version of ExternalSecret CRD changes from v1beta1 to v1; existing v1beta1 objects must be migrated before v1beta1 support is removed in a later release."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

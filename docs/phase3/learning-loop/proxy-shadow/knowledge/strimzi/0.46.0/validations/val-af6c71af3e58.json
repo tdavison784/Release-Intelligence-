@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-af6c71af3e58",
+    "candidateId": "sc-a64aedeb967c",
+    "proposalId": "sp-96030686583b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "metadata.labels[statefulset.kubernetes.io/pod-name]",
+        "component": "strimzi-kafka-operator"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "strimzi",
+          "path": "metadata.labels[strimzi.io/pod-name]",
+          "component": "strimzi-kafka-operator"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment has custom setups that depend on reading the statefulset.kubernetes.io/pod-name label from Strimzi pods or Services"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Custom setups that depend on the statefulset.kubernetes.io/pod-name label will not find it on Strimzi-managed pods and external listeners Kubernetes Services after the upgrade.",
+        "remediation": "Identify any custom setup leveraging the statefulset.kubernetes.io/pod-name label and update it to use the strimzi.io/pod-name label instead.",
+        "severity": "high"
+      },
+      "statement": "The statefulset.kubernetes.io/pod-name label has been removed from Strimzi-managed pods and external listeners Kubernetes Services; custom setups depending on this label should use strimzi.io/pod-name instead."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

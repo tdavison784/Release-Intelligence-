@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-46e4c8ce35d1",
+    "reviewItemId": "ri-253f77a992ab",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "istiod-remote-chart-to-istio-discovery-remote-profile"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "The `istiod-remote` Helm chart was removed; use `helm install istio-discovery --set profile=remote` instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:0ee46d0f28302a130c3d5236584345176d6ac1a80fcba95debf995b52760ac6c",
+      "inputEvidence": [
+        "ev-274ce3859ab9"
+      ],
+      "generatedAt": "2026-10-03T02:13:49.022Z",
+      "callId": "5413bfb7-521a-483c-b106-3a5b95a8c9e0"
+    },
+    "reason": "[ev-274ce3859ab9] says the `istiod-remote` chart was removed and replaced by `helm install istio-discovery --set profile=remote`. So anyone using that chart has to move to the istio-discovery chart with the remote profile. A whole Helm chart is not a values key, so P2's helm-value subject does not fit. The migration family with migration-required matches this, and the name uses the evidence's own words in kebab-case.",
+    "startedAt": "2026-10-03T02:13:40.892Z",
+    "decidedAt": "2026-10-03T02:13:49.022Z"
+  }
+}

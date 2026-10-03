@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0c95e085116d",
+    "candidateId": "sc-e08e8f654c47",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "ambient-hostnetwork-handling"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.hostNetwork",
+                      "state": "equals",
+                      "values": [
+                        "true"
+                      ]
+                    }
+                  ],
+                  "kind": "Pod"
+                }
+              ]
+            },
+            {
+              "op": "feature-gate",
+              "name": "ambient",
+              "state": "enabled"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Pods with hostNetwork enabled are now properly handled in ambient mode instead of being ignored.",
+        "severity": "medium"
+      },
+      "statement": "An issue causing pods with hostNetwork enabled to be ignored in Istio ambient mode has been fixed."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-93c0d3a62602"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ec414e1e02ef58dd39a3771fb0e3a71c8fc40aea55e9a8f6b41748e7ac55a0f3",
+      "inputEvidence": [
+        "ev-93c0d3a62602"
+      ],
+      "generatedAt": "2026-10-02T06:03:22Z",
+      "callId": "30b5a041-5aef-4d5a-8767-5e7e26d4682f"
+    }
+  }
+}

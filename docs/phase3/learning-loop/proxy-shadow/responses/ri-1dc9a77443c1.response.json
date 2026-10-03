@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1dc9a77443c1",
+  "promptDigest": "sha256:d906679421a448e9f22408eb81200c7aae98b2f37b72c632c9aa772ee76272be",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "8e8fbf20-7b62-4aec-808f-28cd2fb294c6",
+  "startedAt": "2026-10-03T02:12:53.318Z",
+  "decidedAt": "2026-10-03T02:13:06.444Z",
+  "durationMs": 11959,
+  "costUSD": 0.099792,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-2df1b23f32ac] says the removed option is a Traefik static configuration setting, shown as file YAML/TOML (`experimental: http3: true`) or the CLI flag `--experimental.http3=true`, and that leaving it set prevents Traefik from starting. The evidence never says the Helm values key `experimental.http3` exists, so P1's values-key leaf is a guess. It would also miss setups that pass the CLI flag or use a static config file. The CLI case can be matched as a cli-flag. Whether a static config file sets the option can't be read from static inputs, so that branch is undecidable. The edge-from-version operand adds nothing, because every environment upgrading to 3.0.0 starts from a version below it.",
+    "citations": [
+      "ev-2df1b23f32ac"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The `experimental.http3` static configuration option is removed in Traefik v3.0.0, and its presence prevents startup. Exposed: environments that pass `--experimental.http3` as a CLI argument, or whose static configuration file sets `experimental.http3`. The file case can't be decided from static inputs.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--experimental.http3",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the Traefik static configuration file (YAML/TOML) sets experimental.http3"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

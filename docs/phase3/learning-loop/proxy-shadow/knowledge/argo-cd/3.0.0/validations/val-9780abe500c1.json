@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9780abe500c1",
+    "candidateId": "sc-5fad4fea330e",
+    "proposalId": "sp-b39d40bf4c90",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "logging-format"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"text\"",
+        "after": "\"JSON\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--log-format",
+                  "state": "set"
+                },
+                {
+                  "op": "env-var",
+                  "name": "ARGOCD_LOG_FORMAT",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Argo CD log output format defaults to JSON instead of text; existing log parsing, monitoring, and alerting rules expecting text format logs may need to be updated.",
+        "remediation": "Review and update log parsing and monitoring tools to handle JSON-formatted logs, or explicitly set the logging format to text by configuring the --log-format flag or ARGOCD_LOG_FORMAT environment variable if text format is required.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 switches the default logging output format from text to JSON."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/default-changed",
+        "detail": "no canonical exposure condition for protocol-behavior default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

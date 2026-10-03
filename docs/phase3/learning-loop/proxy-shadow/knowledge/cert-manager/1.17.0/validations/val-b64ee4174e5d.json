@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b64ee4174e5d",
+    "candidateId": "sc-dd8787384dc3",
+    "proposalId": "sp-4f372b4d9c23",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "CAInjectorMerging",
+        "component": "ca-injector"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "CAInjectorMerging",
+          "component": "ca-injector",
+          "state": "enabled"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "With CAInjectorMerging enabled, the ca-injector merges new CA certificates into the existing CA data instead of replacing it outright.",
+        "remediation": "If you enable this gate, check that the merged CA bundles injected into your resources are what you expect.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds a `CAInjectorMerging` feature gate to the ca-injector. When it is enabled, the ca-injector merges new CA certificates into the existing ones instead of replacing them outright."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:feature-gate/added",
+        "detail": "no canonical exposure condition for feature-gate added"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

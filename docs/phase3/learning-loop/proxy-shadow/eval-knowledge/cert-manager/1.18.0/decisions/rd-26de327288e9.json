@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-26de327288e9",
+    "reviewItemId": "ri-aa81fa53e3cc",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.commonName"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.commonName",
+              "state": "matches",
+              "pattern": "^([0-9]{1,3}\\.){3}[0-9]{1,3}$|:"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates with an IP address in commonName now get that IP in the ipAddresses field rather than in the DNS subjectAlternativeName list; issued certificate SANs differ.",
+        "severity": "low"
+      },
+      "statement": "Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are…"
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:e676ac3021f0a3827cb0402b57cf91e822a6b7b08d9ad162db8ee7a29c28efaf",
+      "inputEvidence": [
+        "ev-a8c04d9f0485"
+      ],
+      "generatedAt": "2026-10-02T15:53:47.435Z",
+      "callId": "222562d3-60ff-4060-b020-8b9c44bc0922"
+    },
+    "reason": "[ev-a8c04d9f0485] says that IP addresses in a certificate's `commonName` are no longer added to the DNS `subjectAlternativeName` list. They now go in the `ipAddresses` field, which the note frames as a bugfix (\"as expected\"). The issued certificate's SANs change, but nothing in the evidence says anything fails, is rejected or stops being honoured. So a low-severity behavior-change that needs review is the right consequence, and the fact's statement matches the evidence.",
+    "startedAt": "2026-10-02T15:53:41.107Z",
+    "decidedAt": "2026-10-02T15:53:47.435Z",
+    "resultingFact": "vf-5395dff8fd73"
+  }
+}

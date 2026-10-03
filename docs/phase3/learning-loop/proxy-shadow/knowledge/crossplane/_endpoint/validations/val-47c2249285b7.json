@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-47c2249285b7",
+    "candidateId": "sc-df67d72b7a33",
+    "proposalId": "sp-0794acaa36e5",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "kind": "CompositionRevision",
+        "path": "spec.mode"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"Resources\"",
+        "after": "\"Pipeline\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.mode",
+              "state": "unset"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "kind": "CompositionRevision"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.mode",
+              "state": "set"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "kind": "CompositionRevision"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "CompositionRevision objects that do not specify spec.mode will now default to \"Pipeline\" instead of \"Resources\", changing the composition execution behavior.",
+        "severity": "medium"
+      },
+      "statement": "CompositionRevision spec.mode default value changed from \"Resources\" to \"Pipeline\"."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

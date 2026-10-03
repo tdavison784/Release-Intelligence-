@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7ffa3dfbd6a8",
+    "candidateId": "sc-21bf63323d13",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "applicability",
+    "question": "For \"Fixed an issue causing any `portLevelSettings` to be ignored in DestinationRules for waypoints\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "networking.istio.io",
+              "version": "v1",
+              "kind": "DestinationRule"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.subsets[].trafficPolicy.portLevelSettings",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "DestinationRule"
+            }
+          ]
+        }
+      },
+      "statement": "portLevelSettings in DestinationRules for waypoints are now honored instead of being ignored."
+    },
+    "proposals": [
+      "sp-6cae44161686",
+      "sp-6ee5aa05efad"
+    ],
+    "validations": [
+      "val-07949eae181a",
+      "val-0e43a1eb2630",
+      "val-1adac3eee943",
+      "val-1e59652556c5",
+      "val-7dc7fbea7688",
+      "val-84aef14c1746",
+      "val-87df8e807219",
+      "val-c56ec48017d4"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T05:55:58Z"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7518537b7ab7",
+    "candidateId": "sc-958344188889",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.rules[].reportProperties"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].reportProperties",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].reportProperties",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Purely additive optional field: policies that set spec.rules[].reportProperties get its string entries copied into the results.properties of their policy reports, and environments that do not use it are unaffected.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds an optional `reportProperties` field to policy rules (spec.rules[].reportProperties on ClusterPolicy and Policy) whose string entries are added to the `results.properties` of policy report results."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-8eb1c59d91de",
+      "ev-1519b599b779",
+      "ev-8777c5537c47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:1684e134424df37d86380d73417484076e7f964e049f8a14b8b6423afb08d832",
+      "inputEvidence": [
+        "ev-8eb1c59d91de",
+        "ev-1519b599b779",
+        "ev-a5eba5775d07",
+        "ev-c6d885323959",
+        "ev-4cd26225bffa",
+        "ev-52c07595c637",
+        "ev-a6fb385dfd2d",
+        "ev-54749e1a631c",
+        "ev-8777c5537c47",
+        "ev-8dbdd0d2ff64",
+        "ev-be657eb9dee9",
+        "ev-e8169ff3d009",
+        "ev-892e45421732",
+        "ev-0dcce94d4e67",
+        "ev-72f16d281831"
+      ],
+      "generatedAt": "2026-10-02T16:50:10Z",
+      "callId": "b6bdb970-f695-4fb0-8336-765750e2060d"
+    }
+  }
+}

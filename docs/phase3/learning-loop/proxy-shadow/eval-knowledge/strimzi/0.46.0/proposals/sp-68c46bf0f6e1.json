@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-68c46bf0f6e1",
+    "candidateId": "sc-a8771d6dc75d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "stable-connect-identities-enable"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.38.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "version": "v1beta2",
+                  "kind": "KafkaConnect"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "version": "v1beta2",
+                  "kind": "KafkaMirrorMaker2"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Before upgrading to Strimzi 0.46.0, the StableConnectIdentities feature gate must be enabled and StrimziPodSets must be used when operating Kafka Connect or Kafka MirrorMaker 2.",
+        "severity": "high"
+      },
+      "statement": "When upgrading from Strimzi 0.38 or older with Kafka Connect or Kafka MirrorMaker 2 operands, the StableConnectIdentities feature gate must be enabled and StrimziPodSets must be used before upgrading to 0.46.0."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-17b3774eb9ee"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:434d84f8ffb713d89d49686fd8a20bc4b3527fce92414a95b7f03e22506e0187",
+      "inputEvidence": [
+        "ev-17b3774eb9ee"
+      ],
+      "generatedAt": "2026-10-02T06:02:36Z",
+      "callId": "736ce0e7-a30f-4cf8-a091-20acdb9426ee"
+    }
+  }
+}

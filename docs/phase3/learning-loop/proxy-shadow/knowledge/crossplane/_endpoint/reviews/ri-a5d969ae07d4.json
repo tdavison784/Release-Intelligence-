@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-a5d969ae07d4",
+    "candidateId": "sc-2c2a2363a947",
+    "product": "crossplane",
+    "questionType": "applicability",
+    "question": "For \"New CRD `clusterusages.protection.crossplane.io` (ClusterUsage, v1beta1)\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "protection.crossplane.io",
+                  "version": "v1beta1",
+                  "kind": "ClusterUsage"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether CRDs are managed separately from the release or installed automatically"
+            }
+          ]
+        }
+      },
+      "statement": "A new CRD ClusterUsage in the protection.crossplane.io API group, v1beta1 version, is added and must be installed before upgrading if CRDs are managed separately."
+    },
+    "proposals": [
+      "sp-4a36983bc185",
+      "sp-cf7eb9d51335"
+    ],
+    "validations": [
+      "val-3033224b60a5",
+      "val-394c049bfcd1",
+      "val-415c173fc330",
+      "val-55fa46b4a531",
+      "val-59e12ed12374",
+      "val-7efdc512d14e",
+      "val-b6abee4b23b2"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:56:54Z"
+  }
+}

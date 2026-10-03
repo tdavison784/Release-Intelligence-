@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2db98d7b38cd",
+    "reviewItemId": "ri-4052999a257a",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.use-boltdb-shipper-as-backup",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "LOKI_TSDB_SHIPPER_USE_BOLTDB_SHIPPER_AS_BACKUP",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The configuration setting `use_boltdb_shipper_as_backup` (CLI flag `-tsdb.shipper.use-boltdb-shipper-as-backup`) has been removed; environments that explicitly set it will have that setting ignored and the previous default value `false` applied."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.use-boltdb-shipper-as-backup",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the Loki configuration file (or the Helm values that render it) sets use_boltdb_shipper_as_backup; the evidence gives no values path or ConfigMap location for this key"
+            }
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 removes the setting use_boltdb_shipper_as_backup (-tsdb.shipper.use-boltdb-shipper-as-backup) and applies the previous default, false. Exposed environments are those that set the CLI flag or set the key in the Loki configuration file."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:d79df6733cb9bf6225b004e0001fc2df924f88dd3f7dd5962d5a8dd74c278c9d",
+      "inputEvidence": [
+        "ev-cd1836b0f962",
+        "ev-4c9440970051"
+      ],
+      "generatedAt": "2026-10-03T02:16:40.528Z",
+      "callId": "53f1603c-9fa7-40be-9a95-1e7946cd8fc1"
+    },
+    "reason": "[ev-cd1836b0f962] names two ways to set the removed setting: the config key `use_boltdb_shipper_as_backup` and the CLI flag `-tsdb.shipper.use-boltdb-shipper-as-backup`. Neither source mentions an environment variable [ev-cd1836b0f962, ev-4c9440970051], so the LOKI_TSDB_SHIPPER_USE_BOLTDB_SHIPPER_AS_BACKUP leaf is made up. The proposal also misses environments that set the key in the Loki config file. The evidence gives no Helm values path or ConfigMap location for that key, so I record that path as undecidable rather than guessing one.",
+    "startedAt": "2026-10-03T02:16:27.975Z",
+    "decidedAt": "2026-10-03T02:16:40.528Z"
+  }
+}

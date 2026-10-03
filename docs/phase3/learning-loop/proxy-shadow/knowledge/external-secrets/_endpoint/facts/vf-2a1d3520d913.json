@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-2a1d3520d913",
+    "product": "external-secrets",
+    "candidates": [
+      "sc-42ee0d13e402"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1alpha1",
+        "kind": "ClusterPushSecret",
+        "path": "spec.pushSecretSpec.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.pushSecretSpec.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1alpha1",
+          "kind": "ClusterPushSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "After the upgrade, the API server rejects external-secrets.io/v1alpha1 ClusterPushSecret resources whose spec.pushSecretSpec.template.engineVersion is \"v1\" (the removed enum value fails schema validation on write).",
+        "remediation": "Before or after upgrading, edit any external-secrets.io/v1alpha1 ClusterPushSecret that pins spec.pushSecretSpec.template.engineVersion to \"v1\" and set it to a value the new schema still permits; writes specifying the removed value otherwise fail schema validation.",
+        "severity": "medium"
+      },
+      "statement": "ClusterPushSecret v1alpha1 schema: allowed values changed: `spec.pushSecretSpec.template.engineVersion`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-7a92dc580452",
+          "val-9d7e6d01df7b",
+          "val-bac739fd7a1a",
+          "val-bfc94210d49c",
+          "val-d0a40e9a66ab",
+          "val-eaddafdf01dd"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "consensus",
+        "basis": [
+          "sp-7fc7d10fbc9d",
+          "sp-b1654a34595c"
+        ],
+        "consensus": "cross-model"
+      },
+      {
+        "aspect": "applicability",
+        "level": "consensus",
+        "basis": [
+          "sp-7fc7d10fbc9d",
+          "sp-a09f3c3d6775",
+          "sp-b1654a34595c",
+          "sp-e01107e7c282"
+        ],
+        "consensus": "cross-model"
+      },
+      {
+        "aspect": "consequence",
+        "level": "consensus",
+        "basis": [
+          "sp-7fc7d10fbc9d",
+          "sp-a09f3c3d6775",
+          "sp-b1654a34595c"
+        ],
+        "consensus": "cross-model"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "status": "active",
+    "autoApproved": true,
+    "consensusAction": true,
+    "createdAt": "2026-10-02T21:01:16Z"
+  }
+}

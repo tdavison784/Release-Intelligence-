@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-55040278e9e3",
+    "candidateId": "sc-d8ce8b124388",
+    "proposalId": "sp-c4a5a6b70ef4",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-conflicting-pools-total-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_conflicting_pools_total\"",
+        "after": "\"lbipam_conflicting_pools\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-conflicting-pools-metric"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any dashboards, alerts or scrapers reference the metric lbipam_conflicting_pools_total"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is exposed under the new name lbipam_conflicting_pools; queries, dashboards or alerts using lbipam_conflicting_pools_total need updating to the new name.",
+        "remediation": "Update monitoring queries to use lbipam_conflicting_pools.",
+        "severity": "low"
+      },
+      "statement": "The metric lbipam_conflicting_pools_total has been renamed to lbipam_conflicting_pools."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/renamed",
+        "detail": "no canonical exposure condition for protocol-behavior renamed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

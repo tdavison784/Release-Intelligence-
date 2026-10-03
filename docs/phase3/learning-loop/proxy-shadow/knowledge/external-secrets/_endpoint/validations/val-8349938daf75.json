@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8349938daf75",
+    "candidateId": "sc-d3794906bf05",
+    "proposalId": "sp-cf83e5619618",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ExternalSecret"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions",
+              "state": "has-token",
+              "values": [
+                "v1beta1"
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "externalsecrets.external-secrets.io"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ExternalSecret objects stay stored as v1beta1 after the upgrade; the operator must run a storage version migration (re-write all objects) and update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "After upgrading, re-write every ExternalSecret object so they are stored at v1, then remove v1beta1 from status.storedVersions of the externalsecrets.external-secrets.io CRD, and only then upgrade to the later release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the externalsecrets.external-secrets.io CRD changed from v1beta1 to v1 in external-secrets 0.16.0 (v1beta1 storage: true → false), so existing ExternalSecret objects remain stored as v1beta1 until rewritten, and a storage version migration plus a status.storedVersions update must be completed before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "crd-schema:gvk",
+        "detail": "external-secrets.io/v1beta1 ExternalSecret is an API version in both releases"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:behavior-changed",
+        "detail": "a behavior-changed change of an API version is not decidable from CRD snapshots"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

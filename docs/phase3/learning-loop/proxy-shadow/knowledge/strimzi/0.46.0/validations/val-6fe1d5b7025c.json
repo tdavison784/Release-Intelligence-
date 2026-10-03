@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6fe1d5b7025c",
+    "candidateId": "sc-5851fd4cdacf",
+    "proposalId": "sp-ffd1ae1ebc42",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "metric.reporters",
+        "component": "kafka"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "kafka",
+          "state": "in-range",
+          "range": ">=4.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "From Kafka 4.0.0, the JMXReporter is only enabled if metrics are explicitly configured in spec.kafka.metrics or JMXReporter is explicitly added to metric.reporters; previously it may have been enabled differently or by default.",
+        "severity": "medium"
+      },
+      "statement": "From Kafka 4.0.0, enabling the JMXReporter requires explicit configuration either in spec.kafka.metrics or by adding JMXReporter to metric.reporters."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/behavior-changed",
+        "detail": "no canonical exposure condition for config-key behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

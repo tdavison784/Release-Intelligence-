@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-abf83feaf64f",
+    "candidateId": "sc-95ddd86cb4d2",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodeClaim"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "karpenter.sh",
+          "kind": "NodeClaim"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodeClaim objects stay stored as v1beta1 until rewritten, so the operator must run a storage version migration (re-write all NodeClaim objects) and update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "After this upgrade, run the storage version migration for nodeclaims.karpenter.sh: re-write all NodeClaim objects so they are stored at v1, then update status.storedVersions (drop v1beta1) before upgrading to the later release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the NodeClaim CRD (nodeclaims.karpenter.sh) changes from v1beta1 to v1, so existing NodeClaim objects stay stored as v1beta1 until rewritten, and a storage version migration (re-writing all objects) plus an update of status.storedVersions must be done before a later release removes v1beta1."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-881d131e594e",
+      "ev-fef279f378b5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d3c87ee727e83cbff55b813a28536184f09b4fd983c71a2493caa570f2636822",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-02T11:24:39Z",
+      "callId": "d2eb51c2-4cef-4cdc-9168-a3e98c7b0c14"
+    }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-ac492b5514f1",
+    "product": "cilium",
+    "release": "1.16.0",
+    "anchors": [
+      {
+        "release": "1.16.0",
+        "evidenceKeys": [
+          "ek-35e6a3807d8e"
+        ],
+        "statementKeys": [
+          "sk-f10e11f79770"
+        ],
+        "changeIds": [
+          "chg-4b2c3ba1639f"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-aa0aef7cd1ac"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "netkit-datapath-mode"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the operator intends to switch an existing veth-based deployment to the netkit datapath mode (the evidence names no configuration key that selects netkit)"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Netkit is an optional new datapath mode and veth remains the default, so an operator who does nothing sees no change. Switching an existing deployment from veth to netkit cannot be done in place."
+      },
+      "statement": "Starting with Cilium 1.16 netkit is supported as a new datapath mode for Linux kernels of version 6.8 or newer"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-268448333b0d"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-268448333b0d"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-627f4ae2a5ba"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-d22bb1ce9ceb"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-5ba316aaead4",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst",
+        "locator": "L306-L309 (1.16 Upgrade Notes)",
+        "excerpt": "* Starting with Cilium 1.16 netkit is supported as a new datapath mode for Linux kernels of\n  version 6.8 or newer. Cilium still continues to rely on veth devices by default. In case\n  of interest to experiment with netkit, please consider the performance_tuning guide\n  for instructions. An in-place replacement of veth to netkit is not possible.",
+        "contentDigest": "sha256:ee9d0cd6af8ac7e31ed1cb4cc0410c4d2cd1d95cc4f5e916fca918102866de83",
+        "retrievedAt": "2026-10-02T02:35:42Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:00:01.454Z"
+  }
+}

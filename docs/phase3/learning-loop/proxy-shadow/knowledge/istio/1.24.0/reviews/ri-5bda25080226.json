@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-5bda25080226",
+    "candidateId": "sc-cabf835b2a76",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "applicability",
+    "question": "For \"Added support for warmup configuration in DestinationRule's LB trafficPolicy duration: specify the duration of warmup mode minimumPercent : specifies the…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.trafficPolicy.loadBalancer",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "DestinationRule"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "networking.istio.io",
+              "version": "v1beta1",
+              "kind": "DestinationRule"
+            }
+          ]
+        }
+      },
+      "statement": "Istio 1.24.0 adds support for warmup configuration in DestinationRule's load balancing traffic policy, introducing duration, minimumPercent, and aggression fields to control warmup mode behavior."
+    },
+    "proposals": [
+      "sp-3b863869c149",
+      "sp-bf74b04c3a00"
+    ],
+    "validations": [
+      "val-3e735c7c3bd7",
+      "val-4fed3f024e11",
+      "val-583e0ee6c4a4",
+      "val-585c2414c9e8",
+      "val-65ef769f8504",
+      "val-6bc66c63c320",
+      "val-ba6d6d527178",
+      "val-e6f6468ba159"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal"
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T05:55:56Z"
+  }
+}

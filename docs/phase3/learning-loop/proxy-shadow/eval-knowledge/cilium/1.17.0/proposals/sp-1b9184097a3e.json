@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1b9184097a3e",
+    "candidateId": "sc-6b512a53017f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--operator-k8s-client-qps"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"100\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--operator-k8s-client-qps",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "--operator-k8s-client-qps",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Operators that do not set the flag get a higher default Cilium Operator K8s client rate limit of 100 QPS/200 Burst, which may increase load on the Kubernetes API server.",
+        "remediation": "Set --operator-k8s-client-qps and --operator-k8s-client-burst (or the corresponding Helm values) to keep a different rate limit.",
+        "severity": "low"
+      },
+      "statement": "The Cilium Operator's Kubernetes client rate limit is now configured separately from the agent's, and its default rose to 100 QPS/200 Burst (flags --operator-k8s-client-qps and --operator-k8s-client-burst)."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-fa8f791f1c11"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ff3344381505c7ed7dee07f3a18c24ef7c0332ef907560952526fc741d8b380b",
+      "inputEvidence": [
+        "ev-fa8f791f1c11"
+      ],
+      "generatedAt": "2026-10-02T06:00:35Z",
+      "callId": "37b58b85-56f1-4728-b7cd-d1011b463192"
+    }
+  }
+}

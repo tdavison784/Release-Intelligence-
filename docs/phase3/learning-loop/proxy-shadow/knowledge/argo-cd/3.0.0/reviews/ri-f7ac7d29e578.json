@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-f7ac7d29e578",
+    "candidateId": "sc-9d5516da8bb9",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Logs RBAC enforcement as a first-class RBAC citizen: 2.4 introduced `logs` as a new RBAC resource\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "unset"
+                },
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "configs.rbac[\"policy.default\"]",
+                  "state": "unset"
+                },
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "values-key",
+                      "path": "configs.rbac[\"policy.default\"]",
+                      "state": "matches",
+                      "pattern": "^role:(readonly|admin)$"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "configs.rbac[\"policy.default\"]",
+              "state": "matches",
+              "pattern": "^role:(readonly|admin)$"
+            }
+          ]
+        }
+      },
+      "statement": "Starting from Argo CD 3.0, logs RBAC enforcement is enabled by default; the `server.rbac.log.enforce.enable` flag is removed from `argocd-cm` ConfigMap and users no longer automatically get logs access through `applications, get` permissions alone."
+    },
+    "proposals": [
+      "sp-a0f6da51f1a0",
+      "sp-af590e55e06b"
+    ],
+    "validations": [
+      "val-3b57f6e38e69",
+      "val-750f971b8cd6",
+      "val-905c049c7e9d",
+      "val-cd7e032fd41b"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:02:44Z"
+  }
+}

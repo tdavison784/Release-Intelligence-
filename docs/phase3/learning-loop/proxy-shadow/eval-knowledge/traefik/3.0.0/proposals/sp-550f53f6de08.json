@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-550f53f6de08",
+    "candidateId": "sc-d0509394dc4e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Any endpoint.tls.caOptional configuration present in ConsulCatalog or Nomad provider static configuration will be ignored in v3.",
+        "remediation": "Remove the endpoint.tls.caOptional option from the ConsulCatalog and Nomad provider static configuration sections.",
+        "severity": "high"
+      },
+      "statement": "The ConsulCatalog provider endpoint.tls.caOptional option and the Nomad provider endpoint.tls.caOptional option have been removed in v3."
+    },
+    "undetermined": [
+      "subject",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: the change clusters two providers (ConsulCatalog and Nomad), each with its own endpoint.tls.caOptional configuration path; they must be answered separately per the rule against bundling distinct changes; applicability: the static configuration keys for provider options are not directly queryable via the canonical applicability operators; determining exposure requires knowing which providers are configured and contain this option, which depends on the environment's actual static configuration that is not provided",
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-7482c113b845",
+      "ev-6c38c9ee7078"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6c9382564a3b740b8438c6054b576d5787158737ccdc37dc2664a19ddec7b617",
+      "inputEvidence": [
+        "ev-7482c113b845",
+        "ev-6c38c9ee7078"
+      ],
+      "generatedAt": "2026-10-02T21:00:43Z",
+      "callId": "d92c4ce9-a57f-44d0-9eaf-34bcd2129406"
+    }
+  }
+}

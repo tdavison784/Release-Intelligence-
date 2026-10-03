@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9c0b72d1b982",
+    "candidateId": "sc-2730a25f1b54",
+    "proposalId": "sp-f69844b110b0",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "enableCiliumEndpointSlice"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "ciliumEndpointSlice.enabled"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "enableCiliumEndpointSlice",
+          "state": "set"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "ciliumEndpointSlice.enabled",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The enableCiliumEndpointSlice Helm option is deprecated and will be removed in a future release; existing deployments using this option should migrate to ciliumEndpointSlice.enabled.",
+        "remediation": "Update Helm values to replace enableCiliumEndpointSlice with ciliumEndpointSlice.enabled.",
+        "severity": "medium"
+      },
+      "statement": "Helm option enableCiliumEndpointSlice has been deprecated and will be removed in a future release; use ciliumEndpointSlice.enabled instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

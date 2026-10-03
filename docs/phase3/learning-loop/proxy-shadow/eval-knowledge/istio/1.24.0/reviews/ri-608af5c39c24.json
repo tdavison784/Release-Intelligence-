@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-608af5c39c24",
+    "candidateId": "sc-a847d032ada6",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Fixed templated CRD installation in the `base` chart by default\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "CRD templating is now enabled by default in the base chart; previously it defaulted to disabled and required manual kubectl intervention to upgrade under certain install flag conditions.",
+        "remediation": "If the legacy behavior is required, explicitly set Values.base.enableCRDTemplates to false; prepare for this option's removal in a future release.",
+        "severity": "medium"
+      },
+      "statement": "The Helm value `base.enableCRDTemplates` now defaults to `true` instead of `false`, enabling templated CRD installation by default in the base chart and fixing a previous issue where certain install flags could require manual kubectl intervention."
+    },
+    "proposals": [
+      "sp-1f03fc23d461",
+      "sp-e8221c98dc16"
+    ],
+    "validations": [
+      "val-0b9188f20932",
+      "val-175d078aa177",
+      "val-53b4f2e36e4d",
+      "val-924e21bb72c6",
+      "val-a36804302dd3",
+      "val-a61beea1dd88",
+      "val-b448fcc7fe89",
+      "val-cf4a7279cbb5"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T05:59:17Z"
+  }
+}

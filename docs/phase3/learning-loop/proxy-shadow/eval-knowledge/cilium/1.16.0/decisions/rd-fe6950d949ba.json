@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-fe6950d949ba",
+    "reviewItemId": "ri-9facf29f6364",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "bpf.enableTCX"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "On Linux kernels 6.6 or newer, Cilium now defaults to tcx BPF links for attaching tc BPF programs (bpf.enableTCX); setups with third-party old-style tc BPF users should set bpf.enableTCX=false to keep old-style attachment."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:323ad15f8997d1972441840bb225b83a21bc91a67aa57184b0c02053d1c8b3cc",
+      "inputEvidence": [
+        "ev-736cdc5fc0d2",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T15:52:35.764Z",
+      "callId": "b8eefbd9-bd7e-46c4-9388-569ad73f4ab1"
+    },
+    "reason": "[ev-736cdc5fc0d2] says that on Linux kernels 6.6 or newer, Cilium now attaches its tc BPF programs with tcx BPF links by default. It also names the Helm value `bpf.enableTCX` as the switch for keeping the old-style attachment (`bpf.enableTCX=false`), so helm-value path bpf.enableTCX is the right subject. The values validator confirms that this key exists only in the target chart [ev-28e0ccb5774a, ev-39a22d88e2f5]. Because the key did not exist before, there is no earlier default to compare against, so default-changed does not fit. The upstream change is that an unchanged setup now behaves differently, so behavior-changed is the right change type.",
+    "startedAt": "2026-10-02T15:52:25.682Z",
+    "decidedAt": "2026-10-02T15:52:35.764Z"
+  }
+}

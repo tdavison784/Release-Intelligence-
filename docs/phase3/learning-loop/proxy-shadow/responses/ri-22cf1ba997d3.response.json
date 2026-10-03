@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-22cf1ba997d3",
+  "promptDigest": "sha256:9041684c6261d0b82e0da95c0b2181887ccfb287afb6e8877b989ceda7adc182",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "276ecde1-5231-4fa0-ac9b-0a408a863f3d",
+  "startedAt": "2026-10-03T02:13:19.662Z",
+  "decidedAt": "2026-10-03T02:13:30.645Z",
+  "durationMs": 10072,
+  "costUSD": 0.066368,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-5bbbbea35c34] lists this under breaking changes: `crossplane xpkg login` and `crossplane xpkg logout` have been removed from the CLI, and it names `docker login` or `docker/login-action` as replacements. The evidence doesn't spell out the failure, but scripts or CI steps that call a removed command can no longer run them. That breaks an integration, so the kind is workload-failure. setting-ignored doesn't fit because it means configured values stop being honoured. The proposed statement also leaves out `logout`.",
+    "citations": [
+      "ev-5bbbbea35c34"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Crossplane 2.0.0 the `crossplane xpkg login` and `crossplane xpkg logout` CLI commands are removed. Scripts or CI pipelines that call them to log in to a registry before pushing packages can no longer run these commands.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "workload-failure",
+        "statement": "The `crossplane xpkg login` and `crossplane xpkg logout` commands no longer exist in the Crossplane CLI. Local scripts or CI workflows that call them to log in to a package registry can no longer run these steps, so package push workflows that depend on them break.",
+        "remediation": "Replace `crossplane xpkg login`/`logout` with `docker login` locally or with the `docker/login-action` in CI. The `function-auto-ready` CI workflow shows this pattern.",
+        "severity": "medium"
+      }
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a8992840e373",
+    "candidateId": "sc-de248ee0f359",
+    "proposalId": "sp-889387ef693a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "nodeSelector"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "rendered-change",
+          "kind": "Deployment",
+          "path": "spec.template.spec.nodeSelector",
+          "state": "changed"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The chart now emits nodeSelector values as quoted strings, so environments that set nodeSelector values see the rendered nodeSelector output change (notably values that are not plain strings, which are now rendered as strings).",
+        "remediation": "No action required; if your nodeSelector values are not plain strings (e.g. numbers or booleans), verify the rendered manifests after upgrade.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0 the Helm chart now quotes nodeSelector values, rendering them as quoted strings in the chart's generated manifests."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/behavior-changed",
+        "detail": "no canonical exposure condition for helm-value behavior-changed"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-717ddb6f40cd",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:7ec69688c8da46d802f4937e30bcbe0dd9f5b1ed5d040e013206bc2c9a7c7bfb",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-7a67f12867b2",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.18.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:dc315b31797c80f06c2d0302a5050307ff94e0bd83a7c681d0956fc4dc3e2224",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:07:45Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

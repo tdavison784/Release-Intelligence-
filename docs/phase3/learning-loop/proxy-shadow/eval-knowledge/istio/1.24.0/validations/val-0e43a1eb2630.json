@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0e43a1eb2630",
+    "candidateId": "sc-21bf63323d13",
+    "proposalId": "sp-6ee5aa05efad",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "networking.istio.io",
+        "kind": "DestinationRule",
+        "path": "spec.subsets[].trafficPolicy.portLevelSettings"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "networking.istio.io",
+              "version": "v1",
+              "kind": "DestinationRule"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.subsets[].trafficPolicy.portLevelSettings",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "DestinationRule"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "portLevelSettings configurations in DestinationRules for waypoints will now be applied, whereas they were previously ignored; environments relying on workarounds or expecting this field to be ineffective should verify that the now-honored settings produce the desired traffic behavior.",
+        "severity": "medium"
+      },
+      "statement": "portLevelSettings in DestinationRules for waypoints are now honored instead of being ignored."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:snapshot",
+        "detail": "no CRD snapshot on both sides"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:snapshot",
+        "detail": "no CRD snapshot on both sides"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

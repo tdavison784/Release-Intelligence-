@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ef17d16ed422",
+    "reviewItemId": "ri-55829fdbe3ec",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.stripPrefix.forceSlash",
+              "state": "set"
+            }
+          ],
+          "group": "traefik.io",
+          "kind": "Middleware"
+        }
+      },
+      "statement": "The forceSlash option of the StripPrefix middleware has been removed in Traefik v3."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.stripPrefix.forceSlash",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.io",
+              "kind": "Middleware"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.stripPrefix.forceSlash",
+                  "state": "set"
+                }
+              ],
+              "group": "traefik.containo.us",
+              "kind": "Middleware"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether non-Kubernetes dynamic configuration (file provider, labels, KV stores) sets forceSlash on a StripPrefix middleware"
+            }
+          ]
+        }
+      },
+      "statement": "The forceSlash option of the StripPrefix middleware was removed in Traefik 3.0.0. Exposed: any environment that sets forceSlash on a StripPrefix middleware, whether through a traefik.io or traefik.containo.us Middleware resource or through other dynamic-configuration providers."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:e2ef4a8d4f07a52064dc744b4435e591674ffbb44d7ef6ff8dd3256f375e15b5",
+      "inputEvidence": [
+        "ev-989a451dfcd4",
+        "ev-011956bb7059",
+        "ev-0842f8f3bd9d",
+        "ev-100ba7419139",
+        "ev-198744ef4096",
+        "ev-37cc33b409c3",
+        "ev-48d1ecd4b134",
+        "ev-49bacb044ac2",
+        "ev-4fd00a8d9fd6",
+        "ev-501210bb2f62",
+        "ev-54d04bd3a614",
+        "ev-61dcce2c74af",
+        "ev-6662f8dd5e6e",
+        "ev-71fc22d68581",
+        "ev-72be921dc163",
+        "ev-74031352b156",
+        "ev-788272feab62",
+        "ev-7e05fc1e5c59",
+        "ev-84f68d4b0c26",
+        "ev-8a887e659370",
+        "ev-b4a823a5e4dc",
+        "ev-caea0ddc58f9",
+        "ev-cfca42b941d5",
+        "ev-d1fdfd690e23",
+        "ev-d68d5c203df6",
+        "ev-e664bb0d9d26",
+        "ev-e737e9be0d13",
+        "ev-eb26399b5dbb",
+        "ev-ecec44679e9d",
+        "ev-ee88e8f5ea66",
+        "ev-f7d1f0ce407c"
+      ],
+      "generatedAt": "2026-10-03T02:18:50.376Z",
+      "callId": "a8074250-bb6f-44f0-9dd4-fc545a471eb3"
+    },
+    "reason": "[ev-989a451dfcd4] lists the removal of StripPrefix `forceSlash` as a general dynamic-configuration change, not one limited to the traefik.io Middleware CRD. The v3.0.0 reference still ships a traefik.containo.us Middleware CRD [ev-8a887e659370], and configuration can also come from non-Kubernetes providers. So the proposed condition misses exposed environments. The schema validator found the field still in the v3.0.0 traefik.io schema [ev-0842f8f3bd9d], but setting the option is still the right trigger, so I widened the condition rather than changing its predicate.",
+    "startedAt": "2026-10-03T02:18:28.085Z",
+    "decidedAt": "2026-10-03T02:18:50.376Z"
+  }
+}

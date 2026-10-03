@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1c950fa9033e",
+    "candidateId": "sc-df4d0167852e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "gateway-tls-listener-passthrough"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"Gateway TLS listeners in Passthrough mode are skipped\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager now skips Gateway TLS listeners in Passthrough mode. Before this bugfix, it processed them.",
+        "remediation": "Check that no workflow relies on cert-manager acting on Gateway TLS listeners in Passthrough mode.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, Gateway TLS listeners configured in Passthrough mode are skipped. This was released as a bugfix."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence does not give the Gateway resource group or the field path that sets the listener's TLS mode. Exposure could only be expressed with a schema path that is not in the evidence.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-1861adfd42be"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9aff2a9889a5e00d18f134c78a1a751f862a824730c05309f7dbe95331d29bc0",
+      "inputEvidence": [
+        "ev-1861adfd42be"
+      ],
+      "generatedAt": "2026-10-02T06:11:08Z",
+      "callId": "dcff0ab7-425f-4d91-929a-410251449782"
+    }
+  }
+}

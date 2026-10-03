@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-6bcfcc8a5671",
+    "candidateId": "sc-87d161c59ee8",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "questionType": "applicability",
+    "question": "For \"ACME HTTP01 challenge paths now use `PathType` `Exact` in Ingress routes: We have changed the `PathType` for ACME HTTP01 Ingress-based challenges to `Exact`.…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Ingress"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "product-version",
+                  "name": "ingress-nginx",
+                  "state": "in-range",
+                  "range": ">=1.12.0"
+                },
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "product-version",
+                      "name": "ingress-nginx",
+                      "state": "in-range",
+                      "range": ">=1.8.0"
+                    },
+                    {
+                      "op": "undecidable",
+                      "reason": "runtime-behavior-gap",
+                      "needed": "whether strict-validate-path-type configuration option is explicitly enabled in ingress-nginx"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "cert-manager 1.18.0 changes ACME HTTP01 Ingress challenge routes to use PathType `Exact` instead of `ImplementationSpecific`, which is incompatible with ingress-nginx versions that have the buggy `strict-validate-path-type` validation enabled by default (>= 1.12.0)."
+    },
+    "proposals": [
+      "sp-578971557350",
+      "sp-57d8f67ccb99",
+      "sp-5e570fe0f57b",
+      "sp-e530fdf8c9a1"
+    ],
+    "validations": [
+      "val-3b4a8a5b442b",
+      "val-6419fac92a0e",
+      "val-7402ad4b097e",
+      "val-79044921fa00",
+      "val-83258b818e8e",
+      "val-89423fb7eb0d",
+      "val-adb9c097a79b",
+      "val-c9c4dbca296a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T11:37:44Z"
+  }
+}

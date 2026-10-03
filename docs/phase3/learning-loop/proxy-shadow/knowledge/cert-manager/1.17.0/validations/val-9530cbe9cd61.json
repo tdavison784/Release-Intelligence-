@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9530cbe9cd61",
+    "candidateId": "sc-c770479afc97",
+    "proposalId": "sp-227bda714c05",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "certificate-deletion-certificaterequest-secret-creation"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "null",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether Certificate objects are deleted while the controller would otherwise create CertificateRequest or Secret objects for them"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This is a bug fix: Certificates that are being deleted no longer create stray CertificateRequest or Secret objects. Operators do not need to do anything.",
+        "severity": "low"
+      },
+      "statement": "From cert-manager 1.17.0, a Certificate that is being deleted no longer creates CertificateRequest or Secret objects."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

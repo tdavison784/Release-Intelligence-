@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0d33330fc167",
+    "candidateId": "sc-193bebd104fa",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "traefik",
+        "path": "metrics.influxDB"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "metrics.influxDB",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--metrics.influxDB",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if InfluxDB v1 metrics configuration (metrics.influxDB) is present in the static configuration.",
+        "severity": "critical"
+      },
+      "statement": "The InfluxDB v1 metrics provider configuration has been removed in Traefik v3.0.0 and will prevent Traefik from starting if present."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-a8010075f3de"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3a5c74f7a10e24345cac3627eda2869517a91e959c17f30e42dd029fbde8b2c5",
+      "inputEvidence": [
+        "ev-a8010075f3de"
+      ],
+      "generatedAt": "2026-10-02T20:57:24Z",
+      "callId": "efc83a7c-6de4-4e55-ac8f-0b8ab4ccdb43"
+    }
+  }
+}

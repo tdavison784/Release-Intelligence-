@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-d89d90ec0102",
+    "candidateId": "sc-e98ebd2741c8",
+    "product": "kyverno",
+    "questionType": "applicability",
+    "question": "For \"Storage version of `cleanuppolicies.kyverno.io` changes v2beta1 → v2\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "apiVersion",
+                  "state": "equals",
+                  "values": [
+                    "\"kyverno.io/v2beta1\""
+                  ]
+                }
+              ]
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "CleanupPolicy"
+        }
+      },
+      "statement": "The storage version of cleanuppolicies.kyverno.io changes from v2beta1 to v2; existing objects remain stored as v2beta1 until rewritten via a storage version migration before v2beta1 is removed."
+    },
+    "proposals": [
+      "sp-06eae63a6416",
+      "sp-141e3726a31b",
+      "sp-626c25427a47"
+    ],
+    "validations": [
+      "val-4b1822a7d4bb",
+      "val-644b698af4c6",
+      "val-733328d11720",
+      "val-7ba11ced87bd",
+      "val-83df0d1aefe6",
+      "val-982333aba502",
+      "val-b9638fd715d5",
+      "val-f5d05aff03bd"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T21:02:55Z"
+  }
+}

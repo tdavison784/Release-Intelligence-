@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-30bf49521819",
+    "reviewItemId": "ri-e1c5bb9da62c",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "doublewrite_identity_kvstore_only_count",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--doublewrite_identity_kvstore_only_count",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The metric doublewrite_identity_kvstore_only_count has been renamed to doublewrite_kvstore_only_identities."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether dashboards, alerting/recording rules or other metric consumers query the old metric name doublewrite_identity_kvstore_only_count"
+        }
+      },
+      "statement": "The Cilium metric doublewrite_identity_kvstore_only_count has been renamed to doublewrite_kvstore_only_identities in 1.17.0. Exposed environments are those whose monitoring (dashboards, alerting or recording rules, scrape relabeling) references the old metric name. No static configuration input shows this, so exposure cannot be decided statically."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:ed560167fb5b2a04f9f39ffca016fe9163b9ed01b99bcea2a7ddc2bb5e89160a",
+      "inputEvidence": [
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-02T16:01:24.532Z",
+      "callId": "7a85185a-de6b-4848-b2db-e0aa4774685d"
+    },
+    "reason": "[ev-57fea1f2c18e] lists this under \"1.17 Upgrade Notes › Changed Metrics\": it is a Prometheus metric rename, not an environment variable or a CLI flag. Nobody sets `doublewrite_identity_kvstore_only_count` as an env var, and `--doublewrite_identity_kvstore_only_count` is not a container argument, so the proposed condition can never match. It would hide the real exposure. The environments actually exposed are those whose dashboards, alerts or recording rules query the old metric name, and no static input the engine reads shows that.",
+    "startedAt": "2026-10-02T16:01:13.214Z",
+    "decidedAt": "2026-10-02T16:01:24.532Z"
+  }
+}

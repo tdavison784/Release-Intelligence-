@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-03ff250fe29f",
+    "reviewItemId": "ri-c0449a30e287",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "OTEL_PROPAGATORS",
+              "component": "tracing",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether tracing is enabled and configured to use OTEL propagation standards"
+            }
+          ]
+        }
+      },
+      "statement": "Traefik 3.0.0 adds support for the OTEL_PROPAGATORS environment variable to configure OpenTelemetry tracing propagation."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "OTEL_PROPAGATORS",
+          "state": "set"
+        }
+      },
+      "statement": "Traefik 3.0.0 adds support for the OTEL_PROPAGATORS environment variable to configure tracing propagation. Only environments whose Traefik containers set OTEL_PROPAGATORS are exposed: there, the variable now configures tracing propagation."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:f1a74dccd1e5c372cd46694ed37f4214141a801349c164f0d33609d715cbb6c6",
+      "inputEvidence": [
+        "ev-9f33f28bdfe0"
+      ],
+      "generatedAt": "2026-10-03T01:59:42.475Z",
+      "callId": "0bdd0f59-1a66-439e-a0cd-244fa922f331"
+    },
+    "reason": "[ev-9f33f28bdfe0] says only that Traefik now supports the OTEL_PROPAGATORS environment variable for configuring tracing propagation. So the only environments it touches are those whose Traefik containers set that variable. The proposed undecidable operand (\"whether tracing is enabled and configured to use OTEL propagation standards\") is not supported by the evidence. Combined with any, it turns every environment that does not set the variable into \"unknown\", which makes the condition too broad. The component \"tracing\" is also not a workload component named in the evidence, so I dropped it.",
+    "startedAt": "2026-10-03T01:59:32.475Z",
+    "decidedAt": "2026-10-03T01:59:42.475Z",
+    "resultingFact": "vf-9ff020913cbb"
+  }
+}

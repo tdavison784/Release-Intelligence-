@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d448982f496c",
+    "candidateId": "sc-ce76287c2361",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+              "state": "unset"
+            },
+            {
+              "op": "env-var",
+              "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "MESH_EXTERNAL services will use Destination Rule certificates instead of metadata certificates by default. This changes TLS certificate handling behavior for external services unless the environment variable is explicitly set to false.",
+        "remediation": "Set PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES to 'false' to retain the previous metadata certificate behavior.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 adds support for using Destination Rule certificates instead of metadata certificates for MESH_EXTERNAL services, controlled via the PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES environment variable."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-790b038b82b7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:7c1eab003dc65b0b4fd477040b45a0023f6029884c2b7b645c3a80154a18a894",
+      "inputEvidence": [
+        "ev-790b038b82b7"
+      ],
+      "generatedAt": "2026-10-02T06:05:43Z",
+      "callId": "783db005-2767-4e8b-9d78-0db0bbde11bb"
+    }
+  }
+}

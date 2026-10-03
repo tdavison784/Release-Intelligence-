@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-93731da84527",
+    "candidateId": "sc-8076d0a3c442",
+    "proposalId": "sp-71b88ae0d5b5",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "kyverno",
+        "name": "*/view"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Admission control policy behavior is unaffected, but mutate and generate policies on custom resources and reporting of validation results on custom resources may be impacted because wildcard view permissions are gone.",
+        "remediation": "Use the Helm option described in the upgrade guidance to upgrade without breaking existing policies.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 removed its wildcard view permissions, replacing them with a role binding to the system view role; this may affect mutate/generate policies and reporting for custom resources."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/removed",
+        "detail": "rbac-permission:kyverno|name=*/view: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:rbac-permission/removed",
+        "detail": "rbac-permission:kyverno|name=*/view: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

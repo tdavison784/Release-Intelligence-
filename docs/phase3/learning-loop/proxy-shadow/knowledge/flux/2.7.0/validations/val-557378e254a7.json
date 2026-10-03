@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-557378e254a7",
+    "candidateId": "sc-77ff88e0a787",
+    "proposalId": "sp-f5ebd910b954",
+    "validator": "semvalidate.compat@v1",
+    "assertion": {
+      "subject": {
+        "family": "compatibility-boundary",
+        "product": "flux",
+        "name": "kubernetes"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": ">=1.32"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cluster-version",
+          "name": "kubernetes",
+          "state": "out-of-range",
+          "range": ">=1.32"
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Upgrading to Flux 2.7.0 on Kubernetes versions below 1.32 will fail due to the minimum version requirement not being met.",
+        "severity": "critical"
+      },
+      "statement": "Flux 2.7.0 sets Kubernetes 1.32 as the minimum supported version."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "compatibility:row",
+        "detail": "kubernetes has compatibility rows in the target release only"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "compatibility:requirement",
+        "detail": "the target requirement is >=1.32, but no source row shows that it moved"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-f88a947c0d4c",
+        "kind": "document",
+        "sourceId": "kubernetes-compat",
+        "uri": "https://github.com/fluxcd/flux2/releases/tag/v2.7.0",
+        "locator": "L33",
+        "excerpt": "| Kubernetes version | Minimum required |\n| `v1.32`            | `>= 1.32.0`      |",
+        "contentDigest": "sha256:88bc939a89a38580b3522726fe8b6e9ed58b049224371c8cacbe410c4ee19e84",
+        "retrievedAt": "2026-10-02T16:56:37Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

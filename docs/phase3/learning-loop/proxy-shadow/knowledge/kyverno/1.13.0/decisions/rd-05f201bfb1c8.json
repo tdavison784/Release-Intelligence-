@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-05f201bfb1c8",
+    "reviewItemId": "ri-9a8fdff4716f",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new --enableReporting flag is added with a default value that enables reporting for multiple rule types, providing new observability without requiring configuration changes."
+      },
+      "statement": "Kyverno 1.13 adds the --enableReporting container flag to admission-controller, background-controller, and reports-controller deployments with default value enabling reporting for validate, mutate, mutateExisting, imageVerify, and generate rule types."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, policy reports also record results for mutate, mutateExisting and generate rules, because the chart default enables reporting for validate, mutate, mutateExisting, imageVerify and generate. If the reports controller has not been granted the permissions it needs, a warning message is returned when a policy is admitted. The evidence does not say that anything fails.",
+        "remediation": "Grant the reports controller the RBAC permissions it needs for the new report types, or set --enableReporting to only the rule types you want reported.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds the --enableReporting flag to its controllers, and the chart default turns on all five rule types. Policy reports now also record mutate, mutateExisting and generate results. If the reports controller has no RBAC permission for these, a warning is returned when a policy is admitted."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:fac90d2895b097e1ab8006662b95cb3296931db2cfec065082919498db92149b",
+      "inputEvidence": [
+        "ev-2835c7c71165",
+        "ev-a5eba5775d07",
+        "ev-4cd26225bffa",
+        "ev-52c07595c637",
+        "ev-54749e1a631c",
+        "ev-8dbdd0d2ff64",
+        "ev-e8169ff3d009",
+        "ev-892e45421732",
+        "ev-72f16d281831",
+        "ev-b2a444d8e5e6",
+        "ev-bc837634eaa2",
+        "ev-ff42ab09a455",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4",
+        "ev-d4375a636f55",
+        "ev-b39e8c27b4a6",
+        "ev-2986b5476a52",
+        "ev-7992af33049e",
+        "ev-d45f46947747",
+        "ev-cdbad5f10029",
+        "ev-1a780fc7f788",
+        "ev-91ec4fc92ad3",
+        "ev-e599ee1bf192",
+        "ev-296f51353996",
+        "ev-55e1be7f7ede",
+        "ev-89fe173dc4ac",
+        "ev-0982f2d9b2c6",
+        "ev-2bba844b2e5c",
+        "ev-a2edfd9b1fee",
+        "ev-d18fb0498594",
+        "ev-206280e3108c"
+      ],
+      "generatedAt": "2026-10-03T01:54:37.261Z",
+      "callId": "9646528c-fcde-4159-865d-eb8151a67e94"
+    },
+    "reason": "\"none\" is wrong. With chart defaults, 1.13.0 adds `--enableReporting=validate,mutate,mutateExisting,imageVerify,generate` to the admission, background and reports controllers [ev-b2a444d8e5e6][ev-bc837634eaa2][ev-ff42ab09a455]; the 1.12.6 render does not have it [ev-d18fb0498594][ev-206280e3108c]. So policy reports now also record mutate, mutateExisting and generate results without any operator action. The release blog says the reports controller needs proper permissions, and a warning is returned at policy admission if no RBAC permission is configured [ev-2835c7c71165]. Nothing is said to fail or be rejected, so this is behavior-change (review), not none (informational) and not a failure kind.",
+    "startedAt": "2026-10-03T01:54:25.981Z",
+    "decidedAt": "2026-10-03T01:54:37.261Z",
+    "resultingFact": "vf-c49ec3c3ae45"
+  }
+}

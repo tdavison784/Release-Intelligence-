@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c4d14a7d7e46",
+    "candidateId": "sc-0c94872faeb9",
+    "proposalId": "sp-ebb5154fe2e5",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "grpc-status-code-metrics"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"HTTP status code from the response\"",
+        "after": "\"value of the Grpc-Status header\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The reported status code in gRPC request metrics now reflects the Grpc-Status header value instead of the HTTP response status code, which may change observed metrics and alert thresholds.",
+        "severity": "medium"
+      },
+      "statement": "In Traefik v3.0.0, the status code reported for gRPC requests in metrics changes from the HTTP response status code to the value of the Grpc-Status header."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

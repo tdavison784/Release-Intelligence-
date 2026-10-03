@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9fb7fb4f232f",
+    "candidateId": "sc-541b56f9cad6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1alpha1",
+        "kind": "PushSecret",
+        "path": "spec.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1alpha1",
+          "kind": "PushSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "The API server rejects a PushSecret (external-secrets.io/v1alpha1) whose spec.template.engineVersion is \"v1\", because that value was removed from the allowed values.",
+        "remediation": "Change spec.template.engineVersion on PushSecret manifests to a value that is still allowed, or remove it, before applying them against the new CRD schema.",
+        "severity": "medium"
+      },
+      "statement": "The value \"v1\" was removed from the allowed values of spec.template.engineVersion in the external-secrets.io/v1alpha1 PushSecret schema, so the API server rejects PushSecrets that set it."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4fd8a2d56134ca46782ab52adc63714b1e8d613fc15cf2146e19494a810df918",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-02T20:54:14Z",
+      "callId": "219620a3-86d4-4417-b485-30c862d23000"
+    }
+  }
+}

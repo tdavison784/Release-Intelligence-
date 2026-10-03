@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6f601a3bbf2e",
+    "reviewItemId": "ri-6bed1a7a2f0b",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "querier-to-ingester-metrics-log-line"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "Loki adds a metrics.go log line for requests from querier to ingester."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:c85d458d4f46d30f4767be3f3b8bdf5eb5f37c319d7801ec0eb3b8bccd5b656e",
+      "inputEvidence": [
+        "ev-833d940f9c35"
+      ],
+      "generatedAt": "2026-10-02T23:17:25.432Z",
+      "callId": "b45d9437-71c3-45e0-bf2d-82321db1ab0e"
+    },
+    "reason": "[ev-833d940f9c35] says only that Loki adds a metrics.go log line for requests from the querier to the ingester. That is a new log output, not wire or protocol behaviour such as TLS, ALPN, path matching or signing, so the protocol-behavior subject is a misclassification. None of the other subject families (config, flag, API, gate, image and so on) fits an added log line. No correct typed assertion follows from this changelog entry.",
+    "startedAt": "2026-10-02T23:17:18.816Z",
+    "decidedAt": "2026-10-02T23:17:25.432Z"
+  }
+}

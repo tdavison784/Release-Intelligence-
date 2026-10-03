@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f11ebde7e24d",
+    "candidateId": "sc-e0a2573a3e8a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "tls.caOptional",
+        "component": "etcd"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.etcd.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.etcd.tls.caOptional",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The tls.caOptional option configured in the ETCD provider will be ignored and no longer honored in Traefik v3.0.0.",
+        "remediation": "Remove the tls.caOptional option from the ETCD provider static configuration.",
+        "severity": "high"
+      },
+      "statement": "The ETCD provider's tls.caOptional configuration option has been removed in Traefik v3.0.0 because TLS client authentication is a server-side option."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-ebfb740bf1f8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:8daf0b64e22b8ec6c466ffafbba569c9c1c4bd269b8d531743362466d7de38a0",
+      "inputEvidence": [
+        "ev-ebfb740bf1f8"
+      ],
+      "generatedAt": "2026-10-02T16:13:55Z",
+      "callId": "c07a9d1a-5bde-4438-808e-0cb399dbd035"
+    }
+  }
+}

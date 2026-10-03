@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-cc81baa00c37",
+    "candidateId": "sc-1f4684fab7fb",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "webhook.extraEnv",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "cainjector.extraEnv",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "startupapicheck.extraEnv",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "These new Helm values are optional additions that enable new functionality without breaking existing deployments. Operators who do not use them experience no operational consequence."
+      },
+      "statement": "Three new Helm values (`webhook.extraEnv`, `cainjector.extraEnv`, and `startupapicheck.extraEnv`) were added to allow operators to set custom environment variables in their respective Pod containers."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The change bundles three distinct helm-value additions (webhook.extraEnv, cainjector.extraEnv, startupapicheck.extraEnv). Each should be analyzed as a separate subject, but the change presents them as a single statement.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-fe0fca386a7a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f6417b150a6eb98cab3be681c4f77f5c5956e445973fdf9a162041901282fd56",
+      "inputEvidence": [
+        "ev-fe0fca386a7a"
+      ],
+      "generatedAt": "2026-10-02T06:06:07Z",
+      "callId": "0ec9017d-60af-41db-ad7f-17e5685a9a41"
+    }
+  }
+}

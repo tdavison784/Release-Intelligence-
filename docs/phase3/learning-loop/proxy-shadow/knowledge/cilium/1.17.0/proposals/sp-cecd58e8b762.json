@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-cecd58e8b762",
+    "candidateId": "sc-76bef5a9be45",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "dnsProxy.endpointMaxIpPerHostname"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "50",
+        "after": "1000"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "dnsProxy.endpointMaxIpPerHostname",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "dnsProxy.endpointMaxIpPerHostname",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments not setting dnsProxy.endpointMaxIpPerHostname now get a limit of 1000 IPs per hostname per endpoint instead of 50.",
+        "remediation": "Set dnsProxy.endpointMaxIpPerHostname explicitly to 50 to keep the previous limit.",
+        "severity": "low"
+      },
+      "statement": "The default of Helm value dnsProxy.endpointMaxIpPerHostname increased from 50 to 1000, which is a behavior change for environments that don't set it."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-f13e15b06a08"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ab09b7e0aae3d261b6db066e8dc25efd154f31e9ba73d628ad36b25336f735a8",
+      "inputEvidence": [
+        "ev-f13e15b06a08",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T06:02:11Z",
+      "callId": "14172ec3-8c6a-4559-87d3-d9e63973eaab"
+    }
+  }
+}

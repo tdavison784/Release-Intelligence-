@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-31882816c961",
+    "candidateId": "sc-c664d99a5dc0",
+    "proposalId": "sp-056df85ccc6c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--clustermesh-ip-identities-sync-timeout"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "cilium",
+          "name": "--clustermesh-sync-timeout"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--clustermesh-ip-identities-sync-timeout",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--clustermesh-sync-timeout",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "--clustermesh-sync-timeout",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The flag still works in 1.16 but will be removed in Cilium 1.17.",
+        "remediation": "Use --clustermesh-sync-timeout instead."
+      },
+      "statement": "The clustermesh-ip-identities-sync-timeout flag is deprecated in favor of clustermesh-sync-timeout and will be removed in Cilium 1.17."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/deprecated",
+        "detail": "no canonical exposure condition for cli-flag deprecated"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7f1339df6fd1",
+    "candidateId": "sc-1bdf9ff2d831",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"interim resources are included by default\"",
+        "after": "\"interim resources are excluded by default\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Applications or configurations that depend on interim resources being included in Argo CD's synchronization or status operations will now exclude those resources by default, potentially changing application visibility or sync behavior.",
+        "severity": "high"
+      },
+      "statement": "Argo CD 3.0.0 now excludes known interim resources by default, a breaking change that may affect environments relying on interim resources being included in synchronization or status."
+    },
+    "undetermined": [
+      "subject",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: Evidence states the change but does not specify the exact configuration key, field path, or component that controls interim resource exclusion, preventing precise subject identification.; applicability: Evidence does not specify which configuration setting, resource type, or component behavior is affected, making it impossible to construct precise exposure conditions without additional context about what 'interim resources' means in Argo CD's implementation.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b47e5003a748"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:989e23a1677564cb2b1373a6f18a3204050bd88865458b8faa5078de3e716454",
+      "inputEvidence": [
+        "ev-b47e5003a748"
+      ],
+      "generatedAt": "2026-10-02T06:00:08Z",
+      "callId": "1ce39857-08f2-426d-992a-e926f61594bb"
+    }
+  }
+}

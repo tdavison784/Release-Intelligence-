@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-32f1182bd4f0",
+    "candidateId": "sc-b5bd8ce23049",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "kafka-logging-framework"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Reload4j/Log4j1\"",
+        "after": "\"Log4j2\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=4.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether custom logging configuration is applied to Kafka brokers"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Custom logging configurations used with Kafka before version 4.0 may not work correctly with Log4j2 and require updates to reflect the new logging framework's configuration format and features.",
+        "remediation": "Review and update any custom logging configurations to be compatible with Log4j2 before or during the upgrade to Kafka 4.0.",
+        "severity": "medium"
+      },
+      "statement": "Kafka 4.0 and newer uses Log4j2 for logging instead of Reload4j/Log4j1, and custom logging configurations may need to be updated during the upgrade."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-526028ea7180"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:8994c4abb2c5fb6d49c8fe0e2a6a849e92810abde40a47fda9173b9ef722d772",
+      "inputEvidence": [
+        "ev-526028ea7180"
+      ],
+      "generatedAt": "2026-10-02T06:04:22Z",
+      "callId": "3856fcf9-e417-4198-ae05-1849a73f2dec"
+    }
+  }
+}

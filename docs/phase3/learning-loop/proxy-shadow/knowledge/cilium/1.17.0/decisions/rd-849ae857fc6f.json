@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-849ae857fc6f",
+    "reviewItemId": "ri-15eab5325f0c",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--bpf-lb-proto-diff"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "statement": "Cilium 1.17 adds services protocol differentiation, controlled by --bpf-lb-proto-diff and enabled by default; existing services without a protocol are preserved and must be deleted and recreated for their protocol to be taken into account."
+    },
+    "corrected": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--bpf-lb-proto-diff"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "Cilium 1.17.0 adds the --bpf-lb-proto-diff flag, which controls the new services protocol differentiation feature (enabled by default)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:061e08ec0fd4cd9001963b74569ed72cd4ce4a0bcffa5f88e502a5a32aecacfd",
+      "inputEvidence": [
+        "ev-2a9b9b849526"
+      ],
+      "generatedAt": "2026-10-03T02:12:09.718Z",
+      "callId": "3b56c646-0535-4250-8831-011c2a85ce45"
+    },
+    "reason": "[ev-2a9b9b849526] says Cilium \"now supports\" services protocol differentiation, which can be controlled with the `--bpf-lb-proto-diff` flag. That supports an added cli-flag subject spelled exactly as in the text. The text says the feature is \"enabled by default\" but never gives the literal value \"true\", so the proposed after value is a paraphrase and is dropped (after is optional for added). No component is set because the text never says which binary owns the flag.",
+    "startedAt": "2026-10-03T02:12:00.211Z",
+    "decidedAt": "2026-10-03T02:12:09.718Z"
+  }
+}

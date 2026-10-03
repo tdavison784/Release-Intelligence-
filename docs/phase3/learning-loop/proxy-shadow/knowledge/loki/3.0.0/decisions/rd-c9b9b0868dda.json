@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c9b9b0868dda",
+    "reviewItemId": "ri-652a018cb28a",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:4150e9f836b0ac7b03c1c7f7a4782bdeb131270634a63c3013fe951bd5647f89",
+      "inputEvidence": [
+        "ev-4b79cb1a8226"
+      ],
+      "generatedAt": "2026-10-03T02:20:28.947Z",
+      "callId": "36633a57-e669-4ec0-9c37-7e5366ac89ba"
+    },
+    "reason": "The only evidence is one changelog line [ev-4b79cb1a8226]. It says `querier.worker-parallelism` is removed and the default of `querier.max-concurrent` is now 4, but it does not say how the setting is supplied. The proposed exposure only checks for the CLI flag `--querier.worker-parallelism`. Environments that set the same option in the Loki YAML config file or through Helm values would also be exposed, and the evidence does not name that config path, so the condition may miss exposed environments. The line also combines this removal with a separate default change, which affects environments that leave `querier.max-concurrent` unset. To settle the condition, we need the config reference or upgrade guide naming the YAML/values key, or the PR 10785 diff.",
+    "startedAt": "2026-10-03T02:20:16.1Z",
+    "decidedAt": "2026-10-03T02:20:28.947Z"
+  }
+}

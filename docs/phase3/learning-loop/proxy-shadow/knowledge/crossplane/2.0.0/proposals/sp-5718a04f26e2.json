@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5718a04f26e2",
+    "candidateId": "sc-5182a9e4cb46",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "managed-resource-scoping"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"cluster-scoped managed resources\"",
+        "after": "\"namespaced managed resources\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "s3.aws.m.upbound.io",
+              "version": "v1beta1",
+              "kind": "Bucket"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "complete list of managed resource kinds in use across the environment"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Managed resources now operate within Kubernetes namespaces rather than cluster-wide, affecting resource organization, isolation, and cross-namespace composition patterns.",
+        "severity": "medium"
+      },
+      "statement": "Crossplane v2 makes all managed resources namespaced, enabling namespace-scoped resource isolation instead of cluster-wide scoping."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-f9df8ec77b1f",
+      "ev-914f3976650c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ccd25b88627f821216a114a0bc1c46f7b4ec519402185614b04e2c64e2a2f019",
+      "inputEvidence": [
+        "ev-f9df8ec77b1f",
+        "ev-914f3976650c"
+      ],
+      "generatedAt": "2026-10-02T20:57:58Z",
+      "callId": "09c406e6-4303-452a-9981-feba1ac89d4d"
+    }
+  }
+}

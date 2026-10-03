@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d04dfa5e1373",
+    "candidateId": "sc-faffd3489419",
+    "proposalId": "sp-9b47e51bb570",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.customizations.ignoreResourceUpdates",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"resource.customizations.ignoreResourceUpdates.ConfigMap\"]",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"resource.customizations.ignoreResourceUpdates.Endpoints\"]",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"resource.customizations.ignoreResourceUpdates.ConfigMap\"]",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"resource.customizations.ignoreResourceUpdates.all\"]",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Watched resources' .status changes and common mutated resources will be ignored by default, reducing load on Argo CD; this changes behavior from v2.14 where these were processed.",
+        "remediation": "If v2 behavior is required, override or remove the resource.customizations.ignoreResourceUpdates configuration in the argocd-cm ConfigMap.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 adds a default configuration for resource.customizations.ignoreResourceUpdates in the argocd-cm ConfigMap that excludes common mutated resources and always ignores .status changes; the v2 behavior can be preserved by overriding or removing this configuration."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/added",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: fetch https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://raw.githubusercontent.com/argoproj/argo-helm/gh-pages/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/argoproj/argo-helm/argo-cd:7.8.11: fetch https://ghcr.io/v2/argoproj/argo-helm/argo-cd/manifests/7.8.11: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/added",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: fetch https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://raw.githubusercontent.com/argoproj/argo-helm/gh-pages/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/argoproj/argo-helm/argo-cd:7.8.11: fetch https://ghcr.io/v2/argoproj/argo-helm/argo-cd/manifests/7.8.11: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

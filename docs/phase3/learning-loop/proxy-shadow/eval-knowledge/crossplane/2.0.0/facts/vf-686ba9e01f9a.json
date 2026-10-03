@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-686ba9e01f9a",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "anchors": [
+      {
+        "release": "2.0.0",
+        "evidenceKeys": [
+          "ek-1f854634fd03"
+        ],
+        "statementKeys": [
+          "sk-4e6f889dabcd"
+        ],
+        "changeIds": [
+          "chg-b2b5489f5d0a"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-af36bd24681f"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "go-module-path-v2"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "cross-product-context-gap",
+          "needed": "whether the environment has Go code whose go.mod imports crossplane or crossplane-runtime and is being updated to v2+"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Go code importing crossplane or crossplane-runtime must update the go.mod module path and all import statements to the v2 module path when moving to v2+.",
+        "remediation": "Update go.mod and all imports to github.com/crossplane/crossplane/v2 and github.com/crossplane/crossplane-runtime/v2.",
+        "severity": "medium"
+      },
+      "statement": "Go module path is now `github.com/crossplane/crossplane/v2`: As this release is a major version bump that has breaking changes, the rules for Go modules…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-fe1fba0eae1b"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-fe1fba0eae1b"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-4772c366f4ad"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-ff56e756156f"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-d241daaf3863",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/crossplane/crossplane/releases/tag/v2.0.0",
+        "locator": "L46-L57 (🚨 Warnings and breaking changes › Go module path is now `github.com/crossplane/crossplane/v2`)",
+        "excerpt": "## Go module path is now `github.com/crossplane/crossplane/v2`\n\nAs this release is a major version bump that has breaking changes, the rules for Go modules required the Crossplane module path to be updated to include the `v2` version suffix.\n\nIf you import `crossplane` and `crossplane-runtime` into your `go.mod`, when you update to `v2+` you will also need to update the module path. All import statements in your code base need to be updated to also include this v2 module path, as it is effectively a module change.\n\nSee this commit as an example of this type of update: https://github.com/crossp…",
+        "contentDigest": "sha256:fc10375ae6cae63a4662959ae4748493113a9331b9ca446aa3dd703d7c9cfb5b",
+        "retrievedAt": "2026-10-02T10:52:56Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:21:06.998Z"
+  }
+}

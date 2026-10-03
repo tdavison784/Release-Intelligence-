@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-11f7f1b5c61e",
+    "product": "karpenter",
+    "release": "1.0.0",
+    "members": [
+      {
+        "changeId": "chg-318315d1ff6b",
+        "anchor": {
+          "release": "1.0.0",
+          "evidenceKeys": [
+            "ek-1e7da2cf2833"
+          ],
+          "statementKeys": [
+            "sk-84a855b0a66b"
+          ],
+          "changeIds": [
+            "chg-318315d1ff6b"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "Defaults changed: * API: Karpenter will drop support for IMDS access from containers by default on new EC2NodeClasses by updating the default of…",
+    "text": "Defaults changed: * API: Karpenter will drop support for IMDS access from containers by default on new EC2NodeClasses by updating the default of `httpPutResponseHopLimit` from 2 to 1. * API: ConsolidateAfter is required. Users couldn’t set this before with ConsolidationPolicy: WhenUnderutilized, where this is now required. Users can set it to 0 to have the same behavior as in v1beta1. * API: All `NodeClassRef` fields are now all required, and apiVersion has been renamed to group * API: AMISelectorTerms are required. Setting an Alias cannot be done with any other type of term, and must match the AMI Family that's set or be Custom. * Helm: Deployment spec TopologySpreadConstraint to have required zonal spread over preferred. Users who had one node running their Karpenter deployments need to either: * Have two nodes in different zones to ensure both Karpenter replicas schedule * Scale down their Karpenter replicas from 2 to 1 in the helm chart * Edit and relax the topology spread constraint in their helm chart from DoNotSchedule to ScheduleAnyway * Helm/Binary: `controller.METRICS_PORT` default changed back to 8080",
+    "evidence": [
+      {
+        "id": "ev-4bcafa8a355e",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md",
+        "locator": "L71-L80 (Upgrading to `1.0.0`+)",
+        "excerpt": "* Defaults changed:\n  * API: Karpenter will drop support for IMDS access from containers by default on new EC2NodeClasses by updating the default of `httpPutResponseHopLimit` from 2 to 1.\n  * API: ConsolidateAfter is required. Users couldn’t set this before with ConsolidationPolicy: WhenUnderutilized, where this is now required. Users can set it to 0 to have the same behavior as in v1beta1.\n  * API: All `NodeClassRef` fields are now all required, and apiVersion has been renamed to group\n  * API: AMISelectorTerms are required. Setting an Alias cannot be done with any other type of term, and m…",
+        "contentDigest": "sha256:95be50527b8b1cab258c86b9fc665dc9657fa30655d6de614fe8527fcc341da5",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      }
+    ],
+    "hints": [
+      "code:httpPutResponseHopLimit",
+      "code:NodeClassRef",
+      "code:controller.METRICS_PORT",
+      "path:controller.METRICS_PORT",
+      "env:METRICS_PORT"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

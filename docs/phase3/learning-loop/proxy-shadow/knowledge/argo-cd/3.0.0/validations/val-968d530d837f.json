@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-968d530d837f",
+    "candidateId": "sc-faffd3489419",
+    "proposalId": "sp-6c26eacf590d",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.customizations.ignoreResourceUpdates",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "configs.cm[\"resource.customizations.ignoreResourceUpdates.all\"]",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Updates to commonly mutated resources and .status changes are ignored by default, reducing load, which differs from v2 behavior.",
+        "remediation": "Override or remove the default resource.customizations.ignoreResourceUpdates settings in the argocd-cm ConfigMap to preserve v2 behavior.",
+        "severity": "low"
+      },
+      "statement": "The Argo CD manifest now ships a default resource.customizations.ignoreResourceUpdates configuration in argocd-cm that ignores updates for commonly mutated resources, and .status changes are always ignored; override or remove the defaults to keep v2 behavior."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/behavior-changed",
+        "detail": "no canonical exposure condition for config-key behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

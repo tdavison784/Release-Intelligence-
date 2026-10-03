@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e9635222f161",
+    "candidateId": "sc-2998e289998d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "empty-env-vars-passed-to-cmp-plugins"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"empty environment variables are passed to plugins as ARGOCD_ENV_\\u003cNAME\\u003e=\\\"\\\"\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.source.plugin.env",
+              "state": "set"
+            }
+          ],
+          "group": "argoproj.io",
+          "kind": "Application"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Plugin env entries with empty values are now passed to the plugin as empty environment variables, which may change plugin behavior.",
+        "severity": "low"
+      },
+      "statement": "In Argo CD 3.0, plugin env entries with empty values are now passed to config management plugins (e.g. ARGOCD_ENV_DATA=\"\") instead of being omitted."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a41a36159297"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:a2cb861f00608de528d1e0f68b9823c06177d7f04a8ca1109802a9c933740d90",
+      "inputEvidence": [
+        "ev-a41a36159297"
+      ],
+      "generatedAt": "2026-10-02T06:04:39Z",
+      "callId": "e5c21f7d-7f47-45f5-ba37-d6d43abbddfc"
+    }
+  }
+}

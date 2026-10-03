@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b258d1c5eab2",
+    "reviewItemId": "ri-20b689ea27c8",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "prometheus",
+          "state": "in-range",
+          "range": ">=3.4.0"
+        }
+      },
+      "statement": "prometheus-operator 0.86.0 no longer automatically adds the `metadata-wal-records` feature flag to Prometheus resources running Prometheus versions >= 3.4."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:35f24bb1e20be21bb277165ad33e833aff539c9f332c8b803645ada27e186520",
+      "inputEvidence": [
+        "ev-384dcd4e47a4",
+        "ev-5415b8753dfa",
+        "ev-d1c3b1084dad",
+        "ev-33c3b71688f2",
+        "ev-f0cfd8ade456",
+        "ev-f240b6ac3b67",
+        "ev-83fc26f44be6",
+        "ev-04344c7b3dae",
+        "ev-13be12903c5c",
+        "ev-197df9b33168",
+        "ev-22d6be11fa2f",
+        "ev-3cc85997b394",
+        "ev-4393a79e776d",
+        "ev-542432da4381",
+        "ev-676b63c80565",
+        "ev-767e1a45572f",
+        "ev-7a53a3520025",
+        "ev-7d96c48a5c71",
+        "ev-84bcfc39962d",
+        "ev-c87966ce90d5",
+        "ev-cc90e86e2643",
+        "ev-db02f66824cd",
+        "ev-dfadc763c00b",
+        "ev-e032811a0e26",
+        "ev-e0e139d1a1a8",
+        "ev-e33dbbb0c01a",
+        "ev-f22afebcad15"
+      ],
+      "generatedAt": "2026-10-02T23:08:06.131Z",
+      "callId": "cbd70412-7cca-4c23-b4ad-6881447f04d7"
+    },
+    "reason": "The release section [ev-384dcd4e47a4] (the full text is in the upstream change) says 0.86.0 will \"Remove automatic addition of the `metadata-wal-records` feature flag for Prometheus versions >= 3.4\" (#7893). This removal fits the cluster's removal category. The only environments affected are those whose operator-managed Prometheus runs version >= 3.4. The proposed exposure, product-version prometheus in-range >=3.4.0, matches that boundary. Confidence is low for two reasons: the cluster bundles several 0.86.0 changes (its title quotes the status-subresource note), and the evidence shown does not establish an overlap for environments that already enable the flag explicitly.",
+    "startedAt": "2026-10-02T23:07:52.808Z",
+    "decidedAt": "2026-10-02T23:08:06.131Z"
+  }
+}

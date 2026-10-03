@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f5b0de01b9c1",
+    "candidateId": "sc-29fa48f19d84",
+    "proposalId": "sp-e8a5e59ceaa7",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "storage-version-migration",
+        "component": "ec2nodeclasses.karpenter.k8s.aws"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "karpenter.k8s.aws",
+          "version": "v1beta1",
+          "kind": "EC2NodeClass"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing EC2NodeClass objects stay stored as v1beta1 until rewritten; a storage version migration (re-write all objects) and a status.storedVersions update must be done before a later release removes v1beta1.",
+        "remediation": "Re-write all EC2NodeClass objects and update status.storedVersions before a later release removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the ec2nodeclasses.karpenter.k8s.aws CRD changes from v1beta1 to v1; existing objects remain stored as v1beta1 until rewritten, so a storage version migration and a status.storedVersions update are needed before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

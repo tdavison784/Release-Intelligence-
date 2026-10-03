@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-d1070a4c9a03",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-26fc68690377"
+        ],
+        "statementKeys": [
+          "sk-00174705b3cd"
+        ],
+        "changeIds": [
+          "chg-606740797aec"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-05b7e96dd774"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--enable-k8s"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"false\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--datapath-mode",
+              "component": "cilium",
+              "state": "equals",
+              "values": [
+                "\"lb-only\""
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enable-k8s",
+              "component": "cilium",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether Cilium is operated in plain Docker mode without Kubernetes rather than inside a Kubernetes cluster"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--datapath-mode",
+              "component": "cilium",
+              "state": "equals",
+              "values": [
+                "\"lb-only\""
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enable-k8s",
+              "component": "cilium",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Without --enable-k8s=false, Cilium in lb-only datapath mode under plain Docker assumes Kubernetes is present.",
+        "remediation": "Add --enable-k8s=false to the command line."
+      },
+      "statement": "Operating Cilium in `--datapath-mode=lb-only` for plain Docker mode now requires to add an additional `--enable-k8s=false` to the command line, otherwise it is…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-9fea54942f80"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-9fea54942f80"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-7ab7824c9143"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-2702b566088f"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-09d5e26554e5",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L296-L298 (1.17 Upgrade Notes)",
+        "excerpt": "* Operating Cilium in `--datapath-mode=lb-only` for plain Docker mode now requires to\n  add an additional `--enable-k8s=false` to the command line, otherwise it is assumed\n  that Kubernetes is present.",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:34:00.644Z"
+  }
+}

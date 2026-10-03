@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-7fd56275e035",
+    "reviewItemId": "ri-41079c5225c9",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "global.profile",
+        "name": "istiod-remote"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "istio",
+          "path": "global.profile",
+          "name": "istio"
+        }
+      },
+      "statement": "The istiod-remote Helm chart has been removed and replaced with installing the istio chart using the remote profile via --set profile=remote."
+    },
+    "corrected": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "istiod-remote-chart-to-remote-profile"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "The istiod-remote Helm chart has been merged into the istio-discovery chart. Clusters with a remote/external control plane must now be installed with istio/istiod and --set profile=remote instead of istio/istiod-remote."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:960a6e7c776b0842748c7de1d2969a851f7ad2eb0b5701cbdccabb77dc73edfe",
+      "inputEvidence": [
+        "ev-5a31c0781dc5",
+        "ev-1295567312b0"
+      ],
+      "generatedAt": "2026-10-03T02:16:44.385Z",
+      "callId": "225ceb16-6514-4a5c-8c7e-34c1ccba1e2e"
+    },
+    "reason": "[ev-5a31c0781dc5] and [ev-1295567312b0] say the `istiod-remote` Helm chart was merged into the regular `istio-discovery` chart. Installs move from `helm install istiod-remote istio/istiod-remote` to `istio/istiod --set profile=remote`. Neither source mentions a `global.profile` key, a value named `istiod-remote`, or a replacement value `istio`. So the proposed helm-value subject and its removal/replacement are misreadings. The change is a chart-level install step that remote-cluster operators have to perform, which fits the migration family with the migration-required change type.",
+    "startedAt": "2026-10-03T02:16:34.735Z",
+    "decidedAt": "2026-10-03T02:16:44.385Z"
+  }
+}

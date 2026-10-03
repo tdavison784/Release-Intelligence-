@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-169518a4a84d",
+    "reviewItemId": "ri-0bb0f044f5ad",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "terminatingtls-ca-crt-loading"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "In 1.16, L7 network policy with terminatingTLS no longer loads the ca.crt key from the secret, so Envoy no longer requires client certificates; set --use-full-tls-context=true to retain the old behaviour."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:7134d15daadd6c8f4868ed0ae8e45a33343608a007075aee4649e79f1f48df85",
+      "inputEvidence": [
+        "ev-b5190a359c10"
+      ],
+      "generatedAt": "2026-10-02T12:46:43.368Z",
+      "callId": "f6b6c9b9-f3c5-4fe1-8547-be7573aef1ff"
+    },
+    "reason": "[ev-b5190a359c10] says L7 network policy with terminatingTLS will no longer load `ca.crt` from the secret, even when the key is present. That is a change in TLS handling under the same policy configuration, so behavior-changed on a protocol-behavior subject is the right reading. The name terminatingtls-ca-crt-loading is built from the evidence's own key words. The `--use-full-tls-context=true` flag is only the opt-out for keeping the old behaviour, not the thing that changed.",
+    "startedAt": "2026-10-02T12:46:36.955Z",
+    "decidedAt": "2026-10-02T12:46:43.368Z"
+  }
+}

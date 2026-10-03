@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-45796284fa97",
+    "candidateId": "sc-d8211760345d",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "applicability",
+    "question": "For \"Cilium now supports services protocol differentiation, which allows the agent to distinguish two services on the same port with different protocols (e.g. TCP…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.17.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the environment has existing services without protocol set that require recreation to enable protocol differentiation"
+            }
+          ]
+        }
+      },
+      "statement": "The --bpf-lb-proto-diff flag enables services protocol differentiation by default in Cilium 1.17.0, allowing distinction of services on the same port with different protocols; existing services without a protocol set are preserved but require deletion and recreation to enable protocol differentiation, and downgrades cause protocol-aware services to lose protocol information and be recreated."
+    },
+    "proposals": [
+      "sp-8db3c52b148b",
+      "sp-ccd5bf20c213"
+    ],
+    "validations": [
+      "val-0bf11c108678",
+      "val-4f52c8cb15e4",
+      "val-f729cc5941d1"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:03:24Z"
+  }
+}

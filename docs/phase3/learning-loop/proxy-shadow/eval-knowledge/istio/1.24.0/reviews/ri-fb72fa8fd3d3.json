@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-fb72fa8fd3d3",
+    "candidateId": "sc-87e07dd001ae",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Compatibility with cert-manager's `istio-csr`: In this release, Istio introduces increased validation checks in gRPC communication to the control plane\", what happens, and is that review or action? proposed: workload-failure",
+    "proposed": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If istio-csr (v0.12.0, without the fix) is used as the CA, Istio's gRPC connection fails with 'transport: authentication handshake failed: credentials: cannot check peer: missing selected ALPN property'.",
+        "remediation": "Install Istio with the workaround settings given in the upgrade notes, or use an istio-csr version containing the upstream fix.",
+        "severity": "high"
+      },
+      "statement": "Istio 1.24 adds stricter validation (ALPN) in its internal gRPC communication to the control plane, which breaks third-party CA istio-csr (v0.12.0 has no fix) with a handshake error unless a workaround setting is applied."
+    },
+    "proposals": [
+      "sp-b16e73f81c02",
+      "sp-f0d5299451f2"
+    ],
+    "validations": [
+      "val-24c47b59609b",
+      "val-724fbcdded80",
+      "val-a8d053a721b0",
+      "val-ed87e49f9707"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:03:49Z"
+  }
+}

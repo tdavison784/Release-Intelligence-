@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-249a20aa8002",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-e94ac92f1363"
+        ],
+        "statementKeys": [
+          "sk-88a74746227d"
+        ],
+        "changeIds": [
+          "chg-9533b0785871"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-141ad9d4fd78"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "traefik",
+        "name": "--nomad.namespace"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "traefik",
+          "name": "--nomad.namespaces"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--nomad.namespace",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "nomad.namespace",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the Traefik static configuration file (YAML/TOML) sets namespace under the nomad provider section"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will not start if the Nomad provider namespace option is configured.",
+        "severity": "critical"
+      },
+      "statement": "namespace: The Nomad provider `namespace` option was deprecated in v2 and is now removed in v3"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-759673faf02c"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-759673faf02c"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-4fe5ad0722bb"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-6c98c477dafb"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-482dffeba461",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L294-L334 (Migration Guide: From v2 to v3 › Static configuration › Nomad provider › namespace)",
+        "excerpt": "#### namespace\n\nThe Nomad provider `namespace` option was deprecated in v2 and is now removed in v3.\nIt is now unsupported and would prevent Traefik to start.\n\n??? example \"An example usage of v2 Nomad `namespace` option\"\n\n    ```yaml tab=\"File (YAML)\"\n    nomad:\n      namespace: foobar\n    ```\n\n    ```toml tab=\"File (TOML)\"\n    [nomad]\n        namespace=foobar\n    ```\n\n    ```bash tab=\"CLI\"\n    --nomad.namespace=foobar\n    ```\n\n##### Remediation\n\nIn v3, the `namespaces` option should be used instead of the `namespace` option.\n\n??? example \"An example usage of Nomad `namespaces` option\"\n\n    `…",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:30:34.573Z"
+  }
+}

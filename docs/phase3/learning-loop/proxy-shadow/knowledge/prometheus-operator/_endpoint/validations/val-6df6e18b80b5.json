@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6df6e18b80b5",
+    "candidateId": "sc-ed9e757d4f2b",
+    "proposalId": "sp-fd41d40a75bf",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "kind": "Prometheus",
+        "path": "spec.otlp.translationStrategy"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"UnderscoreEscapingWithoutSuffixes\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.otlp.translationStrategy",
+              "state": "set"
+            }
+          ],
+          "group": "monitoring.coreos.com",
+          "kind": "Prometheus"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No enum values were removed, so existing Prometheus resources that set spec.otlp.translationStrategy are still accepted; the only change is that the new value UnderscoreEscapingWithoutSuffixes is now allowed.",
+        "severity": "low"
+      },
+      "statement": "In the monitoring.coreos.com/v1 Prometheus CRD schema, the enum for spec.otlp.translationStrategy gained the allowed value \"UnderscoreEscapingWithoutSuffixes\" and lost no values, so values accepted before are still accepted."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

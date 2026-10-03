@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a724d1fd61ec",
+    "candidateId": "sc-81356c517601",
+    "proposalId": "sp-87deb4d4e085",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "cilium",
+        "name": "kvstoremesh-cluster-config-or-opt-out",
+        "component": "kvstoremesh"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Before upgrading to Cilium 1.16.0, environments using external workloads must ensure the cluster has a name and ID specified, or must explicitly opt out of KVStoreMesh which is now enabled by default.",
+        "severity": "high"
+      },
+      "statement": "Cilium 1.16.0 enables KVStoreMesh by default; if external workloads are in use, the cluster must have name and ID configured before upgrade, or KVStoreMesh must be explicitly disabled."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

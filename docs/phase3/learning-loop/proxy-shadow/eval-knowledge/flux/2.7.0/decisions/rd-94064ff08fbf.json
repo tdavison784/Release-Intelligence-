@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-94064ff08fbf",
+    "reviewItemId": "ri-686cfd7fa784",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Flux controllers now dynamically adjust the Go runtime's processor thread limits to respond to available system resources, which may improve CPU utilization and performance in containerized environments.",
+        "severity": "medium"
+      },
+      "statement": "The Go runtime in Flux can now dynamically set GOMAXPROCS to adapt CPU resource utilization at runtime."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The affected Flux binary keeps working, but the Go runtime now sets its effective GOMAXPROCS dynamically. Its CPU parallelism may therefore differ from earlier releases. The release note mentions no failure, ignored setting or required operator step.",
+        "remediation": "No action is required. After upgrading, check the CPU behaviour of the affected binary, and set GOMAXPROCS explicitly if you need a fixed value.",
+        "severity": "low"
+      },
+      "statement": "In Flux 2.7.0 the Go runtime may set GOMAXPROCS dynamically for the affected Flux binary (listed in the CLI changelog). The binary keeps working, but its effective CPU parallelism may differ from earlier releases. The release note mentions no failure and no required operator action."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:16382f3c2be8c4a2d168a4d5b3daa96495147e6450541295b8ec87cfa12d1087",
+      "inputEvidence": [
+        "ev-0a0493889871"
+      ],
+      "generatedAt": "2026-10-02T23:16:36.324Z",
+      "callId": "b50dd16d-9f2c-4f9c-9a8c-7d379f65668e"
+    },
+    "reason": "[ev-0a0493889871] is a single line in the CLI changelog saying the Go runtime may now set GOMAXPROCS dynamically. It reports no failure, rejected resource or required step, so behavior-change (review) is the right kind. The proposed statement goes beyond the evidence: it says 'Flux controllers' when the line sits under the CLI changelog and names no component, and it promises better performance, which the line does not claim. I have restated it in the evidence's terms and lowered severity to low.",
+    "startedAt": "2026-10-02T23:16:25.965Z",
+    "decidedAt": "2026-10-02T23:16:36.324Z"
+  }
+}

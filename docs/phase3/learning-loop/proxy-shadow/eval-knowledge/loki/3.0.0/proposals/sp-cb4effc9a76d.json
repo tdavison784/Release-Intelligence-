@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-cb4effc9a76d",
+    "candidateId": "sc-895e84ff5606",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "schemaConfig"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"tsdb and v13 schema\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the environment has already explicitly configured tsdb schema and v13 schema versions"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Loki will not start during the upgrade if the environment does not have tsdb and v13 schema configured, as structured metadata is now enabled by default.",
+        "severity": "critical"
+      },
+      "statement": "Structured metadata is enabled by default in Loki 3.0.0 and requires tsdb storage backend and v13 schema configuration; Loki will not start without these."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-5dacaee98643"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f0e7997e3534e2dccb312620b8732aa918d75573d2675e2ffdf24b90e5b1467a",
+      "inputEvidence": [
+        "ev-5dacaee98643"
+      ],
+      "generatedAt": "2026-10-02T16:18:35Z",
+      "callId": "4511419a-d04d-4247-bfd4-f380de66827d"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-85cdd2938980",
+    "candidateId": "sc-e1a3e9a9cadf",
+    "proposalId": "sp-0a9ef0d0b781",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cert-manager",
+        "name": "--namespace"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--namespace",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "An installation running cert-manager with --namespace=<namespace> will, after the upgrade, have cert-manager scoped to that single namespace with cluster-scoped controllers disabled, which differs from the previous behavior.",
+        "remediation": "If you run cert-manager with --namespace=<namespace>, verify that limiting cert-manager to that single namespace and running without cluster-scoped controllers is the intended operating mode for your installation.",
+        "severity": "medium"
+      },
+      "statement": "Running cert-manager with --namespace=<namespace> now limits cert-manager's scope to that single namespace and disables cluster-scoped controllers."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

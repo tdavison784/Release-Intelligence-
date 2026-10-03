@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-57c7f0c93d0d",
+  "promptDigest": "sha256:c2eb5aef3a1b37450a7056be86bab86ad5b634205dbbeccae63e96ec3d240920",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "49a818ed-571a-4b22-833f-6ff6d14552de",
+  "startedAt": "2026-10-03T02:18:39.192Z",
+  "decidedAt": "2026-10-03T02:18:54.213Z",
+  "durationMs": 14194,
+  "costUSD": 0.10681000000000002,
+  "output": {
+    "action": "correct",
+    "reason": "The rendered diffs show only the storage flags changing between 1.12.6 and 1.13.0: v2 goes false → true and v2beta1 goes true → false [ev-b01406e79da0][ev-56c06982a6c5]. v2beta1 is still listed in spec.versions, and no evidence says anything fails, is rejected or must be migrated before or after this upgrade. The storage migration is only needed ahead of a possible later removal of v2beta1, and nothing in the evidence schedules that removal. So migration-required (mandatory work) over-claims; the supported reading is behavior-change (review), meaning existing objects keep working and are stored as v2 once rewritten.",
+    "citations": [
+      "ev-b01406e79da0",
+      "ev-56c06982a6c5"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "From 1.12.6 to 1.13.0 the storage version of clustercleanuppolicies.kyverno.io moves from v2beta1 to v2. Existing ClusterCleanupPolicy objects keep working; they stay stored as v2beta1 until rewritten, while v2beta1 remains defined in the CRD.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "statement": "Nothing fails on upgrade. The CRD stores ClusterCleanupPolicy objects as v2 from now on, and existing objects stay stored as v2beta1 until they are rewritten. v2beta1 stays defined in the CRD, so existing objects keep working.",
+        "remediation": "Optionally run a storage version migration (rewrite all ClusterCleanupPolicy objects), then remove v2beta1 from status.storedVersions on the CRD before any future release that removes v2beta1.",
+        "severity": "low"
+      }
+    }
+  }
+}

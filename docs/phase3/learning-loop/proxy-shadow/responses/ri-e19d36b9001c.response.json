@@ -1,0 +1,54 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e19d36b9001c",
+  "promptDigest": "sha256:121cb79af2df16d8af24abee36e47cc7f387f367b00c974f3f22ea5581b838e0",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "04d52a27-fcd6-41ee-9ad7-7f000e8d688f",
+  "startedAt": "2026-10-03T02:32:52.047Z",
+  "decidedAt": "2026-10-03T02:33:13.780Z",
+  "durationMs": 21089,
+  "costUSD": 0.11816,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-af5a4b32c120] covers both the `-tsdb.shipper.shared-store` flag and \"its YAML setting\". It says index access is lost only \"for periods where `-tsdb.shipper.shared-store` does not match `object_store`\". Where the values match, the only change needed is removing the deleted option. The proposed exposure (CLI flag set) misses environments that set the option in YAML. It also flags matching environments that don't lose any index. The evidence doesn't name the YAML key, and the condition language can't compare the two values, so those parts are marked undecidable.",
+    "citations": [
+      "ev-af5a4b32c120"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Exposed: Loki environments that set the removed -tsdb.shipper.shared-store option, as a CLI flag or in YAML, to a value that differs from object_store for at least one period that uses the tsdb index type. Those periods' indexes become unqueryable until the index tables are moved or copied to the object_store store.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-tsdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "evidence-gap",
+                  "needed": "whether the YAML equivalent of -tsdb.shipper.shared-store is set in the Loki config (the evidence does not name the YAML key path)"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the configured shared-store value differs from object_store for any schema period using the tsdb index type (needs a comparison across config values)"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

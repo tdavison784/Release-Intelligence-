@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6389ef12aa01",
+    "candidateId": "sc-75da9a758632",
+    "proposalId": "sp-188c95e4f2c5",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "doublewrite_kvstore_identities",
+        "component": "cilium-agent"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "cilium",
+          "path": "doublewrite_kvstore_identities",
+          "component": "cilium-agent"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--metrics",
+          "component": "cilium-agent",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Monitoring systems scraping the `doublewrite_identity_kvstore_total_count` metric will no longer receive data; the metric is available under the new name `doublewrite_kvstore_identities`."
+      },
+      "statement": "The `doublewrite_identity_kvstore_total_count` metric has been renamed to `doublewrite_kvstore_identities`."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/renamed",
+        "detail": "no canonical exposure condition for config-key renamed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c2792f51dab9",
+    "candidateId": "sc-bda23741737a",
+    "proposalId": "sp-1b9c7fd13959",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "query_range.split_queries_by_interval"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "limits_config.split_queries_by_interval"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "query_range.split_queries_by_interval",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The split_queries_by_interval setting configured in the query_range YAML section will be ignored; it must be moved to limits_config to take effect.",
+        "remediation": "Migrate split_queries_by_interval from query_range section to limits_config section in your Loki configuration.",
+        "severity": "high"
+      },
+      "statement": "The configuration key split_queries_by_interval is removed from the query_range YAML section in Loki 3.0.0 and must be configured in Limits Config instead."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

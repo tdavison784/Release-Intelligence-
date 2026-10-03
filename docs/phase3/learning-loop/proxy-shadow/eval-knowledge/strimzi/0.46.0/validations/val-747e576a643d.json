@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-747e576a643d",
+    "candidateId": "sc-26c1a428f564",
+    "proposalId": "sp-135ff29041a2",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "kafka"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": ">=4.0.0"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=3.8.0,<4.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Environments running Kafka 3.8.0 or 3.8.1 will not be supported by Strimzi 0.46.0; the operator will not function with unsupported Kafka versions.",
+        "severity": "high"
+      },
+      "statement": "Strimzi 0.46.0 changes the supported Kafka versions: adds support for Kafka 4.0.0 and removes support for Kafka 3.8.0 and 3.8.1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/requirement-changed",
+        "detail": "product-relationship requirement-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/requirement-changed",
+        "detail": "product-relationship requirement-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

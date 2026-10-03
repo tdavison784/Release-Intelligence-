@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-01e6853967a0",
+    "candidateId": "sc-523ef768546a",
+    "proposalId": "sp-e1b5989747ef",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "remove-v1alpha1-resources"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Before upgrading to 0.16, operators must check their manifests and tooling and confirm that no `v1alpha1` resources are still in use. The evidence does not say what fails if this step is skipped.",
+        "remediation": "Inspect manifests, tooling, etc. for any `v1alpha1` resources and move them off `v1alpha1` before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "The 0.16 upgrade guide lists a pre-upgrade check: before upgrading, operators must confirm that no `v1alpha1` resources are used anywhere in their infrastructure (manifests, tooling, etc.)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

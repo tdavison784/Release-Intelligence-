@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5aa076f8757c",
+    "candidateId": "sc-9dfe98137c2d",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "HelmChart",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "HelmChart"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmChart objects on source.toolkit.fluxcd.io/v1 that omit status.artifact.digest are rejected by schema validation.",
+        "remediation": "Ensure HelmChart objects on source.toolkit.fluxcd.io/v1 carry status.artifact.digest before applying them (e.g. let the controller set the artifact digest, then re-apply).",
+        "severity": "medium"
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1 schema of helmcharts.source.toolkit.fluxcd.io, status.artifact.digest is now a required field, and HelmChart objects that omit it are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:c17b07d003ab1c9f9c7383db5772f180efcac93dd59cde1a6249aee009fe26bf",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:39:25Z",
+      "callId": "e23c61fb-3862-41b0-97d0-222302d08689"
+    }
+  }
+}

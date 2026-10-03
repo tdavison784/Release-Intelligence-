@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8b55f334ee8d",
+    "reviewItemId": "ri-ef7150aabd18",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--ingester.flush-on-shutdown",
+          "component": "ingester",
+          "state": "set"
+        }
+      },
+      "statement": "The legacy ingester shutdown handler endpoint `/ingester/flush_shutdown` has been removed."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any client, script, hook or tooling calls the ingester HTTP endpoint /ingester/flush_shutdown at runtime"
+        }
+      },
+      "statement": "Loki 3.0.0 removes the legacy ingester shutdown handler `/ingester/flush_shutdown`. An environment is exposed only if something calls this endpoint, which static configuration cannot show."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:7d55a52545748299a012bf76a289af9721954692f131b5cbd5bafeb78b64a83f",
+      "inputEvidence": [
+        "ev-a1ca6a9f17f1"
+      ],
+      "generatedAt": "2026-10-03T02:34:25.73Z",
+      "callId": "e6a92c00-07c9-4b0b-965f-f685b7341ae3"
+    },
+    "reason": "[ev-a1ca6a9f17f1] says only that the HTTP handler `/ingester/flush_shutdown` was removed. It does not mention the `--ingester.flush-on-shutdown` flag, so the proposed cli-flag condition has no support in the evidence. That condition would flag environments that set the flag but never call the endpoint, and it would miss environments that call the endpoint without setting the flag. Whether an environment is exposed depends on clients (scripts, hooks or tooling) calling this endpoint at runtime, which no static configuration shows, so the exposure has to be undecidable.",
+    "startedAt": "2026-10-03T02:34:17.181Z",
+    "decidedAt": "2026-10-03T02:34:25.73Z"
+  }
+}

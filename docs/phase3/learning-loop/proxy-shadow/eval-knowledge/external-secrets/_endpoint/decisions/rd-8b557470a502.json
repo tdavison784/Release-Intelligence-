@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8b557470a502",
+    "reviewItemId": "ri-b4cf70230b1d",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterExternalSecret",
+        "path": "spec.externalSecretSpec.target.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\"",
+        "after": "null"
+      },
+      "statement": "The v1beta1 ClusterExternalSecret schema no longer allows \"v1\" for spec.externalSecretSpec.target.template.engineVersion, so resources setting it are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:04718274894505f1b42d4ed9e555345d1b51f43b6ee73fe398a08bdac70197f6",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-03T02:29:04.721Z",
+      "callId": "b47af320-b9e7-4fc6-b160-b0ca3cd4ab3c"
+    },
+    "reason": "The CRD bundles [ev-9889c9b8706d] and [ev-e08924afdc47] show spec.externalSecretSpec.target.template.engineVersion in the external-secrets.io v1beta1 ClusterExternalSecret schema of both releases, and the validator confirms its enum lost \"v1\" with nothing added. Removing an accepted value is validation-tightened, and before \"v1\" / after null match the computed diff (removed [\"v1\"], added []).",
+    "startedAt": "2026-10-03T02:28:52.88Z",
+    "decidedAt": "2026-10-03T02:29:04.721Z"
+  }
+}

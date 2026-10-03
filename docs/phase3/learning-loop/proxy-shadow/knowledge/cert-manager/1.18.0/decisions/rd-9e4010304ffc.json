@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9e4010304ffc",
+    "reviewItemId": "ri-e025e737b104",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading, the chart renders the service/servicemon definitions with port names instead of port numbers; the release note states no failure, rejection, or required operator action.",
+        "remediation": "After upgrading, check the rendered Service/ServiceMonitor objects and confirm that monitoring relying on these port definitions still works as expected.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 switched its service/servicemon (Service and ServiceMonitor) definitions to use port names instead of numbers."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:ab8b25c4a2c2fa473c881c57b3b882a47cd68a19e009fc19b7a0726eedb0b78a",
+      "inputEvidence": [
+        "ev-0bb0d885678d"
+      ],
+      "generatedAt": "2026-10-02T16:01:04.641Z",
+      "callId": "3c648b1b-2beb-49d0-b712-f65425f9a7a1"
+    },
+    "reason": "[ev-0bb0d885678d] lists the change under Feature and says only that the service/servicemon definitions now refer to ports by name instead of by number. It mentions no failure, rejection, ignored setting or required operator step, so no action-eligible kind is supported. The rendered objects do change, and anything that relies on port numbers could behave differently. A low-severity behavior-change (review) therefore matches the evidence without claiming mandatory work, and the proposed statement says plainly that no failure is stated.",
+    "startedAt": "2026-10-02T16:00:57.464Z",
+    "decidedAt": "2026-10-02T16:01:04.641Z"
+  }
+}

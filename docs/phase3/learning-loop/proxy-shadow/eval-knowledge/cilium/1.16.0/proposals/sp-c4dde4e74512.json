@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c4dde4e74512",
+    "candidateId": "sc-1489c912406b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumNetworkPolicy",
+        "path": "spec"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "CiliumNetworkPolicies with multiple L7 protocols on the same port, over 40 port rules, or over 40 ICMP rules, previously ignored, are now rejected by the apiserver.",
+        "remediation": "Fix or remove such invalid CiliumNetworkPolicies before applying them.",
+        "severity": "medium"
+      },
+      "statement": "Invalid CiliumNetworkPolicies (multiple L7 protocols on the same port, over 40 port rules, or over 40 ICMP rules) that were previously ignored are now rejected by the apiserver via server-side validation."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether existing policies have multiple L7 protocols on one port or over 40 port/ICMP rules; exact schema paths are not stated in the evidence.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-abfbf30753a5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ffe8e4c2d4bc7535ea934764bf74f8f52e0e971d2e7d912febfb6e1c184ebf25",
+      "inputEvidence": [
+        "ev-abfbf30753a5"
+      ],
+      "generatedAt": "2026-10-02T06:00:46Z",
+      "callId": "6f371158-09c7-4ddb-81db-f3ed85c17c8b"
+    }
+  }
+}

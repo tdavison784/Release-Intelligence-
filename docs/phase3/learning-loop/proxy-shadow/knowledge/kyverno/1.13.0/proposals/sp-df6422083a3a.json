@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-df6422083a3a",
+    "candidateId": "sc-8076d0a3c442",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "kyverno",
+        "name": "*"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment has mutate or generate policies, or validation rules, that target custom resources, and whether the unnamed Helm upgrade option from the upgrade guide is set"
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "Kyverno no longer has wildcard view permissions. Admission-control policy behaviour is not affected, but mutate and generate policies for custom resources, and policy-result reporting for validation rules on custom resources, may be affected.",
+        "remediation": "Follow the Kyverno 1.13 upgrade guide and set the Helm option that was added so the upgrade does not break existing policies, or grant the needed permissions on the custom resources.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 removes its wildcard view RBAC permissions and replaces them with a role binding to the system view role. This may affect mutate and generate policies for custom resources, and policy-result reporting for validation rules on custom resources."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e6df95267b63"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:8d4a50a91ab7e2d1e4e93a23f7534e56fdffcf035c9f7dc57d63342f651b3295",
+      "inputEvidence": [
+        "ev-e6df95267b63",
+        "ev-d4e66123c4de",
+        "ev-9fdd5d1096ef",
+        "ev-b8120a2bb840",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-02T16:19:04Z",
+      "callId": "b45c8282-b837-4a78-ba3f-ca1345781c04"
+    }
+  }
+}

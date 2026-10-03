@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1048491ea11d",
+    "candidateId": "sc-8f899185ace7",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "query_range.results_cache"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "More query types (stats, volume, label, series) are cached by default into the results_cache, which is in-memory by default; the service still works but with different caching behavior.",
+        "severity": "low"
+      },
+      "statement": "Results caching for TSDB 'stats' and 'volume' queries, plus 'label' and 'series' requests, is now enabled by default, using the results_cache in the query_range config (in-memory by default)."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Text does not state which settings or index types shield an environment; only TSDB is mentioned and config state is not specified.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-959df790f1d4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b83ae6c3ee4f003fde7931bb5d9ffaa29ccc0d91a707b6805476bdd76e244bb2",
+      "inputEvidence": [
+        "ev-959df790f1d4"
+      ],
+      "generatedAt": "2026-10-02T16:12:35Z",
+      "callId": "71dc7f00-c3c7-4564-a5ae-987f028f63bf"
+    }
+  }
+}

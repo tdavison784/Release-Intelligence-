@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-57cbfe1a7a6e",
+    "candidateId": "sc-193bebd104fa",
+    "proposalId": "sp-0d33330fc167",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "traefik",
+        "path": "metrics.influxDB"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "metrics.influxDB",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--metrics.influxDB",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if InfluxDB v1 metrics configuration (metrics.influxDB) is present in the static configuration.",
+        "severity": "critical"
+      },
+      "statement": "The InfluxDB v1 metrics provider configuration has been removed in Traefik v3.0.0 and will prevent Traefik from starting if present."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator (subject inconclusive)"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

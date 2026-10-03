@@ -1,0 +1,45 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ab7b9c5aefc8",
+  "promptDigest": "sha256:f8c2485ee375eea7b2f37f625e888962d898a2b1f199d565c11aed54478ffef7",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ce5b18fc-2f76-4592-aa26-a8401ca3156b",
+  "startedAt": "2026-10-03T02:27:49.926Z",
+  "decidedAt": "2026-10-03T02:28:06.013Z",
+  "durationMs": 15441,
+  "costUSD": 0.518104,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-e6df95267b63] says the wildcard view permissions were removed in 1.13 and replaced with a binding to the system view role. It also says this may affect mutate and generate policies and validation reporting for custom resources, and that a Helm option was added so the upgrade does not break existing policies, which means existing policies can break. The rendered diffs confirm that the admission, background and reports controller ClusterRoles lose */*:get/list/watch [ev-6af5be55b5f4] [ev-0ae726bec846] [ev-fbb2a078179b]. Kyverno losing access it relied on is permission-lost (mandatory work), not a working-but-different behavior-change; confidence is low because the text says only \"may impact\".",
+    "citations": [
+      "ev-e6df95267b63",
+      "ev-6af5be55b5f4",
+      "ev-cd36d7f61ae5",
+      "ev-d0c5cc15642f",
+      "ev-0ae726bec846",
+      "ev-bd2ca738e58d",
+      "ev-13d9875783a0",
+      "ev-fbb2a078179b",
+      "ev-8034700c2e78",
+      "ev-2e7e175db33a",
+      "ev-575e1935f511",
+      "ev-686e3f03e42c"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Kyverno 1.13 removes the wildcard (*/*) get/list/watch permissions from its admission, background and reports controller ClusterRoles and binds the system view role instead. Kyverno loses read access to custom resources, which may break mutate and generate policies and validation result reporting for those resources.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "permission-lost",
+        "statement": "Kyverno controllers no longer have wildcard view (get/list/watch on */*) permissions; only the system view role is bound. Admission-control policy behaviour is not affected, but mutate and generate policies for custom resources, and the reporting of policy results for validation rules on custom resources, may break unless the operator acts.",
+        "remediation": "Before upgrading, follow the Kyverno 1.13 upgrade guidance: set the Helm option that was added to upgrade without breaking existing policies, or grant Kyverno's controllers the permissions they need on the custom resources your policies target.",
+        "severity": "medium"
+      }
+    }
+  }
+}

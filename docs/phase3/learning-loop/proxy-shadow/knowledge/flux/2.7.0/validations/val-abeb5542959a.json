@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-abeb5542959a",
+    "candidateId": "sc-6c62cef5daa7",
+    "proposalId": "sp-03f028da7bf8",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "flux",
+        "name": "GOMAXPROCS"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "where the flux binary is run (e.g. operator machines or CPU-limited CI containers) and whether GOMAXPROCS is set explicitly there, since the dynamically set GOMAXPROCS depends on the process's runtime environment and not on anything in the cluster manifests"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The affected Flux binary keeps working, but its effective GOMAXPROCS is now set dynamically by the Go runtime, which can change the CPU parallelism behaviour compared to previous releases; the release notes describe no failure and no required operator step.",
+        "remediation": "No action is required; verify CPU utilisation of the affected binary after upgrading and set GOMAXPROCS explicitly if a specific value must be enforced.",
+        "severity": "low"
+      },
+      "statement": "Flux 2.7.0 now allows the Go runtime to dynamically set GOMAXPROCS (listed in the release notes' CLI changelog), so the way the effective GOMAXPROCS value of the affected Flux binary is determined changes; the note describes no failure or required action."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/behavior-changed",
+        "detail": "env-var behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/behavior-changed",
+        "detail": "env-var behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

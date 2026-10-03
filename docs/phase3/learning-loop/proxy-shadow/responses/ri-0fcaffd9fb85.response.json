@@ -1,0 +1,22 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0fcaffd9fb85",
+  "promptDigest": "sha256:3e348ed73b4657ed3ccd1754c8062f9070306be8afdc0eca80f887f3877546fe",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "86c2532f-3d64-48ec-9dd2-2337a0f9627b",
+  "startedAt": "2026-10-03T02:11:18.478Z",
+  "decidedAt": "2026-10-03T02:11:34.330Z",
+  "durationMs": 15163,
+  "costUSD": 0.14294800000000002,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "[ev-689bc0108c6c] says `tls.caOptional` was removed from the ForwardAuth middleware and also from the HTTP, Consul, Etcd, Redis, ZooKeeper, Consul Catalog and Docker providers. The proposed condition only checks Kubernetes Middleware CRDs, so it misses environments that set the option in those providers' configuration. It also misses ForwardAuth middlewares defined outside Kubernetes CRDs. The CRD part is also contradicted: the schema validator found spec.forwardAuth.tls.caOptional still in the v3.0.0 Middleware schema [ev-0842f8f3bd9d] as well as the v2.11.2 one [ev-4fd00a8d9fd6], so it is unclear what happens to CRD users who set it. To decide, we need the v3.0.0 code or reference docs showing how a leftover caOptional is handled (rejected or ignored) and the exact configuration keys or flags for the provider options, so a precise exposure condition can be written.",
+    "citations": [
+      "ev-689bc0108c6c",
+      "ev-0842f8f3bd9d",
+      "ev-4fd00a8d9fd6"
+    ],
+    "confidence": "low"
+  }
+}

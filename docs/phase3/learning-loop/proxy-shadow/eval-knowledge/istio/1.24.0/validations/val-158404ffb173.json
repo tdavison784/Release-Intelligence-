@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-158404ffb173",
+    "candidateId": "sc-d921f48af885",
+    "proposalId": "sp-3a597c352a45",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "initContainers"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "initContainers",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new initContainers capability is optional and provides additional configuration flexibility; existing deployments without this setting are unaffected."
+      },
+      "statement": "The istio-discovery Helm chart now supports initContainers configuration, allowing init containers to be specified for the discovery deployment."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "restatement:values:added",
+        "detail": "computed change chg-409bbe333e68 names helm-value:istio|path=initContainers"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "restatement:values:added",
+        "detail": "computed change chg-409bbe333e68 states the same added: \"New Helm value `initContainers` (chart istiod)\""
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-2139315891c3",
+        "kind": "structured",
+        "sourceId": "chart-istiod",
+        "uri": "https://github.com/istio/istio/blob/1.23.4/manifests/charts/istio-control/istio-discovery/values.yaml",
+        "locator": "manifests/charts/istio-control/istio-discovery/values.yaml",
+        "excerpt": "# \"defaults\" is a workaround for Helm limitations. Users should NOT set \".defaults\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:217a5d5592a8b23ac072f5061e18871f0f4ab35069779dc961f72dc5fa31174a",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T11:33:50Z"
+      },
+      {
+        "id": "ev-257bea760fce",
+        "kind": "structured",
+        "sourceId": "chart-istiod",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/manifests/charts/istio-control/istio-discovery/values.yaml",
+        "locator": "manifests/charts/istio-control/istio-discovery/values.yaml",
+        "excerpt": "# \"_internal_defaults_do_not_set\" is a workaround for Helm limitations. Users should NOT set \"._internal_defaults_do_not_set\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:f8511b9368491181e5237642da7dbce3dc08fcdab252fd72618038e0ef309b25",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:49Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

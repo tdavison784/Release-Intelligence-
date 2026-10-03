@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-cb1a63eb0289",
+    "reviewItemId": "ri-617ea1049cf6",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if the removed `experimental.http3` configuration option is present in the static configuration.",
+        "severity": "critical"
+      },
+      "statement": "The `experimental.http3` static configuration option is removed in Traefik v3.0.0; its presence prevents startup."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:81718e6ed19bf6e0acc83441e32f35548d1d8924a78fafd7f587aa615e8e1e73",
+      "inputEvidence": [
+        "ev-2df1b23f32ac"
+      ],
+      "generatedAt": "2026-10-03T02:19:34.793Z",
+      "callId": "ab3d221f-3891-4ebb-a595-c3dc4860f64b"
+    },
+    "reason": "[ev-2df1b23f32ac] says the `experimental.http3` option has been removed, is now unsupported and \"would prevent Traefik to start\". It also gives a required fix: remove the option from the static configuration's experimental section. If the old option is left in place, the upgraded Traefik does not start. That is a failed upgrade with an unmet precondition, so upgrade-blocked (action class) fits. Critical severity is supported because the whole proxy fails to start.",
+    "startedAt": "2026-10-03T02:19:28.07Z",
+    "decidedAt": "2026-10-03T02:19:34.793Z",
+    "resultingFact": "vf-0eb6d5a4908b"
+  }
+}

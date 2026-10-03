@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-26edc1702afe",
+    "candidateId": "sc-80222d5899d0",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "istioctl-analyze-ist0145-wildcard-host-validation"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"istioctl analyze incorrectly reports IST0145 error for wildcard hosts with specific subdomains\"",
+        "after": "\"istioctl analyze no longer reports IST0145 error for wildcard hosts with specific subdomains\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "analyze",
+          "component": "istioctl",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "istioctl analyze will no longer report false positive IST0145 errors for configurations using wildcard hosts with specific subdomains; previously flagged resources will now pass validation.",
+        "severity": "low"
+      },
+      "statement": "istioctl analyze no longer incorrectly reports IST0145 validation errors when analyzing configurations that use wildcard hosts with specific subdomains."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-a660cba27ffe"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:211d7fdb99a9fcd5da326c9d8595ceed8277e9cce589feea951501516a4d2bfa",
+      "inputEvidence": [
+        "ev-a660cba27ffe"
+      ],
+      "generatedAt": "2026-10-02T06:00:43Z",
+      "callId": "37187b6a-9178-4c97-8d73-7970c0a0793d"
+    }
+  }
+}

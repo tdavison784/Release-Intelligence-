@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-37bebd1af4d3",
+    "reviewItemId": "ri-2225c8eaa836",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "-boltdb.shipper.shared-store",
+          "state": "set"
+        }
+      },
+      "statement": "The `-boltdb.shipper.shared-store` configuration option and its YAML setting have been removed; operators lose access to indexes for periods where the old value does not match `object_store`."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-boltdb.shipper.shared-store",
+                  "state": "set"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "evidence-gap",
+                  "needed": "whether the Loki YAML configuration sets the boltdb shipper shared_store setting (the YAML/Helm path is not given in the evidence)"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the configured shared-store value differs from object_store for any schema period that uses boltdb-shipper as its index type"
+            }
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 removes -boltdb.shipper.shared-store and its YAML setting. Exposed: environments that set it as a CLI flag or in YAML to a value that differs from object_store for any boltdb-shipper period. For those periods the index can no longer be queried until the index tables are moved or copied to the object_store store."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:dde7bfd3b9cdc54dfc1e9f8fd51f6fb4bc842f54f67d901ab6b6b38ceac5b713",
+      "inputEvidence": [
+        "ev-7d2769e8c602"
+      ],
+      "generatedAt": "2026-10-03T02:13:30.64Z",
+      "callId": "999ea362-bcf8-447a-9697-dbebe449163c"
+    },
+    "reason": "[ev-7d2769e8c602] applies this to anyone who configured `-boltdb.shipper.shared-store` \"or its YAML setting\", so a condition that only checks the CLI flag misses environments that set it in the YAML config. The same excerpt also says index access is lost only where the setting does not match `object_store` for periods using `boltdb-shipper`. Where the values match, the operator only has to remove the deleted option. No condition op can compare these two values per period, so the YAML usage and the mismatch are expressed as undecidable operands.",
+    "startedAt": "2026-10-03T02:13:12.562Z",
+    "decidedAt": "2026-10-03T02:13:30.64Z"
+  }
+}

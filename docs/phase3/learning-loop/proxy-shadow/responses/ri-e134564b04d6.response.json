@@ -1,0 +1,157 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-e134564b04d6",
+  "promptDigest": "sha256:ba3e5cf0c0707c4b5e34cf37a3df580a26edeb341dc27ec1588e44ad81eff38b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "f4149d71-84c7-4b6b-a1c3-3b71d42eca8e",
+  "startedAt": "2026-10-03T02:32:51.243Z",
+  "decidedAt": "2026-10-03T02:33:14.262Z",
+  "durationMs": 22358,
+  "costUSD": 0.1589,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-dbef3e2e8163] says five Headers middleware options were removed together: sslRedirect, sslTemporaryRedirect, sslHost, sslForceHost and featurePolicy. The proposed exposure only checks spec.headers.sslRedirect on traefik.io Middleware, so it misses environments that set any of the other four options. The v3.0.0 reference still ships a traefik.containo.us Middleware CRD [ev-8a887e659370] next to the traefik.io one [ev-0842f8f3bd9d], so Middleware resources in either group can be exposed. The validator found sslRedirect still in the v3.0.0 schema, so the CRD may still accept these fields. That means exposure is about having them set, not about the API rejecting them, which is why confidence is low.",
+    "citations": [
+      "ev-dbef3e2e8163",
+      "ev-0842f8f3bd9d",
+      "ev-8a887e659370",
+      "ev-4fd00a8d9fd6"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Traefik 3.0.0 removes the sslRedirect, sslTemporaryRedirect, sslHost, sslForceHost and featurePolicy options of the Headers middleware. Environments are exposed if any Middleware resource (traefik.io or traefik.containo.us) sets any of these spec.headers fields.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "group": "traefik.io",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.headers.sslRedirect",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "traefik.io",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.headers.sslTemporaryRedirect",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "traefik.io",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.headers.sslHost",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "traefik.io",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.headers.sslForceHost",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "traefik.io",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.headers.featurePolicy",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "traefik.containo.us",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.headers.sslRedirect",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "traefik.containo.us",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.headers.sslTemporaryRedirect",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "traefik.containo.us",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.headers.sslHost",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "traefik.containo.us",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.headers.sslForceHost",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "traefik.containo.us",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.headers.featurePolicy",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

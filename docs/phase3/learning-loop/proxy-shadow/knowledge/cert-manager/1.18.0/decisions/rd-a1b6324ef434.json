@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a1b6324ef434",
+    "reviewItemId": "ri-3afd057726f2",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:6139f594e45260c1f0aa9cf4652f0d4d3bbb5ec3eade0c5c902d82ff683b426a",
+      "inputEvidence": [
+        "ev-565f3761f656",
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2"
+      ],
+      "generatedAt": "2026-10-02T12:52:28.594Z",
+      "callId": "5b1aa35a-b3c4-485a-8998-5b5bf4515fee"
+    },
+    "reason": "The only upstream evidence is a one-line bugfix title, \"Quote nodeSelector values in Helm Chart\" [ev-565f3761f656]. It does not say what went wrong before, which values are affected, or how the rendered output changes for an operator who does nothing. The proposed statement says that non-plain-string values (numbers, booleans) are now rendered differently, but the evidence never says that. Since this is a bugfix, the real effect could also be that values which used to fail now work, which would mean no consequence at all. The values snapshots [ev-717ddb6f40cd] [ev-7a67f12867b2] only show that the key exists, and the render validator was inconclusive. To decide between behavior-change and none, we need the PR #7579 description or a rendered-manifest diff between 1.17 and 1.18.",
+    "startedAt": "2026-10-02T12:52:15.699Z",
+    "decidedAt": "2026-10-02T12:52:28.594Z"
+  }
+}

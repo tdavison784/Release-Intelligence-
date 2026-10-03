@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-98997b1f0344",
+    "reviewItemId": "ri-1f189441d69e",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "gvk",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "version": "v1",
+        "kind": "Issuer"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"iss\""
+      },
+      "statement": "cert-manager added the `iss` short name for the `Issuer` resource, with no operational consequence."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:fc25a024c6efe6a01b4a7ddd644726f34a4a82e0d104f6bb816aff5d7103b312",
+      "inputEvidence": [
+        "ev-38243747b200"
+      ],
+      "generatedAt": "2026-10-02T12:49:32.584Z",
+      "callId": "ce83ccfa-db7c-4947-a93c-cb175edb3742"
+    },
+    "reason": "[ev-38243747b200] only says a new `iss` short name was added for the existing `Issuer` resource. It does not say a new group/version/kind is now served. A gvk subject with change type \"added\" would mean the Issuer GVK itself is new, which misreads the text. The version \"v1\" also appears nowhere in the evidence. A CRD short-name alias is not a schema field, Helm value or new GVK, so no family/change-type pair in the vocabulary expresses this note correctly.",
+    "startedAt": "2026-10-02T12:49:19.479Z",
+    "decidedAt": "2026-10-02T12:49:32.584Z"
+  }
+}

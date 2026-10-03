@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6b842c19784e",
+    "reviewItemId": "ri-20e4427f38af",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "enableRuntimeDeviceDetection",
+          "state": "set"
+        }
+      },
+      "statement": "The Helm option enableRuntimeDeviceDetection is deprecated and will be removed in a future release, because detection of native device and address changes is now the default."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:a68cfc36ede2d53a08e607206d95a556c77f44f4bc0c5421de23a712beab0ee6",
+      "inputEvidence": [
+        "ev-540db624a6ea",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T12:49:46.21Z",
+      "callId": "db90b16c-c2cf-4f61-a150-7a9f330a5c05"
+    },
+    "reason": "[ev-540db624a6ea] says the Helm option `enableRuntimeDeviceDetection` is deprecated and will be removed in a future release. The upgrade note also makes runtime detection the default, so the option no longer does anything useful. That means the environments affected by the deprecation are the ones that set the key, which is what values-key{enableRuntimeDeviceDetection, set} expresses. `nodePort.addresses` is mentioned only as a related setting, not as a replacement, so a replacedBy-unset operand is not needed. One caveat: the exposure for the default change itself (environments that never enabled detection) would be a different assertion, and the evidence doesn't say whether setting the option to false is still honoured.",
+    "startedAt": "2026-10-02T12:49:34.952Z",
+    "decidedAt": "2026-10-02T12:49:46.21Z"
+  }
+}

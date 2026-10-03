@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5ad0ed350559",
+    "reviewItemId": "ri-512af41b71b9",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "out-of-range",
+              "range": ">=0.16.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "which installation paths or existing CRD conversion settings trigger the Forbidden spec.conversion.webhookClientConfig error when applying 0.16.0"
+            }
+          ]
+        }
+      },
+      "statement": "Installing or upgrading to 0.16.0 can fail with \"spec.conversion.webhookClientConfig: Forbidden: should not be set when strategy is not set to Webhook\"; upstream says to use 0.16.1 instead, where this is fixed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:522b8e6575bf5f0d3e109d82f1e546289b85c9598cdca4ad6e349bb1f978ece0",
+      "inputEvidence": [
+        "ev-0eb3d16492e3",
+        "ev-558ba9e85f76",
+        "ev-1265a0fa1fc4",
+        "ev-678654f153b4",
+        "ev-5e86077f4adc",
+        "ev-4cac666b69f8",
+        "ev-07e78d40dd67",
+        "ev-7a082965d61c",
+        "ev-07eab10f591f",
+        "ev-f97dcf83b9d2",
+        "ev-c86883e648c4",
+        "ev-cf5b0dbb9f73",
+        "ev-a31efa6e7bb0",
+        "ev-5e94a01f7dbe",
+        "ev-34ba994b9e84",
+        "ev-11604edd4eac",
+        "ev-728cc9a57b79",
+        "ev-accae151c859",
+        "ev-0afe39b45a54",
+        "ev-1e54120ce3cb",
+        "ev-f9b6cb924705"
+      ],
+      "generatedAt": "2026-10-03T02:18:14.484Z",
+      "callId": "16c4101c-fe52-4ff0-a3be-d55631d0ecd1"
+    },
+    "reason": "[ev-0eb3d16492e3] is a troubleshooting entry under \"Guide to Promoting to 0.16\", so it is about upgrades from releases before 0.16. That supports the edge-from-version out-of-range \">=0.16.0\" operand. The entry gives a workaround (use 0.16.1) but does not say which installation paths or existing CRD states trigger the Forbidden error. The rendered diffs ([ev-558ba9e85f76], [ev-7a082965d61c] and others) show spec.conversion removed from the chart CRDs, but no source links that removal to the error. Combining the version bound with an undecidable evidence-gap operand captures what the evidence supports without over- or under-claiming.",
+    "startedAt": "2026-10-03T02:18:04.406Z",
+    "decidedAt": "2026-10-03T02:18:14.484Z"
+  }
+}

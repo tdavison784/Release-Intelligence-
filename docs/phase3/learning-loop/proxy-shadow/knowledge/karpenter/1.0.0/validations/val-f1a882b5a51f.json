@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f1a882b5a51f",
+    "candidateId": "sc-eedb90bededa",
+    "proposalId": "sp-ca079e3ef445",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "kind": "NodePool",
+        "path": "spec.disruption.expireAfter"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "karpenter",
+          "group": "karpenter.sh",
+          "kind": "NodePool",
+          "path": "spec.template.spec.expireAfter"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption.expireAfter",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.template.spec.expireAfter",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "statement": "In Karpenter 1.0.0, the NodePool ExpireAfter field moved from spec.disruption to spec.template.spec and is now a drift-able field."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/renamed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/renamed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

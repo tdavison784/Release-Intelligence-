@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-1f7740f6a17a",
+    "reviewItemId": "ri-08e362bb81b6",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.securityContext",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.podSecurityContext",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.securityContext",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.podSecurityContext",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The clustermesh-apiserver podSecurityContext and securityContext Helm settings now default to dropping all capabilities and running as a non-root user."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:7c0383171830c18565ae7048abf0c9eb8c7d14e2df03ece846cdd9fecde1bd8b",
+      "inputEvidence": [
+        "ev-da6e6a1ea917",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T12:46:24.273Z",
+      "callId": "54ba21d8-3a7b-4a06-a984-dd05a0b92a49"
+    },
+    "reason": "[ev-da6e6a1ea917] says the default changed for both the clustermesh-apiserver `podSecurityContext` and `securityContext` settings. The validator found both keys in the chart's values file in both releases [ev-28e0ccb5774a, ev-39a22d88e2f5]. An environment that leaves either key unset picks up a new default, so exposure is \"either key is unset\". Only an environment that sets both keys keeps its own values for both, so the shielded case is \"both keys are set\". This is the standard pattern for a changed Helm default, applied to two keys.",
+    "startedAt": "2026-10-02T12:46:10.51Z",
+    "decidedAt": "2026-10-02T12:46:24.273Z"
+  }
+}

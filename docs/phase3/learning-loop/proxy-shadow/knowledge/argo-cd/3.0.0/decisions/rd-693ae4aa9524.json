@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-693ae4aa9524",
+    "reviewItemId": "ri-e922e6e033df",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "configs.cm[\"resource.exclusions\"]",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "configs.cm[\"resource.exclusions\"]",
+          "state": "set"
+        }
+      },
+      "statement": "The Argo CD manifest now ships a default resource.exclusions in argocd-cm that excludes high-churn controller-created kinds (Endpoints, EndpointSlice, Lease, Kyverno reports, Cilium identities, etc.); it can be overridden or removed to preserve v2 behavior."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"resource.exclusions\"]",
+              "state": "unset"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"resource.exclusions\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "statement": "Argo CD 3.0.0 ships a default resource.exclusions in the argocd-cm ConfigMap. Environments whose argocd-cm does not set data[\"resource.exclusions\"] get the new default exclusions (Endpoints, EndpointSlice, Lease, review kinds, CertificateSigningRequest, PolicyReport, CertificateRequest, Kyverno and Cilium kinds). Environments that set the key explicitly keep their own configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:77d6f94c0415bca09f45b5d94b474e1a768a45495ba3be88c0cc5921e4a485fb",
+      "inputEvidence": [
+        "ev-3437aa882db2"
+      ],
+      "generatedAt": "2026-10-02T16:02:32.398Z",
+      "callId": "d5b6a5e0-5f89-4ab6-a165-0dbd528288a2"
+    },
+    "reason": "[ev-3437aa882db2] says the Argo CD manifest now ships a default `resource.exclusions` in the `argocd-cm` ConfigMap, which can be overridden or removed in that ConfigMap to keep v2 behaviour. The evidence never mentions a Helm chart or the values path `configs.cm[\"resource.exclusions\"]`, and the render validator could not confirm it. So exposure should be read from the argocd-cm ConfigMap itself: environments where the key is not set get the new default exclusions. Environments that set it explicitly are shielded.",
+    "startedAt": "2026-10-02T16:02:14.565Z",
+    "decidedAt": "2026-10-02T16:02:32.398Z"
+  }
+}

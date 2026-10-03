@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-11b8edc209bb",
+    "candidateId": "sc-c5b9ccdb0bc8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "ambient-dns-capture-upgrade-order"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "cni.ambient.dnsCapture",
+          "state": "equals",
+          "values": [
+            "true"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If the upgrade steps (upgrade CNI, restart ambient workloads, upgrade Ztunnel) are not followed, DNS resolution failures occur.",
+        "remediation": "Restart the affected workloads to resolve DNS failures; follow order: upgrade Istio CNI, restart ambient-enrolled workloads, upgrade Ztunnel.",
+        "severity": "high"
+      },
+      "statement": "Upgrading to Istio 1.24.0 in ambient mode with cni.ambient.dnsCapture=true requires upgrading Istio CNI, restarting ambient-enrolled workloads, then upgrading Ztunnel, otherwise DNS resolution fails."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-1558dd759b77"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4dc234e15b7527adb5137744612ca872f221b0180e2569c97f7ff6f6b37f151a",
+      "inputEvidence": [
+        "ev-1558dd759b77"
+      ],
+      "generatedAt": "2026-10-02T06:08:00Z",
+      "callId": "c8d32d18-b277-43a8-b945-98cde4a2e5e7"
+    }
+  }
+}

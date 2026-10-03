@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b3c4ad522d6d",
+    "candidateId": "sc-3b0fee67078d",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "rendered-change",
+          "kind": "Deployment",
+          "path": "spec.template.spec.imagePullSecrets",
+          "state": "added"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Deployments rendered by the chart now include the configured image pull secrets when service accounts aren't created, where previously they did not; the release note states no failure, only this changed rendering.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds the configured image pull secrets to the chart's Deployments in cases where service accounts aren't created, where previously they were not added there."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the release note names no Helm value key, CRD field, flag or other typed subject; it only describes a change in how the chart renders Deployments",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-772ebf21cd9f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3639427eb75f6e9dfea67a47d1c7e4fc115bd046701e67fb07bfdfbd87f2bc03",
+      "inputEvidence": [
+        "ev-772ebf21cd9f"
+      ],
+      "generatedAt": "2026-10-02T11:36:43Z",
+      "callId": "349974e3-9512-490a-8553-77db835680a7"
+    }
+  }
+}

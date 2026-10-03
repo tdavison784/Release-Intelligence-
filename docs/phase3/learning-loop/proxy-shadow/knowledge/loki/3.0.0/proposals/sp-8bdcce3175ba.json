@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8bdcce3175ba",
+    "candidateId": "sc-bda23741737a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "query_range.split_queries_by_interval"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "limits_config.split_queries_by_interval"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "loki.query_range.split_queries_by_interval",
+          "state": "set"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "loki.limits_config.split_queries_by_interval",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The option is removed from the query_range section; its function is now configured in limits_config, so verify the setting is moved there.",
+        "remediation": "Configure split_queries_by_interval under limits_config instead of query_range.",
+        "severity": "medium"
+      },
+      "statement": "`split_queries_by_interval` is removed from the `query_range` config section and is configured in `limits_config` instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-3f6039ca92c8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:03420146920fb531178eb9dc07e5b0b7389ab691d0edefdce416b4c349b1545f",
+      "inputEvidence": [
+        "ev-3f6039ca92c8"
+      ],
+      "generatedAt": "2026-10-02T20:59:18Z",
+      "callId": "55cd7d98-289f-46f8-99ed-3d64264d95bb"
+    }
+  }
+}

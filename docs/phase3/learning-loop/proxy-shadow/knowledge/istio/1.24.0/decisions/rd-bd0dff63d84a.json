@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-bd0dff63d84a",
+    "reviewItemId": "ri-0e6ec1f33169",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "telemetry-cel-peer-metadata-attributes"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "Telemetry API CEL expressions must be updated to use standard Envoy attributes (filter_state.downstream_peer/upstream_peer, xds.node, fully qualified wasm.* attributes) instead of the custom Wasm extended attributes."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:5493df66e829626b3cdf14d069c736cc4a7928f25ded2d9187c0169b5d805476",
+      "inputEvidence": [
+        "ev-7e3267b542c5",
+        "ev-a3db376e8800"
+      ],
+      "generatedAt": "2026-10-02T12:46:51.015Z",
+      "callId": "2de4bc29-00ec-412d-bbfd-0715e63ef359"
+    },
+    "reason": "The release note [ev-7e3267b542c5] and the 1.24 upgrade notes [ev-a3db376e8800] both say that CEL expressions in the telemetry API \"must use\" the standard Envoy attributes. The attributes move from filter_state[\"wasm.downstream_peer\"]/[\"wasm.upstream_peer\"] to filter_state.downstream_peer/upstream_peer, from node to xds.node, and Wasm attributes must be fully qualified. So operators have to rewrite their expressions, which fits a migration subject with migration-required. The kebab-case name \"telemetry-cel-peer-metadata-attributes\" is built only from the evidence's own key words.",
+    "startedAt": "2026-10-02T12:46:43.686Z",
+    "decidedAt": "2026-10-02T12:46:51.015Z"
+  }
+}

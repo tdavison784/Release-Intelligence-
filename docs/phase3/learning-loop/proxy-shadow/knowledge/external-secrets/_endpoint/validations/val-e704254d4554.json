@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e704254d4554",
+    "candidateId": "sc-541b56f9cad6",
+    "proposalId": "sp-9094d2401ddc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1alpha1",
+        "kind": "PushSecret",
+        "path": "spec.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1 allowed\"",
+        "after": "\"v1 not allowed\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "external-secrets.io",
+              "version": "v1alpha1",
+              "kind": "PushSecret"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.engineVersion",
+                  "state": "equals",
+                  "values": [
+                    "\"v1\""
+                  ]
+                }
+              ],
+              "group": "external-secrets.io",
+              "version": "v1alpha1",
+              "kind": "PushSecret"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "PushSecret resources with spec.template.engineVersion set to \"v1\" will be rejected by the API server.",
+        "severity": "high"
+      },
+      "statement": "The enum value \"v1\" was removed from spec.template.engineVersion in external-secrets.io/v1alpha1 PushSecret, causing resources with this field set to \"v1\" to be rejected by the API server."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

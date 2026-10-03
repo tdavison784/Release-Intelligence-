@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0797533b7d40",
+    "candidateId": "sc-05b7e96dd774",
+    "proposalId": "sp-30263864defd",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--enable-k8s"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"false\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--datapath-mode",
+              "state": "equals",
+              "values": [
+                "\"lb-only\""
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enable-k8s",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Without --enable-k8s=false, Cilium in lb-only datapath mode under plain Docker assumes Kubernetes is present.",
+        "remediation": "Add --enable-k8s=false to the command line."
+      },
+      "statement": "Running Cilium with --datapath-mode=lb-only in plain Docker mode now requires adding --enable-k8s=false, otherwise Kubernetes is assumed to be present."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/now-required",
+        "detail": "no canonical exposure condition for cli-flag now-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7b57b6826555",
+    "candidateId": "sc-cd46ebca5f3e",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Fine-Grained RBAC for application `update` and `delete` sub-resources: The default behavior of fine-grained policies have changed so they no longer apply to…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"server.rbac.disableApplicationFineGrainedRBACInheritance\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            }
+          ]
+        }
+      },
+      "statement": "Starting in Argo CD 3.0, application `update` and `delete` RBAC policies no longer apply to sub-resources; the v2 behavior can be kept by setting server.rbac.disableApplicationFineGrainedRBACInheritance to false in argocd-cm."
+    },
+    "proposals": [
+      "sp-11575bc2fee7",
+      "sp-8d12f3fffdd2"
+    ],
+    "validations": [
+      "val-4a6bbe917a2d",
+      "val-af050df23991",
+      "val-b1739e7399e8",
+      "val-d9c7cdb1e39f"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T05:56:59Z"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-95306f20ce05",
+    "candidateId": "sc-c6c2d0c1e4f2",
+    "proposalId": "sp-422ee14b63aa",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "zookeeper-to-kraft-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any Kafka cluster is still ZooKeeper-based rather than KRaft; the evidence names no field or setting that shows it"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Clusters still ZooKeeper-based must be migrated to KRaft before upgrading to Strimzi 0.46.0 or newer, because ZooKeeper support and the migration path are removed.",
+        "remediation": "Migrate all clusters to KRaft using a Strimzi version that still supports migration, then upgrade to 0.46.0 or newer.",
+        "severity": "high"
+      },
+      "statement": "Strimzi 0.46.0 removes support for ZooKeeper-based clusters and for ZooKeeper-to-KRaft migration, so all clusters must already be on KRaft before upgrading to 0.46.0 or newer."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}
