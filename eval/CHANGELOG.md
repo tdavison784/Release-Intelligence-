@@ -420,3 +420,47 @@ plain-run finding, so the panel is unchanged. The effect of (g) was only on the 
 ceiling (four links counted reachable). Without it they remain honestly UNKNOWN pending the PO's L7
 decision.
 
+## 2026-10-03 (j) — four links moved to undecidedImpact — **product-owner decision (L7 option B), made AFTER seeing results**
+
+Disclosure: this is a denominator change decided by the product owner after the evaluation results
+and LOOP-DIAGNOSIS-2 (§4c, §7 L7) had been read. It is not an upstream correction. The four links'
+labels claimed an affected class, but the fixtures as authored do not contain the input that decides
+them: each upstream-documented escape hatch lives in a ConfigMap the environment does not supply. Under
+absence-is-not-knowledge, the honest answer is UNKNOWN. The fixtures are **unchanged** (option A,
+completing them, was rejected; its draft is the reverted commit 6affc2b2).
+
+| Case · item | Before | After | `needed` |
+|---|---|---|---|
+| argo-cd-2.14-3.0 · E1 | expectedImpact, action-required; classification action-required | undecidedImpact, environment-visibility-gap; classification unknown | argocd-cm (`server.rbac.disableApplicationFineGrainedRBACInheritance: "false"` keeps v2 behaviour) |
+| argo-cd-2.14-3.0 · E2 | expectedImpact, action-required; classification action-required | undecidedImpact, environment-visibility-gap; classification unknown | argocd-cm (`server.rbac.log.enforce.enable: "true"` is the guide's unaffected case) |
+| argo-cd-2.14-3.0 · E3 | expectedImpact, review; classification review-required | undecidedImpact, environment-visibility-gap; classification unknown | argocd-cm (`resource.exclusions` override; the new default ships in argocd-cm) |
+| cert-manager-1.17-1.18 · E3 | expectedImpact, action-required (no item classification) | undecidedImpact, environment-visibility-gap | the ingress-nginx controller ConfigMap (`strict-validate-path-type: "false"` workaround) |
+
+Each moved link keeps its exposure and evidence, and its `why` keeps the old relevance
+("previously expectedImpact relevance …"). Matchers, semantics and fixtures are unchanged.
+
+**Gate panel** (plain `ri eval`; branch p3ll/groundtruth-7 = p3-learning-loop @ 38154356; state =
+primary checkout's warm cache):
+
+| Gate | Before (denominator 105) | After (denominator 101) |
+|---|---|---|
+| criticalRecall | 1.00 ✓ | 1.00 ✓ |
+| importantRecall | 0.97 ✓ | 0.97 ✓ |
+| applicabilityAccuracy | **0.505** ✗ (affected 23/75 hit; not-affected 30, 0 violations) | **0.525** ✗ (affected 23/71; not-affected 30, 0 violations) |
+| falseActionRate | 0.059 ✗ (17, 1 wrong) | 0.059 ✗ (unchanged) |
+| actionFindingEvidence | 1.00 ✓ | 1.00 ✓ |
+| unsupported | 0 ✓ | 0 ✓ |
+| pipelineFailures | 0 ✓ | 0 ✓ |
+
+**Old-denominator number after the change:** none of the four links was hit before, so on the old
+denominator applicabilityAccuracy is unchanged: (23 + 30) / 105 = **0.505**. The whole move
+0.505 → 0.525 is the denominator, not the engine.
+
+Other effects:
+- unknownHonesty (reported, not gated): 10/10 → 14/14 undecided links answered honestly.
+- classificationAccuracy drops 0.419 → 0.402 (117 scored). argo E1/E2 have no joined finding, so the
+  scorer falls back to the change-level action flag (action-required). That matched the old class
+  and now differs from `unknown`, while E3 (action vs review) was already a mismatch. This is the
+  documented convention (undecided link ⇒ item class unknown) applied as-is, not adjusted.
+- No stored-result regressions.
+
