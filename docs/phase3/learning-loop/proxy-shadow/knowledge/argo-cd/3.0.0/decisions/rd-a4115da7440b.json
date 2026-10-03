@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a4115da7440b",
+    "reviewItemId": "ri-161981524668",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data.repositories",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "statement": "The argocd-cm ConfigMap keys for repositories (repositories, repository.credentials, helm.repositories) have been removed and are no longer supported in Argo CD 3.0."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.repositories",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "data[\"repository.credentials\"]",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "data[\"helm.repositories\"]",
+                  "state": "set"
+                }
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "statement": "Argo CD 3.0 no longer supports legacy repository configuration in the argocd-cm ConfigMap. Environments that set any of the data keys repositories, repository.credentials or helm.repositories in argocd-cm are exposed and must convert those repositories to Secrets."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:e005bd13b940569cb687a2632a6d05509715dddba504c256867c0d8e5e4bd18e",
+      "inputEvidence": [
+        "ev-ea324615706c"
+      ],
+      "generatedAt": "2026-10-03T12:45:12.474Z",
+      "callId": "007962e3-c9f4-4c6a-ab16-93d2905b5e02",
+      "provider": "anthropic"
+    },
+    "reason": "The detection command in [ev-ea324615706c] reads three argocd-cm data keys: repositories, repository.credentials and helm.repositories. It says you are not impacted only when all three are empty (`[, , ]`). So an environment is exposed when any one of these keys is set. The proposed condition checks only data.repositories, which is too narrow: it misses environments that set only repository.credentials or only helm.repositories.",
+    "startedAt": "2026-10-03T12:45:04.632Z",
+    "decidedAt": "2026-10-03T12:45:12.474Z"
+  }
+}

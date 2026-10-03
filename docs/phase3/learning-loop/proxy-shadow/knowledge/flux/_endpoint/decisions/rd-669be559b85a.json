@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-669be559b85a",
+    "reviewItemId": "ri-3e56270b130e",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:ddd06ad4435c4b491b8766310ba842b0fd7bb0630cd149ee438cc27340a3b594",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T12:50:20.023Z",
+      "callId": "7f7b9216-fe3d-43f3-84d3-337ae8e77a0e",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-782bc47d120d] and [ev-c2c6c790d6b2] only show the install bundles (\"apiVersion: v1\"). The validators prove that status.artifact.digest becomes required in the OCIRepository v1 schema, but not what happens to anyone's objects. The \"objects that omit them are rejected\" line is generic diff wording, and the field sits under status, which the controller writes, not the operator. No upstream text says whether existing objects, status updates or operator-applied manifests are rejected, so resource-rejected/action-required is not supported. We need release notes or upgrade-guide text on whether the controller always sets the digest and whether existing objects fail validation.",
+    "startedAt": "2026-10-03T12:50:05.777Z",
+    "decidedAt": "2026-10-03T12:50:20.023Z"
+  }
+}

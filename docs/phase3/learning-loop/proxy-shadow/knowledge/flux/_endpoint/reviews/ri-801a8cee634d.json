@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-801a8cee634d",
+    "candidateId": "sc-1007e5d829a0",
+    "product": "flux",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Storage version of `imageupdateautomations.image.toolkit.fluxcd.io` changes v1beta2 → v1\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImageUpdateAutomation objects stay stored as v1beta2 until rewritten; a storage version migration must be run and status.storedVersions updated before a later release removes v1beta2.",
+        "remediation": "Re-write all ImageUpdateAutomation objects and update status.storedVersions on the CRD.",
+        "severity": "medium"
+      },
+      "statement": "The ImageUpdateAutomation CRD storage version changes from v1beta2 to v1, so existing objects stay stored as v1beta2 until a storage version migration is run and status.storedVersions is updated before a later release removes v1beta2."
+    },
+    "proposals": [
+      "sp-6bac6a7c0e36",
+      "sp-85d55ba8e865",
+      "sp-9be5c7cd9323",
+      "sp-a56e0669419b"
+    ],
+    "validations": [
+      "val-0d0478a2bad5",
+      "val-55a71e19bbec",
+      "val-58447e25c108",
+      "val-586b3987119e",
+      "val-588ceafc2902",
+      "val-5ba58a71cb70",
+      "val-98b0a7549a5b",
+      "val-c6af8bd3e062",
+      "val-d510551aa5fd",
+      "val-fc199bb86200"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T21:02:51Z"
+  }
+}

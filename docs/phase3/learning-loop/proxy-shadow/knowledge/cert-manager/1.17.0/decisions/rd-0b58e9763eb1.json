@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0b58e9763eb1",
+    "reviewItemId": "ri-c8e7a0916b50",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.keystores.jks",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.keystores.pkcs12",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            }
+          ]
+        }
+      },
+      "statement": "JKS and PKCS12 keystore password fields can now accept literal values as an alternative to passwordSecretRef in Certificate resources."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:145a35ec2440544e555bf4892609716937b25f80fa05cf1d8eef3110e3ef1852",
+      "inputEvidence": [
+        "ev-d308231cd8ab",
+        "ev-53fb690413df",
+        "ev-e3729e495e40",
+        "ev-772ebf21cd9f",
+        "ev-fe02a4220985",
+        "ev-fe0fca386a7a",
+        "ev-db955cc00d69",
+        "ev-cd466139dded",
+        "ev-c54ac338953d",
+        "ev-e7cf2f463686",
+        "ev-619c0cea3aa4"
+      ],
+      "generatedAt": "2026-10-03T12:34:30.47Z",
+      "callId": "58225225-6c47-4444-bdae-a4e22db5b7d1",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-d308231cd8ab] describes an additive, opt-in feature: keystore passwords can now also be given as literal values, as an alternative to the existing passwordSecretRef field. It names no failure and no behaviour change for existing Certificates. The proposed exposure flags every Certificate that sets spec.keystores.jks or spec.keystores.pkcs12. That is broader than the evidence supports, because those environments face no stated consequence. A narrower condition would have to read the new literal-password field, but neither the release note nor the section context gives that field's path, so no correct condition can be written without inventing one.",
+    "startedAt": "2026-10-03T12:34:22.029Z",
+    "decidedAt": "2026-10-03T12:34:30.47Z"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8f1280963b7f",
+    "reviewItemId": "ri-512af41b71b9",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "out-of-range",
+              "range": ">=0.16.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "which installation paths or existing CRD conversion settings trigger the Forbidden spec.conversion.webhookClientConfig error when applying 0.16.0"
+            }
+          ]
+        }
+      },
+      "statement": "Installing or upgrading to 0.16.0 can fail with \"spec.conversion.webhookClientConfig: Forbidden: should not be set when strategy is not set to Webhook\"; upstream says to use 0.16.1 instead, where this is fixed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:4dfe431a1ce8dc729ea5d833c48c529909f423cda308841fe2c4a021c50e139d",
+      "inputEvidence": [
+        "ev-0eb3d16492e3",
+        "ev-558ba9e85f76",
+        "ev-1265a0fa1fc4",
+        "ev-678654f153b4",
+        "ev-5e86077f4adc",
+        "ev-4cac666b69f8",
+        "ev-07e78d40dd67",
+        "ev-7a082965d61c",
+        "ev-07eab10f591f",
+        "ev-f97dcf83b9d2",
+        "ev-c86883e648c4",
+        "ev-cf5b0dbb9f73",
+        "ev-a31efa6e7bb0",
+        "ev-5e94a01f7dbe",
+        "ev-34ba994b9e84",
+        "ev-11604edd4eac",
+        "ev-728cc9a57b79",
+        "ev-accae151c859",
+        "ev-0afe39b45a54",
+        "ev-1e54120ce3cb",
+        "ev-f9b6cb924705"
+      ],
+      "generatedAt": "2026-10-03T12:52:45.192Z",
+      "callId": "2fe26e34-ddd9-4448-b42e-949c819a120d",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-0eb3d16492e3] is a troubleshooting note. It quotes the Forbidden error and says to use 0.16.1 instead of 0.16.0, but it never says which installation paths or cluster states hit the error. The rendered diffs ([ev-558ba9e85f76], [ev-7a082965d61c] and others) show the chart dropping the Webhook spec.conversion block from its CRDs between 0.15.0 and 0.16.0. No upstream text ties that removal to the error, so a CRD-field predicate would be a guess. The proposed condition limits exposure to environments coming from before 0.16.0 and marks the rest as an evidence-gap undecidable leaf. That is an honest reading of what the evidence supports.",
+    "startedAt": "2026-10-03T12:52:31.185Z",
+    "decidedAt": "2026-10-03T12:52:45.192Z"
+  }
+}

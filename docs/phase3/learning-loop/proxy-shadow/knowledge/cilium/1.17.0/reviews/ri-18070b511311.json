@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-18070b511311",
+    "candidateId": "sc-b38b4b719434",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The Helm options `hubble.tls.server.cert`, `hubble.tls.server.key`, `hubble.relay.tls.client.cert`, `hubble.relay.tls.client.key`, `hubble.relay.tls.server.cer…\", what happens, and is that review or action? proposed: deprecation",
+    "proposed": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "These Helm options still work in 1.17.0 but are deprecated and will be removed in a future release.",
+        "remediation": "Move the TLS certificates and keys into Secrets and point to them with the associated existingSecret options (e.g. hubble.tls.server.existingSecret, hubble.relay.tls.client.existingSecret, hubble.relay.tls.server.existingSecret, hubble.ui.tls.client.existingSecret).",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0, eight Hubble TLS cert/key Helm options (hubble.tls.server.cert/key, hubble.relay.tls.client.cert/key, hubble.relay.tls.server.cert/key, hubble.ui.tls.client.cert/key) are deprecated in favor of the associated existingSecret options and will be removed in a future release."
+    },
+    "proposals": [
+      "sp-4f26ade2f95b",
+      "sp-542b0bf98103",
+      "sp-c1b95136b77e",
+      "sp-e0bfaef230e2",
+      "sp-f07d15dbed47"
+    ],
+    "validations": [
+      "val-024bb15456d7",
+      "val-4924acaf2678",
+      "val-9359bf3a2ad7",
+      "val-d4711fea0422"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:50:50Z"
+  }
+}

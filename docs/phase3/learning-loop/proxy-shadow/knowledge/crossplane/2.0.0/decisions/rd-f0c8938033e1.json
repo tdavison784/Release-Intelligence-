@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f0c8938033e1",
+    "reviewItemId": "ri-90027114ac30",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "external-secret-stores"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "External secret stores are listed under removed features in the Crossplane v2 upgrade guide; the excerpt gives no details."
+    },
+    "corrected": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "external-secret-stores-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "Crossplane 2.0.0 removes external secret stores, an alpha feature that is no longer maintained. Operators who use them must migrate to native Kubernetes secrets or External Secrets Operator before upgrading."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:6c74ee64b8da77bebf37ecb86e9439b4958f06fa1124eca81562f993b5e80330",
+      "inputEvidence": [
+        "ev-17bb38a28de1",
+        "ev-bca50902f293",
+        "ev-0dcc5d469a15",
+        "ev-c929ea305a6b",
+        "ev-c83e2bd70048",
+        "ev-00ae0ffe7ffa",
+        "ev-dbce621da33f",
+        "ev-0c1262a1a2a5",
+        "ev-e2dcb3e0ebe6",
+        "ev-430fc91e4c1d"
+      ],
+      "generatedAt": "2026-10-03T12:29:26.155Z",
+      "callId": "c25c7c74-ad65-4c00-9450-c92ceb4253dc",
+      "provider": "anthropic"
+    },
+    "reason": "The upgrade guide lists External secret stores under Removed features [ev-17bb38a28de1]. Its detail entry [ev-0c1262a1a2a5] describes the feature as alpha and unmaintained, and tells anyone using it to migrate to native Kubernetes secrets or External Secrets Operator before upgrading. None of this describes wire or protocol behaviour, so protocol-behavior is the wrong family. The evidence names no flag, CRD or key that could serve as a typed subject, so the closest supported reading is the stated mandatory operator step: the migration family with change type migration-required.",
+    "startedAt": "2026-10-03T12:29:11.999Z",
+    "decidedAt": "2026-10-03T12:29:26.155Z"
+  }
+}

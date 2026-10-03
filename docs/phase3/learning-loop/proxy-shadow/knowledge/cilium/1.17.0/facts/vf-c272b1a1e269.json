@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-c272b1a1e269",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-8e57214dc39f"
+        ],
+        "statementKeys": [
+          "sk-ac194e78995f"
+        ],
+        "changeIds": [
+          "chg-85a55b1cc27a"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-590664a9778c"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-services-unsatisfied-total-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-services-unsatisfied-metric"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any dashboards, alerts or scrapers query the old metric name lbipam_services_unsatisfied_total"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, the LB-IPAM unsatisfied-services metric is exposed as `lbipam_services_unsatisfied` instead of `lbipam_services_unsatisfied_total`. Monitoring queries, dashboards or alerting rules that reference the old name should be checked against the new name.",
+        "remediation": "Update any Prometheus queries, recording rules, dashboards or alerts that reference `lbipam_services_unsatisfied_total` so they use `lbipam_services_unsatisfied`.",
+        "severity": "medium"
+      },
+      "statement": "`lbipam_services_unsatisfied_total` has been renamed to `lbipam_services_unsatisfied`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-07e72f1c9e5d"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-07e72f1c9e5d"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-f6e1e2e885ae"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-93571385e1b5"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9a62461ebaa9",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L459-L459 (1.17 Upgrade Notes › Changed Metrics)",
+        "excerpt": "* `lbipam_services_unsatisfied_total` has been renamed to `lbipam_services_unsatisfied`",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:35:58.501Z"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e279758e04a0",
+    "reviewItemId": "ri-75a2018dc2e5",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Compactor CLI flags using the boltdb.shipper.compactor. prefix are no longer recognized and will be ignored; the compactor. prefix must be used instead.",
+        "remediation": "Replace all occurrences of --boltdb.shipper.compactor.* CLI flags with their --compactor.* equivalents.",
+        "severity": "high"
+      },
+      "statement": "Compactor CLI flags with the boltdb.shipper.compactor. prefix are removed; use the compactor. prefix instead."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Compactor settings passed with `boltdb.shipper.compactor.`-prefixed CLI flags stop being honoured because those flags are removed in 3.0.0.",
+        "remediation": "Replace every --boltdb.shipper.compactor.* CLI flag with its --compactor.* equivalent before upgrading.",
+        "severity": "high"
+      },
+      "statement": "In Loki 3.0.0 the compactor CLI flags with the `boltdb.shipper.compactor.` prefix are removed. Values set through them are no longer honoured, and the matching `compactor.`-prefixed flags must be used instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:2e190b856a12e2e6868cbeaaf6ffd3efa3e0c78dff7468da38360895b2f21a56",
+      "inputEvidence": [
+        "ev-f15092605ae3",
+        "ev-dc20110f4f4b",
+        "ev-da0f06f8da24",
+        "ev-a0b618cd90db",
+        "ev-c8a8a9c16d41",
+        "ev-03b4fbe630df",
+        "ev-8fea3a0e7308",
+        "ev-3f6039ca92c8",
+        "ev-3cb906d8d02b",
+        "ev-f5a61f629314",
+        "ev-9f4292160fa2",
+        "ev-c0bb5c52ce78",
+        "ev-7b384eb00d22",
+        "ev-7b76cb015d7e"
+      ],
+      "generatedAt": "2026-10-03T12:57:40.97Z",
+      "callId": "e72356a8-c587-4969-b425-af5b9fc0e47a",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-f15092605ae3] says the `boltdb.shipper.compactor.`-prefixed compactor CLI flags are removed and that the `compactor.`-prefixed flags should be used instead. That is a removed or renamed key, so the values set through the old flags are no longer honoured: setting-ignored fits. The proposed statement also says the flags \"will be ignored\", meaning silently skipped. Neither this excerpt nor the section context ([ev-7b76cb015d7e]) says how a removed flag is handled at startup, so the statement is corrected to say only what the evidence supports.",
+    "startedAt": "2026-10-03T12:57:28.62Z",
+    "decidedAt": "2026-10-03T12:57:40.97Z"
+  }
+}

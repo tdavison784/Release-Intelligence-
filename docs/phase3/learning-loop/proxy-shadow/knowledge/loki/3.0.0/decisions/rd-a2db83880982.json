@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a2db83880982",
+    "reviewItemId": "ri-76250392cc97",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `querier.query_timeout` configuration key is no longer honored; environments must move this setting to `limits_config.query_timeout`.",
+        "severity": "high"
+      },
+      "statement": "The `query_timeout` configuration key is removed from the `querier` YAML section and must now be configured under `limits_config` instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:80ba76802109bc1e1b3cca10dcdfbd996bc50b0b57f814dfff0183a7defd2342",
+      "inputEvidence": [
+        "ev-a0b618cd90db",
+        "ev-dc20110f4f4b",
+        "ev-da0f06f8da24",
+        "ev-c8a8a9c16d41",
+        "ev-03b4fbe630df",
+        "ev-8fea3a0e7308",
+        "ev-3f6039ca92c8",
+        "ev-3cb906d8d02b",
+        "ev-f5a61f629314",
+        "ev-9f4292160fa2",
+        "ev-c0bb5c52ce78",
+        "ev-7b384eb00d22",
+        "ev-7b76cb015d7e",
+        "ev-f15092605ae3"
+      ],
+      "generatedAt": "2026-10-03T12:57:45.676Z",
+      "callId": "ae222c21-fe72-4b16-8d47-e11144da489c",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-a0b618cd90db], under the heading \"Deprecated configuration options are removed\", says `query_timeout` is removed from the querier YAML section and must now be set in Limits Config. A value left under `querier` is a removed key, so it is no longer honoured. That fits setting-ignored, and the fix is to move it to limits_config. The evidence does not say anything worse happens, such as Loki failing to start, so setting-ignored is the right kind and does not over-claim.",
+    "startedAt": "2026-10-03T12:57:37.404Z",
+    "decidedAt": "2026-10-03T12:57:45.676Z"
+  }
+}

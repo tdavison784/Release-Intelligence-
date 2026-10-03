@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5247a93ea64a",
+    "candidateId": "sc-df479e04bf5f",
+    "proposalId": "sp-97ec7c5701ae",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "kind": "ApplicationSet",
+        "path": "spec.applyNestedSelectors"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.applyNestedSelectors",
+                      "state": "unset"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.applyNestedSelectors",
+                      "state": "equals",
+                      "values": [
+                        "false"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "group": "argoproj.io",
+              "kind": "ApplicationSet"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether that ApplicationSet has one or more nested selectors in its generators (the evidence does not name the schema path of nested selectors)"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.applyNestedSelectors",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            }
+          ],
+          "group": "argoproj.io",
+          "kind": "ApplicationSet"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The field is ignored and nested selectors are always applied. Filters in nested selectors that were not applied before will now take effect on ApplicationSets where applyNestedSelectors was unset or false.",
+        "remediation": "Search the ApplicationSet controller logs for 'ignoring nested selector'. Before upgrading, remove the nested selectors from ApplicationSets that do not explicitly set applyNestedSelectors to true.",
+        "severity": "medium"
+      },
+      "statement": "Starting in Argo CD 3.0, the ApplicationSet field spec.applyNestedSelectors is ignored and nested selectors are always applied, as if the field were set to true. ApplicationSets that leave the field unset or set it to false and have nested selectors will see those selectors take effect."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

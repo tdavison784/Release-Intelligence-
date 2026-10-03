@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8e8525146874",
+    "candidateId": "sc-66c07691e032",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "log-line-format"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the operator's log tooling (grep-style filters, alerts, parsers) matches cert-manager log lines by their previous text format at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager keeps working, but some log lines now carry more structured logging information and have changed format, so text-based log filtering or parsing (e.g. grep) that relied on the previous format may no longer match those lines.",
+        "remediation": "Review any grep-based filters, alerts, or log parsers that consume cert-manager logs and update them for the new log line format; prefer consuming structured log fields rather than text matching.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds more structured logging information to certain log lines, so some log lines have changed format and text-based log filtering such as grep may no longer match them."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-95c9a508db46"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:9c8d995f4508868979564731a916491726fbe8673954a2bd6c963e6c570d2199",
+      "inputEvidence": [
+        "ev-95c9a508db46"
+      ],
+      "generatedAt": "2026-10-03T07:23:23Z",
+      "callId": "07abdd8a-4bd5-4a61-8ebe-bcc704235066"
+    }
+  }
+}

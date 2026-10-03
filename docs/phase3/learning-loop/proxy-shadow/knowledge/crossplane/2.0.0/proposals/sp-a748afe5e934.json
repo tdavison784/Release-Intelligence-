@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a748afe5e934",
+    "candidateId": "sc-e51e65327713",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "prometheus-metric-names"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"crossplane_composition_controllers_*, crossplane_composition_watches_*, crossplane_composition_run_function_*\"",
+        "after": "\"engine_controllers_*, engine_watches_*, function_run_function_*\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether external monitoring (Prometheus queries, dashboards, alerts) references the crossplane_composition_controllers_*, crossplane_composition_watches_* or crossplane_composition_run_function_* metric names"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, Crossplane exposes these metrics under the new names engine_controllers_*, engine_watches_* and function_run_function_* instead of the crossplane_composition_* names.",
+        "remediation": "Change any Prometheus queries, dashboards or alerts that use crossplane_composition_controllers_*, crossplane_composition_watches_* or crossplane_composition_run_function_* to use the new metric names.",
+        "severity": "medium"
+      },
+      "statement": "In Crossplane 2.0.0, the Prometheus metrics for the controller engine and function response caches have new names: crossplane_composition_controllers_* is now engine_controllers_*, crossplane_composition_watches_* is now engine_watches_*, and crossplane_composition_run_function_* is now function_run_function_*."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-c3df0dece271"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:7f3f2dfa2b89cde33588b98063fc431e1d81623c337ff91e8aa8477044c2e90a",
+      "inputEvidence": [
+        "ev-c3df0dece271"
+      ],
+      "generatedAt": "2026-10-03T07:06:22Z",
+      "callId": "4b3808ae-e979-4057-b501-6afaf2e6d639"
+    }
+  }
+}

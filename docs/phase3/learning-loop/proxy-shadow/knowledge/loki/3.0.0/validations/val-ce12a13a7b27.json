@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ce12a13a7b27",
+    "candidateId": "sc-a6585a7675ea",
+    "proposalId": "sp-02d5caacf4bf",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "shared_store"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"config.yaml\"]",
+              "state": "exists",
+              "pattern": "^\\s*shared_store\\s*:"
+            }
+          ],
+          "kind": "ConfigMap"
+        }
+      },
+      "statement": "The `shared_store` config option is removed in Loki 3.0.0."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

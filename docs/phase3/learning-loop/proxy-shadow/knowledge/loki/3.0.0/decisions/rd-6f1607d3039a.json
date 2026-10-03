@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6f1607d3039a",
+    "reviewItemId": "ri-1885361870c1",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `-boltdb.shipper.compactor.shared-store.key-prefix` flag setting is no longer honored by the compactor in Loki 3.0.0 and will be ignored if present in the configuration.",
+        "severity": "medium"
+      },
+      "statement": "The CLI flag `-boltdb.shipper.compactor.shared-store.key-prefix` is removed and no longer available in Loki 3.0.0."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `-boltdb.shipper.compactor.shared-store.key-prefix` CLI flag and its matching YAML setting are removed in Loki 3.0.0, so a configured key prefix no longer controls compactor behaviour. The compactor instead runs compaction and retention on all object stores configured in period configs where the index type is tsdb or boltdb-shipper.",
+        "remediation": "Remove the flag and its YAML setting from the compactor configuration. Check that the object stores in your period configs (tsdb/boltdb-shipper index types) are the ones the compactor should compact and apply retention to.",
+        "severity": "medium"
+      },
+      "statement": "In Loki 3.0.0, the compactor flag -boltdb.shipper.compactor.shared-store.key-prefix and its YAML setting are removed. A configured key prefix is no longer honoured, and the compactor runs compaction and retention on all object stores in period configs with a tsdb or boltdb-shipper index."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:2266683a220b2700138dd44f444dcf4ca137943853ececcb94471ecdc0a9dd3a",
+      "inputEvidence": [
+        "ev-cf8ca5687050",
+        "ev-c569cd56f9ef",
+        "ev-ca57f615b9c9"
+      ],
+      "generatedAt": "2026-10-03T12:45:28.67Z",
+      "callId": "728b795c-89eb-4eaa-95ee-6292da65a689",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-c569cd56f9ef] says the CLI flags and matching YAML settings for the compactor's shared store and path prefix \"are now removed\". It also says the compactor will instead run compaction and retention on all object stores configured in period configs. [ev-cf8ca5687050] lists this flag in that removal. So a configured key prefix no longer has any effect, and setting-ignored is the right kind for a removed key. The proposed statement goes too far when it says the flag \"will be ignored if present\". The evidence does not say whether a flag that is still set gets silently tolerated, so I corrected the statement to keep to what the evidence says.",
+    "startedAt": "2026-10-03T12:45:14.281Z",
+    "decidedAt": "2026-10-03T12:45:28.67Z"
+  }
+}

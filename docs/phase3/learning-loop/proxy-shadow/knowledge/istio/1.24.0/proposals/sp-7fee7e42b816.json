@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7fee7e42b816",
+    "candidateId": "sc-0750ad78d42c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "waypoint-auto-allocated-ips"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Waypoints required DNSProxy to be enabled in order to consume auto-allocated IPs\"",
+        "after": "\"Waypoints consume auto-allocated IPs without requiring DNSProxy\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Waypoints can now consume auto-allocated IPs even when DNSProxy is disabled. Before, this required DNSProxy to be enabled.",
+        "remediation": "If you enabled DNSProxy only so waypoints could use auto-allocated IPs, check whether you still need it.",
+        "severity": "low"
+      },
+      "statement": "In Istio 1.24.0, waypoints no longer need DNSProxy to be enabled to consume auto-allocated IPs."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence does not name the setting that enables DNSProxy or IP auto-allocation, or how waypoint use is detected, so no configuration predicate can be written from it.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-3cf1259609e1"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:002a82269a416dfda28b9e37d71d817165418cb8efc3e64c1f56173c39d64ed8",
+      "inputEvidence": [
+        "ev-3cf1259609e1"
+      ],
+      "generatedAt": "2026-10-03T07:04:20Z",
+      "callId": "67f0c86c-8781-4194-8410-1a5369a6a96c"
+    }
+  }
+}

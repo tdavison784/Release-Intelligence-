@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-603ef153fc77",
+    "reviewItemId": "ri-3c293da4c0dd",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "controllers-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "For environments where Flux was installed using the bootstrap procedure, upgrading the Flux controllers to this release is an operator step: generate the new Kubernetes manifests with the Flux CLI and push them to the Git repository where bootstrap was run (including any extra components enabled at bootstrap), or rerun the bootstrap command for each cluster using the same arguments as before."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d87d0d88d561a259078e4ccfa92f3feb22f8970d6d99fb0a175650616947b603",
+      "inputEvidence": [
+        "ev-b1e8ad65539c"
+      ],
+      "generatedAt": "2026-10-03T12:50:03.97Z",
+      "callId": "4c3f669c-9a92-48ad-bacc-4f1d1ce16235",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-b1e8ad65539c] is the general \"Flux controllers upgrade\" section of the upgrade guide. It describes how to upgrade a bootstrapped installation, either by generating manifests with the Flux CLI and pushing them to Git or by rerunning bootstrap. It does not name anything that was added, removed or changed in 2.7.0, and it does not require a migration step specific to this release. Treating the routine upgrade procedure as a migration-required change misreads the text, and no correct assertion follows from it.",
+    "startedAt": "2026-10-03T12:49:58.346Z",
+    "decidedAt": "2026-10-03T12:50:03.97Z"
+  }
+}

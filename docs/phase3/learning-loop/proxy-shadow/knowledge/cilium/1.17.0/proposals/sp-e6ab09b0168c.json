@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e6ab09b0168c",
+    "candidateId": "sc-7c8c3e5eb5f6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The update-success metric is now exported as `envoy_cilium_npds_update_success` instead of `envoy_cilium_policymap_<node-ip>_<node-id>_update_success`, so queries using the old name need to be reviewed.",
+        "remediation": "Update any dashboards, alerts or recording rules that use `envoy_cilium_policymap_<node-ip>_<node-id>_update_success` to use `envoy_cilium_npds_update_success`.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the metric `envoy_cilium_policymap_<node-ip>_<node-id>_update_success` is renamed to `envoy_cilium_npds_update_success`."
+    },
+    "undetermined": [
+      "subject",
+      "change",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: The subject is a Prometheus metric name, and no subject family covers metrics, so its identity can't be pinned in the taxonomy.; change: The evidence is a metric rename. The 'renamed' type needs a same-family replacedBy, and no metric family exists to express it.; applicability: Exposure depends on whether external dashboards or alerts query the old metric name. No predicate over Cilium configuration can show that.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0739bc6582ad"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:a40849cbfe689993de1656b9573e4f25f316c5d51138ab8e7a66e92cd10080d7",
+      "inputEvidence": [
+        "ev-0739bc6582ad"
+      ],
+      "generatedAt": "2026-10-03T07:06:53Z",
+      "callId": "53e6d1e8-ce51-4c37-8f86-d35855dac08d"
+    }
+  }
+}

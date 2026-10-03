@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e18c72c9c60d",
+    "candidateId": "sc-b9892bf6b6ff",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The Envoy policy-map version metric is reported as `envoy_cilium_npds_version` instead of `envoy_cilium_policymap_<node-ip>_<node-id>_version`, so queries that use the old name need to be updated.",
+        "remediation": "Update dashboards, alerts and recording rules that use `envoy_cilium_policymap_<node-ip>_<node-id>_version` to use `envoy_cilium_npds_version`.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the Envoy metric `envoy_cilium_policymap_<node-ip>_<node-id>_version` is renamed to `envoy_cilium_npds_version`, so monitoring that uses the old name needs to be checked."
+    },
+    "undetermined": [
+      "subject",
+      "change",
+      "applicability"
+    ],
+    "undeterminedReason": "subject: The subject is a Prometheus metric name, and no subject family covers metric names. Forcing it into protocol-behavior or config-key would give it a wrong identity.; change: The evidence clearly states a rename (old metric -> new metric). But a 'renamed' answer needs a replacedBy in the same subject family, and no family fits metric names.; applicability: Exposure depends on whether dashboards, alerts or recording rules query the old metric name. These live in external monitoring systems, not in Cilium's Helm values, cilium-config, CRs or flags, so no available predicate can express it.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a70b049ef951"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:433aa3b938a56e58b2ca4166953217f063236b49da2e2b937235cfaedfc3569f",
+      "inputEvidence": [
+        "ev-a70b049ef951"
+      ],
+      "generatedAt": "2026-10-03T07:14:40Z",
+      "callId": "6ca3a21f-2464-4700-9406-28cc7b7bdb79"
+    }
+  }
+}

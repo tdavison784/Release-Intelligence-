@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-338e01394db1",
+    "candidateId": "sc-dc6014b3811a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "OCIRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "kind": "OCIRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "OCIRepository v1 objects whose status.artifact omits digest are rejected by the schema.",
+        "severity": "low"
+      },
+      "statement": "The status.artifact.digest field in the OCIRepository v1 schema is now required, and objects that omit it are rejected."
+    },
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:56af9a8f62b1e681f5469ef1ebfd6f7db5271dc40bb92746fea9f082486c20a7",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T07:14:36Z",
+      "callId": "de456170-2e9e-4f99-b273-476cb827bdcf"
+    }
+  }
+}

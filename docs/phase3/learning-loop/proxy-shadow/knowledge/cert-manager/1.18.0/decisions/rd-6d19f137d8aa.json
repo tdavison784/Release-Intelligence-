@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6d19f137d8aa",
+    "reviewItemId": "ri-0c2b2b3ce496",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "ACME HTTP01 challenges will fail with admission webhook validation errors when using ingress-nginx >= 1.12.0 with the default strict-validate-path-type configuration, or ingress-nginx >= 1.8.0 with strict-validate-path-type explicitly enabled, because the ingress controller rejects the `/.well-known/acme-challenge/<TOKEN>` path containing dots.",
+        "remediation": "Upgrade ingress-nginx to a version that fixes the strict-validate-path-type validation bug, or disable the strict-validate-path-type configuration option in ingress-nginx. Alternatively, use a standards-compliant Ingress controller such as Cilium that properly handles the `Exact` PathType.",
+        "severity": "high"
+      },
+      "statement": "cert-manager 1.18.0 changes ACME HTTP01 Ingress challenge routes to use PathType `Exact` instead of `ImplementationSpecific`, which is incompatible with ingress-nginx versions that have the buggy `strict-validate-path-type` validation enabled by default (>= 1.12.0)."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "ACME HTTP01 challenges fail with admission webhook errors ('Error presenting challenge: admission webhook validate.nginx.ingress.kubernetes.io denied the request') in two cases: ingress-nginx >= 1.12.0 with the default strict-validate-path-type setting, or ingress-nginx >= 1.8.0 with that option enabled. The controller rejects the `/.well-known/acme-challenge/<TOKEN>` path because it contains a dot.",
+        "remediation": "Disable the strict-validate-path-type configuration option in ingress-nginx, or solve HTTP01 challenges with a standards-compliant Ingress controller (e.g. Cilium) that handles PathType Exact.",
+        "severity": "high"
+      },
+      "statement": "With cert-manager 1.18.0, ACME HTTP01 challenge Ingresses use PathType Exact. ingress-nginx >= 1.8.0 with strict-validate-path-type enabled (on by default from 1.12.0) denies them via its admission webhook because the path contains a dot, so HTTP01 challenges cannot be presented."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:2dd233f30721677778ee742181561a31102c9fd48681e2bd767117d00b550fa8",
+      "inputEvidence": [
+        "ev-110340e9c914"
+      ],
+      "generatedAt": "2026-10-03T12:44:07.86Z",
+      "callId": "8512c10e-d424-4938-83e2-c49fd1dae6ef",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-110340e9c914] says the `validate.nginx.ingress.kubernetes.io` admission webhook rejects the HTTP01 challenge Ingress when ingress-nginx's `strict-validate-path-type` is enabled. That option exists from ingress-nginx 1.8.0 and is on by default from 1.12.0. The cert-manager controller then logs 'Error presenting challenge', so the integration with that peer fails. workload-failure with high severity is supported. However, the proposed remediation tells operators to upgrade to an ingress-nginx version that fixes the bug, and the evidence never says such a version exists, so the remediation keeps only steps the evidence supports.",
+    "startedAt": "2026-10-03T12:43:52.651Z",
+    "decidedAt": "2026-10-03T12:44:07.86Z"
+  }
+}

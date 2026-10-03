@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e159ad9bf166",
+    "candidateId": "sc-1115e82f20f4",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection",
+        "component": "cilium-agent"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"only the primary interface was considered\"",
+        "after": "\"lowest MTU of all external interfaces\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "unset"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.mtu",
+                  "state": "unset"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "component": "cilium-agent",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.mtu",
+                  "state": "set"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "component": "cilium-agent",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that rely on MTU auto-detection (no manually configured MTU) may now get a different, potentially lower auto-detected MTU than before — the lowest MTU across all external interfaces instead of the primary interface's — except in ENI mode where secondary interfaces are still not considered; networking continues to work but packet sizing may change and is worth verifying.",
+        "remediation": "If a specific MTU is required, configure it manually via the `MTU` helm option, the `--mtu` agent flag, or the `mtu` option in the CNI configuration, as the upgrade note states these still work.",
+        "severity": "low"
+      },
+      "statement": "In 1.17.0, Cilium's MTU auto-detection now uses the lowest MTU of all external interfaces instead of only the primary interface (in ENI mode secondary interfaces are still not considered), and MTU can still be configured manually via the `MTU` helm option, the `--mtu` agent flag, or the `mtu` option in the CNI configuration."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b37407b60520"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:36435814cc81c74ffa90224cee961d89fde1d4cc615fc9b8723eeb7c7d552276",
+      "inputEvidence": [
+        "ev-b37407b60520"
+      ],
+      "generatedAt": "2026-10-03T07:11:57Z",
+      "callId": "035b4193-4d78-4ad3-9a19-c30fa27fd21d"
+    }
+  }
+}

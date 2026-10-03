@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8e818b9c97a0",
+    "candidateId": "sc-3caf50c85cc9",
+    "proposalId": "sp-8422b31972ac",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "flux-migrate"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v1beta1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions[]",
+                  "state": "equals",
+                  "values": [
+                    "\"v2beta1\""
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Unless Flux Operator is used to deploy the Flux controllers, `flux migrate` must be run on the cluster before upgrading to Flux 2.7.0; if the operator does nothing, the migration off the removed v1beta1/v2beta1 APIs is not performed.",
+        "remediation": "Run `flux migrate` on clusters before upgrading to Flux 2.7.0 (not required when Flux Operator is used to deploy the Flux controllers); see the Flux v2.7 upgrade guide linked in the release notes.",
+        "severity": "high"
+      },
+      "statement": "The Flux APIs v1beta1 and v2beta1 (deprecated in 2023) have reached end-of-life and have been removed from the CRDs in Flux 2.7.0, and clusters not using Flux Operator to deploy the Flux controllers must run `flux migrate` before upgrading."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

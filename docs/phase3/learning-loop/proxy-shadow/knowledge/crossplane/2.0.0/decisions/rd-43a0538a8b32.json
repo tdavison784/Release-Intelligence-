@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-43a0538a8b32",
+    "reviewItemId": "ri-23ecb431f3b2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Go code importing crossplane or crossplane-runtime must update the go.mod module path and all import statements to the v2 module path when moving to v2+.",
+        "remediation": "Update go.mod and all imports to github.com/crossplane/crossplane/v2 and github.com/crossplane/crossplane-runtime/v2.",
+        "severity": "medium"
+      },
+      "statement": "The Go module path changed to github.com/crossplane/crossplane/v2 (and crossplane-runtime/v2); Go consumers must update go.mod and all import statements."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:38a990893ad0e9b6dd76ae5b2942594405b4b6cda8da159648113933905f4608",
+      "inputEvidence": [
+        "ev-d241daaf3863"
+      ],
+      "generatedAt": "2026-10-03T12:46:58.252Z",
+      "callId": "c36c05ac-f63b-4e84-ba83-586eb7daa7b5",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-d241daaf3863] lists this under breaking changes and says Go consumers who import crossplane or crossplane-runtime \"will also need to update the module path\" when they move to v2+, and that \"all import statements in your code base need to be updated\". That is a mandatory operator step, so migration-required fits. The proposed statement, remediation and medium severity match the evidence's own terms and limit the step to Go code that imports these modules when it moves to v2+.",
+    "startedAt": "2026-10-03T12:46:52.213Z",
+    "decidedAt": "2026-10-03T12:46:58.252Z"
+  }
+}

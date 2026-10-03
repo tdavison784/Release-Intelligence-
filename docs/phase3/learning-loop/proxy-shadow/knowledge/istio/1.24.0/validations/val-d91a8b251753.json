@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d91a8b251753",
+    "candidateId": "sc-0750ad78d42c",
+    "proposalId": "sp-7fee7e42b816",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "waypoint-auto-allocated-ips"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Waypoints required DNSProxy to be enabled in order to consume auto-allocated IPs\"",
+        "after": "\"Waypoints consume auto-allocated IPs without requiring DNSProxy\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Waypoints can now consume auto-allocated IPs even when DNSProxy is disabled. Before, this required DNSProxy to be enabled.",
+        "remediation": "If you enabled DNSProxy only so waypoints could use auto-allocated IPs, check whether you still need it.",
+        "severity": "low"
+      },
+      "statement": "In Istio 1.24.0, waypoints no longer need DNSProxy to be enabled to consume auto-allocated IPs."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-cd1d13cf6133",
+    "candidateId": "sc-c17c3673cf1d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "terminating-tls-ca-crt"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether any L7 network policy uses terminatingTLS with a secret that contains the key ca.crt (the evidence does not give the policy field path)"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data.use-full-tls-context",
+                      "state": "equals",
+                      "values": [
+                        "\"true\""
+                      ]
+                    }
+                  ],
+                  "kind": "ConfigMap",
+                  "name": "cilium-config"
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--use-full-tls-context",
+                  "state": "equals",
+                  "values": [
+                    "\"true\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.use-full-tls-context",
+                  "state": "equals",
+                  "values": [
+                    "\"true\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--use-full-tls-context",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For L7 policies that use terminatingTLS, the `ca.crt` in the secret is no longer loaded, so Envoy no longer requires client certificates from pods during TLS termination. To keep the old behaviour, set `--use-full-tls-context=true`.",
+        "remediation": "If you depend on the old behaviour, where client certificates were required because `ca.crt` was loaded, set `--use-full-tls-context=true`.",
+        "severity": "medium"
+      },
+      "statement": "In Cilium 1.16.0, L7 network policies that use terminatingTLS no longer load the `ca.crt` key from the secret, even when the secret contains it, so Envoy stops requiring client certificates from pods; setting `--use-full-tls-context=true` keeps the old behaviour."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b5190a359c10"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:c5980640492e8b2fe8f0445c36460f72323789f0501b26e00e7359c1fd763672",
+      "inputEvidence": [
+        "ev-b5190a359c10"
+      ],
+      "generatedAt": "2026-10-03T07:07:53Z",
+      "callId": "38aaa91a-187f-4cfe-bd1c-7f272f523f70"
+    }
+  }
+}

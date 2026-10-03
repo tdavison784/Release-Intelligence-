@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-decc96525ac1",
+    "candidateId": "sc-2df51b6789d6",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the operator runs `flux diff ks` against Kustomizations carrying the `force: enabled` annotation (the note does not spell the annotation's full key)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to the Flux 2.7.0 CLI, `flux diff ks` handles the `force: enabled` annotation, so its behaviour when diffing Kustomizations carrying that annotation differs from earlier releases; nothing in the evidence indicates a failure.",
+        "remediation": "When diffing Kustomizations annotated with `force: enabled`, review the `flux diff ks` output after upgrading the Flux CLI to 2.7.0.",
+        "severity": "low"
+      },
+      "statement": "The Flux 2.7.0 release notes state that the `flux diff ks` CLI command now handles the `force: enabled` annotation."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the evidence describes new behaviour of the `flux diff ks` CLI subcommand; no subject family matches a CLI subcommand's behaviour, and the note spells no field path, flag, values key or endpoint (the annotation's full key and owning resource are not given)",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5644801ced86"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:062a8e8d8c145fd2a7a2272d0f83e30e92e8abf0e1c7ed015421945f1d37e7f5",
+      "inputEvidence": [
+        "ev-5644801ced86"
+      ],
+      "generatedAt": "2026-10-03T07:42:54Z",
+      "callId": "4795e03e-9e3d-4e6a-a7ba-b34792ecd220"
+    }
+  }
+}

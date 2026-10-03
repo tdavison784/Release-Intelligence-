@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8696549db695",
+    "candidateId": "sc-d8211760345d",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--bpf-lb-proto-diff",
+        "component": "cilium-agent"
+      },
+      "change": {
+        "type": "added",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.17.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.ports[].protocol",
+                  "state": "unset"
+                }
+              ],
+              "kind": "Service"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--bpf-lb-proto-diff",
+              "component": "cilium-agent",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.bpf-lb-proto-diff",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "cilium-config"
+            },
+            {
+              "op": "values-key",
+              "path": "extraConfig.bpf-lb-proto-diff",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Existing Services without a protocol set are preserved unchanged after the upgrade to avoid connection disruptions, and their protocol is not taken into account by the agent until they are deleted and recreated.",
+        "remediation": "Delete and recreate any Service that was without a protocol set so the agent takes its protocol into account; note that a later downgrade to a version without services protocol differentiation will cause services with a protocol set to be deleted and recreated without the protocol, disrupting connections for those services.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17.0 adds services protocol differentiation, enabled by default and controllable with the cilium-agent flag --bpf-lb-proto-diff; after the upgrade, existing Services without a protocol set are preserved as such and must be deleted and recreated for their protocol to be taken into account by the agent."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2a9b9b849526"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:25a8730744603377b2af739e315b5e2772afd1b71d99e120b6004113c61d90ba",
+      "inputEvidence": [
+        "ev-2a9b9b849526"
+      ],
+      "generatedAt": "2026-10-03T08:14:48Z",
+      "callId": "5053f4b7-bbda-44a6-ada5-c85daeed754d"
+    }
+  }
+}

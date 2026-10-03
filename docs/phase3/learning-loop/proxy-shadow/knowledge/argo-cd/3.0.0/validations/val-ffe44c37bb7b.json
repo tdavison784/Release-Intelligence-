@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ffe44c37bb7b",
+    "candidateId": "sc-e1198a155782",
+    "proposalId": "sp-21674d620b6c",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "logs-rbac-enforcement"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which users or service accounts read pod logs and whether their effective RBAC policy (including built-in roles) grants them log access"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "With the new default, access to logs is RBAC-enforced; users whose RBAC policy does not grant log access may now be denied logs that were previously readable when enforcement was not the default.",
+        "remediation": "Review the Argo CD RBAC policy (argocd-rbac-cm policy.csv) and grant log access to users or roles that need to read logs.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0.0 turns on RBAC enforcement for logs by default, a breaking change flagged \"feat!\"."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

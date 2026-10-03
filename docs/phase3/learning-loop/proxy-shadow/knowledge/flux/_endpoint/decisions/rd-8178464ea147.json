@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8178464ea147",
+    "reviewItemId": "ri-278946d2a750",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "ExternalArtifact"
+        }
+      },
+      "statement": "A new CRD externalartifacts.source.toolkit.fluxcd.io (ExternalArtifact, v1) has been added and requires installation if CRDs are managed separately from the release."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:59f55531cb396f3a615975c8c92957012ed59fcc1eacd382e6dbf0d069a1142f",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T12:47:28.997Z",
+      "callId": "787167bf-ddec-41ad-ac91-ea8fbf342167",
+      "provider": "anthropic"
+    },
+    "reason": "The CRD externalartifacts.source.toolkit.fluxcd.io (ExternalArtifact, v1) appears only in the target install bundle [ev-c2c6c790d6b2] and not in the source one [ev-782bc47d120d]. That means no environment can be using this kind before it upgrades. The proposed exposure gvk-in-use{source.toolkit.fluxcd.io/v1 ExternalArtifact} would therefore flag no environment exposed to an upgrade consequence, and it does not describe the only caveat in the change text, which concerns operators who manage CRDs separately. The evidence gives no configuration predicate for that caveat, and a validator confirmed that a newly added subject has no consequence for existing environments. So no correct exposure condition follows, and applicability should be left undetermined rather than set to this condition.",
+    "startedAt": "2026-10-03T12:47:20.655Z",
+    "decidedAt": "2026-10-03T12:47:28.997Z"
+  }
+}

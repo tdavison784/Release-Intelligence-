@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dcae4aa3180e",
+    "candidateId": "sc-7560741348ad",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "storage-version-migration",
+        "component": "policyexceptions.kyverno.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v2beta1\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "policyexceptions.kyverno.io"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing PolicyException objects stay stored as v2beta1 until rewritten; a storage version migration must be run and status.storedVersions updated before a later release removes v2beta1.",
+        "remediation": "Re-write all PolicyException objects (storage version migration) and update status.storedVersions on the CRD.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the policyexceptions.kyverno.io CRD changes from v2beta1 to v2, so existing PolicyException objects stay stored as v2beta1 until a storage version migration rewrites them and status.storedVersions is updated."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-094d5d8b0291",
+      "ev-f0f21b325fa6"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2+rendered",
+      "promptDigest": "sha256:bf1e27db82d2b0bfa5518e5346dc323e5b8b248ed1650876175d0e16db684048",
+      "inputEvidence": [
+        "ev-7b96a5794081",
+        "ev-495a542d4d66",
+        "ev-8ed706991976",
+        "ev-64e559957f23",
+        "ev-b3d07020d879",
+        "ev-b077d5605267",
+        "ev-a4c10d98e48c",
+        "ev-6032b12f614d",
+        "ev-6644b79acdaf",
+        "ev-e4d8d307c8bd",
+        "ev-c7493c8ebf56",
+        "ev-72ae67cf1bd1",
+        "ev-f4eb4632dd60",
+        "ev-ff8bc99281a6",
+        "ev-904a58b60df3",
+        "ev-0b95f4d8b2b8",
+        "ev-043bcc5e9e57",
+        "ev-e6f72293517f",
+        "ev-3f8a3adffa22",
+        "ev-fd8deebe9622",
+        "ev-f5ab4321b780",
+        "ev-d55bb7c165b2",
+        "ev-388d68569c8a",
+        "ev-ab4f180a917e",
+        "ev-705a5952643c",
+        "ev-8acbbd901b75",
+        "ev-5714a6388637",
+        "ev-0ab8730da6d7",
+        "ev-b01406e79da0",
+        "ev-56c06982a6c5",
+        "ev-094d5d8b0291",
+        "ev-f0f21b325fa6",
+        "ev-cf5b10ff8047",
+        "ev-d3850c78b94e"
+      ],
+      "generatedAt": "2026-10-03T07:05:09Z",
+      "callId": "7be84035-847c-448b-a100-56adc8c7fc70"
+    }
+  }
+}

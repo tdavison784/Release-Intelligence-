@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c5f0521b6e7a",
+    "reviewItemId": "ri-f4c23d893cc6",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new seLinuxOptions value is available for configuration but is not required for environments outside of platforms with SELinux constraints; on platforms like OpenShift that enforce SELinux, setting seLinuxOptions.type to spc_t may be necessary to prevent istio-cni-nodes pod startup failures."
+      },
+      "statement": "The istio-cni Helm chart now includes a seLinuxOptions configuration value that can be set to work around SELinux constraints on platforms like OpenShift."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d9fd2242e16fa9ee432c9dd365f2bf416940283f4afde8e5f39076cb2a086053",
+      "inputEvidence": [
+        "ev-117557f906cd",
+        "ev-18ac53d77b4b",
+        "ev-b0388a31bd06",
+        "ev-467eb4865201",
+        "ev-c6870d2efa84",
+        "ev-d4a0f83c6c05",
+        "ev-afdf286ca815",
+        "ev-3bf2a40b8e98",
+        "ev-5918eeb14ddb",
+        "ev-28f7b790cdd3",
+        "ev-25fadf94cf11",
+        "ev-c988c157ae16",
+        "ev-2eab23b55c81",
+        "ev-bd37367bcc6f",
+        "ev-d6ef50aec061",
+        "ev-f8e584b7eab2",
+        "ev-699362a8f7c3",
+        "ev-589a6c291015",
+        "ev-274ce3859ab9",
+        "ev-5a31c0781dc5",
+        "ev-fa194382072a",
+        "ev-85eccdc718e3",
+        "ev-ca323a617966",
+        "ev-387dcb005901",
+        "ev-e54c7ef2acc9",
+        "ev-c143ccbe6259",
+        "ev-4e7b065b85d5",
+        "ev-f3c3e6abdb99",
+        "ev-bd85b5ebeabf",
+        "ev-528ec6ff2f80",
+        "ev-7af9fcb7190e",
+        "ev-9fb93117372e"
+      ],
+      "generatedAt": "2026-10-03T12:38:45.888Z",
+      "callId": "eb248b1b-2e21-4949-a17b-2ef6ac045eb3",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-117557f906cd] describes a new, optional `seLinuxOptions` value in the istio-cni chart. It says that on some platforms, such as OpenShift, istio-cni-node pods may fail to start without it. The evidence does not say this release introduces that failure or changes anything for environments that leave the value unset. So doing nothing leaves an environment as it was before the release, and kind \"none\" (informational) fits. The statement's caveat about OpenShift correctly treats the setting as an optional workaround, not mandatory work caused by the upgrade.",
+    "startedAt": "2026-10-03T12:38:36.812Z",
+    "decidedAt": "2026-10-03T12:38:45.888Z",
+    "resultingFact": "vf-5da1ad1846a1"
+  }
+}

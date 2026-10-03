@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-87faad0f2f26",
+    "candidateId": "sc-9819c3b5051d",
+    "proposalId": "sp-6ffd7291cbc5",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.consul.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.consul.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PROVIDERS_CONSUL_TLS_CAOPTIONAL",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*caOptional\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*caOptional\\s*:"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"traefik.toml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*caOptional\\s*="
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "An environment that still sets the Consul provider tls.caOptional option will have that setting no longer honoured after upgrading to Traefik v3, because the option has been removed; the migration guide instructs operators to remove tls.caOptional from the Consul provider static configuration.",
+        "remediation": "Remove tls.caOptional from the Consul provider static configuration: delete caOptional under providers.consul.tls in the configuration file, the --providers.consul.tls.caOptional CLI flag, or the TRAEFIK_PROVIDERS_CONSUL_TLS_CAOPTIONAL environment variable.",
+        "severity": "low"
+      },
+      "statement": "Traefik v3 removes the Consul provider `tls.caOptional` static configuration option (YAML `providers.consul.tls.caOptional`, TOML `[providers.consul.tls] caOptional`, CLI `--providers.consul.tls.caOptional=true`), because TLS client authentication is a server-side option, and the migration guide instructs operators to remove `tls.caOptional` from the Consul provider static configuration."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

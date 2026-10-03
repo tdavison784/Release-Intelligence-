@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c16c4bbf795e",
+    "candidateId": "sc-664f60a3392a",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "content-type-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which backend responses are served without a Content-Type header at runtime, and which routers lack the ContentType middleware"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Responses whose backend does not set a Content-Type header are served without an auto-detected Content-Type value, so clients may interpret them differently than under v2 unless the ContentType middleware is attached.",
+        "remediation": "Attach the ContentType middleware to routers whose backends do not set the Content-Type header, to re-enable Content-Type auto-detection.",
+        "severity": "medium"
+      },
+      "statement": "In Traefik v3 the Content-Type header is no longer auto-detected when the backend does not set it; the ContentType middleware must be used to re-enable Content-Type auto-detection."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-be4f90e8abf9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:d833978ece23dcd49760cdb25eed12059f0aba8bbb4f2b288f13694f48720bee",
+      "inputEvidence": [
+        "ev-be4f90e8abf9"
+      ],
+      "generatedAt": "2026-10-03T08:27:41Z",
+      "callId": "b2b7d955-0b13-4a4c-8d8c-61024863a09b"
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4951cb2e56a4",
+    "candidateId": "sc-be5f4f756888",
+    "proposalId": "sp-ba04df2c638d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "traefik",
+        "name": "--pilot.token"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--pilot.token",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "pilot",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PILOT_TOKEN",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Traefik will not start if any Pilot configuration remains in the static configuration.",
+        "remediation": "Remove all Pilot related configuration from the static configuration.",
+        "severity": "high"
+      },
+      "statement": "Pilot static configuration (e.g. pilot.token) is unsupported in v3 and prevents Traefik from starting; it must be removed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "cli-flag:traefik|name=--pilot.token: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "cli-flag:traefik|name=--pilot.token: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

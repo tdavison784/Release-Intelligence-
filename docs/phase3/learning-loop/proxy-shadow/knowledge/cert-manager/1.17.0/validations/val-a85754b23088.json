@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a85754b23088",
+    "candidateId": "sc-d2afc4a4ba4f",
+    "proposalId": "sp-f066f0a20478",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-signing-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"SHA-256\"",
+        "after": "\"SHA-384 for 3072-bit keys, SHA-512 for 4096-bit keys\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.size",
+                  "state": "equals",
+                  "values": [
+                    "3072",
+                    "4096"
+                  ]
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether issuer signing keys (e.g. CA keys held in Secrets) are 3072-bit or 4096-bit RSA keys"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Signatures made with 3072-bit or 4096-bit RSA keys now use SHA-384 or SHA-512 instead of SHA-256. Upstream expects minimal impact and knows of no environments that break, but users of larger RSA keys should be aware of the change.",
+        "remediation": "If you use 3072-bit or 4096-bit RSA keys, check that the systems consuming these certificates accept SHA-384 and SHA-512 signatures.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager v1.17.0, RSA signatures no longer always use SHA-256: the hash now depends on the RSA key length, with SHA-384 for 3072-bit keys and SHA-512 for 4096-bit keys."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

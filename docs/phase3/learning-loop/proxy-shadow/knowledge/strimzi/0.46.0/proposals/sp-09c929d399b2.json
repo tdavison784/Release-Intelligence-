@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-09c929d399b2",
+    "candidateId": "sc-5fc2da42c29c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-regardingobject"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any client or tooling lists Strimzi Pod-restart events using a regardingObject field-selector that names the Pod"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Event listings that use a `regardingObject` field selector naming the Pod will no longer match Pod-restart events. The selector must be updated to name the Kafka resource instead.",
+        "remediation": "Update any `regardingObject` field selectors used to list Pod-restart events so they name the Kafka resource instead of the Pod.",
+        "severity": "low"
+      },
+      "statement": "In Strimzi 0.46.0, Kubernetes events for Pod restarts no longer use the Pod as their `regardingObject`, so anyone who filters events with a `regardingObject` field selector must change it to point at the Kafka resource."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2dffc916b09a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:d3b9f04fe9020a17b5899493ffff2dbb1bf2902a2bdf57f1e3179057195556f2",
+      "inputEvidence": [
+        "ev-2dffc916b09a"
+      ],
+      "generatedAt": "2026-10-03T07:05:45Z",
+      "callId": "8cf846ec-5717-4f2f-82f9-4a57ffebcfb4"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-e879bcb70594",
+    "candidateId": "sc-d8211760345d",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Cilium now supports services protocol differentiation, which allows the agent to distinguish two services on the same port with different protocols (e.g. TCP…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Existing services without a protocol set are preserved as such to avoid disruption, and must be deleted and recreated for the agent to take their protocol into account. On downgrade, services with a protocol set are deleted and recreated without it, disrupting connections."
+      },
+      "statement": "Cilium 1.17 adds services protocol differentiation, controlled by --bpf-lb-proto-diff and enabled by default; existing services without a protocol are preserved and must be deleted and recreated for their protocol to be taken into account."
+    },
+    "proposals": [
+      "sp-25500ffb8a26",
+      "sp-6fb905f696cd",
+      "sp-8696549db695",
+      "sp-8db3c52b148b",
+      "sp-ccd5bf20c213"
+    ],
+    "validations": [
+      "val-0bf11c108678",
+      "val-4f52c8cb15e4",
+      "val-8d4cef7e98c8",
+      "val-ce5dd95be29b",
+      "val-eadaa721c34d",
+      "val-f3128a8788e5",
+      "val-f729cc5941d1",
+      "val-fdc76cc0328e"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-03T08:14:48Z"
+  }
+}

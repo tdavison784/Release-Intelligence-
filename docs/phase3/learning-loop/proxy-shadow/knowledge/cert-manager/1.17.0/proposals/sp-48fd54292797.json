@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-48fd54292797",
+    "candidateId": "sc-34fb0eae6e1d",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "acme-http01-solver-ipv6"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment's ACME HTTP-01 challenges are solved against IPv6 endpoints (the IP family of the HTTP-01 solver endpoints)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments whose ACME HTTP-01 challenges are solved against IPv6 endpoints, the upgrade changes the solver's behavior: the IPv6 handling that previously did not work correctly is fixed, so HTTP-01 solving against IPv6 endpoints now behaves differently (it works) with no configuration change.",
+        "remediation": "No action required; re-verify ACME HTTP-01 challenges against IPv6 endpoints after upgrading and retire any workarounds kept for this bug.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 fixes the ACME HTTP-01 solver for IPv6 endpoints, where it previously did not work correctly."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4fef58672646"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:5b8468edca64c547ff5de1c9c0f2e6654aca9eaf326cb0ef209b9c537c76f90a",
+      "inputEvidence": [
+        "ev-4fef58672646"
+      ],
+      "generatedAt": "2026-10-03T08:39:12Z",
+      "callId": "d0117344-7638-4f1c-98a4-88022c382d5d"
+    }
+  }
+}

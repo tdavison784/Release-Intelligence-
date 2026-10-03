@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-20e9cd98754f",
+    "candidateId": "sc-8076d0a3c442",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "kyverno",
+        "name": "*/view"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Wildcard view permissions are replaced by a role binding to the system view role; admission behavior is unaffected, but mutate and generate policies for custom resources and reporting of validation results on custom resources may be impacted.",
+        "remediation": "Follow the upgrade guidance; a Helm option exists to upgrade without breaking existing policies.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 removed its wildcard view permissions and replaced them with a role binding to the system view role, which may affect mutate/generate policies and reporting for custom resources."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Text says only users with mutate/generate policies or validation reporting on custom resources may be impacted; the exact Helm option and a static condition are not named in the evidence.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e6df95267b63"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2+rendered",
+      "promptDigest": "sha256:8e89986502724a96ee2ba8d7236c9a8a6c96efea65ae0f2ffa86a7042ff8a19b",
+      "inputEvidence": [
+        "ev-e6df95267b63",
+        "ev-d4e66123c4de",
+        "ev-9fdd5d1096ef",
+        "ev-b8120a2bb840",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-03T07:03:45Z",
+      "callId": "23f0fad4-b01c-4752-ba93-86264fae7692"
+    }
+  }
+}

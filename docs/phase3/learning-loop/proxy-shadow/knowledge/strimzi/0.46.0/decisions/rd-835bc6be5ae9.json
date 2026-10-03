@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-835bc6be5ae9",
+    "reviewItemId": "ri-9ca27d662816",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:823b359dd3718539c5ada8c373d3dbb95a01852b9448acf70b10d694689666ca",
+      "inputEvidence": [
+        "ev-f432b7205700",
+        "ev-4c2676e4665a",
+        "ev-87094cfdd770",
+        "ev-4851b37425c0",
+        "ev-17b3774eb9ee",
+        "ev-0fe6816db4bb",
+        "ev-a6197708b375",
+        "ev-b55698b84a79",
+        "ev-4fdefdd841ec",
+        "ev-88ae24e32184",
+        "ev-526028ea7180",
+        "ev-2dffc916b09a"
+      ],
+      "generatedAt": "2026-10-03T12:30:21.739Z",
+      "callId": "2a9bfe84-fb2e-46ff-be3f-20e17d787755",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-f432b7205700] is the only evidence. It says that from Kafka 4.0.0, JMXReporter is enabled only through `.spec.kafka.metrics` or an explicit `metric.reporters` entry. The proposed exposure instead tests `spec.kafka.metricsConfig`, a path that appears nowhere in the evidence and seems to come from schema memory. The evidence also does not say where the environment sets the Kafka version (a separate product version or a Kafka resource field) or where `metric.reporters` is configured. To pin the predicates without guessing, I need the Kafka CR schema or the upgrade-guide text that names the metrics field path, the field that holds the broker config, and the Kafka version field.",
+    "startedAt": "2026-10-03T12:30:08.119Z",
+    "decidedAt": "2026-10-03T12:30:21.739Z"
+  }
+}

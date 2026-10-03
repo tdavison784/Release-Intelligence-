@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6d714246f33b",
+    "candidateId": "sc-bff803aa3413",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"flux uninstall did not remove ArtifactGenerators\"",
+        "after": "\"flux uninstall removes ArtifactGenerators during uninstall\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "kind": "ArtifactGenerators"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "When the operator runs `flux uninstall`, existing `ArtifactGenerators` are now deleted as part of the uninstall cleanup (they were not removed by uninstall before this release).",
+        "remediation": "No action required; be aware that existing ArtifactGenerators are deleted if `flux uninstall` is run.",
+        "severity": "low"
+      },
+      "statement": "The `flux uninstall` CLI command now removes `ArtifactGenerators` during uninstall, so environments containing such resources will have them deleted when the operator runs `flux uninstall`."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The evidence states a change to the `flux uninstall` CLI command's cleanup behaviour (it now removes `ArtifactGenerators`); no subject family covers a CLI subcommand's behaviour, and the release note names no API group or version that would pin `ArtifactGenerators` as a specific GVK.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-ca5d9cebd770"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:35b9784310099ba28d8de773992213aabddcdbf95f6bb77be94d9ddd012f6ea6",
+      "inputEvidence": [
+        "ev-ca5d9cebd770"
+      ],
+      "generatedAt": "2026-10-03T07:18:27Z",
+      "callId": "315816d5-19e9-452d-8f51-faa1f9f03b04"
+    }
+  }
+}

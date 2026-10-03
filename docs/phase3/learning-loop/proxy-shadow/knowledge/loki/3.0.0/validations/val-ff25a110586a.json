@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ff25a110586a",
+    "candidateId": "sc-8fbba8759efe",
+    "proposalId": "sp-8ba486da1d96",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.compactor.shared-store",
+        "component": "compactor"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.compactor.shared-store",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.compactor.shared-store.key-prefix",
+              "state": "set"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*shared_store(_key_prefix)?:"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "An environment still passing -boltdb.shipper.compactor.shared-store or -boltdb.shipper.compactor.shared-store.key-prefix (or the corresponding shared_store / shared_store_key_prefix YAML settings) has that configuration no longer honoured: from 3.0.0 the compactor runs compaction and retention on all the object stores configured in the period configs whose index type is either tsdb or boltdb-shipper, regardless of the removed settings.",
+        "remediation": "Remove the -boltdb.shipper.compactor.shared-store and -boltdb.shipper.compactor.shared-store.key-prefix flags and the corresponding shared_store / shared_store_key_prefix YAML settings from the compactor configuration, and verify the period configs (index type tsdb or boltdb-shipper) list every object store on which compaction and retention should run.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 removes the compactor's shared-store configuration: the CLI flags -boltdb.shipper.compactor.shared-store and -boltdb.shipper.compactor.shared-store.key-prefix and the corresponding YAML settings are now removed, and the compactor instead runs compaction and retention on all the object stores configured in the period configs whose index type is either tsdb or boltdb-shipper."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

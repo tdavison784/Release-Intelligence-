@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4ddf7efa57f2",
+    "candidateId": "sc-b81eb6a8063a",
+    "proposalId": "sp-18d0a1fe811d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumLocalRedirectPolicy",
+        "path": "spec.skipRedirectFromBackend"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.skipRedirectFromBackend",
+              "state": "unset"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLocalRedirectPolicy"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.skipRedirectFromBackend",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLocalRedirectPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "With socket-based load-balancing, Local Redirect Policies by default redirect traffic that policy-selected node-local backends send to the policy's frontend back to the node-local backends.",
+        "remediation": "To keep backends' traffic to the frontend from being redirected, set skipRedirectFromBackend to true on the local redirect policies.",
+        "severity": "medium"
+      },
+      "statement": "In Cilium 1.16, when Local Redirect Policy is used with socket-based load-balancing, traffic that the policy's own node-local backends send to its frontend is redirected back to the node-local backends by default. Setting spec.skipRedirectFromBackend to true on a CiliumLocalRedirectPolicy turns this off."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

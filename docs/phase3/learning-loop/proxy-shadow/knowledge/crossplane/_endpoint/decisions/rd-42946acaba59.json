@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-42946acaba59",
+    "reviewItemId": "ri-0820abc30047",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:b4ebeb9ec01ce53ab12472069170714fae34aa5c6081ef2c2ae62169ed076029",
+      "inputEvidence": [
+        "ev-2875a348b5d7",
+        "ev-59d22c21eec4"
+      ],
+      "generatedAt": "2026-10-03T12:19:02.615Z",
+      "callId": "902a29b3-287e-40ae-9a6c-c28fb75b150a",
+      "provider": "anthropic"
+    },
+    "reason": "The only fact established is that v2.0.0 removed the log line \"Composition Revisions are GA and cannot be disabled. The --enable-composition-revisions flag will be removed in a future release.\" from cmd/crossplane/core/core.go. Both evidence excerpts contain only \"/*\" [ev-2875a348b5d7] [ev-59d22c21eec4], so they don't show whether v2.0.0 still defines or accepts the flag. Without that, the change type can't be settled: it could be \"removed\", or the flag could still exist and only the warning is gone, which is not a semantic change to the flag at all. To decide, we need the flag definitions (the kong struct fields) in v2.0.0 core.go, or release notes or an upgrade guide covering this flag.",
+    "startedAt": "2026-10-03T12:18:54.332Z",
+    "decidedAt": "2026-10-03T12:19:02.615Z"
+  }
+}

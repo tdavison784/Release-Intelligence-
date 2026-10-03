@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0cf982b1110c",
+    "candidateId": "sc-631f213db11a",
+    "proposalId": "sp-724fbb8f8bed",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "background-cache-size-limit-check"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which Loki cache backend the background size limit belongs to and which configuration setting (if any) enables or sizes it"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Caches keep working, but the background cache size limit is now checked atomically and correctly, so the cache's behavior around the size limit differs from the previous release.",
+        "remediation": "No operator action stated by the evidence; if a background cache size limit is in use, verify cache size-limit behavior after upgrading.",
+        "severity": "low"
+      },
+      "statement": "Loki now checks the background cache size limit atomically and correctly, so the cache's size-limit check behaves differently from previous releases."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

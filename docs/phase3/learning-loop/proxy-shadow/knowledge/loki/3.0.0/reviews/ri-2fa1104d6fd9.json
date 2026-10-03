@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-2fa1104d6fd9",
+    "candidateId": "sc-895e84ff5606",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Structured metadata is enabled by default and requires `tsdb` and `v13` schema or Loki won't start\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "none",
+                  "pattern": "\\btsdb\\b"
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "none",
+                  "pattern": "\\bv13\\b"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"config.yaml\"]",
+              "state": "exists",
+              "pattern": "\\btsdb\\b"
+            },
+            {
+              "op": "text-line",
+              "path": "data[\"config.yaml\"]",
+              "state": "exists",
+              "pattern": "\\bv13\\b"
+            }
+          ],
+          "kind": "ConfigMap"
+        }
+      },
+      "statement": "Loki 3.0.0 enables structured metadata by default, and this requires the `tsdb` store and `v13` schema, so Loki will not start unless the schema is migrated to tsdb with v13 before upgrading."
+    },
+    "proposals": [
+      "sp-1f21896293bb",
+      "sp-62678cbccd5a",
+      "sp-89cb731beb73",
+      "sp-c6a12c4cb0c3",
+      "sp-cb4effc9a76d"
+    ],
+    "validations": [
+      "val-1c1e750494cd",
+      "val-1fabfe1fe83d",
+      "val-89d30aa4a667",
+      "val-9d7e2e79e9df",
+      "val-c2b8c481a14c",
+      "val-c40e4e5c9cd1"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T07:52:11Z"
+  }
+}

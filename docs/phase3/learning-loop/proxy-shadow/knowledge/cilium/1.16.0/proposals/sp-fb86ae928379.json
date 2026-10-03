@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fb86ae928379",
+    "candidateId": "sc-18e3c0f40ba7",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--verbose",
+        "component": "cilium-dbg"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operator scripts or automation parse the `cilium-dbg status --verbose` health data tree"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The health data tree printed by `cilium-dbg status --verbose` changes shape and ordering — a leaf named `reporter` may now carry health reported on a non-leaf component, and branches are sorted by the fully qualified health status identifier — so tooling that parsed the previous output format may see different output while the command itself keeps working.",
+        "remediation": "Verify any scripts or automation that parse `cilium-dbg status --verbose` health data against the new `reporter` leaf and the sorted branch ordering.",
+        "severity": "low"
+      },
+      "statement": "The `cilium-dbg status --verbose` command's health data output may now show health reported on a non-leaf component under a leaf named `reporter`, and health data tree branches are now sorted by the fully qualified health status identifier."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-dc0997efed20"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:2642231db97fdb2b538a1e6215dce6a95ff669e4ac0e62e540121cb266b7db80",
+      "inputEvidence": [
+        "ev-dc0997efed20"
+      ],
+      "generatedAt": "2026-10-03T08:36:41Z",
+      "callId": "94f61178-74ff-473e-8778-d439d2203710"
+    }
+  }
+}

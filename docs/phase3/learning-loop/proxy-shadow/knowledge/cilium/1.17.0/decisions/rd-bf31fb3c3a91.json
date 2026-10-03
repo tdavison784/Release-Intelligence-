@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-bf31fb3c3a91",
+    "reviewItemId": "ri-96a5980543c2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The upgrade notes list the metric under Changed Metrics: it is now exposed as envoy_cilium_npds_init_fetch_timeout instead of envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout, so monitoring that queries the old name needs to be checked.",
+        "remediation": "Update dashboards, alerts and recording rules to use envoy_cilium_npds_init_fetch_timeout.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the Envoy metric `envoy_cilium_policymap_<node-ip>_<node-id>_init_fetch_timeout` is renamed to `envoy_cilium_npds_init_fetch_timeout`, so monitoring that queries the old name needs to be checked."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:78bf566d07aa4b8bc973b73674bedba39f685a42cca860d737c7b7b8dcc16ee0",
+      "inputEvidence": [
+        "ev-3c947c36df35",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:29:48.692Z",
+      "callId": "92f240da-0697-4947-af06-978b3874443f",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-3c947c36df35] lists this metric under \"Changed Metrics\" as renamed to envoy_cilium_npds_init_fetch_timeout. [ev-77f05428497a] says the prefix of all Envoy NPDS metrics was renamed from envoy_cilium_policymap_<node-ip>_<node-id>_ to envoy_cilium_npds_. The metric is still exposed, just under a new name. The upgrade notes do not say that anything fails, is rejected or must be migrated, so behavior-change (review) is the right kind, with low severity and a remediation to update dashboards and alerts that use the old name. A failure kind would claim more mandatory work than the evidence supports.",
+    "startedAt": "2026-10-03T12:29:39.704Z",
+    "decidedAt": "2026-10-03T12:29:48.692Z"
+  }
+}

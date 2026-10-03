@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f378674c1481",
+    "candidateId": "sc-e1a977f0036f",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "kyverno",
+        "name": "*/view"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "rbac-permission",
+          "product": "kyverno",
+          "name": "view"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].mutate",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].generate",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].mutate",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "Policy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].generate",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "Kyverno controllers lose the wildcard view permission they previously held and are instead bound to the default `view` role, so reports may be impacted and users with mutate or generate policies on custom resources may find those policies no longer work where the controller can no longer view the custom resources; policies during admission controls are not impacted.",
+        "remediation": "See the Role Based Access Controls documentation section referenced in the upgrade guide and grant the Kyverno controllers view access to any custom resources required by reports and by mutate/generate policies.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 removes the wildcard view permission that previously allowed Kyverno controllers to view all resources (including secrets) and replaces it with a role binding to the default `view` role, which will not impact policies during admission controls but may impact reports and users with mutate or generate policies on custom resources the controller may no longer be able to view."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-01e97dc9c4df",
+      "ev-e0408f021210",
+      "ev-4569f14ea82d",
+      "ev-13c3ac894c61",
+      "ev-d0b8f312ef56"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2+rendered",
+      "promptDigest": "sha256:31d9d5a3cf48264d887ef0530078ac9675e5aea3b44f6d72ef63241d40bb3843",
+      "inputEvidence": [
+        "ev-01e97dc9c4df",
+        "ev-9348cb2d7f00",
+        "ev-d4e66123c4de",
+        "ev-1f3623119395",
+        "ev-a77e0fc2c18d",
+        "ev-9fdd5d1096ef",
+        "ev-90e44cfd7601",
+        "ev-e0408f021210",
+        "ev-13c3ac894c61",
+        "ev-e0d064dacf28",
+        "ev-e25376a41cf1",
+        "ev-098cc226b24b",
+        "ev-829e35dd4733",
+        "ev-34ffeb4c57ab",
+        "ev-c756949b240f",
+        "ev-0cc0e7232681",
+        "ev-dcfc598b35a1",
+        "ev-b63be075f380",
+        "ev-b38ea1b958cb",
+        "ev-10f476b3db03",
+        "ev-8cc8fa472a4d",
+        "ev-2fec92fb6175",
+        "ev-b16173ee2a96",
+        "ev-4569f14ea82d",
+        "ev-d0b8f312ef56",
+        "ev-f4d7f536bf4a",
+        "ev-1096286e1c4f",
+        "ev-36fde8fe87bf",
+        "ev-e546520f1a69",
+        "ev-907b5eac899c",
+        "ev-32b7c6786a16",
+        "ev-a18125f27167",
+        "ev-524a4616ddd2",
+        "ev-c130c001c1b6",
+        "ev-35bde0b6c405",
+        "ev-aca377f1d08b",
+        "ev-04c1cddd0c08",
+        "ev-b19808a6bf66",
+        "ev-6a1436fac008",
+        "ev-b8120a2bb840"
+      ],
+      "generatedAt": "2026-10-03T08:28:28Z",
+      "callId": "352fad47-d6fe-4ad0-a243-3c414d98d28d"
+    }
+  }
+}

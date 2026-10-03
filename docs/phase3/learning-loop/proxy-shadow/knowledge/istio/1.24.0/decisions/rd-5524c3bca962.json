@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5524c3bca962",
+    "reviewItemId": "ri-85c0ba146fbc",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "statement": "Istio's default retry policy no longer retries on 503; setting EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY to false reverts this, and the flag will be removed in future releases."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:df6077f26c44f1920d0159752d112eea3f9aaffec8eebe0ce033121bae68decf",
+      "inputEvidence": [
+        "ev-28c263f19767",
+        "ev-c2809b3da7db",
+        "ev-4d26c029a26e",
+        "ev-371cba9ffb93",
+        "ev-cb880878ba69",
+        "ev-e09c6cbd06dc",
+        "ev-31d2781bf9d2",
+        "ev-fa371709f05a",
+        "ev-191d17c9702d",
+        "ev-4407ed95f094",
+        "ev-a25845551580",
+        "ev-61280517f4ea",
+        "ev-790b038b82b7",
+        "ev-37215a11e33d",
+        "ev-0f35637a9823",
+        "ev-3cf1259609e1",
+        "ev-dd94d38ea856",
+        "ev-c0fcac29e341",
+        "ev-2f7235dbd19d",
+        "ev-1fd772318bb8",
+        "ev-38775be62b3e",
+        "ev-1252a2a51c0c",
+        "ev-58fe3b69692b",
+        "ev-93c0d3a62602",
+        "ev-a5a74f4cd759",
+        "ev-c46155ca9794",
+        "ev-437e36865221",
+        "ev-a3e90b78f6fa",
+        "ev-62f858bc5c83",
+        "ev-0f8bce94541e",
+        "ev-80c52188197b",
+        "ev-e4fce3d0047f",
+        "ev-9413f4b657a9"
+      ],
+      "generatedAt": "2026-10-03T12:28:37.414Z",
+      "callId": "7b02bcc3-ad0c-497d-a1db-a064d988fea4",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-28c263f19767] says the default retry policy no longer retries on 503, and that setting \"EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY\" to false restores the old behaviour. So every environment that has not set this variable to false is exposed, and an environment that pins it to false is shielded. The proposed exposure (the env-var is not equal to false) and overlap (the env-var equals false) say exactly that. The evidence names no other condition that would narrow exposure, so this condition is neither broader nor narrower than what the text supports.",
+    "startedAt": "2026-10-03T12:28:28.744Z",
+    "decidedAt": "2026-10-03T12:28:37.414Z",
+    "resultingFact": "vf-125151205200"
+  }
+}

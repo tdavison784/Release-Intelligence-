@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-5affe2c8abc4",
+    "candidateId": "sc-4b9080e9db9b",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"TLS.CAOptional: Docker provider `tls.CAOptional` option has been removed in v3, as TLS client authentication is a server side option (see…\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "If the Docker provider static configuration still sets tls.caOptional (file, CLI flag, or environment variable), the option no longer exists in v3 and the configured value stops being honoured; the upgrade guide's remediation is to remove it from the Docker provider static configuration.",
+        "remediation": "Remove the tls.caOptional option from the Docker provider static configuration, in whichever form it is set: --providers.docker.tls.caOptional CLI flag, providers.docker.tls.caOptional in traefik.yml/traefik.yaml, or caOptional under [providers.docker.tls] in traefik.toml."
+      },
+      "statement": "The Docker provider static-configuration option tls.caOptional (providers.docker.tls.caOptional, CLI --providers.docker.tls.caOptional) has been removed in Traefik v3 and must be removed from the Docker provider static configuration."
+    },
+    "proposals": [
+      "sp-02ce9429962a",
+      "sp-86afd64f0751",
+      "sp-8c769d4b7b7e",
+      "sp-a732aa67f35b",
+      "sp-b5e1156f9089"
+    ],
+    "validations": [
+      "val-0991dc02878e",
+      "val-1956f8816295",
+      "val-3008b8a847d2",
+      "val-4e8d8ecc687c",
+      "val-6912ec404f78",
+      "val-a37a17183db8",
+      "val-a6959c8b84d4",
+      "val-c851872f7eeb",
+      "val-e49cc344ec01",
+      "val-fbb2a53e8afc"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-03T08:33:16Z"
+  }
+}

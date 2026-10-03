@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-168bdd23731f",
+    "candidateId": "sc-a94334b2979e",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "karpenter",
+        "name": "karpenter-sh-managed-by-annotation"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which objects carry the karpenter.sh/managed-by annotation and whether any tooling, selectors or workloads rely on that annotation (or on the new eks:eks-cluster-name tag) at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Karpenter no longer applies the karpenter.sh/managed-by annotation and instead adds an eks:eks-cluster-name tag, so the identifying metadata on affected resources differs from previous releases; anything matching the old annotation will no longer find it.",
+        "remediation": "Verify whether any tooling, selectors or automation read the karpenter.sh/managed-by annotation or should consume the new eks:eks-cluster-name tag.",
+        "severity": "low"
+      },
+      "statement": "Karpenter v1.0.0 removes the karpenter.sh/managed-by annotation and adds an eks:eks-cluster-name tag instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-6d7e63820de1"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:a21e607899f7b5a6394d66e176a9f0ea1c3f241d9fd6a3967d7166bbc3ceb386",
+      "inputEvidence": [
+        "ev-6d7e63820de1"
+      ],
+      "generatedAt": "2026-10-03T08:19:32Z",
+      "callId": "519b567b-2352-4ddc-a99a-296d5a100db2"
+    }
+  }
+}

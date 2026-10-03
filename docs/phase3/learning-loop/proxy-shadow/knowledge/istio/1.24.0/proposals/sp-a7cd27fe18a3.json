@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a7cd27fe18a3",
+    "candidateId": "sc-55dd0ceaa83f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "istiod-remote-to-remote-profile"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Clusters using a remote/external control plane must install with the istiod chart and --set profile=remote instead of the istiod-remote chart, and must also install the istio-base chart.",
+        "remediation": "Use `helm install istiod istio/istiod --set profile=remote` and install istio-base in both local and remote clusters.",
+        "severity": "medium"
+      },
+      "statement": "The istiod-remote Helm chart is replaced by the istiod chart installed with --set profile=remote; remote-control-plane clusters must install this way."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Evidence does not state a detectable configuration for installs using the istiod-remote chart; chart choice at install time is not expressible by available predicates.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5a31c0781dc5",
+      "ev-1295567312b0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:06feef7200e1d4e239639f43e44f4f5521f4e403862b4ce2df1564e17b51e78c",
+      "inputEvidence": [
+        "ev-5a31c0781dc5",
+        "ev-1295567312b0"
+      ],
+      "generatedAt": "2026-10-03T07:15:11Z",
+      "callId": "f21cbc62-a4b3-4e2f-8d29-e874b19ab81d"
+    }
+  }
+}

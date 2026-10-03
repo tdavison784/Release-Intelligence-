@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-bfe48e35ba4a",
+    "candidateId": "sc-a2b29fc53908",
+    "proposalId": "sp-912131cf4239",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "pem-trust-bundle-parse-limit"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which TLS trust bundles supplied to cert-manager exceed the previous PEM parse amount of pki.DecodeX509CertificateSetBytes (the evidence states no size threshold and does not say where the bundles are configured)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "TLS trust bundles larger than the previous parse amount, which could not be read before, become readable by pki.DecodeX509CertificateSetBytes after the upgrade; the evidence states no failure mode.",
+        "remediation": "No action required; verify that large TLS trust bundles now parse as expected.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 increases the amount of PEM data that pki.DecodeX509CertificateSetBytes can parse, enabling reading larger TLS trust bundles that previously could not be parsed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

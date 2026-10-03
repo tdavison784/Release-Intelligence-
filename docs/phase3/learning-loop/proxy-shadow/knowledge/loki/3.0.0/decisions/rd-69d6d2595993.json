@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-69d6d2595993",
+    "reviewItemId": "ri-26b1c220c475",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether dashboards, alert rules, or PromQL/queries reference the metric name cortex_query_scheduler_queue_duration_seconds_sum; monitoring definitions live outside the Loki release and no release input carries them"
+        }
+      },
+      "statement": "The Loki 3.0.0 upgrade guide lists the metric `cortex_query_scheduler_queue_duration_seconds_sum` under its 'Metrics namespace' section, but the evidence does not state what changed for it, and exposure depends on whether external dashboards, alerts, or queries reference that metric name, which no release input carries."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"config.yaml\"]",
+                  "state": "exists",
+                  "pattern": "^\\s*metrics_namespace:\\s*[\"']?cortex[\"']?\\s*$"
+                }
+              ],
+              "kind": "ConfigMap"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"config.yaml\"]",
+              "state": "exists",
+              "pattern": "^\\s*metrics_namespace:\\s*[\"']?cortex[\"']?\\s*$"
+            }
+          ],
+          "kind": "ConfigMap"
+        }
+      },
+      "statement": "In Loki 3.0.0, `cortex_query_scheduler_queue_duration_seconds_sum` is exposed as `loki_query_scheduler_queue_duration_seconds_sum` unless `metrics_namespace` is set to `cortex`. Environments that leave `metrics_namespace` at its default (`loki`) are exposed. Environments that set it to `cortex` keep the old name."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:b8ad065fa7065a83c37613f83c704e614340615aac3a74ed25af076748914a79",
+      "inputEvidence": [
+        "ev-98e38dff522b",
+        "ev-1f419676f177",
+        "ev-e9017907ef12",
+        "ev-da51dc686ad2",
+        "ev-5b589d797835",
+        "ev-998b2b21608f",
+        "ev-67618e9abe6b",
+        "ev-c54e318d2da0",
+        "ev-85b9d4e4ea7d",
+        "ev-ec96512e903f",
+        "ev-bfbe754880e4",
+        "ev-7e0c2d4b7db5",
+        "ev-9eb382b7f994",
+        "ev-dfffc3cc6d5f",
+        "ev-bef144404e5c",
+        "ev-2cad94fc463b",
+        "ev-e55689cf8a52",
+        "ev-d62d2a7618cb",
+        "ev-4beb2699f685",
+        "ev-49ff829746c1",
+        "ev-991b39bb2be7",
+        "ev-0872dba545cc",
+        "ev-c85e20a4d636",
+        "ev-dab862c92ac9",
+        "ev-b82bc2d30f22",
+        "ev-1fd7e824dbfd",
+        "ev-204dcfc64ffc",
+        "ev-810697118f35",
+        "ev-1b4fb5cb096e",
+        "ev-d5f0627c8efd",
+        "ev-5546e0710ba8",
+        "ev-bbc567e4316e",
+        "ev-a1761ecdb17b",
+        "ev-250705ae1b4c",
+        "ev-0622452b41d6",
+        "ev-e2c282154595",
+        "ev-9101c3082071",
+        "ev-a4ab17efb447",
+        "ev-5b3f3008c357",
+        "ev-3df4d337078e",
+        "ev-8d2f41bae352",
+        "ev-62f57e8a5130",
+        "ev-78dda4f7a9cf",
+        "ev-bf9c746b6677",
+        "ev-91b91031e04d",
+        "ev-0a3ad54fc240",
+        "ev-409448afd2c6",
+        "ev-eea385744194",
+        "ev-f3bf77a4c6fb",
+        "ev-30639b22a58c",
+        "ev-ed691386118f",
+        "ev-1aa46acbdd8d",
+        "ev-b5f136b4b95a",
+        "ev-4eef95f4a84c",
+        "ev-a149c2509dcd",
+        "ev-73ba76ce6428",
+        "ev-771c9eba4819",
+        "ev-1a930b2ae9f7",
+        "ev-63b677cd7a69",
+        "ev-d16e62cf8287",
+        "ev-bd29b25491ac",
+        "ev-98f76f5f3c21",
+        "ev-bfc636c79257",
+        "ev-9f14ff2ca2e2",
+        "ev-287398e6dcf6",
+        "ev-75c73d9f8bd7",
+        "ev-fcbd42d1a107",
+        "ev-64622020ffb2"
+      ],
+      "generatedAt": "2026-10-03T12:21:14.119Z",
+      "callId": "d107ac14-9bf1-40a9-8738-5bdec590e080",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-1f419676f177] says the listed `cortex_` metrics, including [ev-98e38dff522b] `cortex_query_scheduler_queue_duration_seconds_sum`, now start with `loki_` in 3.0.0. Operators keep the old name by changing `metrics_namespace` from the default `loki` to `cortex`. Exposure therefore depends on a named configuration setting, so the undecidable leaf (runtime-behavior-gap) is wrong. The exposed environments are those that do not set metrics_namespace to cortex; those that set it are shielded. The evidence does not say which config file key carries the setting, so the data key \"config.yaml\" in the predicate is an inference, and confidence is low.",
+    "startedAt": "2026-10-03T12:20:56.03Z",
+    "decidedAt": "2026-10-03T12:21:14.119Z"
+  }
+}

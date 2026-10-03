@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0aa0d8d61d36",
+    "reviewItemId": "ri-ba41d95bec4b",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.tls.server.cert",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.tls.server.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.tls.server.key",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.tls.server.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.client.cert",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.client.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.client.key",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.client.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.server.cert",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.server.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.server.key",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.relay.tls.server.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.ui.tls.client.cert",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.ui.tls.client.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "hubble.ui.tls.client.key",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "hubble.ui.tls.client.existingSecret",
+                  "state": "unset"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "hubble.tls.server.existingSecret",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "hubble.relay.tls.client.existingSecret",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "hubble.relay.tls.server.existingSecret",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "hubble.ui.tls.client.existingSecret",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Helm options hubble.tls.server.cert, hubble.tls.server.key, hubble.relay.tls.client.cert, hubble.relay.tls.client.key, hubble.relay.tls.server.cert, hubble.relay.tls.server.key, hubble.ui.tls.client.cert, and hubble.ui.tls.client.key are deprecated in favor of the associated existingSecret options and will be removed in a future release."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d960d69ad69d8dfb66046b7ac2681a968d888f53e70ce2d678d70a6dd6917ce9",
+      "inputEvidence": [
+        "ev-672c6336b39c",
+        "ev-0debb0d83ac2",
+        "ev-4ce2886cea1f",
+        "ev-42d13e5eb7d7",
+        "ev-f13e15b06a08",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-03T12:33:15.491Z",
+      "callId": "3168ae75-390b-49b5-bdcd-9eb0353c8557",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-672c6336b39c] deprecates the eight inline Hubble TLS cert/key Helm options \"in favor of the associated existingSecret options\", so environments using a deprecated key without its replacement are exposed. The proposed exposure uses the standard pattern for a deprecated Helm value with a replacement: any(deprecated key set AND its sibling existingSecret unset). The overlap marks environments with an existingSecret set. The replacement key paths are inferred from the word \"associated\" rather than named in the text, so confidence is low. If an inferred name were wrong, the check would only widen, not narrow, the exposed set.",
+    "startedAt": "2026-10-03T12:32:58.134Z",
+    "decidedAt": "2026-10-03T12:33:15.491Z",
+    "resultingFact": "vf-215fe544edfe"
+  }
+}

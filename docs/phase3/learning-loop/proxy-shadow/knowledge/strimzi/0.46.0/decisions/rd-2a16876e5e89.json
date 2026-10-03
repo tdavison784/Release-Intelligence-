@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2a16876e5e89",
+    "reviewItemId": "ri-55a157b48cfe",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "A custom setup that leverages the statefulset.kubernetes.io/pod-name label stops working after the upgrade because the label is no longer applied to pods and external listener Kubernetes Services.",
+        "remediation": "Replace any use of the statefulset.kubernetes.io/pod-name label with the strimzi.io/pod-name label.",
+        "severity": "medium"
+      },
+      "statement": "Strimzi 0.46.0 removed the statefulset.kubernetes.io/pod-name label from pods and external listeners Kubernetes Services, and any custom setup leveraging that label must use the strimzi.io/pod-name label instead."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "After the upgrade, Strimzi pods and external listener Kubernetes Services no longer carry the statefulset.kubernetes.io/pod-name label, so any custom setup that uses this label must be changed to use the strimzi.io/pod-name label instead.",
+        "remediation": "Update any custom setup that uses the statefulset.kubernetes.io/pod-name label to use the strimzi.io/pod-name label instead.",
+        "severity": "medium"
+      },
+      "statement": "Strimzi 0.46.0 removed the statefulset.kubernetes.io/pod-name label from pods and external listener Kubernetes Services; custom setups that use this label must switch to the strimzi.io/pod-name label."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d7fc75d5623cbe8e135df56ad5ae2e1e59d453eaa1c15afe9ed2a26c0e31564f",
+      "inputEvidence": [
+        "ev-4fdefdd841ec",
+        "ev-4c2676e4665a",
+        "ev-87094cfdd770",
+        "ev-4851b37425c0",
+        "ev-17b3774eb9ee",
+        "ev-0fe6816db4bb",
+        "ev-a6197708b375",
+        "ev-b55698b84a79",
+        "ev-88ae24e32184",
+        "ev-526028ea7180",
+        "ev-2dffc916b09a",
+        "ev-f432b7205700"
+      ],
+      "generatedAt": "2026-10-03T12:53:18.276Z",
+      "callId": "1b26c927-e8c3-4fc4-9ded-93f86b733c39",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-4fdefdd841ec] says the label was removed (not deprecated) from pods and external listener Services, and tells anyone whose custom setup uses it to switch to `strimzi.io/pod-name`. That is a required operator step for exposed setups, so the class is mandatory work. However, the evidence never says the setup \"stops working\", which is what workload-failure claims. migration-required, the switch to the replacement label, matches what the evidence actually says.",
+    "startedAt": "2026-10-03T12:53:02.624Z",
+    "decidedAt": "2026-10-03T12:53:18.276Z"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5909254bc062",
+    "candidateId": "sc-4af74fb7c5f7",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "server-side-diff-dry-run"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which environments/apps use server-side diff dry run and how it is enabled — the evidence names no setting, flag, feature gate or field controlling it"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Server-side diff dry run still works but is now executed by a new kube applier (a bug fix with refactoring), so dry-run diff results may differ from the previous implementation.",
+        "remediation": "After upgrading to 3.0.0, review application diff results that rely on server-side diff dry run for unexpected differences.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 (bug fix 5b79c34) introduces a new kube applier for server-side diff dry run, together with refactoring, changing how server-side diff dry runs are performed."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-aae2a6aa6ee6"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:6f82f6eb7b02e43c71c0a5c621fa59b72511c54804d771e8dcb543a3fc0fe427",
+      "inputEvidence": [
+        "ev-aae2a6aa6ee6"
+      ],
+      "generatedAt": "2026-10-03T07:16:40Z",
+      "callId": "839f4bfb-8563-42e0-9ee5-63123258b1dc"
+    }
+  }
+}
