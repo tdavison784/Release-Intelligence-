@@ -576,21 +576,26 @@ func TestConflictingAspectsAreReopenedNotLost(t *testing.T) {
 	}
 }
 
-// a conflict between trusted (here: validator-confirmed) aspects is a
-// pipeline inconsistency: it must still fail the decision loudly instead of
-// being silently re-asked.
-func TestConflictingTrustedAspectsStillFailLoudly(t *testing.T) {
+// a conflict between trusted (here: validator-confirmed) aspects cannot be
+// repaired by reopening: no fact is assembled, but the reviewer's verdict is
+// still recorded and the conflict is reported (never silently lost, never an
+// invalid fact).
+func TestConflictingTrustedAspectsAreRecordedAndReported(t *testing.T) {
 	c := fixtureCandidate()
-	_, q, items := routedConflict(t,
+	s, q, items := routedConflict(t,
 		validation(c, gvkTuple(), domain.AspectSubject),
 		validation(c, migrationTuple(), domain.AspectChange, domain.AspectApplicability))
-	// the consequence aspect comes from a proxy decision (a validator cannot
-	// confirm one), completing the tuple with the mapping accept
-	_, err := q.Decide(context.Background(), []domain.ReviewDecision{
-		decision(itemFor(items, domain.QuestionConsequence), "proxy-opus", domain.ReviewerProxy, domain.ActionAccept, t0.Add(2*time.Hour)),
-		decision(itemFor(items, domain.QuestionSemanticMapping), "proxy-opus", domain.ReviewerProxy, domain.ActionAccept, t0.Add(3*time.Hour)),
-	})
-	if err == nil || !strings.Contains(err.Error(), "go together") {
-		t.Fatalf("error = %v; want the domain conflict to fail the decision", err)
+	ctx := context.Background()
+	d := decision(itemFor(items, domain.QuestionConsequence), "proxy-opus", domain.ReviewerProxy, domain.ActionAccept, t0.Add(2*time.Hour))
+	out, err := q.Decide(ctx, []domain.ReviewDecision{d})
+	if err != nil {
+		t.Fatalf("the verdict was refused: %v", err)
+	}
+	if out[0].Fact != nil || !strings.Contains(out[0].Conflict, "go together") {
+		t.Fatalf("fact %v, conflict %q", out[0].Fact != nil, out[0].Conflict)
+	}
+	snap, _ := s.Load(ctx, Query{})
+	if len(snap.Decisions) != 1 || len(snap.Facts) != 0 {
+		t.Fatalf("decisions %d, facts %d", len(snap.Decisions), len(snap.Facts))
 	}
 }

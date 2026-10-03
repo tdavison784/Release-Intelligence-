@@ -45,6 +45,9 @@ type Minted struct {
 	Open []domain.Aspect
 	// FollowUps are the review items newly needed for the open aspects.
 	FollowUps []domain.ReviewItem
+	// Conflict is set when the aspects of the candidate are all verified but
+	// cannot compose into a valid fact; the decision is still recorded.
+	Conflict string
 	// Touched are other facts the decision changed: retracted, superseded, or
 	// given a restatement anchor.
 	Touched []domain.VerifiedFact
@@ -491,7 +494,13 @@ func FactFromDecision(snap *Snapshot, d domain.ReviewDecision) (*Minted, error) 
 	}
 	f, err := buildFact(*cand, state, ps, vs, d.DecidedAt)
 	if err != nil {
-		return nil, fmt.Errorf("decision %s: %w", d.ID, err)
+		// Every aspect is verified yet they do not compose (repairState only
+		// reopens non-trusted aspects, so this is a conflict between trusted
+		// ones, e.g. two validators confirming incompatible parts). The
+		// reviewer's verdict stands and is recorded; no fact is assembled, and
+		// the conflict is reported so a person can resolve it.
+		out.Conflict = fmt.Sprintf("decision %s: verified aspects do not compose into a fact: %v", d.ID, err)
+		return out, nil
 	}
 	if old, exists := facts[f.ID]; exists {
 		if old.Status != domain.FactActive {
