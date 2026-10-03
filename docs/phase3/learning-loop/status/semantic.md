@@ -372,3 +372,40 @@ external-secrets 24, prometheus-operator 18, cilium 13, istio 2.
 Estimate: 449 × (Sonnet + Opus + GLM) = 1 347 calls. Claude side at the semantic-3 per-call rates
 (Sonnet $0.047, Opus $0.102) is about $67, ~$75 with v2's longer prompts: **within the ~$100 budget,
 so no priority cut**. GLM: 449 calls, billed by Z.AI.
+
+Step 3, the v2 re-proposal run: **complete and recorded** (`runs/semantic-v4/README.md`) — 868/898
+claude + 449/449 zai answered, 1 286 v2 proposals (sonnet 428, opus 436, glm 422) + 31 refusals
+imported into the committed tree (now 1 194 candidates / 3 969 proposals / 0 invalid), Claude $68.36.
+The L1 lever works: environment-visibility-gap leaves 87 → 0 on R1+R1b, R1b undecidable 108 → 20
+(61/78 candidates cleared, 36 with a decidable predicate instead). 30 claude requests (18 sonnet,
+12 opus, ≈$2.4) sit pending on the account session limit — resume command in the run README.
+
+## GLM handoff log (fifth handoff)
+
+GLM-5.3 again; the Claude agent is paused for a fresh usage-limit window. Takeover state: the
+semantic-4 step-3 run (`run4v2.sh`) had finished on disk (log ends `RUN4V2 DONE`) with the claude
+exchange stopped at the session limit — 30 pending — but nothing was committed and no run record
+existed. What I did (all `[glm-handoff] `):
+
+1. Verified the run state end to end before touching anything: build/vet/tests green; pending
+   count 30 in the exchange matches the pass-2 reports; 868 + 449 answered = 1 286 proposals +
+   31 refusals recorded in the worktree knowledge tree, every per-model count reconciled.
+2. `SEMANTIC_STORE=knowledge TestStoreIntegrity`: 1 194 candidates / 3 969 proposals / 0 invalid
+   (relative-path footgun: the test's cwd is the package dir — pass an absolute store path).
+3. Ran the paused agent's `analyze_v4.py` (committed verbatim) and wrote the run record
+   `runs/semantic-v4/README.md` incl. per-rule old→new undecidable tables, per-model outcomes,
+   costs from the CLI envelopes, and the one-command resume for the pending 30 (4d525e74).
+4. Imported the run results into the committed `knowledge/` tree: 102 candidate records + 1 286
+   proposals + 31 refusals (c3e18aa1).
+
+Uncertainties / for the commander:
+- The 30 pending claude calls (≈$2.4) were left pending on purpose — the account was still inside
+  its limit window at takeover (resets 6:50 America/Chicago), and prior handoffs' pattern is not to
+  spend the limited account from a handoff. Resume is one command (run README § Commands); after
+  it, re-run the analyzer — the record's tables will shift by at most 30 cells.
+- R1's undecidable-leaf total rose 51 → 55 (runtime-behavior-gap from opus 17 / glm 27; sonnet 0
+  in v2). The reason is one v2 keeps (genuinely runtime per PROMPT-LEVERS.md), so this is model
+  disagreement, not lost ground — but it is an observation for the review lane, recorded in the
+  run README.
+- The staged run4 claude half (153 calls, fourth handoff) remains untouched and staged.
+- No eval/, gates, or expectations were touched; no merge/rebase/push; `.lane-lead` untouched.
