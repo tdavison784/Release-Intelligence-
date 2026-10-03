@@ -316,3 +316,96 @@ func TestCompareShadow(t *testing.T) {
 		t.Errorf("confusion: %v", a.Confusion)
 	}
 }
+
+// contract-5: a correction of the consequence prose only is recorded as
+// [corrected, improved-statement] — run-1/run-2 refused 37 of them because the
+// proxy's own pre-check demanded a digest change.
+func TestProseOnlyCorrectionIsRecorded(t *testing.T) {
+	rc := fixture(domain.QuestionConsequence)
+	req, _ := Build(rc, Options{})
+	ev := string(req.InputEvidence[0])
+	corr := map[string]any{"statement": "Same kind, better wording.",
+		"consequence": map[string]any{"determination": "asserted", "kind": "setting-ignored", "statement": "The rotationPolicy value is no longer honoured.", "remediation": "Set it explicitly."}}
+	d, _, err := Decision(rc, req, respond(t, req, map[string]any{"action": "correct", "reason": "[" + ev + "] says it differently",
+		"citations": []string{ev}, "confidence": "medium", "labels": []string{"wrong-consequence"}, "correction": corr}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if d.Corrected.Digest() != rc.Item.Proposed.Digest() || len(d.Labels) != 2 || d.Labels[0] != domain.LabelCorrected || d.Labels[1] != domain.LabelImprovedStatement {
+		t.Errorf("prose-only correction: labels %v", d.Labels)
+	}
+	if d.ProxyProvenance.Provider != "anthropic" {
+		t.Errorf("provider: %+v", d.ProxyProvenance)
+	}
+}
+
+func TestSectionContext(t *testing.T) {
+	rc := fixture(domain.QuestionConsequence)
+	cited := rc.Candidate.Evidence[0]
+	other := domain.NewEvidence(domain.EvidenceDocument, "guide", "https://example.test/upgrading.md", "L40", "rotation.policy now defaults to Always; set Never to keep the old behaviour.", "sha256:g", t0)
+	n := func(id, section string, role domain.SourceRole, text string, ev domain.EvidenceID) domain.NoteItem {
+		return domain.NoteItem{ID: id, Release: "v1.18.0", SourceID: string(role), Role: role, Section: section, Text: text, Evidence: []domain.EvidenceID{ev}}
+	}
+	sib := domain.NewEvidence(domain.EvidenceDocument, "notes", "https://example.test/notes.md", "L2", "Unrelated sibling item.", "sha256:d", t0)
+	rel := &domain.Release{Product: "cert-manager", Evidence: []domain.Evidence{cited, other, sib},
+		Notes: []domain.NoteItem{
+			n("note-1", "Breaking", domain.RoleReleaseNotes, "The default of rotationPolicy is now Always.", cited.ID),
+			n("note-2", "Breaking › Details", domain.RoleReleaseNotes, "SIBLING-IN-SECTION", sib.ID),
+			n("note-3", "Other", domain.RoleReleaseNotes, "OTHER-SECTION", sib.ID),
+			n("note-4", "Upgrading to 1.18", domain.RoleUpgradeGuide, "The policy key: rotation.policy now defaults to Always.", other.ID),
+		}}
+	src := func(p domain.ProductID, v string) (*domain.Release, error) { return rel, nil }
+	req, err := Build(rc, Options{Releases: src})
+	if err != nil {
+		t.Fatal(err)
+	}
+	user := req.Request.Messages[0].Content
+	for _, want := range []string{"UPSTREAM SECTION CONTEXT", "SIBLING-IN-SECTION", "► [" + string(cited.ID) + "]", "Upgrading to 1.18", string(other.ID)} {
+		if !strings.Contains(user, want) {
+			t.Errorf("section context lacks %q", want)
+		}
+	}
+	if strings.Contains(user, "OTHER-SECTION") {
+		t.Error("an unrelated section was shown")
+	}
+	if len(req.Sections) != 2 || req.Sections[0].Why != "cited" || !strings.HasPrefix(req.Sections[1].Why, "upgrade-guide mentions") {
+		t.Errorf("section refs: %+v", req.Sections)
+	}
+	shown := map[domain.EvidenceID]bool{}
+	for _, id := range req.InputEvidence {
+		shown[id] = true
+	}
+	if !shown[other.ID] {
+		t.Error("section evidence is not in inputEvidence (not citable)")
+	}
+	// a correction citing only section-context evidence is refused (it must cite candidate evidence)
+	corr := map[string]any{"statement": "s", "consequence": map[string]any{"determination": "asserted", "kind": "behavior-change", "statement": "keeps working"}}
+	if _, _, err := Decision(rc, req, respond(t, req, map[string]any{"action": "correct", "reason": "r", "citations": []string{string(other.ID)}, "confidence": "medium", "correction": corr})); err == nil {
+		t.Error("a correction without candidate evidence was recorded")
+	}
+	// without a release source the prompt is the plain one
+	plain, _ := Build(rc, Options{})
+	if strings.Contains(plain.Request.Messages[0].Content, "UPSTREAM SECTION CONTEXT") || len(plain.Sections) != 0 {
+		t.Error("section context without a release source")
+	}
+}
+
+// v3: literals are shown decoded — the stored "\"Never\"" is the string Never,
+// and printing it raw made the proxy "correct" quotes that are not there.
+func TestPromptShowsLiteralsDecoded(t *testing.T) {
+	rc := fixture(domain.QuestionApplicability)
+	rc.Item.Proposed.Applicability = &domain.Applicability{Exposure: domain.Condition{Op: domain.OpValuesKey, Path: "rotation.policy", State: domain.StateEquals, Values: []string{`"Never"`, `30`}}}
+	req, err := Build(rc, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	user := req.Request.Messages[0].Content
+	for _, want := range []string{`"before":"Never"`, `"after":"Always"`, `"values":["Never",30]`} {
+		if !strings.Contains(user, want) {
+			t.Errorf("prompt lacks decoded %s", want)
+		}
+	}
+	if strings.Contains(user, `\"Never\"`) {
+		t.Error("prompt still shows an encoded literal")
+	}
+}

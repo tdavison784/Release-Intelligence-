@@ -117,7 +117,7 @@ func TestKnowledgeProxyPromptDecideReport(t *testing.T) {
 	}
 	pp := d.ProxyProvenance
 	if d.ReviewerKind != domain.ReviewerProxy || pp == nil || pp.CallID != "call-good" || pp.PromptVersion != proxyreview.PromptVersion ||
-		pp.PromptDigest != req.PromptDigest || pp.Rule != "provider:anthropic" || d.Reviewer != "proxy:claude-opus-5-5" {
+		pp.PromptDigest != req.PromptDigest || pp.Provider != "anthropic" || d.Reviewer != "proxy:claude-opus-5-5" {
 		t.Errorf("decision attribution: %+v %+v", d, pp)
 	}
 	if !d.DecidedAt.After(d.StartedAt) {

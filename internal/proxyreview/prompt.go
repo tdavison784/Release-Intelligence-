@@ -96,6 +96,8 @@ type Request struct {
 	Proposals []ProposalRef `json:"proposals"`
 	// HumanDecisionsShown counts the earlier human decisions shown as context.
 	HumanDecisionsShown int `json:"humanDecisionsShown"`
+	// Sections are the upstream sections shown around the cited text (v3).
+	Sections []SectionRef `json:"sections,omitempty"`
 }
 
 // Options tune what a prompt shows.
@@ -104,6 +106,9 @@ type Options struct {
 	// NoHumanContext leaves out earlier human decisions (the shadow pass over
 	// items a human has decided: the proxy must not see the human's answer).
 	NoHumanContext bool
+	// Releases loads the candidate's ingested release, for the upstream
+	// section context (v3, lever L2). Nil: no section context.
+	Releases ReleaseSource
 }
 
 // ErrNotReviewable is returned for items the proxy does not review.
@@ -169,11 +174,29 @@ func Build(rc *knowledge.ReviewContext, opts Options) (*Request, error) {
 	}
 	req.HumanDecisionsShown = len(humans)
 
+	var rel *domain.Release
+	var blocks []sectionBlock
+	if opts.Releases != nil && rc.Candidate.Release != "" {
+		r, err := opts.Releases(rc.Candidate.Product, rc.Candidate.Release)
+		if err != nil {
+			return nil, fmt.Errorf("proxyreview: release %s@%s: %w", rc.Candidate.Product, rc.Candidate.Release, err)
+		}
+		if r != nil {
+			for _, e := range r.Evidence {
+				if strings.Contains(e.URI, "eval/cases") || strings.Contains(e.URI, "eval/results") {
+					return nil, fmt.Errorf("%w: release evidence references the evaluation dataset (%s)", semantic.ErrExpectationLeak, e.URI)
+				}
+			}
+			rel = r
+			blocks = sectionContext(r, rc.Candidate, termSource(it.Proposed, ps))
+		}
+	}
+
 	excerpt := maxExcerpt
 	for {
-		user, input := renderUser(rc, ps, labels, facts, humans, excerpt)
+		user, input, refs := renderUser(rc, ps, labels, facts, humans, rel, blocks, excerpt)
 		if len(user) <= maxPromptSize || excerpt <= minExcerpt {
-			req.InputEvidence = input
+			req.InputEvidence, req.Sections = input, refs
 			schema, err := verdictSchema(it.QuestionType, input, req.Facts)
 			if err != nil {
 				return nil, err
@@ -223,8 +246,9 @@ must not imagine one.
 
 Rules
 ` + dataRule + `
-- Evidence only. Decide from the EVIDENCE excerpts and validation results shown. Do not use what you remember
-  about the product, later releases or common practice; do not fill gaps with plausible guesses.
+- Evidence only. Decide from the EVIDENCE excerpts, the UPSTREAM SECTION CONTEXT (when shown) and the
+  validation results. Do not use what you remember about the product, later releases or common practice; do
+  not fill gaps with plausible guesses.
 - Proposals are claims to check, not evidence. Agreement among them is a signal, not proof: models share
   misreadings. A validator "confirmed" check is a deterministic proof from artifacts; "refuted" means the
   artifact contradicts the assertion it checked; "inconclusive" proves nothing either way.
@@ -253,8 +277,10 @@ Your task: answer the QUESTION by deciding on the PROPOSED ASSERTION, judging on
 - reject: the proposed assertion is wrong and no correct assertion follows from the evidence (it is not a
   change, it misreads the text, it bundles unrelated changes). Optional wrong-* labels say what was wrong.
   With "duplicateOf": the change is the same upstream change as one of the KNOWN FACTS shown.
-- need-more-evidence: the evidence shown is not enough to decide the [VERIFY] aspects either way (say what
-  is missing). Prefer this to a guess.
+- need-more-evidence: neither the EVIDENCE nor the UPSTREAM SECTION CONTEXT is enough to decide the [VERIFY]
+  aspects either way (say what is missing). Prefer this to a guess, but read the section context first: an aspect
+  the surrounding upstream text settles (for example the upgrade guide naming the key, the default or what
+  breaks) is decided, not closed for lack of evidence.
 - defer: you cannot decide for another reason (say why).
 Be strict about the consequence: an action-eligible kind (upgrade-blocked, resource-rejected, setting-ignored,
 permission-lost, workload-failure, migration-required) only when the evidence states that something fails, is
@@ -271,8 +297,10 @@ asks whether the cited evidence is enough to decide what the change means (its s
 exposed, what happens). Actions:
 - evidence-sufficient: the evidence states the change concretely enough that an engineer could write the typed
   assertion for the open aspects. Say in the reason what it states (subject, change, consequence), citing ids.
-- need-more-evidence: it is not: the text is vague, only points elsewhere (a migration guide, a PR), bundles
-  several changes, or does not say what changed. Say what is missing.
+- need-more-evidence: it is not: the text is vague, only points elsewhere (a migration guide, a PR, docs that are
+  not shown), bundles several changes, or does not say what changed. Say what is missing. Judge the EVIDENCE
+  together with the UPSTREAM SECTION CONTEXT: when the surrounding section (or a shown upgrade-guide section)
+  states the change concretely, the evidence is sufficient.
 - defer: you cannot tell for another reason (say why).
 Do not give labels, duplicateOf or a correction.
 `
@@ -290,7 +318,7 @@ func systemPrompt(q domain.QuestionType) string {
 }
 
 func renderUser(rc *knowledge.ReviewContext, ps []domain.SemanticProposal, labels map[string]string, facts []domain.VerifiedFact,
-	humans []domain.ReviewDecision, excerpt int) (string, []domain.EvidenceID) {
+	humans []domain.ReviewDecision, rel *domain.Release, blocks []sectionBlock, excerpt int) (string, []domain.EvidenceID, []SectionRef) {
 	it, c := rc.Item, rc.Candidate
 	var b strings.Builder
 	var input []domain.EvidenceID
@@ -341,6 +369,13 @@ func renderUser(rc *knowledge.ReviewContext, ps []domain.SemanticProposal, label
 	b.WriteString("\nEVIDENCE (upstream)\n")
 	for _, e := range c.Evidence {
 		writeEvidence(e, "")
+	}
+	secIDs, refs := renderSections(&b, rel, blocks)
+	for _, id := range secIDs {
+		if !seen[id] {
+			seen[id] = true
+			input = append(input, id)
+		}
 	}
 
 	if it.QuestionType != domain.QuestionEvidenceSufficiency {
@@ -451,7 +486,7 @@ func renderUser(rc *knowledge.ReviewContext, ps []domain.SemanticProposal, label
 		}
 	}
 	b.WriteString("\nAnswer with JSON matching the schema.\n")
-	return b.String(), input
+	return b.String(), input, refs
 }
 
 // writeAssertion writes each stated aspect as compact JSON, marking the ones
@@ -477,8 +512,7 @@ func writeAssertion(b *strings.Builder, a domain.SemanticAssertion, verify []dom
 			continue
 		}
 		any_ = true
-		j, _ := json.Marshal(p.v)
-		fmt.Fprintf(b, "%s%s%s: %s\n", indent, mark, p.x, j)
+		fmt.Fprintf(b, "%s%s%s: %s\n", indent, mark, p.x, displayJSON(p.v))
 	}
 	if !any_ && verify == nil {
 		fmt.Fprintf(b, "%s(asserts nothing)\n", indent)
@@ -683,4 +717,79 @@ func containsString(xs []string, s string) bool {
 		}
 	}
 	return false
+}
+
+// termSource is the assertion whose subject names the terms an upgrade guide
+// would use: the proposed one, else the first proposal that states a subject
+// (an evidence-sufficiency item proposes nothing).
+func termSource(proposed domain.SemanticAssertion, ps []domain.SemanticProposal) domain.SemanticAssertion {
+	if proposed.Subject != nil {
+		return proposed
+	}
+	for _, p := range ps {
+		if p.Assertion.Subject != nil {
+			return p.Assertion
+		}
+	}
+	return proposed
+}
+
+// displayJSON renders an aspect for the prompt in the proposers' answer
+// shape: the domain stores condition values and change before/after as
+// JSON-encoded literals ("\"false\"" is the string false), and printing those
+// raw made reviewers "correct" quote characters that are not there (v3 fix).
+// Each such literal is decoded and shown as the JSON value it encodes.
+func displayJSON(v any) string {
+	raw, err := json.Marshal(v)
+	if err != nil {
+		return "?"
+	}
+	var tree any
+	if err := json.Unmarshal(raw, &tree); err != nil {
+		return string(raw)
+	}
+	out, _ := json.Marshal(decodeLiterals(tree))
+	return string(out)
+}
+
+func decodeLiterals(v any) any {
+	switch t := v.(type) {
+	case map[string]any:
+		for k, x := range t {
+			switch k {
+			case "before", "after":
+				if s, ok := x.(string); ok {
+					t[k] = literal(s)
+					continue
+				}
+			case "values":
+				if xs, ok := x.([]any); ok {
+					for i, e := range xs {
+						if s, ok := e.(string); ok {
+							xs[i] = literal(s)
+						}
+					}
+					continue
+				}
+			}
+			t[k] = decodeLiterals(x)
+		}
+		return t
+	case []any:
+		for i, x := range t {
+			t[i] = decodeLiterals(x)
+		}
+		return t
+	}
+	return v
+}
+
+// literal decodes one JSON-encoded literal; text that is not JSON (a semver
+// range, a pattern) is shown as it is.
+func literal(s string) any {
+	var x any
+	if err := json.Unmarshal([]byte(s), &x); err != nil {
+		return s
+	}
+	return x
 }

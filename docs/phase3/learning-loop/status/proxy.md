@@ -164,3 +164,31 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
   contract question.
 - Uncertain: nothing new. Open items unchanged and with the commander: prose-only corrections,
   `Provenance.Provider`, the v3 re-run order above; proxy-agreement waits for the product owner.
+
+## proxy-3a (branch `p3ll/proxy-3`, commander order 2026-10-03): DONE
+
+- I reviewed GLM takeover 3: its v3 citation rule is correct (it matches `correctedAssertion`, which keeps only
+  candidate ids). Cherry-picked onto `p3ll/proxy-3`.
+- **Blindness:** `LOOP-DIAGNOSIS-2.md` analyses eval links ("unhit links"), so I did not read it. L2 was built from
+  the commander's description.
+- **Prompt v3:** the upstream section context from the ingested release store (cited section + up to 2
+  upgrade-guide sections that mention the subject, bounded), plus the citation rule. Blindness is unchanged.
+- **Why wording-only corrections were still refused after contract-5:** the cause is in the proxy's own decide
+  path. `proxyreview.correctedAssertion` refused every correction with unchanged aspect digests ("the correction
+  changes no aspect") *before* the domain's contract-5 check ran. Even past that, it would have labelled them with
+  wrong-* labels instead of exactly `[corrected, improved-statement]`.
+  - Fixed: the pre-check now mirrors the domain (it refuses only when neither a digest nor the consequence prose
+    changed), and prose-only corrections get the contract-5 labels.
+  - Verified by re-recording the 16 refused run-2 prose-only verdicts against a scratch copy (no model calls):
+    **11 now record**. The other 5 are a second bug, below.
+- **Second bug (mine, fixed):** the prompt printed JSON-encoded literals raw (`"\"false\""`). The proxy then
+  "corrected" phantom quote characters, which is a no-op (those 5) or a spurious wrong-* label. About 41 v1/v2
+  verdicts mention it (≈39 corrections, 2 rejects). The recorded corrected values are canonical, so facts are
+  not corrupted, but the wrong-* label counts are inflated by roughly that much. v3 shows the literals decoded.
+- **Smoke** (10 items v2 closed as need-more-evidence): v3 gives 9 need-more-evidence and 1 correct. See
+  `proxy/v3-smoke/SMOKE.md`. Most closes are one-line changelog/PR titles whose facts live in the un-ingested
+  PR: that's a capture lever.
+- **Not done (waits for the commander):**
+  - the full v3 re-review after semantic-4;
+  - optionally re-recording the 11 now-recordable run-2 verdicts in the real store (no model calls; those items
+    are still pending and would otherwise be re-called in the re-review).

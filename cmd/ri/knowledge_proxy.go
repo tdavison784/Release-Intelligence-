@@ -14,6 +14,7 @@ import (
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/knowledge"
 	"github.com/tdavison784/release-intelligence/internal/proxyreview"
+	"github.com/tdavison784/release-intelligence/internal/store"
 )
 
 // knowledgeProxyPrompt writes one proxy-review request per selected item
@@ -31,6 +32,7 @@ func (c *cli) knowledgeProxyPrompt(args []string) error {
 	items := fs.String("items", "", "comma-separated item ids (overrides the filters except status)")
 	noHuman := fs.Bool("no-human-context", false, "leave earlier human decisions out of the prompts (shadow pass)")
 	limit := fs.Int("limit", 0, "at most N requests (0 = all)")
+	noSections := fs.Bool("no-sections", false, "leave out the upstream section context (prompt v3 shows it from the ingested release store under -state)")
 	if _, err := parse(fs, args); err != nil {
 		return err
 	}
@@ -77,13 +79,18 @@ func (c *cli) knowledgeProxyPrompt(args []string) error {
 	if err := os.MkdirAll(*out, 0o755); err != nil {
 		return err
 	}
+	var releases proxyreview.ReleaseSource
+	if !*noSections {
+		st := store.New(filepath.Join(c.g.state, "store"))
+		releases = func(p domain.ProductID, v string) (*domain.Release, error) { return st.LoadRelease(string(p), v) }
+	}
 	written, same, skipped := 0, 0, 0
 	for _, it := range sel {
 		rc, err := knowledge.AssembleContext(snap, it.ID)
 		if err != nil {
 			return err
 		}
-		req, err := proxyreview.Build(rc, proxyreview.Options{Model: *model, NoHumanContext: *noHuman})
+		req, err := proxyreview.Build(rc, proxyreview.Options{Model: *model, NoHumanContext: *noHuman, Releases: releases})
 		if errors.Is(err, proxyreview.ErrNotReviewable) {
 			fmt.Fprintf(c.err, "skipped %s: %v\n", it.ID, err)
 			skipped++
