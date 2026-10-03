@@ -192,7 +192,7 @@ func Decision(rc *knowledge.ReviewContext, req *Request, resp *Response) (domain
 		ReviewItemID: it.ID, Reviewer: Reviewer(resp.Model), ReviewerKind: domain.ReviewerProxy,
 		Reason: oneLine(v.Reason), StartedAt: resp.StartedAt.UTC(), DecidedAt: gen,
 		ProxyProvenance: &domain.Provenance{
-			Method: domain.MethodAI, Producer: Producer, Rule: "provider:" + Provider,
+			Method: domain.MethodAI, Producer: Producer, Provider: Provider,
 			Confidence: domain.Confidence(v.Confidence), Model: resp.Model, ModelVersion: resp.ModelVersion,
 			PromptVersion: req.PromptVersion, PromptDigest: req.PromptDigest, CallID: resp.CallID,
 			InputEvidence: append([]domain.EvidenceID(nil), req.InputEvidence...), GeneratedAt: &gen,
@@ -230,7 +230,13 @@ func Decision(rc *knowledge.ReviewContext, req *Request, resp *Response) (domain
 			return d, v, fmt.Errorf("correction refused: %w", err)
 		}
 		d.Action, d.Original, d.Corrected = domain.ActionCorrect, &orig, corrected
-		d.Labels = append([]domain.FeedbackLabel{domain.LabelCorrected}, mergeWrong(changedLabels(orig, *corrected, verify), wrongOf(v.Labels, verify))...)
+		if corrected.Digest() == orig.Digest() {
+			// prose-only (contract-5): the typed assertion was right, so this is
+			// not a model error and carries no wrong-* label
+			d.Labels = []domain.FeedbackLabel{domain.LabelCorrected, domain.LabelImprovedStatement}
+		} else {
+			d.Labels = append([]domain.FeedbackLabel{domain.LabelCorrected}, mergeWrong(changedLabels(orig, *corrected, verify), wrongOf(v.Labels, verify))...)
+		}
 	default:
 		return d, v, fmt.Errorf("unknown action %q", v.Action)
 	}
@@ -309,8 +315,11 @@ func correctedAssertion(rc *knowledge.ReviewContext, req *Request, resp *Respons
 	if s := strings.TrimSpace(p.Assertion.Statement); s != "" {
 		out.Statement = s
 	}
-	if out.Digest() == rc.Item.Proposed.Digest() {
-		return nil, errors.New("the correction changes no aspect")
+	// contract-5: a correction may change only the consequence prose
+	// (statement/remediation), which aspect digests ignore; anything else that
+	// changes no digest is a no-op.
+	if out.Digest() == rc.Item.Proposed.Digest() && consequenceProse(out) == consequenceProse(rc.Item.Proposed) {
+		return nil, errors.New("the correction changes no aspect and no consequence statement/remediation")
 	}
 	if err := out.Validate(false); err != nil {
 		return nil, err
@@ -376,4 +385,13 @@ func mergeWrong(a, b []domain.FeedbackLabel) []domain.FeedbackLabel {
 		}
 	}
 	return out
+}
+
+// consequenceProse is the consequence's free text, which aspect digests ignore
+// (the same notion as the domain's prose-only correction check, contract-5).
+func consequenceProse(a domain.SemanticAssertion) string {
+	if a.Consequence == nil {
+		return ""
+	}
+	return a.Consequence.Statement + "\x00" + a.Consequence.Remediation
 }

@@ -83,8 +83,33 @@ bin/ri knowledge proxy-report -ledger <ledger.jsonl>       # decisions, per-mode
 - `run-1/`: every pending non-high item of `knowledge/` (2026-10-02). It holds `ledger.jsonl`,
   `responses/` (the verdicts with call metadata), `requests.tar.gz` (the exact prompts), `proxy-report.{txt,json}`,
   `metrics.txt` and `REPORT.md`. Prompt v1. Later runs use `proxy-review/v2`, which states the correction length limits.
+  The current prompt is `proxy-review/v3`, which additionally tells the reviewer that a correction's citations
+  must include at least one upstream evidence id (the recorder keeps only upstream ids; a correction citing
+  only validator evidence refused).
 - `run-2/`: every pending non-high item of the real store after the loop-run-3 merge (proxy-2, prompt v2).
 - `../proxy-shadow/`: the **shadow pass**. The high items were decided in a COPY of the store, never the real one.
   `eval-knowledge/` is the merged evaluation view, labelled **proxy-incl-shadow**, built by
   `scripts/proxy-shadow-merge.py`. `ri knowledge proxy-agreement` compares the shadow decisions with the
   product owner's on the same items. See `../proxy-shadow/REPORT.md`.
+
+## Prompt v3 (proxy-3)
+
+- **Upstream section context (lever L2).** `ri knowledge proxy-prompt` loads the candidate's ingested release
+  from `-state/store` and shows two things:
+  - the whole section the cited note comes from: all notes of the same source and section (sub-sections
+    included), with the cited ones marked ►, bounded to a window around them;
+  - up to 2 upgrade-guide sections of the same release that mention a distinctive term of the subject. This
+    applies only when the cited text is not itself an upgrade guide.
+
+  Their evidence ids are citable and recorded in `inputEvidence`, and the request lists the sections shown
+  (`sections`). This is release-level upstream text only: no environment, nothing from `eval/`.
+  `-no-sections` turns it off.
+- **Citations.** A correction must cite at least one EVIDENCE (candidate) id; section-context and validator ids
+  do not count. This is the recorder's rule, now stated in the prompt.
+- **Literals are shown decoded.** Condition `values` and change `before`/`after` are stored JSON-encoded. v1/v2
+  printed them raw (`"\"false\""`), and the proxy "corrected" quote characters that are not there.
+- **Prose-only corrections are recorded (contract-5).** A correction that changes only the consequence
+  statement/remediation is labelled exactly `[corrected, improved-statement]`. v1/v2 refused all 37 such
+  corrections in the proxy's own pre-check, before the domain saw them.
+- Provenance now uses `Provenance.Provider` (contract-5) instead of `Rule: provider:…`.
+- Smoke: `v3-smoke/SMOKE.md`.
