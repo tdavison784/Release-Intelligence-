@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dfc551917433",
+    "candidateId": "sc-d73fe5dff82b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "istiod-remote",
+        "name": "istiod-remote"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "istio",
+          "path": "profile",
+          "name": "istio-discovery"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "istiod-remote",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Helm installations referencing the istiod-remote chart must migrate to helm install istio-discovery --set profile=remote before upgrading to 1.24.0.",
+        "severity": "high"
+      },
+      "statement": "The istiod-remote Helm chart has been removed; use helm install istio-discovery --set profile=remote instead."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-274ce3859ab9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:37974022d8b7908a6a1dff023a1df61e1db15459330ee06d630658b07b01329c",
+      "inputEvidence": [
+        "ev-274ce3859ab9"
+      ],
+      "generatedAt": "2026-10-02T05:58:46Z",
+      "callId": "c195d19d-c6cb-48b8-a928-a2786e48e1d0"
+    }
+  }
+}

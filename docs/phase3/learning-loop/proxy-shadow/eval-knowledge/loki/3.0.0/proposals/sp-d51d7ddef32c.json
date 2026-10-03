@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d51d7ddef32c",
+    "candidateId": "sc-69152174e9e5",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether dashboards, alerts or recording rules reference querier_cache_added_total, querier_cache_gets_total or querier_cache_misses_total"
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The three querier_cache_* metrics are no longer emitted; anything relying on them must use loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds, which instrument requests to the configured cache (embeddedcache, memcached or redis).",
+        "remediation": "Update dashboards and alerts to the loki_cache_* metrics."
+      },
+      "statement": "The embedded cache metrics querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total are removed in favour of loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: metrics are not a supported subject family; the text names three metrics, none maps to an available family",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-dd7907f24ce5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5008128e2b4cc0ce5f96b15f521da8da9411dea3576d206a116268f10fcdf49f",
+      "inputEvidence": [
+        "ev-dd7907f24ce5"
+      ],
+      "generatedAt": "2026-10-02T20:53:32Z",
+      "callId": "d12daf7d-4612-444f-8581-c2c5d5a9beb1"
+    }
+  }
+}

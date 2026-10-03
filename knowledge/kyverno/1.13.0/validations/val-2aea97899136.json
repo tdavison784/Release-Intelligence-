@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2aea97899136",
+    "candidateId": "sc-930a72d12c72",
+    "proposalId": "sp-907ee513cf32",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.rules[].context[].apiCall.default"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].context[].apiCall",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].context[].apiCall",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence: the new field is optional and only takes effect when set; existing policies and their context entries continue to work unchanged, and environments using apiCall context entries gain the ability to specify a fallback value.",
+        "remediation": "Optionally set the apiCall.default field on API call context entries that should fall back to a default value when the API server returns an error.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds an optional apiCall.default field to API call context entries (spec.rules[].context[].apiCall.default on ClusterPolicy and Policy, mirrored under the same path in v2beta1 and under spec.context[].apiCall.default on CleanupPolicy and ClusterCleanupPolicy) that provides a fallback value for the context entry when the API server returns an error."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

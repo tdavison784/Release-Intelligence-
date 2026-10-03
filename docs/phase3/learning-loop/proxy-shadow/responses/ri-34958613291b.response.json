@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-34958613291b",
+  "promptDigest": "sha256:d7ed2f519bbb307d88985644e551d52160ebd00474a1ae20d40217d16ba2d94a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "0792dcb2-ae8e-4754-8a55-2500e787f607",
+  "startedAt": "2026-10-03T02:15:08.362Z",
+  "decidedAt": "2026-10-03T02:15:20.241Z",
+  "durationMs": 11008,
+  "costUSD": 0.069388,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-3f6039ca92c8] says, under \"Deprecated configuration options are removed\", that `split_queries_by_interval` has been removed from the `query_range` YAML section and should now be set in limits_config. limits_config is another section of Loki's own configuration, not an upstream mechanism, so superseded-upstream is the wrong kind. The vocabulary defines a removed or relocated key as setting-ignored: a value left under query_range is no longer honoured there. The evidence does not say whether Loki ignores the old key or refuses the config, so setting-ignored is the minimum consequence the evidence supports.",
+    "citations": [
+      "ev-3f6039ca92c8"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0, split_queries_by_interval is removed from the query_range YAML section and is configured in limits_config instead; a value still set under query_range is no longer honoured there.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "statement": "split_queries_by_interval is removed from the query_range YAML section, so a value configured there is no longer honoured by Loki 3.0.0; it only takes effect when configured in limits_config.",
+        "remediation": "Move split_queries_by_interval from the query_range section to the limits_config section of the Loki configuration before upgrading.",
+        "severity": "medium"
+      }
+    }
+  }
+}

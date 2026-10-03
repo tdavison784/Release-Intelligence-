@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-67f14edabd31",
+    "candidateId": "sc-5182a9e4cb46",
+    "proposalId": "sp-5718a04f26e2",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "managed-resource-scoping"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"cluster-scoped managed resources\"",
+        "after": "\"namespaced managed resources\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "s3.aws.m.upbound.io",
+              "version": "v1beta1",
+              "kind": "Bucket"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "complete list of managed resource kinds in use across the environment"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Managed resources now operate within Kubernetes namespaces rather than cluster-wide, affecting resource organization, isolation, and cross-namespace composition patterns.",
+        "severity": "medium"
+      },
+      "statement": "Crossplane v2 makes all managed resources namespaced, enabling namespace-scoped resource isolation instead of cluster-wide scoping."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

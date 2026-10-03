@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-bba656d93d1c",
+    "candidateId": "sc-fa168da2703d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "endpointStatus"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "endpointStatus",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Values set under endpointStatus (endpointStatus.enabled, endpointStatus.status) will no longer take effect; operators must migrate to monitoring endpoints via Cilium metrics (cilium_policy, cilium_policy_endpoint_enforcement_status, cilium_controllers_failing, cilium_endpoint_state) or the cilium-dbg endpoint get command.",
+        "remediation": "Remove endpointStatus keys from Helm values and switch to metric-based endpoint status monitoring as documented in the upgrade guide.",
+        "severity": "medium"
+      },
+      "statement": "The Helm values option endpointStatus has been removed from the Cilium Helm chart; existing configurations using endpointStatus.enabled or endpointStatus.status will no longer be honored."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-f050ccf90d86"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:cf836505d2c14e65e8ba7da58584005237a9aa118ac18086c3da2fcf2436448a",
+      "inputEvidence": [
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5",
+        "ev-f050ccf90d86"
+      ],
+      "generatedAt": "2026-10-02T06:04:25Z",
+      "callId": "315c6d9f-129f-46c2-aabf-d47fc20cc2be"
+    }
+  }
+}

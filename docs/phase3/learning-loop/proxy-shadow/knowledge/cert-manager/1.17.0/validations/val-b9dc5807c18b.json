@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b9dc5807c18b",
+    "candidateId": "sc-63c2c8cd111b",
+    "proposalId": "sp-b22b8a0f5e8b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "operatorhub"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the environment uses OperatorHub as the installation/upgrade method for cert-manager"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators using OperatorHub to install or upgrade cert-manager cannot proceed with v1.17.0 or later; they must migrate to alternative installation methods such as Helm charts or direct manifest deployment.",
+        "remediation": "Switch to Helm-based installation, direct kubectl manifests, or other supported installation methods. See cert-manager installation documentation for alternatives to OperatorHub.",
+        "severity": "high"
+      },
+      "statement": "OperatorHub packages for cert-manager are no longer published; v1.16.5 is the last release available on OperatorHub, and v1.17.0+ cannot be installed via that distribution channel."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:product-relationship/removed",
+        "detail": "no canonical exposure condition for product-relationship removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

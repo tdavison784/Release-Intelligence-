@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-90df2dce7dfa",
+  "promptDigest": "sha256:f2ef76d7c59eb46790dc8b2944b98c1b63e5abe01bd9c3aff1f9b9ddd6d5a8bf",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "074740a2-3fca-4104-bba0-213d0664aedf",
+  "startedAt": "2026-10-03T02:24:47.971Z",
+  "decidedAt": "2026-10-03T02:24:57.517Z",
+  "durationMs": 8712,
+  "costUSD": 0.091316,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-06e920b4a3dd] says the removed metrics were only emitted when `ARGOCD_LEGACY_CONTROLLER_METRICS` is explicitly set to `true`, and that anyone without that setting can upgrade with no changes. So keying exposure on that env var being true is correct. The proposed literal, however, is the quoted string \"\\\"true\\\"\", which has the quote marks inside the value. A real env var value is just true, so the proposed literal would not match exposed environments. The fix is to compare against the plain value true.",
+    "citations": [
+      "ev-06e920b4a3dd"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Argo CD 3.0.0 removes the argocd_app_sync_status, argocd_app_health_status and argocd_app_created_time metrics, which have emitted only when ARGOCD_LEGACY_CONTROLLER_METRICS is set to true since 1.5.0. Environments with that env var set to true are exposed and must move to the labels on argocd_app_info.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "env-var",
+          "name": "ARGOCD_LEGACY_CONTROLLER_METRICS",
+          "state": "equals",
+          "values": [
+            "true"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6c9deec2ca29",
+    "candidateId": "sc-2314fa6c1596",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "seLinuxOptions"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "seLinuxOptions",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new seLinuxOptions value is available for configuration but is not required for environments outside of platforms with SELinux constraints; on platforms like OpenShift that enforce SELinux, setting seLinuxOptions.type to spc_t may be necessary to prevent istio-cni-nodes pod startup failures."
+      },
+      "statement": "The istio-cni Helm chart now includes a seLinuxOptions configuration value that can be set to work around SELinux constraints on platforms like OpenShift."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-117557f906cd"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b7dcfec160ce71996831bbba24cb7df3f0c1968f9aa743691d934f0d5784954e",
+      "inputEvidence": [
+        "ev-117557f906cd"
+      ],
+      "generatedAt": "2026-10-02T06:03:12Z",
+      "callId": "ecda1d6b-e875-4a60-aafc-b9dad234194e"
+    }
+  }
+}

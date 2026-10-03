@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dd1e99274589",
+    "candidateId": "sc-8a2c665fc582",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates without an explicit revisionHistoryLimit now keep only 1 CertificateRequest revision by default, so older CertificateRequests are cleaned up.",
+        "severity": "low"
+      },
+      "statement": "The default revisionHistoryLimit for CertificateRequest revisions of a Certificate is now 1."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-330bb03a882f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3ce43c6fb3092a72dec97fb2995c729ea5127f080f406a11468b26e729f49307",
+      "inputEvidence": [
+        "ev-330bb03a882f"
+      ],
+      "generatedAt": "2026-10-02T05:58:02Z",
+      "callId": "309ead5b-439c-4f1f-8b66-793e72551d1a"
+    }
+  }
+}

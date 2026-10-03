@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-62897569e74d",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-76c710382d0d"
+        ],
+        "statementKeys": [
+          "sk-4e65421f024e"
+        ],
+        "changeIds": [
+          "chg-d44cab8fff59"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-cd58ebd83118"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "ipsec-single-key"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment uses IPsec with single key configuration (+ sign in secrets)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "IPsec configurations using single key mode will automatically transition to per-tunnel keys; tunnel behavior may change depending on the per-tunnel key configuration.",
+        "severity": "medium"
+      },
+      "statement": "For IPsec, support for a single key has been removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-e511c1b43071"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-e511c1b43071"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-e06f8da2bd42"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-0b5427d02e90"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-a152c8cea30c",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L330-L331 (1.17 Upgrade Notes)",
+        "excerpt": "* For IPsec, support for a single key has been removed. Per-tunnel keys will\n  now be used regardless of the presence of the `+` sign in the secret.",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T13:02:26.574Z"
+  }
+}

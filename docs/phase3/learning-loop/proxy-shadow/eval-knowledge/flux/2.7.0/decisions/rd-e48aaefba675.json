@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e48aaefba675",
+    "reviewItemId": "ri-ec486d84fe53",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Clusters not deployed via Flux Operator must run `flux migrate` before upgrading, because the v1beta1 and v2beta1 APIs have been removed from the CRDs.",
+        "remediation": "Run `flux migrate` on the cluster before upgrading to Flux 2.7; see the Flux v2.7 upgrade guide.",
+        "severity": "high"
+      },
+      "statement": "Flux APIs v1beta1 and v2beta1 were removed from the CRDs; unless Flux Operator deploys the controllers, `flux migrate` must be run on clusters before upgrading to 2.7."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:4ec5b240858beeb113b0687ceedcc0e48068569319bd479aa2d54e96419a0bba",
+      "inputEvidence": [
+        "ev-82be76c03b0e"
+      ],
+      "generatedAt": "2026-10-03T02:34:08.214Z",
+      "callId": "0b22563a-c201-48b2-93d8-f8773f25677e"
+    },
+    "reason": "[ev-82be76c03b0e] says the v1beta1 and v2beta1 Flux APIs \"have been removed from the CRDs\" and that, unless Flux Operator deploys the controllers, \"you must run the `flux migrate` command on clusters before upgrading.\" That is a mandatory operator step before the upgrade, so migration-required (action-required) fits. The proposed statement, the remediation and the high severity under the :warning: marker all match the evidence and claim nothing beyond it.",
+    "startedAt": "2026-10-03T02:34:03.312Z",
+    "decidedAt": "2026-10-03T02:34:08.214Z"
+  }
+}

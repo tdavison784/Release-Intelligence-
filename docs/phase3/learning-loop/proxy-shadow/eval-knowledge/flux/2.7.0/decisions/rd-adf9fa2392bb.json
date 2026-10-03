@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-adf9fa2392bb",
+    "reviewItemId": "ri-32e25223d694",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "ExternalArtifact"
+        }
+      },
+      "statement": "The `flux trace` command now supports ExternalArtifact objects."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "kind": "ExternalArtifact"
+        }
+      },
+      "statement": "Flux 2.7.0 adds support for ExternalArtifact objects to the `flux trace` CLI command. This is relevant to environments that use the ExternalArtifact kind. The evidence does not state the API group or version."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:7de92494618535bca07e5483ae9d73937baedd9d96add7037813d76c892a1540",
+      "inputEvidence": [
+        "ev-649350cce0ab"
+      ],
+      "generatedAt": "2026-10-02T23:10:04.206Z",
+      "callId": "a69ce658-6448-456a-8586-f9ea4e75168e"
+    },
+    "reason": "The only evidence, [ev-649350cce0ab], is a CLI changelog line saying `flux trace` now supports `ExternalArtifact`. It names the kind but gives no API group or version, so the proposed `source.toolkit.fluxcd.io`/`v1` literals are not supported. The change only adds a CLI capability, so the only environments it is relevant to are those that use ExternalArtifact objects. Exposure is therefore narrowed to a kind-only gvk-in-use condition.",
+    "startedAt": "2026-10-02T23:09:55.054Z",
+    "decidedAt": "2026-10-02T23:10:04.206Z"
+  }
+}

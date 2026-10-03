@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-64509c9f163c",
+    "candidateId": "sc-91bdc6129fc9",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "questionType": "applicability",
+    "question": "For \"When using the Kafka operand and upgrading from Strimzi 0.34 or older, make sure the `UseStrimziPodSets` feature gate is enabled and `StrimziPodSet` resources…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.34.99"
+            },
+            {
+              "op": "feature-gate",
+              "name": "UseStrimziPodSets",
+              "state": "disabled"
+            }
+          ]
+        }
+      },
+      "statement": "Upgrading the Kafka operand from Strimzi 0.34 or older requires the UseStrimziPodSets feature gate to be enabled and StrimziPodSet resources in use before upgrading."
+    },
+    "proposals": [
+      "sp-3949598c7b39",
+      "sp-41b73f591f00",
+      "sp-434de4d01133",
+      "sp-eefd0c6e6d0f"
+    ],
+    "validations": [
+      "val-24ca28067416",
+      "val-42ffd47d1652",
+      "val-437fd42d9dd9",
+      "val-9b19c8750d28",
+      "val-9bcffbd128d7",
+      "val-a47f18f05f99",
+      "val-b10eab27e427",
+      "val-b4418f9059a5"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T11:48:36Z"
+  }
+}

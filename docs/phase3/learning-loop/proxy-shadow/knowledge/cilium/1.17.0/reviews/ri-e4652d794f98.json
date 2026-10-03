@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-e4652d794f98",
+    "candidateId": "sc-4ad98c3722c5",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"`doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total`\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Prometheus scrape configurations or monitoring queries that reference the metric `doublewrite_identity_kvstore_total_count` will no longer find that metric; the metric is only available under its new name `doublewrite_identity_kvstore_total`.",
+        "remediation": "Update Prometheus scrape configurations, dashboards, and alerting rules to reference the new metric name `doublewrite_identity_kvstore_total` instead of the old name `doublewrite_identity_kvstore_total_count`.",
+        "severity": "medium"
+      },
+      "statement": "The Prometheus metric `doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total` in Cilium 1.17.0."
+    },
+    "proposals": [
+      "sp-b0902bf6586b",
+      "sp-e6d29fba8472"
+    ],
+    "validations": [
+      "val-2eb1dc2803e0",
+      "val-9d09f6fee6cb",
+      "val-f835d1689658"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:03:04Z"
+  }
+}

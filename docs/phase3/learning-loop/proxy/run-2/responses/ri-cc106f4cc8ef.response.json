@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-cc106f4cc8ef",
+  "promptDigest": "sha256:ed8f38132fbd68d11a64e1c3db31d492f487ae246d6b9a2382d964f599c56687",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "1cd1ffe2-96f7-4765-b436-8c06e62a7908",
+  "startedAt": "2026-10-03T02:00:54.292Z",
+  "decidedAt": "2026-10-03T02:01:06.186Z",
+  "durationMs": 11013,
+  "costUSD": 0.065964,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-9a62461ebaa9] says only that the metric `lbipam_services_unsatisfied_total` was renamed to `lbipam_services_unsatisfied`, listed under \"Changed Metrics\". So the review class behavior-change fits. The proposed statement goes further than the evidence by saying dashboards and alerting rules \"will stop functioning\". The evidence never says anything fails, so I rewrote the statement to describe only the rename and the need to check anything that references the old name.",
+    "citations": [
+      "ev-9a62461ebaa9"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Cilium 1.17.0 the metric `lbipam_services_unsatisfied_total` is renamed to `lbipam_services_unsatisfied`. Monitoring queries, dashboards or alerts that use the old name should be reviewed (behavior-change, review).",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "medium",
+        "statement": "After the upgrade, the LB-IPAM unsatisfied-services metric is exposed as `lbipam_services_unsatisfied` instead of `lbipam_services_unsatisfied_total`. Monitoring queries, dashboards or alerting rules that reference the old name should be checked against the new name.",
+        "remediation": "Update any Prometheus queries, recording rules, dashboards or alerts that reference `lbipam_services_unsatisfied_total` so they use `lbipam_services_unsatisfied`."
+      }
+    }
+  }
+}

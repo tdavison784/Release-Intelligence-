@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4425d71cd5d3",
+    "reviewItemId": "ri-00a845e62dd6",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "helm-value",
+        "product": "traefik",
+        "path": "metrics.influxDB"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The InfluxDB v1 metrics provider configuration has been removed in Traefik v3.0.0 and will prevent Traefik from starting if present."
+    },
+    "corrected": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "metrics.influxDB"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "In Traefik v3 the InfluxDB v1 metrics provider has been removed: the static configuration key metrics.influxDB (also set via --metrics.influxDB) is no longer supported, and leaving it in place would prevent Traefik from starting."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:604ea53d226a4dbfad651ef91e3aae62362e1958e604ba73a70b0be76d9ea089",
+      "inputEvidence": [
+        "ev-a8010075f3de"
+      ],
+      "generatedAt": "2026-10-03T02:10:05.026Z",
+      "callId": "08b1451c-aa99-464a-ad03-4467038c70ac"
+    },
+    "reason": "[ev-a8010075f3de] says the InfluxDB v1 metrics provider was removed in v3, so the change type \"removed\" is right. The text describes Traefik's static configuration (`metrics.influxDB` in YAML or TOML files, and the `--metrics.influxDB` CLI flag), not a Helm chart values key. The values validator also found `metrics.influxDB` in no chart's values. The subject should therefore be config-key `metrics.influxDB`, not helm-value.",
+    "startedAt": "2026-10-03T02:09:57.619Z",
+    "decidedAt": "2026-10-03T02:10:05.026Z"
+  }
+}

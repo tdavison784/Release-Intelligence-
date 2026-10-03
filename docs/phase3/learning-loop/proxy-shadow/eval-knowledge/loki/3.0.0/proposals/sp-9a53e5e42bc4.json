@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9a53e5e42bc4",
+    "candidateId": "sc-e5a9be233eaa",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-compactor.delete-request-store",
+        "component": "compactor"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-compactor.delete-request-store",
+              "component": "compactor",
+              "state": "unset"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-compactor.retention-enabled",
+              "component": "compactor",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Delete requests cannot be stored if `-compactor.delete-request-store` is not explicitly configured when retention is enabled, breaking the delete functionality of the compactor.",
+        "severity": "high"
+      },
+      "statement": "The `-compactor.delete-request-store` CLI flag or its YAML configuration setting must be explicitly configured when retention is enabled in Loki 3.0.0, as it is required for storing delete requests."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-e598abf2a6cd"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0e3959cd0ee5fea17b4d0ed83776b2e9c8f9e9fbb8ef36c6076df53894b32c7b",
+      "inputEvidence": [
+        "ev-e598abf2a6cd"
+      ],
+      "generatedAt": "2026-10-02T21:02:26Z",
+      "callId": "042450a0-86ad-4312-9ae1-d6943d654ad1"
+    }
+  }
+}

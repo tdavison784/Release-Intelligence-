@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c345fa5d6a89",
+    "candidateId": "sc-413ea0b3d406",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "proxy.prometheus.enabled"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "envoy.prometheus.enabled"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "proxy.prometheus.enabled",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "proxy.prometheus.port",
+              "state": "set"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "envoy.prometheus.enabled",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "envoy.prometheus.port",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Values set under proxy.prometheus.enabled and proxy.prometheus.port are no longer honoured because the options were removed.",
+        "remediation": "Set envoy.prometheus.enabled and envoy.prometheus.port instead.",
+        "severity": "medium"
+      },
+      "statement": "The deprecated Helm values proxy.prometheus.enabled and proxy.prometheus.port were removed; use envoy.prometheus.enabled and envoy.prometheus.port instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-69b054a33ac2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f899a9f26ba9d7287481343447c898361171d6774b81b2861d6d846f5ea32303",
+      "inputEvidence": [
+        "ev-69b054a33ac2"
+      ],
+      "generatedAt": "2026-10-02T06:00:41Z",
+      "callId": "deff21f3-5d3c-48ed-945f-e83daa0027c3"
+    }
+  }
+}

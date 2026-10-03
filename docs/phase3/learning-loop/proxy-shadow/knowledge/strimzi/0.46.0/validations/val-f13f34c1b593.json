@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f13f34c1b593",
+    "candidateId": "sc-3aa4cb777553",
+    "proposalId": "sp-486ee5ea4a2f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "jmx-ipv4-preference"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "When JMX is enabled, the JVM no longer gets an implicit IPv4 preference and uses its default IP stack preference instead; this lets clusters in IPv6-only environments boot correctly.",
+        "remediation": "If your JMX setup relied on the IPv4 preference, check that JMX connectivity still works under the JVM defaults.",
+        "severity": "low"
+      },
+      "statement": "In 0.46.0, Strimzi no longer adds an implicit IPv4 preference when JMX is enabled and uses the JVM defaults instead, so clusters can start correctly in IPv6-only environments."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

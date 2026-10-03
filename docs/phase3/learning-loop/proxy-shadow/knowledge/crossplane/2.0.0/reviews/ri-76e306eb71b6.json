@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-76e306eb71b6",
+    "candidateId": "sc-254bc8964d04",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "questionType": "applicability",
+    "question": "For \"Don't label RBAC roles with the XRD that created them by @negz in https://github.com/crossplane/crossplane/pull/6521\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "metadata.labels",
+                  "state": "exists",
+                  "pattern": ".*xrd.*|.*crossplane.*"
+                }
+              ],
+              "kind": "ClusterRole"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "metadata.labels",
+                  "state": "exists",
+                  "pattern": ".*xrd.*|.*crossplane.*"
+                }
+              ],
+              "kind": "Role"
+            }
+          ]
+        }
+      },
+      "statement": "RBAC roles created by XRDs no longer receive labels identifying which XRD created them."
+    },
+    "proposals": [
+      "sp-080b25d1eb58",
+      "sp-6096871253b3"
+    ],
+    "validations": [
+      "val-c87a22c62b17",
+      "val-e025a57e2135"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal"
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T21:00:08Z"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ab22abdacac6",
+    "candidateId": "sc-78b10a313e23",
+    "proposalId": "sp-2815f874af2b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates issued for 3072- and 4096-bit RSA keys are now signed using SHA-384/SHA-512 instead of the previously used hash algorithm; the guide states these algorithms are widely supported and expects no issue, so nothing fails, but clients that do not support them could error as such certificates rotate.",
+        "remediation": "No action expected; if errors do appear when larger RSA keys rotate, check that the systems consuming the issued certificates accept SHA-384/SHA-512 signatures.",
+        "severity": "low"
+      },
+      "statement": "From cert-manager 1.17.0, RSA certificates with keys of length 3072 or 4096 are signed using SHA-384 or SHA-512 respectively as hash algorithms; the upgrade guide says these algorithms are widely supported and it does not expect this to be an issue, but it is worth bearing in mind if errors appear as larger RSA keys rotate."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

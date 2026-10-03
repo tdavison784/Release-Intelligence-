@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9d7e2e79e9df",
+    "candidateId": "sc-895e84ff5606",
+    "proposalId": "sp-62678cbccd5a",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "structured-metadata-default"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"enabled by default; requires tsdb and v13 schema\""
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the schema is not tsdb with v13, Loki won't start because structured metadata is enabled by default.",
+        "remediation": "Use tsdb and v13 schema (see Structured Metadata, Open Telemetry, Schemas and Indexes) before upgrading.",
+        "severity": "high"
+      },
+      "statement": "Structured metadata is now enabled by default and requires the tsdb index and v13 schema, otherwise Loki won't start."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

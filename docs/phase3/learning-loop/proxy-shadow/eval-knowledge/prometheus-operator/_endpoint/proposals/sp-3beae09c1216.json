@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3beae09c1216",
+    "candidateId": "sc-e57c1f16262d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "kind": "PrometheusRule",
+        "path": "status"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "monitoring.coreos.com",
+              "version": "v1",
+              "kind": "PrometheusRule"
+            },
+            {
+              "op": "feature-gate",
+              "name": "StatusForConfigurationResources",
+              "state": "enabled"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This adds a read-only status subresource field. The operator only fills it in when the StatusForConfigurationResources feature gate is enabled, and existing PrometheusRule specs keep working without changes.",
+        "severity": "low"
+      },
+      "statement": "The monitoring.coreos.com/v1 PrometheusRule CRD schema adds a read-only `status` field (with status.bindings[] and their conditions). The status is still under active development and is only updated when the \"StatusForConfigurationResources\" feature gate is enabled."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-33c3b71688f2",
+      "ev-767e1a45572f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:e9e4ee8f4a79f758821dbf5c5df8d785eae8c5402895e41e8b92547597405fa2",
+      "inputEvidence": [
+        "ev-3cc85997b394",
+        "ev-e032811a0e26",
+        "ev-22d6be11fa2f",
+        "ev-04344c7b3dae",
+        "ev-7d96c48a5c71",
+        "ev-cc90e86e2643",
+        "ev-676b63c80565",
+        "ev-db02f66824cd",
+        "ev-7a53a3520025",
+        "ev-f22afebcad15",
+        "ev-197df9b33168",
+        "ev-84bcfc39962d",
+        "ev-e0e139d1a1a8",
+        "ev-dfadc763c00b",
+        "ev-4393a79e776d",
+        "ev-c87966ce90d5",
+        "ev-767e1a45572f",
+        "ev-e33dbbb0c01a",
+        "ev-13be12903c5c",
+        "ev-542432da4381",
+        "ev-5415b8753dfa",
+        "ev-d1c3b1084dad",
+        "ev-33c3b71688f2",
+        "ev-f0cfd8ade456"
+      ],
+      "generatedAt": "2026-10-02T16:15:30Z",
+      "callId": "6bd6dd5d-e5bd-40f1-ab84-30c68d75dc1a"
+    }
+  }
+}

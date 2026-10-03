@@ -1,0 +1,75 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-76117065f486",
+  "promptDigest": "sha256:0ae3cdc4220ac8cfeda855f074ae542dc92f98f2b2b69261eb3db5e4797ad71a",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "f429b9ac-7d34-4199-b469-2e7bfc3a0f25",
+  "startedAt": "2026-10-02T23:18:31.332Z",
+  "decidedAt": "2026-10-02T23:18:47.307Z",
+  "durationMs": 15340,
+  "costUSD": 0.105444,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-5b58f5805519] says that in v3 the Kubernetes Gateway API provider does not enable the experimental channel resources, which it names as TLSRoute and TCPRoute, by default, and that `experimentalChannel` must be set to true to enable them. The proposed condition flags every environment that uses the provider without the key, including ones that never use TLSRoute or TCPRoute, so it is too broad. It also misses environments that set experimentalChannel explicitly to false. The corrected exposure requires the provider to be configured, experimentalChannel not set to true, and TLSRoute or TCPRoute in use.",
+    "citations": [
+      "ev-5b58f5805519"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In v3 the Kubernetes Gateway API provider no longer enables experimental channel resources (TLSRoute, TCPRoute) by default. You are exposed if you use the provider, do not set experimentalChannel to true, and use TLSRoute or TCPRoute. Set providers.kubernetesGateway.experimentalChannel: true.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.kubernetesGateway",
+              "state": "set"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "providers.kubernetesGateway.experimentalChannel",
+                  "state": "equals",
+                  "values": [
+                    true,
+                    "true"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "kind": "TLSRoute"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "kind": "TCPRoute"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "providers.kubernetesGateway.experimentalChannel",
+          "state": "equals",
+          "values": [
+            true,
+            "true"
+          ]
+        }
+      }
+    }
+  }
+}

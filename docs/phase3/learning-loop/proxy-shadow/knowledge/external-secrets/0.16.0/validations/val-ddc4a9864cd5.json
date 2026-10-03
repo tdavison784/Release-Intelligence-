@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ddc4a9864cd5",
+    "candidateId": "sc-bde09b71f118",
+    "proposalId": "sp-6c541e9ddb0b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "external-secrets",
+        "name": "goreleaser/goreleaser-action"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"6.2.1\"",
+        "after": "\"6.3.0\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment builds external-secrets from source via the repository's GitHub Actions release workflows that reference goreleaser/goreleaser-action"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The evidence states only a chore dependency bump of the release CI's goreleaser/goreleaser-action pin; nothing in it indicates any failure, rejection, ignored setting or behavior change for deployed environments.",
+        "severity": "low"
+      },
+      "statement": "The external-secrets release workflow's pinned goreleaser/goreleaser-action was bumped from 6.2.1 to 6.3.0 — a build/CI dependency change with no stated effect on deployed environments."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/value-changed",
+        "detail": "product-relationship value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/value-changed",
+        "detail": "product-relationship value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

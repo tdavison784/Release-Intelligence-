@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-cb1b9e25e373",
+    "candidateId": "sc-930198f08f58",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Ingester configuration `max_transfer_retries` is removed: The setting `max_transfer_retries` (`-ingester.max-transfer-retries`) is removed in favor of the…\", what happens, and is that review or action? proposed: superseded-upstream",
+    "proposed": {
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The max_transfer_retries setting, used to transfer chunks to new ingesters during rolling restarts, is removed; the Write Ahead Log (WAL) replaces it, so verify the WAL covers your rolling-restart use.",
+        "severity": "medium"
+      },
+      "statement": "The ingester setting max_transfer_retries (-ingester.max-transfer-retries) is removed in favor of the Write Ahead Log (WAL)."
+    },
+    "proposals": [
+      "sp-449c8c81a341",
+      "sp-8c090d4611b2"
+    ],
+    "validations": [
+      "val-874493f19133",
+      "val-a6a61ccb1737",
+      "val-d9bf7bb33daf",
+      "val-f06bddf07a51"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:54:43Z"
+  }
+}

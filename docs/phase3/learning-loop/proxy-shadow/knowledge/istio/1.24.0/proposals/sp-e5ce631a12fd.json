@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e5ce631a12fd",
+    "candidateId": "sc-1b5ec34b5a8d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "--log_rotate_*",
+        "component": "istiod"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--log_rotate_*",
+          "component": "istiod",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Existing --log_rotate_* flags in component configurations will no longer be recognized or honored after the upgrade to Istio 1.24.0.",
+        "remediation": "Remove all --log_rotate_* flags from Istio component configurations and implement external log rotation using OS-level or sidecar-based log rotation tools.",
+        "severity": "high"
+      },
+      "statement": "The legacy --log_rotate_* CLI flag options are removed in Istio 1.24.0; users must migrate to external log rotation tools."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-4e7b065b85d5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:025c669b69f2c268a1e1495ef5e4c451dc05cb52959d07a244e9cce76122d682",
+      "inputEvidence": [
+        "ev-4e7b065b85d5"
+      ],
+      "generatedAt": "2026-10-02T05:58:09Z",
+      "callId": "f243ddc7-6649-4b0e-a73c-0e6155413b46"
+    }
+  }
+}

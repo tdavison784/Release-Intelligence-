@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b2c19bd23654",
+    "candidateId": "sc-194c2ca12ce9",
+    "proposalId": "sp-f4a5b4102d3b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "PolicyException",
+        "path": "spec"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"allowed in all namespaces\"",
+        "after": "\"disabled by default, allowed only in specified namespace\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2alpha1",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v1beta1",
+              "kind": "PolicyException"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Policy exceptions that were previously created in namespaces outside a specified exceptions namespace will no longer function as configured; operators must follow upgrade guidance to reconfigure exception namespace settings to maintain the same behavior.",
+        "remediation": "Review the upgrade guidance provided in the release notes to reconfigure policy exception namespace settings. Audit existing PolicyException resources and migrate them to the allowed exceptions namespace as needed.",
+        "severity": "high"
+      },
+      "statement": "Kyverno 1.13.0 changes the default behavior for policy exceptions: they are now disabled by default and can only be created in a specified namespace, whereas previously they were allowed in all namespaces."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

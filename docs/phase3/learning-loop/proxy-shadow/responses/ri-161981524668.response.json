@@ -1,0 +1,56 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-161981524668",
+  "promptDigest": "sha256:fed5a286da20f2f1dd6434cd5671e0bb32c371a8af7c6b49418144c66b444816",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "a7f8637c-2726-47e7-b0e3-33b4cdaa5480",
+  "startedAt": "2026-10-03T02:12:02.022Z",
+  "decidedAt": "2026-10-03T02:12:08.203Z",
+  "durationMs": 5346,
+  "costUSD": 0.09068799999999999,
+  "output": {
+    "action": "correct",
+    "reason": "The upgrade guide's detection command [ev-ea324615706c] checks three argocd-cm keys: data.repositories, data['repository.credentials'] and data['helm.repositories']. It says you are not affected only when all three are empty. The proposed exposure checks only data.repositories, so it misses environments that set only repository.credentials or helm.repositories. The exposure needs to match if any of the three keys is set.",
+    "citations": [
+      "ev-ea324615706c"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Argo CD 3.0 removes legacy repository configuration in the argocd-cm ConfigMap. An environment is exposed if argocd-cm sets any of data.repositories, data[\"repository.credentials\"] or data[\"helm.repositories\"].",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "kind": "ConfigMap",
+          "name": "argocd-cm",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.repositories",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "data[\"repository.credentials\"]",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "data[\"helm.repositories\"]",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-26ac1e7d4f30",
+    "candidateId": "sc-bda23741737a",
+    "proposalId": "sp-8bdcce3175ba",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "query_range.split_queries_by_interval"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "limits_config.split_queries_by_interval"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "loki.query_range.split_queries_by_interval",
+          "state": "set"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "loki.limits_config.split_queries_by_interval",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The option is removed from the query_range section; its function is now configured in limits_config, so verify the setting is moved there.",
+        "remediation": "Configure split_queries_by_interval under limits_config instead of query_range.",
+        "severity": "medium"
+      },
+      "statement": "`split_queries_by_interval` is removed from the `query_range` config section and is configured in `limits_config` instead."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/renamed",
+        "detail": "no canonical exposure condition for config-key renamed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

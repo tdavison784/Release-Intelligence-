@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-baec411dfb0a",
+    "candidateId": "sc-3b226877c4f2",
+    "proposalId": "sp-e1a4c6192690",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "loki",
+        "name": "StructuredMetadata"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "loki",
+              "state": "in-range",
+              "range": ">=3.0.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "values-key",
+                      "path": "schemaConfig.schema",
+                      "state": "matches",
+                      "pattern": ".*tsdb.*"
+                    }
+                  ]
+                },
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "values-key",
+                      "path": "schemaConfig.schemaVersion",
+                      "state": "equals",
+                      "values": [
+                        "\"v13\""
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Structured Metadata is enabled by default in Loki 3.0, but environments without both tsdb index type and v13 storage schema active will not have this feature function properly.",
+        "severity": "medium"
+      },
+      "statement": "Structured Metadata is enabled by default in Loki 3.0 and requires both tsdb index type and v13 storage schema to function."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:feature-gate/added",
+        "detail": "no canonical exposure condition for feature-gate added"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

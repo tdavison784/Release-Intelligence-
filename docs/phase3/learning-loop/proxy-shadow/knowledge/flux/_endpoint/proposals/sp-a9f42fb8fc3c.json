@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a9f42fb8fc3c",
+    "candidateId": "sc-4cf375704f66",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "Bucket",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "source.toolkit.fluxcd.io",
+              "version": "v1beta2",
+              "kind": "Bucket"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.artifact.digest",
+                  "state": "unset"
+                }
+              ],
+              "group": "source.toolkit.fluxcd.io",
+              "version": "v1beta2",
+              "kind": "Bucket"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Bucket v1beta2 resources that omit status.artifact.digest are rejected by validation.",
+        "severity": "high"
+      },
+      "statement": "The status.artifact.digest field of source.toolkit.fluxcd.io/v1beta2 Bucket resources is now required; existing Bucket objects that omit it are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:dd310a211760285189198a60e494dd54ef587dab90804e7fd00811db76267c69",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T20:54:33Z",
+      "callId": "d3d71bb2-19ed-4d92-af9a-b5ac82b30f37"
+    }
+  }
+}

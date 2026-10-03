@@ -1,0 +1,21 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a29cc5704fe0",
+  "promptDigest": "sha256:0b5eee3a29868250acccf885288a82c8a2b0f13af50f0578a202cea8eb010a80",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "95b16cfa-ca07-4636-9407-e7ee354b913f",
+  "startedAt": "2026-10-03T02:27:01.615Z",
+  "decidedAt": "2026-10-03T02:27:17.429Z",
+  "durationMs": 15150,
+  "costUSD": 0.06172720000000001,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "The two install.yaml excerpts [ev-782bc47d120d] [ev-c2c6c790d6b2] show only \"apiVersion: v1\". The validators confirm that status.artifact.digest becomes required in the v1 HelmChart schema, but no evidence shown says what happens to a real environment. This field sits in status, which the controller writes, not in spec. Nothing shown says whether objects already stored or the controller's own status updates would be rejected, or whether \"required\" applies only when status.artifact is present. That condition would make the proposed statement (\"objects that omit status.artifact.digest are rejected\") too broad. To justify an action-eligible resource-rejected consequence, I would need the schema fragment showing where the required list sits and an upstream statement on whether anyone writing status (controller, backup or restore tools) is affected; without these, treating it as mandatory work is over-claiming.",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low"
+  }
+}

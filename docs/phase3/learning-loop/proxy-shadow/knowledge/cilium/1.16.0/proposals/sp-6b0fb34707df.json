@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6b0fb34707df",
+    "candidateId": "sc-d96cb2efaa3c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "cilium",
+        "group": "gateway.networking.k8s.io",
+        "version": "v1alpha2",
+        "kind": "GRPCRoute"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "gvk",
+          "product": "cilium",
+          "group": "gateway.networking.k8s.io",
+          "version": "v1",
+          "kind": "GRPCRoute"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "gateway.networking.k8s.io",
+          "version": "v1alpha2",
+          "kind": "GRPCRoute"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing GRPCRoute resources in v1alpha2 must be migrated to v1; the v1alpha2 API version is no longer served.",
+        "remediation": "Install the new GRPCRoute CRD and migrate all v1alpha2 GRPCRoute resources to v1 version before or during the upgrade.",
+        "severity": "high"
+      },
+      "statement": "Gateway API GRPCRoute is moved from v1alpha2 to v1, requiring new CRD installation and migration of existing resources."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-ee4d25413bf4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:edab9981e7a36760fa202ce60656ad0f6efb8ef6a4c8a22f0691367548aab3ae",
+      "inputEvidence": [
+        "ev-ee4d25413bf4"
+      ],
+      "generatedAt": "2026-10-02T05:58:20Z",
+      "callId": "797a62f5-fcd5-4c0e-95ac-17245b5dc938"
+    }
+  }
+}

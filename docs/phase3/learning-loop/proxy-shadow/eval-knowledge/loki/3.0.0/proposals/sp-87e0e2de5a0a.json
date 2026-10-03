@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-87e0e2de5a0a",
+    "candidateId": "sc-6a62499753bb",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "max-line-size"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"256KB\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether ingested log lines exceed 256KB and whether the max line size limit is explicitly configured"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "A max line size of 256KB is now enforced by default; it can be disabled or increased.",
+        "remediation": "Review the changes to default configuration values and set the line size limit explicitly if larger lines are needed.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 now enforces a max log line size of 256KB by default; it can be disabled or raised."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-af3121d71703"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:a8c429ca50a77aa0d69b72f32cfd63820c1ba10cc197437600d21899595d2ffc",
+      "inputEvidence": [
+        "ev-af3121d71703"
+      ],
+      "generatedAt": "2026-10-02T20:54:51Z",
+      "callId": "26b2dfa5-8980-424b-9191-85eea222ab3c"
+    }
+  }
+}

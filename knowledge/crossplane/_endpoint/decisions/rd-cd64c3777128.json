@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-cd64c3777128",
+    "reviewItemId": "ri-bc1b9980ea3e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "CompositionRevision objects that leave spec.mode unset now default to \"Pipeline\" instead of \"Resources\".",
+        "remediation": "Set spec.mode explicitly if the previous Resources mode is required.",
+        "severity": "medium"
+      },
+      "statement": "The default of spec.mode in the CompositionRevision v1 schema changed from \"Resources\" to \"Pipeline\" for objects that leave it unset."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:b6150f4f004f6a0366c653322827ddded81a05e88b029c4c6e3419915b3d3b5a",
+      "inputEvidence": [
+        "ev-95c4d9181c78",
+        "ev-30934c6c9b63",
+        "ev-b12db1ba30d3",
+        "ev-2cf0a7dd0095",
+        "ev-4cb106f172c6",
+        "ev-ac8a7bba9777",
+        "ev-5957f2297008",
+        "ev-024ae1616362",
+        "ev-9b42493c58c4",
+        "ev-81b24803c1c9",
+        "ev-9734c97600b9",
+        "ev-13f94d4596b3",
+        "ev-1f38a21f6bdd",
+        "ev-13bb08e10750",
+        "ev-9422233ca172",
+        "ev-dfd597f842c9",
+        "ev-8b680076ce65",
+        "ev-6e79b5dc61ae",
+        "ev-a3bca45d2477",
+        "ev-497295c94a3d",
+        "ev-7b1bee6d2352",
+        "ev-270c9e3fe130",
+        "ev-a51a53aa04ee",
+        "ev-e2735e756cbf",
+        "ev-9b2aa10ff338",
+        "ev-d8a9fd80558b",
+        "ev-28c27515399d",
+        "ev-4fbe071b2844",
+        "ev-754e8c2767c7",
+        "ev-ef56bb524889",
+        "ev-3b5cfc1e9589",
+        "ev-b44a4511845b",
+        "ev-d5a5794a9446",
+        "ev-f83c864e3d52",
+        "ev-0d3738246a50",
+        "ev-067b435b635b",
+        "ev-147c26b74d68"
+      ],
+      "generatedAt": "2026-10-03T01:59:08.245Z",
+      "callId": "ae87e7f4-e924-4c3f-b714-610487727c88"
+    },
+    "reason": "The CRD validators confirmed that in the v1 schema of CompositionRevision, the spec.mode default changed from \"Resources\" to \"Pipeline\". They checked this against the release schema files [ev-30934c6c9b63] and [ev-6e79b5dc61ae]; the excerpts shown are only \"---\", so the validators are the only proof. Nothing in the evidence says that objects which leave spec.mode unset get rejected, fail or must be migrated. So I can't support a mandatory-work kind, and behavior-change (review) is the strongest kind the evidence allows. The proposed statement only restates the confirmed new default and claims nothing beyond it.",
+    "startedAt": "2026-10-03T01:58:55.568Z",
+    "decidedAt": "2026-10-03T01:59:08.245Z",
+    "resultingFact": "vf-ec96eb436ed5"
+  }
+}

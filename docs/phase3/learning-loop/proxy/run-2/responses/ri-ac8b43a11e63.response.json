@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ac8b43a11e63",
+  "promptDigest": "sha256:996a3bc116f5a8653b2d1ef6d41ad628ee5a61fc4181275676f36152177565d7",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "e017c847-5c37-4ed3-9de8-84dba32ef36e",
+  "startedAt": "2026-10-03T01:56:39.403Z",
+  "decidedAt": "2026-10-03T01:56:49.358Z",
+  "durationMs": 9057,
+  "costUSD": 0.05863600000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-aaffdc720dda] says only that in v3 the reported status code for gRPC requests is now the value of the `Grpc-Status` header. Nothing fails, gets rejected or needs migrating, so behavior-change (review) is the right kind. However, the proposed statement says the old value was \"the HTTP response status code\", and the evidence never says what was reported before. The corrected statement drops that claim. I also lowered severity to low because only reported metric values change.",
+    "citations": [
+      "ev-aaffdc720dda"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Traefik v3.0.0, the status code reported in metrics for gRPC requests is now the value of the Grpc-Status header; requests still work, but reported metric values may differ (behavior-change, review).",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "behavior-change",
+        "severity": "low",
+        "statement": "For gRPC requests, the status code reported in metrics is now the value of the Grpc-Status header, so dashboards or alerts built on the status codes reported in v2 may show different values. gRPC traffic itself keeps working.",
+        "remediation": "Check dashboards and alert rules that use the status code in gRPC request metrics against the Grpc-Status header values now reported."
+      }
+    }
+  }
+}

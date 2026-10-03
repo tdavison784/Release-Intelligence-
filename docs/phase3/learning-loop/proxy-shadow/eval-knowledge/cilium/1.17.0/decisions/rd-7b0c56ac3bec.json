@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-7b0c56ac3bec",
+    "reviewItemId": "ri-01c2c2e8f0e0",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "After upgrade to 1.17.0, existing services without a protocol set will be preserved but require deletion and recreation for protocol differentiation to take effect. On downgrade from 1.17.0 to earlier versions, services with protocol set will be deleted and recreated without the protocol, causing connection disruptions.",
+        "remediation": "After upgrading to 1.17.0, identify and recreate services without protocol set to enable protocol differentiation. Before downgrading, plan for service recreation with potential connection disruptions.",
+        "severity": "medium"
+      },
+      "statement": "The --bpf-lb-proto-diff flag enables services protocol differentiation by default in Cilium 1.17.0, allowing distinction of services on the same port with different protocols; existing services without a protocol set are preserved but require deletion and recreation to enable protocol differentiation, and downgrades cause protocol-aware services to lose protocol information and be recreated."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, protocol differentiation is on by default. Existing services without a protocol set are kept as they are to avoid connection disruptions, so they keep working but the agent does not take their protocol into account until they are deleted and recreated. If you downgrade to a version without this feature, the agent deletes and recreates services that have a protocol set without it, which disrupts connections for those services.",
+        "remediation": "Where you need protocol differentiation, delete and recreate the existing services that have no protocol set. Control the feature with --bpf-lb-proto-diff. Before any downgrade to a version without this feature, expect connection disruptions for services that have a protocol set.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17.0 turns on services protocol differentiation by default (--bpf-lb-proto-diff). Existing services without a protocol set are kept as they are, so connections are not disrupted. Their protocol is only taken into account once they are deleted and recreated. This is a behavior-change for review, not mandatory work."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:3a453590add8fcc79e716d7db8a4c410ec4b1765ad6e934f8abdbee8b3a752a9",
+      "inputEvidence": [
+        "ev-2a9b9b849526"
+      ],
+      "generatedAt": "2026-10-03T02:10:15.378Z",
+      "callId": "641e69b2-8b67-46e1-b2f2-76254acc32c9"
+    },
+    "reason": "[ev-2a9b9b849526] says that after the upgrade, existing services without a protocol set \"will be preserved as such, to avoid any connection disruptions\". Nothing fails, gets rejected or stops being honoured if the operator does nothing. Deleting and recreating those services is only needed for the agent to take their protocol into account under the new feature, which is on by default. That makes this a behavior-change for review, not a mandatory migration. The downgrade disruption only happens if the operator chooses to downgrade, so it belongs in the remediation as a caution and does not justify a failure kind.",
+    "startedAt": "2026-10-03T02:10:05.997Z",
+    "decidedAt": "2026-10-03T02:10:15.378Z"
+  }
+}

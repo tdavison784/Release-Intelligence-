@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-293eac63feab",
+    "candidateId": "sc-f8f303863df7",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "added",
+        "after": "\"flux\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "rendered-change",
+          "kind": "Deployment",
+          "path": "spec.template.metadata.labels[\"app.kubernetes.io/part-of\"]",
+          "state": "added"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Controller pods deployed by flux 2.7.0 simply carry the new app.kubernetes.io/part-of: flux label; the release notes state no functional or operational effect from it.",
+        "severity": "low"
+      },
+      "statement": "The flux 2.7.0 controller manifests add the `app.kubernetes.io/part-of: flux` label to controller pods."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the change adds a Kubernetes label (app.kubernetes.io/part-of: flux) to controller pod templates in the shipped manifests; no defined subject family (crd-field, helm-value, config-key, etc.) covers a label on rendered workload objects",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-cd6e13ea0600"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:c8d4849f9c4f9340a8b9c48a15be3a434aad508761c1497519dd69ba4f6520c5",
+      "inputEvidence": [
+        "ev-cd6e13ea0600"
+      ],
+      "generatedAt": "2026-10-02T16:32:48Z",
+      "callId": "10e49c5a-c312-4b2c-8110-6640c8c89ce1"
+    }
+  }
+}

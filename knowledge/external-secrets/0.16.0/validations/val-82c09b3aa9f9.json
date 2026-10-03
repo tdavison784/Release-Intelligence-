@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-82c09b3aa9f9",
+    "candidateId": "sc-bf284ab1ddb4",
+    "proposalId": "sp-ce6c15186ca4",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "kind": "SecretStore",
+        "path": "spec.provider.aws.prefix"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.aws",
+              "state": "set"
+            }
+          ],
+          "group": "external-secrets.io",
+          "kind": "SecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence for existing environments: the evidence states only that the field is added, and nothing indicates existing stores or lookups change behavior; the new field is an optional capability an operator may set after upgrading.",
+        "severity": "low"
+      },
+      "statement": "external-secrets 0.16.0 adds a new field spec.provider.aws.prefix to the AWS secrets manager provider on SecretStore (also present on ClusterSecretStore per the target release schemas), giving AWS provider stores a new optional prefix setting."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

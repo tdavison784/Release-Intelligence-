@@ -1,0 +1,76 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-89de03e67830",
+  "promptDigest": "sha256:027fe25b450b072b71a88b67d3cf12d13cabcd9ef2c7661feb0ba62e5e57399e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ae2999bf-39b2-4e92-84f1-09319ebfa20b",
+  "startedAt": "2026-10-03T01:52:47.212Z",
+  "decidedAt": "2026-10-03T01:53:02.513Z",
+  "durationMs": 14463,
+  "costUSD": 0.103792,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-8ceba924ad20] and [ev-632a3911583a] say the step is needed only when the key-prefix flag or its YAML setting is set to \"a value other than `index/`\". The proposed `cli-flag ... set` leaves is too broad: it also flags environments that set the prefix to `index/` explicitly. Each flag leaf should require that the flag is set and does not equal `index/`. The YAML setting and whether existing period configs already carry the matching `path_prefix` cannot be seen from flags, so an undecidable operand stays.",
+    "citations": [
+      "ev-8ceba924ad20",
+      "ev-632a3911583a"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Exposed: environments where -boltdb.shipper.shared-store.key-prefix or -tsdb.shipper.shared-store.key-prefix (or the matching YAML setting) is set to a value other than `index/`. Existing boltdb-shipper or tsdb period configs then need `path_prefix` set to that earlier value.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-boltdb.shipper.shared-store.key-prefix",
+                  "state": "set"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "-boltdb.shipper.shared-store.key-prefix",
+                  "state": "not-equals",
+                  "values": [
+                    "index/"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "-tsdb.shipper.shared-store.key-prefix",
+                  "state": "set"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "-tsdb.shipper.shared-store.key-prefix",
+                  "state": "not-equals",
+                  "values": [
+                    "index/"
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the YAML shared_store_key_prefix setting for the boltdb-shipper or tsdb shipper is set to a value other than index/, and whether existing period configs using that index lack a matching path_prefix"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4b70ca1c52cd",
+    "candidateId": "sc-c9b238032880",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "bgp"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "bgpControlPlane"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "bgp",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Helm values under bgp.* (bgp.enabled, bgp.announce.podCIDR, bgp.announce.loadbalancerIP) no longer take effect; BGP announcements configured through these keys will not function unless migrated to bgpControlPlane options.",
+        "remediation": "Remove bgp.* keys from Helm values and reconfigure BGP announcements using bgpControlPlane options as documented in the Cilium BGP control plane feature.",
+        "severity": "high"
+      },
+      "statement": "Three Helm configuration keys for the metallb-bgp integration (bgp.enabled, bgp.announce.podCIDR, and bgp.announce.loadbalancerIP) have been removed; users must migrate to bgpControlPlane options for BGP announcements."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-42d13e5eb7d7",
+      "ev-39a22d88e2f5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ee94c98569157f33633c749860d698b2f30e951d663f1283502b673c774974df",
+      "inputEvidence": [
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5",
+        "ev-42d13e5eb7d7"
+      ],
+      "generatedAt": "2026-10-02T05:54:50Z",
+      "callId": "57240287-e926-41d9-94ef-9e50c8b72f74"
+    }
+  }
+}

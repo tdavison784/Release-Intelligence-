@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-331b96cbaf7c",
+    "candidateId": "sc-d3794906bf05",
+    "proposalId": "sp-8a2184f1a6cc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "kind": "ExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ExternalSecret objects stay stored as v1beta1 until they are rewritten. Before a later release removes v1beta1, a storage version migration (rewriting all objects) and an update of status.storedVersions must be run.",
+        "remediation": "After upgrading, rewrite all ExternalSecret objects so they are stored as v1. Then remove v1beta1 from status.storedVersions of the externalsecrets.external-secrets.io CRD.",
+        "severity": "medium"
+      },
+      "statement": "From 0.15.0 to 0.16.0, the storage version of the externalsecrets.external-secrets.io CRD moves from v1beta1 to v1, so existing ExternalSecret objects stay stored as v1beta1 until they are rewritten. A storage version migration and an update of status.storedVersions are needed before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

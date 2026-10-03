@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7f5308ef04d5",
+    "candidateId": "sc-3dcc79cc0550",
+    "proposalId": "sp-3ac0b687f04f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "compatibility-boundary",
+        "product": "prometheus-operator",
+        "name": "kubernetes"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": ">=1.16.0"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cluster-version",
+          "name": "kubernetes",
+          "state": "out-of-range",
+          "range": ">=1.16.0"
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "On a Kubernetes cluster older than v1.16.0, prometheus-operator cannot be installed or upgraded because it uses apiextensions.k8s.io/v1 CustomResourceDefinitions, which require Kubernetes >= v1.16.0.",
+        "remediation": "Upgrade the Kubernetes cluster to v1.16.0 or later before upgrading prometheus-operator.",
+        "severity": "high"
+      },
+      "statement": "prometheus-operator 0.86.0 uses apiextensions.k8s.io/v1 CustomResourceDefinitions and therefore requires Kubernetes >= v1.16.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:compatibility-boundary/requirement-changed",
+        "detail": "compatibility-boundary requirement-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:compatibility-boundary/requirement-changed",
+        "detail": "compatibility-boundary requirement-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

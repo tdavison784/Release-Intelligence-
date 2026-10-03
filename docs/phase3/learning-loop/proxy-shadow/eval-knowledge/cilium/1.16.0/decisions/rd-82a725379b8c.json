@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-82a725379b8c",
+    "reviewItemId": "ri-bce8a7122241",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the configured Cilium cluster name violates the 32-char lowercase alphanumeric/'-' rule"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "upgradeCompatibility",
+          "state": "set"
+        }
+      },
+      "statement": "Cilium cluster name is now validated (max 32 lowercase alphanumerics or '-', starting and ending alphanumeric); bypass via upgradeCompatibility v1.15 or earlier, strictly enforced from v1.17."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the configured Cilium cluster name and whether it violates the at-most-32 lowercase alphanumeric/'-' rule (start/end alphanumeric); the evidence does not name the key carrying it"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "upgradeCompatibility",
+                  "state": "matches",
+                  "pattern": "^v?1\\.([0-9]|1[0-5])(\\.[0-9]+)?$"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "upgradeCompatibility",
+          "state": "matches",
+          "pattern": "^v?1\\.([0-9]|1[0-5])(\\.[0-9]+)?$"
+        }
+      },
+      "statement": "In Cilium 1.16.0, an environment is exposed if its cluster name breaks the new rule (at most 32 lowercase alphanumeric characters or '-', starting and ending with an alphanumeric character) and upgradeCompatibility is not set to v1.15 or earlier. Environments with upgradeCompatibility at v1.15 or earlier bypass the check for now; it is strictly enforced from v1.17."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:3e25d2df1a5c9122e109c38428fec836ead779e3b8faa1c50a9eedca2bcc7c6a",
+      "inputEvidence": [
+        "ev-6e35b4906b1d"
+      ],
+      "generatedAt": "2026-10-03T02:29:50.294Z",
+      "callId": "63275e31-39b6-49be-93d5-eb03b0f73c6c"
+    },
+    "reason": "[ev-6e35b4906b1d] says cluster names are now checked against the 32-char lowercase alphanumeric/'-' rule. It does not name the configuration key that holds the cluster name or give its default, so whether a name breaks the rule stays undecidable. The same evidence says the check is bypassed only when `upgradeCompatibility` is v1.15 or earlier, so the proposed overlap (`upgradeCompatibility` set to any value) is too broad: a value of 1.16 does not protect anything. Exposure should also leave out environments that use the bypass.",
+    "startedAt": "2026-10-03T02:29:34.837Z",
+    "decidedAt": "2026-10-03T02:29:50.294Z"
+  }
+}

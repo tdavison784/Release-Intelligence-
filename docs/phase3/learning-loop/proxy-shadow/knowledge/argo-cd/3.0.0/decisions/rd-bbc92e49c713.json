@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-bbc92e49c713",
+    "reviewItemId": "ri-d67fadc025ea",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "kind": "Application",
+        "path": "status.resources[].health"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "statement": "Argo CD 3.0 no longer persists per-resource health under .status.resources[].health in the Application CR by default; set controller.resource.health.persist to true in argocd-cmd-params-cm to revert."
+    },
+    "corrected": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "kind": "Application",
+        "path": "status.resources[].health"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "In Argo CD 3.0.0 the application controller by default no longer writes per-resource health into the Application CR's `status.resources[].health`; health is stored externally instead. Setting `controller.resource.health.persist` to `true` in argocd-cmd-params-cm restores the old behavior."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:34863de76cd70982a74e4f10f7515493ecbd8f6e4b08e1a363b9a8ea82ada0fd",
+      "inputEvidence": [
+        "ev-5616a3c7f69a",
+        "ev-04f25237d9d5",
+        "ev-66224e7edcd9",
+        "ev-84752609c1b3",
+        "ev-be3337c2717d",
+        "ev-d9606f97c234",
+        "ev-f69c10f943ee"
+      ],
+      "generatedAt": "2026-10-02T15:59:28.753Z",
+      "callId": "f4ef5e6a-ea0a-4a71-adbe-e3631e494bdf"
+    },
+    "reason": "[ev-5616a3c7f69a] says per-object health used to be persisted under `/status` of the Application CR by default and is now stored externally. Tools parsing `.status.resources[].health` must switch to the argocd CLI/API. The field still exists in both CRD schemas [ev-be3337c2717d][ev-04f25237d9d5], so the subject is right. The change type is wrong: a CRD status field has no default, and the \"true\"/\"false\" literals belong to the `controller.resource.health.persist` config key, not to this field. The evidence does not state \"false\" as that key's new default either. For this field the change is that the same configuration now produces different output: by default the controller no longer fills it in. That is a behavior-changed with no before/after literals.",
+    "startedAt": "2026-10-02T15:59:16.437Z",
+    "decidedAt": "2026-10-02T15:59:28.753Z"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-293056697418",
+    "product": "flux",
+    "release": "2.7.0",
+    "anchors": [
+      {
+        "release": "2.7.0",
+        "evidenceKeys": [
+          "ek-1a84fbfcbe2e"
+        ],
+        "statementKeys": [
+          "sk-04539080e5f9"
+        ],
+        "changeIds": [
+          "chg-34d6ced5aebf"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-3caf50c85cc9"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "flux-migrate"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the Flux controllers are deployed by Flux Operator (controlplaneio-fluxcd/flux-operator); every cluster not deployed by Flux Operator must run `flux migrate` before upgrading to 2.7.0"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Clusters not deployed via Flux Operator must run `flux migrate` before upgrading, because the v1beta1 and v2beta1 APIs have been removed from the CRDs.",
+        "remediation": "Run `flux migrate` on the cluster before upgrading to Flux 2.7; see the Flux v2.7 upgrade guide.",
+        "severity": "high"
+      },
+      "statement": "Upgrade procedure: :warning: The Flux APIs `v1beta1` and `v2beta1` (deprecated in 2023) have reached end-of-life and have been removed from the CRDs"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-1d29c2adbe3e"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-1d29c2adbe3e"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-fb9e91216b45"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-e48aaefba675"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-82be76c03b0e",
+        "kind": "document",
+        "sourceId": "release-notes",
+        "uri": "https://github.com/fluxcd/flux2/releases/tag/v2.7.0",
+        "locator": "L46-L52 (Upgrade procedure)",
+        "excerpt": "## Upgrade procedure\n\n:warning: The Flux APIs `v1beta1` and `v2beta1` (deprecated in 2023) have reached end-of-life and have been removed from the CRDs.\n\nUnless you are using [Flux Operator](https://github.com/controlplaneio-fluxcd/flux-operator) to deploy the Flux controllers, you must run the `flux migrate` command on clusters before upgrading.\n\nFor more details, please refer to the [Flux v2.7 upgrade guide](https://fluxcd.io/blog/2025/09/flux-v2.7.0/#upgrade-procedure).",
+        "contentDigest": "sha256:88bc939a89a38580b3522726fe8b6e9ed58b049224371c8cacbe410c4ee19e84",
+        "retrievedAt": "2026-10-02T10:53:01Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:34:34.929Z"
+  }
+}

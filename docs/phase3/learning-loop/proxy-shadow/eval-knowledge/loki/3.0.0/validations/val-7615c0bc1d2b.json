@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7615c0bc1d2b",
+    "candidateId": "sc-3e5ed0e52781",
+    "proposalId": "sp-dcb90d1f916b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store",
+        "component": "logcli"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "-schema-store",
+          "component": "logcli"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "component": "logcli",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-remote-schema",
+              "component": "logcli",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "-schema-store",
+          "component": "logcli",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "LogCLI used the store from -boltdb.shipper.shared-store to fetch remote schema; the store for remote schema is now configured with -schema-store.",
+        "remediation": "Set -schema-store to the store used for retrieving remote schema."
+      },
+      "statement": "LogCLI no longer takes the remote schema store from -boltdb.shipper.shared-store when -remote-schema is true; the new -schema-store flag replaces it."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/renamed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

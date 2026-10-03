@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ea47c3a621a0",
+    "candidateId": "sc-22be35218702",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "NameConstraints",
+        "component": "controller"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"disabled (alpha)\"",
+        "after": "\"enabled (beta)\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "NameConstraints",
+              "state": "unset"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.nameConstraints",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The NameConstraints feature is now enabled by default; Certificate resources with nameConstraints configuration will have the feature automatically active without requiring explicit gate enablement.",
+        "severity": "medium"
+      },
+      "statement": "The CA NameConstraints feature gate is promoted from Alpha to Beta and is now enabled by default."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-619c0cea3aa4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b7050a0bd77883f6c80b6eb83d4b079076006148ca481bd529ad36b25cf23e4c",
+      "inputEvidence": [
+        "ev-619c0cea3aa4"
+      ],
+      "generatedAt": "2026-10-02T06:00:17Z",
+      "callId": "d0d0613c-f6a5-42e9-bb6e-995870163b82"
+    }
+  }
+}

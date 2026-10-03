@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-aa81fa53e3cc",
+    "candidateId": "sc-7ae1b93c2b58",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "questionType": "classification",
+    "question": "Is fact vf-5395dff8fd73 (Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are…) still correct? Reject to retract it; correct to supersede it.",
+    "proposed": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.commonName"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.commonName",
+              "state": "matches",
+              "pattern": "^([0-9]{1,3}\\.){3}[0-9]{1,3}$|:"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates with an IP address in commonName now get that IP in the ipAddresses field rather than in the DNS subjectAlternativeName list; issued certificate SANs differ.",
+        "severity": "low"
+      },
+      "statement": "Fix handling of certificates with IP addresses in the `commonName` field; IP addresses are no longer added to the DNS `subjectAlternativeName` list and are…"
+    },
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "auto-approved",
+        "consensus-cross-model",
+        "policy-general"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:59:27.451176-05:00"
+  }
+}

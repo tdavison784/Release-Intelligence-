@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d5d8c8b14223",
+    "candidateId": "sc-b5bd8ce23049",
+    "proposalId": "sp-99d9f2dda4d7",
+    "validator": "semvalidate.compat@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "kafka"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Reload4j/Log4j1\"",
+        "after": "\"Log4j2\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=4.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the Kafka cluster has custom logging configuration (the evidence does not name the CR field or ConfigMap that carries it)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kafka 4.0 and newer logs via Log4j2 instead of Reload4j/Log4j1, so an environment upgrading to Kafka 4.0 with custom logging configuration might need to update that configuration during the upgrade (the evidence only says it \"might\" be needed, not that something fails).",
+        "remediation": "Review custom logging configuration and update it for Log4j2 when upgrading to Kafka 4.0, as the changelog advises.",
+        "severity": "low"
+      },
+      "statement": "Kafka 4.0 and newer uses Log4j2 for logging instead of Reload4j/Log4j1, so environments with custom logging configuration might need to update it during the upgrade to Kafka 4.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "compatibility:row",
+        "detail": "kafka has compatibility rows in both releases"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "compatibility:behavior-changed",
+        "detail": "only a requirement-changed change is decidable from compatibility rows"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-029b4f635db8",
+        "kind": "structured",
+        "sourceId": "kafka-versions",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/kafka-versions.yaml",
+        "locator": "L338",
+        "excerpt": "3 records where supported matches\nversion: 3.8.0, 3.8.1, 3.9.0",
+        "contentDigest": "sha256:fb79a07b4b2e6a2fa39dc4d8c3e8933f3c358ec75cd56b93fa75c67396cebe04",
+        "retrievedAt": "2026-10-02T02:59:12Z"
+      },
+      {
+        "id": "ev-e7a043486f16",
+        "kind": "structured",
+        "sourceId": "kafka-versions",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/kafka-versions.yaml",
+        "locator": "L241",
+        "excerpt": "2 records where supported matches\nversion: 3.9.0, 4.0.0",
+        "contentDigest": "sha256:ef2bf41175673872d0faa87db60f62a2c450b37f1b573777d8c0f8c5e1340f45",
+        "retrievedAt": "2026-10-02T02:59:12Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

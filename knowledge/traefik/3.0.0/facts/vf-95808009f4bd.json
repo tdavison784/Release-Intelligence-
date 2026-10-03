@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-95808009f4bd",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-fe471c946bd1"
+        ],
+        "statementKeys": [
+          "sk-7fe8fccdd5d2"
+        ],
+        "changeIds": [
+          "chg-cfef77912306"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-664f60a3392a"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "content-type-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the environment relies on automatic Content-Type header detection from backend responses that lack explicit Content-Type"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Responses whose backend does not set Content-Type no longer get an auto-detected Content-Type header unless the ContentType middleware is used.",
+        "remediation": "Use the ContentType middleware to enable Content-Type auto-detection.",
+        "severity": "medium"
+      },
+      "statement": "Content-Type Auto-Detection: In v3, the `Content-Type` header is not auto-detected anymore when it is not set by the backend"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-8ccd4579963f"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-8ccd4579963f"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-7d449792388d"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-0ec595b4786b"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-be4f90e8abf9",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L693-L696 (Migration Guide: From v2 to v3 › Operations › Content-Type Auto-Detection)",
+        "excerpt": "### Content-Type Auto-Detection\n\nIn v3, the `Content-Type` header is not auto-detected anymore when it is not set by the backend.\nOne should use the `ContentType` middleware to enable the `Content-Type` header value auto-detection.",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T23:17:54.727Z"
+  }
+}

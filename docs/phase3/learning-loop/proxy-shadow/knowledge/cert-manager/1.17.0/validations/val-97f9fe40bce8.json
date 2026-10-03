@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-97f9fe40bce8",
+    "candidateId": "sc-b39edc535b31",
+    "proposalId": "sp-d96bb59d3214",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "podDisruptionBudget.minAvailable"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "podDisruptionBudget.minAvailable",
+              "state": "matches",
+              "pattern": "^[0-9]+%$"
+            },
+            {
+              "op": "values-key",
+              "path": "podDisruptionBudget.maxAvailable",
+              "state": "matches",
+              "pattern": "^[0-9]+%$"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Helm now accepts percentage values for podDisruptionBudget.minAvailable and podDisruptionBudget.maxAvailable, which it previously did not; an environment with a percentage set will have the value honoured in the rendered PodDisruptionBudget instead of being rejected, and environments not using percentages are unaffected.",
+        "remediation": "No action required; if percentages are used, verify the rendered PodDisruptionBudget reflects them.",
+        "severity": "low"
+      },
+      "statement": "In the cert-manager 1.17.0 Helm chart, percentage values for the podDisruptionBudget.minAvailable and podDisruptionBudget.maxAvailable values are now accepted by Helm, which previously they were not."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/behavior-changed",
+        "detail": "no canonical exposure condition for helm-value behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

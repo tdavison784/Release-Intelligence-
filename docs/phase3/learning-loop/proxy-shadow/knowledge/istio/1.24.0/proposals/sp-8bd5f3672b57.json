@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8bd5f3672b57",
+    "candidateId": "sc-4330cdde4865",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+        "component": "pilot"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment has DestinationRules on the same host with different ExportTo attributes"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRules on the same host with different ExportTo attributes will no longer be merged by default, which changes the routing behavior for such configurations unless the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable is explicitly set to false.",
+        "severity": "medium"
+      },
+      "statement": "DestinationRule merging behavior for rules on the same host with different ExportTo attributes changed; merging is now disabled by default, but can be re-enabled by setting the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable to false in the pilot deployment."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a25845551580"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0c35c75c49ec5bd88334bd7bf5aa80313391b9f5b8b8eca5996b60dbc2af0f96",
+      "inputEvidence": [
+        "ev-a25845551580"
+      ],
+      "generatedAt": "2026-10-02T05:56:18Z",
+      "callId": "2869f6a8-1e8f-4ae6-b06c-157503dd205d"
+    }
+  }
+}

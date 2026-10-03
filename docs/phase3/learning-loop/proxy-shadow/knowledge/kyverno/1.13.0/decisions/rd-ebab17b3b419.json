@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ebab17b3b419",
+    "reviewItemId": "ri-301f8e3d84e6",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "GlobalContextEntry apiCall data fetches that initially fail are now retried up to 3 times by default (configurable via the new optional spec.apiCall.retryLimit field), so external-data retrieval behaves differently on transient failures; existing resources remain valid since the field is optional.",
+        "remediation": "No action required; optionally set spec.apiCall.retryLimit to tune the number of retries.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds an optional spec.apiCall.retryLimit field (integer, minimum 1, default 3) to the v2alpha1 GlobalContextEntry CRD, providing built-in retry logic so that apiCall requests that initially fail are retried 3 times by default."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:2611fc82d0961a74c259b0c271bd2a5e838ff70163231053e90bd58675c57684",
+      "inputEvidence": [
+        "ev-a6027c299092",
+        "ev-eb301d25a0b7",
+        "ev-043bcc5e9e57",
+        "ev-0b95f4d8b2b8",
+        "ev-388d68569c8a",
+        "ev-3f8a3adffa22",
+        "ev-495a542d4d66",
+        "ev-6032b12f614d",
+        "ev-64e559957f23",
+        "ev-6644b79acdaf",
+        "ev-705a5952643c",
+        "ev-72ae67cf1bd1",
+        "ev-7b96a5794081",
+        "ev-8acbbd901b75",
+        "ev-8ed706991976",
+        "ev-904a58b60df3",
+        "ev-a4c10d98e48c",
+        "ev-ab4f180a917e",
+        "ev-b077d5605267",
+        "ev-b3d07020d879",
+        "ev-c7493c8ebf56",
+        "ev-d55bb7c165b2",
+        "ev-e4d8d307c8bd",
+        "ev-e6f72293517f",
+        "ev-f4eb4632dd60",
+        "ev-f5ab4321b780",
+        "ev-fd8deebe9622",
+        "ev-ff8bc99281a6"
+      ],
+      "generatedAt": "2026-10-02T23:09:39.859Z",
+      "callId": "7def8480-ead5-46bd-b842-6189a8f729a6"
+    },
+    "reason": "[ev-a6027c299092] says Kyverno 1.13 now has built-in retry logic for GlobalContextEntry API calls. The new retryLimit field is optional and defaults to 3. [ev-eb301d25a0b7] confirms that 1.13.0 adds the optional field (integer, minimum 1, default 3, \"number of times the APICall should be retried in case of failure\"). So existing apiCall entries keep working but now retry failed calls by default. That is a changed default, which makes it a low-severity behavior-change for review, not mandatory work; nothing in the evidence says anything fails, is rejected or must be migrated.",
+    "startedAt": "2026-10-02T23:09:32.81Z",
+    "decidedAt": "2026-10-02T23:09:39.859Z"
+  }
+}

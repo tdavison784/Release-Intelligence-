@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-28d83ab9edb8",
+    "reviewItemId": "ri-f6e4f5ec3dd8",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:9efac74780329cc9ce4da0a78adec439f7fa4bd7887dad36d2665de278e5f3b0",
+      "inputEvidence": [
+        "ev-61893aebc612",
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-03T02:06:43.881Z",
+      "callId": "b5b8bbf5-fbc2-4bf4-952d-3bc52cc15e32"
+    },
+    "reason": "The release note [ev-61893aebc612] says AWSProvider.prefix was added. However, the CRD validator reports that SecretStore spec.provider.aws.prefix is in the schemas of both v0.15.0 [ev-9889c9b8706d] and v0.16.0 [ev-e08924afdc47]. That would mean the field is not new in this release. The same validator's change check also says the field appears only with the new API version v1, not as a new field of an existing version, which conflicts with the first result. Settling whether the change is a plain \"added\" or an addition limited to version v1 needs a per-version diff of the two CRD schemas showing whether prefix exists in v0.15.0 and under which API versions.",
+    "startedAt": "2026-10-03T02:06:33.154Z",
+    "decidedAt": "2026-10-03T02:06:43.881Z"
+  }
+}

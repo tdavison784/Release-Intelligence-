@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-75d618b9f38b",
+    "candidateId": "sc-6d4a4c6f901f",
+    "proposalId": "sp-c0230b46fa32",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "flux",
+        "name": "--show-history"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether an operator runs `flux debug helmrelease` or `flux debug kustomization` with the new `--show-history` flag (CLI usage at runtime is not carried in manifests or Helm values)"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The release notes state only that a new `--show-history` flag is added to the two `flux debug` subcommands; nothing existing is removed, renamed or changed, so an environment whose operator does nothing is unaffected.",
+        "severity": "low"
+      },
+      "statement": "flux 2.7.0 adds a new `--show-history` flag to the `debug helmrelease` and `debug kustomization` CLI commands."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/added",
+        "detail": "no canonical exposure condition for cli-flag added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-c0449a30e287",
+  "promptDigest": "sha256:f1a74dccd1e5c372cd46694ed37f4214141a801349c164f0d33609d715cbb6c6",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "0bdd0f59-1a66-439e-a0cd-244fa922f331",
+  "startedAt": "2026-10-03T01:59:32.475Z",
+  "decidedAt": "2026-10-03T01:59:42.475Z",
+  "durationMs": 9098,
+  "costUSD": 0.095208,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-9f33f28bdfe0] says only that Traefik now supports the OTEL_PROPAGATORS environment variable for configuring tracing propagation. So the only environments it touches are those whose Traefik containers set that variable. The proposed undecidable operand (\"whether tracing is enabled and configured to use OTEL propagation standards\") is not supported by the evidence. Combined with any, it turns every environment that does not set the variable into \"unknown\", which makes the condition too broad. The component \"tracing\" is also not a workload component named in the evidence, so I dropped it.",
+    "citations": [
+      "ev-9f33f28bdfe0"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Traefik 3.0.0 adds support for the OTEL_PROPAGATORS environment variable to configure tracing propagation. Only environments whose Traefik containers set OTEL_PROPAGATORS are exposed: there, the variable now configures tracing propagation.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "env-var",
+          "name": "OTEL_PROPAGATORS",
+          "state": "set"
+        }
+      }
+    }
+  }
+}

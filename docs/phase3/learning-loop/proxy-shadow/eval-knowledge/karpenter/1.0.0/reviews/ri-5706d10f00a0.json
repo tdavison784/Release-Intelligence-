@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-5706d10f00a0",
+    "candidateId": "sc-f32097415709",
+    "product": "karpenter",
+    "release": "1.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"API Rename: NodePool’s ConsolidationPolicy `WhenUnderutilized` is now renamed to `WhenEmptyOrUnderutilized`\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "NodePool resources specifying ConsolidationPolicy.WhenUnderutilized will have that setting ignored as the field name is no longer recognized; the operator must update manifests to use WhenEmptyOrUnderutilized.",
+        "remediation": "Update all NodePool resources that use spec.consolidationPolicy.WhenUnderutilized to use spec.consolidationPolicy.WhenEmptyOrUnderutilized instead.",
+        "severity": "high"
+      },
+      "statement": "The NodePool ConsolidationPolicy field `WhenUnderutilized` is renamed to `WhenEmptyOrUnderutilized`."
+    },
+    "proposals": [
+      "sp-3d028b5ef86d",
+      "sp-5feb93379ecc",
+      "sp-f1043a45b3c7"
+    ],
+    "validations": [
+      "val-2df76eadde9d",
+      "val-3d47035ad6a8",
+      "val-4f1aa03f3512",
+      "val-a0c103457ccf",
+      "val-c7a38cb5a5d6",
+      "val-c8e435ebbb34",
+      "val-fb58ebbc6bc4",
+      "val-ffc99cedbc69"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed",
+        "validation-refuted"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-02T06:10:40Z"
+  }
+}

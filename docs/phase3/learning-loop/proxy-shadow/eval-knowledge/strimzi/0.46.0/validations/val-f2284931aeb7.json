@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f2284931aeb7",
+    "candidateId": "sc-26c1a428f564",
+    "proposalId": "sp-135ff29041a2",
+    "validator": "semvalidate.compat@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "kafka"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": ">=4.0.0"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=3.8.0,<4.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Environments running Kafka 3.8.0 or 3.8.1 will not be supported by Strimzi 0.46.0; the operator will not function with unsupported Kafka versions.",
+        "severity": "high"
+      },
+      "statement": "Strimzi 0.46.0 changes the supported Kafka versions: adds support for Kafka 4.0.0 and removes support for Kafka 3.8.0 and 3.8.1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "compatibility:row",
+        "detail": "kafka has compatibility rows in both releases"
+      },
+      {
+        "aspect": "change",
+        "outcome": "refuted",
+        "rule": "compatibility:requirement",
+        "detail": "the target kafka rows admit a different set than >=4.0.0 (they differ on lines 3.9, 4.1, 4.2, 4.3)"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-029b4f635db8",
+        "kind": "structured",
+        "sourceId": "kafka-versions",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.45.0/kafka-versions.yaml",
+        "locator": "L338",
+        "excerpt": "3 records where supported matches\nversion: 3.8.0, 3.8.1, 3.9.0",
+        "contentDigest": "sha256:fb79a07b4b2e6a2fa39dc4d8c3e8933f3c358ec75cd56b93fa75c67396cebe04",
+        "retrievedAt": "2026-10-02T02:59:12Z"
+      },
+      {
+        "id": "ev-e7a043486f16",
+        "kind": "structured",
+        "sourceId": "kafka-versions",
+        "uri": "https://github.com/strimzi/strimzi-kafka-operator/blob/0.46.0/kafka-versions.yaml",
+        "locator": "L241",
+        "excerpt": "2 records where supported matches\nversion: 3.9.0, 4.0.0",
+        "contentDigest": "sha256:ef2bf41175673872d0faa87db60f62a2c450b37f1b573777d8c0f8c5e1340f45",
+        "retrievedAt": "2026-10-02T02:59:12Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

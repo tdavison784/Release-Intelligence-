@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0835c18edc10",
+    "candidateId": "sc-3d0c8e3479ab",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "loki",
+        "name": "wal-enablement-for-max-transfer-retries-removal"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators upgrading to 3.0.0 must enable WAL replay to replace the removed max_transfer_retries mechanism; optionally enable flush_on_shutdown to flush ingester data to long-term storage on shutdowns.",
+        "severity": "high"
+      },
+      "statement": "Loki 3.0.0 recommends enabling WAL and optionally enabling flush_on_shutdown to handle the removal of max_transfer_retries configuration."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-b19cd3bb8e8b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:10a2f9c6fb2bb92d9f650d55009f5b73cffc8d2ff748978fcebf5d37f9d9f744",
+      "inputEvidence": [
+        "ev-b19cd3bb8e8b"
+      ],
+      "generatedAt": "2026-10-02T16:17:14Z",
+      "callId": "a11df2c7-8ca3-4792-946b-ff4ebcc22bc5"
+    }
+  }
+}

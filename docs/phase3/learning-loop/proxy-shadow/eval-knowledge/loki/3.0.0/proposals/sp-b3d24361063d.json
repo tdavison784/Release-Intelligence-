@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b3d24361063d",
+    "candidateId": "sc-2289fcbccd23",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "async_cache_write_back_concurrency"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "writeback_goroutines"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "async_cache_write_back_concurrency",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The async_cache_write_back_concurrency configuration setting will no longer be honoured and must be migrated to writeback_goroutines in the Background cache configuration."
+      },
+      "statement": "The configuration keys async_cache_write_back_concurrency and async_cache_write_back_buffer_size have been removed in favor of Background cache configuration settings (writeback_goroutines, writeback_buffer, and writeback_size_limit)."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-576bad2a0aa0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:1f19be8becfa0fcb7ccc446ebb1709178744d29c0e9245d664526ef57640c472",
+      "inputEvidence": [
+        "ev-576bad2a0aa0"
+      ],
+      "generatedAt": "2026-10-02T20:53:19Z",
+      "callId": "ce2bf1b2-3a0d-499a-818d-f759d2826a9d"
+    }
+  }
+}

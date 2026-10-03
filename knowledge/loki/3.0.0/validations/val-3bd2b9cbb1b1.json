@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3bd2b9cbb1b1",
+    "candidateId": "sc-c669c60de263",
+    "proposalId": "sp-b261194d864b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "experimental.ruler.enable-api",
+        "component": "ruler"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "ruler.enable-api",
+          "component": "ruler"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "experimental.ruler.enable-api",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments configured with `experimental.ruler.enable-api` will have this setting ignored; the configuration must be migrated to `ruler.enable-api` to take effect.",
+        "remediation": "Rename the configuration key from `experimental.ruler.enable-api` to `ruler.enable-api` in your Loki configuration.",
+        "severity": "high"
+      },
+      "statement": "The experimental configuration key `experimental.ruler.enable-api` is removed in favour of the standard `ruler.enable-api` key."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/renamed",
+        "detail": "no canonical exposure condition for config-key renamed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

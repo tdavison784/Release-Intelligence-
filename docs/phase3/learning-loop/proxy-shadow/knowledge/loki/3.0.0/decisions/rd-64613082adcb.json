@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-64613082adcb",
+    "reviewItemId": "ri-0ad194e6b027",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-validation.enforce-metric-name",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "validation.enforce-metric-name",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The validation.enforce-metric-name CLI flag and its corresponding YAML setting are removed in Loki 3.0.0."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-validation.enforce-metric-name",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the YAML config key (and its Helm values path, if any) corresponding to validation.enforce-metric-name, and whether the environment sets it"
+            }
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 removes the validation.enforce-metric-name CLI flag and its corresponding YAML setting. Exposed: environments that pass the flag, or that set the corresponding YAML config setting (key name not given in the evidence)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:ad0073c726a6b84a719d09d331bd3c616232e42fb9d40a20c0c2547e68d6b382",
+      "inputEvidence": [
+        "ev-7b384eb00d22"
+      ],
+      "generatedAt": "2026-10-03T02:11:05.159Z",
+      "callId": "cff3ebe2-3231-4434-bbd1-bd353babb17d"
+    },
+    "reason": "[ev-7b384eb00d22] only says that the `validation.enforce-metric-name` CLI flag and \"the corresponding YAML setting\" are removed. It does not name the YAML key. The proposed values-key leaf `validation.enforce-metric-name` takes the CLI flag spelling and treats it as a Helm values path, which the evidence does not support. The cli-flag operand is supported. The YAML-config exposure should be marked undecidable until the setting's key is known, rather than guessed.",
+    "startedAt": "2026-10-03T02:10:54.027Z",
+    "decidedAt": "2026-10-03T02:11:05.159Z"
+  }
+}

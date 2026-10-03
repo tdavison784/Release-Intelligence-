@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0dd2ec717b58",
+    "candidateId": "sc-71cf6ab4b713",
+    "proposalId": "sp-f84e46a7d805",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "prometheus-operator",
+        "name": "metadata-wal-records"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "prometheus",
+          "state": "in-range",
+          "range": ">=3.4.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Prometheus workloads running Prometheus >= 3.4 that relied on prometheus-operator's automatic addition will no longer run with the `metadata-wal-records` feature flag enabled; the evidence does not state a failure mode.",
+        "remediation": "If the feature is needed, enable the `metadata-wal-records` feature flag explicitly on the Prometheus workload."
+      },
+      "statement": "prometheus-operator 0.86.0 no longer automatically adds the `metadata-wal-records` feature flag to Prometheus resources running Prometheus versions >= 3.4."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/removed",
+        "detail": "feature-gate:prometheus-operator|name=metadata-wal-records: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/removed",
+        "detail": "feature-gate:prometheus-operator|name=metadata-wal-records: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

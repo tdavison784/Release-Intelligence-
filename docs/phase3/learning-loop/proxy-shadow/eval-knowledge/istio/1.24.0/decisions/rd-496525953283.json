@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-496525953283",
+    "reviewItemId": "ri-9e8fc08249dc",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "migration",
+        "product": "istio",
+        "name": "crd-helm-templating"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "Istio CRDs are now templated by default and managed via Helm; the recommended upgrade method changes from kubectl apply to helm upgrade istio-base, and CRD labels are updated to match Helm-installed resources."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:4b854ec6961c95b755aa3960c69fce72aed0b61b4c8e42ca3f231a92b5cbb108",
+      "inputEvidence": [
+        "ev-85eccdc718e3",
+        "ev-2941a875a468"
+      ],
+      "generatedAt": "2026-10-03T02:26:32.724Z",
+      "callId": "d8ff358e-2eea-4234-95b7-59b01d824e87"
+    },
+    "reason": "[ev-85eccdc718e3] and [ev-2941a875a468] describe a newly *allowed* upgrade path (`helm upgrade istio-base`) and say operators who used `kubectl apply` \"can continue to do so\" and \"can begin safely upgrading\" with Helm. That is optional, so no mandatory operator step is stated. The migration family can only be used with migration-required, so the proposed subject and change both overclaim mandatory work. The excerpts do not name a concrete subject (such as a Helm value) for the label or templating behaviour change, so I cannot offer a correction.",
+    "startedAt": "2026-10-03T02:26:24.155Z",
+    "decidedAt": "2026-10-03T02:26:32.724Z"
+  }
+}

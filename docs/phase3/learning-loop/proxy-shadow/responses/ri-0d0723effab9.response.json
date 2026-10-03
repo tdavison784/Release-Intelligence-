@@ -1,0 +1,25 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0d0723effab9",
+  "promptDigest": "sha256:05448a23c19a7ab8fe4930394818c6c8b9e97d3f96aad2a563ae841abc43b4b1",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d5477ac4-5dcd-4104-a606-d22e76ed1e6c",
+  "startedAt": "2026-10-03T02:11:07.545Z",
+  "decidedAt": "2026-10-03T02:11:17.781Z",
+  "durationMs": 9243,
+  "costUSD": 0.098168,
+  "output": {
+    "action": "reject",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "reason": "The migration guide [ev-d6a3846e479f] says only that the `preferServerCipherSuites` option \"has been removed\". It does not say what happens to configurations that still set it. The claim that TLSOption resources with this field are \"rejected by validation\" is contradicted by the artifacts: the CRD validator found spec.preferServerCipherSuites still in the v3.0.0 TLSOption schema [ev-011956bb7059] as well as in the v2.11.2 schema [ev-54d04bd3a614], so the schema does not reject the field. Nothing in the evidence supports a different kind either: it does not say whether the value is ignored or causes a runtime error. The consequence is therefore undetermined, and resource-rejected (action required, high severity) over-claims mandatory work.",
+    "citations": [
+      "ev-d6a3846e479f",
+      "ev-011956bb7059",
+      "ev-54d04bd3a614"
+    ],
+    "confidence": "medium"
+  }
+}

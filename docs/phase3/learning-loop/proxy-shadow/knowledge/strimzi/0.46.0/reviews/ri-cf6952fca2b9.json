@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-cf6952fca2b9",
+    "candidateId": "sc-eb856233046a",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Support for ZooKeeper-based Apache Kafka clusters and for KRaft migration has been removed\", what happens, and is that review or action? proposed: resource-rejected",
+    "proposed": {
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Kafka resources configured with ZooKeeper (spec.zookeeper field set) will be rejected during cluster reconciliation in Strimzi 0.46.0, as ZooKeeper-based cluster support has been removed. Environments running ZooKeeper-based Kafka clusters must migrate to KRaft mode before upgrading.",
+        "remediation": "Migrate all ZooKeeper-based Kafka clusters to KRaft (Kraft controller) mode before upgrading to Strimzi 0.46.0. This requires updating Kafka resources to remove the spec.zookeeper configuration and ensure spec.kraft is properly configured.",
+        "severity": "critical"
+      },
+      "statement": "Support for ZooKeeper-based Apache Kafka clusters and for KRaft migration has been removed from Strimzi 0.46.0."
+    },
+    "proposals": [
+      "sp-66b04cdc037b",
+      "sp-860ddd6544ea",
+      "sp-da26d63014a1",
+      "sp-eabc324b3d79"
+    ],
+    "validations": [
+      "val-3cc938cc4443",
+      "val-90fd1a7c98e8",
+      "val-9ca3e877149c",
+      "val-c2c8d7779dc3",
+      "val-d263721c7102",
+      "val-fe8162a685e7"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-02T11:36:11Z"
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e369ee0247be",
+    "candidateId": "sc-dd35e147bb75",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "remove-v1alpha1-stored-versions"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions",
+                  "state": "has-token",
+                  "values": [
+                    "v1alpha1"
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "externalsecrets.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions",
+                  "state": "has-token",
+                  "values": [
+                    "v1alpha1"
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "clusterexternalsecrets.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions",
+                  "state": "has-token",
+                  "values": [
+                    "v1alpha1"
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "secretstores.external-secrets.io"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.storedVersions",
+                  "state": "has-token",
+                  "values": [
+                    "v1alpha1"
+                  ]
+                }
+              ],
+              "group": "apiextensions.k8s.io",
+              "kind": "CustomResourceDefinition",
+              "name": "clustersecretstores.external-secrets.io"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If v1alpha1 is still listed in status.storedVersions of any of these CRDs and the operator does nothing, the mandatory pre-upgrade step has not been run: the release guide marks the cluster 'NOT SAFE! REMOVE v1alpha1 FROM YOUR STORED VERSIONS' and directs the operator to remove v1alpha1 from the stored versions and persist that status before continuing, since 0.16.0 no longer serves v1alpha1 on these CRDs.",
+        "remediation": "Run the kubectl jsonpath check from the release notes; if it reports 'NOT SAFE', remove v1alpha1 from status.storedVersions of the four CRDs and make sure this status is persisted after verifying the commands, before upgrading to 0.16.0.",
+        "severity": "high"
+      },
+      "statement": "Upgrading to external-secrets 0.16.0 requires a pre-upgrade step ensuring v1alpha1 is no longer listed in status.storedVersions of the externalsecrets, clusterexternalsecrets, secretstores and clustersecretstores CRDs (removing it if the guide's kubectl check reports NOT SAFE and persisting that status), because 0.16.0 removes the v1alpha1 version from these CRDs while adding v1."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-07d67e9be26a",
+      "ev-1061f4fcca14",
+      "ev-acf4ed4bcd3b",
+      "ev-f978a29a8906",
+      "ev-b80f52507eed",
+      "ev-4a1f27e04efd",
+      "ev-f9a790bae7ab",
+      "ev-04b0055709ca"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:b297b15565f097e63713501e864705795d327d8519b6a7a66b58c4097422823d",
+      "inputEvidence": [
+        "ev-07d67e9be26a",
+        "ev-1061f4fcca14",
+        "ev-acf4ed4bcd3b",
+        "ev-f978a29a8906",
+        "ev-b80f52507eed",
+        "ev-4a1f27e04efd",
+        "ev-f9a790bae7ab",
+        "ev-04b0055709ca"
+      ],
+      "generatedAt": "2026-10-02T16:15:09Z",
+      "callId": "fcd79d52-0b60-49ca-a789-f4b7f9721c72"
+    }
+  }
+}

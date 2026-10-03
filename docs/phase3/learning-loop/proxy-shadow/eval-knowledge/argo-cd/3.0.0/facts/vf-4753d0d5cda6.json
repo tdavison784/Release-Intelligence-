@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-4753d0d5cda6",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-9f431cd2fd31"
+        ],
+        "statementKeys": [
+          "sk-7408b3407586"
+        ],
+        "changeIds": [
+          "chg-6c55df58ae29"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-12312c24ca44"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "application.resourceTrackingMethod",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"label\"",
+        "after": "\"annotation\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"application.resourceTrackingMethod\"]",
+                  "state": "unset"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"application.resourceTrackingMethod\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"label\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"application.resourceTrackingMethod\"]",
+              "state": "equals",
+              "values": [
+                "\"annotation\""
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Resource tracking will switch from label-based to annotation-based tracking on the next sync operation; labels will be replaced with annotations, and applications will not be marked as out-of-sync if labels are not present on resources.",
+        "remediation": "Verify that annotation-based tracking is compatible with your environment. Monitor the first sync operation after upgrade for potential edge cases with resource deletion that may cause resources to be orphaned.",
+        "severity": "medium"
+      },
+      "statement": "Use Annotation-Based Tracking by Default: The default behavior for tracking resources has changed to use annotation-based tracking instead of label-based…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-8a1639bf999c"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-8a1639bf999c"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-b84479fe30ed"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-615db0eb5b84"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-07e8b4d1d6f1",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L234-L284 (v2.14 to 3.0 › Breaking Changes › Use Annotation-Based Tracking by Default)",
+        "excerpt": "### Use Annotation-Based Tracking by Default\n\nThe default behavior for [tracking resources](../../user-guide/resource_tracking.md) has changed to use annotation-based\ntracking instead of label-based tracking. Annotation-based tracking is more reliable and less prone to errors caused by\nexternal code copying tracking labels from one resource to another.\n\n#### Detection\n\nTo detect if you are impacted, check the `argocd-cm` ConfigMap for the `application.resourceTrackingMethod` field. If it\nunset or is set to `label`, you are using label-based tracking. If it is set to `annotation`, you are alrea…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T13:02:34.086Z"
+  }
+}

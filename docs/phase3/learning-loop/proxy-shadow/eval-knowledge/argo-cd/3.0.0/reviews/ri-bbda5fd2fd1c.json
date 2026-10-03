@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-bbda5fd2fd1c",
+    "candidateId": "sc-a1d88092526a",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Using `cluster.inClusterEnabled: \\\"false\\\"`: When `cluster.inClusterEnabled: \\\"false\\\"` is explicitly configured, Applications currently configured to sync on the…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "cluster.inClusterEnabled",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "statement": "When cluster.inClusterEnabled is set to \"false\", Applications currently configured to sync on the in-cluster cluster will enter Unknown state and cannot sync; new Applications cannot use the in-cluster cluster; and deleting Applications will not delete their previously managed resources."
+    },
+    "proposals": [
+      "sp-007335b5c10a",
+      "sp-fa95ed58d530"
+    ],
+    "validations": [
+      "val-677f47330e9d",
+      "val-6ced181ae081",
+      "val-c621b87e45b8",
+      "val-e05b5ecded7c"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:06:41Z"
+  }
+}

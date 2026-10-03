@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c1a6056c0f9e",
+    "candidateId": "sc-d7310ce13cca",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "clustermesh.apiserver.kvstoremesh.enabled"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "clustermesh.apiserver.kvstoremesh.enabled",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "clustermesh.apiserver.kvstoremesh.enabled",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "KVStoreMesh is enabled by default in Clustermesh after upgrade unless the value is explicitly set to false.",
+        "remediation": "Set clustermesh.apiserver.kvstoremesh.enabled=false explicitly during the upgrade to keep it disabled.",
+        "severity": "low"
+      },
+      "statement": "The Helm value clustermesh.apiserver.kvstoremesh.enabled now defaults to true (KVStoreMesh enabled by default in Clustermesh); set it to false explicitly to disable."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-12660f87be40"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:48aa89cd376fa73b16a8333595e645253774e950e5e620240d568e84575d6298",
+      "inputEvidence": [
+        "ev-12660f87be40"
+      ],
+      "generatedAt": "2026-10-02T06:02:01Z",
+      "callId": "f9da85bf-94f4-4ad7-8303-94664f425846"
+    }
+  }
+}

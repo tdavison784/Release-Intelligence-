@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d19d0fe2cd1b",
+    "reviewItemId": "ri-47d08a0d2167",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "cert-expiry-timestamp-metrics"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "The metrics rootCertExpiryTimestamp and certChainExpiryTimestamp no longer record a negative number for expired certs/chains (docs corrected to match actual behavior); users should check the signs of rootCertExpirySeconds and certChainExpirySeconds instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:48987216f0c63492455140b3d0a58854505a93bd1a58766a98b10117b9bd002a",
+      "inputEvidence": [
+        "ev-c3da9e3c81f1"
+      ],
+      "generatedAt": "2026-10-02T12:53:52.873Z",
+      "callId": "84874699-b856-49c1-9e70-6c15ffe0432d"
+    },
+    "reason": "[ev-c3da9e3c81f1] says the timestamp metrics not recording negative numbers \"was never the actual behavior\" and that only \"the docs are now updated to reflect the actual behavior\". The runtime semantics of `rootCertExpiryTimestamp` and `certChainExpiryTimestamp` did not change in 1.24.0. Only the documentation was corrected, so \"behavior-changed\" misreads the text. The evidence does not support any change assertion about this subject.",
+    "startedAt": "2026-10-02T12:53:46.872Z",
+    "decidedAt": "2026-10-02T12:53:52.873Z"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c7a1c8bf853d",
+    "candidateId": "sc-eedb90bededa",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1beta1",
+        "kind": "NodePool",
+        "path": "spec.disruption.expireAfter"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "karpenter",
+          "group": "karpenter.sh",
+          "kind": "NodePool",
+          "path": "spec.template.spec.expireAfter"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption.expireAfter",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.sh",
+          "version": "v1beta1",
+          "kind": "NodePool"
+        }
+      },
+      "statement": "NodePool ExpireAfter moved from spec.disruption to spec.template.spec (and is now drift-able)."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The text states the field moved but not what happens to configurations that keep the old location.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-1253ff5bd0a5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:18353ca62486822a0fef2005d2dadf19047d2a143a7ab2fcae20e5288808f0ab",
+      "inputEvidence": [
+        "ev-1253ff5bd0a5"
+      ],
+      "generatedAt": "2026-10-02T06:07:18Z",
+      "callId": "dab8586a-450d-4e91-8acb-062c6840551c"
+    }
+  }
+}

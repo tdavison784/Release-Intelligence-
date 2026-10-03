@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1ab7f74e8306",
+    "candidateId": "sc-930a72d12c72",
+    "proposalId": "sp-1992e4444ac0",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.rules[].context[].apiCall.default"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.rules[].context[]",
+              "state": "set"
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "ClusterPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Policies can now specify fallback values for apiCall context entries using the default field when an API server error occurs; existing policies without this field continue to work unchanged.",
+        "severity": "low"
+      },
+      "statement": "The apiCall.default field was added to context specifications in ClusterPolicy, Policy, CleanupPolicy, and ClusterCleanupPolicy resources, allowing operators to specify a fallback value when an API server returns an error during apiCall execution."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

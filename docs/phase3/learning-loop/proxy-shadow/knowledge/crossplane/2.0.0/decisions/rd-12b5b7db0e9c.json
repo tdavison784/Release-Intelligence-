@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-12b5b7db0e9c",
+    "reviewItemId": "ri-395d523e34d2",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.20.0"
+            },
+            {
+              "op": "cluster-version",
+              "name": "crossplane",
+              "state": "in-range",
+              "range": ">=1.0.0,<2.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "Crossplane v2.0 requires sequential upgrade through intermediate v1 minor versions, with mandatory upgrade to v1.20 as the final v1 step before upgrading to v2.0; direct upgrade from earlier v1 versions to v2.0 is not supported."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<1.20.0"
+        }
+      },
+      "statement": "Environments upgrading to Crossplane v2.0 from a version below v1.20 are exposed: they must first upgrade one minor version at a time up to v1.20, so the CRD storage migrations run at each minor release."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:59aa0ebaa7d936f4c98c26b91a7d7f54e4b58660f3a19fd8be47089f0fd086bf",
+      "inputEvidence": [
+        "ev-8df0afdc905e"
+      ],
+      "generatedAt": "2026-10-03T02:16:01.994Z",
+      "callId": "83ae10e3-2213-4bfe-b820-a559ad9f06aa"
+    },
+    "reason": "[ev-8df0afdc905e] says you should be running a v1.20 version before upgrading to v2.0, and should go through each minor version in turn because each minor upgrade migrates CRDs. So the exposed environments are the ones upgrading from a version below 1.20.0, which edge-from-version in-range \"<1.20.0\" captures fully. The proposed second operand misuses cluster-version for Crossplane's own version: that leaf is for the platform version. It is also redundant with the from-version edge, so it should be dropped.",
+    "startedAt": "2026-10-03T02:15:53.481Z",
+    "decidedAt": "2026-10-03T02:16:01.994Z"
+  }
+}

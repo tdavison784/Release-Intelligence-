@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a05d5a10f148",
+    "candidateId": "sc-e57ca6092b51",
+    "proposalId": "sp-1dcf2b96b697",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--probe",
+        "component": "cilium-health"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"runs a synchronous probe\"",
+        "after": "\"returns the results of the most recent cached probe\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--probe",
+          "component": "cilium-health",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The --probe flag behavior changes to return cached probe results instead of running synchronous probes; the flag is hidden and scheduled for removal in a future release.",
+        "remediation": "Update monitoring or health check scripts that depend on synchronous probe execution via cilium-health status --probe; verify whether cached results are acceptable for your use case.",
+        "severity": "medium"
+      },
+      "statement": "The cilium-health status --probe flag no longer runs synchronous probes; it now returns cached results and is hidden, scheduled for removal in a future release."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

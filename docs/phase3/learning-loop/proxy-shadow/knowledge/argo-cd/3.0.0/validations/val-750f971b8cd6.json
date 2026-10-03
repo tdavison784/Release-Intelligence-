@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-750f971b8cd6",
+    "candidateId": "sc-9d5516da8bb9",
+    "proposalId": "sp-a0f6da51f1a0",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "server.rbac.log.enforce.enable",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"flag present (can be set to 'true' or 'false')\"",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "unset"
+                },
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "configs.rbac[\"policy.default\"]",
+                  "state": "unset"
+                },
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "values-key",
+                      "path": "configs.rbac[\"policy.default\"]",
+                      "state": "matches",
+                      "pattern": "^role:(readonly|admin)$"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "configs.rbac[\"policy.default\"]",
+              "state": "matches",
+              "pattern": "^role:(readonly|admin)$"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "Users without explicit `logs, get` RBAC permissions will lose access to the logs tab in pod view, even if they have `applications, get` access. Previously implicit logs access through `applications, get` is no longer granted.",
+        "remediation": "Grant explicit `logs, get` RBAC permissions to users, groups, or roles that require access to logs. After upgrade, remove the `server.rbac.log.enforce.enable` setting from the `argocd-cm` ConfigMap if present.",
+        "severity": "high"
+      },
+      "statement": "Starting from Argo CD 3.0, logs RBAC enforcement is enabled by default; the `server.rbac.log.enforce.enable` flag is removed from `argocd-cm` ConfigMap and users no longer automatically get logs access through `applications, get` permissions alone."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

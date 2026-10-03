@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-472b45754955",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "anchors": [
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-db91c78b9fe7"
+        ],
+        "statementKeys": [
+          "sk-e9c6a6888eee"
+        ],
+        "changeIds": [
+          "chg-4e9435eae99e"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-95b8b6a5377b"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "ingress-pathtype"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"ImplementationSpecific\"",
+        "after": "\"Exact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the cert-manager-managed Kubernetes Ingress path whose pathType changed (e.g. during ingress-based ACME challenge solving) is exercised at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Ingresses that cert-manager creates now use pathType Exact instead of ImplementationSpecific, so path matching by the ingress controller may work differently.",
+        "remediation": "Check that your ingress controller handles Exact pathType Ingresses created by cert-manager as expected.",
+        "severity": "low"
+      },
+      "statement": "Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-86c48c97fbd1"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-86c48c97fbd1"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-c9a19f2f2176"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-41f94f37db48"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-4faa7ca81b54",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L351-L351 (v1.18.0 › Bug or Regression)",
+        "excerpt": "- Change of the Kubernetes Ingress `pathType` from `ImplementationSpecific` to `Exact` for a reliable handling of ingress controllers and enhanced security. ([`#7767`](https://github.com/cert-manager/cert-manager/pull/7767), [`@sspreitzer`](https://github.com/sspreitzer))",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T13:01:47.652Z"
+  }
+}

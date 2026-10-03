@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-446b212d6f03",
+    "candidateId": "sc-54fbd7bb2a92",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "latest-version-determination",
+        "component": "fluxcd/flux2/action"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "which CI workflows reference the fluxcd/flux2 GitHub Action (e.g. .github/workflows files using fluxcd/flux2/action)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments using the fluxcd/flux2 GitHub Action, the latest version is now determined without calling the GitHub API; the action otherwise continues to work.",
+        "remediation": "No operator action required; if the mechanism by which the action resolves the latest Flux version matters to your CI setup, verify the workflow behaves as expected.",
+        "severity": "low"
+      },
+      "statement": "The fluxcd/flux2 GitHub Action now determines the latest version without using the GitHub API."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a884587f873c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:8a4b588f91e46cf80b5cb6da8abef25b22df7cd91484733200b2a15dd635edca",
+      "inputEvidence": [
+        "ev-a884587f873c"
+      ],
+      "generatedAt": "2026-10-02T16:47:40Z",
+      "callId": "7e051e06-e952-44ae-baec-51c36139aecb"
+    }
+  }
+}

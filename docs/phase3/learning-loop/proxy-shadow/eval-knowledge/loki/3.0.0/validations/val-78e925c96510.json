@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-78e925c96510",
+    "candidateId": "sc-2d320e39b53a",
+    "proposalId": "sp-37dc41669beb",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "automatic-service-name-label-assignment"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "loki",
+              "state": "in-range",
+              "range": ">=3.0.0"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "limits_config.discover_service_name",
+                  "state": "equals",
+                  "values": [
+                    "\"\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "limits_config.discover_service_name",
+          "state": "equals",
+          "values": [
+            "\"\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "All ingested logs receive an automatic service_name label in Loki 3.0 by default, derived from configured source labels or set to unknown_service, which may affect existing downstream systems and query experiences that do not expect this label.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0 automatically assigns a service_name label to all ingested logs by default, derived from a configurable list of existing labels or set to unknown_service if none are found."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

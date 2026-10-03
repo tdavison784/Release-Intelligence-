@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7bfb932d30f8",
+    "candidateId": "sc-24aa4e50837e",
+    "proposalId": "sp-7bb4f0e5b79b",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumLoadBalancerIPPool",
+        "path": "spec.allowFirstLastIPs"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"no\"",
+        "after": "\"yes\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.allowFirstLastIPs",
+              "state": "unset"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.allowFirstLastIPs",
+              "state": "set"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Unless allowFirstLastIPs is set explicitly, the first and last IP addresses of the pool become available for allocation.",
+        "remediation": "If you rely on the previous behavior, set allowFirstLastIPs: no in the IP pool before upgrading.",
+        "severity": "low"
+      },
+      "statement": "The default of CiliumLoadBalancerIPPool.spec.allowFirstLastIPs changed to \"yes\", so the first and last IPs of a pool become allocatable unless configured otherwise."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

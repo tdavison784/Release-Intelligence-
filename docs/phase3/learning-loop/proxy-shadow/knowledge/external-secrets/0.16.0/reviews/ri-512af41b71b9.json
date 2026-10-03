@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-512af41b71b9",
+    "candidateId": "sc-301a765d4d6e",
+    "product": "external-secrets",
+    "release": "0.16.0",
+    "questionType": "applicability",
+    "question": "For \"spec.conversion.webhookClientConfig: Forbidden: should not be set when strategy is not set to Webhook: Use `0.16.1` as opposed to `0.16.0` on your installation…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "out-of-range",
+              "range": ">=0.16.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "which installation paths or existing CRD conversion settings trigger the Forbidden spec.conversion.webhookClientConfig error when applying 0.16.0"
+            }
+          ]
+        }
+      },
+      "statement": "Installing or upgrading to 0.16.0 can fail with \"spec.conversion.webhookClientConfig: Forbidden: should not be set when strategy is not set to Webhook\"; upstream says to use 0.16.1 instead, where this is fixed."
+    },
+    "proposals": [
+      "sp-4a19477d45f2",
+      "sp-7217f41d376f"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "single-model"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T16:19:33Z"
+  }
+}

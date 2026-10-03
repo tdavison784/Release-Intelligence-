@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6eaf069e3511",
+    "reviewItemId": "ri-585e4301d81a",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.rancher",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.rancher",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PROVIDERS_RANCHER",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Rancher v1 provider has been removed in Traefik v3; configurations using it will prevent Traefik from starting."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.rancher",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.rancher",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Traefik v3 removed the Rancher v1 provider. Environments whose static configuration still sets providers.rancher (file key) or --providers.rancher (CLI flag) are exposed, because Traefik will not start with that configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:60a9c69a1d2c7d8cbe3e5c2c106fea3f62ca625f1e151567a9687fa088ee490c",
+      "inputEvidence": [
+        "ev-96141bfb2be5"
+      ],
+      "generatedAt": "2026-10-03T02:19:14.964Z",
+      "callId": "2c2e3245-c745-4090-a677-b408f1f31d6c"
+    },
+    "reason": "[ev-96141bfb2be5] shows only two ways the removed Rancher v1 provider is configured: the static file key `providers.rancher` (YAML/TOML) and the CLI flag `--providers.rancher=true`. It says this configuration now stops Traefik from starting. The evidence never mentions the TRAEFIK_PROVIDERS_RANCHER environment variable, so that operand is inferred rather than supported. The corrected exposure keeps only the two configuration forms the evidence shows.",
+    "startedAt": "2026-10-03T02:18:51.076Z",
+    "decidedAt": "2026-10-03T02:19:14.964Z"
+  }
+}

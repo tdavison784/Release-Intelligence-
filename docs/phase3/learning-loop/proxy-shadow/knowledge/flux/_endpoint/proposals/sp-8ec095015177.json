@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8ec095015177",
+    "candidateId": "sc-403cf3c46b63",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "OCIRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "OCIRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Under the v1beta2 schema, OCIRepository objects (including status writes) that have status.artifact without status.artifact.digest are rejected by validation.",
+        "remediation": "Check that OCIRepository status artifacts include a digest. The source-controller normally writes this status field, so this is not usually set by hand.",
+        "severity": "low"
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1beta2 OCIRepository schema, status.artifact.digest is now a required field, so OCIRepository objects whose status.artifact omits a digest fail schema validation."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:bce8c99a3e356a20f94ddb15ffbc1125aaf918057dd60719d3626c3c769dc53d",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:18:50Z",
+      "callId": "8dc3dd48-8b58-4468-8057-8818f3dfd429"
+    }
+  }
+}

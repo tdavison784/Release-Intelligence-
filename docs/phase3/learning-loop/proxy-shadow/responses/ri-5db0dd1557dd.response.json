@@ -1,0 +1,46 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-5db0dd1557dd",
+  "promptDigest": "sha256:b1556023f9f1556c53f5cc6d0099198e4a51646ce938b4f5561eb316e3ecdae0",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "4c5977c7-6f37-40dd-8361-90bb9386eafc",
+  "startedAt": "2026-10-03T02:19:19.224Z",
+  "decidedAt": "2026-10-03T02:19:34.354Z",
+  "durationMs": 14295,
+  "costUSD": 0.0877628,
+  "output": {
+    "action": "correct",
+    "reason": "The v1beta1 Usage CRD in protection.crossplane.io appears only in the v2.0.0 tree [ev-147c26b74d68]. v1.20.1 has only apiextensions.crossplane.io_usages.yaml [ev-4cb106f172c6], and that file is still present in v2.0.0 [ev-a51a53aa04ee]. The only stated impact is the guidance to install or update CRDs if you manage them separately from the release. So an edge-from-version <2.0.0 check by itself is too broad: it flags every upgrade to 2.0.0, including installs where the release itself puts the CRD in place. Whether CRDs are managed outside the release can't be seen in any static input, so that part of the exposure has to be undecidable.",
+    "citations": [
+      "ev-147c26b74d68",
+      "ev-4cb106f172c6",
+      "ev-a51a53aa04ee"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "New CRD usages.protection.crossplane.io (Usage, v1beta1) is added in v2.0.0. Exposed are environments upgrading from <2.0.0 that manage Crossplane CRDs separately from the release and so must install this CRD themselves; static inputs can't show whether CRDs are managed that way.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<2.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the environment manages Crossplane CRDs separately from the Helm release (rather than letting the release install them)"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-85cadefc14f7",
+  "promptDigest": "sha256:39750088d45976833d01941355d8526904358b4fd3304f1835226137290987ba",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "14e8b199-c4f8-435b-a613-51ed5260209b",
+  "startedAt": "2026-10-03T02:24:01.205Z",
+  "decidedAt": "2026-10-03T02:24:12.013Z",
+  "durationMs": 9959,
+  "costUSD": 0.063944,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-c6870d2efa84] says the removed helm values fields \"had been without effect\" before this release, so removing them cannot make a working setting stop being honoured. setting-ignored, which counts as mandatory work, therefore overstates the impact. The evidence says nothing about values being rejected or the install failing when these keys are still set, so no failure kind is supported. The supported consequence is none.",
+    "citations": [
+      "ev-c6870d2efa84"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "Eleven Helm values fields that already had no effect (pilot.configNamespace, pilot.configSource, pilot.enableProtocolSniffingForOutbound/Inbound, pilot.useMCP, global.autoscalingV2API, global.configRootNamespace, global.defaultConfigVisibilitySettings, global.useMCP, sidecarInjectorWebhook.objectSelector/useLegacySelectors) are removed; no operational consequence is stated.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "none",
+        "statement": "The removed fields had been without effect, so values that still set them change nothing. Removing them does not change behaviour, and the release note mentions no rejection or failure.",
+        "severity": "low",
+        "remediation": "Optionally remove these keys from Helm values files as cleanup."
+      }
+    }
+  }
+}

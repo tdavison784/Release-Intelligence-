@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-6b0c14623bba",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "anchors": [
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-964742680d5a"
+        ],
+        "statementKeys": [
+          "sk-359b7cc1e750"
+        ],
+        "changeIds": [
+          "chg-cdbe001f21d8"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-a7ff62a3be31"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "operatorhub"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether cert-manager is installed and upgraded through an OperatorHub/OLM package (RedHat OpenShift OperatorHub or operatorhub.io) rather than Helm or static manifests"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "No cert-manager releases after v1.16.5 are published to OperatorHub (RedHat OpenShift OperatorHub or operatorhub.io). Installs managed through OperatorHub/OLM stay on v1.16.5 and get no newer versions from that source. The evidence does not say that the existing install fails.",
+        "remediation": "If you install cert-manager from OperatorHub/OLM and need versions after v1.16.5, plan to move to another distribution method. The cert-manager-olm repository is archived.",
+        "severity": "medium"
+      },
+      "statement": "OperatorHub Packages Discontinued: We no longer publish OperatorHub packages for cert-manager"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-54448e53ebf0"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-54448e53ebf0"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-9715fb67f107"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-270d4deb6064"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-c3d5e62490c3",
+        "kind": "document",
+        "sourceId": "website-major-themes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L16-L26 (Major Themes › OperatorHub Packages Discontinued)",
+        "excerpt": "### OperatorHub Packages Discontinued\n\nWe no longer publish OperatorHub packages for cert-manager.\nWhy? Because the cert-manager maintainers no longer have the time or resources to maintain and test those packages.\ncert-manager `v1.16.5` is the last release on OperatorHub.\n\n> ℹ️ [cert-manager `v1.16.5` for RedHat OpenShift OperatorHub](https://github.com/redhat-openshift-ecosystem/community-operators-prod/tree/main/operators/cert-manager/1.16.5).\n>\n> ℹ️ [cert-manager `v1.16.5` for `operatorhub.io`](https://github.com/k8s-operatorhub/community-operators/tree/main/operators/cert-manager/…",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:31:39.223Z"
+  }
+}

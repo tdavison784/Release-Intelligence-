@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-626c25427a47",
+    "candidateId": "sc-e98ebd2741c8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "storage-version-migration",
+        "component": "cleanuppolicies.kyverno.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "version": "v2beta1",
+          "kind": "CleanupPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing CleanupPolicy objects remain stored as v2beta1 until rewritten; a storage version migration and a status.storedVersions update are needed before a later release removes v2beta1.",
+        "remediation": "Re-write all CleanupPolicy objects and update status.storedVersions of the CRD before a later release removes v2beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the cleanuppolicies.kyverno.io CRD changes from v2beta1 to v2 (1.12.6 → 1.13.0), so existing CleanupPolicy objects stay stored as v2beta1 until a storage version migration is run."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5714a6388637",
+      "ev-0ab8730da6d7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:e1630fe7925ccc2fdbd2452e28ca572b4f9acf247fb414d5b2d2dcb2fc63702b",
+      "inputEvidence": [
+        "ev-7b96a5794081",
+        "ev-495a542d4d66",
+        "ev-8ed706991976",
+        "ev-64e559957f23",
+        "ev-b3d07020d879",
+        "ev-b077d5605267",
+        "ev-a4c10d98e48c",
+        "ev-6032b12f614d",
+        "ev-6644b79acdaf",
+        "ev-e4d8d307c8bd",
+        "ev-c7493c8ebf56",
+        "ev-72ae67cf1bd1",
+        "ev-f4eb4632dd60",
+        "ev-ff8bc99281a6",
+        "ev-904a58b60df3",
+        "ev-0b95f4d8b2b8",
+        "ev-043bcc5e9e57",
+        "ev-e6f72293517f",
+        "ev-3f8a3adffa22",
+        "ev-fd8deebe9622",
+        "ev-f5ab4321b780",
+        "ev-d55bb7c165b2",
+        "ev-388d68569c8a",
+        "ev-ab4f180a917e",
+        "ev-705a5952643c",
+        "ev-8acbbd901b75",
+        "ev-5714a6388637",
+        "ev-0ab8730da6d7",
+        "ev-b01406e79da0",
+        "ev-56c06982a6c5",
+        "ev-094d5d8b0291",
+        "ev-f0f21b325fa6",
+        "ev-cf5b10ff8047",
+        "ev-d3850c78b94e"
+      ],
+      "generatedAt": "2026-10-02T20:58:51Z",
+      "callId": "deccb7b1-9593-428b-afa4-c96dd662e24d"
+    }
+  }
+}

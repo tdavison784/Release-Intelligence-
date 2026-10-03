@@ -1,0 +1,48 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-2f90c9406a96",
+  "promptDigest": "sha256:c7577f4259457721cb44e8cd15e5bcab6c53a5400571dad6c8e1bd934034f7aa",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "1504c678-2c88-4add-87eb-d258306df91c",
+  "startedAt": "2026-10-03T02:14:46.906Z",
+  "decidedAt": "2026-10-03T02:15:01.616Z",
+  "durationMs": 13871,
+  "costUSD": 0.631796,
+  "output": {
+    "action": "correct",
+    "reason": "The upgrade guide says the wildcard view permission was removed from the Kyverno controllers and replaced by a role binding to the default `view` role [ev-01e97dc9c4df]. The renders confirm that the */*:get, */*:list and */*:watch rules were dropped from the admission-controller, background-controller and reports-controller core ClusterRoles [ev-6af5be55b5f4][ev-0ae726bec846][ev-fbb2a078179b]. Without a group, name=* also matches kyverno.io/* rules that are still in the 1.13.0 render, so the validator refuted it [ev-686e3f03e42c][ev-575e1935f511]; the subject needs group \"*\". The replacedBy \"*/view\" is not an rbac-permission the evidence shows. The replacement is a binding to the `view` role, so replacedBy is dropped.",
+    "citations": [
+      "ev-01e97dc9c4df",
+      "ev-6af5be55b5f4",
+      "ev-cd36d7f61ae5",
+      "ev-d0c5cc15642f",
+      "ev-0ae726bec846",
+      "ev-bd2ca738e58d",
+      "ev-13d9875783a0",
+      "ev-fbb2a078179b",
+      "ev-8034700c2e78",
+      "ev-2e7e175db33a",
+      "ev-575e1935f511",
+      "ev-686e3f03e42c"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "Kyverno 1.13 removes the wildcard view permission (group *, resource *: get/list/watch) from the controllers' core ClusterRoles and adds a role binding to the default `view` role instead.",
+      "subject": {
+        "family": "rbac-permission",
+        "group": "*",
+        "name": "*",
+        "determination": "asserted"
+      },
+      "change": {
+        "type": "removed",
+        "determination": "asserted"
+      }
+    }
+  }
+}

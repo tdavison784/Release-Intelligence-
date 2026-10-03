@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6e37b3861b89",
+    "candidateId": "sc-f0397237fdc5",
+    "proposalId": "sp-85f59a2224d0",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.emitWarning"
+      },
+      "change": {
+        "type": "added",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v1",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v1",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence for an operator who does nothing: the field is new and optional with schema default false, so existing policies keep the previous behaviour; setting it is an opt-in that returns admission-response warnings at the documented cost of extended admission request processing times.",
+        "remediation": "None required; an operator may opt in by setting spec.emitWarning on a Policy/ClusterPolicy to receive warnings for mutate rules or validate rules with validationFailureAction Audit.",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds an optional boolean spec.emitWarning field (schema default false) to kyverno.io ClusterPolicy and Policy resources which, when set, returns warning messages along with admission responses to report policy violations as well as mutations upon admission events."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

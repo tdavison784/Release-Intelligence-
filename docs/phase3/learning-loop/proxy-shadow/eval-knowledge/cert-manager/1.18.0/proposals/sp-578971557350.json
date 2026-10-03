@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-578971557350",
+    "candidateId": "sc-87d161c59ee8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "http01-ingress-pathtype"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"ImplementationSpecific\"",
+        "after": "\"Exact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "ingress-nginx",
+          "state": "in-range",
+          "range": ">=1.8.0"
+        },
+        "overlap": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether ingress-nginx strict-validate-path-type is enabled (default on in >=1.12.0) and ingress-nginx is used for HTTP01 solving"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "With ingress-nginx strict-validate-path-type enabled, the admission webhook denies the HTTP01 challenge Ingress (path contains a dot), so presenting the challenge fails and HTTP01 validation does not complete.",
+        "severity": "high"
+      },
+      "statement": "ACME HTTP01 Ingress challenge paths now use PathType Exact, which is rejected by ingress-nginx >=1.8.0 with strict-validate-path-type enabled (default on in >=1.12.0) because the path contains a dot."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-110340e9c914"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:737fffe39c7a12816f69d37d8c2e437c6892fde461d0c4d35ce426da8668adfc",
+      "inputEvidence": [
+        "ev-110340e9c914"
+      ],
+      "generatedAt": "2026-10-02T06:07:13Z",
+      "callId": "64c376a6-4e69-417a-bef8-acfa1b441c9a"
+    }
+  }
+}

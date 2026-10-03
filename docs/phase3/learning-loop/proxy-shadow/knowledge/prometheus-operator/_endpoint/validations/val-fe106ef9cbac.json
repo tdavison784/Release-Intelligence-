@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fe106ef9cbac",
+    "candidateId": "sc-b5337b9186fc",
+    "proposalId": "sp-c02081c7045c",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1alpha1",
+        "kind": "ScrapeConfig",
+        "path": "spec.ovhcloudSDConfigs[].service"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"\"",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.ovhcloudSDConfigs[].service",
+              "state": "equals",
+              "values": [
+                "\"\""
+              ]
+            }
+          ],
+          "group": "monitoring.coreos.com",
+          "version": "v1alpha1",
+          "kind": "ScrapeConfig"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ScrapeConfig resources with spec.ovhcloudSDConfigs[].service set to an empty string will be rejected by the API server validation.",
+        "severity": "high"
+      },
+      "statement": "In the ScrapeConfig v1alpha1 CRD, the enum values for spec.ovhcloudSDConfigs[].service changed: the empty string value was removed and replaced with \"DedicatedServer\" and \"VPS\"."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d40dadfbb63d",
+    "candidateId": "sc-c6c2d0c1e4f2",
+    "proposalId": "sp-d3347860be99",
+    "validator": "semvalidate.compat@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "zookeeper"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether any Kafka clusters in the environment are still ZooKeeper-based rather than KRaft; the evidence does not state how ZooKeeper-based clusters are identified in the cluster configuration"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "An environment still running ZooKeeper-based clusters must move them to KRaft before upgrading, because Strimzi 0.46.0 no longer supports ZooKeeper-based clusters or the ZooKeeper-to-KRaft migration.",
+        "remediation": "Migrate every ZooKeeper-based cluster to KRaft before upgrading to Strimzi 0.46.0 or newer.",
+        "severity": "high"
+      },
+      "statement": "Strimzi 0.46.0 removes support for ZooKeeper-based clusters and for migrating ZooKeeper-based clusters to KRaft, so all clusters must already be using KRaft before upgrading to 0.46.0 or newer."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "compatibility:row",
+        "detail": "no compatibility row for zookeeper in either release"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "compatibility:removed",
+        "detail": "only a requirement-changed change is decidable from compatibility rows"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

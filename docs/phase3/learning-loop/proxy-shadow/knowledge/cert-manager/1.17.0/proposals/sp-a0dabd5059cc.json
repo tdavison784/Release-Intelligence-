@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a0dabd5059cc",
+    "candidateId": "sc-1c908e6fdb6b",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "enabled"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "enabled",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The `enabled` value is now honoured to toggle cert-manager on or off as a chart dependency, so values that already set `enabled: false` (previously without this effect) will now toggle cert-manager off.",
+        "remediation": "Check whether any values files (including parent/umbrella charts) set `enabled`; if cert-manager should still be installed, set `enabled: true` or remove the key.",
+        "severity": "medium"
+      },
+      "statement": "The cert-manager 1.17.0 Helm chart now allows the `enabled` value to be set, toggling cert-manager on or off when it is installed as a chart dependency."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-c3fa8260181b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:070aba6b68ea67655e7b4c510e8a04a09d196fe6001aeea8857cbda6ad41b7e5",
+      "inputEvidence": [
+        "ev-c3fa8260181b"
+      ],
+      "generatedAt": "2026-10-02T11:29:53Z",
+      "callId": "f2a7105e-852e-451f-890e-9856e85f3126"
+    }
+  }
+}

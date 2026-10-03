@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8e86851e1dc0",
+    "candidateId": "sc-19e2d7132dde",
+    "proposalId": "sp-c6f01e15ac1f",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "traefik",
+        "group": "networking.k8s.io",
+        "version": "v1beta1",
+        "kind": "Ingress"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "gvk",
+          "product": "traefik",
+          "group": "networking.k8s.io",
+          "version": "v1",
+          "kind": "Ingress"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "networking.k8s.io",
+          "version": "v1beta1",
+          "kind": "Ingress"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Ingress resources defined with the networking.k8s.io/v1beta1 API version will no longer be recognized or processed by Traefik v3.",
+        "remediation": "Update all Ingress resource definitions to use the networking.k8s.io/v1 API version.",
+        "severity": "high"
+      },
+      "statement": "Traefik v3 removes support for the Kubernetes Ingress API Group networking.k8s.io/v1beta1; users must migrate to networking.k8s.io/v1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:gvk",
+        "detail": "networking.k8s.io/v1beta1 Ingress is not defined by any CRD of the snapshots (the snapshot may not hold every kind of the group)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:removed",
+        "detail": "the API version is not in the snapshots"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

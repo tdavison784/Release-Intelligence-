@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-91b5692ce54c",
+    "candidateId": "sc-5fc2da42c29c",
+    "proposalId": "sp-648458afca7a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-regardingobject"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Pod\"",
+        "after": "\"Kafka resource\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any tooling lists Kubernetes events for Pod restarts using a field-selector on regardingObject that names the Pod"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kubernetes events for Pod restarts no longer have the Pod as the regardingObject, so event listings that use a regardingObject field-selector naming the Pod will no longer match these events.",
+        "remediation": "Update any regardingObject field-selector used for listing these events so that it specifies the Kafka resource instead of the Pod.",
+        "severity": "medium"
+      },
+      "statement": "In Strimzi 0.46.0, the regardingObject on Kubernetes events for Pod restarts is no longer the Pod, so a regardingObject field-selector used to list these events must specify the Kafka resource instead."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

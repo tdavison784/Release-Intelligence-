@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ec9c4bf343ae",
+  "promptDigest": "sha256:6b02c3e232ade61348af5db071a0023e2669d79a545b765461584785ffe6cbd7",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "c11599f9-2aaf-45f3-be71-72a9020f0a6e",
+  "startedAt": "2026-10-03T02:05:28.046Z",
+  "decidedAt": "2026-10-03T02:05:42.201Z",
+  "durationMs": 13295,
+  "costUSD": 0.236548,
+  "output": {
+    "action": "correct",
+    "reason": "The renders show only that a new served version v1 was added to the secretstores.external-secrets.io CRD [ev-f9a790bae7ab, ev-c92a1c2a1dd9, ev-e653376afb3a]. In the same CRD, v1beta1 stops being the storage version [ev-f07fad593227]. So v1 applies to every SecretStore object in a cluster, whatever apiVersion was used to write it. The evidence gives no reason to limit this to manifests written as v1beta1, so that condition is too narrow; the condition should be any use of the SecretStore kind in group external-secrets.io.",
+    "citations": [
+      "ev-f9a790bae7ab",
+      "ev-c92a1c2a1dd9",
+      "ev-e653376afb3a",
+      "ev-f07fad593227"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "The SecretStore CRD (secretstores.external-secrets.io) now serves a new API version, external-secrets.io/v1. This applies to any environment that uses SecretStore resources in group external-secrets.io, whatever version the manifests use.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "kind": "SecretStore"
+        }
+      }
+    },
+    "labels": [
+      "wrong-applicability"
+    ]
+  }
+}

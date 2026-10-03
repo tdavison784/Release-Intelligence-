@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-41b73f591f00",
+    "candidateId": "sc-91bdc6129fc9",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "enable-usestrimzipodsets-before-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.34.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "Kafka"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.34.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "Kafka"
+            },
+            {
+              "op": "feature-gate",
+              "name": "UseStrimziPodSets",
+              "state": "enabled"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "core.strimzi.io",
+              "version": "v1beta2",
+              "kind": "StrimziPodSet"
+            }
+          ]
+        }
+      },
+      "statement": "When upgrading from Strimzi 0.34 or older to 0.46.0 with the Kafka operand in use, the operator must make sure the UseStrimziPodSets feature gate is enabled and StrimziPodSet resources are used before upgrading."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: the excerpt states the required pre-upgrade operator step (enable the UseStrimziPodSets feature gate and use StrimziPodSet resources) but does not state what happens to an environment that upgrades without doing it",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0fe6816db4bb"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3d968fbef2a57fccbbd3dfd6df5ef74ac6cd497119c98f639eb92c0b087fa295",
+      "inputEvidence": [
+        "ev-0fe6816db4bb"
+      ],
+      "generatedAt": "2026-10-02T11:48:36Z",
+      "callId": "a80ff31e-8831-4418-9b1c-47069c9a163e"
+    }
+  }
+}

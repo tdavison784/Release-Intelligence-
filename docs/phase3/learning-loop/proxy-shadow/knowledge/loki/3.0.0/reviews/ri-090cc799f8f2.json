@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-090cc799f8f2",
+    "candidateId": "sc-40aecbe6e0b2",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Metrics namespace: Some Loki metrics started with the prefix `cortex_`. In this release they will be changed so they start with `loki_`. To keep them at…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "image-in-use",
+              "name": "grafana/loki"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "metrics_namespace",
+                  "state": "equals",
+                  "values": [
+                    "\"cortex\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "metrics_namespace",
+          "state": "equals",
+          "values": [
+            "\"cortex\""
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 changes metrics namespace prefix from `cortex_` to `loki_`; the `metrics_namespace` config key can be set to `cortex` to retain the old prefix, but this setting is deprecated and will be removed in the next minor release."
+    },
+    "proposals": [
+      "sp-0853079bf53a",
+      "sp-6cad1d7df6b3"
+    ],
+    "validations": [
+      "val-98e4c7454724",
+      "val-aa529d8200a8",
+      "val-d7d43cb0057a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T21:01:13Z"
+  }
+}

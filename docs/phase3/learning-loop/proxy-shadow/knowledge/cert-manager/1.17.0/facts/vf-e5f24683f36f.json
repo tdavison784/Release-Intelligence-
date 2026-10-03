@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-e5f24683f36f",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-f63c5ee093a9"
+        ],
+        "statementKeys": [
+          "sk-81d7430c2ae8"
+        ],
+        "changeIds": [
+          "chg-3d9ddd642630"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-34fb0eae6e1d"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "acme-http01-solver-ipv6"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which ACME HTTP-01 challenges must be solved against endpoints that resolve to or are reached over IPv6 (DNS and endpoint addressing are runtime state not visible in configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade, the ACME HTTP-01 solver handles IPv6 endpoints differently because of a bug fix. The release note does not describe the earlier failure or the new behaviour.",
+        "severity": "low"
+      },
+      "statement": "Fix ACME HTTP-01 solver for IPv6 endpoints"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-82f0c339f427"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-82f0c339f427"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-126c5bd00449"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-c7d23075277a"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-4fef58672646",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+        "locator": "L211-L211 (v1.17.0 › Bug or Regression)",
+        "excerpt": "- Fix ACME HTTP-01 solver for IPv6 endpoints ([#7391](https://github.com/cert-manager/cert-manager/pull/7391), [@Peac36](https://github.com/Peac36))",
+        "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:01:56.624Z"
+  }
+}

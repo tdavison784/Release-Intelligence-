@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-373760abcee8",
+    "candidateId": "sc-b39edc535b31",
+    "proposalId": "sp-adf5f5817979",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "podDisruptionBudget.minAvailable"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"percentages accepted\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "podDisruptionBudget.minAvailable",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Percentage values are now accepted for the podDisruptionBudget values; the evidence states no failure or required action.",
+        "severity": "low"
+      },
+      "statement": "The Helm chart now accepts percentage values for podDisruptionBudget.minAvailable (and likewise podDisruptionBudget.maxAvailable), which were not accepted before."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/behavior-changed",
+        "detail": "no canonical exposure condition for helm-value behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

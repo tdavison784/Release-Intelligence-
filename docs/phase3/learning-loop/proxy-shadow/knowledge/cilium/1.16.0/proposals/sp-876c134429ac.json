@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-876c134429ac",
+    "candidateId": "sc-5a3964f250c2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "remoteNodeIdentity"
+      },
+      "change": {
+        "type": "removed",
+        "before": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "remoteNodeIdentity",
+              "state": "set"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "remoteNodeIdentity",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The remoteNodeIdentity Helm value is no longer honoured; remote nodes will always use remote-node identity. Network policies based on enable-remote-node-identity=false must be updated.",
+        "remediation": "Remove remoteNodeIdentity from Helm values. Review and update any network policies that were based on enable-remote-node-identity=false to align with the new always-enabled remote-node identity behavior.",
+        "severity": "medium"
+      },
+      "statement": "The deprecated Helm value remoteNodeIdentity has been removed in Cilium 1.16.0; environments with this value explicitly set must update their configuration and any related network policies."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-40ebe1cf329c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:022b00e822064f0e42817b6ae95dec31f7679fc3d67081bbbbc5db18a2d0f715",
+      "inputEvidence": [
+        "ev-40ebe1cf329c",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T05:57:53Z",
+      "callId": "8affe582-abe6-4d70-967f-a5dccaae5b67"
+    }
+  }
+}

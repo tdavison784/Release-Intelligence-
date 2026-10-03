@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-57bf2f482103",
+    "reviewItemId": "ri-9829cd7d2459",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "cilium",
+        "name": "cilium_identity_label_sources"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "Cilium 1.16 adds a new metric, cilium_identity_label_sources, counting identities per label source (e.g. separate fqdn and cidr label metrics); no operational consequence."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:84b542f5566688541d2ec33946802e24c51a7986dfba5e2cd0c26bbe5cddb280",
+      "inputEvidence": [
+        "ev-793c99a321e0"
+      ],
+      "generatedAt": "2026-10-02T13:04:44.16Z",
+      "callId": "ed1e93c8-77cb-49fb-a099-6802384cb951"
+    },
+    "reason": "[ev-793c99a321e0] lists `cilium_identity_label_sources` under \"Added Metrics\" and calls it a new metric that counts identities per label source. It is not an HTTP/gRPC endpoint, so the api-endpoint family is wrong, and that family's name would have to take the form \"METHOD /path\". The proposed subject also puts the product in a field, which the rules forbid. No subject family in the vocabulary fits a Prometheus metric, so no corrected assertion can be built. That is why this is a rejection, not a correction.",
+    "startedAt": "2026-10-02T13:04:36.196Z",
+    "decidedAt": "2026-10-02T13:04:44.16Z"
+  }
+}

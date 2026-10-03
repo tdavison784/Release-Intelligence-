@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b441ac9c8143",
+    "candidateId": "sc-29fa48f19d84",
+    "proposalId": "sp-9d443570860e",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "ec2nodeclasses-storage-version-upgrade-v1beta1-to-v1"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "karpenter.k8s.aws",
+              "version": "v1beta1",
+              "kind": "EC2NodeClass"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": ">=0.37.8,<1.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing EC2NodeClass objects stored as v1beta1 must be rewritten and status.storedVersions updated before a later release removes v1beta1 support.",
+        "remediation": "Run a storage version migration to rewrite all EC2NodeClass objects from v1beta1 to v1 and update the CRD's status.storedVersions field before upgrading to a future release that removes v1beta1.",
+        "severity": "high"
+      },
+      "statement": "A storage version migration of EC2NodeClass from v1beta1 to v1 is required; existing objects remain in v1beta1 storage until explicitly migrated, and v1beta1 will be removed in a later release."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

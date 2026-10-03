@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-ef90a297397e",
+    "product": "cilium",
+    "release": "1.16.0",
+    "anchors": [
+      {
+        "release": "1.16.0",
+        "evidenceKeys": [
+          "ek-861c2c896d60"
+        ],
+        "statementKeys": [
+          "sk-b5ba3ad3a291"
+        ],
+        "changeIds": [
+          "chg-24699fbdf59a"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-d96cb2efaa3c"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "cilium",
+        "group": "gateway.networking.k8s.io",
+        "version": "v1alpha2",
+        "kind": "GRPCRoute"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "gvk",
+          "product": "cilium",
+          "group": "gateway.networking.k8s.io",
+          "version": "v1",
+          "kind": "GRPCRoute"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "gateway.networking.k8s.io",
+          "version": "v1alpha2",
+          "kind": "GRPCRoute"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The new GRPCRoute CRD must be installed and GRPCRoute resources migrated from v1alpha2 to v1.",
+        "remediation": "Install the new GRPCRoute CRD and migrate resources from v1alpha2 to v1."
+      },
+      "statement": "Gateway API GRPCRoute which is moved from `v1alpha2` to `v1`. Please install new GRPCRoute CRD and migrate your resources from `v1alpha2` to `v1` version"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-0481c2d9d51b"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-0481c2d9d51b"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-cac31fbe8a52"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-e7eb2267b216"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-ee4d25413bf4",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst",
+        "locator": "L381-L382 (1.16 Upgrade Notes)",
+        "excerpt": "* Gateway API GRPCRoute which is moved from `v1alpha2` to `v1`. Please install new GRPCRoute CRD and migrate\n  your resources from `v1alpha2` to `v1` version.",
+        "contentDigest": "sha256:ee9d0cd6af8ac7e31ed1cb4cc0410c4d2cd1d95cc4f5e916fca918102866de83",
+        "retrievedAt": "2026-10-02T02:35:42Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:32:40.336Z"
+  }
+}

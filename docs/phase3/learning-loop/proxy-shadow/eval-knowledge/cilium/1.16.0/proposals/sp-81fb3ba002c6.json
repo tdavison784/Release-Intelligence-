@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-81fb3ba002c6",
+    "candidateId": "sc-2bc48827dd02",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumLoadBalancerIPPool",
+        "path": "spec.cidrs"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "cilium",
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool",
+          "path": "spec.blocks"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.cidrs",
+              "state": "set"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool"
+        }
+      },
+      "statement": "The CiliumLoadBalancerIPPool.spec.cidrs field, deprecated in v1.15 in favor of spec.blocks, is removed in v1.16; IP pools must use blocks before upgrading."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: Text says the field will be removed and to update before upgrading, but does not state what happens to pools still using cidrs.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a6c56e62cf47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5bd485322e15eafb3986c93be938487ad3992053df2407a3d994cc0a4d8f4e28",
+      "inputEvidence": [
+        "ev-a6c56e62cf47"
+      ],
+      "generatedAt": "2026-10-02T05:59:11Z",
+      "callId": "357704aa-18a6-4c57-9575-344da1d11959"
+    }
+  }
+}

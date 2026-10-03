@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5097d88af3af",
+    "candidateId": "sc-9c618e373261",
+    "proposalId": "sp-f19e55fad720",
+    "validator": "semvalidate.values@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "global.platform"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "profile",
+              "state": "matches",
+              "pattern": ".*-openshift$"
+            },
+            {
+              "op": "values-key",
+              "path": "global.platform",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Environments using OpenShift profile variants (e.g., profile=ambient-openshift) must migrate to --set profile=ambient --set global.platform=openshift; the old profile variants are no longer supported.",
+        "severity": "high"
+      },
+      "statement": "OpenShift profile variants for Helm installs are removed and replaced with global.platform=openshift configuration; a new global.platform Helm value enables platform-specific configurations."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "helm-values:exists",
+        "detail": "global.platform is a values key in both releases of chart base"
+      },
+      {
+        "aspect": "change",
+        "outcome": "refuted",
+        "rule": "helm-values:added",
+        "detail": "global.platform already exists in the source values"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-41d780f6ab39",
+        "kind": "structured",
+        "sourceId": "chart-base",
+        "uri": "https://github.com/istio/istio/blob/1.23.4/manifests/charts/base/values.yaml",
+        "locator": "manifests/charts/base/values.yaml",
+        "excerpt": "# \"defaults\" is a workaround for Helm limitations. Users should NOT set \".defaults\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:42c5370ac7e870722655a08a30a64e1bde0b2e4b65f2786e97dca0395fdcd3b3",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T11:33:50Z"
+      },
+      {
+        "id": "ev-ad95ec08c00b",
+        "kind": "structured",
+        "sourceId": "chart-base",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/manifests/charts/base/values.yaml",
+        "locator": "manifests/charts/base/values.yaml",
+        "excerpt": "# \"_internal_defaults_do_not_set\" is a workaround for Helm limitations. Users should NOT set \"._internal_defaults_do_not_set\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:98cdc4bb9ffa308db45d96e8a773624f18069ee56a84d72a57ba2ff32e24e6e0",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:49Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5e5a2e415c7b",
+    "candidateId": "sc-79f4401150ed",
+    "proposalId": "sp-17c788fb0d13",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1",
+        "kind": "ClusterExternalSecret"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"v1beta1 is the storage version\"",
+        "after": "\"v1 is the storage version\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "apiVersion",
+                  "state": "equals",
+                  "values": [
+                    "\"external-secrets.io/v1beta1\""
+                  ]
+                }
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "kind": "ClusterExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ClusterExternalSecret objects stored as v1beta1 must be rewritten via storage version migration before a later release removes v1beta1 support; status.storedVersions must be updated.",
+        "remediation": "Run a storage version migration to rewrite all ClusterExternalSecret objects and update status.storedVersions before upgrading to a release that removes v1beta1.",
+        "severity": "high"
+      },
+      "statement": "The storage version of clusterexternalsecrets.external-secrets.io changes from v1beta1 to v1; existing objects remain stored as v1beta1 until a storage version migration rewrites them."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

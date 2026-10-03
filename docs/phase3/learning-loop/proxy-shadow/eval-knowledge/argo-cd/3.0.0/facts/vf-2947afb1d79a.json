@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-2947afb1d79a",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-fdb0158ac8e1"
+        ],
+        "statementKeys": [
+          "sk-c95099c70b5f"
+        ],
+        "changeIds": [
+          "chg-feb12abb31b8"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-a185b2b31031"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "argo-cd",
+        "name": "--no-proxy",
+        "component": "cli"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run the argocd CLI client with the --no-proxy flag (a client-side invocation, not a container argument of Argo CD workloads)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The --no-proxy flag now correctly stores its value in the intended variable, fixing the previous bug where it was stored in the wrong variable."
+      },
+      "statement": "f2ee9a62d2120abd2ba8eed1915ecb0011bcd0c9: fix(cli): wrong variable to store --no-proxy value"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-d09ecff92ecc"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-d09ecff92ecc"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-ba1c46b41519"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-9843ba23d587"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-74fec6f20224",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/argoproj/argo-cd/releases/tag/v3.0.0",
+        "locator": "L98-L98 (Changelog › Bug fixes)",
+        "excerpt": "* f2ee9a62d2120abd2ba8eed1915ecb0011bcd0c9: fix(cli): wrong variable to store --no-proxy value (#21226) (@the-technat)",
+        "contentDigest": "sha256:9a537d098ffc038bf54f648ff5fc9203c84f211f17545e57763ce78ffbcb2a91",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T15:57:52.571Z"
+  }
+}

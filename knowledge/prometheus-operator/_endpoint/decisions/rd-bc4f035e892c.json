@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-bc4f035e892c",
+    "reviewItemId": "ri-71a661a5849c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1alpha1",
+        "kind": "ScrapeConfig",
+        "path": "status"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "monitoring.coreos.com",
+          "version": "v1alpha1",
+          "kind": "ScrapeConfig"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A read-only status subresource (status.bindings[] with conditions) was added to the ScrapeConfig schema. The operator only updates it when the \"StatusForConfigurationResources\" feature gate is enabled, so existing ScrapeConfig resources need no operator action.",
+        "severity": "low"
+      },
+      "statement": "ScrapeConfig v1alpha1 schema: 1 field added: `status`"
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:2faa24aa97f0da039446fb83308bdc10f291bc8df02c4639156d259d929df430",
+      "inputEvidence": [
+        "ev-3cc85997b394",
+        "ev-e032811a0e26",
+        "ev-22d6be11fa2f",
+        "ev-04344c7b3dae",
+        "ev-7d96c48a5c71",
+        "ev-cc90e86e2643",
+        "ev-676b63c80565",
+        "ev-db02f66824cd",
+        "ev-7a53a3520025",
+        "ev-f22afebcad15",
+        "ev-197df9b33168",
+        "ev-84bcfc39962d",
+        "ev-e0e139d1a1a8",
+        "ev-dfadc763c00b",
+        "ev-4393a79e776d",
+        "ev-c87966ce90d5",
+        "ev-767e1a45572f",
+        "ev-e33dbbb0c01a",
+        "ev-13be12903c5c",
+        "ev-542432da4381",
+        "ev-5415b8753dfa",
+        "ev-d1c3b1084dad",
+        "ev-33c3b71688f2",
+        "ev-f0cfd8ade456"
+      ],
+      "generatedAt": "2026-10-02T23:18:08.301Z",
+      "callId": "e4289c6e-4903-4e4d-a5d3-3c65b602d9c8"
+    },
+    "reason": "[ev-f0cfd8ade456] shows that a `status` property was added to the scrapeconfigs.monitoring.coreos.com v1alpha1 schema between 0.85.0 and 0.86.2. It describes the field as a read-only status subresource that is \"updated only when the \"StatusForConfigurationResources\" feature gate is enabled\". The diff only adds a field and says nothing about anything failing, being rejected or needing migration, so the consequence kind \"none\" with low severity holds.",
+    "startedAt": "2026-10-02T23:18:03.013Z",
+    "decidedAt": "2026-10-02T23:18:08.301Z",
+    "resultingFact": "vf-8c5608352b22"
+  }
+}

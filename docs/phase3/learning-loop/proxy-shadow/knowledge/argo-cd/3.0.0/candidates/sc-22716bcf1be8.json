@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-22716bcf1be8",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-95162f889a56",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-6d2219e0a0a2"
+          ],
+          "statementKeys": [
+            "sk-018195aab1c0"
+          ],
+          "changeIds": [
+            "chg-95162f889a56"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "other",
+    "title": "Health status in the Application CR: The health status of each object used to be persisted under `/status` in the Application CR by default",
+    "text": "Health status in the Application CR: The health status of each object used to be persisted under `/status` in the Application CR by default. Any health churn in the resources deployed by the Application put load on the application controller. Now, the health status is stored externally. You can revert this behavior by setting the `controller.resource.health.persist` to `true` in the Argo CD `argocd-cmd-params-cm.yaml` Config Map. Example of a status field in the Application CR persisting health: Example of a status field in the Application CR _not_ persisting health: Detection: - Check the `argocd-cmd-params-cm.yaml` ConfigMap for `controller.resource.health.persist`. If the value is empty or true, the health status is persisted in the Application CR. - Check any Application CR for the `resourceHealthSource` field. If you see a blank value, the health status is persisted in the Application CR. Migration: Any tools or CLI commands parsing the `.status.resources[].health` need to be updated to use the argocd cli/API to get the health status.",
+    "evidence": [
+      {
+        "id": "ev-5616a3c7f69a",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L307-L378 (v2.14 to 3.0 › Other changes › Health status in the Application CR)",
+        "excerpt": "### Health status in the Application CR\n\nThe health status of each object used to be persisted under `/status` in the Application CR by default.\nAny health churn in the resources deployed by the Application put load on the application controller.\nNow, the health status is stored externally.\n\nYou can revert this behavior by setting the `controller.resource.health.persist` to `true` in the Argo CD\n`argocd-cmd-params-cm.yaml` Config Map.\n\nExample of a status field in the Application CR persisting health:\n\n```yaml\nstatus:\n  health:\n    status: Healthy\n    lastTransitionTime: \"2025-01-01T00:00:00Z\"…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "hints": [
+      "code:/status",
+      "code:controller.resource.health.persist",
+      "code:true",
+      "code:argocd-cmd-params-cm.yaml",
+      "code:resourceHealthSource",
+      "code:status.resources[].health",
+      "path:controller.resource.health.persist"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

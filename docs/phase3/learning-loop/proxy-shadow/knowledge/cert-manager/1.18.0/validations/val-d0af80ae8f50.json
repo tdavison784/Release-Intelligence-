@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d0af80ae8f50",
+    "candidateId": "sc-063685a549da",
+    "proposalId": "sp-785756a0b220",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "AdditionalCertificateOutputFormats"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "AdditionalCertificateOutputFormats",
+              "state": "unset"
+            },
+            {
+              "op": "feature-gate",
+              "name": "AdditionalCertificateOutputFormats",
+              "state": "disabled"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "feature-gate",
+          "name": "AdditionalCertificateOutputFormats",
+          "state": "enabled"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that had not enabled the AdditionalCertificateOutputFormats feature gate will find additional certificate output formats enabled after upgrading to cert-manager 1.18.0; environments that had already enabled the gate see no change.",
+        "remediation": "No operator action required; verify that additional certificate output formats are produced and consumed as expected after upgrading.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 promotes the `AdditionalCertificateOutputFormats` feature to GA, making additional certificate output formats always enabled regardless of the previous feature gate setting."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/behavior-changed",
+        "detail": "feature-gate behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/behavior-changed",
+        "detail": "feature-gate behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-08d909d2a82a",
+    "candidateId": "sc-88f18e36ba8f",
+    "proposalId": "sp-ca95bcaf4b7e",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "argo-cd",
+        "path": "redis-ha.securityContext",
+        "name": "redis-ha"
+      },
+      "change": {
+        "type": "removed",
+        "before": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "redis-ha.securityContext",
+              "state": "set"
+            },
+            {
+              "op": "product-version",
+              "name": "helm",
+              "state": "in-range",
+              "range": ">=3.17.1"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "With Helm 3.17.1, the null security context value in redis-ha subchart values.yaml would be rejected during chart validation, preventing successful chart deployment or upgrade.",
+        "remediation": "Upgrade to Argo CD 3.0.0 or later which removes the problematic null value, allowing Helm 3.17.1 to successfully validate and deploy the chart.",
+        "severity": "high"
+      },
+      "statement": "Argo CD 3.0.0 removes a null security context value from the redis-ha Helm subchart values to resolve validation errors with Helm 3.17.1."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator (subject inconclusive)"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

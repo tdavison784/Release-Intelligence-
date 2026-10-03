@@ -393,3 +393,34 @@ func TestDiffKeyValues(t *testing.T) {
 		t.Error("empty diff")
 	}
 }
+
+// A lines content keeps the lines of a document that match its pattern
+// (trimmed, de-duplicated, sorted); a capture group keeps just the group.
+func TestIngestContentsLines(t *testing.T) {
+	w := newWorld()
+	w.docs[manifestURL("v1.2.0")] = "# acme\nimage: quay.io/acme/acme-controller:v1.2.0\n" +
+		"    Note: The `Updated` field has been removed. Use `Changed` instead.\n" +
+		"  Deprecated: use spec.b instead. Will be removed in v2.\n" +
+		"  Note: The `Updated` field has been removed. Use `Changed` instead.\n"
+	ing := newTestIngester(w, nil)
+	def := testDef()
+	def.Artifacts[1].Contents = []catalog.Content{
+		{Kind: catalog.ContentLines, Pattern: `\bhas been removed\b|^\s*Deprecated:`, Label: "manifest"},
+		{Kind: catalog.ContentLines, Pattern: `^\s*Deprecated: (.+?)\.? Will`},
+	}
+	rel, err := ing.IngestRelease(t.Context(), def, domain.MustVersion("v1.2.0", "1.2.0"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := rel.Snapshot(domain.SnapshotLines, "install-manifest")
+	if s == nil || s.Lines == nil {
+		t.Fatalf("no lines snapshot: %+v", rel.Snapshots)
+	}
+	want := []string{"Deprecated: use spec.b instead. Will be removed in v2.", "Note: The `Updated` field has been removed. Use `Changed` instead."}
+	if got := s.Lines.Lines; strings.Join(got, "|") != strings.Join(want, "|") {
+		t.Errorf("lines = %q, want %q", got, want)
+	}
+	if s.Lines.Source != "manifest" || len(s.Evidence) == 0 {
+		t.Errorf("source/evidence: %+v", s)
+	}
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8c96b8ef4c1d",
+    "reviewItemId": "ri-a7dae3364aac",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Access logs, metrics and traces for internal routers/services (e.g. ping@internal) are no longer produced unless addInternals is set.",
+        "remediation": "Set the addInternals option for AccessLogs, Metrics or Tracing if internal resource observability is needed.",
+        "severity": "low"
+      },
+      "statement": "In v3, observability (access logs, metrics, tracing) for internal routers/services such as ping@internal is disabled by default and must be enabled with the new addInternals option."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:a3681dd520da9dcf53a1b74606a5cb5fdad895eea38d562a3c56aeab2f37fea1",
+      "inputEvidence": [
+        "ev-093b8f2b924f",
+        "ev-3bdc943d6be1",
+        "ev-bb4a9dd096f3"
+      ],
+      "generatedAt": "2026-10-03T01:56:10.763Z",
+      "callId": "a5162894-b94c-402a-901f-552ca6fa3b91"
+    },
+    "reason": "[ev-093b8f2b924f] says that in v3, observability for internal routers and services (e.g. ping@internal) is disabled by default and can be turned back on with the new addInternals option for AccessLogs, Metrics or Tracing. This is a changed default. Traefik keeps working, but it no longer produces observability data for internal resources unless the operator opts in. The evidence does not say anything fails, is rejected or must be migrated, so behavior-change (review) with low severity fits, and the statement and remediation match the evidence.",
+    "startedAt": "2026-10-03T01:56:04.268Z",
+    "decidedAt": "2026-10-03T01:56:10.763Z",
+    "resultingFact": "vf-29c4b70e0b44"
+  }
+}

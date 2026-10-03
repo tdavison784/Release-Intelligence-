@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-4dc68684e297",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "anchors": [
+      {
+        "release": "2.0.0",
+        "evidenceKeys": [
+          "ek-b6140ff2abc3"
+        ],
+        "statementKeys": [
+          "sk-63e1a2c8e47d"
+        ],
+        "changeIds": [
+          "chg-88c697b26308"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-e51e65327713"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "prometheus-metric-names"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether dashboards, alerts or scrapers query the old metric names"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metrics are exposed under new names; anything referencing the old metric names (dashboards, alerts) must be updated to the new names.",
+        "severity": "low"
+      },
+      "statement": "Metrics name changes: The Prometheus metrics that Crossplane exposes for the controller engine and function response caches have been updated with the addition…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-e1dd52ad2e48"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-e1dd52ad2e48"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-9775b89a7e82"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-2cd0a45c29e4"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-c3df0dece271",
+        "kind": "document",
+        "sourceId": "github-release-notes",
+        "uri": "https://github.com/crossplane/crossplane/releases/tag/v2.0.0",
+        "locator": "L59-L65 (🚨 Warnings and breaking changes › Metrics name changes)",
+        "excerpt": "## Metrics name changes\n\nThe Prometheus metrics that Crossplane exposes for the controller engine and function response caches have been updated with the addition of Operations that expands the functionality of function pipelines. The names of these metrics have been updated as follows:\n\n* `crossplane_composition_controllers_*` --> `engine_controllers_*`\n* `crossplane_composition_watches_*` --> `engine_watches_*`\n* `crossplane_composition_run_function_*` --> `function_run_function_*`",
+        "contentDigest": "sha256:fc10375ae6cae63a4662959ae4748493113a9331b9ca446aa3dd703d7c9cfb5b",
+        "retrievedAt": "2026-10-02T10:52:56Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:05:04.081Z"
+  }
+}

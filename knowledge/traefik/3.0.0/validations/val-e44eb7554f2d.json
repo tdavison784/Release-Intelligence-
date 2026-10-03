@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e44eb7554f2d",
+    "candidateId": "sc-e35ee2a5c098",
+    "proposalId": "sp-367b2c081ffd",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.kubernetesGateway.experimentalChannel"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.kubernetesGateway",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "providers.kubernetesGateway.experimentalChannel",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Experimental channel API resources (TLSRoute and TCPRoute) are not supported by the Kubernetes Gateway API provider unless experimentalChannel is enabled.",
+        "remediation": "Set providers.kubernetesGateway.experimentalChannel: true."
+      },
+      "statement": "In v3 the Kubernetes Gateway API provider no longer enables experimental channel resources (TLSRoute, TCPRoute) by default; set providers.kubernetesGateway.experimentalChannel to true to enable them."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/default-changed",
+        "detail": "no canonical exposure condition for config-key default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

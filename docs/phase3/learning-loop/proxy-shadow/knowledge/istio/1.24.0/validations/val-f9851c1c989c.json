@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f9851c1c989c",
+    "candidateId": "sc-b038ac70b042",
+    "proposalId": "sp-cb3156b0f66f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+        "component": "agent"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+              "component": "agent",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The overload manager is now bypassed for static listeners by default. Environments that rely on the previous behavior of applying the overload manager to static listeners should set BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false to restore it.",
+        "severity": "medium"
+      },
+      "statement": "Support for bypassing the overload manager for static listeners is now enabled by default; it can be disabled by setting BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false in the agent Deployment."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:env-var/added",
+        "detail": "no canonical exposure condition for env-var added"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

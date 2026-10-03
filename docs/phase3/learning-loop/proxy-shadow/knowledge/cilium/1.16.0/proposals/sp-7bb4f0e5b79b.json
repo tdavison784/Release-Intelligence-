@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7bb4f0e5b79b",
+    "candidateId": "sc-24aa4e50837e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumLoadBalancerIPPool",
+        "path": "spec.allowFirstLastIPs"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"no\"",
+        "after": "\"yes\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.allowFirstLastIPs",
+              "state": "unset"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.allowFirstLastIPs",
+              "state": "set"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Unless allowFirstLastIPs is set explicitly, the first and last IP addresses of the pool become available for allocation.",
+        "remediation": "If you rely on the previous behavior, set allowFirstLastIPs: no in the IP pool before upgrading.",
+        "severity": "low"
+      },
+      "statement": "The default of CiliumLoadBalancerIPPool.spec.allowFirstLastIPs changed to \"yes\", so the first and last IPs of a pool become allocatable unless configured otherwise."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-8aa9ac2ddd3a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f88aac5a9d35d7599ef667f309a2c02d7ba560c0fcd1f46c83f9fb855e591fb2",
+      "inputEvidence": [
+        "ev-8aa9ac2ddd3a"
+      ],
+      "generatedAt": "2026-10-02T06:07:10Z",
+      "callId": "d3de8979-9229-421b-84fe-873cc7f20457"
+    }
+  }
+}

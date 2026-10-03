@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c4bba9d7c8cc",
+    "candidateId": "sc-178716874e9a",
+    "proposalId": "sp-21152a31357e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "sidecar-service-resolution"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Conflict resolution strategy for service selection differed between environments with Sidecar resources and without; without Sidecar preferred Kubernetes Service, with Sidecar preferred Service in same namespace as proxy\"",
+        "after": "\"Unified behavior: prefer Service in same namespace as proxy, then Kubernetes Service (not ServiceEntry), else arbitrary selection\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "networking.istio.io",
+              "version": "v1",
+              "kind": "Sidecar"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "networking.istio.io",
+              "version": "v1alpha3",
+              "kind": "Sidecar"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "networking.istio.io",
+              "version": "v1beta1",
+              "kind": "Sidecar"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Service selection and conflict resolution during service processing now follows unified rules regardless of Sidecar resource presence; environments relying on previous behavior differences should verify that the new preference ordering (namespace-local Services first) aligns with their traffic expectations.",
+        "severity": "medium"
+      },
+      "statement": "Sidecar resource conflict resolution behavior when processing services is unified in version 1.24.0; service selection strategies now prefer the proxy's namespace and Kubernetes Services regardless of whether a Sidecar resource is defined."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

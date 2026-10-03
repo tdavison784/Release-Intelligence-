@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-33d9ebe0bdf0",
+    "candidateId": "sc-12312c24ca44",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "application.resourceTrackingMethod",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"label\"",
+        "after": "\"annotation\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "server.config.application.resourceTrackingMethod",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "server.config.application.resourceTrackingMethod",
+              "state": "equals",
+              "values": [
+                "\"label\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "server.config.application.resourceTrackingMethod",
+              "state": "equals",
+              "values": [
+                "\"annotation\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Resource tracking will switch from label-based to annotation-based tracking on the next sync operation; labels will be replaced with annotations, and applications will not be marked as out-of-sync if labels are not present on resources.",
+        "remediation": "Verify that annotation-based tracking is compatible with your environment. Monitor the first sync operation after upgrade for potential edge cases with resource deletion that may cause resources to be orphaned.",
+        "severity": "medium"
+      },
+      "statement": "The default value of the application.resourceTrackingMethod configuration in the argocd-cm ConfigMap changes from label-based tracking to annotation-based tracking in Argo CD 3.0."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-07e8b4d1d6f1"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4bbbe8837b5dddb4e11d21c0e7f3f7bd95faf703a507b35b6068a79b111aa75f",
+      "inputEvidence": [
+        "ev-07e8b4d1d6f1"
+      ],
+      "generatedAt": "2026-10-02T05:54:25Z",
+      "callId": "cf5a4090-50cc-4ad2-8f4d-31d702320f8b"
+    }
+  }
+}

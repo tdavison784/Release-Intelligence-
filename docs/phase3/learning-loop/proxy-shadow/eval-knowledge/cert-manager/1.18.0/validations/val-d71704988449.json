@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d71704988449",
+    "candidateId": "sc-7ae1b93c2b58",
+    "proposalId": "sp-ebe17c6f3715",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.commonName"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"IP addresses in commonName added to the DNS subjectAlternativeName list\"",
+        "after": "\"IP addresses in commonName added to the ipAddresses field\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.commonName",
+              "state": "matches",
+              "pattern": "^(\\d{1,3}\\.){3}\\d{1,3}$|^[0-9a-fA-F:]*:[0-9a-fA-F:]*$"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For Certificates whose commonName is an IP address, the IP address is no longer added to the DNS subjectAlternativeName list. It is added to the ipAddresses field instead.",
+        "remediation": "Check that any clients or validation that relied on the IP address being listed as a DNS SAN accept it as an IP SAN.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, an IP address in a certificate's `commonName` is no longer added to the DNS `subjectAlternativeName` list. It is added to the `ipAddresses` field instead."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:crd-field/behavior-changed",
+        "detail": "no canonical exposure condition for crd-field behavior-changed"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-60054fcf0986",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:af6faeb6b75a13a70d0ac7f5db2b5b694f8cb9023c54bfbafd4d7d2fd95846d3",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-9b6164ce0df7",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:6c8d7fc0e16acf6a50a61b3ff2827d0a3ef95300de8f7fd1d2aa5f55b600a6ab",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:07:45Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

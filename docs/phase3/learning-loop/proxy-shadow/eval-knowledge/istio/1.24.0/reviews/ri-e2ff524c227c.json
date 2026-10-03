@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-e2ff524c227c",
+    "candidateId": "sc-b038ac70b042",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "applicability",
+    "question": "For \"Added support for by passing overload manager for static listeners\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "statement": "Istio now bypasses the overload manager for static listeners; setting env var BYPASS_OVERLOAD_MANAGER_FOR_STATIC_LISTENERS to false in the agent Deployment reverts this."
+    },
+    "proposals": [
+      "sp-2dbf92c5adab",
+      "sp-cb3156b0f66f"
+    ],
+    "validations": [
+      "val-3d189ada28f1",
+      "val-4d7a0a267ef8",
+      "val-f9851c1c989c",
+      "val-fc6d997e8e16"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T06:05:41Z"
+  }
+}

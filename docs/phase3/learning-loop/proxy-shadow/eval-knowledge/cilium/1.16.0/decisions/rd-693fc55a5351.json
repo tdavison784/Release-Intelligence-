@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-693fc55a5351",
+    "reviewItemId": "ri-622e48be1ef5",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "remoteNodeIdentity"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "The deprecated Helm value remoteNodeIdentity was removed in 1.16; remote nodes now always use the remote-node identity, and network policies based on enable-remote-node-identity=false must be updated."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:22726c9554e5e541ac180d672b2d67d2bd96800d9975c8b90ddbaee56a7d1742",
+      "inputEvidence": [
+        "ev-40ebe1cf329c",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-03T02:19:43.355Z",
+      "callId": "3f270c7f-8578-4bd6-a075-f3dd160eb729"
+    },
+    "reason": "[ev-40ebe1cf329c] is the 1.16 upgrade notes, and it says directly that \"The deprecated Helm option `remoteNodeIdentity` has been removed\". That matches the subject helm-value path=remoteNodeIdentity with change type removed. Deterministic validators that compared the values files [ev-28e0ccb5774a] and [ev-39a22d88e2f5] confirm the key exists in the source values and is missing from the target values. One caveat: the target values file comes from the v1.17.0 tag, not v1.16.0, so the release placement rests on the upgrade notes. Leaving before unset is fine, since the type allows it.",
+    "startedAt": "2026-10-03T02:19:36.512Z",
+    "decidedAt": "2026-10-03T02:19:43.355Z"
+  }
+}

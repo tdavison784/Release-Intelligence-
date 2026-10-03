@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-172db47d8360",
+    "candidateId": "sc-1548d09a50a2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "default-retry-policy-503"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The default retry policy no longer retries requests on 503 responses; set EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY to false to restore the old behavior (temporary flag).",
+        "remediation": "Verify workloads relying on default 503 retries; set EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY=false if needed, knowing the flag will be removed.",
+        "severity": "low"
+      },
+      "statement": "Istio's default retry policy no longer retries on 503; setting EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY to false reverts this, and the flag will be removed in future releases."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-28c263f19767"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4da49529a6a6ecf63486f52d218f5cfc2bf89f4b94d48641d2bbee4516707c4e",
+      "inputEvidence": [
+        "ev-28c263f19767"
+      ],
+      "generatedAt": "2026-10-02T06:05:50Z",
+      "callId": "6825f0f3-451f-484b-aa5e-6fe690a69005"
+    }
+  }
+}

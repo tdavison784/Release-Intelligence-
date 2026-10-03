@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6bd08cce19dc",
+    "reviewItemId": "ri-f4ba4820815f",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "notification.toolkit.fluxcd.io",
+        "version": "v1beta3",
+        "kind": "Provider",
+        "path": "spec.type"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "In the notification.toolkit.fluxcd.io/v1beta3 schema of providers.notification.toolkit.fluxcd.io, the allowed values of spec.type changed between flux v2.6.4 and v2.7.0: the values \"otel\" and \"zulip\" were added and no previously allowed value was removed, so nothing that validated before is rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:ed8237a9582a3123788802fbb8d4e3bc95f29f3123dcaf70e32a5841a7514c91",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T02:06:30.207Z",
+      "callId": "9eda9d14-e088-43b6-9c72-daade8b7a44e"
+    },
+    "reason": "The computed artifact diff between [ev-782bc47d120d] (v2.6.4) and [ev-c2c6c790d6b2] (v2.7.0) shows that the v1beta3 Provider spec.type enum gained \"otel\" and \"zulip\" and lost nothing. A validator confirmed that this subject, including version v1beta3, exists in the schema of both releases. Because the field already existed, \"added\" is wrong, and the validator refuted it. Nothing that was accepted before is now rejected, so \"validation-tightened\" is also wrong. That leaves behavior-changed: the same field now accepts more values, and this is the closest type in the vocabulary.",
+    "startedAt": "2026-10-03T02:06:20.973Z",
+    "decidedAt": "2026-10-03T02:06:30.207Z",
+    "resultingFact": "vf-b6d3cd0bc79d"
+  }
+}

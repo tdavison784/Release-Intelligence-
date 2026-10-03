@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3e1c28bb8145",
+    "candidateId": "sc-6a62499753bb",
+    "proposalId": "sp-e597acba94bc",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "max_line_size"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "\"256KB\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Loki now enforces a maximum line size of 256KB by default; lines exceeding this size will be rejected unless the limit is explicitly disabled or increased in configuration.",
+        "remediation": "If your environment processes lines larger than 256KB, you must explicitly set a higher max_line_size value or disable this enforcement in the Loki configuration.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 enforces a default maximum line size of 256KB, which can be disabled or increased via configuration."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/default-changed",
+        "detail": "no canonical exposure condition for config-key default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

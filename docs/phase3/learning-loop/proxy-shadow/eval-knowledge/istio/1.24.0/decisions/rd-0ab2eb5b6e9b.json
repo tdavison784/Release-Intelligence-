@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0ab2eb5b6e9b",
+    "reviewItemId": "ri-7f003fd63943",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The timestamp metrics do not record negative numbers for expired certificates; users relying on that should check the sign of rootCertExpirySeconds and certChainExpirySeconds instead. The text says this was never the actual behavior.",
+        "severity": "low"
+      },
+      "statement": "The metrics rootCertExpiryTimestamp and certChainExpiryTimestamp no longer record a negative number for expired certs/chains (docs corrected to match actual behavior); users should check the signs of rootCertExpirySeconds and certChainExpirySeconds instead."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No runtime change: rootCertExpiryTimestamp and certChainExpiryTimestamp never recorded negative values for expired certificates, and only the docs were corrected. Anything relying on negative timestamp values already did not work before the upgrade; to detect expiry, check the signs of rootCertExpirySeconds and certChainExpirySeconds.",
+        "remediation": "If dashboards or alerts look for negative values in rootCertExpiryTimestamp or certChainExpiryTimestamp, switch them to check the signs of rootCertExpirySeconds and certChainExpirySeconds.",
+        "severity": "low"
+      },
+      "statement": "In Istio 1.24.0, the docs for rootCertExpiryTimestamp and certChainExpiryTimestamp were corrected: these metrics never recorded a negative number for expired certificates or certificate chains, and the docs now say so. Runtime metric behavior does not change. To detect expiry, users should check the signs of rootCertExpirySeconds and certChainExpirySeconds."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:3ab73f7ba52c70bf3cabeb71e4d738265236936c74c22d4e933016e161ea89dc",
+      "inputEvidence": [
+        "ev-c3da9e3c81f1"
+      ],
+      "generatedAt": "2026-10-02T13:01:19.732Z",
+      "callId": "5d2cb134-f442-4524-a59e-6ce247bf512a"
+    },
+    "reason": "[ev-c3da9e3c81f1] says the timestamp metrics recording a negative number for expired certificates \"was never the actual behavior\" and that only the docs were updated to match what the metrics already did. Upgrading to 1.24.0 therefore changes nothing at runtime, so behavior-change (\"works, but differently\") overstates it. The release note's advice to check the signs of rootCertExpirySeconds and certChainExpirySeconds is a docs-level clarification and applies the same before and after the upgrade, so the consequence is none (informational).",
+    "startedAt": "2026-10-02T13:01:08.552Z",
+    "decidedAt": "2026-10-02T13:01:19.732Z"
+  }
+}

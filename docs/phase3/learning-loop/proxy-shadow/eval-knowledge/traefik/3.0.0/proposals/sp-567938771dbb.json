@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-567938771dbb",
+    "candidateId": "sc-664f60a3392a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "content-type-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Content-Type header was auto-detected when not set by the backend\"",
+        "after": "\"Content-Type header is not auto-detected when not set by the backend\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the environment relies on automatic Content-Type header detection from backend responses that lack explicit Content-Type"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Backend responses without an explicit Content-Type header will no longer have the Content-Type automatically detected; the ContentType middleware must be explicitly configured to restore this behavior.",
+        "remediation": "Configure the ContentType middleware on routes that depend on automatic Content-Type detection from backends that do not set the Content-Type header.",
+        "severity": "medium"
+      },
+      "statement": "In Traefik 3.0, automatic Content-Type header detection is removed when the backend does not set the Content-Type header; the ContentType middleware must be explicitly used to enable this detection."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-be4f90e8abf9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:875ed08cd685e0a920b4ef8e4bcea1e3103d26813a3478f1477e32e27bfea38b",
+      "inputEvidence": [
+        "ev-be4f90e8abf9"
+      ],
+      "generatedAt": "2026-10-02T20:55:02Z",
+      "callId": "8d36343f-a886-40eb-9984-03a39578d45d"
+    }
+  }
+}

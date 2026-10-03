@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-a51746e4d6ed",
+    "candidateId": "sc-5ef925810f27",
+    "proposalId": "sp-104b3f9ad49c",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "cert-expiry-timestamp-metrics"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The timestamp metrics do not record negative numbers for expired certificates; users relying on that should check the sign of rootCertExpirySeconds and certChainExpirySeconds instead. The text says this was never the actual behavior.",
+        "severity": "low"
+      },
+      "statement": "The metrics rootCertExpiryTimestamp and certChainExpiryTimestamp no longer record a negative number for expired certs/chains (docs corrected to match actual behavior); users should check the signs of rootCertExpirySeconds and certChainExpirySeconds instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

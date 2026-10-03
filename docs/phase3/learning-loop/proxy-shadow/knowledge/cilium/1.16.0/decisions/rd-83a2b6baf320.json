@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-83a2b6baf320",
+    "reviewItemId": "ri-b239db42e905",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Service connections using Direct-Server-Return that were established prior to Cilium v1.13.3 will be disrupted and need to be re-established.",
+        "severity": "medium"
+      },
+      "statement": "Service connections using Direct-Server-Return that were established before Cilium v1.13.3 will be disrupted on upgrade and must be re-established."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:d6e6b1cb438054796c4222db9fca79ce4ca59cfb8dbd4dcadecadfda996de668",
+      "inputEvidence": [
+        "ev-89034c5d2c74"
+      ],
+      "generatedAt": "2026-10-03T02:28:29.599Z",
+      "callId": "f411231f-512a-46e2-86fa-6207ae0e80ff"
+    },
+    "reason": "[ev-89034c5d2c74] says directly that Direct-Server-Return service connections established before Cilium v1.13.3 \"will be disrupted, and need to be re-established\". That means running connections break, so workload-failure (mandatory work) fits. It isn't behavior-change, because the connections don't keep working differently. It isn't migration-required either, because no operator step has to run before or after the upgrade to prevent this. The proposed statement matches the evidence wording, and medium severity is a reasonable reading of a disruption that can be fixed by reconnecting.",
+    "startedAt": "2026-10-03T02:28:23.417Z",
+    "decidedAt": "2026-10-03T02:28:29.599Z"
+  }
+}

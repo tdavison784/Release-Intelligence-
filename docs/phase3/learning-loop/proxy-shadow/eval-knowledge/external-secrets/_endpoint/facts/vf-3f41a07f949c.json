@@ -1,0 +1,184 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-3f41a07f949c",
+    "product": "external-secrets",
+    "candidates": [
+      "sc-a4a66f699f29"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ExternalSecret",
+        "path": "spec.refreshPolicy"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Existing ExternalSecret resources continue to work without modification; the new field is optional and enables new refresh policy configuration options for operators who wish to use them."
+      },
+      "statement": "ExternalSecret v1beta1 schema: 1 field added: `spec.refreshPolicy`"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-00877b98b2bb",
+          "val-475aa12da872",
+          "val-6c678f2de135",
+          "val-70cf8280e247",
+          "val-9cb000f4e37b",
+          "val-de8da789d9fc"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "deterministic",
+        "basis": [
+          "val-00877b98b2bb",
+          "val-475aa12da872",
+          "val-6c678f2de135",
+          "val-70cf8280e247",
+          "val-9cb000f4e37b",
+          "val-de8da789d9fc"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-c2aa94f46c91"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-7726a99048e5"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      },
+      {
+        "id": "ev-9beeb11a214a",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/external-secrets/external-secrets/releases/download/helm-chart-0.16.0/external-secrets-0.16.0.tgz",
+        "locator": "external-secrets/templates/crds/clusterexternalsecret.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterexternalsecrets.external-secrets.io spec.versions[name=v1beta1].schema.openAPIV3Schema.properties.spec.properties.externalSecretSpec.properties.refreshPolicy",
+        "excerpt": "0.15.0 → 0.16.0: field-added CustomResourceDefinition/clusterexternalsecrets.external-secrets.io spec.versions[name=v1beta1].schema.openAPIV3Schema.properties.spec.properties.externalSecretSpec.properties.refreshPolicy: ∅ → {\"description\":\"RefreshPolicy determines how the ExternalSecret should be refreshed:\\n- CreatedOnce: Creates the Secret only if it does not exist and does not update it thereafter\\n- Periodic: Synchronizes the Secret from the external source at regular intervals specified by refreshInterval.\\n  No periodic updates occur if refreshInterval is 0.\\n- OnChange: Only synch…",
+        "contentDigest": "sha256:799c77196d04a8cb0428719414515e7d06af6ece72e12356b9cade9c97a0f46e",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:3881092262a5e2cffdd7664d8da3136f49a96fc8b5c0e45ac30db56f0d4fc9f1",
+          "flags": [
+            "template",
+            "external-secrets",
+            "chart.tgz",
+            "--namespace",
+            "external-secrets",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "external-secrets",
+            "version": "0.15.0",
+            "digest": "sha256:77d9b37e332be6aa04cb09404ef24566f3520eb3132f00ace3909e6b77118eb3",
+            "outputDigest": "sha256:bfc9b21e547391b3b4fd3f43b706bc5ca99c3613c2da7855eb88ab4f173c9356"
+          },
+          "toArtifact": {
+            "name": "external-secrets",
+            "version": "0.16.0",
+            "digest": "sha256:3881092262a5e2cffdd7664d8da3136f49a96fc8b5c0e45ac30db56f0d4fc9f1",
+            "outputDigest": "sha256:799c77196d04a8cb0428719414515e7d06af6ece72e12356b9cade9c97a0f46e"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterexternalsecrets.external-secrets.io",
+          "path": "spec.versions[name=v1beta1].schema.openAPIV3Schema.properties.spec.properties.externalSecretSpec.properties.refreshPolicy",
+          "change": "field-added",
+          "after": "{\"description\":\"RefreshPolicy determines how the ExternalSecret should be refreshed:\\n- CreatedOnce: Creates the Secret only if it does not exist and does not update it thereafter\\n- Periodic: Synchronizes the Secret from the external source at regular intervals specified by refreshInterval.\\n  No periodic updates occur if refreshInterval is 0.\\n- OnChange: Only synchronizes the Secret when the ExternalSecret's metadata or specification changes\",\"enum\":[\"CreatedOnce\",\"Periodic\",\"OnChange\"],\"type\":\"string\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:24Z"
+      },
+      {
+        "id": "ev-efc5158ff817",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/external-secrets/external-secrets/releases/download/helm-chart-0.16.0/external-secrets-0.16.0.tgz",
+        "locator": "external-secrets/templates/crds/externalsecret.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//externalsecrets.external-secrets.io spec.versions[name=v1beta1].schema.openAPIV3Schema.properties.spec.properties.refreshPolicy",
+        "excerpt": "0.15.0 → 0.16.0: field-added CustomResourceDefinition/externalsecrets.external-secrets.io spec.versions[name=v1beta1].schema.openAPIV3Schema.properties.spec.properties.refreshPolicy: ∅ → {\"description\":\"RefreshPolicy determines how the ExternalSecret should be refreshed:\\n- CreatedOnce: Creates the Secret only if it does not exist and does not update it thereafter\\n- Periodic: Synchronizes the Secret from the external source at regular intervals specified by refreshInterval.\\n  No periodic updates occur if refreshInterval is 0.\\n- OnChange: Only synchronizes the Secret when the ExternalS…",
+        "contentDigest": "sha256:799c77196d04a8cb0428719414515e7d06af6ece72e12356b9cade9c97a0f46e",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:3881092262a5e2cffdd7664d8da3136f49a96fc8b5c0e45ac30db56f0d4fc9f1",
+          "flags": [
+            "template",
+            "external-secrets",
+            "chart.tgz",
+            "--namespace",
+            "external-secrets",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "external-secrets",
+            "version": "0.15.0",
+            "digest": "sha256:77d9b37e332be6aa04cb09404ef24566f3520eb3132f00ace3909e6b77118eb3",
+            "outputDigest": "sha256:bfc9b21e547391b3b4fd3f43b706bc5ca99c3613c2da7855eb88ab4f173c9356"
+          },
+          "toArtifact": {
+            "name": "external-secrets",
+            "version": "0.16.0",
+            "digest": "sha256:3881092262a5e2cffdd7664d8da3136f49a96fc8b5c0e45ac30db56f0d4fc9f1",
+            "outputDigest": "sha256:799c77196d04a8cb0428719414515e7d06af6ece72e12356b9cade9c97a0f46e"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//externalsecrets.external-secrets.io",
+          "path": "spec.versions[name=v1beta1].schema.openAPIV3Schema.properties.spec.properties.refreshPolicy",
+          "change": "field-added",
+          "after": "{\"description\":\"RefreshPolicy determines how the ExternalSecret should be refreshed:\\n- CreatedOnce: Creates the Secret only if it does not exist and does not update it thereafter\\n- Periodic: Synchronizes the Secret from the external source at regular intervals specified by refreshInterval.\\n  No periodic updates occur if refreshInterval is 0.\\n- OnChange: Only synchronizes the Secret when the ExternalSecret's metadata or specification changes\",\"enum\":[\"CreatedOnce\",\"Periodic\",\"OnChange\"],\"type\":\"string\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:24Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T23:12:18.994Z"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-55829fdbe3ec",
+  "promptDigest": "sha256:e2ef4a8d4f07a52064dc744b4435e591674ffbb44d7ef6ff8dd3256f375e15b5",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "a8074250-bb6f-44f0-9dd4-fc545a471eb3",
+  "startedAt": "2026-10-03T02:18:28.085Z",
+  "decidedAt": "2026-10-03T02:18:50.376Z",
+  "durationMs": 21662,
+  "costUSD": 0.154376,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-989a451dfcd4] lists the removal of StripPrefix `forceSlash` as a general dynamic-configuration change, not one limited to the traefik.io Middleware CRD. The v3.0.0 reference still ships a traefik.containo.us Middleware CRD [ev-8a887e659370], and configuration can also come from non-Kubernetes providers. So the proposed condition misses exposed environments. The schema validator found the field still in the v3.0.0 traefik.io schema [ev-0842f8f3bd9d], but setting the option is still the right trigger, so I widened the condition rather than changing its predicate.",
+    "citations": [
+      "ev-989a451dfcd4",
+      "ev-8a887e659370",
+      "ev-0842f8f3bd9d",
+      "ev-4fd00a8d9fd6",
+      "ev-eb26399b5dbb"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The forceSlash option of the StripPrefix middleware was removed in Traefik 3.0.0. Exposed: any environment that sets forceSlash on a StripPrefix middleware, whether through a traefik.io or traefik.containo.us Middleware resource or through other dynamic-configuration providers.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "group": "traefik.io",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.stripPrefix.forceSlash",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "traefik.containo.us",
+              "kind": "Middleware",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.stripPrefix.forceSlash",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether non-Kubernetes dynamic configuration (file provider, labels, KV stores) sets forceSlash on a StripPrefix middleware"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

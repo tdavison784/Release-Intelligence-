@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-750c65a13cd0",
+    "candidateId": "sc-0e7e63699f83",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-available-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_ips_available_total\"",
+        "after": "\"lbipam_ips_available\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-available-metric"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which monitoring systems or alerting rules actively reference the old metric name lbipam_ips_available_total at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Monitoring queries, dashboards, or alerting rules that reference the metric name lbipam_ips_available_total will no longer receive data and will stop functioning.",
+        "remediation": "Update all monitoring systems, Prometheus queries, dashboards, and alert rules to use the new metric name lbipam_ips_available instead of lbipam_ips_available_total.",
+        "severity": "medium"
+      },
+      "statement": "The metric lbipam_ips_available_total has been renamed to lbipam_ips_available."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-875bb56564b0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5889c97731713338e6d6846578efffba7c73d1ffdc3ac38165dc3fcdee5ccd66",
+      "inputEvidence": [
+        "ev-875bb56564b0"
+      ],
+      "generatedAt": "2026-10-02T05:55:09Z",
+      "callId": "1c5f7291-5f37-43dd-8196-8668969848ec"
+    }
+  }
+}

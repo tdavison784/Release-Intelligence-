@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0837de1a86c1",
+    "candidateId": "sc-67c82540420a",
+    "proposalId": "sp-4e7ee42eaf3a",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "dex-rbac-subject-claim"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"sub claim\"",
+        "after": "\"federated_claims.user_id claim\""
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "RBAC policies that use the Dex sub claim as the subject no longer match the user, so those users lose the access the policies granted.",
+        "remediation": "Update the RBAC policies to use the user_id value (decode the current sub claims to find it), and use the new CLI version to obtain tokens with the appropriate claims.",
+        "severity": "high"
+      },
+      "statement": "With Dex SSO, Argo CD 3.0 bases the RBAC subject on the federated_claims.user_id claim (requesting the federated:id scope) instead of the sub claim, so RBAC policies that reference the Dex sub claim must be updated to keep the same access."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

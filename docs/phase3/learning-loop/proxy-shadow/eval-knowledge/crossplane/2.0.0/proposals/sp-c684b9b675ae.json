@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c684b9b675ae",
+    "candidateId": "sc-7c6ea4d0c14a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "kind": "Composition",
+        "path": "spec.mode"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"Resources\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.mode",
+              "state": "equals",
+              "values": [
+                "\"Resources\""
+              ]
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "kind": "Composition"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Compositions using spec.mode: Resources must be migrated to composition functions before upgrading.",
+        "remediation": "Use the Crossplane v1.20 CLI: crossplane beta convert pipeline-composition old-composition.yaml -o new-composition.yaml",
+        "severity": "high"
+      },
+      "statement": "Native patch and transform composition (Composition spec.mode: Resources) is removed in Crossplane 2.0 and replaced by composition functions; Compositions using it must be migrated before upgrading."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-00ae0ffe7ffa"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6420fc5ff603e548f64e0a877caeb58753dd43ec1d807c90140a57053e8fda2d",
+      "inputEvidence": [
+        "ev-00ae0ffe7ffa"
+      ],
+      "generatedAt": "2026-10-02T20:54:20Z",
+      "callId": "c4f6bbda-55b1-4831-b488-528c802d4a2b"
+    }
+  }
+}

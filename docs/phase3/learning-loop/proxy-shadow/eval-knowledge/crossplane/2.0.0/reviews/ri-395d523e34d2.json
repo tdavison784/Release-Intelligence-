@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-395d523e34d2",
+    "candidateId": "sc-6292fc5118f9",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "questionType": "applicability",
+    "question": "For \"Upgrade from `v1`: It is strongly advised to upgrade to `v2.0` from the most recent `v1` minor version, which is `v1.20`. Upon upgrade for each minor release…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.20.0"
+            },
+            {
+              "op": "cluster-version",
+              "name": "crossplane",
+              "state": "in-range",
+              "range": ">=1.0.0,<2.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "Crossplane v2.0 requires sequential upgrade through intermediate v1 minor versions, with mandatory upgrade to v1.20 as the final v1 step before upgrading to v2.0; direct upgrade from earlier v1 versions to v2.0 is not supported."
+    },
+    "proposals": [
+      "sp-6e3d451238c3",
+      "sp-cbc0dac44a05"
+    ],
+    "validations": [
+      "val-6580e7a4ade2",
+      "val-7db989cc001e",
+      "val-8d1d807a0c84",
+      "val-f0ac6c0423f9"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T21:02:41Z"
+  }
+}

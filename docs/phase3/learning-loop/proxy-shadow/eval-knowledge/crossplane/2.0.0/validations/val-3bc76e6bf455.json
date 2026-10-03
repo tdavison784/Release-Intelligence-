@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3bc76e6bf455",
+    "candidateId": "sc-3bc79c41ad32",
+    "proposalId": "sp-aa3bf719a0ad",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "version": "v2",
+        "kind": "CompositeResourceDefinition",
+        "path": "spec.scope"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"Namespaced\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.scope",
+              "state": "unset"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "version": "v2",
+          "kind": "CompositeResourceDefinition"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.scope",
+              "state": "set"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "version": "v2",
+          "kind": "CompositeResourceDefinition"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "XRDs using the v2 API without an explicit scope default to Namespaced XRs, which keep Crossplane fields under spec.crossplane and do not support claims; v1 XRDs default to LegacyCluster and keep claims.",
+        "remediation": "Set scope explicitly (Cluster or LegacyCluster) if cluster-scoped or claim-based XRs are needed.",
+        "severity": "medium"
+      },
+      "statement": "The v2 CompositeResourceDefinition API adds a spec.scope field that defaults to Namespaced, so XRs are namespaced by default (v1 XRDs default to LegacyCluster)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

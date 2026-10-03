@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-6c81d823e0c9",
+    "candidateId": "sc-b4d0f27d94a8",
+    "product": "flux",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Storage version of `imagerepositories.image.toolkit.fluxcd.io` changes v1beta2 → v1\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If the operator does nothing, existing ImageRepository objects remain stored as v1beta2 and the required storage version migration (re-writing all objects and updating status.storedVersions) is left undone before a later release removes v1beta2.",
+        "remediation": "Run the storage version migration for imagerepositories.image.toolkit.fluxcd.io: re-write all ImageRepository objects and update status.storedVersions before upgrading to the later release that removes v1beta2.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of imagerepositories.image.toolkit.fluxcd.io changes from v1beta2 to v1, so existing ImageRepository objects stay stored as v1beta2 until an operator runs a storage version migration (re-writing all objects and updating status.storedVersions) before a later release removes v1beta2."
+    },
+    "proposals": [
+      "sp-09ce08bd0ed1",
+      "sp-a61f1c493b85",
+      "sp-deb2d9954640"
+    ],
+    "validations": [
+      "val-344484645088",
+      "val-76cbdb622f8f",
+      "val-cf27859168e5",
+      "val-de2ec5b931e3",
+      "val-e3f74759b1f0",
+      "val-f8afa23b2fa9"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:57:30Z"
+  }
+}

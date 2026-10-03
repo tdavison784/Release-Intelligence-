@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-cf3fb163f2ee",
+    "reviewItemId": "ri-bbda5fd2fd1c",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "cluster.inClusterEnabled",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "statement": "When cluster.inClusterEnabled is set to \"false\", Applications currently configured to sync on the in-cluster cluster will enter Unknown state and cannot sync; new Applications cannot use the in-cluster cluster; and deleting Applications will not delete their previously managed resources."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"cluster.inClusterEnabled\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.destination.name",
+                      "state": "equals",
+                      "values": [
+                        "\"in-cluster\""
+                      ]
+                    }
+                  ],
+                  "group": "argoproj.io",
+                  "kind": "Application"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "evidence-gap",
+                  "needed": "which other Application destination settings (e.g. server URL) resolve to the in-cluster cluster"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "Exposed: environments where cluster.inClusterEnabled is explicitly \"false\" AND some Application targets the in-cluster cluster. These Applications go to an Unknown state, cannot sync, and deleting them does not remove the resources they managed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:cf875e2e400a0de6f9c19d67a9c278847fb71d0eecbae034714a1069021a4678",
+      "inputEvidence": [
+        "ev-adf2ed32df1c"
+      ],
+      "generatedAt": "2026-10-03T02:29:50.596Z",
+      "callId": "fd9e8dc7-0756-4cea-b7b2-74b4cb0adc8b"
+    },
+    "reason": "[ev-adf2ed32df1c] says the consequence only hits Applications \"currently configured to sync on the in-cluster cluster\" when `cluster.inClusterEnabled: \"false\"` is set. The proposed condition only checks the setting, so it also flags installs that have no in-cluster Applications, which makes it too broad. Its literal also wrongly includes the YAML quote marks: the configured value is the string false. Nothing in the evidence shows this is a Helm values path, so the corrected condition checks the config key in the ConfigMap data. The evidence names the \"in-cluster\" cluster but not how else an Application might target it, so that part is left undecidable.",
+    "startedAt": "2026-10-03T02:29:30.715Z",
+    "decidedAt": "2026-10-03T02:29:50.596Z",
+    "resultingFact": "vf-3e4fcd7b04cb"
+  }
+}

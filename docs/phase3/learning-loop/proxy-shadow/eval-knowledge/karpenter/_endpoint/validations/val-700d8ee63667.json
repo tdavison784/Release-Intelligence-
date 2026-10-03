@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-700d8ee63667",
+    "candidateId": "sc-95ddd86cb4d2",
+    "proposalId": "sp-f54854ee3a1a",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions",
+              "state": "has-token",
+              "values": [
+                "v1beta1"
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "nodeclaims.karpenter.sh"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodeClaim objects stay stored as v1beta1 until they are rewritten. A storage version migration that rewrites all objects, followed by an update to status.storedVersions, must run before a later release removes v1beta1.",
+        "remediation": "Rewrite all NodeClaim objects so they are stored as v1, then remove v1beta1 from status.storedVersions on the nodeclaims.karpenter.sh CRD.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of nodeclaims.karpenter.sh changes from v1beta1 to v1, so existing NodeClaim objects need a storage version migration and a status.storedVersions update before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

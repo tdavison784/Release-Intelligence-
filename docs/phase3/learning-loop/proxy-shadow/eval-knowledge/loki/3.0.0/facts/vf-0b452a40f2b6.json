@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-0b452a40f2b6",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-f7426fa42047"
+        ],
+        "statementKeys": [
+          "sk-a18bac02ba47"
+        ],
+        "changeIds": [
+          "chg-c91da465e065"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-76bff34e5d7f"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--boltdb.shipper.compactor.deletion-mode"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "--compactor.deletion-mode"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--boltdb.shipper.compactor.deletion-mode",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the Loki YAML config path (and any Helm values path) of the setting corresponding to the removed boltdb.shipper.compactor.deletion-mode flag"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `boltdb.shipper.compactor.deletion-mode` CLI flag and the matching YAML setting are removed, so a deletion mode configured through them is no longer honoured.",
+        "remediation": "Configure the deletion mode with the `compactor.deletion-mode` CLI flag or the `deletion_mode` YAML setting in limits_config, and remove the old flag or setting.",
+        "severity": "medium"
+      },
+      "statement": "`boltdb.shipper.compactor.deletion-mode` CLI flag and the corresponding YAML setting are removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-a188ab374f57"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-a188ab374f57"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-7327bf947cd6"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-3ee6eeebe4c7"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-7b76cb015d7e",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L600-L600 (3.0.0 › Loki 3.0.0 › Deprecated configuration options are removed)",
+        "excerpt": "1. `boltdb.shipper.compactor.deletion-mode` CLI flag and the corresponding YAML setting are removed. You can instead configure the `compactor.deletion-mode` CLI flag or `deletion_mode` YAML setting in [Limits Config](/docs/loki/<LOKI_VERSION>/configuration/#limits_config).",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:34:12.477Z"
+  }
+}

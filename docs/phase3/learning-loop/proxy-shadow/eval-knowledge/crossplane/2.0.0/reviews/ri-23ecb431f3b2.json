@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-23ecb431f3b2",
+    "candidateId": "sc-af36bd24681f",
+    "product": "crossplane",
+    "release": "2.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Go module path is now `github.com/crossplane/crossplane/v2`: As this release is a major version bump that has breaking changes, the rules for Go modules…\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Go code importing crossplane or crossplane-runtime must update the go.mod module path and all import statements to the v2 module path when moving to v2+.",
+        "remediation": "Update go.mod and all imports to github.com/crossplane/crossplane/v2 and github.com/crossplane/crossplane-runtime/v2.",
+        "severity": "medium"
+      },
+      "statement": "The Go module path changed to github.com/crossplane/crossplane/v2 (and crossplane-runtime/v2); Go consumers must update go.mod and all import statements."
+    },
+    "proposals": [
+      "sp-2d6ff7bd34b5",
+      "sp-99ed6f6b75f0"
+    ],
+    "validations": [
+      "val-1a61f752d46d",
+      "val-4b5f6cba93c7",
+      "val-a19ddacf0adb",
+      "val-ca04324bc24c"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:56:55Z"
+  }
+}

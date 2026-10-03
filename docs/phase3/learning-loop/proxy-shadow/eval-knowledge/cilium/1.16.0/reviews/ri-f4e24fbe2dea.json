@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-f4e24fbe2dea",
+    "candidateId": "sc-00f02ba8dd12",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "applicability",
+    "question": "For \"For Linux kernels of version 6.6 or newer, Cilium by default switches to tcx BPF links for attaching its tc BPF programs in the core datapath for better…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "linux",
+              "state": "in-range",
+              "range": ">=6.6.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether third-party old-style tc BPF users are present in the environment"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "bpf.enableTCX",
+          "state": "equals",
+          "values": [
+            "false"
+          ]
+        }
+      },
+      "statement": "For Linux kernels 6.6 or newer, Cilium 1.16.0 defaults to tcx BPF links for tc BPF program attachment instead of old-style tc BPF attachment; environments with third-party old-style tc BPF users can disable this via Helm value bpf.enableTCX=false to maintain backward compatibility."
+    },
+    "proposals": [
+      "sp-1a7e64e44626",
+      "sp-8c41659be4fa"
+    ],
+    "validations": [
+      "val-1369fb77742e",
+      "val-4e4d007bac0e",
+      "val-b55fca9018d7",
+      "val-d9994007bc80",
+      "val-e1b25ea719b9",
+      "val-f07a756ddd86",
+      "val-f09b00133cfc",
+      "val-fe4afc005b4a"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:07:39Z"
+  }
+}

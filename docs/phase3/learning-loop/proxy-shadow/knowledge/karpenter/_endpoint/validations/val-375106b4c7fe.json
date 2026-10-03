@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-375106b4c7fe",
+    "candidateId": "sc-95ddd86cb4d2",
+    "proposalId": "sp-88e840fe0edb",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "nodeclaims-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "karpenter.sh",
+          "version": "v1beta1",
+          "kind": "NodeClaim"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodeClaim objects remain stored as v1beta1 until rewritten; a storage version migration and a status.storedVersions update must be done before a later release removes v1beta1.",
+        "remediation": "Re-write all NodeClaim objects and update status.storedVersions on the nodeclaims.karpenter.sh CRD before a release removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the nodeclaims.karpenter.sh CRD changes from v1beta1 to v1, so existing NodeClaim objects stay stored as v1beta1 until a storage version migration rewrites them and status.storedVersions is updated."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

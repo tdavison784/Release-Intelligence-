@@ -1,0 +1,92 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-18806b3c80d5",
+  "promptDigest": "sha256:43a86b59578dfd2339eb1c17e4e37dd103b4d49c2c6a908a9b7c827679e683d4",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "55337b0f-f151-4218-8ca1-9e7486f99fbf",
+  "startedAt": "2026-10-03T02:12:10.395Z",
+  "decidedAt": "2026-10-03T02:12:24.597Z",
+  "durationMs": 13376,
+  "costUSD": 0.1127,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-25984c3785d4] limits the drop risk to clusters with toFQDNs policies that upgrade from a Cilium version older than v1.15.6, so the edge-from-version <1.15.6 operand is right. The evidence refers to \"toFQDNs policies\" in general, though, and the proposed condition only checks CiliumNetworkPolicy spec.egress. That misses clusterwide policies and multi-rule (specs[]) policies, so the condition is too narrow. My correction keeps the version gate and accepts toFQDNs in any of these policy forms. The evidence does not name the policy kinds or field paths; they come from Cilium's policy schema, which is why confidence is low.",
+    "citations": [
+      "ev-25984c3785d4"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Clusters that upgrade to Cilium 1.16 from a version older than v1.15.6 and have toFQDNs egress rules in a CiliumNetworkPolicy or CiliumClusterwideNetworkPolicy may see temporary packet drops for connections allowed by toFQDNs during the initial endpoint regeneration.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.15.6"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "group": "cilium.io",
+                  "kind": "CiliumNetworkPolicy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "cilium.io",
+                  "kind": "CiliumNetworkPolicy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "specs[].egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "cilium.io",
+                  "kind": "CiliumClusterwideNetworkPolicy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ]
+                },
+                {
+                  "op": "resource",
+                  "group": "cilium.io",
+                  "kind": "CiliumClusterwideNetworkPolicy",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "specs[].egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

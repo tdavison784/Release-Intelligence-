@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-819774b2b686",
+    "candidateId": "sc-f7e1d73d8b1e",
+    "product": "external-secrets",
+    "questionType": "classification",
+    "question": "Is fact vf-30c8400eac07 (ClusterSecretStore v1beta1 schema: 1 field now required: `spec.provider.fake.data[].value`) still correct? Reject to retract it; correct to supersede it.",
+    "proposed": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ClusterSecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.provider.fake.data[].value",
+              "state": "unset"
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterSecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ClusterSecretStore objects using the external-secrets.io/v1beta1 schema whose spec.provider.fake.data[] entries omit value are rejected, because value is now in the required list of each fake data item.",
+        "remediation": "Set spec.provider.fake.data[].value in every data entry of fake-provider ClusterSecretStore objects (it is now required alongside key).",
+        "severity": "medium"
+      },
+      "statement": "ClusterSecretStore v1beta1 schema: 1 field now required: `spec.provider.fake.data[].value`"
+    },
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "auto-approved",
+        "consensus-cross-model",
+        "consensus-same-model",
+        "policy-general"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T16:07:21.647166-05:00"
+  }
+}

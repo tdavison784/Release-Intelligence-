@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-17607957b9fd",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-9cbe62a32f33",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-ccae8e2d183c"
+          ],
+          "statementKeys": [
+            "sk-5aa7e0fef26e"
+          ],
+          "changeIds": [
+            "chg-9cbe62a32f33"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "Default `resource.exclusions` configurations: Argo CD manifest now contains a default configuration for `resource.exclusions` in the `argocd-cm` to exclude…",
+    "text": "Default `resource.exclusions` configurations: Argo CD manifest now contains a default configuration for `resource.exclusions` in the `argocd-cm` to exclude resources that are known to be created by controllers and not usually managed in Git. The exclusions contain high volume and high churn objects which we exclude for performance reasons, reducing connections and load to the K8s API servers of managed clusters. The excluded Kinds are: - Kubernetes Resources: `Endpoints`, `EndpointSlice`, `Lease`, `SelfSubjectReview`, `TokenReview`, `LocalSubjectAccessReview`, `SelfSubjectAccessReview`, `SelfSubjectRulesReview`, `SubjectAccessReview`, `CertificateSigningRequest`, `PolicyReport` and `ClusterPolicyReport`. - Cert Manager: `CertificateRequest`. - Kyverno: `EphemeralReport`, `ClusterEphemeralReport`, `AdmissionReport`, `ClusterAdmissionReport`, `BackgroundScanReport`, `ClusterBackgroundScanReport` and `UpdateRequest`. - Cilium: `CiliumIdentity`, `CiliumEndpoint` and `CiliumEndpointSlice`. The default `resource.exclusions` can be overridden or removed in the configMap to preserve the v2 behavior. Read the Declarative Setup for more detailed information to configure…",
+    "evidence": [
+      {
+        "id": "ev-3437aa882db2",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L60-L75 (v2.14 to 3.0 › Breaking Changes › Default `resource.exclusions` configurations)",
+        "excerpt": "### Default `resource.exclusions` configurations\n\nArgo CD manifest now contains a default configuration for `resource.exclusions` in the `argocd-cm` to exclude resources that\nare known to be created by controllers and not usually managed in Git. The exclusions contain high volume and high churn objects\nwhich we exclude for performance reasons, reducing connections and load to the K8s API servers of managed clusters.\n\nThe excluded Kinds are:\n\n- **Kubernetes Resources**: `Endpoints`, `EndpointSlice`, `Lease`, `SelfSubjectReview`, `TokenReview`, `LocalSubjectAccessReview`, `SelfSubjectAccessRevie…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "hints": [
+      "code:resource.exclusions",
+      "code:argocd-cm",
+      "code:Endpoints",
+      "code:EndpointSlice",
+      "code:Lease",
+      "code:SelfSubjectReview",
+      "code:TokenReview",
+      "code:LocalSubjectAccessReview",
+      "code:SelfSubjectAccessReview",
+      "code:SelfSubjectRulesReview",
+      "code:SubjectAccessReview",
+      "code:CertificateSigningRequest",
+      "code:PolicyReport",
+      "code:ClusterPolicyReport",
+      "code:CertificateRequest",
+      "code:EphemeralReport",
+      "code:ClusterEphemeralReport",
+      "code:AdmissionReport",
+      "code:ClusterAdmissionReport",
+      "code:BackgroundScanReport",
+      "code:ClusterBackgroundScanReport",
+      "code:UpdateRequest",
+      "code:CiliumIdentity",
+      "code:CiliumEndpoint"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:27Z"
+  }
+}

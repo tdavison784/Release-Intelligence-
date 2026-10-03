@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-bb70d2635c8d",
+    "candidateId": "sc-03d0e6e8a1a2",
+    "proposalId": "sp-159ae576d606",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "notification.toolkit.fluxcd.io",
+        "version": "v1beta3",
+        "kind": "Provider",
+        "path": "spec.type"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.type",
+              "state": "set"
+            }
+          ],
+          "group": "notification.toolkit.fluxcd.io",
+          "version": "v1beta3",
+          "kind": "Provider"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No previously allowed value of spec.type was removed, so existing and newly applied Provider resources that used allowed values before remain accepted; only the new values 'otel' and 'zulip' additionally pass validation.",
+        "remediation": "No operator action required; the provider types 'otel' and 'zulip' are newly available for spec.type.",
+        "severity": "low"
+      },
+      "statement": "In the notification.toolkit.fluxcd.io/v1beta3 schema of providers.notification.toolkit.fluxcd.io, the allowed values of spec.type changed between flux v2.6.4 and v2.7.0: the values \"otel\" and \"zulip\" were added and no previously allowed value was removed, so nothing that validated before is rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "restatement:crd:enum-changed",
+        "detail": "computed change chg-4b9a5f4e9137 names crd-field:flux|group=notification.toolkit.fluxcd.io|version=v1beta3|kind=Provider|path=spec.type"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:crd:enum-changed",
+        "detail": "computed change chg-4b9a5f4e9137 concerns the subject but not as a behavior-changed"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

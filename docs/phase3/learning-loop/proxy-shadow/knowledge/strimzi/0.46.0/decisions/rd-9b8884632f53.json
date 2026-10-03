@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9b8884632f53",
+    "reviewItemId": "ri-46713521e584",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=3.8.0,<4.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "Strimzi 0.46.0 changes the supported Kafka versions: adds support for Kafka 4.0.0 and removes support for Kafka 3.8.0 and 3.8.1."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "kafka",
+          "state": "in-range",
+          "range": ">=3.8.0,<3.9.0"
+        }
+      },
+      "statement": "Strimzi 0.46.0 adds support for Kafka 4.0.0 and drops support for Kafka 3.8.0 and 3.8.1. The supported versions change from 3.8.0, 3.8.1 and 3.9.0 to 3.9.0 and 4.0.0. Only environments running Kafka 3.8.0 or 3.8.1 are exposed. Kafka 3.9.0 is still supported."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:47bc6b700a826edfbd8a291985a11367166066da6b9ee39e3c359ac52530ee51",
+      "inputEvidence": [
+        "ev-a7c9af863980",
+        "ev-029b4f635db8",
+        "ev-e7a043486f16"
+      ],
+      "generatedAt": "2026-10-03T02:17:28.446Z",
+      "callId": "9c05b7fc-04d8-4589-9857-f17e611c7cd9"
+    },
+    "reason": "[ev-a7c9af863980] says 0.46.0 removes support only for Kafka 3.8.0 and 3.8.1. The version rows agree: 0.45.0 supports 3.8.0, 3.8.1 and 3.9.0 [ev-029b4f635db8], and 0.46.0 supports 3.9.0 and 4.0.0 [ev-e7a043486f16]. The proposed range >=3.8.0,<4.0.0 also includes Kafka 3.9.0, which is still supported, so it is too broad. Exposure should be limited to the 3.8.x versions that were removed.",
+    "startedAt": "2026-10-03T02:17:19.375Z",
+    "decidedAt": "2026-10-03T02:17:28.446Z"
+  }
+}

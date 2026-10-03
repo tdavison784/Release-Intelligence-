@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a845934629bd",
+    "candidateId": "sc-967b47c048f1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "SecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "external-secrets.io",
+                  "version": "v1beta1",
+                  "kind": "SecretStore"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake.data",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake.data[].value",
+                      "state": "unset"
+                    }
+                  ],
+                  "group": "external-secrets.io",
+                  "kind": "SecretStore"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "external-secrets.io",
+                  "version": "v1beta1",
+                  "kind": "ClusterSecretStore"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake.data",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake.data[].value",
+                      "state": "unset"
+                    }
+                  ],
+                  "group": "external-secrets.io",
+                  "kind": "ClusterSecretStore"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "SecretStore or ClusterSecretStore resources using the fake provider with data array elements lacking a value field are rejected by the API server.",
+        "severity": "high"
+      },
+      "statement": "The field spec.provider.fake.data[].value is now required in SecretStore and ClusterSecretStore v1beta1 schemas; resources omitting it are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-210dbd3942ad",
+      "ev-9fd85560a485"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:8ceb78a415414665f0e1f7e02287ab4cc15809b8ada444820d369e46c79ebc05",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9fd85560a485",
+        "ev-fa52e4e4e831",
+        "ev-210dbd3942ad",
+        "ev-d98b7e27e53d"
+      ],
+      "generatedAt": "2026-10-02T21:02:08Z",
+      "callId": "edf9425a-9c48-4c43-af68-9bb87c2f8881"
+    }
+  }
+}

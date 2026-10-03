@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-cbd823bb6879",
+    "candidateId": "sc-a4114b258331",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "image-in-use",
+          "name": "cilium"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Monitoring systems scraping the `cilium_api_limiter_processed_requests_total` metric will receive an additional `return_code` label on each metric series, which may require updating metric queries and dashboards.",
+        "severity": "medium"
+      },
+      "statement": "The `cilium_api_limiter_processed_requests_total` metric now includes a `return_code` label to specify the HTTP code of the request."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: Prometheus metrics are not covered by defined subject families; the change affects monitoring output but not product configuration or deployable artifacts",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-af23565ba695"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:22a7b790c7eecdbceee1851489f21b5480a0fd0e78f85572f734240be61f4bbb",
+      "inputEvidence": [
+        "ev-af23565ba695"
+      ],
+      "generatedAt": "2026-10-02T06:05:56Z",
+      "callId": "14ce0913-52d5-45db-8e81-25f9dda72b17"
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a16d35457e6c",
+    "candidateId": "sc-e7f37bfd961c",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "removed",
+        "before": "\"Neither --kubeconfig nor --master was specified\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--kubeconfig",
+                  "component": "controller",
+                  "state": "unset"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "--master",
+                  "component": "controller",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--kubeconfig",
+                  "component": "webhook",
+                  "state": "unset"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "--master",
+                  "component": "webhook",
+                  "state": "unset"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The line 'Neither --kubeconfig nor --master was specified' simply no longer appears in controller and webhook startup logs; the evidence (an 'Other (Cleanup or Flake)' item) states no failure, rejection or other operational impact.",
+        "remediation": "No action required; the --kubeconfig and --master flags continue to work and only the log message is gone.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 no longer logs the `Neither --kubeconfig nor --master was specified` warning when the controller and webhook services boot with neither flag set; this is a log-only cleanup."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: the changed thing is a startup log message, which no subject family covers; the evidence does not state that the --kubeconfig or --master flags themselves are removed, renamed or altered",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-969cbf095c23"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:858da21cf750b9061258520b9e518ff80998a049e905885e5863a85d52f5399d",
+      "inputEvidence": [
+        "ev-969cbf095c23"
+      ],
+      "generatedAt": "2026-10-02T11:33:27Z",
+      "callId": "41f32777-6087-4bae-954e-622d1d267a71"
+    }
+  }
+}

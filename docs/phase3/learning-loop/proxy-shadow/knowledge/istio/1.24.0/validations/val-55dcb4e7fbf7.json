@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-55dcb4e7fbf7",
+    "candidateId": "sc-5c3e51b15ff9",
+    "proposalId": "sp-192a9aac0e87",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_INBOUND_RETRY_POLICY"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "ENABLE_INBOUND_RETRY_POLICY",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "ENABLE_INBOUND_RETRY_POLICY",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Inbound requests the service has not seen/processed are now automatically retried/reset by default; this can be reverted by setting ENABLE_INBOUND_RETRY_POLICY to false.",
+        "remediation": "Set ENABLE_INBOUND_RETRY_POLICY to false to revert."
+      },
+      "statement": "Istio 1.24.0 adds a retry policy for inbound requests that automatically resets requests the service has not seen/processed; setting ENABLE_INBOUND_RETRY_POLICY to false reverts it."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:env-var/added",
+        "detail": "no canonical exposure condition for env-var added"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

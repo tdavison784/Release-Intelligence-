@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-01bdf4572d86",
+    "reviewItemId": "ri-583475b26e82",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:217e61cf32acc343840b76b94184b91efac2194261aed71ed6aa1c771dd912a1",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T23:14:48.803Z",
+      "callId": "57ad7c51-5131-4770-827d-73a0ce56d71a"
+    },
+    "reason": "The only evidence is the two install.yaml manifests [ev-782bc47d120d] [ev-c2c6c790d6b2], and both excerpts show only \"apiVersion: v1\". They do not show the Bucket schema, so they neither confirm nor refute that a resource-rejected consequence applies. The computed diff says only that status.artifact.digest became required. It does not show whether that requirement sits inside the optional status.artifact object, which would mean Buckets with no artifact are unaffected. It also does not show whether anything other than the controller writes this status field: operators normally do not write status, so the proposed remediation may not be actionable. To decide whether resource-rejected/medium is correct, or whether the true consequence is narrower or none, we need the relevant openAPIV3Schema excerpt for the Bucket status from both manifests, plus upstream release notes on digest handling.",
+    "startedAt": "2026-10-02T23:14:38.203Z",
+    "decidedAt": "2026-10-02T23:14:48.803Z"
+  }
+}

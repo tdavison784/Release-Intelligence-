@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8d02261e9c45",
+    "reviewItemId": "ri-d20786fbe7d3",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cluster-version",
+          "name": "loki",
+          "state": "in-range",
+          "range": ">=3.0.0"
+        }
+      },
+      "statement": "Loki 3.0.0 adds the `frontend.max-query-capacity` configuration key to allow tuning of per-tenant query capacity."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      },
+      "statement": "Loki 3.0.0 adds the optional config key `frontend.max-query-capacity` to tune per-tenant query capacity; environments upgrading from a release before 3.0.0 gain the key, and nothing breaks for those who do not set it."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:ffae4025791ef0dad4b956b06d6cda777722c0076625be9688ebf1db1dc67842",
+      "inputEvidence": [
+        "ev-498b1297fb7f"
+      ],
+      "generatedAt": "2026-10-03T02:02:15.647Z",
+      "callId": "8a1ec1a3-58af-4e5b-8ecc-c6df246d6c02"
+    },
+    "reason": "[ev-498b1297fb7f] says only that Loki 3.0.0 adds the optional `frontend.max-query-capacity` key; it describes nothing that fails or changes for operators who do nothing. The proposed exposure misuses cluster-version, which is for the platform version, not the product's own version. It also tests the version the environment runs after the upgrade, not whether the upgrade crosses this change. The only environment state the evidence supports is an upgrade from a release before 3.0.0, where the new key becomes available.",
+    "startedAt": "2026-10-03T02:02:05.031Z",
+    "decidedAt": "2026-10-03T02:02:15.647Z",
+    "resultingFact": "vf-03992cad8837"
+  }
+}

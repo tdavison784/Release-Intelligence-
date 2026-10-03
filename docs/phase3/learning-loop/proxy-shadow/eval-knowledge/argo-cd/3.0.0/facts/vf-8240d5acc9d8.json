@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-8240d5acc9d8",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-263ba66a7970"
+        ],
+        "statementKeys": [
+          "sk-9c7a394c122c"
+        ],
+        "changeIds": [
+          "chg-042fbc53d8db"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-2998e289998d"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "plugin-env-var-passing"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.source.plugin.env[].value",
+              "state": "equals",
+              "values": [
+                "\"\""
+              ]
+            }
+          ],
+          "group": "argoproj.io",
+          "kind": "Application"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Plugin env entries with empty values are now passed to the plugin as empty environment variables, which may change plugin behavior.",
+        "severity": "low"
+      },
+      "statement": "Empty Environment Variables in Plugins: In Argo CD 3.0, empty environment variables are now passed to config management plugins"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-0459b987d9e2"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-0459b987d9e2"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-630090641abc"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-6cacc565994f"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-a41a36159297",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L380-L396 (v2.14 to 3.0 › Other changes › Empty Environment Variables in Plugins)",
+        "excerpt": "### Empty Environment Variables in Plugins\n\nIn Argo CD 3.0, empty environment variables are now passed to config management plugins.\n\n```yaml\napiVersion: argoproj.io/v1alpha1\nkind: Application\nspec:\n  source:\n    plugin:\n      name: example-plugin\n      env:\n        - name: VERSION\n          value: '1.2.3'\n        - name: DATA # Even though this is empty, it will be passed to the plugin as ARGOCD_ENV_DATA=\"\".\n          value: ''\n```",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:02:41.995Z"
+  }
+}

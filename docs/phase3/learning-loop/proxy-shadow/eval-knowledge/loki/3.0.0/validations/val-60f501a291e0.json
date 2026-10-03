@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-60f501a291e0",
+    "candidateId": "sc-e5a9be233eaa",
+    "proposalId": "sp-9a53e5e42bc4",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-compactor.delete-request-store",
+        "component": "compactor"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-compactor.delete-request-store",
+              "component": "compactor",
+              "state": "unset"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-compactor.retention-enabled",
+              "component": "compactor",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Delete requests cannot be stored if `-compactor.delete-request-store` is not explicitly configured when retention is enabled, breaking the delete functionality of the compactor.",
+        "severity": "high"
+      },
+      "statement": "The `-compactor.delete-request-store` CLI flag or its YAML configuration setting must be explicitly configured when retention is enabled in Loki 3.0.0, as it is required for storing delete requests."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/now-required",
+        "detail": "cli-flag now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/now-required",
+        "detail": "cli-flag now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

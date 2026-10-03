@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c87c4c5b53c3",
+    "candidateId": "sc-25ca3183ac3f",
+    "proposalId": "sp-151f062897c3",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.k8s.aws",
+        "version": "v1beta1",
+        "kind": "EC2NodeClass",
+        "path": "spec.metadataOptions.httpPutResponseHopLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "2",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "karpenter.k8s.aws",
+              "version": "v1beta1",
+              "kind": "EC2NodeClass"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.metadataOptions.httpPutResponseHopLimit",
+                  "state": "unset"
+                }
+              ],
+              "group": "karpenter.k8s.aws",
+              "version": "v1beta1",
+              "kind": "EC2NodeClass"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.metadataOptions.httpPutResponseHopLimit",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.k8s.aws",
+          "version": "v1beta1",
+          "kind": "EC2NodeClass"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "EC2NodeClass resources that do not explicitly set spec.metadataOptions.httpPutResponseHopLimit will now use a default of 1 instead of 2, affecting the hop limit for EC2 instance metadata service responses.",
+        "severity": "medium"
+      },
+      "statement": "The default value of spec.metadataOptions.httpPutResponseHopLimit in EC2NodeClass v1beta1 has changed from 2 to 1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

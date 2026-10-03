@@ -1,0 +1,35 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f47c6050082a",
+  "promptDigest": "sha256:266abc47fd606c4f260f28613a719c78d9ab0f15ee75686b4f7cabbcde0dfbf2",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "40ab0428-aee4-40d2-9a84-04154f34cfbe",
+  "startedAt": "2026-10-03T02:34:36.695Z",
+  "decidedAt": "2026-10-03T02:34:52.137Z",
+  "durationMs": 14535,
+  "costUSD": 0.085396,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-69b054a33ac2] says the Helm options proxy.prometheus.enabled and proxy.prometheus.port were removed and that envoy.prometheus.enabled and envoy.prometheus.port should be used instead. The values diff confirms the removal [ev-28e0ccb5774a, ev-39a22d88e2f5]. Because the keys were removed, values still set under them are no longer honoured, so setting-ignored is the right kind. However, the proposed statement leaves out the port key and claims monitoring \"will not be enabled\", which the evidence doesn't state because it doesn't give the envoy.* defaults. Nothing in the evidence describes a workload failure, so the severity is lowered from high to medium.",
+    "citations": [
+      "ev-69b054a33ac2",
+      "ev-28e0ccb5774a",
+      "ev-39a22d88e2f5"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "Cilium 1.16.0 removed the deprecated Helm values proxy.prometheus.enabled and proxy.prometheus.port; values set under them are no longer honoured and must be moved to envoy.prometheus.enabled and envoy.prometheus.port.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "statement": "Values set under proxy.prometheus.enabled and proxy.prometheus.port are no longer honoured after the upgrade because these options were removed; the Envoy Prometheus settings are taken from envoy.prometheus.enabled and envoy.prometheus.port instead.",
+        "remediation": "Move any proxy.prometheus.enabled and proxy.prometheus.port settings in your Helm values to envoy.prometheus.enabled and envoy.prometheus.port.",
+        "severity": "medium"
+      }
+    }
+  }
+}

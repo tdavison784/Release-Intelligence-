@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0250e8265f5c",
+    "candidateId": "sc-3e8896f66ab7",
+    "proposalId": "sp-a1d29fbd9d91",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "cluster-ca-cert-secret-handling",
+        "component": "user-operator"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "release-knowledge-gap",
+          "needed": "whether the environment runs the standalone User Operator with TLS not needed and without the Cluster CA cert Secret (the evidence names no chart values, environment variables or Secret name identifying this configuration)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "A standalone User Operator deployed without the Cluster CA cert Secret while TLS is not needed is now handled by the operator; the changelog does not state what its previous behavior was or that any action is required.",
+        "remediation": "No action is described; if the standalone User Operator runs without TLS and without the Cluster CA cert Secret, verify it now operates as expected.",
+        "severity": "low"
+      },
+      "statement": "Strimzi 0.46.0 updates the standalone User Operator so that it handles the Cluster CA certificate Secret being missing when TLS is not needed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

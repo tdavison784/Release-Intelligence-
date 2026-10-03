@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-b2147ef35796",
+    "product": "cilium",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-a4a7d88fed93"
+        ],
+        "statementKeys": [
+          "sk-86720f9fac2e"
+        ],
+        "changeIds": [
+          "chg-25f2b09f6c82"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-1b3949284e45"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "metadata.annotations[\"policy.cilium.io/proxy-visibility\"]",
+        "component": "Pod"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "metadata.annotations[\"policy.cilium.io/proxy-visibility\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "Pod"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Pod annotations using policy.cilium.io/proxy-visibility will no longer be honored and L7 protocol visibility configuration via this annotation will be ignored.",
+        "severity": "medium"
+      },
+      "statement": "Support for L7 protocol visibility using Pod annotations (`policy.cilium.io/proxy-visibility`), deprecated since v1.15, has been removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-b29ff4cccc43"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-b29ff4cccc43"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-bccfbfb233d5"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-7f2ed2612c8f"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-7424e74176c0",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.17.0/Documentation/operations/upgrade.rst",
+        "locator": "L320-L321 (1.17 Upgrade Notes)",
+        "excerpt": "* Support for L7 protocol visibility using Pod annotations (`policy.cilium.io/proxy-visibility`),\n  deprecated since v1.15, has been removed.",
+        "contentDigest": "sha256:09600d9b905c2cc911848a009353704802ac076aa9015810b56812eb8b6ad0c3",
+        "retrievedAt": "2026-10-01T14:50:03Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:20:15.396Z"
+  }
+}

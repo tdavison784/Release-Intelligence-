@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-985740654ac5",
+    "candidateId": "sc-e9a6db7e6358",
+    "proposalId": "sp-2dbb143b841e",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "kustomize.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "Kustomization",
+        "path": "spec.sourceRef.kind"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "after": "\"ExternalArtifact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.sourceRef.kind",
+              "state": "set"
+            }
+          ],
+          "group": "kustomize.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Kustomization"
+        }
+      },
+      "statement": "In Kustomization v1, the allowed values for spec.sourceRef.kind changed: the value \"ExternalArtifact\" was added to the enum."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field",
+        "detail": "kustomize.toolkit.fluxcd.io Kustomization spec.sourceRef.kind is in the schema of both releases"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "crd-schema:tightened",
+        "detail": "enum, required and type of kustomize.toolkit.fluxcd.io Kustomization spec.sourceRef.kind are unchanged; patterns and bounds are not captured"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

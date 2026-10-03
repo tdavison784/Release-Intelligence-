@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5e4586e1b458",
+    "candidateId": "sc-1d80e5d12001",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "log-results-cache-empty-response-composition",
+        "component": "log-results-cache"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"empty responses may not respect request limit or direction parameters\"",
+        "after": "\"empty responses are composed based on the request being served, respecting limit and direction\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--cache.enable-results-cache",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Log query results with empty responses now correctly honor the limit and direction parameters from the request, fixing cases where incorrect values were previously returned.",
+        "severity": "low"
+      },
+      "statement": "Loki's log results cache now composes empty responses based on the request being served, correctly respecting limit and direction parameters instead of potentially returning incorrect values."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-180d9754a48a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:8aa52302def6b5c70a7f165b523dd5aff3b337299ea2164824f8d3b94b7ab9f4",
+      "inputEvidence": [
+        "ev-180d9754a48a"
+      ],
+      "generatedAt": "2026-10-02T16:18:29Z",
+      "callId": "f3ae20fb-1bbc-4aa0-b843-be7a4815b2f0"
+    }
+  }
+}

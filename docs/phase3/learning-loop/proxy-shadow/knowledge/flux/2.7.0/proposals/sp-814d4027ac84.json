@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-814d4027ac84",
+    "candidateId": "sc-4c8892f5486c",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "flux-diff-kustomization-ignore-patterns"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the operator runs `flux diff kustomization` with ignore patterns; CLI invocations and the patterns used are runtime usage not visible in any static input"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The fix changes how `flux diff kustomization` applies ignore patterns, so its diff output can differ from the previous buggy behavior for environments that rely on those patterns.",
+        "remediation": "If `flux diff kustomization` output is used in automation or review workflows, re-run it after upgrading to confirm ignore patterns are now applied as expected.",
+        "severity": "low"
+      },
+      "statement": "Flux 2.7.0 fixes how the `flux diff kustomization` CLI command applies ignore patterns."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-283febdcc8b5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2f845c8509f88a5bfa498dd03c8352885cdfcf93eb92d681f759f778254806a5",
+      "inputEvidence": [
+        "ev-283febdcc8b5"
+      ],
+      "generatedAt": "2026-10-02T16:21:06Z",
+      "callId": "f74f7781-8bdd-42b2-82b9-690393eaedcd"
+    }
+  }
+}

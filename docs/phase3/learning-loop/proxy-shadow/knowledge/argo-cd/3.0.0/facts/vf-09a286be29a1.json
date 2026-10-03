@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-09a286be29a1",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-d9af94df4024"
+        ],
+        "statementKeys": [
+          "sk-52aab75b1bee"
+        ],
+        "changeIds": [
+          "chg-bc578a37caca"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-faffd3489419"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.customizations.ignoreResourceUpdates",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Watched resources' .status changes and common mutated resources will be ignored by default, reducing load on Argo CD; this changes behavior from v2.14 where these were processed.",
+        "remediation": "If v2 behavior is required, override or remove the resource.customizations.ignoreResourceUpdates configuration in the argocd-cm ConfigMap.",
+        "severity": "medium"
+      },
+      "statement": "Ignoring all status updates and high churn mutations: Argo CD manifest now contains a default configuration for `resource.customizations.ignoreResourceUpdates`…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-ac07488d51b3"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-ac07488d51b3"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-1380f0973ad6"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-73f1c530c9fe"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-94989021db77",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L299-L305 (v2.14 to 3.0 › Other changes › Ignoring all status updates and high churn mutations)",
+        "excerpt": "### Ignoring all status updates and high churn mutations\n\nArgo CD manifest now contains a default configuration for `resource.customizations.ignoreResourceUpdates` in the `argocd-cm`\nto exclude common resources that are often mutated in Kubernetes. These mutations are known to cause an unnecessary\nload on Argo CD. When a watched resource is modified, Argo CD will always ignore the `.status` changes.\n\nThe default `resource.customizations.ignoreResourceUpdates` configurations can be overridden or removed in the configMap to preserve the v2 behavior.",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:03:36.816Z"
+  }
+}

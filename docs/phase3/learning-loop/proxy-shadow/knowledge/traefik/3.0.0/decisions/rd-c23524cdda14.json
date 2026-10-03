@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c23524cdda14",
+    "reviewItemId": "ri-9f4972054908",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Traefik will not start if any Pilot configuration remains in the static configuration.",
+        "remediation": "Remove all Pilot related configuration from the static configuration.",
+        "severity": "high"
+      },
+      "statement": "Traefik Pilot static configuration (e.g. pilot.token) is no longer supported in v3 and prevents Traefik from starting; it must be removed from the static configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:4adb12d087422e58fb0236ca7ecee38c44fa4468a762ef3500defcb8fe079f49",
+      "inputEvidence": [
+        "ev-9f3bf592e4e8"
+      ],
+      "generatedAt": "2026-10-03T02:26:43.792Z",
+      "callId": "d9d8d543-af6a-47d2-88b4-2c1be2bab9b4"
+    },
+    "reason": "[ev-9f3bf592e4e8] says Pilot configuration \"is now unsupported and would prevent Traefik to start\", and that all Pilot configuration should be removed from the static configuration. So the consequence is a real failure, not a behavior change or deprecation, and it needs mandatory action. workload-failure is a reasonable kind for this, because Traefik itself won't start. The statement and remediation match the evidence's own words.",
+    "startedAt": "2026-10-03T02:26:36.153Z",
+    "decidedAt": "2026-10-03T02:26:43.792Z",
+    "resultingFact": "vf-8f7eb7f14262"
+  }
+}

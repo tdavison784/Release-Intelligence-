@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2c93ff2ca9e1",
+    "reviewItemId": "ri-5993b3cf9123",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "where the flux binary is run (e.g. operator machines or CPU-limited CI containers) and whether GOMAXPROCS is set explicitly there, since the dynamically set GOMAXPROCS depends on the process's runtime environment and not on anything in the cluster manifests"
+        }
+      },
+      "statement": "Flux 2.7.0 now allows the Go runtime to dynamically set GOMAXPROCS (listed in the release notes' CLI changelog), so the way the effective GOMAXPROCS value of the affected Flux binary is determined changes; the note describes no failure or required action."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:3f534c0625e3a9e79d006a0ba37c5864b19a0ebd33ae416a08338b2beb776de3",
+      "inputEvidence": [
+        "ev-0a0493889871"
+      ],
+      "generatedAt": "2026-10-02T23:14:56.722Z",
+      "callId": "e6849c49-6cb4-489d-b70b-f857bae5f56f"
+    },
+    "reason": "The only evidence is a one-line entry in the CLI changelog [ev-0a0493889871]. It says the Go runtime may now set GOMAXPROCS dynamically. It names no Helm value, manifest field, flag or other configuration that would decide which environments are exposed. How the change behaves depends on where and how the flux binary runs, which no static input shows. So an undecidable exposure with an environment-visibility gap matches the evidence, and inventing a predicate would not. Confidence is low because the evidence does not say directly how this works or what it depends on.",
+    "startedAt": "2026-10-02T23:14:49.431Z",
+    "decidedAt": "2026-10-02T23:14:56.722Z"
+  }
+}

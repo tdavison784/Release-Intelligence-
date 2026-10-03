@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c51ad9448d52",
+    "candidateId": "sc-4474a977a709",
+    "proposalId": "sp-ec25efba8d0f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "compatibility-boundary",
+        "product": "kyverno",
+        "name": "clustercleanuppolicies.kyverno.io storage-version"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"v2beta1\"",
+        "after": "\"v2\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "version": "v2beta1",
+          "kind": "ClusterCleanupPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ClusterCleanupPolicy objects stored as v2beta1 must be re-written to migrate to the new v2 storage version before a later release removes v2beta1 support.",
+        "remediation": "Run a storage version migration to re-write all ClusterCleanupPolicy objects and update status.storedVersions in the CustomResourceDefinition.",
+        "severity": "high"
+      },
+      "statement": "The storage version of clustercleanuppolicies.kyverno.io is changed from v2beta1 to v2; existing ClusterCleanupPolicy objects stored as v2beta1 must be re-written to migrate to the new storage version."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:compatibility-boundary/behavior-changed",
+        "detail": "no canonical exposure condition for compatibility-boundary behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

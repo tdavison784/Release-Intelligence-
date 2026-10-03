@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a51589487fe3",
+    "candidateId": "sc-776fb106e1e1",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "findzonebyfqdn-dns-caching"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether cert-manager performs FindZoneByFqdn DNS zone-discovery lookups at runtime (e.g. while solving DNS challenges) and the TTLs of the responses being cached"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DNS zone discovery via FindZoneByFqdn still works but now caches the full DNS response and expires cached entries according to TTL; the evidence describes no failure, rejection, or required operator step.",
+        "remediation": "No operator action is indicated by the evidence; the caching change is internal to DNS zone discovery.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, FindZoneByFqdn now caches the full DNS response and handles TTL expiration of the cached response during DNS zone discovery."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d4918828336e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:776b21f1dbae844bce765906cc2f89fca0f17817c76a92aa72fadc720177adb6",
+      "inputEvidence": [
+        "ev-d4918828336e"
+      ],
+      "generatedAt": "2026-10-02T11:24:22Z",
+      "callId": "bd4fe35f-0d67-4841-8902-ebeb08b500bc"
+    }
+  }
+}

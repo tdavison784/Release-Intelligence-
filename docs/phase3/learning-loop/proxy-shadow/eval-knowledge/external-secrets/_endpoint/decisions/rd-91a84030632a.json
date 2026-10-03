@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-91a84030632a",
+    "reviewItemId": "ri-6e09a3bbac0a",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ClusterExternalSecret v1beta1 resources with spec.externalSecretSpec.target.template.engineVersion set to \"v1\" are rejected by the API server.",
+        "remediation": "Change engineVersion to a value still allowed by the schema before upgrading.",
+        "severity": "high"
+      },
+      "statement": "The v1beta1 ClusterExternalSecret schema no longer allows \"v1\" for spec.externalSecretSpec.target.template.engineVersion, so resources setting it are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:5c5bbf4bdab01afdaf3011743c85a414b41dbdf35c1bfecac375bdb3eabbfde0",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-03T02:21:33.797Z",
+      "callId": "9581e063-cd1a-498e-b2c4-e77abada767c"
+    },
+    "reason": "The validator checking the v0.15.0 and v0.16.0 CRD bundles [ev-9889c9b8706d, ev-e08924afdc47] confirmed that the v1beta1 ClusterExternalSecret enum for spec.externalSecretSpec.target.template.engineVersion lost \"v1\", with nothing added. The computed diff states that a removed enum value is rejected by the API server, so v1beta1 ClusterExternalSecrets that set engineVersion to \"v1\" fail validation. That makes resource-rejected (mandatory work) the right kind. The evidence doesn't settle high versus medium severity, so I left \"high\" as proposed.",
+    "startedAt": "2026-10-03T02:21:18.311Z",
+    "decidedAt": "2026-10-03T02:21:33.797Z"
+  }
+}

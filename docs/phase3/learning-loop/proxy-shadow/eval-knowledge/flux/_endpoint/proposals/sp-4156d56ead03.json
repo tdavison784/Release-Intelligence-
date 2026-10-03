@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-4156d56ead03",
+    "candidateId": "sc-01dac2541bc1",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmRepository objects using the source.toolkit.fluxcd.io/v1beta2 schema that omit status.artifact.digest are rejected by validation.",
+        "remediation": "Before upgrading, check existing HelmRepository (source.toolkit.fluxcd.io/v1beta2) objects for a missing status.artifact.digest and reconcile or update any object whose status artifact omits the digest so it passes schema validation.",
+        "severity": "medium"
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1beta2 schema of helmrepositories.source.toolkit.fluxcd.io, the field status.artifact.digest is newly required, and objects that omit it are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:337d2b3e72f1dd12e5543ff6ded5999859bb864b93d0166e0755be62e42b94f3",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:52:47Z",
+      "callId": "cad398f0-dc62-4453-9f6a-7d481884eca3"
+    }
+  }
+}

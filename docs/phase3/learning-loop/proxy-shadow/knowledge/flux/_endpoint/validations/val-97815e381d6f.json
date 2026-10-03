@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-97815e381d6f",
+    "candidateId": "sc-b4e6501b903c",
+    "proposalId": "sp-8884cc42307b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "flux",
+        "group": "image.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "ImageRepository"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "image.toolkit.fluxcd.io",
+          "kind": "ImageRepository"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Purely additive: a new served API version for ImageRepository is introduced while image.toolkit.fluxcd.io/v1beta2 ImageRepository is still served in the target release; the evidence states no removal, rejection, or behavior change, so an operator who does nothing sees no operational difference."
+      },
+      "statement": "A new API version image.toolkit.fluxcd.io/v1 of ImageRepository was added (computed crd:version-added between the v2.6.4 and v2.7.0 install bundles); the previously served image.toolkit.fluxcd.io/v1beta2 ImageRepository is still listed as served in the target release, making the change purely additive."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:gvk/added",
+        "detail": "no canonical exposure condition for gvk added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "confirmed",
+        "rule": "canonical:added/none",
+        "detail": "a newly added subject has no consequence for existing environments"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

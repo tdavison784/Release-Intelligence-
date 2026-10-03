@@ -1,0 +1,745 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-9a9308f229b9",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "anchors": [
+      {
+        "release": "1.13.0",
+        "evidenceKeys": [
+          "ek-d506a58d8c95"
+        ],
+        "statementKeys": [
+          "sk-e1c446d1a588"
+        ],
+        "changeIds": [
+          "chg-df7589491a79"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-e4cde6647bbd"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.rules[].generate.foreach"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].generate.foreach",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].generate.foreach",
+                  "state": "set"
+                }
+              ],
+              "group": "kyverno.io",
+              "kind": "Policy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Existing ClusterPolicy and Policy resources continue to function unchanged; the foreach field is optional and enables new functionality for advanced resource generation scenarios."
+      },
+      "statement": "Generate Changes: The `foreach` declaration allows the generation of multiple target resources of sub-elements in resource declarations"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-0fa7fad2b986",
+          "val-2cc533134ad0",
+          "val-965fec94a40d",
+          "val-a61f3e7a46be",
+          "val-b34a14d89ed0",
+          "val-da5a467d0ee2"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "deterministic",
+        "basis": [
+          "val-0fa7fad2b986",
+          "val-2cc533134ad0",
+          "val-965fec94a40d",
+          "val-a61f3e7a46be",
+          "val-b34a14d89ed0",
+          "val-da5a467d0ee2"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-e04196feb124"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "deterministic",
+        "basis": [
+          "val-11442e8691b4",
+          "val-924e65a09775",
+          "val-f6cfd067d15e"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-726387f7887e",
+        "kind": "document",
+        "sourceId": "release-notes-blog",
+        "uri": "https://github.com/kyverno/website/blob/main/src/content/blog/announcing-kyverno-release-1.13/index.md",
+        "locator": "L274-L361 (Other Features and Enhancements › Generate Changes)",
+        "excerpt": "### Generate Changes\n\nThe `foreach` declaration allows the generation of multiple target resources of sub-elements in resource declarations. Each `foreach` entry must contain a list attribute, written as a JMESPath expression without braces, that defines sub-elements it processes.\n\nHere is an example of creating networkpolicies for a list of Namespaces, the namespaces are stored in a ConfigMap which can be easily configured dynamically.\n\n```yaml\napiVersion: kyverno.io/v1\nkind: ClusterPolicy\nmetadata:\n  name: foreach-generate-data\nspec:\n  rules:\n    - match:\n        any:\n          - resources:\n…",
+        "contentDigest": "sha256:7003865f075ba01cdc5d733756c6473f3127141fc7a370118d60a3fe94c70652",
+        "retrievedAt": "2026-10-02T10:53:16Z"
+      },
+      {
+        "id": "ev-a5105c99211a",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach: ∅ → {\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated resourc…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach",
+          "change": "field-added",
+          "after": "{\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated resource.\\nAt most one of Data or Clone can be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"properties\":{\"name\":{\"description\":\"Name specifies name of the resource.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"}},\"type\":\"object\"},\"cloneList\":{\"description\":\"CloneList specifies the list of source resource used to populate each generated resource.\",\"properties\":{\"kinds\":{\"description\":\"Kinds is a list of resource kinds.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"},\"selector\":{\"description\":\"Selector is a label selector. Label keys and values in `matchLabels`.\\nwildcard characters are not supported.\",\"properties\":{\"matchExpressions\":{\"description\":\"matchExpressions is a list of label selector requirements. The requirements are ANDed.\",\"items\":{\"description\":\"A label selector requirement is a selector that contains values, a key, and an operator that\\nrelates the key and values.\",\"properties\":{\"key\":{\"description\":\"key is the label key that the selector applies to.\",\"type\":\"string\"},\"operator\":{\"description\":\"operator represents a key's relationship to a set of values.\\nValid operators are In, NotIn, Exists and DoesNotExist.\",\"type\":\"string\"},\"values\":{\"description\":\"values is an array of string values. If the operator is In or NotIn,\\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\\nthe values array must be empty. This array is replaced during a strategic\\nmerge patch.\",\"items\":{\"type\":\"string\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"}},\"required\":[\"key\",\"operator\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"},\"matchLabels\":{\"additionalProperties\":{\"type\":\"string\"},\"description\":\"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\\nmap is equivalent to an element of matchExpressions, whose key field is \\\"key\\\", the\\noperator is \\\"In\\\", and the values array contains only \\\"value\\\". The requirements are ANDed.\",\"type\":\"object\"}},\"type\":\"object\",\"x-kubernetes-map-type\":\"atomic\"}},\"type\":\"object\"},\"context\":{\"description\":\"Context defines variables and data sources that can be used during rule execution.\",\"items\":{\"description\":\"ContextEntry adds variables and data sources to a rule Context. Either a\\nConfigMap reference or a APILookup must be provided.\",\"oneOf\":[{\"required\":[\"configMap\"]},{\"required\":[\"apiCall\"]},{\"required\":[\"imageRegistry\"]},{\"required\":[\"variable\"]},{\"required\":[\"globalReference\"]}],\"properties\":{\"apiCall\":{\"description\":\"APICall is an HTTP request to the Kubernetes API server, or other JSON web service.\\nThe data returned is stored in the context with the name for the context entry.\",\"properties\":{\"data\":{\"description\":\"The data object specifies the POST data sent to the server.\\nOnly applicable when the method field is set to POST.\",\"items\":{\"description\":\"RequestData contains the HTTP POST data\",\"properties\":{\"key\":{\"description\":\"Key is a unique identifier for the data value\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the data value\",\"x-kubernetes-preserve-unknown-fields\":true}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"method\":{\"default\":\"GET\",\"description\":\"Method is the HTTP request type (GET or POST). Defaults to GET.\",\"enum\":[\"GET\",\"POST\"],\"type\":\"string\"},\"service\":{\"description\":\"Service is an API call to a JSON web service.\\nThis is used for non-Kubernetes API server calls.\\nIt's mutually exclusive with the URLPath field.\",\"properties\":{\"caBundle\":{\"description\":\"CABundle is a PEM encoded CA bundle which will be used to validate\\nthe server certificate.\",\"type\":\"string\"},\"headers\":{\"description\":\"Headers is a list of optional HTTP headers to be included in the request.\",\"items\":{\"properties\":{\"key\":{\"description\":\"Key is the header key\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the header value\",\"type\":\"string\"}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"url\":{\"description\":\"URL is the JSON web service URL. A typical form is\\n`https://{service}.{namespace}:{port}/{path}`.\",\"type\":\"string\"}},\"required\":[\"url\"],\"type\":\"object\"},\"urlPath\":{\"description\":\"URLPath is the URL path to be used in the HTTP GET or POST request to the\\nKubernetes API server (e.g. \\\"/api/v1/namespaces\\\" or  \\\"/apis/apps/v1/deployments\\\").\\nThe format required is the same format used by the `kubectl get --raw` command.\\nSee https://kyverno.io/docs/writing-policies/external-data-sources/#variables-from-kubernetes-api-server-calls\\nfor details.\\nIt's mutually exclusive with the Service field.\",\"type\":\"string\"}},\"type\":\"object\"},\"configMap\":{\"description\":\"ConfigMap is the ConfigMap reference.\",\"properties\":{\"name\":{\"description\":\"Name is the ConfigMap name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace is the ConfigMap namespace.\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"globalReference\":{\"description\":\"GlobalContextEntryReference is a reference to a cached global context entry.\",\"properties\":{\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"name\":{\"description\":\"Name of the global context entry\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"imageRegistry\":{\"description\":\"ImageRegistry defines requests to an OCI/Docker V2 registry to fetch image\\ndetails.\",\"properties\":{\"imageRegistryCredentials\":{\"description\":\"ImageRegistryCredentials provides credentials that will be used for authentication with registry\",\"properties\":{\"allowInsecureRegistry\":{\"description\":\"AllowInsecureRegistry allows insecure access to a registry.\",\"type\":\"boolean\"},\"providers\":{\"description\":\"Providers specifies a list of OCI Registry names, whose authentication providers are provided.\\nIt can be of one of these values: default,google,azure,amazon,github.\",\"items\":{\"description\":\"ImageRegistryCredentialsProvidersType provides the list of credential providers required.\",\"enum\":[\"default\",\"amazon\",\"azure\",\"google\",\"github\"],\"type\":\"string\"},\"type\":\"array\"},\"secrets\":{\"description\":\"Secrets specifies a list of secrets that are provided for credentials.\\nSecrets must live in the Kyverno namespace.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"object\"},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the ImageData struct returned as a result of processing\\nthe image reference.\",\"type\":\"string\"},\"reference\":{\"description\":\"Reference is image reference to a container image in the registry.\\nExample: ghcr.io/kyverno/kyverno:latest\",\"type\":\"string\"}},\"required\":[\"reference\"],\"type\":\"object\"},\"name\":{\"description\":\"Name is the variable name.\",\"type\":\"string\"},\"variable\":{\"description\":\"Variable defines an arbitrary JMESPath context variable that can be defined inline.\",\"properties\":{\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the variable may take if the JMESPath\\nexpression evaluates to nil\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JMESPath Expression that can be used to\\ntransform the variable.\",\"type\":\"string\"},\"value\":{\"description\":\"Value is any arbitrary JSON object representable in YAML or JSON form.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"}},\"required\":[\"name\"],\"type\":\"object\"},\"type\":\"array\"},\"data\":{\"description\":\"Data provides the resource declaration used to populate each generated resource.\\nAt most one of Data or Clone must be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"x-kubernetes-preserve-unknown-fields\":true},\"kind\":{\"description\":\"Kind specifies resource kind.\",\"type\":\"string\"},\"list\":{\"description\":\"List specifies a JMESPath expression that results in one or more elements\\nto which the validation logic is applied.\",\"type\":\"string\"},\"name\":{\"description\":\"Name specifies the resource name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies resource namespace.\",\"type\":\"string\"},\"preconditions\":{\"description\":\"AnyAllConditions are used to determine if a policy rule should be applied by evaluating a\\nset of conditions. The declaration can contain nested `any` or `all` statements.\\nSee: https://kyverno.io/docs/writing-policies/preconditions/\",\"properties\":{\"all\":{\"description\":\"AllConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, all of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"},\"any\":{\"description\":\"AnyConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, at least one of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"}},\"type\":\"object\",\"x-kubernetes-preserve-unknown-fields\":true},\"uid\":{\"description\":\"UID specifies the resource uid.\",\"type\":\"string\"}},\"type\":\"object\"},\"type\":\"array\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-66b97868c09d",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach: ∅ → {\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate e…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach",
+          "change": "field-added",
+          "after": "{\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated resource.\\nAt most one of Data or Clone can be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"properties\":{\"name\":{\"description\":\"Name specifies name of the resource.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"}},\"type\":\"object\"},\"cloneList\":{\"description\":\"CloneList specifies the list of source resource used to populate each generated resource.\",\"properties\":{\"kinds\":{\"description\":\"Kinds is a list of resource kinds.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"},\"selector\":{\"description\":\"Selector is a label selector. Label keys and values in `matchLabels`.\\nwildcard characters are not supported.\",\"properties\":{\"matchExpressions\":{\"description\":\"matchExpressions is a list of label selector requirements. The requirements are ANDed.\",\"items\":{\"description\":\"A label selector requirement is a selector that contains values, a key, and an operator that\\nrelates the key and values.\",\"properties\":{\"key\":{\"description\":\"key is the label key that the selector applies to.\",\"type\":\"string\"},\"operator\":{\"description\":\"operator represents a key's relationship to a set of values.\\nValid operators are In, NotIn, Exists and DoesNotExist.\",\"type\":\"string\"},\"values\":{\"description\":\"values is an array of string values. If the operator is In or NotIn,\\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\\nthe values array must be empty. This array is replaced during a strategic\\nmerge patch.\",\"items\":{\"type\":\"string\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"}},\"required\":[\"key\",\"operator\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"},\"matchLabels\":{\"additionalProperties\":{\"type\":\"string\"},\"description\":\"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\\nmap is equivalent to an element of matchExpressions, whose key field is \\\"key\\\", the\\noperator is \\\"In\\\", and the values array contains only \\\"value\\\". The requirements are ANDed.\",\"type\":\"object\"}},\"type\":\"object\",\"x-kubernetes-map-type\":\"atomic\"}},\"type\":\"object\"},\"context\":{\"description\":\"Context defines variables and data sources that can be used during rule execution.\",\"items\":{\"description\":\"ContextEntry adds variables and data sources to a rule Context. Either a\\nConfigMap reference or a APILookup must be provided.\",\"oneOf\":[{\"required\":[\"configMap\"]},{\"required\":[\"apiCall\"]},{\"required\":[\"imageRegistry\"]},{\"required\":[\"variable\"]},{\"required\":[\"globalReference\"]}],\"properties\":{\"apiCall\":{\"description\":\"APICall is an HTTP request to the Kubernetes API server, or other JSON web service.\\nThe data returned is stored in the context with the name for the context entry.\",\"properties\":{\"data\":{\"description\":\"The data object specifies the POST data sent to the server.\\nOnly applicable when the method field is set to POST.\",\"items\":{\"description\":\"RequestData contains the HTTP POST data\",\"properties\":{\"key\":{\"description\":\"Key is a unique identifier for the data value\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the data value\",\"x-kubernetes-preserve-unknown-fields\":true}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"method\":{\"default\":\"GET\",\"description\":\"Method is the HTTP request type (GET or POST). Defaults to GET.\",\"enum\":[\"GET\",\"POST\"],\"type\":\"string\"},\"service\":{\"description\":\"Service is an API call to a JSON web service.\\nThis is used for non-Kubernetes API server calls.\\nIt's mutually exclusive with the URLPath field.\",\"properties\":{\"caBundle\":{\"description\":\"CABundle is a PEM encoded CA bundle which will be used to validate\\nthe server certificate.\",\"type\":\"string\"},\"headers\":{\"description\":\"Headers is a list of optional HTTP headers to be included in the request.\",\"items\":{\"properties\":{\"key\":{\"description\":\"Key is the header key\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the header value\",\"type\":\"string\"}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"url\":{\"description\":\"URL is the JSON web service URL. A typical form is\\n`https://{service}.{namespace}:{port}/{path}`.\",\"type\":\"string\"}},\"required\":[\"url\"],\"type\":\"object\"},\"urlPath\":{\"description\":\"URLPath is the URL path to be used in the HTTP GET or POST request to the\\nKubernetes API server (e.g. \\\"/api/v1/namespaces\\\" or  \\\"/apis/apps/v1/deployments\\\").\\nThe format required is the same format used by the `kubectl get --raw` command.\\nSee https://kyverno.io/docs/writing-policies/external-data-sources/#variables-from-kubernetes-api-server-calls\\nfor details.\\nIt's mutually exclusive with the Service field.\",\"type\":\"string\"}},\"type\":\"object\"},\"configMap\":{\"description\":\"ConfigMap is the ConfigMap reference.\",\"properties\":{\"name\":{\"description\":\"Name is the ConfigMap name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace is the ConfigMap namespace.\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"globalReference\":{\"description\":\"GlobalContextEntryReference is a reference to a cached global context entry.\",\"properties\":{\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"name\":{\"description\":\"Name of the global context entry\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"imageRegistry\":{\"description\":\"ImageRegistry defines requests to an OCI/Docker V2 registry to fetch image\\ndetails.\",\"properties\":{\"imageRegistryCredentials\":{\"description\":\"ImageRegistryCredentials provides credentials that will be used for authentication with registry\",\"properties\":{\"allowInsecureRegistry\":{\"description\":\"AllowInsecureRegistry allows insecure access to a registry.\",\"type\":\"boolean\"},\"providers\":{\"description\":\"Providers specifies a list of OCI Registry names, whose authentication providers are provided.\\nIt can be of one of these values: default,google,azure,amazon,github.\",\"items\":{\"description\":\"ImageRegistryCredentialsProvidersType provides the list of credential providers required.\",\"enum\":[\"default\",\"amazon\",\"azure\",\"google\",\"github\"],\"type\":\"string\"},\"type\":\"array\"},\"secrets\":{\"description\":\"Secrets specifies a list of secrets that are provided for credentials.\\nSecrets must live in the Kyverno namespace.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"object\"},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the ImageData struct returned as a result of processing\\nthe image reference.\",\"type\":\"string\"},\"reference\":{\"description\":\"Reference is image reference to a container image in the registry.\\nExample: ghcr.io/kyverno/kyverno:latest\",\"type\":\"string\"}},\"required\":[\"reference\"],\"type\":\"object\"},\"name\":{\"description\":\"Name is the variable name.\",\"type\":\"string\"},\"variable\":{\"description\":\"Variable defines an arbitrary JMESPath context variable that can be defined inline.\",\"properties\":{\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the variable may take if the JMESPath\\nexpression evaluates to nil\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JMESPath Expression that can be used to\\ntransform the variable.\",\"type\":\"string\"},\"value\":{\"description\":\"Value is any arbitrary JSON object representable in YAML or JSON form.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"}},\"required\":[\"name\"],\"type\":\"object\"},\"type\":\"array\"},\"data\":{\"description\":\"Data provides the resource declaration used to populate each generated resource.\\nAt most one of Data or Clone must be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"x-kubernetes-preserve-unknown-fields\":true},\"kind\":{\"description\":\"Kind specifies resource kind.\",\"type\":\"string\"},\"list\":{\"description\":\"List specifies a JMESPath expression that results in one or more elements\\nto which the validation logic is applied.\",\"type\":\"string\"},\"name\":{\"description\":\"Name specifies the resource name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies resource namespace.\",\"type\":\"string\"},\"preconditions\":{\"description\":\"AnyAllConditions are used to determine if a policy rule should be applied by evaluating a\\nset of conditions. The declaration can contain nested `any` or `all` statements.\\nSee: https://kyverno.io/docs/writing-policies/preconditions/\",\"properties\":{\"all\":{\"description\":\"AllConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, all of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"},\"any\":{\"description\":\"AnyConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, at least one of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"}},\"type\":\"object\",\"x-kubernetes-preserve-unknown-fields\":true},\"uid\":{\"description\":\"UID specifies the resource uid.\",\"type\":\"string\"}},\"type\":\"object\"},\"type\":\"array\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-0c9dcecb69f5",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach: ∅ → {\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated re…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach",
+          "change": "field-added",
+          "after": "{\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated resource.\\nAt most one of Data or Clone can be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"properties\":{\"name\":{\"description\":\"Name specifies name of the resource.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"}},\"type\":\"object\"},\"cloneList\":{\"description\":\"CloneList specifies the list of source resource used to populate each generated resource.\",\"properties\":{\"kinds\":{\"description\":\"Kinds is a list of resource kinds.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"},\"selector\":{\"description\":\"Selector is a label selector. Label keys and values in `matchLabels`.\\nwildcard characters are not supported.\",\"properties\":{\"matchExpressions\":{\"description\":\"matchExpressions is a list of label selector requirements. The requirements are ANDed.\",\"items\":{\"description\":\"A label selector requirement is a selector that contains values, a key, and an operator that\\nrelates the key and values.\",\"properties\":{\"key\":{\"description\":\"key is the label key that the selector applies to.\",\"type\":\"string\"},\"operator\":{\"description\":\"operator represents a key's relationship to a set of values.\\nValid operators are In, NotIn, Exists and DoesNotExist.\",\"type\":\"string\"},\"values\":{\"description\":\"values is an array of string values. If the operator is In or NotIn,\\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\\nthe values array must be empty. This array is replaced during a strategic\\nmerge patch.\",\"items\":{\"type\":\"string\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"}},\"required\":[\"key\",\"operator\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"},\"matchLabels\":{\"additionalProperties\":{\"type\":\"string\"},\"description\":\"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\\nmap is equivalent to an element of matchExpressions, whose key field is \\\"key\\\", the\\noperator is \\\"In\\\", and the values array contains only \\\"value\\\". The requirements are ANDed.\",\"type\":\"object\"}},\"type\":\"object\",\"x-kubernetes-map-type\":\"atomic\"}},\"type\":\"object\"},\"context\":{\"description\":\"Context defines variables and data sources that can be used during rule execution.\",\"items\":{\"description\":\"ContextEntry adds variables and data sources to a rule Context. Either a\\nConfigMap reference or a APILookup must be provided.\",\"oneOf\":[{\"required\":[\"configMap\"]},{\"required\":[\"apiCall\"]},{\"required\":[\"imageRegistry\"]},{\"required\":[\"variable\"]},{\"required\":[\"globalReference\"]}],\"properties\":{\"apiCall\":{\"description\":\"APICall is an HTTP request to the Kubernetes API server, or other JSON web service.\\nThe data returned is stored in the context with the name for the context entry.\",\"properties\":{\"data\":{\"description\":\"The data object specifies the POST data sent to the server.\\nOnly applicable when the method field is set to POST.\",\"items\":{\"description\":\"RequestData contains the HTTP POST data\",\"properties\":{\"key\":{\"description\":\"Key is a unique identifier for the data value\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the data value\",\"x-kubernetes-preserve-unknown-fields\":true}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"method\":{\"default\":\"GET\",\"description\":\"Method is the HTTP request type (GET or POST). Defaults to GET.\",\"enum\":[\"GET\",\"POST\"],\"type\":\"string\"},\"service\":{\"description\":\"Service is an API call to a JSON web service.\\nThis is used for non-Kubernetes API server calls.\\nIt's mutually exclusive with the URLPath field.\",\"properties\":{\"caBundle\":{\"description\":\"CABundle is a PEM encoded CA bundle which will be used to validate\\nthe server certificate.\",\"type\":\"string\"},\"headers\":{\"description\":\"Headers is a list of optional HTTP headers to be included in the request.\",\"items\":{\"properties\":{\"key\":{\"description\":\"Key is the header key\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the header value\",\"type\":\"string\"}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"url\":{\"description\":\"URL is the JSON web service URL. A typical form is\\n`https://{service}.{namespace}:{port}/{path}`.\",\"type\":\"string\"}},\"required\":[\"url\"],\"type\":\"object\"},\"urlPath\":{\"description\":\"URLPath is the URL path to be used in the HTTP GET or POST request to the\\nKubernetes API server (e.g. \\\"/api/v1/namespaces\\\" or  \\\"/apis/apps/v1/deployments\\\").\\nThe format required is the same format used by the `kubectl get --raw` command.\\nSee https://kyverno.io/docs/writing-policies/external-data-sources/#variables-from-kubernetes-api-server-calls\\nfor details.\\nIt's mutually exclusive with the Service field.\",\"type\":\"string\"}},\"type\":\"object\"},\"configMap\":{\"description\":\"ConfigMap is the ConfigMap reference.\",\"properties\":{\"name\":{\"description\":\"Name is the ConfigMap name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace is the ConfigMap namespace.\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"globalReference\":{\"description\":\"GlobalContextEntryReference is a reference to a cached global context entry.\",\"properties\":{\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"name\":{\"description\":\"Name of the global context entry\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"imageRegistry\":{\"description\":\"ImageRegistry defines requests to an OCI/Docker V2 registry to fetch image\\ndetails.\",\"properties\":{\"imageRegistryCredentials\":{\"description\":\"ImageRegistryCredentials provides credentials that will be used for authentication with registry\",\"properties\":{\"allowInsecureRegistry\":{\"description\":\"AllowInsecureRegistry allows insecure access to a registry.\",\"type\":\"boolean\"},\"providers\":{\"description\":\"Providers specifies a list of OCI Registry names, whose authentication providers are provided.\\nIt can be of one of these values: default,google,azure,amazon,github.\",\"items\":{\"description\":\"ImageRegistryCredentialsProvidersType provides the list of credential providers required.\",\"enum\":[\"default\",\"amazon\",\"azure\",\"google\",\"github\"],\"type\":\"string\"},\"type\":\"array\"},\"secrets\":{\"description\":\"Secrets specifies a list of secrets that are provided for credentials.\\nSecrets must live in the Kyverno namespace.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"object\"},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the ImageData struct returned as a result of processing\\nthe image reference.\",\"type\":\"string\"},\"reference\":{\"description\":\"Reference is image reference to a container image in the registry.\\nExample: ghcr.io/kyverno/kyverno:latest\",\"type\":\"string\"}},\"required\":[\"reference\"],\"type\":\"object\"},\"name\":{\"description\":\"Name is the variable name.\",\"type\":\"string\"},\"variable\":{\"description\":\"Variable defines an arbitrary JMESPath context variable that can be defined inline.\",\"properties\":{\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the variable may take if the JMESPath\\nexpression evaluates to nil\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JMESPath Expression that can be used to\\ntransform the variable.\",\"type\":\"string\"},\"value\":{\"description\":\"Value is any arbitrary JSON object representable in YAML or JSON form.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"}},\"required\":[\"name\"],\"type\":\"object\"},\"type\":\"array\"},\"data\":{\"description\":\"Data provides the resource declaration used to populate each generated resource.\\nAt most one of Data or Clone must be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"x-kubernetes-preserve-unknown-fields\":true},\"kind\":{\"description\":\"Kind specifies resource kind.\",\"type\":\"string\"},\"list\":{\"description\":\"List specifies a JMESPath expression that results in one or more elements\\nto which the validation logic is applied.\",\"type\":\"string\"},\"name\":{\"description\":\"Name specifies the resource name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies resource namespace.\",\"type\":\"string\"},\"preconditions\":{\"description\":\"AnyAllConditions are used to determine if a policy rule should be applied by evaluating a\\nset of conditions. The declaration can contain nested `any` or `all` statements.\\nSee: https://kyverno.io/docs/writing-policies/preconditions/\",\"properties\":{\"all\":{\"description\":\"AllConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, all of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"},\"any\":{\"description\":\"AnyConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, at least one of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"}},\"type\":\"object\",\"x-kubernetes-preserve-unknown-fields\":true},\"uid\":{\"description\":\"UID specifies the resource uid.\",\"type\":\"string\"}},\"type\":\"object\"},\"type\":\"array\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-6cd934b620dc",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach: ∅ → {\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to popul…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach",
+          "change": "field-added",
+          "after": "{\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated resource.\\nAt most one of Data or Clone can be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"properties\":{\"name\":{\"description\":\"Name specifies name of the resource.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"}},\"type\":\"object\"},\"cloneList\":{\"description\":\"CloneList specifies the list of source resource used to populate each generated resource.\",\"properties\":{\"kinds\":{\"description\":\"Kinds is a list of resource kinds.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"},\"selector\":{\"description\":\"Selector is a label selector. Label keys and values in `matchLabels`.\\nwildcard characters are not supported.\",\"properties\":{\"matchExpressions\":{\"description\":\"matchExpressions is a list of label selector requirements. The requirements are ANDed.\",\"items\":{\"description\":\"A label selector requirement is a selector that contains values, a key, and an operator that\\nrelates the key and values.\",\"properties\":{\"key\":{\"description\":\"key is the label key that the selector applies to.\",\"type\":\"string\"},\"operator\":{\"description\":\"operator represents a key's relationship to a set of values.\\nValid operators are In, NotIn, Exists and DoesNotExist.\",\"type\":\"string\"},\"values\":{\"description\":\"values is an array of string values. If the operator is In or NotIn,\\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\\nthe values array must be empty. This array is replaced during a strategic\\nmerge patch.\",\"items\":{\"type\":\"string\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"}},\"required\":[\"key\",\"operator\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"},\"matchLabels\":{\"additionalProperties\":{\"type\":\"string\"},\"description\":\"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\\nmap is equivalent to an element of matchExpressions, whose key field is \\\"key\\\", the\\noperator is \\\"In\\\", and the values array contains only \\\"value\\\". The requirements are ANDed.\",\"type\":\"object\"}},\"type\":\"object\",\"x-kubernetes-map-type\":\"atomic\"}},\"type\":\"object\"},\"context\":{\"description\":\"Context defines variables and data sources that can be used during rule execution.\",\"items\":{\"description\":\"ContextEntry adds variables and data sources to a rule Context. Either a\\nConfigMap reference or a APILookup must be provided.\",\"oneOf\":[{\"required\":[\"configMap\"]},{\"required\":[\"apiCall\"]},{\"required\":[\"imageRegistry\"]},{\"required\":[\"variable\"]},{\"required\":[\"globalReference\"]}],\"properties\":{\"apiCall\":{\"description\":\"APICall is an HTTP request to the Kubernetes API server, or other JSON web service.\\nThe data returned is stored in the context with the name for the context entry.\",\"properties\":{\"data\":{\"description\":\"The data object specifies the POST data sent to the server.\\nOnly applicable when the method field is set to POST.\",\"items\":{\"description\":\"RequestData contains the HTTP POST data\",\"properties\":{\"key\":{\"description\":\"Key is a unique identifier for the data value\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the data value\",\"x-kubernetes-preserve-unknown-fields\":true}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"method\":{\"default\":\"GET\",\"description\":\"Method is the HTTP request type (GET or POST). Defaults to GET.\",\"enum\":[\"GET\",\"POST\"],\"type\":\"string\"},\"service\":{\"description\":\"Service is an API call to a JSON web service.\\nThis is used for non-Kubernetes API server calls.\\nIt's mutually exclusive with the URLPath field.\",\"properties\":{\"caBundle\":{\"description\":\"CABundle is a PEM encoded CA bundle which will be used to validate\\nthe server certificate.\",\"type\":\"string\"},\"headers\":{\"description\":\"Headers is a list of optional HTTP headers to be included in the request.\",\"items\":{\"properties\":{\"key\":{\"description\":\"Key is the header key\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the header value\",\"type\":\"string\"}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"url\":{\"description\":\"URL is the JSON web service URL. A typical form is\\n`https://{service}.{namespace}:{port}/{path}`.\",\"type\":\"string\"}},\"required\":[\"url\"],\"type\":\"object\"},\"urlPath\":{\"description\":\"URLPath is the URL path to be used in the HTTP GET or POST request to the\\nKubernetes API server (e.g. \\\"/api/v1/namespaces\\\" or  \\\"/apis/apps/v1/deployments\\\").\\nThe format required is the same format used by the `kubectl get --raw` command.\\nSee https://kyverno.io/docs/writing-policies/external-data-sources/#variables-from-kubernetes-api-server-calls\\nfor details.\\nIt's mutually exclusive with the Service field.\",\"type\":\"string\"}},\"type\":\"object\"},\"configMap\":{\"description\":\"ConfigMap is the ConfigMap reference.\",\"properties\":{\"name\":{\"description\":\"Name is the ConfigMap name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace is the ConfigMap namespace.\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"globalReference\":{\"description\":\"GlobalContextEntryReference is a reference to a cached global context entry.\",\"properties\":{\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"name\":{\"description\":\"Name of the global context entry\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"imageRegistry\":{\"description\":\"ImageRegistry defines requests to an OCI/Docker V2 registry to fetch image\\ndetails.\",\"properties\":{\"imageRegistryCredentials\":{\"description\":\"ImageRegistryCredentials provides credentials that will be used for authentication with registry\",\"properties\":{\"allowInsecureRegistry\":{\"description\":\"AllowInsecureRegistry allows insecure access to a registry.\",\"type\":\"boolean\"},\"providers\":{\"description\":\"Providers specifies a list of OCI Registry names, whose authentication providers are provided.\\nIt can be of one of these values: default,google,azure,amazon,github.\",\"items\":{\"description\":\"ImageRegistryCredentialsProvidersType provides the list of credential providers required.\",\"enum\":[\"default\",\"amazon\",\"azure\",\"google\",\"github\"],\"type\":\"string\"},\"type\":\"array\"},\"secrets\":{\"description\":\"Secrets specifies a list of secrets that are provided for credentials.\\nSecrets must live in the Kyverno namespace.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"object\"},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the ImageData struct returned as a result of processing\\nthe image reference.\",\"type\":\"string\"},\"reference\":{\"description\":\"Reference is image reference to a container image in the registry.\\nExample: ghcr.io/kyverno/kyverno:latest\",\"type\":\"string\"}},\"required\":[\"reference\"],\"type\":\"object\"},\"name\":{\"description\":\"Name is the variable name.\",\"type\":\"string\"},\"variable\":{\"description\":\"Variable defines an arbitrary JMESPath context variable that can be defined inline.\",\"properties\":{\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the variable may take if the JMESPath\\nexpression evaluates to nil\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JMESPath Expression that can be used to\\ntransform the variable.\",\"type\":\"string\"},\"value\":{\"description\":\"Value is any arbitrary JSON object representable in YAML or JSON form.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"}},\"required\":[\"name\"],\"type\":\"object\"},\"type\":\"array\"},\"data\":{\"description\":\"Data provides the resource declaration used to populate each generated resource.\\nAt most one of Data or Clone must be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"x-kubernetes-preserve-unknown-fields\":true},\"kind\":{\"description\":\"Kind specifies resource kind.\",\"type\":\"string\"},\"list\":{\"description\":\"List specifies a JMESPath expression that results in one or more elements\\nto which the validation logic is applied.\",\"type\":\"string\"},\"name\":{\"description\":\"Name specifies the resource name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies resource namespace.\",\"type\":\"string\"},\"preconditions\":{\"description\":\"AnyAllConditions are used to determine if a policy rule should be applied by evaluating a\\nset of conditions. The declaration can contain nested `any` or `all` statements.\\nSee: https://kyverno.io/docs/writing-policies/preconditions/\",\"properties\":{\"all\":{\"description\":\"AllConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, all of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"},\"any\":{\"description\":\"AnyConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, at least one of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"}},\"type\":\"object\",\"x-kubernetes-preserve-unknown-fields\":true},\"uid\":{\"description\":\"UID specifies the resource uid.\",\"type\":\"string\"}},\"type\":\"object\"},\"type\":\"array\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-80a3d7b119e2",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach: ∅ → {\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated resource.\\nAt …",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach",
+          "change": "field-added",
+          "after": "{\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated resource.\\nAt most one of Data or Clone can be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"properties\":{\"name\":{\"description\":\"Name specifies name of the resource.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"}},\"type\":\"object\"},\"cloneList\":{\"description\":\"CloneList specifies the list of source resource used to populate each generated resource.\",\"properties\":{\"kinds\":{\"description\":\"Kinds is a list of resource kinds.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"},\"selector\":{\"description\":\"Selector is a label selector. Label keys and values in `matchLabels`.\\nwildcard characters are not supported.\",\"properties\":{\"matchExpressions\":{\"description\":\"matchExpressions is a list of label selector requirements. The requirements are ANDed.\",\"items\":{\"description\":\"A label selector requirement is a selector that contains values, a key, and an operator that\\nrelates the key and values.\",\"properties\":{\"key\":{\"description\":\"key is the label key that the selector applies to.\",\"type\":\"string\"},\"operator\":{\"description\":\"operator represents a key's relationship to a set of values.\\nValid operators are In, NotIn, Exists and DoesNotExist.\",\"type\":\"string\"},\"values\":{\"description\":\"values is an array of string values. If the operator is In or NotIn,\\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\\nthe values array must be empty. This array is replaced during a strategic\\nmerge patch.\",\"items\":{\"type\":\"string\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"}},\"required\":[\"key\",\"operator\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"},\"matchLabels\":{\"additionalProperties\":{\"type\":\"string\"},\"description\":\"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\\nmap is equivalent to an element of matchExpressions, whose key field is \\\"key\\\", the\\noperator is \\\"In\\\", and the values array contains only \\\"value\\\". The requirements are ANDed.\",\"type\":\"object\"}},\"type\":\"object\",\"x-kubernetes-map-type\":\"atomic\"}},\"type\":\"object\"},\"context\":{\"description\":\"Context defines variables and data sources that can be used during rule execution.\",\"items\":{\"description\":\"ContextEntry adds variables and data sources to a rule Context. Either a\\nConfigMap reference or a APILookup must be provided.\",\"oneOf\":[{\"required\":[\"configMap\"]},{\"required\":[\"apiCall\"]},{\"required\":[\"imageRegistry\"]},{\"required\":[\"variable\"]},{\"required\":[\"globalReference\"]}],\"properties\":{\"apiCall\":{\"description\":\"APICall is an HTTP request to the Kubernetes API server, or other JSON web service.\\nThe data returned is stored in the context with the name for the context entry.\",\"properties\":{\"data\":{\"description\":\"The data object specifies the POST data sent to the server.\\nOnly applicable when the method field is set to POST.\",\"items\":{\"description\":\"RequestData contains the HTTP POST data\",\"properties\":{\"key\":{\"description\":\"Key is a unique identifier for the data value\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the data value\",\"x-kubernetes-preserve-unknown-fields\":true}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"method\":{\"default\":\"GET\",\"description\":\"Method is the HTTP request type (GET or POST). Defaults to GET.\",\"enum\":[\"GET\",\"POST\"],\"type\":\"string\"},\"service\":{\"description\":\"Service is an API call to a JSON web service.\\nThis is used for non-Kubernetes API server calls.\\nIt's mutually exclusive with the URLPath field.\",\"properties\":{\"caBundle\":{\"description\":\"CABundle is a PEM encoded CA bundle which will be used to validate\\nthe server certificate.\",\"type\":\"string\"},\"headers\":{\"description\":\"Headers is a list of optional HTTP headers to be included in the request.\",\"items\":{\"properties\":{\"key\":{\"description\":\"Key is the header key\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the header value\",\"type\":\"string\"}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"url\":{\"description\":\"URL is the JSON web service URL. A typical form is\\n`https://{service}.{namespace}:{port}/{path}`.\",\"type\":\"string\"}},\"required\":[\"url\"],\"type\":\"object\"},\"urlPath\":{\"description\":\"URLPath is the URL path to be used in the HTTP GET or POST request to the\\nKubernetes API server (e.g. \\\"/api/v1/namespaces\\\" or  \\\"/apis/apps/v1/deployments\\\").\\nThe format required is the same format used by the `kubectl get --raw` command.\\nSee https://kyverno.io/docs/writing-policies/external-data-sources/#variables-from-kubernetes-api-server-calls\\nfor details.\\nIt's mutually exclusive with the Service field.\",\"type\":\"string\"}},\"type\":\"object\"},\"configMap\":{\"description\":\"ConfigMap is the ConfigMap reference.\",\"properties\":{\"name\":{\"description\":\"Name is the ConfigMap name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace is the ConfigMap namespace.\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"globalReference\":{\"description\":\"GlobalContextEntryReference is a reference to a cached global context entry.\",\"properties\":{\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"name\":{\"description\":\"Name of the global context entry\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"imageRegistry\":{\"description\":\"ImageRegistry defines requests to an OCI/Docker V2 registry to fetch image\\ndetails.\",\"properties\":{\"imageRegistryCredentials\":{\"description\":\"ImageRegistryCredentials provides credentials that will be used for authentication with registry\",\"properties\":{\"allowInsecureRegistry\":{\"description\":\"AllowInsecureRegistry allows insecure access to a registry.\",\"type\":\"boolean\"},\"providers\":{\"description\":\"Providers specifies a list of OCI Registry names, whose authentication providers are provided.\\nIt can be of one of these values: default,google,azure,amazon,github.\",\"items\":{\"description\":\"ImageRegistryCredentialsProvidersType provides the list of credential providers required.\",\"enum\":[\"default\",\"amazon\",\"azure\",\"google\",\"github\"],\"type\":\"string\"},\"type\":\"array\"},\"secrets\":{\"description\":\"Secrets specifies a list of secrets that are provided for credentials.\\nSecrets must live in the Kyverno namespace.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"object\"},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the ImageData struct returned as a result of processing\\nthe image reference.\",\"type\":\"string\"},\"reference\":{\"description\":\"Reference is image reference to a container image in the registry.\\nExample: ghcr.io/kyverno/kyverno:latest\",\"type\":\"string\"}},\"required\":[\"reference\"],\"type\":\"object\"},\"name\":{\"description\":\"Name is the variable name.\",\"type\":\"string\"},\"variable\":{\"description\":\"Variable defines an arbitrary JMESPath context variable that can be defined inline.\",\"properties\":{\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the variable may take if the JMESPath\\nexpression evaluates to nil\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JMESPath Expression that can be used to\\ntransform the variable.\",\"type\":\"string\"},\"value\":{\"description\":\"Value is any arbitrary JSON object representable in YAML or JSON form.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"}},\"required\":[\"name\"],\"type\":\"object\"},\"type\":\"array\"},\"data\":{\"description\":\"Data provides the resource declaration used to populate each generated resource.\\nAt most one of Data or Clone must be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"x-kubernetes-preserve-unknown-fields\":true},\"kind\":{\"description\":\"Kind specifies resource kind.\",\"type\":\"string\"},\"list\":{\"description\":\"List specifies a JMESPath expression that results in one or more elements\\nto which the validation logic is applied.\",\"type\":\"string\"},\"name\":{\"description\":\"Name specifies the resource name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies resource namespace.\",\"type\":\"string\"},\"preconditions\":{\"description\":\"AnyAllConditions are used to determine if a policy rule should be applied by evaluating a\\nset of conditions. The declaration can contain nested `any` or `all` statements.\\nSee: https://kyverno.io/docs/writing-policies/preconditions/\",\"properties\":{\"all\":{\"description\":\"AllConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, all of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"},\"any\":{\"description\":\"AnyConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, at least one of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"}},\"type\":\"object\",\"x-kubernetes-preserve-unknown-fields\":true},\"uid\":{\"description\":\"UID specifies the resource uid.\",\"type\":\"string\"}},\"type\":\"object\"},\"type\":\"array\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-82cbbfa8aad3",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach: ∅ → {\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each gen…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach",
+          "change": "field-added",
+          "after": "{\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated resource.\\nAt most one of Data or Clone can be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"properties\":{\"name\":{\"description\":\"Name specifies name of the resource.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"}},\"type\":\"object\"},\"cloneList\":{\"description\":\"CloneList specifies the list of source resource used to populate each generated resource.\",\"properties\":{\"kinds\":{\"description\":\"Kinds is a list of resource kinds.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"},\"selector\":{\"description\":\"Selector is a label selector. Label keys and values in `matchLabels`.\\nwildcard characters are not supported.\",\"properties\":{\"matchExpressions\":{\"description\":\"matchExpressions is a list of label selector requirements. The requirements are ANDed.\",\"items\":{\"description\":\"A label selector requirement is a selector that contains values, a key, and an operator that\\nrelates the key and values.\",\"properties\":{\"key\":{\"description\":\"key is the label key that the selector applies to.\",\"type\":\"string\"},\"operator\":{\"description\":\"operator represents a key's relationship to a set of values.\\nValid operators are In, NotIn, Exists and DoesNotExist.\",\"type\":\"string\"},\"values\":{\"description\":\"values is an array of string values. If the operator is In or NotIn,\\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\\nthe values array must be empty. This array is replaced during a strategic\\nmerge patch.\",\"items\":{\"type\":\"string\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"}},\"required\":[\"key\",\"operator\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"},\"matchLabels\":{\"additionalProperties\":{\"type\":\"string\"},\"description\":\"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\\nmap is equivalent to an element of matchExpressions, whose key field is \\\"key\\\", the\\noperator is \\\"In\\\", and the values array contains only \\\"value\\\". The requirements are ANDed.\",\"type\":\"object\"}},\"type\":\"object\",\"x-kubernetes-map-type\":\"atomic\"}},\"type\":\"object\"},\"context\":{\"description\":\"Context defines variables and data sources that can be used during rule execution.\",\"items\":{\"description\":\"ContextEntry adds variables and data sources to a rule Context. Either a\\nConfigMap reference or a APILookup must be provided.\",\"oneOf\":[{\"required\":[\"configMap\"]},{\"required\":[\"apiCall\"]},{\"required\":[\"imageRegistry\"]},{\"required\":[\"variable\"]},{\"required\":[\"globalReference\"]}],\"properties\":{\"apiCall\":{\"description\":\"APICall is an HTTP request to the Kubernetes API server, or other JSON web service.\\nThe data returned is stored in the context with the name for the context entry.\",\"properties\":{\"data\":{\"description\":\"The data object specifies the POST data sent to the server.\\nOnly applicable when the method field is set to POST.\",\"items\":{\"description\":\"RequestData contains the HTTP POST data\",\"properties\":{\"key\":{\"description\":\"Key is a unique identifier for the data value\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the data value\",\"x-kubernetes-preserve-unknown-fields\":true}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"method\":{\"default\":\"GET\",\"description\":\"Method is the HTTP request type (GET or POST). Defaults to GET.\",\"enum\":[\"GET\",\"POST\"],\"type\":\"string\"},\"service\":{\"description\":\"Service is an API call to a JSON web service.\\nThis is used for non-Kubernetes API server calls.\\nIt's mutually exclusive with the URLPath field.\",\"properties\":{\"caBundle\":{\"description\":\"CABundle is a PEM encoded CA bundle which will be used to validate\\nthe server certificate.\",\"type\":\"string\"},\"headers\":{\"description\":\"Headers is a list of optional HTTP headers to be included in the request.\",\"items\":{\"properties\":{\"key\":{\"description\":\"Key is the header key\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the header value\",\"type\":\"string\"}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"url\":{\"description\":\"URL is the JSON web service URL. A typical form is\\n`https://{service}.{namespace}:{port}/{path}`.\",\"type\":\"string\"}},\"required\":[\"url\"],\"type\":\"object\"},\"urlPath\":{\"description\":\"URLPath is the URL path to be used in the HTTP GET or POST request to the\\nKubernetes API server (e.g. \\\"/api/v1/namespaces\\\" or  \\\"/apis/apps/v1/deployments\\\").\\nThe format required is the same format used by the `kubectl get --raw` command.\\nSee https://kyverno.io/docs/writing-policies/external-data-sources/#variables-from-kubernetes-api-server-calls\\nfor details.\\nIt's mutually exclusive with the Service field.\",\"type\":\"string\"}},\"type\":\"object\"},\"configMap\":{\"description\":\"ConfigMap is the ConfigMap reference.\",\"properties\":{\"name\":{\"description\":\"Name is the ConfigMap name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace is the ConfigMap namespace.\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"globalReference\":{\"description\":\"GlobalContextEntryReference is a reference to a cached global context entry.\",\"properties\":{\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"name\":{\"description\":\"Name of the global context entry\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"imageRegistry\":{\"description\":\"ImageRegistry defines requests to an OCI/Docker V2 registry to fetch image\\ndetails.\",\"properties\":{\"imageRegistryCredentials\":{\"description\":\"ImageRegistryCredentials provides credentials that will be used for authentication with registry\",\"properties\":{\"allowInsecureRegistry\":{\"description\":\"AllowInsecureRegistry allows insecure access to a registry.\",\"type\":\"boolean\"},\"providers\":{\"description\":\"Providers specifies a list of OCI Registry names, whose authentication providers are provided.\\nIt can be of one of these values: default,google,azure,amazon,github.\",\"items\":{\"description\":\"ImageRegistryCredentialsProvidersType provides the list of credential providers required.\",\"enum\":[\"default\",\"amazon\",\"azure\",\"google\",\"github\"],\"type\":\"string\"},\"type\":\"array\"},\"secrets\":{\"description\":\"Secrets specifies a list of secrets that are provided for credentials.\\nSecrets must live in the Kyverno namespace.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"object\"},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the ImageData struct returned as a result of processing\\nthe image reference.\",\"type\":\"string\"},\"reference\":{\"description\":\"Reference is image reference to a container image in the registry.\\nExample: ghcr.io/kyverno/kyverno:latest\",\"type\":\"string\"}},\"required\":[\"reference\"],\"type\":\"object\"},\"name\":{\"description\":\"Name is the variable name.\",\"type\":\"string\"},\"variable\":{\"description\":\"Variable defines an arbitrary JMESPath context variable that can be defined inline.\",\"properties\":{\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the variable may take if the JMESPath\\nexpression evaluates to nil\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JMESPath Expression that can be used to\\ntransform the variable.\",\"type\":\"string\"},\"value\":{\"description\":\"Value is any arbitrary JSON object representable in YAML or JSON form.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"}},\"required\":[\"name\"],\"type\":\"object\"},\"type\":\"array\"},\"data\":{\"description\":\"Data provides the resource declaration used to populate each generated resource.\\nAt most one of Data or Clone must be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"x-kubernetes-preserve-unknown-fields\":true},\"kind\":{\"description\":\"Kind specifies resource kind.\",\"type\":\"string\"},\"list\":{\"description\":\"List specifies a JMESPath expression that results in one or more elements\\nto which the validation logic is applied.\",\"type\":\"string\"},\"name\":{\"description\":\"Name specifies the resource name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies resource namespace.\",\"type\":\"string\"},\"preconditions\":{\"description\":\"AnyAllConditions are used to determine if a policy rule should be applied by evaluating a\\nset of conditions. The declaration can contain nested `any` or `all` statements.\\nSee: https://kyverno.io/docs/writing-policies/preconditions/\",\"properties\":{\"all\":{\"description\":\"AllConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, all of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"},\"any\":{\"description\":\"AnyConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, at least one of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"}},\"type\":\"object\",\"x-kubernetes-preserve-unknown-fields\":true},\"uid\":{\"description\":\"UID specifies the resource uid.\",\"type\":\"string\"}},\"type\":\"object\"},\"type\":\"array\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-484cd9db978a",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach: ∅ → {\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated resource.…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.generate.properties.foreach",
+          "change": "field-added",
+          "after": "{\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated resource.\\nAt most one of Data or Clone can be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"properties\":{\"name\":{\"description\":\"Name specifies name of the resource.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"}},\"type\":\"object\"},\"cloneList\":{\"description\":\"CloneList specifies the list of source resource used to populate each generated resource.\",\"properties\":{\"kinds\":{\"description\":\"Kinds is a list of resource kinds.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"},\"selector\":{\"description\":\"Selector is a label selector. Label keys and values in `matchLabels`.\\nwildcard characters are not supported.\",\"properties\":{\"matchExpressions\":{\"description\":\"matchExpressions is a list of label selector requirements. The requirements are ANDed.\",\"items\":{\"description\":\"A label selector requirement is a selector that contains values, a key, and an operator that\\nrelates the key and values.\",\"properties\":{\"key\":{\"description\":\"key is the label key that the selector applies to.\",\"type\":\"string\"},\"operator\":{\"description\":\"operator represents a key's relationship to a set of values.\\nValid operators are In, NotIn, Exists and DoesNotExist.\",\"type\":\"string\"},\"values\":{\"description\":\"values is an array of string values. If the operator is In or NotIn,\\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\\nthe values array must be empty. This array is replaced during a strategic\\nmerge patch.\",\"items\":{\"type\":\"string\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"}},\"required\":[\"key\",\"operator\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"},\"matchLabels\":{\"additionalProperties\":{\"type\":\"string\"},\"description\":\"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\\nmap is equivalent to an element of matchExpressions, whose key field is \\\"key\\\", the\\noperator is \\\"In\\\", and the values array contains only \\\"value\\\". The requirements are ANDed.\",\"type\":\"object\"}},\"type\":\"object\",\"x-kubernetes-map-type\":\"atomic\"}},\"type\":\"object\"},\"context\":{\"description\":\"Context defines variables and data sources that can be used during rule execution.\",\"items\":{\"description\":\"ContextEntry adds variables and data sources to a rule Context. Either a\\nConfigMap reference or a APILookup must be provided.\",\"oneOf\":[{\"required\":[\"configMap\"]},{\"required\":[\"apiCall\"]},{\"required\":[\"imageRegistry\"]},{\"required\":[\"variable\"]},{\"required\":[\"globalReference\"]}],\"properties\":{\"apiCall\":{\"description\":\"APICall is an HTTP request to the Kubernetes API server, or other JSON web service.\\nThe data returned is stored in the context with the name for the context entry.\",\"properties\":{\"data\":{\"description\":\"The data object specifies the POST data sent to the server.\\nOnly applicable when the method field is set to POST.\",\"items\":{\"description\":\"RequestData contains the HTTP POST data\",\"properties\":{\"key\":{\"description\":\"Key is a unique identifier for the data value\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the data value\",\"x-kubernetes-preserve-unknown-fields\":true}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"method\":{\"default\":\"GET\",\"description\":\"Method is the HTTP request type (GET or POST). Defaults to GET.\",\"enum\":[\"GET\",\"POST\"],\"type\":\"string\"},\"service\":{\"description\":\"Service is an API call to a JSON web service.\\nThis is used for non-Kubernetes API server calls.\\nIt's mutually exclusive with the URLPath field.\",\"properties\":{\"caBundle\":{\"description\":\"CABundle is a PEM encoded CA bundle which will be used to validate\\nthe server certificate.\",\"type\":\"string\"},\"headers\":{\"description\":\"Headers is a list of optional HTTP headers to be included in the request.\",\"items\":{\"properties\":{\"key\":{\"description\":\"Key is the header key\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the header value\",\"type\":\"string\"}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"url\":{\"description\":\"URL is the JSON web service URL. A typical form is\\n`https://{service}.{namespace}:{port}/{path}`.\",\"type\":\"string\"}},\"required\":[\"url\"],\"type\":\"object\"},\"urlPath\":{\"description\":\"URLPath is the URL path to be used in the HTTP GET or POST request to the\\nKubernetes API server (e.g. \\\"/api/v1/namespaces\\\" or  \\\"/apis/apps/v1/deployments\\\").\\nThe format required is the same format used by the `kubectl get --raw` command.\\nSee https://kyverno.io/docs/writing-policies/external-data-sources/#variables-from-kubernetes-api-server-calls\\nfor details.\\nIt's mutually exclusive with the Service field.\",\"type\":\"string\"}},\"type\":\"object\"},\"configMap\":{\"description\":\"ConfigMap is the ConfigMap reference.\",\"properties\":{\"name\":{\"description\":\"Name is the ConfigMap name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace is the ConfigMap namespace.\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"globalReference\":{\"description\":\"GlobalContextEntryReference is a reference to a cached global context entry.\",\"properties\":{\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"name\":{\"description\":\"Name of the global context entry\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"imageRegistry\":{\"description\":\"ImageRegistry defines requests to an OCI/Docker V2 registry to fetch image\\ndetails.\",\"properties\":{\"imageRegistryCredentials\":{\"description\":\"ImageRegistryCredentials provides credentials that will be used for authentication with registry\",\"properties\":{\"allowInsecureRegistry\":{\"description\":\"AllowInsecureRegistry allows insecure access to a registry.\",\"type\":\"boolean\"},\"providers\":{\"description\":\"Providers specifies a list of OCI Registry names, whose authentication providers are provided.\\nIt can be of one of these values: default,google,azure,amazon,github.\",\"items\":{\"description\":\"ImageRegistryCredentialsProvidersType provides the list of credential providers required.\",\"enum\":[\"default\",\"amazon\",\"azure\",\"google\",\"github\"],\"type\":\"string\"},\"type\":\"array\"},\"secrets\":{\"description\":\"Secrets specifies a list of secrets that are provided for credentials.\\nSecrets must live in the Kyverno namespace.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"object\"},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the ImageData struct returned as a result of processing\\nthe image reference.\",\"type\":\"string\"},\"reference\":{\"description\":\"Reference is image reference to a container image in the registry.\\nExample: ghcr.io/kyverno/kyverno:latest\",\"type\":\"string\"}},\"required\":[\"reference\"],\"type\":\"object\"},\"name\":{\"description\":\"Name is the variable name.\",\"type\":\"string\"},\"variable\":{\"description\":\"Variable defines an arbitrary JMESPath context variable that can be defined inline.\",\"properties\":{\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the variable may take if the JMESPath\\nexpression evaluates to nil\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JMESPath Expression that can be used to\\ntransform the variable.\",\"type\":\"string\"},\"value\":{\"description\":\"Value is any arbitrary JSON object representable in YAML or JSON form.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"}},\"required\":[\"name\"],\"type\":\"object\"},\"type\":\"array\"},\"data\":{\"description\":\"Data provides the resource declaration used to populate each generated resource.\\nAt most one of Data or Clone must be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"x-kubernetes-preserve-unknown-fields\":true},\"kind\":{\"description\":\"Kind specifies resource kind.\",\"type\":\"string\"},\"list\":{\"description\":\"List specifies a JMESPath expression that results in one or more elements\\nto which the validation logic is applied.\",\"type\":\"string\"},\"name\":{\"description\":\"Name specifies the resource name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies resource namespace.\",\"type\":\"string\"},\"preconditions\":{\"description\":\"AnyAllConditions are used to determine if a policy rule should be applied by evaluating a\\nset of conditions. The declaration can contain nested `any` or `all` statements.\\nSee: https://kyverno.io/docs/writing-policies/preconditions/\",\"properties\":{\"all\":{\"description\":\"AllConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, all of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"},\"any\":{\"description\":\"AnyConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, at least one of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"}},\"type\":\"object\",\"x-kubernetes-preserve-unknown-fields\":true},\"uid\":{\"description\":\"UID specifies the resource uid.\",\"type\":\"string\"}},\"type\":\"object\"},\"type\":\"array\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-7b7a62e159b5",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach: ∅ → {\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate eac…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.generate.properties.foreach",
+          "change": "field-added",
+          "after": "{\"description\":\"ForEach applies generate rules to a list of sub-elements by creating a context for each entry in the list and looping over it to apply the specified logic.\",\"items\":{\"properties\":{\"apiVersion\":{\"description\":\"APIVersion specifies resource apiVersion.\",\"type\":\"string\"},\"clone\":{\"description\":\"Clone specifies the source resource used to populate each generated resource.\\nAt most one of Data or Clone can be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"properties\":{\"name\":{\"description\":\"Name specifies name of the resource.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"}},\"type\":\"object\"},\"cloneList\":{\"description\":\"CloneList specifies the list of source resource used to populate each generated resource.\",\"properties\":{\"kinds\":{\"description\":\"Kinds is a list of resource kinds.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"},\"namespace\":{\"description\":\"Namespace specifies source resource namespace.\",\"type\":\"string\"},\"selector\":{\"description\":\"Selector is a label selector. Label keys and values in `matchLabels`.\\nwildcard characters are not supported.\",\"properties\":{\"matchExpressions\":{\"description\":\"matchExpressions is a list of label selector requirements. The requirements are ANDed.\",\"items\":{\"description\":\"A label selector requirement is a selector that contains values, a key, and an operator that\\nrelates the key and values.\",\"properties\":{\"key\":{\"description\":\"key is the label key that the selector applies to.\",\"type\":\"string\"},\"operator\":{\"description\":\"operator represents a key's relationship to a set of values.\\nValid operators are In, NotIn, Exists and DoesNotExist.\",\"type\":\"string\"},\"values\":{\"description\":\"values is an array of string values. If the operator is In or NotIn,\\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\\nthe values array must be empty. This array is replaced during a strategic\\nmerge patch.\",\"items\":{\"type\":\"string\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"}},\"required\":[\"key\",\"operator\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-type\":\"atomic\"},\"matchLabels\":{\"additionalProperties\":{\"type\":\"string\"},\"description\":\"matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\\nmap is equivalent to an element of matchExpressions, whose key field is \\\"key\\\", the\\noperator is \\\"In\\\", and the values array contains only \\\"value\\\". The requirements are ANDed.\",\"type\":\"object\"}},\"type\":\"object\",\"x-kubernetes-map-type\":\"atomic\"}},\"type\":\"object\"},\"context\":{\"description\":\"Context defines variables and data sources that can be used during rule execution.\",\"items\":{\"description\":\"ContextEntry adds variables and data sources to a rule Context. Either a\\nConfigMap reference or a APILookup must be provided.\",\"oneOf\":[{\"required\":[\"configMap\"]},{\"required\":[\"apiCall\"]},{\"required\":[\"imageRegistry\"]},{\"required\":[\"variable\"]},{\"required\":[\"globalReference\"]}],\"properties\":{\"apiCall\":{\"description\":\"APICall is an HTTP request to the Kubernetes API server, or other JSON web service.\\nThe data returned is stored in the context with the name for the context entry.\",\"properties\":{\"data\":{\"description\":\"The data object specifies the POST data sent to the server.\\nOnly applicable when the method field is set to POST.\",\"items\":{\"description\":\"RequestData contains the HTTP POST data\",\"properties\":{\"key\":{\"description\":\"Key is a unique identifier for the data value\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the data value\",\"x-kubernetes-preserve-unknown-fields\":true}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the context\\nvalue is set to, if the apiCall returns error.\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"method\":{\"default\":\"GET\",\"description\":\"Method is the HTTP request type (GET or POST). Defaults to GET.\",\"enum\":[\"GET\",\"POST\"],\"type\":\"string\"},\"service\":{\"description\":\"Service is an API call to a JSON web service.\\nThis is used for non-Kubernetes API server calls.\\nIt's mutually exclusive with the URLPath field.\",\"properties\":{\"caBundle\":{\"description\":\"CABundle is a PEM encoded CA bundle which will be used to validate\\nthe server certificate.\",\"type\":\"string\"},\"headers\":{\"description\":\"Headers is a list of optional HTTP headers to be included in the request.\",\"items\":{\"properties\":{\"key\":{\"description\":\"Key is the header key\",\"type\":\"string\"},\"value\":{\"description\":\"Value is the header value\",\"type\":\"string\"}},\"required\":[\"key\",\"value\"],\"type\":\"object\"},\"type\":\"array\"},\"url\":{\"description\":\"URL is the JSON web service URL. A typical form is\\n`https://{service}.{namespace}:{port}/{path}`.\",\"type\":\"string\"}},\"required\":[\"url\"],\"type\":\"object\"},\"urlPath\":{\"description\":\"URLPath is the URL path to be used in the HTTP GET or POST request to the\\nKubernetes API server (e.g. \\\"/api/v1/namespaces\\\" or  \\\"/apis/apps/v1/deployments\\\").\\nThe format required is the same format used by the `kubectl get --raw` command.\\nSee https://kyverno.io/docs/writing-policies/external-data-sources/#variables-from-kubernetes-api-server-calls\\nfor details.\\nIt's mutually exclusive with the Service field.\",\"type\":\"string\"}},\"type\":\"object\"},\"configMap\":{\"description\":\"ConfigMap is the ConfigMap reference.\",\"properties\":{\"name\":{\"description\":\"Name is the ConfigMap name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace is the ConfigMap namespace.\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"globalReference\":{\"description\":\"GlobalContextEntryReference is a reference to a cached global context entry.\",\"properties\":{\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the JSON response returned from the server. For example\\na JMESPath of \\\"items | length(@)\\\" applied to the API server response\\nfor the URLPath \\\"/apis/apps/v1/deployments\\\" will return the total count\\nof deployments across all namespaces.\",\"type\":\"string\"},\"name\":{\"description\":\"Name of the global context entry\",\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"imageRegistry\":{\"description\":\"ImageRegistry defines requests to an OCI/Docker V2 registry to fetch image\\ndetails.\",\"properties\":{\"imageRegistryCredentials\":{\"description\":\"ImageRegistryCredentials provides credentials that will be used for authentication with registry\",\"properties\":{\"allowInsecureRegistry\":{\"description\":\"AllowInsecureRegistry allows insecure access to a registry.\",\"type\":\"boolean\"},\"providers\":{\"description\":\"Providers specifies a list of OCI Registry names, whose authentication providers are provided.\\nIt can be of one of these values: default,google,azure,amazon,github.\",\"items\":{\"description\":\"ImageRegistryCredentialsProvidersType provides the list of credential providers required.\",\"enum\":[\"default\",\"amazon\",\"azure\",\"google\",\"github\"],\"type\":\"string\"},\"type\":\"array\"},\"secrets\":{\"description\":\"Secrets specifies a list of secrets that are provided for credentials.\\nSecrets must live in the Kyverno namespace.\",\"items\":{\"type\":\"string\"},\"type\":\"array\"}},\"type\":\"object\"},\"jmesPath\":{\"description\":\"JMESPath is an optional JSON Match Expression that can be used to\\ntransform the ImageData struct returned as a result of processing\\nthe image reference.\",\"type\":\"string\"},\"reference\":{\"description\":\"Reference is image reference to a container image in the registry.\\nExample: ghcr.io/kyverno/kyverno:latest\",\"type\":\"string\"}},\"required\":[\"reference\"],\"type\":\"object\"},\"name\":{\"description\":\"Name is the variable name.\",\"type\":\"string\"},\"variable\":{\"description\":\"Variable defines an arbitrary JMESPath context variable that can be defined inline.\",\"properties\":{\"default\":{\"description\":\"Default is an optional arbitrary JSON object that the variable may take if the JMESPath\\nexpression evaluates to nil\",\"x-kubernetes-preserve-unknown-fields\":true},\"jmesPath\":{\"description\":\"JMESPath is an optional JMESPath Expression that can be used to\\ntransform the variable.\",\"type\":\"string\"},\"value\":{\"description\":\"Value is any arbitrary JSON object representable in YAML or JSON form.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"}},\"required\":[\"name\"],\"type\":\"object\"},\"type\":\"array\"},\"data\":{\"description\":\"Data provides the resource declaration used to populate each generated resource.\\nAt most one of Data or Clone must be specified. If neither are provided, the generated\\nresource will be created with default data only.\",\"x-kubernetes-preserve-unknown-fields\":true},\"kind\":{\"description\":\"Kind specifies resource kind.\",\"type\":\"string\"},\"list\":{\"description\":\"List specifies a JMESPath expression that results in one or more elements\\nto which the validation logic is applied.\",\"type\":\"string\"},\"name\":{\"description\":\"Name specifies the resource name.\",\"type\":\"string\"},\"namespace\":{\"description\":\"Namespace specifies resource namespace.\",\"type\":\"string\"},\"preconditions\":{\"description\":\"AnyAllConditions are used to determine if a policy rule should be applied by evaluating a\\nset of conditions. The declaration can contain nested `any` or `all` statements.\\nSee: https://kyverno.io/docs/writing-policies/preconditions/\",\"properties\":{\"all\":{\"description\":\"AllConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, all of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"},\"any\":{\"description\":\"AnyConditions enable variable-based conditional rule execution. This is useful for\\nfiner control of when an rule is applied. A condition can reference object data\\nusing JMESPath notation.\\nHere, at least one of the conditions need to pass\",\"items\":{\"description\":\"Condition defines variable-based conditional criteria for rule execution.\",\"properties\":{\"key\":{\"description\":\"Key is the context entry (using JMESPath) for conditional rule evaluation.\",\"x-kubernetes-preserve-unknown-fields\":true},\"message\":{\"description\":\"Message is an optional display message\",\"type\":\"string\"},\"operator\":{\"description\":\"Operator is the conditional operation to perform. Valid operators are:\\nEquals, NotEquals, In, AnyIn, AllIn, NotIn, AnyNotIn, AllNotIn, GreaterThanOrEquals,\\nGreaterThan, LessThanOrEquals, LessThan, DurationGreaterThanOrEquals, DurationGreaterThan,\\nDurationLessThanOrEquals, DurationLessThan\",\"enum\":[\"Equals\",\"NotEquals\",\"In\",\"AnyIn\",\"AllIn\",\"NotIn\",\"AnyNotIn\",\"AllNotIn\",\"GreaterThanOrEquals\",\"GreaterThan\",\"LessThanOrEquals\",\"LessThan\",\"DurationGreaterThanOrEquals\",\"DurationGreaterThan\",\"DurationLessThanOrEquals\",\"DurationLessThan\"],\"type\":\"string\"},\"value\":{\"description\":\"Value is the conditional value, or set of values. The values can be fixed set\\nor can be variables declared using JMESPath.\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"type\":\"array\"}},\"type\":\"object\",\"x-kubernetes-preserve-unknown-fields\":true},\"uid\":{\"description\":\"UID specifies the resource uid.\",\"type\":\"string\"}},\"type\":\"object\"},\"type\":\"array\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-043bcc5e9e57",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_clustercleanuppolicies.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_clustercleanuppolicies.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:2cce443ad1ca3413574beca8d2ae0b4686be2f355edf4a9d24337820dc018bf8",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:56Z"
+      },
+      {
+        "id": "ev-0b95f4d8b2b8",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_cleanuppolicies.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_cleanuppolicies.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:10238c13e76ef253084b40a66e04cf04d7fbfa39514fc7dc14470fb0ea00321c",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:56Z"
+      },
+      {
+        "id": "ev-388d68569c8a",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/policyreport/wgpolicyk8s.io_clusterpolicyreports.yaml",
+        "locator": "config/crds/policyreport/wgpolicyk8s.io_clusterpolicyreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:ee99a9dd0a1fc96de02f37962b26c2dfa052477c40fa3a60cb2690d30ce2a82d",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:56Z"
+      },
+      {
+        "id": "ev-3f8a3adffa22",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_globalcontextentries.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_globalcontextentries.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:1b7bfa798af1da4561ef473ae353403144c40165a49c2448c64c5123d9edbee4",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:56Z"
+      },
+      {
+        "id": "ev-495a542d4d66",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/kyverno/kyverno.io_backgroundscanreports.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_backgroundscanreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:47061b38b73f4d8e6967498f6fcd690f8935cb1e59bc2fa67d9d9b0209ce5714",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-6032b12f614d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/kyverno/kyverno.io_globalcontextentries.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_globalcontextentries.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:f9f8010da5c242e338626fb133adb9b0cee165cf0553f6aa5891cd7dc44961e5",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-64e559957f23",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/kyverno/kyverno.io_clusteradmissionreports.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_clusteradmissionreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:6b0a799aae33b2527b2f7289e6b49499421ed4ed1090bd42a182cf6159185e23",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-6644b79acdaf",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/kyverno/kyverno.io_policies.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_policies.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:92e23af02530c6e7bc1c1ed9e513041fb41d266666e3461095da318c16e33aa0",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-705a5952643c",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/reports/reports.kyverno.io_clusterephemeralreports.yaml",
+        "locator": "config/crds/reports/reports.kyverno.io_clusterephemeralreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:35f049036d50edb8581724ea15dda57dfe42f7e460965b0320fd44f206b67e81",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:56Z"
+      },
+      {
+        "id": "ev-72ae67cf1bd1",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/policyreport/wgpolicyk8s.io_clusterpolicyreports.yaml",
+        "locator": "config/crds/policyreport/wgpolicyk8s.io_clusterpolicyreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:75807a6b8b62167b709a5d32bc4161ffef128d56e3083ea39541088d7ed1e6ac",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-7b96a5794081",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/kyverno/kyverno.io_admissionreports.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_admissionreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:a4654a7217d93ad8942e9ff745bce300a6c49582853d0aa0664759f8682e2a22",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-8acbbd901b75",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/reports/reports.kyverno.io_ephemeralreports.yaml",
+        "locator": "config/crds/reports/reports.kyverno.io_ephemeralreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:43540a820aeef35ebe44d18bd94066ddddc7437233bad5fb88aadb07977b3e78",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:56Z"
+      },
+      {
+        "id": "ev-8ed706991976",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/kyverno/kyverno.io_cleanuppolicies.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_cleanuppolicies.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:457a22790ba13a073a16860c95c5666683c12f405427fc036b7c137b7196f68b",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-904a58b60df3",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/reports/reports.kyverno.io_ephemeralreports.yaml",
+        "locator": "config/crds/reports/reports.kyverno.io_ephemeralreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:fc3c5c9ecb8338718f5821248cccad68c0b1cffed2ed61160ba8836fbbb9910d",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-a4c10d98e48c",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/kyverno/kyverno.io_clusterpolicies.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_clusterpolicies.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:4a9df2d4f621cf8ac762ee80802ab93282ee2c943d582b9aad78cf95d8840aec",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-ab4f180a917e",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/policyreport/wgpolicyk8s.io_policyreports.yaml",
+        "locator": "config/crds/policyreport/wgpolicyk8s.io_policyreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:595ab5728178e3ebe8a9ed9210a32484eb7a0e2dc061b276a3afca703b8ba7c4",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:56Z"
+      },
+      {
+        "id": "ev-b077d5605267",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/kyverno/kyverno.io_clustercleanuppolicies.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_clustercleanuppolicies.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:200e19b91691d8d5cafe4e974e7ed974164e3173a809eea0f7104edf204ce178",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-b3d07020d879",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/kyverno/kyverno.io_clusterbackgroundscanreports.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_clusterbackgroundscanreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:864789076503cd156802253c59208e0a9f6303a106a284c2bc29d2909950b343",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-c7493c8ebf56",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/kyverno/kyverno.io_updaterequests.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_updaterequests.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:4393af90f45eb118767eec31f4f894cd5ee568d34577f54481fcd1ba361fbf17",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-d55bb7c165b2",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_updaterequests.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_updaterequests.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:134e71c1f4dde83070ac0eaa14aab9302534765f79844ce32b7bfb6f25ab03f8",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:56Z"
+      },
+      {
+        "id": "ev-e4d8d307c8bd",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/kyverno/kyverno.io_policyexceptions.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_policyexceptions.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:3e2dda44b601303ea8deee901ee640d94ffd75b23bccd201c111341e3459cd17",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-e6f72293517f",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_clusterpolicies.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_clusterpolicies.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:03935365f9d5671b97e61ea104bec64e78e8421d0ad96214b6b67333b8126a2e",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:56Z"
+      },
+      {
+        "id": "ev-f4eb4632dd60",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/policyreport/wgpolicyk8s.io_policyreports.yaml",
+        "locator": "config/crds/policyreport/wgpolicyk8s.io_policyreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:442f4d47fbd6e640c8c2971a0ece125a703ae6dc6fccc2f6ba6eed7d5fa2dcbd",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      },
+      {
+        "id": "ev-f5ab4321b780",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_policyexceptions.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_policyexceptions.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:83d0478d61e88890c0dbf1e8360f5e5b7bb7d5708d0cc2d52c7dab8cfc833dbc",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:56Z"
+      },
+      {
+        "id": "ev-fd8deebe9622",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.13.0/config/crds/kyverno/kyverno.io_policies.yaml",
+        "locator": "config/crds/kyverno/kyverno.io_policies.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:0e21e4108a79cabd819ce42afbf08be608f744ffd20845ae75aef3d84c563429",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:56Z"
+      },
+      {
+        "id": "ev-ff8bc99281a6",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/kyverno/kyverno/blob/v1.12.6/config/crds/reports/reports.kyverno.io_clusterephemeralreports.yaml",
+        "locator": "config/crds/reports/reports.kyverno.io_clusterephemeralreports.yaml",
+        "excerpt": "---",
+        "contentDigest": "sha256:3c3281f95e10ddfcafbe4539f26890ac59744684007a5057363d14a93507a11e",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:55:54Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:01:57.041Z"
+  }
+}

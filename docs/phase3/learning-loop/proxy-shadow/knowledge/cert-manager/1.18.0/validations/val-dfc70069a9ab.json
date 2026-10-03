@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-dfc70069a9ab",
+    "candidateId": "sc-e1a3e9a9cadf",
+    "proposalId": "sp-96450bd63613",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cert-manager",
+        "name": "--namespace"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--namespace",
+          "component": "cert-manager",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "When running with --namespace=<namespace>, cert-manager now limits its scope to a single namespace and disables cluster-scoped controllers, whereas previously the flag did not behave correctly.",
+        "severity": "medium"
+      },
+      "statement": "The --namespace CLI flag behavior is fixed to properly limit cert-manager scope to a single namespace and disable cluster-scoped controllers."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/behavior-changed",
+        "detail": "no canonical exposure condition for cli-flag behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

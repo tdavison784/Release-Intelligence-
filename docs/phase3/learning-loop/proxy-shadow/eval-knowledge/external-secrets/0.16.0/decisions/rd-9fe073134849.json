@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9fe073134849",
+    "reviewItemId": "ri-5ae536e5088d",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "image-in-use",
+          "name": "golang"
+        }
+      },
+      "statement": "External-secrets 0.16.0 bumps the pinned golang image used in the repository's /e2e setup from `75e6700` to `00eccd4` (dependabot, PR #4644)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:b2421d4fdb7454a9d5af6bccb5a9836ada5dfb9b564fbb21dc7eca582b0200d6",
+      "inputEvidence": [
+        "ev-f40760384829"
+      ],
+      "generatedAt": "2026-10-02T23:15:04.607Z",
+      "callId": "30ea42b2-c2ee-445b-8e97-326f8b2249bd"
+    },
+    "reason": "[ev-f40760384829] says only that dependabot bumped the golang reference from `75e6700` to `00eccd4` in /e2e, the repository's end-to-end test setup. It does not say this image ships in any released artifact. The validators found golang referenced in neither release's manifests, and it is absent from the rendered chart. The proposed exposure image-in-use{golang} would flag any customer environment that happens to use a golang image, which is far too broad. The evidence supports no customer exposure condition at all, so no correction is possible.",
+    "startedAt": "2026-10-02T23:14:57.266Z",
+    "decidedAt": "2026-10-02T23:15:04.607Z"
+  }
+}

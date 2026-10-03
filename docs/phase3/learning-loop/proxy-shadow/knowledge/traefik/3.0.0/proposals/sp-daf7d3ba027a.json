@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-daf7d3ba027a",
+    "candidateId": "sc-e89444a9db9a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.marathon"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.marathon",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.marathon",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Marathon provider configuration is unsupported in v3 and would prevent Traefik from starting.",
+        "remediation": "Remove all Marathon provider related configuration from the static configuration.",
+        "severity": "high"
+      },
+      "statement": "The Marathon provider is removed in Traefik v3; any remaining Marathon provider configuration in the static configuration prevents Traefik from starting."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-c71146d39072"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e3336c2856fbd51a6cb6906511a23ef7302c157999bba84910d732099ef44736",
+      "inputEvidence": [
+        "ev-c71146d39072"
+      ],
+      "generatedAt": "2026-10-02T20:58:38Z",
+      "callId": "292ad9f5-87dc-4c2f-841a-eb615fa414a0"
+    }
+  }
+}

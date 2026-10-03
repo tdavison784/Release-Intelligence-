@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9de98613ae55",
+    "reviewItemId": "ri-d280f73e3ea9",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether any pod sets the new annotation; purely additive opt-in feature"
+        }
+      },
+      "statement": "A new pod annotation `sidecar.istio.io/native-side` (true/false) was added to control native sidecar injection per pod, taking precedence over ENABLE_NATIVE_SIDECARS."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"sidecar.istio.io/native-side\"]",
+                  "state": "set"
+                }
+              ],
+              "kind": "Pod"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.metadata.annotations[\"sidecar.istio.io/native-side\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "apps",
+              "kind": "Deployment"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.metadata.annotations[\"sidecar.istio.io/native-side\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "apps",
+              "kind": "StatefulSet"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.template.metadata.annotations[\"sidecar.istio.io/native-side\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "apps",
+              "kind": "DaemonSet"
+            }
+          ]
+        }
+      },
+      "statement": "A new pod annotation `sidecar.istio.io/native-side` (true/false) controls native sidecar injection per pod and takes precedence over ENABLE_NATIVE_SIDECARS. Only environments whose pods or pod templates set this annotation are affected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:dc31bcd4f4d24f6bb4c6457a860c541200789d03f0439291db7affb09c3921ca",
+      "inputEvidence": [
+        "ev-528ec6ff2f80"
+      ],
+      "generatedAt": "2026-10-02T15:59:06.776Z",
+      "callId": "465debd7-db65-4b5e-a5e1-bc69a9358a0c"
+    },
+    "reason": "[ev-528ec6ff2f80] describes a new opt-in pod annotation `sidecar.istio.io/native-side` that only has an effect when it is set to true or false on a pod. In that case it overrides ENABLE_NATIVE_SIDECARS. Whether a workload carries this annotation can be read from its manifests, so an `undecidable`/evidence-gap condition is the wrong choice and would flag every environment. The exposure should instead match workloads whose pod (or pod template) sets the annotation.",
+    "startedAt": "2026-10-02T15:58:51.374Z",
+    "decidedAt": "2026-10-02T15:59:06.776Z",
+    "resultingFact": "vf-103c8cf726c5"
+  }
+}

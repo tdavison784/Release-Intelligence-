@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-98d08ef92351",
+    "candidateId": "sc-9abbb017eb5c",
+    "proposalId": "sp-dd87199e6b7b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "loki",
+        "name": "DROP_LABELS",
+        "component": "lambda-promtail"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "DROP_LABELS",
+          "component": "lambda-promtail",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "lambda-promtail handles the DROP_LABELS environment variable correctly, fixing a panic that occurred with empty values; existing workloads using this variable will no longer experience crashes."
+      },
+      "statement": "lambda-promtail no longer panics when the DROP_LABELS environment variable is empty."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:env-var/behavior-changed",
+        "detail": "no canonical exposure condition for env-var behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

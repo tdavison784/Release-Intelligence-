@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ddb5ef1ca9f1",
+    "candidateId": "sc-b81eb6a8063a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumLocalRedirectPolicy",
+        "path": "spec.skipRedirectFromBackend"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.skipRedirectFromBackend",
+              "state": "unset"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLocalRedirectPolicy"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.skipRedirectFromBackend",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLocalRedirectPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Traffic from policy-selected node-local backends to the policy's frontend is redirected back to the node-local backends by default, when socket-based load-balancing is enabled.",
+        "remediation": "Create local redirect policies with skipRedirectFromBackend set to true to override this behavior."
+      },
+      "statement": "With socket-based load-balancing, Local Redirect Policy now by default redirects traffic from policy-selected node-local backends destined to the policy's frontend back to the node-local backends; set skipRedirectFromBackend to true to override."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-fbe2aedc4ddc"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4434ed3fde7e17a6a8925d7754b385d81a6a09053ea0cd8cef5b44e9f638dfac",
+      "inputEvidence": [
+        "ev-fbe2aedc4ddc"
+      ],
+      "generatedAt": "2026-10-02T06:02:47Z",
+      "callId": "dd5a18a5-b95f-449f-b57d-e5037ae2b1a9"
+    }
+  }
+}

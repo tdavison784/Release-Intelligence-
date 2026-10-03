@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-48bc3d4b222f",
+    "candidateId": "sc-13bd4e122a89",
+    "proposalId": "sp-177d9996681f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "legacy-controller-metrics"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "argo-cd",
+          "name": "argocd-app-info"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "ARGOCD_LEGACY_CONTROLLER_METRICS",
+          "state": "equals",
+          "values": [
+            "\"true\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If the legacy metrics are in use (ARGOCD_LEGACY_CONTROLLER_METRICS=true), monitoring dashboards and alerts must be updated to use argocd_app_info labels before upgrading, since the old metrics are removed.",
+        "remediation": "Update dashboards and alerts to use the labels on argocd_app_info before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "The legacy metrics argocd_app_sync_status, argocd_app_health_status and argocd_app_created_time are removed in 3.0.0; use labels on argocd_app_info instead, which matters if ARGOCD_LEGACY_CONTROLLER_METRICS is set to true."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

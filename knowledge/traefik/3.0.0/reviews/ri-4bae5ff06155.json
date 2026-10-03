@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-4bae5ff06155",
+    "candidateId": "sc-664f60a3392a",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Content-Type Auto-Detection: In v3, the `Content-Type` header is not auto-detected anymore when it is not set by the backend\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the environment relies on automatic Content-Type header detection from backend responses that lack explicit Content-Type"
+            }
+          ]
+        }
+      },
+      "statement": "In Traefik 3.0, automatic Content-Type header detection is removed when the backend does not set the Content-Type header; the ContentType middleware must be explicitly used to enable this detection."
+    },
+    "proposals": [
+      "sp-567938771dbb",
+      "sp-98d732e12b95"
+    ],
+    "validations": [
+      "val-0d5b2d4b7d57",
+      "val-1b8ffcbcb51c",
+      "val-ad35ebda34da"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:55:02Z"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e511c1b43071",
+    "reviewItemId": "ri-4c948d02bd17",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "ipsec-single-key-support"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "IPsec single key support (indicated by the + sign in secrets) has been removed; per-tunnel keys are now always used regardless of the + sign's presence."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "ipsec-single-key"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "Cilium removed IPsec single-key support. Per-tunnel keys are now used whether or not the `+` sign is present in the secret."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:e4f335e63ed09fb0a65d657bacf8dc25a236214d28f1e10545a368f9058d85d1",
+      "inputEvidence": [
+        "ev-a152c8cea30c"
+      ],
+      "generatedAt": "2026-10-02T12:54:36.388Z",
+      "callId": "f2bd2772-c12b-47c6-bf70-7ccca90fb18f"
+    },
+    "reason": "[ev-a152c8cea30c] says IPsec \"support for a single key has been removed\", and per-tunnel keys are now used whether or not the `+` sign is in the secret. That makes \"removed\" the right change type: single-key mode is no longer honoured. The subject name should be the shortest unambiguous kebab-case name built from the evidence's own words. \"-support\" only repeats what the \"removed\" change type already says, so the name should be \"ipsec-single-key\".",
+    "startedAt": "2026-10-02T12:54:26.397Z",
+    "decidedAt": "2026-10-02T12:54:36.388Z"
+  }
+}

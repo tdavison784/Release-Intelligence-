@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-58f27799f21c",
+    "candidateId": "sc-1c657b7315de",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "serviceAccount.annotations"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "serviceAccount.annotations",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ServiceAccount annotation keys and values are now run through the built-in Helm tpl function, so any {{ ... }} template expressions they contain are rendered by Helm instead of being written as literal text.",
+        "remediation": "Verify that any ServiceAccount annotation keys or values containing {{ ... }} expressions are intended to be rendered as Helm templates rather than emitted literally.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 runs the built-in Helm tpl function on ServiceAccount annotation keys and values, so the Helm chart's ServiceAccount annotations now support Helm templating, to aid with workload identity configuration."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-e7cf2f463686"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ec8791b3d0a2073b70e407263f232f9f13b6c57c7ae5ff289db9a90e062a2263",
+      "inputEvidence": [
+        "ev-e7cf2f463686"
+      ],
+      "generatedAt": "2026-10-02T11:31:59Z",
+      "callId": "899cd4b6-765b-4887-b108-9129499c35a3"
+    }
+  }
+}

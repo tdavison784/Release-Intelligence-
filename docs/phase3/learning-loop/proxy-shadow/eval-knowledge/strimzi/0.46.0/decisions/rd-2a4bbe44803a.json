@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2a4bbe44803a",
+    "reviewItemId": "ri-e5e9bd43073c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "From Kafka 4.0.0, the JMXReporter is only enabled if metrics are explicitly configured in spec.kafka.metrics or JMXReporter is explicitly added to metric.reporters; previously it may have been enabled differently or by default.",
+        "severity": "medium"
+      },
+      "statement": "From Kafka 4.0.0, enabling the JMXReporter requires explicit configuration either in spec.kafka.metrics or by adding JMXReporter to metric.reporters."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:41fd44905ac6c989385ec35e376c5bf8baa43de4c17754d4aab40df7f8f51256",
+      "inputEvidence": [
+        "ev-f432b7205700"
+      ],
+      "generatedAt": "2026-10-03T02:04:53.789Z",
+      "callId": "78b9d2d6-c261-4fd2-858e-5c21d26866fa"
+    },
+    "reason": "[ev-f432b7205700] says that from Kafka 4.0.0 the JMXReporter must be enabled explicitly, through `.spec.kafka.metrics` or by adding it to `metric.reporters`. That means it is no longer on by default, which is a changed default and not a stated failure. The evidence does not say that anything is rejected, ignored or breaks, so an action-eligible kind is not supported and behavior-change (review) is the right classification. The proposed statement's last clause, \"previously it may have been enabled differently or by default\", is a hedge the evidence does not back, but it does not change the kind or the class.",
+    "startedAt": "2026-10-03T02:04:42.662Z",
+    "decidedAt": "2026-10-03T02:04:53.789Z"
+  }
+}

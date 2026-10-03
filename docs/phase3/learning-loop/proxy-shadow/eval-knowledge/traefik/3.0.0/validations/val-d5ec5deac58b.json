@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d5ec5deac58b",
+    "candidateId": "sc-f6497dd8df3e",
+    "proposalId": "sp-3cedeeeca287",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "namespace",
+        "component": "consul"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "namespaces",
+          "component": "consul"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--consul.namespace",
+                  "state": "set"
+                },
+                {
+                  "op": "values-key",
+                  "path": "consul.namespace",
+                  "state": "set"
+                },
+                {
+                  "op": "env-var",
+                  "name": "CONSUL_NAMESPACE",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will fail to start if the Consul provider `namespace` option is set.",
+        "severity": "critical"
+      },
+      "statement": "The Consul provider's `namespace` configuration option, deprecated in v2, is removed in v3 and unsupported; Traefik will fail to start if it is set."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

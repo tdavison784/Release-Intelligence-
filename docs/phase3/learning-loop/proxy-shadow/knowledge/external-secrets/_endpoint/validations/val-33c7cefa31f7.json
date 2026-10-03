@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-33c7cefa31f7",
+    "candidateId": "sc-967b47c048f1",
+    "proposalId": "sp-a845934629bd",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "SecretStore",
+        "path": "spec.provider.fake.data[].value"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "external-secrets.io",
+                  "version": "v1beta1",
+                  "kind": "SecretStore"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake.data",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake.data[].value",
+                      "state": "unset"
+                    }
+                  ],
+                  "group": "external-secrets.io",
+                  "kind": "SecretStore"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "external-secrets.io",
+                  "version": "v1beta1",
+                  "kind": "ClusterSecretStore"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake.data",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.provider.fake.data[].value",
+                      "state": "unset"
+                    }
+                  ],
+                  "group": "external-secrets.io",
+                  "kind": "ClusterSecretStore"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "SecretStore or ClusterSecretStore resources using the fake provider with data array elements lacking a value field are rejected by the API server.",
+        "severity": "high"
+      },
+      "statement": "The field spec.provider.fake.data[].value is now required in SecretStore and ClusterSecretStore v1beta1 schemas; resources omitting it are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

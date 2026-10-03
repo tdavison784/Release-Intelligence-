@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-13e56b61e8dd",
+    "reviewItemId": "ri-2c6c2469bfc5",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "istio",
+          "state": "in-range",
+          "range": ">=1.24.0"
+        }
+      },
+      "statement": "Istio 1.24 introduces a new 1.23 compatibility profile and updates other profiles to account for 1.24 changes, with the 1.23 profile setting specific feature gates and environment variables for backward compatibility."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:91ede89d94b2460383d5dcd1207c03b963b6839ede75ea2f49f6d05b2bd0fba9",
+      "inputEvidence": [
+        "ev-49191aa49f5f"
+      ],
+      "generatedAt": "2026-10-02T12:50:55.994Z",
+      "callId": "f3989e8f-29dc-491e-816b-41434f320523"
+    },
+    "reason": "[ev-49191aa49f5f] says only that 1.24 adds a new 1.23 compatibility profile and updates the other profiles. Adding a profile changes nothing for anyone who does not opt into it. If anyone is exposed, it is environments that already select one of the older profiles, because those profiles' values changed. The proposed exposure, product-version istio >=1.24.0, refers to the product itself (that leaf is meant for another product's version) and so flags every environment on 1.24, which is far broader than that. The excerpt does not name the values key or setting that selects a profile, and it does not say how the other profiles changed, so I cannot build a correct condition from this evidence.",
+    "startedAt": "2026-10-02T12:50:44.626Z",
+    "decidedAt": "2026-10-02T12:50:55.994Z"
+  }
+}

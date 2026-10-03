@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-585e4301d81a",
+    "candidateId": "sc-ea68fa62a919",
+    "product": "traefik",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Rancher v1 Provider: In v3, the Rancher v1 provider has been removed because Rancher v1 is no longer actively maintained, and Rancher v2 is supported as a…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "providers.rancher",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.rancher",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PROVIDERS_RANCHER",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Rancher v1 provider has been removed in Traefik v3; configurations using it will prevent Traefik from starting."
+    },
+    "proposals": [
+      "sp-707c8fc04fee",
+      "sp-8d2bfaaecb9c"
+    ],
+    "validations": [
+      "val-11d4c7790045",
+      "val-962b568f9d77",
+      "val-b98e435f4476",
+      "val-e28b878adebd"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:59:29Z"
+  }
+}

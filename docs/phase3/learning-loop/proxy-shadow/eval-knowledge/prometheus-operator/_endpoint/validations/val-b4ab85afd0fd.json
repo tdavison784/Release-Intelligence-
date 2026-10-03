@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b4ab85afd0fd",
+    "candidateId": "sc-e57c1f16262d",
+    "proposalId": "sp-615c044a4b39",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1",
+        "kind": "PrometheusRule",
+        "path": "status"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "monitoring.coreos.com",
+          "version": "v1",
+          "kind": "PrometheusRule"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence: the addition only extends the CRD schema, and per the field's description the status subresource is read-only, under active development, and updated only when the StatusForConfigurationResources feature gate is enabled.",
+        "severity": "low"
+      },
+      "statement": "Between prometheus-operator 0.85.0 and 0.86.2, the v1 schema of prometheusrules.monitoring.coreos.com gains a read-only `status` field (with status.bindings[].group, .name, .namespace, .resource and status.bindings[].conditions[] entries), which per the CRD description is under active development and is updated only when the StatusForConfigurationResources feature gate is enabled."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c7cb4fc5f4ce",
+    "reviewItemId": "ri-fa70a6db2fee",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the operator runs `flux diff kustomization` with ignore patterns; CLI invocations and the patterns used are runtime usage not visible in any static input"
+        }
+      },
+      "statement": "Flux 2.7.0 fixes how the `flux diff kustomization` CLI command applies ignore patterns."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:f2966ff187bf445a5ec9cd382f0c9614fc4016a1a0774fc9c6ac9e7dae3c3855",
+      "inputEvidence": [
+        "ev-283febdcc8b5"
+      ],
+      "generatedAt": "2026-10-03T02:07:05.311Z",
+      "callId": "ec3d9d27-ff9f-4527-8fb2-80eddfb416ac"
+    },
+    "reason": "[ev-283febdcc8b5] only says the client-side `flux diff kustomization` CLI command had its ignore-pattern handling fixed. Whether an environment is affected depends on whether operators run that command with ignore patterns. No Helm value, manifest, flag or version predicate captures that. So the undecidable exposure with runtime-behavior-gap correctly states what is missing, and it neither flags too many environments nor misses exposed ones.",
+    "startedAt": "2026-10-03T02:06:59.687Z",
+    "decidedAt": "2026-10-03T02:07:05.311Z",
+    "resultingFact": "vf-8f269893bca5"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7b4c77ad1e4a",
+    "candidateId": "sc-f117b7291fa1",
+    "proposalId": "sp-3fd334f12dd0",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "structured-logs"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"unstructured log messages\"",
+        "after": "\"structured logs\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether external log tooling (alerts, parsers, monitors) matches on specific cert-manager log strings"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Setups that match on specific cert-manager log strings could break, because the unstructured log messages have been replaced with structured logs.",
+        "remediation": "Review and update any log matching, alerting or parsing rules that depend on specific cert-manager log message strings.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0, log messages that were not structured are now structured logs, so any setup that matches on specific log strings could break."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

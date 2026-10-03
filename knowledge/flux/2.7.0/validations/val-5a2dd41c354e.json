@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5a2dd41c354e",
+    "candidateId": "sc-97304743f787",
+    "proposalId": "sp-22d5dbec6b5b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "flux-cli-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<2.7.0"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The operator must update the Flux CLI to the latest release (via a package manager or the binary from GitHub releases) and verify with `flux --version`; without this step the environment keeps running an outdated Flux CLI.",
+        "remediation": "Update the Flux CLI to the latest release using a package manager or by downloading the binary from GitHub releases, then verify with `flux --version`.",
+        "severity": "low"
+      },
+      "statement": "The Flux 2.7.0 upgrade guide instructs operators to update the Flux CLI to the latest release, using `flux check --pre` to detect whether a newer Flux version is available and `flux --version` to verify the running version."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

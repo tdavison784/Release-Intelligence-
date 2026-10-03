@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a1390a6e03f5",
+    "reviewItemId": "ri-7fe2d8243177",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "statement": "By default, system-level ignoreDifferences customizations are now applied to ignore resource updates; set ignoreDifferencesOnResourceUpdates to false to preserve the v2 default behavior."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "text-line",
+                  "path": "data[\"resource.compareoptions\"]",
+                  "state": "none",
+                  "pattern": "ignoreDifferencesOnResourceUpdates\\s*:"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether argocd-cm defines system-level ignoreDifferences customizations (the evidence excerpt does not name the keys that carry them)"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "ignoreDifferencesOnResourceUpdates\\s*:"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "statement": "In 3.0, system-level ignoreDifferences customizations also ignore resource updates by default. Exposed: environments with such customizations whose argocd-cm resource.compareoptions does not set ignoreDifferencesOnResourceUpdates. Setting it to false keeps the v2 behaviour."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:88872e2c6c500329765c28bd441efc85dac58d076430921c7925de1f5ae6aab8",
+      "inputEvidence": [
+        "ev-63314a5fae82"
+      ],
+      "generatedAt": "2026-10-02T23:20:19.868Z",
+      "callId": "5be66a7e-3793-4c00-825c-aaa2117530f8"
+    },
+    "reason": "[ev-63314a5fae82] says that in 3.0 the existing system-level ignoreDifferences customizations are also used to ignore resource updates by default, and that setting `ignoreDifferencesOnResourceUpdates` to false under argocd-cm `resource.compareoptions` keeps the v2 behaviour. Exposed environments are therefore those that have system-level ignoreDifferences customizations and do not set that option. The proposed condition, \"`resource.compareoptions` is set\", gets this wrong both ways. It flags environments that already set the option, which are shielded. It misses environments that never set `resource.compareoptions`, which get the new default. The excerpt does not give the argocd-cm key names for system-level ignoreDifferences customizations, so that part is left undecidable.",
+    "startedAt": "2026-10-02T23:20:00.867Z",
+    "decidedAt": "2026-10-02T23:20:19.868Z",
+    "resultingFact": "vf-b4e8200bfecd"
+  }
+}

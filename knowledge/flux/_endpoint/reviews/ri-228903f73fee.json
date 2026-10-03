@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-228903f73fee",
+    "candidateId": "sc-b4d0f27d94a8",
+    "product": "flux",
+    "questionType": "applicability",
+    "question": "For \"Storage version of `imagerepositories.image.toolkit.fluxcd.io` changes v1beta2 → v1\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "image.toolkit.fluxcd.io",
+              "version": "v1beta2",
+              "kind": "ImageRepository"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "image.toolkit.fluxcd.io",
+              "version": "v1",
+              "kind": "ImageRepository"
+            }
+          ]
+        }
+      },
+      "statement": "The storage version of the ImageRepository CRD changes from v1beta2 to v1, so existing objects need a storage version migration and status.storedVersions must be updated before a later release removes v1beta2."
+    },
+    "proposals": [
+      "sp-09ce08bd0ed1",
+      "sp-a61f1c493b85",
+      "sp-deb2d9954640"
+    ],
+    "validations": [
+      "val-344484645088",
+      "val-76cbdb622f8f",
+      "val-cf27859168e5",
+      "val-de2ec5b931e3",
+      "val-e3f74759b1f0",
+      "val-f8afa23b2fa9"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:57:30Z"
+  }
+}

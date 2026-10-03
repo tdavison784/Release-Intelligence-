@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-29c4b70e0b44",
+    "product": "traefik",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-08c0c735b201"
+        ],
+        "statementKeys": [
+          "sk-631feac68e99"
+        ],
+        "changeIds": [
+          "chg-79fc284d3f27"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-f89eaa0e2fb3"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "traefik",
+        "path": "logs.access.addInternals"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the Helm values paths (if any) carrying addInternals for Metrics and Tracing, and whether they are unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "logs.access.addInternals",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Access logs, metrics and traces for internal routers/services (e.g. ping@internal) are no longer produced unless addInternals is set.",
+        "remediation": "Set the addInternals option for AccessLogs, Metrics or Tracing if internal resource observability is needed.",
+        "severity": "low"
+      },
+      "statement": "Internal Resources Observability: In v3, observability for internal routers or services (e.g.: `ping@internal`) is disabled by default"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-5108ab3997b3",
+          "val-74b39d4a8641"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "deterministic",
+        "basis": [
+          "val-5108ab3997b3",
+          "val-74b39d4a8641"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-cdcdd808c73b"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-8c96b8ef4c1d"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-093b8f2b924f",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L727-L735 (Migration Guide: From v2 to v3 › Operations › Observability › Internal Resources Observability)",
+        "excerpt": "#### Internal Resources Observability\n\nIn v3, observability for internal routers or services (e.g.: `ping@internal`) is disabled by default.\nTo enable it one should use the new `addInternals` option for AccessLogs, Metrics or Tracing.\nPlease take a look at the observability documentation for more information:\n\n- [AccessLogs](../observability/access-logs.md#addinternals)\n- [Metrics](../observability/metrics/overview.md#addinternals)\n- [Tracing](../observability/tracing/overview.md#addinternals)",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      },
+      {
+        "id": "ev-3bdc943d6be1",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/traefik/traefik-helm-chart/blob/v28.1.0/traefik/values.yaml",
+        "locator": "traefik/values.yaml",
+        "excerpt": "# Default values for Traefik",
+        "contentDigest": "sha256:d5ea1c15d2a7625c9fe4ed0c44ad8a8a71bbdc6b3ba897e0d8ae94939d398f43",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      },
+      {
+        "id": "ev-bb4a9dd096f3",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/traefik/traefik-helm-chart/blob/v27.0.2/traefik/values.yaml",
+        "locator": "traefik/values.yaml",
+        "excerpt": "# Default values for Traefik",
+        "contentDigest": "sha256:f617f8230a0cb52320157b6b3f9968fbad6884686016f205ab35b8192287694c",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T03:56:10Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T01:56:10.763Z"
+  }
+}

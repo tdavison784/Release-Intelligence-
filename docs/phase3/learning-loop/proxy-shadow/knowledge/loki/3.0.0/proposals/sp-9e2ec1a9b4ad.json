@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9e2ec1a9b4ad",
+    "candidateId": "sc-a8b00c6ca141",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--frontend.cache-split-interval"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "--querier.split-queries-by-interval"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--frontend.cache-split-interval",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments setting the frontend.cache-split-interval CLI flag will have that configuration ignored; results caching interval must be controlled via querier.split-queries-by-interval instead.",
+        "remediation": "Replace the frontend.cache-split-interval CLI flag with querier.split-queries-by-interval in your Loki configuration or deployment.",
+        "severity": "high"
+      },
+      "statement": "The frontend.cache-split-interval CLI flag is removed; results caching interval is now determined by querier.split-queries-by-interval."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-f5a61f629314"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f754a216b0223de8094bb7abe0791170aab2c2707da05bebea2c05c93464d4fe",
+      "inputEvidence": [
+        "ev-f5a61f629314"
+      ],
+      "generatedAt": "2026-10-02T21:00:54Z",
+      "callId": "2b1e98e0-6b9e-43ab-884d-fe57bda7688f"
+    }
+  }
+}

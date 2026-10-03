@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8bd00de6a13b",
+    "reviewItemId": "ri-090cc799f8f2",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "image-in-use",
+              "name": "grafana/loki"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "metrics_namespace",
+                  "state": "equals",
+                  "values": [
+                    "\"cortex\""
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "metrics_namespace",
+          "state": "equals",
+          "values": [
+            "\"cortex\""
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 changes metrics namespace prefix from `cortex_` to `loki_`; the `metrics_namespace` config key can be set to `cortex` to retain the old prefix, but this setting is deprecated and will be removed in the next minor release."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "metrics_namespace",
+              "state": "equals",
+              "values": [
+                "\"cortex\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "metrics_namespace",
+          "state": "equals",
+          "values": [
+            "\"cortex\""
+          ]
+        }
+      },
+      "statement": "In Loki 3.0.0 some metrics change prefix from cortex_ to loki_ because metrics_namespace defaults to loki. Environments that do not set metrics_namespace to cortex are exposed. Environments that set it to cortex keep the old names."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:28e504e108e6a56faeef0f459174079f4aa88bbfa56f742e84a5c7c9c7676aa5",
+      "inputEvidence": [
+        "ev-1f419676f177"
+      ],
+      "generatedAt": "2026-10-02T23:05:26.091Z",
+      "callId": "53c11a21-dd8c-4461-8902-1d0d39d04fa9"
+    },
+    "reason": "[ev-1f419676f177] says the listed metrics switch from `cortex_` to `loki_` because `metrics_namespace` defaults to `loki`, and that setting it to `cortex` keeps the old prefix. So only environments that do not set metrics_namespace to cortex are exposed. The proposed `any[image-in-use grafana/loki, ...]` is too broad: every Loki environment would match, including those that set cortex and are protected. The value literal `\"\\\"cortex\\\"\"` with escaped quotes is also wrong; it should be the plain string cortex. The evidence does not say which Helm values path carries this Loki config key, so I keep the proposers' path. That uncertainty is why confidence is low.",
+    "startedAt": "2026-10-02T23:05:11.893Z",
+    "decidedAt": "2026-10-02T23:05:26.091Z"
+  }
+}

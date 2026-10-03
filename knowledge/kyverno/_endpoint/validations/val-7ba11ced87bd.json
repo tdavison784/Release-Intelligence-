@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7ba11ced87bd",
+    "candidateId": "sc-e98ebd2741c8",
+    "proposalId": "sp-06eae63a6416",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "version": "v2",
+        "kind": "CleanupPolicy"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"v2beta1 is storage version\"",
+        "after": "\"v2 is storage version\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "apiVersion",
+                  "state": "equals",
+                  "values": [
+                    "\"kyverno.io/v2beta1\""
+                  ]
+                }
+              ]
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "CleanupPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "A storage version migration must be run to rewrite all CleanupPolicy objects from v2beta1 to v2 and update status.storedVersions before a later release removes v2beta1 support.",
+        "severity": "high"
+      },
+      "statement": "The storage version of cleanuppolicies.kyverno.io changes from v2beta1 to v2; existing objects remain stored as v2beta1 until rewritten via a storage version migration before v2beta1 is removed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

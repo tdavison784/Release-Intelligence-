@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e75904a16ef3",
+    "candidateId": "sc-819834200127",
+    "proposalId": "sp-52dbf4c6222c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.compareoptions",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"crd\"",
+        "after": "\"all\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"resource.compareoptions\"]",
+                      "state": "unset"
+                    },
+                    {
+                      "op": "text-line",
+                      "path": "data[\"resource.compareoptions\"]",
+                      "state": "none",
+                      "pattern": "ignoreResourceStatusField"
+                    }
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"resource.compareoptions\"]",
+              "state": "exists",
+              "pattern": "ignoreResourceStatusField.*crd"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Status field differences are no longer detected by default for all resources; previously only custom resources had status fields ignored by default.",
+        "remediation": "If you rely on detecting status field differences, set ignoreResourceStatusField to 'crd' in the argocd-cm ConfigMap's resource.compareoptions to preserve v2 behavior.",
+        "severity": "medium"
+      },
+      "statement": "By default, Argo CD's compare options to ignore the status field changed from applying to 'crd' (custom resources) to 'all' resource types, meaning status field differences are no longer detected unless explicitly configured."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/value-changed",
+        "detail": "no canonical exposure condition for config-key value-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

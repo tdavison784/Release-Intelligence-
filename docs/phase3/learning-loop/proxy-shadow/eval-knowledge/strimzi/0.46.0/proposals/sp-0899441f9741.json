@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0899441f9741",
+    "candidateId": "sc-0820732be8c4",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "strimzi",
+        "group": "kafka.strimzi.io",
+        "kind": "Kafka",
+        "path": "spec.kafka.template.pod.dnsPolicy"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kafka.strimzi.io",
+          "version": "v1beta2",
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Informational: this only adds new optional fields for configuring pod DNS via the template sections; the evidence states nothing is removed, rejected or changed for existing configurations, so an operator who does nothing is unaffected.",
+        "remediation": "None required; operators may optionally adopt the new dnsPolicy/dnsConfig template fields where DNS behaviour needs tuning.",
+        "severity": "low"
+      },
+      "statement": "Strimzi 0.46.0 added support to configure the pod `dnsPolicy` and `dnsConfig` through the `template` sections of its custom resources (e.g. spec.kafka.template.pod.dnsPolicy and spec.kafka.template.pod.dnsConfig in the Kafka CRD, with matching paths under the cruiseControl, entityOperator, jmxTrans and kafkaExporter template pod sections)."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-99017d1c8007"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2c9109a5e79a37bdba0ad60d19161f523b678fc4ccd9a6381757503a10f4bf73",
+      "inputEvidence": [
+        "ev-99017d1c8007"
+      ],
+      "generatedAt": "2026-10-02T11:29:11Z",
+      "callId": "fcfbe6b0-3bcb-4092-8b79-927d64063c47"
+    }
+  }
+}

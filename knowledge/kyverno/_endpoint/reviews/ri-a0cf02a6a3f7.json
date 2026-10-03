@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-a0cf02a6a3f7",
+    "candidateId": "sc-e98ebd2741c8",
+    "product": "kyverno",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Storage version of `cleanuppolicies.kyverno.io` changes v2beta1 → v2\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing CleanupPolicy objects remain stored as v2beta1 until rewritten; a storage version migration and a status.storedVersions update are needed before a later release removes v2beta1.",
+        "remediation": "Re-write all CleanupPolicy objects and update status.storedVersions of the CRD before a later release removes v2beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the cleanuppolicies.kyverno.io CRD changes from v2beta1 to v2 (1.12.6 → 1.13.0), so existing CleanupPolicy objects stay stored as v2beta1 until a storage version migration is run."
+    },
+    "proposals": [
+      "sp-06eae63a6416",
+      "sp-141e3726a31b",
+      "sp-626c25427a47"
+    ],
+    "validations": [
+      "val-4b1822a7d4bb",
+      "val-644b698af4c6",
+      "val-733328d11720",
+      "val-7ba11ced87bd",
+      "val-83df0d1aefe6",
+      "val-982333aba502",
+      "val-b9638fd715d5",
+      "val-f5d05aff03bd"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T21:02:55Z"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f39bfc6d64c9",
+    "candidateId": "sc-370b61e2abdd",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "GlobalContextEntry",
+        "path": "spec.apiCall.retryLimit"
+      },
+      "change": {
+        "type": "added",
+        "after": "3"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.apiCall",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.apiCall.retryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "GlobalContextEntry"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "GlobalContextEntry API calls that do not set retryLimit now use the default of 3, so Kyverno retries a failed call instead of failing on the first attempt.",
+        "remediation": "To control how many times a failed API call is retried, set spec.apiCall.retryLimit explicitly (minimum 1).",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds an optional retryLimit field to GlobalContextEntry apiCall (spec.apiCall.retryLimit, integer, minimum 1, default 3), so failed API calls are now retried by default."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a6027c299092",
+      "ev-eb301d25a0b7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:0dfa6a08d33759a602dc0cfe7c4c887034c9d97ae6423da90d66eef4d9380594",
+      "inputEvidence": [
+        "ev-a6027c299092",
+        "ev-eb301d25a0b7"
+      ],
+      "generatedAt": "2026-10-02T16:17:18Z",
+      "callId": "f3dbeadd-bf9d-49f0-98c1-c8f9bd383b2a"
+    }
+  }
+}

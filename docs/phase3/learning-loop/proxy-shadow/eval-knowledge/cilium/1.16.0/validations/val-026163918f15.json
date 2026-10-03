@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-026163918f15",
+    "candidateId": "sc-2c880c539366",
+    "proposalId": "sp-85f5bd6e5df6",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "enableRuntimeDeviceDetection"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "nodePort.addresses"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "enableRuntimeDeviceDetection",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "enableRuntimeDeviceDetection",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "enableRuntimeDeviceDetection",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Native device detection and BPF program loading on dynamically appearing devices is now active by default; NodePort services are now available on addresses assigned after Cilium starts, with the set of addresses configurable via nodePort.addresses."
+      },
+      "statement": "Runtime device detection and reconfiguration is now enabled by default in Cilium 1.16.0; the Helm option enableRuntimeDeviceDetection is deprecated."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/deprecated",
+        "detail": "helm-value deprecated is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

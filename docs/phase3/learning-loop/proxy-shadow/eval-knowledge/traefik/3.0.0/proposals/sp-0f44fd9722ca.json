@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0f44fd9722ca",
+    "candidateId": "sc-95a09b1d10b1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "tracing-vendor-output-formats"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Traefik v3 no longer supports direct vendor tracing output formats (Instana, Jaeger, Zipkin, Haystack, Datadog, Elastic); tracing must move to OpenTelemetry.",
+        "remediation": "Send traces to the vendor's OTLP ingestion endpoint, or use an OpenTelemetry collector with appropriate exporters for legacy stacks.",
+        "severity": "high"
+      },
+      "statement": "Traefik v3 tracing is OpenTelemetry-only; direct vendor output formats (Instana, Jaeger, Zipkin, Haystack, Datadog, Elastic) are no longer supported."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Evidence names vendors but not the configuration keys that select them, so exposure cannot be expressed as a config predicate.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-fd174730dfa6"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:796c49cbf958ae3533f8235dd0387e8bbdb1f98f8c7fa3f88f812f4e585f38a3",
+      "inputEvidence": [
+        "ev-fd174730dfa6"
+      ],
+      "generatedAt": "2026-10-02T20:53:57Z",
+      "callId": "28a810c1-3c60-40d5-8dcc-724826d5b6e0"
+    }
+  }
+}

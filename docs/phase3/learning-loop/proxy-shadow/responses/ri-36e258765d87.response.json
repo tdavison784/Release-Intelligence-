@@ -1,0 +1,48 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-36e258765d87",
+  "promptDigest": "sha256:f04a4006bc2bf54d9a0b7c2270473f615fd94f3d4764919305c2ba9946b46f8b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "46d82616-2104-44ae-9f3b-fbbbf3be4de6",
+  "startedAt": "2026-10-03T02:15:33.624Z",
+  "decidedAt": "2026-10-03T02:15:53.959Z",
+  "durationMs": 19701,
+  "costUSD": 0.056048799999999996,
+  "output": {
+    "action": "correct",
+    "reason": "The validated diff between the v2.6.4 and v2.7.0 install bundles [ev-782bc47d120d] [ev-c2c6c790d6b2] shows that `status.artifact.digest` is now required in the HelmChart v1beta2 schema. A required property nested in an object is only enforced when that parent object is present. So a HelmChart is rejected only when it has a `status.artifact` with no `digest`. The proposed condition only tests for `digest` unset, so it also flags HelmCharts that have no `status.artifact` at all, such as newly created ones, and that is too broad.",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In the source.toolkit.fluxcd.io/v1beta2 HelmChart schema, status.artifact.digest is now required. A v1beta2 HelmChart is exposed when it has a status.artifact without a digest; HelmCharts with no status.artifact are not affected.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "resource",
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmChart",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

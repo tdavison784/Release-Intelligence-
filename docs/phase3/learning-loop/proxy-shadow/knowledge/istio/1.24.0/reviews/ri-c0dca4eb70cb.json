@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-c0dca4eb70cb",
+    "candidateId": "sc-5c3e51b15ff9",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Added retry policy for inbound requests that automatically resets the requests that the service has not seen/processed\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Inbound requests that the service has not seen/processed are automatically retried. The default behavior changes to enable retry policy; this can be reverted by setting ENABLE_INBOUND_RETRY_POLICY to false.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 adds an automatic retry policy for inbound requests that the service has not processed, enabled by default and controllable via the ENABLE_INBOUND_RETRY_POLICY environment variable."
+    },
+    "proposals": [
+      "sp-192a9aac0e87",
+      "sp-b63b3bd59e2f"
+    ],
+    "validations": [
+      "val-55dcb4e7fbf7",
+      "val-71b7bf940c08",
+      "val-c909db903636",
+      "val-d146b6a33581"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:06:47Z"
+  }
+}

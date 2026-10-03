@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2dc341c8f388",
+    "reviewItemId": "ri-ad9114e9d807",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "kind": "NodePool",
+        "path": "spec.disruption.consolidationPolicy"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"WhenUnderutilized\"",
+        "after": "\"WhenEmptyOrUnderutilized\""
+      },
+      "statement": "NodePool's spec.disruption.consolidationPolicy value `WhenUnderutilized` is renamed to `WhenEmptyOrUnderutilized`."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:20721344cb8213cbbb58435be10f167ae1a7fd7fc48ede879f896dc64a8bedb0",
+      "inputEvidence": [
+        "ev-80331c11381f",
+        "ev-09bbe26d2f4a",
+        "ev-451bd6a12e72",
+        "ev-760ae3491f13",
+        "ev-881d131e594e",
+        "ev-8998581760b8",
+        "ev-fef279f378b5"
+      ],
+      "generatedAt": "2026-10-03T02:28:21.933Z",
+      "callId": "6dcbe2ad-9c6d-4cdb-8db6-559a6de6eef7"
+    },
+    "reason": "The upgrade guide says the NodePool ConsolidationPolicy value `WhenUnderutilized` is renamed to `WhenEmptyOrUnderutilized` [ev-80331c11381f]. That is a rename of an allowed value, not of a field. The crd-schema validator confirms that karpenter.sh NodePool spec.disruption.consolidationPolicy exists in both releases [ev-09bbe26d2f4a][ev-760ae3491f13], so the subject is spelled right. The validator also says the old value is allowed in a different API version than the new one. That leaves value-changed, with the old and new values as before and after, the closest fit in the change vocabulary. It is not an exact fit, so my confidence is low.",
+    "startedAt": "2026-10-03T02:28:08.255Z",
+    "decidedAt": "2026-10-03T02:28:21.933Z"
+  }
+}

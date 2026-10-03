@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cf6b220d4ff0",
+    "candidateId": "sc-4330cdde4865",
+    "proposalId": "sp-8bd5f3672b57",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "ENABLE_ENHANCED_DESTINATIONRULE_MERGE",
+        "component": "pilot"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment has DestinationRules on the same host with different ExportTo attributes"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "DestinationRules on the same host with different ExportTo attributes will no longer be merged by default, which changes the routing behavior for such configurations unless the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable is explicitly set to false.",
+        "severity": "medium"
+      },
+      "statement": "DestinationRule merging behavior for rules on the same host with different ExportTo attributes changed; merging is now disabled by default, but can be re-enabled by setting the ENABLE_ENHANCED_DESTINATIONRULE_MERGE environment variable to false in the pilot deployment."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/behavior-changed",
+        "detail": "env-var behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/behavior-changed",
+        "detail": "env-var behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

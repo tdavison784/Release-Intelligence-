@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9715fb67f107",
+    "reviewItemId": "ri-029d0474266c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether cert-manager is installed and upgraded through an OperatorHub/OLM package (RedHat OpenShift OperatorHub or operatorhub.io) rather than Helm or static manifests"
+        }
+      },
+      "statement": "cert-manager no longer publishes OperatorHub packages; v1.16.5 is the last cert-manager release on OperatorHub (RedHat OpenShift OperatorHub and operatorhub.io), and the cert-manager-olm repository is archived."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:6a3db25d1237c2ea96af62d9329d1e529fcd63ba1eb6e33ce438418f8e204e42",
+      "inputEvidence": [
+        "ev-c3d5e62490c3"
+      ],
+      "generatedAt": "2026-10-03T02:10:18.617Z",
+      "callId": "10c649c1-a260-4fc0-b010-6f47f97d7043"
+    },
+    "reason": "[ev-c3d5e62490c3] says cert-manager no longer publishes OperatorHub packages and that v1.16.5 is the last release on RedHat OpenShift OperatorHub and operatorhub.io. So the only exposed environments are those that install and upgrade cert-manager through those OperatorHub packages. The evidence names no configuration marker for this, such as a specific OLM resource, Helm value or image. That makes the proposed undecidable condition, which names exactly what information is missing, the faithful choice. A predicate like gvk-in-use for any OLM Subscription would also flag environments that are not exposed and would rest on knowledge the evidence does not provide.",
+    "startedAt": "2026-10-03T02:10:10.64Z",
+    "decidedAt": "2026-10-03T02:10:18.617Z"
+  }
+}

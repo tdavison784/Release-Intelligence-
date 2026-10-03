@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8d50af32234f",
+    "candidateId": "sc-bca80be32605",
+    "proposalId": "sp-da600953f755",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "cert-manager",
+        "name": "GET /metrics",
+        "component": "controller"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--enable-metrics",
+          "component": "controller",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "New optional metrics are available for monitoring certificate lifecycles; existing deployments are unaffected."
+      },
+      "statement": "Two new Prometheus metrics for certificate issuance and expiration times are now available: certmanager_certificate_not_before_timestamp_seconds and certmanager_certificate_not_after_timestamp_seconds."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:api-endpoint/added",
+        "detail": "api-endpoint added is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:api-endpoint/added",
+        "detail": "api-endpoint added is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

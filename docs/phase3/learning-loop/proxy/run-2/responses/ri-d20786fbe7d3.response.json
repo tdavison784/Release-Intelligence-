@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d20786fbe7d3",
+  "promptDigest": "sha256:ffae4025791ef0dad4b956b06d6cda777722c0076625be9688ebf1db1dc67842",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "8a1ec1a3-58af-4e5b-8ecc-c6df246d6c02",
+  "startedAt": "2026-10-03T02:02:05.031Z",
+  "decidedAt": "2026-10-03T02:02:15.647Z",
+  "durationMs": 9608,
+  "costUSD": 0.091792,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-498b1297fb7f] says only that Loki 3.0.0 adds the optional `frontend.max-query-capacity` key; it describes nothing that fails or changes for operators who do nothing. The proposed exposure misuses cluster-version, which is for the platform version, not the product's own version. It also tests the version the environment runs after the upgrade, not whether the upgrade crosses this change. The only environment state the evidence supports is an upgrade from a release before 3.0.0, where the new key becomes available.",
+    "citations": [
+      "ev-498b1297fb7f"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 adds the optional config key `frontend.max-query-capacity` to tune per-tenant query capacity; environments upgrading from a release before 3.0.0 gain the key, and nothing breaks for those who do not set it.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      }
+    }
+  }
+}

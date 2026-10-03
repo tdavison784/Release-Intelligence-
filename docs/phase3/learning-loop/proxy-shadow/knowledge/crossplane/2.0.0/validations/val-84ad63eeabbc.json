@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-84ad63eeabbc",
+    "candidateId": "sc-7c6ea4d0c14a",
+    "proposalId": "sp-c684b9b675ae",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "kind": "Composition",
+        "path": "spec.mode"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"Resources\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.mode",
+              "state": "equals",
+              "values": [
+                "\"Resources\""
+              ]
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "kind": "Composition"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Compositions using spec.mode: Resources must be migrated to composition functions before upgrading.",
+        "remediation": "Use the Crossplane v1.20 CLI: crossplane beta convert pipeline-composition old-composition.yaml -o new-composition.yaml",
+        "severity": "high"
+      },
+      "statement": "Native patch and transform composition (Composition spec.mode: Resources) is removed in Crossplane 2.0 and replaced by composition functions; Compositions using it must be migrated before upgrading."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/removed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/removed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

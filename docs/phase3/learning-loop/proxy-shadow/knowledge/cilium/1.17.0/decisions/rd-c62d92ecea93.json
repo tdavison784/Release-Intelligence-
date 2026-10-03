@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c62d92ecea93",
+    "reviewItemId": "ri-947304de9cf1",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--prometheus-serve-addr",
+              "component": "cilium-agent",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "CILIUM_PROMETHEUS_SERVE_ADDR",
+              "component": "cilium-agent",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Prometheus metric `doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total` in Cilium 1.17.0."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether Prometheus dashboards, alerting rules or recording rules query the metric doublewrite_identity_kvstore_total_count"
+        }
+      },
+      "statement": "The Cilium metric `doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total` in 1.17.0. Exposure depends on whether monitoring consumers (dashboards, alerts, recording rules) reference the old metric name, which static environment inputs do not show."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:fc9c4c80ca08f6788455e22023793185479dc1376d40aff6ac7939ba5e442aab",
+      "inputEvidence": [
+        "ev-d6005e84dee9"
+      ],
+      "generatedAt": "2026-10-03T02:25:38.248Z",
+      "callId": "e49b8d60-4109-4f50-aa2c-ac4ca0052306"
+    },
+    "reason": "[ev-d6005e84dee9] says only that the metric `doublewrite_identity_kvstore_total_count` was renamed to `doublewrite_identity_kvstore_total`. It does not name the component that emits the metric, how metrics are turned on, or the `--prometheus-serve-addr` flag or `CILIUM_PROMETHEUS_SERVE_ADDR` variable. The proposed condition is therefore too broad: it flags every environment that serves Prometheus metrics, even when nothing queries this metric. Only environments whose dashboards, alerts or recording rules reference the old name are exposed, and no static configuration input shows that.",
+    "startedAt": "2026-10-03T02:25:23.81Z",
+    "decidedAt": "2026-10-03T02:25:38.248Z"
+  }
+}

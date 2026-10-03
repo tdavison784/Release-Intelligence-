@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5ecbd881fced",
+    "candidateId": "sc-e1198a155782",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "logs-rbac-enforcement"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether log endpoints are accessed at runtime and by which principals"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Log endpoints now require RBAC authorization; access attempts without proper permissions will be denied.",
+        "remediation": "Verify that all principals and scripts accessing log endpoints have appropriate RBAC permissions configured in Argo CD 3.0.0.",
+        "severity": "high"
+      },
+      "statement": "Log endpoints now enforce RBAC authorization by default in Argo CD 3.0.0."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d83aa8e2cc23"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:cb027fc595c79c4c0aa71e06bc7505d97f0d10d47f7b018c0866ff84a9ea04c6",
+      "inputEvidence": [
+        "ev-d83aa8e2cc23"
+      ],
+      "generatedAt": "2026-10-02T06:03:37Z",
+      "callId": "bdf8cfa1-0c72-4ee9-b7d4-5068b17a0ca9"
+    }
+  }
+}

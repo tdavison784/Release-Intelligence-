@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7646f3a19f9f",
+    "candidateId": "sc-78b10a313e23",
+    "proposalId": "sp-fbcfaaf7c587",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"SHA-384 for RSA 3072-bit keys, SHA-512 for RSA 4096-bit keys\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.size",
+                  "state": "equals",
+                  "values": [
+                    "3072",
+                    "4096"
+                  ]
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether systems that consume or validate these certificates fail to handle SHA-384/SHA-512 signatures"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "As 3072-bit and 4096-bit RSA keys rotate, the certificates use SHA-384 or SHA-512. The upgrade guide expects these to be widely supported, but errors are possible.",
+        "remediation": "After larger RSA keys rotate, watch for errors from systems that consume these certificates.",
+        "severity": "low"
+      },
+      "statement": "From cert-manager 1.17.0, RSA certificates with 3072-bit keys use SHA-384 and those with 4096-bit keys use SHA-512 as the hash algorithm. Operators should check for errors as these larger RSA keys rotate."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

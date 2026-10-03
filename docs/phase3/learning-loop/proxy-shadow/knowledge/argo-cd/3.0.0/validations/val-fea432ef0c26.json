@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fea432ef0c26",
+    "candidateId": "sc-ca60de420e92",
+    "proposalId": "sp-842e48b93fde",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "argo-cd",
+        "name": "batch-event-processing",
+        "component": "controller"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "batch-event-processing",
+              "component": "controller",
+              "state": "unset"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The controller will process events in batch mode by default, which changes event processing behavior from prior versions where this was not the default.",
+        "severity": "medium"
+      },
+      "statement": "Batch event processing is enabled by default in the Argo CD controller in version 3.0.0."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:feature-gate/default-changed",
+        "detail": "no canonical exposure condition for feature-gate default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

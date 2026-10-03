@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-eefd7675ccfb",
+    "candidateId": "sc-74b7134bdb51",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodePool",
+        "path": "spec.disruption"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"{\\\"consolidateAfter\\\":\\\"0s\\\"}\"",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption",
+              "state": "unset"
+            }
+          ],
+          "group": "karpenter.sh",
+          "version": "v1",
+          "kind": "NodePool"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.sh",
+          "version": "v1",
+          "kind": "NodePool"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "NodePools under the karpenter.sh/v1 schema that leave spec.disruption unset no longer get consolidateAfter defaulted to \"0s\" by the API server, so their stored disruption configuration differs from before.",
+        "remediation": "Explicitly set spec.disruption (consolidateAfter) on NodePools that previously relied on the removed default.",
+        "severity": "medium"
+      },
+      "statement": "In the karpenter.sh/v1 schema of nodepools.karpenter.sh, the default for spec.disruption changed from {\"consolidateAfter\":\"0s\"} to no default, so NodePools that leave spec.disruption unset no longer receive consolidateAfter: \"0s\"."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-760ae3491f13",
+      "ev-09bbe26d2f4a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:1bae6fb0d5ef9f9764c3bfab410472ba699531e45f7f1e3188c1b32edaba7a41",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-02T11:26:39Z",
+      "callId": "e2f07cf3-af82-4a38-b2d4-9ed0d0f60b29"
+    }
+  }
+}

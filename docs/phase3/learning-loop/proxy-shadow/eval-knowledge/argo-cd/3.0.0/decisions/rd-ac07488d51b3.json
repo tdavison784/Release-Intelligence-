@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ac07488d51b3",
+    "reviewItemId": "ri-f1b8dbf877e1",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.customizations.ignoreResourceUpdates",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "Argo CD 3.0.0 adds a default configuration for resource.customizations.ignoreResourceUpdates in the argocd-cm ConfigMap that excludes common mutated resources and always ignores .status changes; the v2 behavior can be preserved by overriding or removing this configuration."
+    },
+    "corrected": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.customizations.ignoreResourceUpdates",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "Argo CD 3.0.0 ships a default resource.customizations.ignoreResourceUpdates configuration in argocd-cm that ignores updates to commonly mutated resources, and it always ignores .status changes on watched resources. To preserve the v2 behaviour, override or remove the default configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:835904c3602ffa36219021f28794cbc76aaa4d203b495c78a1fc893e7c25c720",
+      "inputEvidence": [
+        "ev-94989021db77"
+      ],
+      "generatedAt": "2026-10-02T16:03:36.816Z",
+      "callId": "4c52e85e-07f8-475c-81eb-51a75d1c083b"
+    },
+    "reason": "[ev-94989021db77] does not say the `resource.customizations.ignoreResourceUpdates` key is new. It says the Argo CD manifest now ships a default configuration for that key in `argocd-cm`, and that `.status` changes are now always ignored. The subject is right. The change is a different default behaviour for the same key, which operators can override or remove to keep the v2 behaviour, so the type should be behavior-changed rather than added. The text gives no literal before/after values, so default-changed cannot be filled in.",
+    "startedAt": "2026-10-02T16:03:26.454Z",
+    "decidedAt": "2026-10-02T16:03:36.816Z",
+    "resultingFact": "vf-09a286be29a1"
+  }
+}

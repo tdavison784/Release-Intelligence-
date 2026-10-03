@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-05b1bdaa86f1",
+    "product": "istio",
+    "release": "1.24.0",
+    "anchors": [
+      {
+        "release": "1.24.0",
+        "evidenceKeys": [
+          "ek-df6295a66837"
+        ],
+        "statementKeys": [
+          "sk-d7e3fd8ed55a"
+        ],
+        "changeIds": [
+          "chg-51afabef1a5f"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-0750ad78d42c"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "waypoint-auto-allocated-ip-dnsproxy"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which configuration shows that an environment uses waypoints, relies on auto-allocated IPs, and has DNSProxy disabled (the release note names no key, flag or env var for any of these)"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A bug fix: waypoints can consume auto-allocated IPs without DNSProxy enabled; no operator action is stated."
+      },
+      "statement": "Fixed an issue where Waypoints required DNSProxy to be enabled in order to consume auto-allocated IPs"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-1869afd429f1"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-1869afd429f1"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-77fd1b5aca3d"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-c8f37bf4f715"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-3cf1259609e1",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/52753.yaml",
+        "locator": "52753.yaml L33-L34",
+        "excerpt": "- |\n    **Fixed** an issue where Waypoints required DNSProxy to be enabled in order to consume auto-allocated IPs",
+        "contentDigest": "sha256:7ef0ddbd5775728befeda9e8eba8f44f58ee2bee6bcf37f50383c2e7a8cff4bc",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T13:02:00.079Z"
+  }
+}

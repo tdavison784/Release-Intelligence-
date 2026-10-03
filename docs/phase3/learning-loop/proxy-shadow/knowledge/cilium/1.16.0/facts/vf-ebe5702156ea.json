@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-ebe5702156ea",
+    "product": "cilium",
+    "release": "1.16.0",
+    "anchors": [
+      {
+        "release": "1.16.0",
+        "evidenceKeys": [
+          "ek-1a7a01ba4d2b"
+        ],
+        "statementKeys": [
+          "sk-8daffb73f182"
+        ],
+        "changeIds": [
+          "chg-f985c03b5727"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-f68243010efc"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "clustermesh.apiserver.podSecurityContext"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.securityContext",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.podSecurityContext",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.securityContext",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.podSecurityContext",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Clustermesh-apiserver pods will run with restricted security contexts (dropped capabilities, non-root user) by default if the operator does not explicitly override these values.",
+        "severity": "medium"
+      },
+      "statement": "The clustermesh-apiserver `podSecurityContext` and `securityContext` settings now default to drop all capabilities and run as non-root user"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-19365095ca99"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-19365095ca99"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-1f7740f6a17a"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-fc72c9cb0688"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-da6e6a1ea917",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst",
+        "locator": "L429-L430 (1.16 Upgrade Notes › Helm Options)",
+        "excerpt": "* The clustermesh-apiserver `podSecurityContext` and `securityContext` settings now\n  default to drop all capabilities and run as non-root user.",
+        "contentDigest": "sha256:ee9d0cd6af8ac7e31ed1cb4cc0410c4d2cd1d95cc4f5e916fca918102866de83",
+        "retrievedAt": "2026-10-02T02:35:42Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:05:01.886Z"
+  }
+}

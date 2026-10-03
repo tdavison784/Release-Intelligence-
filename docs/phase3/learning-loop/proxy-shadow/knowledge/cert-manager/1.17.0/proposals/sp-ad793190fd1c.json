@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ad793190fd1c",
+    "candidateId": "sc-c9e607a2cdf4",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "log-message-structured-data"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any log pipeline, alert rule, dashboard, or automation matches on literal strings in cert-manager log lines"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager keeps working, but log lines now include additional contextual structured data, so tooling that matches on literal strings in cert-manager log lines may break (the upgrade guide says it's possible that may break).",
+        "remediation": "Review alert rules, dashboards, and log parsers that match literal strings in cert-manager log lines and update them to match on the structured fields instead.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 log messages have been augmented with better contextual structured data, which may break tooling that matches on literal strings in log lines."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-775b7a64f057"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:bc187d680aad07647c61bd656aedd16443bb096da5c57e69e4ea5b0bdb1ad537",
+      "inputEvidence": [
+        "ev-775b7a64f057"
+      ],
+      "generatedAt": "2026-10-02T11:20:20Z",
+      "callId": "b2837ffd-c8b5-449f-879c-88394c2cfaad"
+    }
+  }
+}

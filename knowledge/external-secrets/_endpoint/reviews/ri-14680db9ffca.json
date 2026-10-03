@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-14680db9ffca",
+    "candidateId": "sc-79f4401150ed",
+    "product": "external-secrets",
+    "questionType": "applicability",
+    "question": "For \"Storage version of `clusterexternalsecrets.external-secrets.io` changes v1beta1 → v1\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterExternalSecret"
+        }
+      },
+      "statement": "The storage version of clusterexternalsecrets.external-secrets.io changes from v1beta1 to v1 (in chart 0.16.0 the CRD no longer marks v1beta1 as storage, true → false), so existing ClusterExternalSecret objects stay stored as v1beta1 until a storage version migration (re-write all objects) is run and status.storedVersions is updated, which must happen before a later release removes v1beta1."
+    },
+    "proposals": [
+      "sp-17c788fb0d13",
+      "sp-1ed7796aa0f3",
+      "sp-d803cea66fac"
+    ],
+    "validations": [
+      "val-02c09594447b",
+      "val-22b6bb3c1f10",
+      "val-3f2cec201dfd",
+      "val-59b0cd18f78d",
+      "val-5e5a2e415c7b",
+      "val-7b81c8e70e0d",
+      "val-96668a4caee5",
+      "val-cf51c72c4cd6",
+      "val-e4b8fbb7a6f1",
+      "val-e99ccc732450"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "pending",
+    "createdAt": "2026-10-02T20:58:51Z"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-965ba8cb188f",
+    "candidateId": "sc-b39edc535b31",
+    "proposalId": "sp-adf5f5817979",
+    "validator": "semvalidate.values@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "podDisruptionBudget.minAvailable"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"percentages accepted\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "podDisruptionBudget.minAvailable",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Percentage values are now accepted for the podDisruptionBudget values; the evidence states no failure or required action.",
+        "severity": "low"
+      },
+      "statement": "The Helm chart now accepts percentage values for podDisruptionBudget.minAvailable (and likewise podDisruptionBudget.maxAvailable), which were not accepted before."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "helm-values:exists",
+        "detail": "podDisruptionBudget.minAvailable is in no chart's values, but its parent section is: optional keys that default to unset are often not in the defaults file"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "helm-values:exists",
+        "detail": "podDisruptionBudget.minAvailable is in no chart's values, but its parent section is: optional keys that default to unset are often not in the defaults file"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-717ddb6f40cd",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.17.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:7ec69688c8da46d802f4937e30bcbe0dd9f5b1ed5d040e013206bc2c9a7c7bfb",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-fdc96eee87bf",
+        "kind": "structured",
+        "sourceId": "helm-chart",
+        "uri": "https://github.com/cert-manager/cert-manager/blob/v1.16.0/deploy/charts/cert-manager/values.yaml",
+        "locator": "deploy/charts/cert-manager/values.yaml",
+        "excerpt": "# +docs:section=Global",
+        "contentDigest": "sha256:6cc03b3cfa9205cd76f35956d008dbc5f97d6b0a2b68427b182fb40747de7e92",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-01T14:50:00Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-943910fb7a07",
+    "reviewItemId": "ri-f8bafa08e0d3",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "Application"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "controller.resource.health.persist",
+                  "state": "unset"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "status.resourceHealthSource",
+                      "state": "equals",
+                      "values": [
+                        "\"\""
+                      ]
+                    }
+                  ],
+                  "group": "argoproj.io",
+                  "version": "v1alpha1",
+                  "kind": "Application"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "controller.resource.health.persist",
+          "state": "equals",
+          "values": [
+            "true"
+          ]
+        }
+      },
+      "statement": "The health status is no longer persisted in the Application CR's `/status` by default in 3.0.0; it is stored externally instead, and can be reverted by setting `controller.resource.health.persist` to `true` in the `argocd-cmd-params-cm.yaml` ConfigMap."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "Application"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"controller.resource.health.persist\"]",
+                      "state": "set"
+                    }
+                  ],
+                  "kind": "ConfigMap",
+                  "name": "argocd-cmd-params-cm"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"controller.resource.health.persist\"]",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cmd-params-cm"
+        }
+      },
+      "statement": "In Argo CD 3.0.0, per-resource health is no longer persisted under the Application CR's status by default. Exposed environments are those using Applications where the argocd-cmd-params-cm ConfigMap does not set controller.resource.health.persist. Environments that set it to \"true\" keep the old persisting behaviour."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:c5cd17b8b638738669f5bdb2e5c2d20e427154ba5dbd33b0b7eb8e322346c4d7",
+      "inputEvidence": [
+        "ev-5616a3c7f69a",
+        "ev-04f25237d9d5",
+        "ev-66224e7edcd9",
+        "ev-84752609c1b3",
+        "ev-be3337c2717d",
+        "ev-d9606f97c234",
+        "ev-f69c10f943ee"
+      ],
+      "generatedAt": "2026-10-02T16:05:02.087Z",
+      "callId": "21b75520-f3e1-435c-a4d9-57c4b6d1473f"
+    },
+    "reason": "[ev-5616a3c7f69a] says the 3.0 default is to store health outside the Application CR, and that you get the old behaviour back by setting `controller.resource.health.persist` to `true` in the `argocd-cmd-params-cm` ConfigMap. That is a ConfigMap data key, not a Helm values path, so the proposed values-key leaf points at the wrong input. The second branch, a blank `status.resourceHealthSource`, is the guide's check for whether health is persisted today. Because it is OR'ed in, it also flags environments that already set `true` explicitly and are protected, so the condition is too broad. Exposure should be \"the ConfigMap does not set the key\". Written as a negation, it also covers installs that have no such ConfigMap. Setting the key to `true` stays as the overlap.",
+    "startedAt": "2026-10-02T16:04:42.502Z",
+    "decidedAt": "2026-10-02T16:05:02.087Z",
+    "resultingFact": "vf-574d4c7f46ed"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-674fd9058c9f",
+    "reviewItemId": "ri-cb1b9e25e373",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The max_transfer_retries setting, used to transfer chunks to new ingesters during rolling restarts, is removed; the Write Ahead Log (WAL) replaces it, so verify the WAL covers your rolling-restart use.",
+        "severity": "medium"
+      },
+      "statement": "The ingester setting max_transfer_retries (-ingester.max-transfer-retries) is removed in favor of the Write Ahead Log (WAL)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:3a915ece2e16f6059520f1b176b86e8054c2b8aa8c0884950893b88b86237430",
+      "inputEvidence": [
+        "ev-c6e07f70e7d9"
+      ],
+      "generatedAt": "2026-10-03T02:31:01.625Z",
+      "callId": "78a9a294-8316-47d8-8ad7-b52e9f266a6c"
+    },
+    "reason": "[ev-c6e07f70e7d9] says `max_transfer_retries` (`-ingester.max-transfer-retries`) is removed \"in favor of the Write Ahead log (WAL)\" and describes its rolling-restart chunk-transfer role, so the function is replaced by a named mechanism. That matches superseded-upstream: verify the replacement covers your use. The excerpt never says that a configuration still setting it fails or is rejected, so a mandatory kind such as P2's setting-ignored would over-claim. Confidence is low because the \"Alternatives to this setting are:\" list is cut off in the excerpt.",
+    "startedAt": "2026-10-03T02:30:46.285Z",
+    "decidedAt": "2026-10-03T02:31:01.625Z"
+  }
+}

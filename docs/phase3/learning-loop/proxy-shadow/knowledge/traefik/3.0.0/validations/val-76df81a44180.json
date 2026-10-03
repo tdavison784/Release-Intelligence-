@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-76df81a44180",
+    "candidateId": "sc-f6497dd8df3e",
+    "proposalId": "sp-ab03d504ccc7",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "consul.namespace"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "consul.namespaces"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--consul.namespace",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "The removed Consul `namespace` option is unsupported and would prevent Traefik from starting if still configured.",
+        "remediation": "Replace the `namespace` option with `namespaces` in the Consul provider static configuration.",
+        "severity": "high"
+      },
+      "statement": "The Consul provider `namespace` option (deprecated in v2) is removed in v3; leaving it set prevents Traefik from starting, and `namespaces` must be used instead."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

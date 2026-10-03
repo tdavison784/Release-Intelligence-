@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-84ebbad187b2",
+    "candidateId": "sc-24aa4e50837e",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The default value of of `CiliumLoadBalancerIPPool.spec.allowFirstLastIPs` has been changed to `yes`. This means that unless explicitly configured otherwise…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The first and last IP addresses of the IP pool are now available for allocation by default, changing the IP allocation behavior unless explicitly configured otherwise.",
+        "remediation": "Explicitly set `allowFirstLastIPs: no` in your CiliumLoadBalancerIPPool configuration before the upgrade if you require the previous behavior of excluding first and last IP addresses.",
+        "severity": "medium"
+      },
+      "statement": "The default value of CiliumLoadBalancerIPPool.spec.allowFirstLastIPs changed from no to yes, making the first and last IP addresses of the pool available for allocation."
+    },
+    "proposals": [
+      "sp-3e880d3806f1",
+      "sp-7bb4f0e5b79b"
+    ],
+    "validations": [
+      "val-0109d318ce1c",
+      "val-2816132b1141",
+      "val-7bfb932d30f8",
+      "val-9a29aae6b19b",
+      "val-a9e265160f1a",
+      "val-b3cf32010275",
+      "val-b7769b74e958",
+      "val-b95453a20256"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:07:10Z"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1c3d048821ec",
+  "promptDigest": "sha256:b8b424ec05848b0e50d04b234d9016acde60cd22130ee02395dd67dd16109b11",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "5bd9f4f7-7cfa-449d-a540-bfa9dbacec12",
+  "startedAt": "2026-10-03T02:12:38.085Z",
+  "decidedAt": "2026-10-03T02:12:49.737Z",
+  "durationMs": 10777,
+  "costUSD": 0.094032,
+  "output": {
+    "action": "correct",
+    "reason": "The subject is right: the validator confirmed that kafka has compatibility rows in both releases. The change type is not: [ev-a7c9af863980] says the supported Kafka versions moved, which is a version requirement change, not a semantic behaviour change. The artifacts show the supported set went from 3.8.0, 3.8.1 and 3.9.0 in 0.45.0 [ev-029b4f635db8] to 3.9.0 and 4.0.0 in 0.46.0 [ev-e7a043486f16]. So the change is requirement-changed with after \">=3.9.0, <=4.0.0\"; that exact constraint string is my own, and no validator has checked it.",
+    "citations": [
+      "ev-a7c9af863980",
+      "ev-029b4f635db8",
+      "ev-e7a043486f16"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-change-type"
+    ],
+    "correction": {
+      "statement": "Strimzi 0.46.0 changes its supported Kafka versions from 3.8.0, 3.8.1 and 3.9.0 to 3.9.0 and 4.0.0: it adds Kafka 4.0.0 and drops 3.8.0 and 3.8.1.",
+      "subject": {
+        "determination": "asserted",
+        "family": "compatibility-boundary",
+        "name": "kafka"
+      },
+      "change": {
+        "determination": "asserted",
+        "type": "requirement-changed",
+        "before": ">=3.8.0, <=3.9.0",
+        "after": ">=3.9.0, <=4.0.0"
+      }
+    }
+  }
+}

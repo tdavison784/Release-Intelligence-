@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f4ff0714eba5",
+    "candidateId": "sc-b5410801d8a4",
+    "proposalId": "sp-e4ee0aa99739",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "drop_labels",
+        "component": "lambda-promtail"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "PROMTAIL_CONFIG",
+              "component": "lambda-promtail",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Empty strings in drop_labels configuration are no longer evaluated, which corrects the handling of this configuration parameter in lambda-promtail.",
+        "severity": "low"
+      },
+      "statement": "The lambda-promtail tool no longer evaluates empty strings when processing drop_labels configuration."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/behavior-changed",
+        "detail": "no canonical exposure condition for config-key behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

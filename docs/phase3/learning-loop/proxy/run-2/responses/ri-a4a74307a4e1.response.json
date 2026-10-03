@@ -1,0 +1,45 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a4a74307a4e1",
+  "promptDigest": "sha256:a69e01b9cf93d88e2d5bfd894f75d0ac0580cb414e2873426b2a359a0e9e1d4e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "fed63f5c-cdc6-44d8-8a28-7806b2c9f1cc",
+  "startedAt": "2026-10-03T01:55:34.095Z",
+  "decidedAt": "2026-10-03T01:55:45.308Z",
+  "durationMs": 10331,
+  "costUSD": 0.090024,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-dc20110f4f4b] says that both the `store.max-look-back-period` CLI flag and the corresponding YAML settings were removed. Exposure based only on the CLI flag is too narrow: it misses environments that set the option in the Loki config file. Neither [ev-dc20110f4f4b] nor [ev-f7fa153951ef] gives the YAML key path, so that half of the condition is left undecidable instead of guessed.",
+    "citations": [
+      "ev-dc20110f4f4b",
+      "ev-f7fa153951ef"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes the deprecated `store.max-look-back-period` CLI flag and its YAML setting (use `querier.max-query-lookback`). Exposed: environments that pass `--store.max-look-back-period` or set the matching YAML option in the Loki config (key path not stated in the evidence).",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--store.max-look-back-period",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the YAML config key path corresponding to store.max-look-back-period, and whether the environment's Loki config file sets it"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

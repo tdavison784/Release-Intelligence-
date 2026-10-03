@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3e880d3806f1",
+    "candidateId": "sc-24aa4e50837e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "kind": "CiliumLoadBalancerIPPool",
+        "path": "spec.allowFirstLastIPs"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"no\"",
+        "after": "\"yes\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.allowFirstLastIPs",
+                  "state": "unset"
+                }
+              ],
+              "group": "cilium.io",
+              "kind": "CiliumLoadBalancerIPPool"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.allowFirstLastIPs",
+              "state": "set"
+            }
+          ],
+          "group": "cilium.io",
+          "kind": "CiliumLoadBalancerIPPool"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The first and last IP addresses of the IP pool are now available for allocation by default, changing the IP allocation behavior unless explicitly configured otherwise.",
+        "remediation": "Explicitly set `allowFirstLastIPs: no` in your CiliumLoadBalancerIPPool configuration before the upgrade if you require the previous behavior of excluding first and last IP addresses.",
+        "severity": "medium"
+      },
+      "statement": "The default value of CiliumLoadBalancerIPPool.spec.allowFirstLastIPs changed from no to yes, making the first and last IP addresses of the pool available for allocation."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-8aa9ac2ddd3a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3a53a0311de2319e3daeb7d59633a711ae2cdf122d4e399b2159945ad3bb8753",
+      "inputEvidence": [
+        "ev-8aa9ac2ddd3a"
+      ],
+      "generatedAt": "2026-10-02T05:55:27Z",
+      "callId": "04c8c51c-a8c9-411c-a627-408b98b2be4d"
+    }
+  }
+}

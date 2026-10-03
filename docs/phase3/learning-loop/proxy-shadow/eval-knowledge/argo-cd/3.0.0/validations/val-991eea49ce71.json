@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-991eea49ce71",
+    "candidateId": "sc-588e02c44826",
+    "proposalId": "sp-91f809ec322f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "image",
+        "product": "argo-cd",
+        "name": "quay.io/argoproj/argocd"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"cosign-signed container images and SLSA Level 3 provenance available\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "image-in-use",
+          "name": "quay.io/argoproj/argocd"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Container images are now signed by cosign and provenance meeting SLSA Level 3 is available for verification, with no impact on runtime behavior or configuration."
+      },
+      "statement": "Argo CD 3.0.0 container images are signed by cosign and include provenance meeting SLSA Level 3 specifications, enabling artifact verification."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:image/added",
+        "detail": "no canonical exposure condition for image added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator (change refuted)"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-6ea7d1aa2ac2",
+        "kind": "structured",
+        "sourceId": "install-manifest",
+        "uri": "https://raw.githubusercontent.com/argoproj/argo-cd/v3.0.0/manifests/install.yaml",
+        "excerpt": "# This is an auto-generated file. DO NOT EDIT",
+        "contentDigest": "sha256:098c8c60bd99c16b297c612609cff8151b9c1672afab8aab48818226309bd22e",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-b9fde9c8ce58",
+        "kind": "structured",
+        "sourceId": "install-manifest",
+        "uri": "https://raw.githubusercontent.com/argoproj/argo-cd/v2.14.5/manifests/install.yaml",
+        "excerpt": "# This is an auto-generated file. DO NOT EDIT",
+        "contentDigest": "sha256:247ccda29c9faac4e0c8598680f5ebefff9911e957e3aeaf838eb4bbf455f2f4",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T02:35:31Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

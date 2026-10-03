@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-956d026caab5",
+    "reviewItemId": "ri-aaa4dc328e32",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "bgp"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "cilium",
+          "path": "bgpControlPlane"
+        }
+      },
+      "statement": "Three Helm configuration keys for the metallb-bgp integration (bgp.enabled, bgp.announce.podCIDR, and bgp.announce.loadbalancerIP) have been removed; users must migrate to bgpControlPlane options for BGP announcements."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:57748c2450cd92e2f7252d23abc4bc3317ef1b5732e488ccb6ac9a66e05f379f",
+      "inputEvidence": [
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5",
+        "ev-42d13e5eb7d7"
+      ],
+      "generatedAt": "2026-10-03T02:27:53.194Z",
+      "callId": "8f4afebf-4939-42f0-87cb-297d79ddc69b"
+    },
+    "reason": "The upgrade notes say the metallb-bgp Helm options `bgp.enabled`, `bgp.announce.podCIDR` and `bgp.announce.loadbalancerIP` were removed, and users must now use the options under `bgpControlPlane` [ev-42d13e5eb7d7]. Validators comparing the two values files found that `bgp` exists in the 1.15.6 values and is gone from the 1.17.0 values, which confirms the subject helm-value `bgp` and the change type removed [ev-28e0ccb5774a] [ev-39a22d88e2f5]. The notes name `bgpControlPlane` as the options to use instead, so replacedBy is supported.",
+    "startedAt": "2026-10-03T02:27:45.555Z",
+    "decidedAt": "2026-10-03T02:27:53.194Z",
+    "resultingFact": "vf-80215d68deb7"
+  }
+}

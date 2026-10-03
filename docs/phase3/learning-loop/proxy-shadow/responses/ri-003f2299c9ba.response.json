@@ -1,0 +1,32 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-003f2299c9ba",
+  "promptDigest": "sha256:0ce94d43afcdf0d674e19f2ea9debd89eef8a9745794f094320aaf88e5232775",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "b7a5bf56-eb82-44f4-9acd-25cb4153763c",
+  "startedAt": "2026-10-03T02:09:57.619Z",
+  "decidedAt": "2026-10-03T02:10:10.240Z",
+  "durationMs": 11702,
+  "costUSD": 0.06468,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-3d75e7ce1720] lists `-boltdb.shipper.shared-store` under the 3.0.0 upgrade-guide heading \"Removed `shared_store` and `shared_store_key_prefix` from shipper configuration\". A removed setting is no longer honoured, so setting-ignored is the right kind. However, the excerpt does not say whether startup rejects the flag or just ignores it. The proposed statement's \"ignored or rejected during startup\" goes beyond the evidence, so I have reworded the statement to say only what the evidence supports.",
+    "citations": [
+      "ev-3d75e7ce1720"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0, the CLI flag `-boltdb.shipper.shared-store` was removed (shared_store was removed from the shipper configuration). A value set with this flag is no longer honoured.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "statement": "The `-boltdb.shipper.shared-store` flag was removed from the shipper configuration in 3.0.0, so a value configured with it is no longer honoured. The evidence does not say whether startup rejects the flag or ignores it.",
+        "remediation": "Remove `-boltdb.shipper.shared-store` from the Loki configuration before upgrading to 3.0.0. Follow the upgrade guide section on the removal of `shared_store` and `shared_store_key_prefix` from the shipper configuration."
+      }
+    }
+  }
+}

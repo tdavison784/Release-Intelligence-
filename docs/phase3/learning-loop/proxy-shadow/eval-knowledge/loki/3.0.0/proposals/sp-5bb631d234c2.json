@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5bb631d234c2",
+    "candidateId": "sc-297ce1bc839b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "frontend-protobuf-encoding"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Requests wrapped in some envelope format\"",
+        "after": "\"Pure Protobuf requests sent directly\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--frontend.encoding",
+              "component": "frontend",
+              "state": "equals",
+              "values": [
+                "\"protobuf\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Requests from frontend v2 to querier via scheduler are now transmitted as pure Protobuf instead of wrapped when -frontend.encoding=protobuf is configured.",
+        "severity": "low"
+      },
+      "statement": "When -frontend.encoding=protobuf is set, Loki frontend v2 now sends pure Protobuf requests through the scheduler to the querier instead of wrapping them."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-3f7dccc9a7e0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9cf391a248b0a3bde2bb83e7251329e3ca4d241e53147f36a1788eaf32d8df2b",
+      "inputEvidence": [
+        "ev-3f7dccc9a7e0"
+      ],
+      "generatedAt": "2026-10-02T16:17:04Z",
+      "callId": "7ad787f5-1420-4471-af11-152998c5254e"
+    }
+  }
+}

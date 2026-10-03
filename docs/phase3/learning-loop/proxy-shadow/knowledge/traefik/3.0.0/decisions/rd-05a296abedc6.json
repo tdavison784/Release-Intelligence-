@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-05a296abedc6",
+    "reviewItemId": "ri-230b3136f473",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--providers.docker.swarmMode",
+          "state": "set"
+        }
+      },
+      "statement": "In v3 the Docker provider's swarmMode option is unsupported (Swarm moved to a separate Swarm provider), and configuring providers.docker.swarmMode prevents Traefik from starting."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.docker.swarmMode",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the Traefik static configuration file (YAML or TOML) sets providers.docker.swarmMode"
+            }
+          ]
+        }
+      },
+      "statement": "In Traefik v3 the Docker provider no longer supports swarmMode (Swarm moved to a separate Swarm provider). Any v3 install that sets providers.docker.swarmMode, whether by CLI flag or in the YAML/TOML static configuration file, fails to start."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:0ad10525601109547ee91e3f18c89e3eb88e08dd51b05700e0f4325a74c4e0cb",
+      "inputEvidence": [
+        "ev-c6ee7d3b73da"
+      ],
+      "generatedAt": "2026-10-03T02:13:33.699Z",
+      "callId": "640076bf-1895-4f66-86f5-0a0a21ef757c"
+    },
+    "reason": "[ev-c6ee7d3b73da] gives the unsupported v2 configuration in three equivalent forms: a YAML file (providers.docker.swarmMode: true), a TOML file ([providers.docker] swarmMode=true) and the CLI flag (--providers.docker.swarmMode=true). It says this configuration \"would prevent Traefik to start\" and that swarmMode \"should not be used with the Docker provider\". The proposed exposure checks only the CLI flag, so it misses installs that set the option in the static config file. No static input reliably shows that file's contents, so the file case must be expressed as undecidable alongside the CLI flag.",
+    "startedAt": "2026-10-03T02:13:21.238Z",
+    "decidedAt": "2026-10-03T02:13:33.699Z"
+  }
+}

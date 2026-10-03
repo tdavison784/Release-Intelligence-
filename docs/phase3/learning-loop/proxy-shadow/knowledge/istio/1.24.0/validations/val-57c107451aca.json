@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-57c107451aca",
+    "candidateId": "sc-d73fe5dff82b",
+    "proposalId": "sp-dfc551917433",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "istiod-remote",
+        "name": "istiod-remote"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "istio",
+          "path": "profile",
+          "name": "istio-discovery"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "istiod-remote",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Helm installations referencing the istiod-remote chart must migrate to helm install istio-discovery --set profile=remote before upgrading to 1.24.0.",
+        "severity": "high"
+      },
+      "statement": "The istiod-remote Helm chart has been removed; use helm install istio-discovery --set profile=remote instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest ghcr.io/istio/release/charts/base:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/base/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/istiod:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/istiod/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/gateway:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/gateway/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/cni:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/cni/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/ztunnel:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/ztunnel/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest ghcr.io/istio/release/charts/base:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/base/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/istiod:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/istiod/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/gateway:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/gateway/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/cni:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/cni/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/istio/release/charts/ztunnel:1.23.4: fetch https://ghcr.io/v2/istio/release/charts/ztunnel/manifests/1.23.4: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://istio-release.storage.googleapis.com/charts/index.yaml: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -501,8 +501,13 @@ func (ev *evaluator) resource(c domain.Condition) ConditionResult {
 	}
 	out := anyOf(per)
 	if out.Value == False {
-		// one check for the scope, counting every resource examined
-		out.Checks = []domain.ImpactCheck{ev.check(domain.DimensionManifests, len(rs), c)}
+		// one check for the scope, counting every resource examined, keeping
+		// the evidence the inner checks cite (e.g. a completeness declaration)
+		scope := ev.check(domain.DimensionManifests, len(rs), c)
+		for _, x := range out.Checks {
+			scope.Evidence = appendUnique(scope.Evidence, x.Evidence...)
+		}
+		out.Checks = []domain.ImpactCheck{scope}
 	}
 	return out
 }
@@ -854,11 +859,17 @@ func (ev *evaluator) ref(c domain.Condition, r *env.Resource) ConditionResult {
 			per = append(per, unknownResult(domain.UnknownSemanticAmbiguity, fmt.Sprintf("%s %s: %s", resourceLabel(r), ref.Element, res.Reason)))
 		case env.RefUnresolved:
 			if !res.ManifestsComplete {
-				per = append(per, unknownResult(domain.UnknownEnvironmentVisibilityGap,
-					fmt.Sprintf("%s %s (name %s) does not resolve in the supplied manifests, which are incomplete; the target may be in a file that was not supplied or parsed", resourceLabel(r), ref.Element, ref.Name)))
+				// absence is not knowledge: clean parsing is not completeness
+				x := unknownResult(domain.UnknownEnvironmentVisibilityGap,
+					fmt.Sprintf("the manifest of the referenced %s (%s %s points at it; it is not among the supplied manifests, which are not declared complete — supply it, or pass --manifests-complete if nothing else runs)",
+						refTarget(ref, c), resourceLabel(r), ref.Element))
+				x.deps = []domain.EnvironmentDimension{domain.DimensionManifests}
+				per = append(per, x)
 				continue
 			}
-			per = append(per, falseResult(domain.DimensionManifests, chk, ref.Evidence...))
+			declared := chk
+			declared.Evidence = append(append([]domain.EvidenceID{}, chk.Evidence...), ev.env.ManifestsCompleteEvidence...)
+			per = append(per, falseResult(domain.DimensionManifests, declared, append(append([]domain.EvidenceID{}, ref.Evidence...), ev.env.ManifestsCompleteEvidence...)...))
 		case env.RefResolved:
 			t := res.Target
 			if (c.Kind != "" && t.Kind != c.Kind) || (c.Group != "" && t.Group != c.Group) {
@@ -877,6 +888,22 @@ func (ev *evaluator) ref(c domain.Condition, r *env.Resource) ConditionResult {
 		}
 	}
 	return anyOf(per)
+}
+
+// refTarget names the object a reference points at ("Issuer letsencrypt").
+func refTarget(ref env.Ref, c domain.Condition) string {
+	kind := ref.Kind
+	if kind == "" {
+		kind = c.Kind
+	}
+	if kind == "" {
+		kind = "object"
+	}
+	s := kind + " " + ref.Name
+	if ref.Namespace != "" {
+		s = kind + " " + ref.Namespace + "/" + ref.Name
+	}
+	return s
 }
 
 // --- environment-wide leaves -------------------------------------------------------------
@@ -1225,6 +1252,14 @@ func parseBool(s string) (bool, bool) {
 	return false, false
 }
 
+// gateKeyFold reports whether key is "<path>.<gate>" with the gate's key
+// spelled in another case (Helm values commonly lower-case gate names:
+// settings.featureGates.drift for the Drift gate).
+func gateKeyFold(path, name, key string) bool {
+	i := strings.LastIndexByte(key, '.')
+	return i > 0 && key[:i] == path && strings.EqualFold(key[i+1:], name)
+}
+
 func (ev *evaluator) featureGate(c domain.Condition) ConditionResult {
 	var obs []gateObservation
 	var unparsable []string
@@ -1261,6 +1296,11 @@ func (ev *evaluator) featureGate(c domain.Condition) ConditionResult {
 			switch {
 			case k.Path == c.Path:
 				examined = appendUnique(examined, k.Evidence...)
+				if on, ok := parseBool(plainValue(k.Value)); ok {
+					// the path names the gate's own boolean key
+					obs = append(obs, gateObservation{enabled: on, match: domain.ImpactMatch{Kind: domain.MatchValuesKey, Subject: k.Path + ": " + k.Value, Evidence: k.Evidence}})
+					continue
+				}
 				for _, tok := range tokens(k.Value, ",") {
 					kk, v, hasV := strings.Cut(tok, "=")
 					if strings.TrimSpace(kk) != c.Name {
@@ -1274,7 +1314,7 @@ func (ev *evaluator) featureGate(c domain.Condition) ConditionResult {
 						obs = append(obs, gateObservation{enabled: on, match: domain.ImpactMatch{Kind: domain.MatchValuesKey, Subject: k.Path + ": " + tok, Evidence: k.Evidence}})
 					}
 				}
-			case relate(c.Path+"."+c.Name, k.Path) == relExact:
+			case relate(c.Path+"."+c.Name, k.Path) == relExact || gateKeyFold(c.Path, c.Name, k.Path):
 				if on, ok := parseBool(plainValue(k.Value)); ok {
 					obs = append(obs, gateObservation{enabled: on, match: domain.ImpactMatch{Kind: domain.MatchValuesKey, Subject: k.Path + ": " + k.Value, Evidence: k.Evidence}})
 				} else {

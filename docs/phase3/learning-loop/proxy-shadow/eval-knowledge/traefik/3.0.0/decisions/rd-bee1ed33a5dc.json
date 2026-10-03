@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-bee1ed33a5dc",
+    "reviewItemId": "ri-5ce421f00f12",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "pilot"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "statement": "Traefik Pilot static configuration (e.g. pilot.token) is no longer supported in v3 and prevents Traefik from starting; it must be removed from the static configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:961a04ef20d2ff9e9f4b93c395074e5f5474243db349f8d78d2179c897e74bed",
+      "inputEvidence": [
+        "ev-9f3bf592e4e8"
+      ],
+      "generatedAt": "2026-10-03T02:19:18.704Z",
+      "callId": "eda570e1-1db8-4cd3-9d55-6fdf1f39e1fd"
+    },
+    "reason": "[ev-9f3bf592e4e8] shows that Pilot was configured through the `pilot` section of the static configuration (`pilot.token` in YAML/TOML, `--pilot.token` on the CLI). It also says this configuration \"is now unsupported and would prevent Traefik to start\", and that all of it must be removed. So the static-config key `pilot` no longer exists in v3, and config-key with path `pilot` and change type `removed` matches the evidence.",
+    "startedAt": "2026-10-03T02:19:11.026Z",
+    "decidedAt": "2026-10-03T02:19:18.704Z"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-082d1cdcbaee",
+    "candidateId": "sc-a64aedeb967c",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "statefulset-pod-name-label"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "strimzi",
+          "name": "strimzi-pod-name-label"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "which custom setup in the environment (e.g. custom Services, label selectors, monitoring or other tooling) leverages the statefulset.kubernetes.io/pod-name label on Strimzi pods or external listener Services"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "A custom setup that leverages the statefulset.kubernetes.io/pod-name label stops working after the upgrade because the label is no longer applied to pods and external listener Kubernetes Services.",
+        "remediation": "Replace any use of the statefulset.kubernetes.io/pod-name label with the strimzi.io/pod-name label.",
+        "severity": "medium"
+      },
+      "statement": "Strimzi 0.46.0 removed the statefulset.kubernetes.io/pod-name label from pods and external listeners Kubernetes Services, and any custom setup leveraging that label must use the strimzi.io/pod-name label instead."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-4fdefdd841ec"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:78778db585a02841ed6a0d3e47eea86916ae90a4b6ad0aa25365bee699347f71",
+      "inputEvidence": [
+        "ev-4fdefdd841ec"
+      ],
+      "generatedAt": "2026-10-02T11:49:59Z",
+      "callId": "8ba9ee83-37b3-4813-8ae1-6fa234721386"
+    }
+  }
+}

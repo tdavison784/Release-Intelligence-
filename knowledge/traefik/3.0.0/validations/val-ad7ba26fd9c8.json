@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ad7ba26fd9c8",
+    "candidateId": "sc-19e2d7132dde",
+    "proposalId": "sp-c6f01e15ac1f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "traefik",
+        "group": "networking.k8s.io",
+        "version": "v1beta1",
+        "kind": "Ingress"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "gvk",
+          "product": "traefik",
+          "group": "networking.k8s.io",
+          "version": "v1",
+          "kind": "Ingress"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "networking.k8s.io",
+          "version": "v1beta1",
+          "kind": "Ingress"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Ingress resources defined with the networking.k8s.io/v1beta1 API version will no longer be recognized or processed by Traefik v3.",
+        "remediation": "Update all Ingress resource definitions to use the networking.k8s.io/v1 API version.",
+        "severity": "high"
+      },
+      "statement": "Traefik v3 removes support for the Kubernetes Ingress API Group networking.k8s.io/v1beta1; users must migrate to networking.k8s.io/v1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/removed",
+        "detail": "gvk:traefik|group=networking.k8s.io|version=v1beta1|kind=Ingress: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/removed",
+        "detail": "gvk:traefik|group=networking.k8s.io|version=v1beta1|kind=Ingress: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

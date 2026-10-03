@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8cabc0d3e3c5",
+    "candidateId": "sc-74b7134bdb51",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodePool",
+        "path": "spec.disruption"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"{\\\"consolidateAfter\\\":\\\"0s\\\"}\"",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption",
+              "state": "unset"
+            }
+          ],
+          "group": "karpenter.sh",
+          "version": "v1",
+          "kind": "NodePool"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption",
+              "state": "set"
+            }
+          ],
+          "group": "karpenter.sh",
+          "version": "v1",
+          "kind": "NodePool"
+        }
+      },
+      "statement": "In the karpenter.sh/v1 NodePool schema, `spec.disruption` no longer has a schema default: it was {\"consolidateAfter\":\"0s\"} and now has none."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The computed schema diff only shows that the default was removed. It does not say what happens to NodePools that leave spec.disruption unset, such as different consolidation timing or now failing validation.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-760ae3491f13",
+      "ev-09bbe26d2f4a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:cb4ef24ac92ca6b019fe39e4f2d941bfde535d1906e6f8808abfe58aefc32536",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-02T06:12:36Z",
+      "callId": "f472297d-d9f4-443c-9e3e-de2879841609"
+    }
+  }
+}

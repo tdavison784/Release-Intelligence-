@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-aa4898f9400d",
+    "candidateId": "sc-f5e0b2d78816",
+    "proposalId": "sp-5e0cafe640c6",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "crossplane-core-v2-upgrade"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "crossplane",
+              "state": "in-range",
+              "range": "<2.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The operator must execute the documented upgrade steps (helm repo add, helm upgrade, and pod verification) to complete the migration to Crossplane v2.0.0; failure to follow these steps will prevent successful upgrade completion.",
+        "severity": "high"
+      },
+      "statement": "Upgrading Crossplane to v2.0.0 requires executing the documented migration steps: adding the Crossplane Helm repository, upgrading via helm upgrade, and verifying the upgrade completion."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

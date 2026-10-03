@@ -1,0 +1,55 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f3f59d0d699f",
+  "promptDigest": "sha256:39073400483c624c5f1103b81a6c8c9fa600ca3316964b684fe77c8b3cbd1488",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "08284749-0bd0-41ef-bcda-70d9cb0314f5",
+  "startedAt": "2026-10-03T02:06:11.675Z",
+  "decidedAt": "2026-10-03T02:06:24.487Z",
+  "durationMs": 11943,
+  "costUSD": 0.098136,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-eec682284370] says LogCLI used to fetch the remote schema from the store in `-boltdb.shipper.shared-store` when `-remote-schema` is set to `true`, and that the new `-schema-store` flag replaces it. So the proposed structure is right: exposure needs shared-store set plus remote-schema true, and setting -schema-store counts as overlap. The problem is the literal for -remote-schema. The proposal compares it to the quoted string \"\\\"true\\\"\", which would never match a flag value of true. It must compare to the literal true instead.",
+    "citations": [
+      "ev-eec682284370"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "LogCLI invocations are exposed when they set -remote-schema=true and rely on -boltdb.shipper.shared-store for the remote schema store. Those that also set the replacement flag -schema-store appear safe.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "component": "logcli",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-remote-schema",
+              "component": "logcli",
+              "state": "equals",
+              "values": [
+                "true"
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "-schema-store",
+          "component": "logcli",
+          "state": "set"
+        }
+      }
+    }
+  }
+}

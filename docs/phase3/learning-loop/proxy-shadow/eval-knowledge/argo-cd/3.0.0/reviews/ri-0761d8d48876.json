@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-0761d8d48876",
+    "candidateId": "sc-12312c24ca44",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "questionType": "applicability",
+    "question": "For \"Use Annotation-Based Tracking by Default: The default behavior for tracking resources has changed to use annotation-based tracking instead of label-based…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "server.config.application.resourceTrackingMethod",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "server.config.application.resourceTrackingMethod",
+              "state": "equals",
+              "values": [
+                "\"label\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "server.config.application.resourceTrackingMethod",
+              "state": "equals",
+              "values": [
+                "\"annotation\""
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "The default value of the application.resourceTrackingMethod configuration in the argocd-cm ConfigMap changes from label-based tracking to annotation-based tracking in Argo CD 3.0."
+    },
+    "proposals": [
+      "sp-33d9ebe0bdf0",
+      "sp-dc066894530f"
+    ],
+    "validations": [
+      "val-0de7f7c2f88e",
+      "val-6193ed7353e7",
+      "val-6c6e4076ca08",
+      "val-9f20437f399d"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T05:58:50Z"
+  }
+}

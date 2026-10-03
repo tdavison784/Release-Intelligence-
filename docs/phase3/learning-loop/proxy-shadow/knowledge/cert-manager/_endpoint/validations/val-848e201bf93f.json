@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-848e201bf93f",
+    "candidateId": "sc-751e965deadc",
+    "proposalId": "sp-761eaa42c353",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Issuer",
+        "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "cert-manager.io",
+          "version": "v1",
+          "kind": "Issuer"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Purely additive schema change: the computed diff (crd:fields-added) only adds a new path to the cert-manager.io/v1 Issuer schema, so existing Issuer resources and configurations continue to work unchanged; the field is simply newly available.",
+        "remediation": "No action required; operators may optionally begin using the new field.",
+        "severity": "low"
+      },
+      "statement": "The cert-manager.io/v1 schema of issuers.cert-manager.io gained the new field spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID, per a computed CRD artifact diff between the two compared releases (v1.16.0 and v1.17.0 CRD sets)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field",
+        "detail": "cert-manager.io Issuer spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID is in the schema of the target release only"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field-added",
+        "detail": "cert-manager.io Issuer spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID is new in the v1 schema"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-60054fcf0986",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:af6faeb6b75a13a70d0ac7f5db2b5b694f8cb9023c54bfbafd4d7d2fd95846d3",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-84061d76ea1b",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.16.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:6b81e668c80301955ea3c618a0e29ceb98b54d1d80a7b0082c77e5c7d827b41b",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:50:00Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

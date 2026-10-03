@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-f0062cec624d",
+    "candidateId": "sc-3caf50c85cc9",
+    "product": "flux",
+    "release": "2.7.0",
+    "questionType": "applicability",
+    "question": "For \"Upgrade procedure: :warning: The Flux APIs `v1beta1` and `v2beta1` (deprecated in 2023) have reached end-of-life and have been removed from the CRDs\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "undecidable",
+              "reason": "release-knowledge-gap",
+              "needed": "which Flux group/kinds were served at the removed v1beta1 and v2beta1 API versions; the evidence names only the version levels, not the affected kinds or groups"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "undecidable",
+                  "reason": "environment-visibility-gap",
+                  "needed": "whether Flux Operator (controlplaneio-fluxcd/flux-operator) is used to deploy the Flux controllers, in which case the migration is not required"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "In Flux 2.7.0 the deprecated v1beta1 and v2beta1 Flux APIs have been removed from the CRDs, and unless the Flux controllers are deployed with Flux Operator, the `flux migrate` command must be run on clusters before upgrading."
+    },
+    "proposals": [
+      "sp-52102daa7cde",
+      "sp-9277eb2ac9fc",
+      "sp-92c408727481"
+    ],
+    "validations": [
+      "val-1186832ad5ea",
+      "val-24afcef38900",
+      "val-61ddad531ba0",
+      "val-633df7a4ebf4",
+      "val-6da1becbe755"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:59:00Z"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ef9f874091cf",
+    "reviewItemId": "ri-5228ed8c176e",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:3cb6b1cd9f52e0ae0500470cdad6827985a15fcbbfb56e1063b776a11dedea6a",
+      "inputEvidence": [
+        "ev-ffd2c3200e89",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-03T02:18:27.552Z",
+      "callId": "9030888b-22e2-4025-a36f-9d5b13ee506e"
+    },
+    "reason": "[ev-ffd2c3200e89] says the Helm value `wireguard.userspaceFallback` was removed. It also says WireGuard encryption now needs a Linux kernel with WireGuard support. But the values validator found no such key in the chart values of the 1.15.6 source [ev-28e0ccb5774a] or the 1.17.0 target [ev-39a22d88e2f5]. So \"values-key set\" may be a condition that can never fire on this upgrade path. The real exposure, running WireGuard encryption on nodes whose kernel lacks WireGuard, depends on how WireGuard is turned on in values and on each node's kernel, and the evidence shows neither. To decide, I need evidence of which releases' values or agent config actually carried this key, and how WireGuard encryption is enabled in the chart.",
+    "startedAt": "2026-10-03T02:18:11.792Z",
+    "decidedAt": "2026-10-03T02:18:27.552Z"
+  }
+}

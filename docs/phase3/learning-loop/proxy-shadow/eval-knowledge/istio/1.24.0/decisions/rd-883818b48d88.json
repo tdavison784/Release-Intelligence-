@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-883818b48d88",
+    "reviewItemId": "ri-1909b9f3d7d5",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "istio-clean-iptables",
+          "component": "pilot-agent",
+          "state": "set"
+        }
+      },
+      "statement": "The pilot-agent istio-clean-iptables command now correctly removes the ISTIO_OUTPUT iptables chain, fixing a previous issue where it was not being removed."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether operators or tooling run the `pilot-agent istio-clean-iptables` cleanup command in the environment (and rely on whether the `ISTIO_OUTPUT` chain is left behind)"
+        }
+      },
+      "statement": "The `pilot-agent istio-clean-iptables` command now also removes the `ISTIO_OUTPUT` iptables chain, which it previously left behind. This affects environments where that cleanup command is run, which no static configuration shows."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:87b5d9e49deecd1184fa7d3bb8e9dacf7633882a375867d10abe4f439c9c888a",
+      "inputEvidence": [
+        "ev-dd94d38ea856"
+      ],
+      "generatedAt": "2026-10-02T12:48:44.439Z",
+      "callId": "25d7c0c4-bc79-469b-80f8-b00aad11a6dd"
+    },
+    "reason": "[ev-dd94d38ea856] only says that the `pilot-agent istio-clean-iptables` command now removes the `ISTIO_OUTPUT` chain. `istio-clean-iptables` is a subcommand that someone runs, not a container flag, and the evidence never says it appears in any workload's container args. So `cli-flag{set}` is not a reliable way to detect exposure. Exposure depends on whether operators or tooling actually run this cleanup command, and no static input records that, so the condition should be marked undecidable.",
+    "startedAt": "2026-10-02T12:48:33.648Z",
+    "decidedAt": "2026-10-02T12:48:44.439Z"
+  }
+}

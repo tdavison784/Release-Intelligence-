@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f12292ef2907",
+    "candidateId": "sc-d2742fc675e0",
+    "proposalId": "sp-480ebba83434",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "label-extraction-from-multiple-values"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"parsed multiple extractions into the same label\"",
+        "after": "\"parses only the first label when multiple extractions into the same label are requested\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Queries that previously extracted multiple values into the same label will now extract only the first value, potentially changing query results.",
+        "severity": "medium"
+      },
+      "statement": "Loki 3.0.0 changes label parsing logic in metrics and logs queries to extract only the first label when multiple extractions into the same label are requested, instead of parsing all of them."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

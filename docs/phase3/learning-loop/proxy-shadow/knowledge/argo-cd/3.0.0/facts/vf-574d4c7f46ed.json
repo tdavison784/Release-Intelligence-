@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-574d4c7f46ed",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-6d2219e0a0a2"
+        ],
+        "statementKeys": [
+          "sk-018195aab1c0"
+        ],
+        "changeIds": [
+          "chg-95162f889a56"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-22716bcf1be8"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "kind": "Application",
+        "path": "status.resources[].health"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "Application"
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"controller.resource.health.persist\"]",
+                      "state": "set"
+                    }
+                  ],
+                  "kind": "ConfigMap",
+                  "name": "argocd-cmd-params-cm"
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"controller.resource.health.persist\"]",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cmd-params-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Tools and CLI commands that parse `.status.resources[].health` directly will not find persisted health status; they must use the Argo CD CLI or API instead to retrieve health information.",
+        "remediation": "Update any custom tooling or scripts parsing `.status.resources[].health` to use the Argo CD CLI or API for health status queries. Alternatively, set `controller.resource.health.persist: true` in the `argocd-cmd-params-cm.yaml` ConfigMap to restore the previous behavior.",
+        "severity": "medium"
+      },
+      "statement": "Health status in the Application CR: The health status of each object used to be persisted under `/status` in the Application CR by default"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-fc28c493158a"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-bbc92e49c713"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-943910fb7a07"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-b796844c325b"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-5616a3c7f69a",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L307-L378 (v2.14 to 3.0 › Other changes › Health status in the Application CR)",
+        "excerpt": "### Health status in the Application CR\n\nThe health status of each object used to be persisted under `/status` in the Application CR by default.\nAny health churn in the resources deployed by the Application put load on the application controller.\nNow, the health status is stored externally.\n\nYou can revert this behavior by setting the `controller.resource.health.persist` to `true` in the Argo CD\n`argocd-cmd-params-cm.yaml` Config Map.\n\nExample of a status field in the Application CR persisting health:\n\n```yaml\nstatus:\n  health:\n    status: Healthy\n    lastTransitionTime: \"2025-01-01T00:00:00Z\"…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-04f25237d9d5",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/manifests/crds/application-crd.yaml",
+        "locator": "manifests/crds/application-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:0f815623686955aaebe337afe62b5117743bc7a320e19cc9acdb1a24c39cb507",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:34Z"
+      },
+      {
+        "id": "ev-66224e7edcd9",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/manifests/crds/applicationset-crd.yaml",
+        "locator": "manifests/crds/applicationset-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:dd790346fdaad52701885761fff863962f939990eef124161e5de3f9deaac88d",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:34Z"
+      },
+      {
+        "id": "ev-84752609c1b3",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v2.14.5/manifests/crds/applicationset-crd.yaml",
+        "locator": "manifests/crds/applicationset-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:1ef3d577dd42dac91139fb5a03f292d1aec2dac91ef1f0eed1144c769f02fae0",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-be3337c2717d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v2.14.5/manifests/crds/application-crd.yaml",
+        "locator": "manifests/crds/application-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:4e7079cab5df789e2dfbdc724ed6514875acb8d5c58445272229a7e1b9c0e139",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-d9606f97c234",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v2.14.5/manifests/crds/appproject-crd.yaml",
+        "locator": "manifests/crds/appproject-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:d9a63cb9a12ef66bbf4e811c94fbaa3922af00ed7bb3af791e85dcd7337ffe4c",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      },
+      {
+        "id": "ev-f69c10f943ee",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/manifests/crds/appproject-crd.yaml",
+        "locator": "manifests/crds/appproject-crd.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:076b20cdde2ab6415589eee09da8a73e9411becef19750a1e34dd4fe6d6e0316",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:34Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:05:02.087Z"
+  }
+}

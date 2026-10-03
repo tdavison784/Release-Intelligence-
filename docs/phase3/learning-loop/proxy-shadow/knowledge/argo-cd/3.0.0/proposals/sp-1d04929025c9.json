@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-1d04929025c9",
+    "candidateId": "sc-03aa929e64d5",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "argo-cd",
+        "name": "helm"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": "3.17.1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "helm",
+              "state": "in-range",
+              "range": ">=3.17.1"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "undecidable",
+                  "reason": "environment-visibility-gap",
+                  "needed": "whether environment's helm values.yaml files for subcharts contain null object values"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Null values in values.yaml files for subcharts will now be applied to override K8s objects instead of being silently ignored, which may result in invalid null objects in rendered manifests unless null values are removed from values.yaml files.",
+        "remediation": "Identify and remove null values from values.yaml files in subcharts that are causing override issues.",
+        "severity": "high"
+      },
+      "statement": "Helm was upgraded to 3.17.1, which changes behavior for null values in values.yaml files: previously null values produced a warning and were not applied, but now they are applied and override the K8s object, potentially requiring removal of null values from values.yaml in subcharts."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b8041528e3f8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e4b108d8a919ab0cb980039e287d7c1f9b49728eed22c2e7be976d118cae528d",
+      "inputEvidence": [
+        "ev-b8041528e3f8"
+      ],
+      "generatedAt": "2026-10-02T05:57:44Z",
+      "callId": "1aa66530-04e2-416b-98e8-805ecdbf217f"
+    }
+  }
+}

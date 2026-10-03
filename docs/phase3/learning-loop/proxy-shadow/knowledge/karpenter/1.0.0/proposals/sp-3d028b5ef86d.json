@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3d028b5ef86d",
+    "candidateId": "sc-f32097415709",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "kind": "NodePool",
+        "path": "spec.disruption.consolidationPolicy"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"WhenUnderutilized\"",
+        "after": "\"WhenEmptyOrUnderutilized\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption.consolidationPolicy",
+              "state": "equals",
+              "values": [
+                "\"WhenUnderutilized\""
+              ]
+            }
+          ],
+          "group": "karpenter.sh",
+          "kind": "NodePool"
+        }
+      },
+      "statement": "NodePool's spec.disruption.consolidationPolicy value `WhenUnderutilized` is renamed to `WhenEmptyOrUnderutilized`."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: Evidence only states the rename; it does not say what happens to NodePools still using the old value.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-80331c11381f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:327baf41aca45691ec1780c68d266b8cd5a95684e9b1a1061761eb5c79875adb",
+      "inputEvidence": [
+        "ev-80331c11381f"
+      ],
+      "generatedAt": "2026-10-02T06:03:07Z",
+      "callId": "b9c3b03d-694d-4240-b082-40fe13ff1af6"
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-889387ef693a",
+    "candidateId": "sc-de248ee0f359",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "nodeSelector"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "rendered-change",
+          "kind": "Deployment",
+          "path": "spec.template.spec.nodeSelector",
+          "state": "changed"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The chart now emits nodeSelector values as quoted strings, so environments that set nodeSelector values see the rendered nodeSelector output change (notably values that are not plain strings, which are now rendered as strings).",
+        "remediation": "No action required; if your nodeSelector values are not plain strings (e.g. numbers or booleans), verify the rendered manifests after upgrade.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0 the Helm chart now quotes nodeSelector values, rendering them as quoted strings in the chart's generated manifests."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-565f3761f656"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ecc429aec508554daf4371d6107327189151c5436ddca99266bec640e9ec524f",
+      "inputEvidence": [
+        "ev-565f3761f656"
+      ],
+      "generatedAt": "2026-10-02T11:46:07Z",
+      "callId": "667c4b7a-2e3e-488b-842c-b7d12002f3e9"
+    }
+  }
+}

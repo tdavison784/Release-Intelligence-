@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fa15a85c6ea1",
+    "candidateId": "sc-159bff8514d4",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "secretstores-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.16.0"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.name",
+                  "state": "set"
+                }
+              ],
+              "group": "external-secrets.io",
+              "kind": "SecretStore"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing SecretStore objects stay stored as v1beta1 until rewritten. A storage version migration (rewriting all objects) and an update to status.storedVersions are needed before a later release removes v1beta1.",
+        "remediation": "After upgrading, rewrite all SecretStore objects so they are stored as v1. Then remove v1beta1 from status.storedVersions on the secretstores.external-secrets.io CRD.",
+        "severity": "medium"
+      },
+      "statement": "From 0.15.0 to 0.16.0, the storage version of the secretstores.external-secrets.io CRD changes from v1beta1 to v1. Existing SecretStore objects stay stored as v1beta1 until they are rewritten. Before a later release removes v1beta1, operators must run a storage version migration and update status.storedVersions."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-f07fad593227"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:a329091fa28e5fd0fb528e2675f533a7044db9f109c665059d0146be76b65af5",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-a93bb3b1d26d",
+        "ev-d55f4ac0a53f",
+        "ev-10a72c580d6b",
+        "ev-f07fad593227"
+      ],
+      "generatedAt": "2026-10-02T16:15:12Z",
+      "callId": "2adbdc12-25fa-4266-96bf-ef373d51baec"
+    }
+  }
+}

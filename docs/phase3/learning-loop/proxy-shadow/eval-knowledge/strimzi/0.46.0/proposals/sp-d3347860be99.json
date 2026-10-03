@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d3347860be99",
+    "candidateId": "sc-c6c2d0c1e4f2",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "zookeeper"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether any Kafka clusters in the environment are still ZooKeeper-based rather than KRaft; the evidence does not state how ZooKeeper-based clusters are identified in the cluster configuration"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "An environment still running ZooKeeper-based clusters must move them to KRaft before upgrading, because Strimzi 0.46.0 no longer supports ZooKeeper-based clusters or the ZooKeeper-to-KRaft migration.",
+        "remediation": "Migrate every ZooKeeper-based cluster to KRaft before upgrading to Strimzi 0.46.0 or newer.",
+        "severity": "high"
+      },
+      "statement": "Strimzi 0.46.0 removes support for ZooKeeper-based clusters and for migrating ZooKeeper-based clusters to KRaft, so all clusters must already be using KRaft before upgrading to 0.46.0 or newer."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-4c2676e4665a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:73da690f299f1f894ffacdf55318af017548776bfab508d3256b3ea6bc4e2b50",
+      "inputEvidence": [
+        "ev-4c2676e4665a"
+      ],
+      "generatedAt": "2026-10-02T11:35:34Z",
+      "callId": "a683aae1-3eae-4948-8b38-b0b959a3ab9e"
+    }
+  }
+}

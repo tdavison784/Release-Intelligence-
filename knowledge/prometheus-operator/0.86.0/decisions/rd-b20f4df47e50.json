@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b20f4df47e50",
+    "reviewItemId": "ri-b21d883d6088",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Configuration resources (ServiceMonitor, PodMonitor, ScrapeConfig, PrometheusRule, Probe) now have an optional status subresource when the StatusForConfigurationResources feature gate is enabled; existing manifests without status fields continue to work."
+      },
+      "statement": "The status subresource is added to ServiceMonitor, PodMonitor, ScrapeConfig, PrometheusRule, and Probe custom resources, controlled by the StatusForConfigurationResources feature gate."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence if the operator does nothing. The new read-only status field is updated only when the StatusForConfigurationResources feature gate is enabled, and existing manifests without status keep working.",
+        "severity": "low"
+      },
+      "statement": "ServiceMonitor, PodMonitor, ScrapeConfig, PrometheusRule and Probe CRDs gain an optional read-only status subresource. It is populated only when the StatusForConfigurationResources feature gate is enabled. With no operator action, existing resources keep working unchanged."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:d1a8988e154c28e0b3a735b1701c41c1bbe170c4b1c69272e8f3ae4a5eaea4ad",
+      "inputEvidence": [
+        "ev-384dcd4e47a4",
+        "ev-5415b8753dfa",
+        "ev-d1c3b1084dad",
+        "ev-33c3b71688f2",
+        "ev-f0cfd8ade456",
+        "ev-f240b6ac3b67",
+        "ev-83fc26f44be6",
+        "ev-04344c7b3dae",
+        "ev-13be12903c5c",
+        "ev-197df9b33168",
+        "ev-22d6be11fa2f",
+        "ev-3cc85997b394",
+        "ev-4393a79e776d",
+        "ev-542432da4381",
+        "ev-676b63c80565",
+        "ev-767e1a45572f",
+        "ev-7a53a3520025",
+        "ev-7d96c48a5c71",
+        "ev-84bcfc39962d",
+        "ev-c87966ce90d5",
+        "ev-cc90e86e2643",
+        "ev-db02f66824cd",
+        "ev-dfadc763c00b",
+        "ev-e032811a0e26",
+        "ev-e0e139d1a1a8",
+        "ev-e33dbbb0c01a",
+        "ev-f22afebcad15"
+      ],
+      "generatedAt": "2026-10-03T01:57:37.82Z",
+      "callId": "7884853d-774c-40f3-adb8-3561db954aa5"
+    },
+    "reason": "The CRD diffs [ev-5415b8753dfa][ev-d1c3b1084dad][ev-33c3b71688f2][ev-f0cfd8ade456] add an optional, read-only `status` field. Its description says it \"is updated only when the StatusForConfigurationResources feature gate is enabled\". The changelog [ev-384dcd4e47a4] also says the subresource is behind that feature gate. If the operator does nothing, nothing the evidence describes works differently, and the proposed statement itself says existing manifests keep working, so the consequence is \"none\" (informational) rather than behavior-change (review). Confidence is low because the evidence never states the gate's default outright.",
+    "startedAt": "2026-10-03T01:57:22.11Z",
+    "decidedAt": "2026-10-03T01:57:37.82Z",
+    "resultingFact": "vf-39b9a9a803f6"
+  }
+}

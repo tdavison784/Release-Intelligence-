@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-70a785217cdc",
+    "reviewItemId": "ri-ed23a92bb0ba",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "helm",
+              "state": "in-range",
+              "range": ">=3.17.1"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "undecidable",
+                  "reason": "environment-visibility-gap",
+                  "needed": "whether environment's helm values.yaml files for subcharts contain null object values"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "Helm was upgraded to 3.17.1, which changes behavior for null values in values.yaml files: previously null values produced a warning and were not applied, but now they are applied and override the K8s object, potentially requiring removal of null values from values.yaml in subcharts."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any Helm chart rendered by Argo CD (Application Helm sources) has values.yaml files for subcharts containing null object values"
+        }
+      },
+      "statement": "Argo CD 3.0.0 bundles Helm 3.17.1. Helm charts rendered by Argo CD whose subchart values.yaml contains a null object now render the K8s object overridden with that invalid null value, where before it was left unchanged with only a warning. An environment is exposed when its Argo CD-rendered Helm charts have such null values. Static configuration cannot show this."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:61f29049906d6d7bade78916274f5a66b5923a11baa42551cd7c402ad3a6490c",
+      "inputEvidence": [
+        "ev-b8041528e3f8"
+      ],
+      "generatedAt": "2026-10-02T16:02:56.979Z",
+      "callId": "1c7786c8-05ec-4d39-9808-d4899a5c9082"
+    },
+    "reason": "[ev-b8041528e3f8] says Argo CD 3.0 itself upgraded its bundled Helm to 3.17.1, and that only charts whose subchart values.yaml contains a `null` object are affected. Every environment upgrading to this release gets the new Helm. So the product-version{helm >=3.17.1} predicate wrongly treats Helm as a separate product whose version the customer controls: it is redundant at best and could wrongly drop exposed environments. The real deciding factor is whether the Helm sources Argo CD renders have null objects in their values.yaml. Those files live in chart and Git content that no configuration input shows, so the exposure should be the undecidable leaf alone (and an any[] with only one operand adds nothing).",
+    "startedAt": "2026-10-02T16:02:43.708Z",
+    "decidedAt": "2026-10-02T16:02:56.979Z",
+    "resultingFact": "vf-e10764949508"
+  }
+}

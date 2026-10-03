@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e63a5b8f3514",
+    "candidateId": "sc-9bfef792f31d",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "version": "v1beta1",
+        "kind": "UpdateRequest"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v2\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.13.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether any UpdateRequest objects exist in the cluster stored as v1beta1 (Kyverno creates UpdateRequests at runtime for mutate/generate policies, so stored-object state is not visible in manifests)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing UpdateRequest objects stay stored as v1beta1 until rewritten; the operator must run a storage version migration (re-write all objects) and update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "After upgrading, run a storage version migration for updaterequests.kyverno.io (re-write all UpdateRequest objects at the new storage version) and update the CRD's status.storedVersions before upgrading to a release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the updaterequests.kyverno.io CRD changed from v1beta1 to v2 (v1beta1.storage true→false, v2.storage false→true between 1.12.6 and 1.13.0), so existing UpdateRequest objects stay stored as v1beta1 until rewritten and a storage version migration plus a status.storedVersions update is required before a later release removes v1beta1."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-cf5b10ff8047",
+      "ev-d3850c78b94e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:04424d55f6104818c1024c447015138d639bf4f7ceae90afbf0ab7009497322c",
+      "inputEvidence": [
+        "ev-7b96a5794081",
+        "ev-495a542d4d66",
+        "ev-8ed706991976",
+        "ev-64e559957f23",
+        "ev-b3d07020d879",
+        "ev-b077d5605267",
+        "ev-a4c10d98e48c",
+        "ev-6032b12f614d",
+        "ev-6644b79acdaf",
+        "ev-e4d8d307c8bd",
+        "ev-c7493c8ebf56",
+        "ev-72ae67cf1bd1",
+        "ev-f4eb4632dd60",
+        "ev-ff8bc99281a6",
+        "ev-904a58b60df3",
+        "ev-0b95f4d8b2b8",
+        "ev-043bcc5e9e57",
+        "ev-e6f72293517f",
+        "ev-3f8a3adffa22",
+        "ev-fd8deebe9622",
+        "ev-f5ab4321b780",
+        "ev-d55bb7c165b2",
+        "ev-388d68569c8a",
+        "ev-ab4f180a917e",
+        "ev-705a5952643c",
+        "ev-8acbbd901b75",
+        "ev-5714a6388637",
+        "ev-0ab8730da6d7",
+        "ev-b01406e79da0",
+        "ev-56c06982a6c5",
+        "ev-094d5d8b0291",
+        "ev-f0f21b325fa6",
+        "ev-cf5b10ff8047",
+        "ev-d3850c78b94e"
+      ],
+      "generatedAt": "2026-10-02T16:22:09Z",
+      "callId": "ebd29557-63e8-475d-ab29-5204e71c7a83"
+    }
+  }
+}

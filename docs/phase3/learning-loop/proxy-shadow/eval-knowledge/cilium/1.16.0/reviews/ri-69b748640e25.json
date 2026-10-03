@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-69b748640e25",
+    "candidateId": "sc-5a3964f250c2",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"The deprecated Helm option `remoteNodeIdentity` has been removed\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The remoteNodeIdentity Helm value is no longer honoured; remote nodes will always use remote-node identity. Network policies based on enable-remote-node-identity=false must be updated.",
+        "remediation": "Remove remoteNodeIdentity from Helm values. Review and update any network policies that were based on enable-remote-node-identity=false to align with the new always-enabled remote-node identity behavior.",
+        "severity": "medium"
+      },
+      "statement": "The deprecated Helm value remoteNodeIdentity has been removed in Cilium 1.16.0; environments with this value explicitly set must update their configuration and any related network policies."
+    },
+    "proposals": [
+      "sp-0d027fe10c0c",
+      "sp-876c134429ac"
+    ],
+    "validations": [
+      "val-3dcbeed8d3c6",
+      "val-45f6e51219c7",
+      "val-575c6560bffc",
+      "val-77c09b3eed36",
+      "val-b42d0657e27d",
+      "val-d8e4508fecf9",
+      "val-de7ac08fc700",
+      "val-ee74c288c955"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:01:26Z"
+  }
+}

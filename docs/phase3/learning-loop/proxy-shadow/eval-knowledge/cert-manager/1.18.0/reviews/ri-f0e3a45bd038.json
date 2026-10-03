@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-f0e3a45bd038",
+    "candidateId": "sc-2ca1ae551e15",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "questionType": "applicability",
+    "question": "For \"Fix issuing of certificates via DNS01 challenges on Cloudflare after a breaking change to the Cloudflare API\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.cloudflare",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.cloudflare",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.dns01.providers[].cloudflare",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.dns01.providers[].cloudflare",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "statement": "cert-manager 1.18.0 fixes the issuing of certificates via DNS01 challenges on Cloudflare, which had been broken by a breaking change to the Cloudflare API."
+    },
+    "proposals": [
+      "sp-59f0366d875d",
+      "sp-5e24e4321bf6",
+      "sp-876d84f75f5a",
+      "sp-926b9a59654a"
+    ],
+    "validations": [
+      "val-8b2a775de7c4",
+      "val-a8525e3beeab",
+      "val-d3b5bfe9c710",
+      "val-de6041269389",
+      "val-def8966b4357",
+      "val-ecae31f9210e"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-02T11:49:36Z"
+  }
+}

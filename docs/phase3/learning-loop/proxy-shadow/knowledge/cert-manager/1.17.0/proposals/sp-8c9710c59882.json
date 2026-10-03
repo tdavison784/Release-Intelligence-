@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8c9710c59882",
+    "candidateId": "sc-9cd4a1953216",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Issuer",
+        "path": "spec.acme.solvers[].dns01.azureDNS.tenantID"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "Issuer"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "ClusterIssuer"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "acme.cert-manager.io",
+              "version": "v1",
+              "kind": "Challenge"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new optional field enables enhanced flexibility for multi-tenant Azure environments using managed identities; existing configurations are unaffected."
+      },
+      "statement": "A new optional `tenantID` configuration field is added to the AzureDNS provider in Issuer, ClusterIssuer, and Challenge resources for specifying the tenant ID when using managed identities with service principals."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-cd466139dded"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6b3b11317d05080350c186bc7184b7be8a495d27cb350c7ec1656467f9bf2e3d",
+      "inputEvidence": [
+        "ev-cd466139dded"
+      ],
+      "generatedAt": "2026-10-02T05:55:56Z",
+      "callId": "7de2fb86-9f1d-4282-9d55-d4dd5a8700f7"
+    }
+  }
+}

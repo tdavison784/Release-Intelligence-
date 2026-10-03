@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-295422910591",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-b064c46feeda"
+        ],
+        "statementKeys": [
+          "sk-048dadc040e1"
+        ],
+        "changeIds": [
+          "chg-b959484bbf5d"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-930198f08f58"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-ingester.max-transfer-retries",
+        "component": "ingester"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-ingester.max-transfer-retries",
+              "component": "ingester",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the environment's Loki configuration file (ingester block) sets max_transfer_retries; the evidence does not say which Helm values path or ConfigMap key holds it"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The max_transfer_retries setting, used to transfer chunks to new ingesters during rolling restarts, is removed; the Write Ahead Log (WAL) replaces it, so verify the WAL covers your rolling-restart use.",
+        "severity": "medium"
+      },
+      "statement": "Ingester configuration `max_transfer_retries` is removed: The setting `max_transfer_retries` (`-ingester.max-transfer-retries`) is removed in favor of the…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-a8854a1af4be"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-a8854a1af4be"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-f56ebfc0eaff"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-674fd9058c9f"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-c6e07f70e7d9",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L562-L566 (3.0.0 › Loki 3.0.0 › Ingester configuration `max_transfer_retries` is removed)",
+        "excerpt": "#### Ingester configuration `max_transfer_retries` is removed\n\nThe setting `max_transfer_retries` (`-ingester.max-transfer-retries`) is removed in favor of the Write Ahead log (WAL).\nIt was used to allow transferring chunks to new ingesters when the old ingester was shutting down during a rolling restart.\nAlternatives to this setting are:",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:35:34.847Z"
+  }
+}

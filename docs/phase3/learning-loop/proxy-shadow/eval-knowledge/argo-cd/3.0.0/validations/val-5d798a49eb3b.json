@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5d798a49eb3b",
+    "candidateId": "sc-49ec6fa3bc7e",
+    "proposalId": "sp-164d6dae6903",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "informer-object-copying",
+        "component": "server"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "argo-cd",
+          "state": "in-range",
+          "range": ">=3.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The server's handling of objects from Kubernetes informers changes to use deep copies instead of direct references, preventing unintended mutations of shared state.",
+        "severity": "low"
+      },
+      "statement": "The server component now makes deep copies of objects returned by informers."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

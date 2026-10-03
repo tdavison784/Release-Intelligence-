@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-27bfa969fba0",
+    "candidateId": "sc-63c2c8cd111b",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "operatorhub"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether cert-manager in the environment is installed or updated through OperatorHub (OLM subscription) rather than another distribution method"
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "An environment that installs or updates cert-manager through OperatorHub cannot obtain cert-manager 1.17.0 (or any release after v1.16.5) from OperatorHub, because v1.16.5 is the last published release; the upgrade through that channel is unavailable.",
+        "remediation": "Move the cert-manager installation off OperatorHub to another distribution method in order to upgrade beyond v1.16.5.",
+        "severity": "medium"
+      },
+      "statement": "cert-manager no longer publishes OperatorHub packages: v1.16.5 is the last release on OperatorHub (RedHat OpenShift OperatorHub and operatorhub.io), and the cert-manager-olm repository is archived."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-a89ac42d3167"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:14a5e0c283f8959d734e8ee8547a4688ed314cf3c56aa4b449cbd14a56cbe048",
+      "inputEvidence": [
+        "ev-a89ac42d3167"
+      ],
+      "generatedAt": "2026-10-02T11:44:11Z",
+      "callId": "87784deb-859c-4ec9-8ed5-0d536354605d"
+    }
+  }
+}

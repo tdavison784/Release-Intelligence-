@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e7e6cfb11752",
+    "reviewItemId": "ri-f200f8779654",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "RSA certificates with 3072-bit and 4096-bit keys will use SHA-384 and SHA-512 respectively for signature hashing instead of SHA-256, which may affect compatibility with systems that do not support these stronger hash algorithms, though the evidence indicates minimal impact on standard Kubernetes environments.",
+        "remediation": "Verify that systems consuming these certificates support SHA-384 and SHA-512 hashing algorithms if you are using RSA keys larger than 2048-bit.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager v1.17.0, RSA certificate signing selects the hash algorithm based on key length: SHA-384 for 3072-bit keys and SHA-512 for 4096-bit keys, replacing the previous behavior of always using SHA-256."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:715ad14ecbed2e7007740e54102561e13c9fdc9a30162fc8bdb1f96838478fc9",
+      "inputEvidence": [
+        "ev-c76ce5c9366c"
+      ],
+      "generatedAt": "2026-10-02T16:03:36.607Z",
+      "callId": "65763cd0-64e8-431d-b1d6-ed754971e79d"
+    },
+    "reason": "[ev-c76ce5c9366c] (the release-notes section on RSA certificate compliance, whose full text is restated in the change) says v1.17.0 now picks the hash from the RSA key length: SHA-384 for 3072-bit keys and SHA-512 for 4096-bit keys, where it always used SHA-256 before. The notes expect minimal impact, know of no environments that break, and only ask users of larger RSA keys to be aware. Nothing is said to fail, be rejected or need migrating, so behavior-change (review) with low severity is the right call. The statement's possible compatibility concern is worded as \"may\" and matches the notes' own caveat.",
+    "startedAt": "2026-10-02T16:03:29.081Z",
+    "decidedAt": "2026-10-02T16:03:36.607Z"
+  }
+}

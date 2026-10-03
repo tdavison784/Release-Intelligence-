@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2249ba6ff4db",
+    "reviewItemId": "ri-b4c40a68081c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments using auto-detection will now select the lowest MTU across all external interfaces instead of only the primary interface, which may result in lower MTU values being applied.",
+        "remediation": "If the change in MTU value is not desired, configure MTU manually via the MTU helm option, --mtu agent flag, or mtu option in CNI configuration.",
+        "severity": "medium"
+      },
+      "statement": "MTU auto-detection behavior changes to use the lowest MTU of all external interfaces instead of only the primary interface, except in ENI mode."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:b694ddb24773df2624b9a5346a5b9fafcb3f5b89d08374a6ffed5b5067ccbbb1",
+      "inputEvidence": [
+        "ev-b37407b60520"
+      ],
+      "generatedAt": "2026-10-02T15:55:02.324Z",
+      "callId": "84dffe7b-fd4c-4882-9d48-6c7ec2c122c0"
+    },
+    "reason": "[ev-b37407b60520] says only that MTU auto-detection now uses the lowest MTU of all external interfaces instead of only the primary one, with an exception for ENI mode. It also says MTU can still be set manually. The evidence does not say that anything fails, is rejected or stops being honoured, so behavior-change (review) is the right kind. The proposed statement and the remediation, which is to set MTU manually through the helm option, the agent flag or the CNI config, both match the text.",
+    "startedAt": "2026-10-02T15:54:57.734Z",
+    "decidedAt": "2026-10-02T15:55:02.324Z",
+    "resultingFact": "vf-a78f85d3eec5"
+  }
+}

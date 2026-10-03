@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e71761723c9c",
+    "candidateId": "sc-6b512a53017f",
+    "proposalId": "sp-1b9184097a3e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--operator-k8s-client-qps"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"100\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--operator-k8s-client-qps",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "--operator-k8s-client-qps",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Operators that do not set the flag get a higher default Cilium Operator K8s client rate limit of 100 QPS/200 Burst, which may increase load on the Kubernetes API server.",
+        "remediation": "Set --operator-k8s-client-qps and --operator-k8s-client-burst (or the corresponding Helm values) to keep a different rate limit.",
+        "severity": "low"
+      },
+      "statement": "The Cilium Operator's Kubernetes client rate limit is now configured separately from the agent's, and its default rose to 100 QPS/200 Burst (flags --operator-k8s-client-qps and --operator-k8s-client-burst)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

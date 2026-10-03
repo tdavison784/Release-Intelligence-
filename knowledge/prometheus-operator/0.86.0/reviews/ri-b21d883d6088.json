@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-b21d883d6088",
+    "candidateId": "sc-71cf6ab4b713",
+    "product": "prometheus-operator",
+    "release": "0.86.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"0.86.0 / 2025-10-07: [!NOTE] This release introduces the status subresource (behind the `StatusForConfigurationResources` feature gate) for `ServiceMonitor`…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Configuration resources (ServiceMonitor, PodMonitor, ScrapeConfig, PrometheusRule, Probe) now have an optional status subresource when the StatusForConfigurationResources feature gate is enabled; existing manifests without status fields continue to work."
+      },
+      "statement": "The status subresource is added to ServiceMonitor, PodMonitor, ScrapeConfig, PrometheusRule, and Probe custom resources, controlled by the StatusForConfigurationResources feature gate."
+    },
+    "proposals": [
+      "sp-1d6e5f6d5e16",
+      "sp-b4ef48190d0c",
+      "sp-f572f399e264",
+      "sp-f84e46a7d805"
+    ],
+    "validations": [
+      "val-0dd2ec717b58",
+      "val-33c9a6949f16",
+      "val-43649bb5388d",
+      "val-77c3c60ab0db",
+      "val-a557ee36ed29",
+      "val-d1ff31ac387e"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:54:53Z"
+  }
+}

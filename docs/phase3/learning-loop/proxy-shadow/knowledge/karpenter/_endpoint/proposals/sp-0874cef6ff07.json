@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0874cef6ff07",
+    "candidateId": "sc-95ddd86cb4d2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodeClaim"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "karpenter.sh",
+          "version": "v1beta1",
+          "kind": "NodeClaim"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodeClaim objects stored as v1beta1 must be rewritten via storage version migration and status.storedVersions must be updated before a later release removes v1beta1 support.",
+        "severity": "high"
+      },
+      "statement": "The storage version of nodeclaims.karpenter.sh changes from v1beta1 to v1, and existing NodeClaim objects must be rewritten via storage version migration before v1beta1 is removed in a later release."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-881d131e594e",
+      "ev-fef279f378b5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d4abf42f0e6ae48a07eb5ba5fb10024a625d2c245b0e07a30a316b263a6ffc9b",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-02T06:01:03Z",
+      "callId": "bed22e0b-a828-40d4-bd01-d8011f999a0a"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ca95bcaf4b7e",
+    "candidateId": "sc-88f18e36ba8f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "argo-cd",
+        "path": "redis-ha.securityContext",
+        "name": "redis-ha"
+      },
+      "change": {
+        "type": "removed",
+        "before": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "redis-ha.securityContext",
+              "state": "set"
+            },
+            {
+              "op": "product-version",
+              "name": "helm",
+              "state": "in-range",
+              "range": ">=3.17.1"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "With Helm 3.17.1, the null security context value in redis-ha subchart values.yaml would be rejected during chart validation, preventing successful chart deployment or upgrade.",
+        "remediation": "Upgrade to Argo CD 3.0.0 or later which removes the problematic null value, allowing Helm 3.17.1 to successfully validate and deploy the chart.",
+        "severity": "high"
+      },
+      "statement": "Argo CD 3.0.0 removes a null security context value from the redis-ha Helm subchart values to resolve validation errors with Helm 3.17.1."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-c5612ed57e07"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:58dbd5ac3a573871594fd15ab0e605b425ab5ed46a325856f909b33d4ba1528c",
+      "inputEvidence": [
+        "ev-c5612ed57e07"
+      ],
+      "generatedAt": "2026-10-02T05:55:27Z",
+      "callId": "7490205c-6d36-4326-b078-086e67127eb0"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-efccc64c1dc6",
+    "candidateId": "sc-029ae3c1e658",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "karpenter",
+        "name": "bottlerocket-settings-taint-format"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Taints are written into Bottlerocket node settings in the corrected format, so Bottlerocket nodes carrying taints receive differently-formatted (fixed) taint settings after the upgrade.",
+        "remediation": "After upgrading, verify that taints on Bottlerocket nodes are rendered and applied as expected.",
+        "severity": "low"
+      },
+      "statement": "Karpenter-provider-aws v1.0.0 fixes the format of taints written into Bottlerocket node settings (bug fix 'bottlerocket settings taint format', #6489), changing how taints are rendered in Bottlerocket settings."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The evidence only names the fixed behavior ('bottlerocket settings taint format'); it does not state which configuration selects Bottlerocket nodes or how taints are specified (no CRD fields, selectors, or values keys are given, and no artifact context is available), so an exposure condition tree cannot be built without inventing paths.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5506a0d4614a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:1f56445af43a94ee515a89d5a9d68241aee9158ee7537b994babc0f49e233298",
+      "inputEvidence": [
+        "ev-5506a0d4614a"
+      ],
+      "generatedAt": "2026-10-02T11:51:05Z",
+      "callId": "4f7e776e-6dba-4dca-aaaa-b66c93f8fe57"
+    }
+  }
+}

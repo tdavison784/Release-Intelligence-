@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7629c64aa741",
+    "candidateId": "sc-9bfef792f31d",
+    "proposalId": "sp-e63a5b8f3514",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "version": "v1beta1",
+        "kind": "UpdateRequest"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v2\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.13.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether any UpdateRequest objects exist in the cluster stored as v1beta1 (Kyverno creates UpdateRequests at runtime for mutate/generate policies, so stored-object state is not visible in manifests)"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing UpdateRequest objects stay stored as v1beta1 until rewritten; the operator must run a storage version migration (re-write all objects) and update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "After upgrading, run a storage version migration for updaterequests.kyverno.io (re-write all UpdateRequest objects at the new storage version) and update the CRD's status.storedVersions before upgrading to a release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the updaterequests.kyverno.io CRD changed from v1beta1 to v2 (v1beta1.storage true→false, v2.storage false→true between 1.12.6 and 1.13.0), so existing UpdateRequest objects stay stored as v1beta1 until rewritten and a storage version migration plus a status.storedVersions update is required before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

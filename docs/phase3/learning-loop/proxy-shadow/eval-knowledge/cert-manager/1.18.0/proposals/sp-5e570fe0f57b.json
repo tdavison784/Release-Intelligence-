@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5e570fe0f57b",
+    "candidateId": "sc-87d161c59ee8",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "http01-ingress-pathtype"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"Exact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "product-version",
+                  "name": "ingress-nginx",
+                  "state": "in-range",
+                  "range": ">=1.12.0"
+                },
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "product-version",
+                      "name": "ingress-nginx",
+                      "state": "in-range",
+                      "range": ">=1.8.0"
+                    },
+                    {
+                      "op": "undecidable",
+                      "reason": "environment-visibility-gap",
+                      "needed": "whether the ingress-nginx strict-validate-path-type configuration option is enabled"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether any ACME issuer in the environment uses the HTTP01 ingress-based challenge solver"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "product-version",
+          "name": "ingress-nginx",
+          "state": "out-of-range",
+          "range": ">=1.8.0"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "The Ingress cert-manager creates to present an ACME HTTP01 challenge is denied by the ingress-nginx admission webhook `validate.nginx.ingress.kubernetes.io` (\"ingress contains invalid…\", logged in the cert-manager controller as \"Error presenting challenge\"), so ACME HTTP01 challenges cannot be solved when ingress-nginx >= 1.8.0 runs with `strict-validate-path-type` enabled (the default from ingress-nginx >= 1.12.0).",
+        "severity": "high"
+      },
+      "statement": "cert-manager 1.18.0 sets the `PathType` of the Ingress routes it creates for ACME HTTP01 challenges to `Exact`, which is incompatible with ingress-nginx configurations where the `strict-validate-path-type` option rejects paths containing a dot, so the `/.well-known/acme-challenge/<TOKEN>` challenge Ingress is denied by the `validate.nginx.ingress.kubernetes.io` admission webhook."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-110340e9c914"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:54b65fbf67c063308f5d56c49279ca446261acc39f0a3c7e75be4b754d83c320",
+      "inputEvidence": [
+        "ev-110340e9c914"
+      ],
+      "generatedAt": "2026-10-02T11:37:44Z",
+      "callId": "0e1f8dde-41f6-465c-801a-bcd508ecaee6"
+    }
+  }
+}

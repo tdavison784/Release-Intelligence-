@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d6ce7a820ba8",
+    "reviewItemId": "ri-91a0704e42e2",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "traefik",
+          "state": "in-range",
+          "range": ">=2.0.0,<3.0.0"
+        }
+      },
+      "statement": "Traefik Proxy v2 versions, with v2.11.2 as the last minor, reached end-of-life on 2026-09-07 and are no longer receiving security fixes; migration to v3 is required for continued security support."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": ">=2.0.0, <3.0.0"
+        }
+      },
+      "statement": "Traefik Proxy v2 (last minor v2.11) is end-of-life since 2026-09-07 and gets no more security fixes. Environments running any v2 release (>=2.0.0, <3.0.0) are exposed and should plan the move to v3."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:27377d5c8f337edc4f70bcef7b686a9100fae2bf1f274fcc76978311da13947f",
+      "inputEvidence": [
+        "ev-525d11df6567"
+      ],
+      "generatedAt": "2026-10-03T01:53:46.686Z",
+      "callId": "7e48cca5-a664-4807-8239-a6a72fd32a7b"
+    },
+    "reason": "The change says all of Traefik v2 is end-of-life: v2.11 lost support on 2026-09-07 and older v2 minors ended earlier. So the exposed environments are those running a v2 release today. [ev-525d11df6567] backs the support-window policy (the last minor after a new major gets 2 years), but its excerpt is cut off and does not state the v2 dates itself. The version range in the proposal is right, but it uses product-version, which is for another product's version. The version of this product that an environment runs is expressed by edge-from-version.",
+    "startedAt": "2026-10-03T01:53:34.775Z",
+    "decidedAt": "2026-10-03T01:53:46.686Z"
+  }
+}

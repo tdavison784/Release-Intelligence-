@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c4a5a6b70ef4",
+    "candidateId": "sc-d8ce8b124388",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-conflicting-pools-total-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_conflicting_pools_total\"",
+        "after": "\"lbipam_conflicting_pools\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-conflicting-pools-metric"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any dashboards, alerts or scrapers reference the metric lbipam_conflicting_pools_total"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is exposed under the new name lbipam_conflicting_pools; queries, dashboards or alerts using lbipam_conflicting_pools_total need updating to the new name.",
+        "remediation": "Update monitoring queries to use lbipam_conflicting_pools.",
+        "severity": "low"
+      },
+      "statement": "The metric lbipam_conflicting_pools_total has been renamed to lbipam_conflicting_pools."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2e2ab2d37845"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:711cb84ea58459b306bffadc3b6e9b57a15f448b2e12f3a865b37a8e7cb24b62",
+      "inputEvidence": [
+        "ev-2e2ab2d37845"
+      ],
+      "generatedAt": "2026-10-02T05:59:17Z",
+      "callId": "2c57696c-d698-4470-b412-756248051be7"
+    }
+  }
+}

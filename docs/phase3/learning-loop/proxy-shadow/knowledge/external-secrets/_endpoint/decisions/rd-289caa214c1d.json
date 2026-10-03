@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-289caa214c1d",
+    "reviewItemId": "ri-a253a23aa2ce",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "kind": "ExternalSecret"
+        }
+      },
+      "statement": "A new stable API version external-secrets.io/v1 of ExternalSecret is now available."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:b24eb82feaaf9f063c0844e09b8de0a85c83b01408267f91f5e4d69f7b005c83",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-27394cd50375",
+        "ev-7a082965d61c",
+        "ev-b80f52507eed",
+        "ev-4a1f27e04efd",
+        "ev-557ab6e0939a",
+        "ev-efc5158ff817",
+        "ev-dedabc51d637",
+        "ev-10a72c580d6b",
+        "ev-09b8aa472138",
+        "ev-9e957ffda511"
+      ],
+      "generatedAt": "2026-10-03T01:55:27.242Z",
+      "callId": "dd7fccd2-91d8-4902-9a6d-532459498a9f"
+    },
+    "reason": "The renders show external-secrets.io/v1 ExternalSecret was absent in 0.15.0 and is served in 0.16.0 [ev-09b8aa472138][ev-9e957ffda511][ev-b80f52507eed], so no environment can already be using v1 before the upgrade. That means a version-scoped condition would match no one. The new version is added to the existing externalsecrets.external-secrets.io CRD, and v1beta1 stops being the storage version [ev-10a72c580d6b], so the environments this addition touches are the ones that use the ExternalSecret kind in any version. Because the fixed consequence is none/informational, this condition creates no mandatory work. No canonical exposure shape exists for an added GVK (validator inconclusive), so confidence is low.",
+    "startedAt": "2026-10-03T01:55:11.583Z",
+    "decidedAt": "2026-10-03T01:55:27.242Z"
+  }
+}

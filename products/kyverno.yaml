@@ -197,6 +197,54 @@ sources:
       - versions: [1.14.0, 1.15.0, 1.16.0, 1.17.0, 1.18.0]
         reason: "upstream ships an 'Upgrading to Kyverno vX.Y' section only for minors that need upgrade steps (1.13, 1.19 today); absence is upstream's statement that no special steps are required (the 1.18 blog: 'There are no breaking changes in this release')"
 
+  # --- Kubernetes compatibility (the website's per-minor branch) ---------------
+  # The installation page of each release branch (release-1-N-0) carries the
+  # matrix "Kyverno Version | Kubernetes Min | Kubernetes Max" (N-2 rows: the
+  # release and the two minors before it), so the row of the release itself is
+  # always on its own branch. The page moved twice, hence one source per era:
+  # content/en/docs/Installation/_index.md (<= 1.12), .../installation/_index.md
+  # (1.13 - 1.16), src/content/docs/docs/installation/installation.md (1.17).
+  # From 1.18 the page is an .mdx whose matrix is no longer a table (it is not
+  # in the document body), so no source is declared there: the window of a
+  # release >= 1.18 is NOT captured (an explicit gap, not a missing check).
+  - id: kubernetes-compat-1-12
+    roles: [compatibility]
+    availability: "< 1.13.0"
+    locator:
+      kind: repo-file
+      repository: github.com/kyverno/website
+      ref: "release-{{.Major}}-{{.Minor}}-0"
+      path: content/en/docs/Installation/_index.md
+    extract: &kyverno-compat-extract
+      type: markdown-table
+      keyColumns: [Kyverno Version]
+      keyMatch: '^{{.Major}}\.{{.Minor}}\.x$'
+      columns:
+        - platform: kubernetes
+          kind: minimum
+          headers: [Kubernetes Min]
+        - platform: kubernetes
+          kind: maximum
+          headers: [Kubernetes Max]
+  - id: kubernetes-compat-1-13
+    roles: [compatibility]
+    availability: ">= 1.13.0, < 1.17.0"
+    locator:
+      kind: repo-file
+      repository: github.com/kyverno/website
+      ref: "release-{{.Major}}-{{.Minor}}-0"
+      path: content/en/docs/installation/_index.md
+    extract: *kyverno-compat-extract
+  - id: kubernetes-compat-1-17
+    roles: [compatibility]
+    availability: ">= 1.17.0, < 1.18.0"
+    locator:
+      kind: repo-file
+      repository: github.com/kyverno/website
+      ref: "release-{{.Major}}-{{.Minor}}-0"
+      path: src/content/docs/docs/installation/installation.md
+    extract: *kyverno-compat-extract
+
   # --- support policy (lifecycle evidence) -------------------------------------
   # installation/releases.md on main: "approximately three (3) months of
   # community patch support" for the newest minor only. Its items are reported

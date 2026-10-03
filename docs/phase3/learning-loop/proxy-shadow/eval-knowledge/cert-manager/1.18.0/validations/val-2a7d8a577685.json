@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-2a7d8a577685",
+    "candidateId": "sc-0564d2273368",
+    "proposalId": "sp-09407556c851",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.privateKey.rotationPolicy"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"Never\"",
+        "after": "\"Always\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "Certificate"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.privateKey.rotationPolicy",
+                  "state": "unset"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.privateKey.rotationPolicy",
+              "state": "equals",
+              "values": [
+                "\"Never\""
+              ]
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificate resources without an explicit rotationPolicy will now generate a new private key on each renewal (Always) instead of reusing the existing private key (Never), changing the key rotation behavior.",
+        "remediation": "Explicitly set rotationPolicy: Never on Certificate resources to preserve the old behavior, or disable the feature gate (available in 1.18 only) and set rotationPolicy: Never before upgrading to 1.19 where this becomes permanent.",
+        "severity": "high"
+      },
+      "statement": "The default value of Certificate.Spec.PrivateKey.RotationPolicy changed from Never to Always in cert-manager 1.18.0; this is a breaking change that is feature-gated and enabled by default, and can be disabled in 1.18 but will become permanent (GA) in 1.19."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0e6d2d80e7c3",
+    "candidateId": "sc-9bfef792f31d",
+    "proposalId": "sp-7e7c1227d365",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "updaterequests-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "version": "v1beta1",
+          "kind": "UpdateRequest"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing UpdateRequest objects stay stored as v1beta1 until rewritten; a storage version migration (re-write all objects) and update of status.storedVersions must be run before a later release removes v1beta1.",
+        "remediation": "Re-write all UpdateRequest objects and update status.storedVersions on the CRD before upgrading to a release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the updaterequests.kyverno.io CRD changes from v1beta1 to v2 (1.12.6 → 1.13.0); existing objects stay stored as v1beta1 until rewritten, so a storage version migration is needed before v1beta1 is removed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

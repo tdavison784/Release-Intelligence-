@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-999d8506622c",
+    "candidateId": "sc-abf77fd4f44f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "argo-cd",
+        "name": "ARGOCD_APP_PROJECT_NAME",
+        "component": "build"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "ARGOCD_APP_PROJECT_NAME",
+              "component": "build",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether build environment variables are dynamically injected or statically configured in the operator's deployment"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The build environment now includes ARGOCD_APP_PROJECT_NAME, providing the application project name as an environment variable during builds."
+      },
+      "statement": "Argo CD 3.0.0 adds the ARGOCD_APP_PROJECT_NAME environment variable to the build environment, making the application project name available to build processes."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-70041c7d236e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:db2e8ee5073e185b36a8491b956f33b59b4b0beb24fb5eefe11666edd236126d",
+      "inputEvidence": [
+        "ev-70041c7d236e"
+      ],
+      "generatedAt": "2026-10-02T05:57:07Z",
+      "callId": "815e1499-faa9-43cf-bc48-8d65c313b5d2"
+    }
+  }
+}

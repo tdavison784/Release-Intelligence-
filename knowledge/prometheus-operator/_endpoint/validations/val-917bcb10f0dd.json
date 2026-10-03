@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-917bcb10f0dd",
+    "candidateId": "sc-db10a2f69f63",
+    "proposalId": "sp-ec450030eec3",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1alpha1",
+        "kind": "ScrapeConfig",
+        "path": "status"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "monitoring.coreos.com",
+          "version": "v1alpha1",
+          "kind": "ScrapeConfig"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The addition only introduces a read-only status field in the ScrapeConfig v1alpha1 schema that is populated solely when the StatusForConfigurationResources feature gate is enabled; no existing resource, configuration or workload is affected by the schema addition itself.",
+        "remediation": "No action required; environments wanting populated status output may enable the StatusForConfigurationResources feature gate.",
+        "severity": "low"
+      },
+      "statement": "A new top-level status field (with status.bindings[] and its conditions, group, name, namespace and resource sub-fields) was added to the monitoring.coreos.com/v1alpha1 ScrapeConfig schema, computed between prometheus-operator 0.85.0 and 0.86.2; the evidence describes it as a read-only status subresource that is only updated when the \"StatusForConfigurationResources\" feature gate is enabled."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

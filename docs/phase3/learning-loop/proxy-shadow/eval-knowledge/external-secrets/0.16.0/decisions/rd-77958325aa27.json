@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-77958325aa27",
+    "reviewItemId": "ri-267202dcad3e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "For Helm-managed CRDs (installCRDs=true, the default), running helm repo update and helm upgrade to 0.16.1 'should just work'. No extra operator step is described.",
+        "severity": "low"
+      },
+      "statement": "For installs that manage external-secrets CRDs with Helm (installCRDs=true, the default, including via Argo CD or Flux), the upgrade guide says a plain `helm repo update` and `helm upgrade` to 0.16.1 should just work, with no extra step."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:242475b7ec435d2298b7b8ae3b37f13680e92b20e4fa53dd1b077b7fb299d673",
+      "inputEvidence": [
+        "ev-dcd7685c65da"
+      ],
+      "generatedAt": "2026-10-02T23:08:29.193Z",
+      "callId": "d32fcb02-3d0b-4941-8d46-4d76fef6c9ac"
+    },
+    "reason": "The upgrade guide [ev-dcd7685c65da] says that when CRDs are installed with Helm (installCRDs=true, the default), you only need to run `helm repo update` and `helm upgrade ... --version 0.16.1`. It says the same applies to argocd/flux managing CRDs with Helm, and that this \"should just work\". The evidence describes no failure, rejection, ignored setting, extra migration step or behaviour change, so kind \"none\" (informational) with low severity matches what it says.",
+    "startedAt": "2026-10-02T23:08:24.355Z",
+    "decidedAt": "2026-10-02T23:08:29.193Z"
+  }
+}

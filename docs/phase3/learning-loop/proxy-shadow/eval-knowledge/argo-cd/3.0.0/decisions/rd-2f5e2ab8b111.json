@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2f5e2ab8b111",
+    "reviewItemId": "ri-f7ac7d29e578",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "unset"
+                },
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\""
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "configs.rbac[\"policy.default\"]",
+                  "state": "unset"
+                },
+                {
+                  "op": "not",
+                  "of": [
+                    {
+                      "op": "values-key",
+                      "path": "configs.rbac[\"policy.default\"]",
+                      "state": "matches",
+                      "pattern": "^role:(readonly|admin)$"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "configs.rbac[\"policy.default\"]",
+              "state": "matches",
+              "pattern": "^role:(readonly|admin)$"
+            }
+          ]
+        }
+      },
+      "statement": "Starting from Argo CD 3.0, logs RBAC enforcement is enabled by default; the `server.rbac.log.enforce.enable` flag is removed from `argocd-cm` ConfigMap and users no longer automatically get logs access through `applications, get` permissions alone."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.rbac[\"policy.default\"]",
+              "state": "unset"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "unset"
+                },
+                {
+                  "op": "values-key",
+                  "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"false\"",
+                    "false"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "configs.cm[\"server.rbac.log.enforce.enable\"]",
+              "state": "equals",
+              "values": [
+                "\"true\"",
+                "true"
+              ]
+            },
+            {
+              "op": "values-key",
+              "path": "configs.rbac[\"policy.default\"]",
+              "state": "equals",
+              "values": [
+                "\"role:readonly\"",
+                "\"role:admin\""
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "An environment is exposed when argocd-rbac-cm has no policy.default and argocd-cm either does not set server.rbac.log.enforce.enable or sets it to false. Environments with the flag set to true, or with policy.default set to role:readonly or role:admin, are unaffected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:e7964af5656102203ec79fc9fa2949f2ea006ec26718989f661cc3c6b764e66b",
+      "inputEvidence": [
+        "ev-19231a7aa629"
+      ],
+      "generatedAt": "2026-10-03T02:35:12.52Z",
+      "callId": "9f9905b2-d21e-4135-b8df-de5252b26bf2"
+    },
+    "reason": "[ev-19231a7aa629] names the affected users directly: no `policy.default` in `argocd-rbac-cm`, and `server.rbac.log.enforce.enable` either set to false or not set at all in `argocd-cm`. The proposed exposure is broader than that, because it also flags environments whose `policy.default` is set to some other role. The evidence never calls those environments affected. The proposal also compares against the literal values \"\\\"false\\\"\" and \"\\\"true\\\"\" with the quote characters included, which would never match a real setting. The corrected version requires `policy.default` to be unset, compares against plain false/true, and keeps the two shielded cases from the evidence as the overlap.",
+    "startedAt": "2026-10-03T02:34:56.038Z",
+    "decidedAt": "2026-10-03T02:35:12.52Z",
+    "resultingFact": "vf-e2a6819cf569"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-056df85ccc6c",
+    "candidateId": "sc-c664d99a5dc0",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--clustermesh-ip-identities-sync-timeout"
+      },
+      "change": {
+        "type": "deprecated",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "cilium",
+          "name": "--clustermesh-sync-timeout"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--clustermesh-ip-identities-sync-timeout",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--clustermesh-sync-timeout",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "--clustermesh-sync-timeout",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The flag still works in 1.16 but will be removed in Cilium 1.17.",
+        "remediation": "Use --clustermesh-sync-timeout instead."
+      },
+      "statement": "The clustermesh-ip-identities-sync-timeout flag is deprecated in favor of clustermesh-sync-timeout and will be removed in Cilium 1.17."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-07d6be356398"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:019f852ca8322f8f9d0e93697295996f9adfa1cee5f544369cb91e300deeb406",
+      "inputEvidence": [
+        "ev-07d6be356398"
+      ],
+      "generatedAt": "2026-10-02T06:00:31Z",
+      "callId": "90f39ab4-26e8-4c58-8cd0-d3bebcd980eb"
+    }
+  }
+}

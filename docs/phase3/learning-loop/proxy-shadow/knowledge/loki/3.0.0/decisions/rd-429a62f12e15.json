@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-429a62f12e15",
+    "reviewItemId": "ri-cf9cfa3d76ba",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "tenant-config-concurrent-access",
+        "component": "ruler"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "Loki Ruler no longer panics from concurrent read-write access of tenant configs when there are a large amount of rules."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:444c59d8c7690d07ad433445c24360acbfcb33b8e114af6813cac51c5dab43ba",
+      "inputEvidence": [
+        "ev-22d171f57c1e"
+      ],
+      "generatedAt": "2026-10-03T02:01:38.715Z",
+      "callId": "bc6a40e4-7be6-423d-ab79-37514edbe758"
+    },
+    "reason": "[ev-22d171f57c1e] only states that a Ruler panic caused by concurrent read-write access of tenant configs (with many rules) was fixed. That is an internal concurrency fix, not wire/protocol behaviour, and it names no config key, flag, field, endpoint or other typed subject. So the protocol-behavior subject \"tenant-config-concurrent-access\" doesn't fit, and no other family's subject follows from the evidence.",
+    "startedAt": "2026-10-03T02:01:28.523Z",
+    "decidedAt": "2026-10-03T02:01:38.715Z"
+  }
+}

@@ -1,0 +1,309 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-71cf6ab4b713",
+    "product": "prometheus-operator",
+    "release": "0.86.0",
+    "members": [
+      {
+        "changeId": "chg-2e7a00f95cde",
+        "anchor": {
+          "release": "0.86.0",
+          "evidenceKeys": [
+            "ek-5ab9a13fd0b5"
+          ],
+          "statementKeys": [
+            "sk-47fd2c773bd7"
+          ],
+          "changeIds": [
+            "chg-2e7a00f95cde"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "removal",
+    "title": "0.86.0 / 2025-10-07: [!NOTE] This release introduces the status subresource (behind the `StatusForConfigurationResources` feature gate) for `ServiceMonitor`…",
+    "text": "0.86.0 / 2025-10-07: [!NOTE] This release introduces the status subresource (behind the `StatusForConfigurationResources` feature gate) for `ServiceMonitor`, `PodMonitor` and `Scrapeconfig` custom resources. It is only supported for `Prometheus` resources. [!IMPORTANT] This release enables automatic UTF-8 character support in label names, metric names and PrometheusRule expressions for Prometheus/PrometheusAgent resources running with version >= 3.0.0. To preserve backward compatibility, the admission webhook service validates PrometheusRule resources against the legacy Prometheus scheme by default (but it can be changed with the `--name-validation-scheme` flag). - [CHANGE] Remove automatic addition of the `metadata-wal-records` feature flag for Prometheus versions >= 3.4. #7893 - [CHANGE] Add miscellaneous validations to the `ScrapeConfig` CRD. #7856 #7823 #7835 #7838 #7838 ##7966 - [CHANGE/FEATURE] Add support for UTF-8 characters to label names and metric names in `PrometheusRule` resources and relabel configurations. #7637 #7985 - [FEATURE] Add the flag `--name-validation-scheme` to admission webhook to select between utf8 and legacy validations. #7985 - [FEATURE] Add status…",
+    "evidence": [
+      {
+        "id": "ev-384dcd4e47a4",
+        "kind": "document",
+        "sourceId": "changelog",
+        "uri": "https://github.com/prometheus-operator/prometheus-operator/blob/v0.86.0/CHANGELOG.md",
+        "locator": "L1-L28 (0.86.0 / 2025-10-07)",
+        "excerpt": "## 0.86.0 / 2025-10-07\n\n> [!NOTE]\n> This release introduces the status subresource (behind the `StatusForConfigurationResources` feature gate) for `ServiceMonitor`, `PodMonitor` and `Scrapeconfig` custom resources. It is only supported for `Prometheus` resources.\n\n> [!IMPORTANT]\n> This release enables automatic UTF-8 character support in label names, metric names and PrometheusRule expressions for Prometheus/PrometheusAgent resources running with version >= 3.0.0.\n>\n> To preserve backward compatibility, the admission webhook service validates PrometheusRule resources against the legacy Prometh…",
+        "contentDigest": "sha256:15d9bd715a455c0c700c4919cf6e42affdc1931b02b7f9f790d4f5ec81b8b9cb",
+        "retrievedAt": "2026-10-02T03:56:03Z"
+      },
+      {
+        "id": "ev-5415b8753dfa",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "apiextensions.k8s.io/v1/CustomResourceDefinition//podmonitors.monitoring.coreos.com spec.versions[name=v1].schema.openAPIV3Schema.properties.status",
+        "excerpt": "0.85.0 → 0.86.2: field-added CustomResourceDefinition/podmonitors.monitoring.coreos.com spec.versions[name=v1].schema.openAPIV3Schema.properties.status: ∅ → {\"description\":\"status defines the status subresource. It is under active development and is updated only when the\\n\\\"StatusForConfigurationResources\\\" feature gate is enabled.\\n\\nMost recent observed status of the PodMonitor. Read-only.\\nMore info:\\nhttps://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status\",\"properties\":{\"bindings\":{\"description\":\"bindings defines the …",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//podmonitors.monitoring.coreos.com",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status",
+          "change": "field-added",
+          "after": "{\"description\":\"status defines the status subresource. It is under active development and is updated only when the\\n\\\"StatusForConfigurationResources\\\" feature gate is enabled.\\n\\nMost recent observed status of the PodMonitor. Read-only.\\nMore info:\\nhttps://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status\",\"properties\":{\"bindings\":{\"description\":\"bindings defines the list of workload resources (Prometheus, PrometheusAgent, ThanosRuler or Alertmanager) which select the configuration resource.\",\"items\":{\"description\":\"WorkloadBinding is a link between a configuration resource and a workload resource.\",\"properties\":{\"conditions\":{\"description\":\"conditions defines the current state of the configuration resource when bound to the referenced Workload object.\",\"items\":{\"description\":\"ConfigResourceCondition describes the status of configuration resources linked to Prometheus, PrometheusAgent, Alertmanager or ThanosRuler.\",\"properties\":{\"lastTransitionTime\":{\"description\":\"lastTransitionTime defines the time of the last update to the current status property.\",\"format\":\"date-time\",\"type\":\"string\"},\"message\":{\"description\":\"message defines the human-readable message indicating details for the condition's last transition.\",\"type\":\"string\"},\"observedGeneration\":{\"description\":\"observedGeneration defines the .metadata.generation that the\\ncondition was set based upon. For instance, if `.metadata.generation` is\\ncurrently 12, but the `.status.conditions[].observedGeneration` is 9, the\\ncondition is out of date with respect to the current state of the object.\",\"format\":\"int64\",\"type\":\"integer\"},\"reason\":{\"description\":\"reason for the condition's last transition.\",\"type\":\"string\"},\"status\":{\"description\":\"status of the condition.\",\"minLength\":1,\"type\":\"string\"},\"type\":{\"description\":\"type of the condition being reported.\\nCurrently, only \\\"Accepted\\\" is supported.\",\"enum\":[\"Accepted\"],\"minLength\":1,\"type\":\"string\"}},\"required\":[\"lastTransitionTime\",\"status\",\"type\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-map-keys\":[\"type\"],\"x-kubernetes-list-type\":\"map\"},\"group\":{\"description\":\"group defines the group of the referenced resource.\",\"enum\":[\"monitoring.coreos.com\"],\"type\":\"string\"},\"name\":{\"description\":\"name defines the name of the referenced object.\",\"minLength\":1,\"type\":\"string\"},\"namespace\":{\"description\":\"namespace defines the namespace of the referenced object.\",\"minLength\":1,\"type\":\"string\"},\"resource\":{\"description\":\"resource defines the type of resource being referenced (e.g. Prometheus, PrometheusAgent, ThanosRuler or Alertmanager).\",\"enum\":[\"prometheuses\",\"prometheusagents\",\"thanosrulers\",\"alertmanagers\"],\"type\":\"string\"}},\"required\":[\"group\",\"name\",\"namespace\",\"resource\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-map-keys\":[\"group\",\"resource\",\"name\",\"namespace\"],\"x-kubernetes-list-type\":\"map\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:33Z"
+      },
+      {
+        "id": "ev-d1c3b1084dad",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "apiextensions.k8s.io/v1/CustomResourceDefinition//probes.monitoring.coreos.com spec.versions[name=v1].schema.openAPIV3Schema.properties.status",
+        "excerpt": "0.85.0 → 0.86.2: field-added CustomResourceDefinition/probes.monitoring.coreos.com spec.versions[name=v1].schema.openAPIV3Schema.properties.status: ∅ → {\"description\":\"status defines the status subresource. It is under active development and is updated only when the\\n\\\"StatusForConfigurationResources\\\" feature gate is enabled.\\n\\nMost recent observed status of the Probe. Read-only.\\nMore info:\\nhttps://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status\",\"properties\":{\"bindings\":{\"description\":\"bindings defines the list of wo…",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//probes.monitoring.coreos.com",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status",
+          "change": "field-added",
+          "after": "{\"description\":\"status defines the status subresource. It is under active development and is updated only when the\\n\\\"StatusForConfigurationResources\\\" feature gate is enabled.\\n\\nMost recent observed status of the Probe. Read-only.\\nMore info:\\nhttps://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status\",\"properties\":{\"bindings\":{\"description\":\"bindings defines the list of workload resources (Prometheus, PrometheusAgent, ThanosRuler or Alertmanager) which select the configuration resource.\",\"items\":{\"description\":\"WorkloadBinding is a link between a configuration resource and a workload resource.\",\"properties\":{\"conditions\":{\"description\":\"conditions defines the current state of the configuration resource when bound to the referenced Workload object.\",\"items\":{\"description\":\"ConfigResourceCondition describes the status of configuration resources linked to Prometheus, PrometheusAgent, Alertmanager or ThanosRuler.\",\"properties\":{\"lastTransitionTime\":{\"description\":\"lastTransitionTime defines the time of the last update to the current status property.\",\"format\":\"date-time\",\"type\":\"string\"},\"message\":{\"description\":\"message defines the human-readable message indicating details for the condition's last transition.\",\"type\":\"string\"},\"observedGeneration\":{\"description\":\"observedGeneration defines the .metadata.generation that the\\ncondition was set based upon. For instance, if `.metadata.generation` is\\ncurrently 12, but the `.status.conditions[].observedGeneration` is 9, the\\ncondition is out of date with respect to the current state of the object.\",\"format\":\"int64\",\"type\":\"integer\"},\"reason\":{\"description\":\"reason for the condition's last transition.\",\"type\":\"string\"},\"status\":{\"description\":\"status of the condition.\",\"minLength\":1,\"type\":\"string\"},\"type\":{\"description\":\"type of the condition being reported.\\nCurrently, only \\\"Accepted\\\" is supported.\",\"enum\":[\"Accepted\"],\"minLength\":1,\"type\":\"string\"}},\"required\":[\"lastTransitionTime\",\"status\",\"type\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-map-keys\":[\"type\"],\"x-kubernetes-list-type\":\"map\"},\"group\":{\"description\":\"group defines the group of the referenced resource.\",\"enum\":[\"monitoring.coreos.com\"],\"type\":\"string\"},\"name\":{\"description\":\"name defines the name of the referenced object.\",\"minLength\":1,\"type\":\"string\"},\"namespace\":{\"description\":\"namespace defines the namespace of the referenced object.\",\"minLength\":1,\"type\":\"string\"},\"resource\":{\"description\":\"resource defines the type of resource being referenced (e.g. Prometheus, PrometheusAgent, ThanosRuler or Alertmanager).\",\"enum\":[\"prometheuses\",\"prometheusagents\",\"thanosrulers\",\"alertmanagers\"],\"type\":\"string\"}},\"required\":[\"group\",\"name\",\"namespace\",\"resource\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-map-keys\":[\"group\",\"resource\",\"name\",\"namespace\"],\"x-kubernetes-list-type\":\"map\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:33Z"
+      },
+      {
+        "id": "ev-33c3b71688f2",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "apiextensions.k8s.io/v1/CustomResourceDefinition//prometheusrules.monitoring.coreos.com spec.versions[name=v1].schema.openAPIV3Schema.properties.status",
+        "excerpt": "0.85.0 → 0.86.2: field-added CustomResourceDefinition/prometheusrules.monitoring.coreos.com spec.versions[name=v1].schema.openAPIV3Schema.properties.status: ∅ → {\"description\":\"status defines the status subresource. It is under active development and is updated only when the\\n\\\"StatusForConfigurationResources\\\" feature gate is enabled.\\n\\nMost recent observed status of the PrometheusRule. Read-only.\\nMore info:\\nhttps://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status\",\"properties\":{\"bindings\":{\"description\":\"bindings defi…",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//prometheusrules.monitoring.coreos.com",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status",
+          "change": "field-added",
+          "after": "{\"description\":\"status defines the status subresource. It is under active development and is updated only when the\\n\\\"StatusForConfigurationResources\\\" feature gate is enabled.\\n\\nMost recent observed status of the PrometheusRule. Read-only.\\nMore info:\\nhttps://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status\",\"properties\":{\"bindings\":{\"description\":\"bindings defines the list of workload resources (Prometheus, PrometheusAgent, ThanosRuler or Alertmanager) which select the configuration resource.\",\"items\":{\"description\":\"WorkloadBinding is a link between a configuration resource and a workload resource.\",\"properties\":{\"conditions\":{\"description\":\"conditions defines the current state of the configuration resource when bound to the referenced Workload object.\",\"items\":{\"description\":\"ConfigResourceCondition describes the status of configuration resources linked to Prometheus, PrometheusAgent, Alertmanager or ThanosRuler.\",\"properties\":{\"lastTransitionTime\":{\"description\":\"lastTransitionTime defines the time of the last update to the current status property.\",\"format\":\"date-time\",\"type\":\"string\"},\"message\":{\"description\":\"message defines the human-readable message indicating details for the condition's last transition.\",\"type\":\"string\"},\"observedGeneration\":{\"description\":\"observedGeneration defines the .metadata.generation that the\\ncondition was set based upon. For instance, if `.metadata.generation` is\\ncurrently 12, but the `.status.conditions[].observedGeneration` is 9, the\\ncondition is out of date with respect to the current state of the object.\",\"format\":\"int64\",\"type\":\"integer\"},\"reason\":{\"description\":\"reason for the condition's last transition.\",\"type\":\"string\"},\"status\":{\"description\":\"status of the condition.\",\"minLength\":1,\"type\":\"string\"},\"type\":{\"description\":\"type of the condition being reported.\\nCurrently, only \\\"Accepted\\\" is supported.\",\"enum\":[\"Accepted\"],\"minLength\":1,\"type\":\"string\"}},\"required\":[\"lastTransitionTime\",\"status\",\"type\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-map-keys\":[\"type\"],\"x-kubernetes-list-type\":\"map\"},\"group\":{\"description\":\"group defines the group of the referenced resource.\",\"enum\":[\"monitoring.coreos.com\"],\"type\":\"string\"},\"name\":{\"description\":\"name defines the name of the referenced object.\",\"minLength\":1,\"type\":\"string\"},\"namespace\":{\"description\":\"namespace defines the namespace of the referenced object.\",\"minLength\":1,\"type\":\"string\"},\"resource\":{\"description\":\"resource defines the type of resource being referenced (e.g. Prometheus, PrometheusAgent, ThanosRuler or Alertmanager).\",\"enum\":[\"prometheuses\",\"prometheusagents\",\"thanosrulers\",\"alertmanagers\"],\"type\":\"string\"}},\"required\":[\"group\",\"name\",\"namespace\",\"resource\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-map-keys\":[\"group\",\"resource\",\"name\",\"namespace\"],\"x-kubernetes-list-type\":\"map\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:33Z"
+      },
+      {
+        "id": "ev-f0cfd8ade456",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "apiextensions.k8s.io/v1/CustomResourceDefinition//scrapeconfigs.monitoring.coreos.com spec.versions[name=v1alpha1].schema.openAPIV3Schema.properties.status",
+        "excerpt": "0.85.0 → 0.86.2: field-added CustomResourceDefinition/scrapeconfigs.monitoring.coreos.com spec.versions[name=v1alpha1].schema.openAPIV3Schema.properties.status: ∅ → {\"description\":\"status defines the status subresource. It is under active development and is updated only when the\\n\\\"StatusForConfigurationResources\\\" feature gate is enabled.\\n\\nMost recent observed status of the ScrapeConfig. Read-only.\\nMore info:\\nhttps://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status\",\"properties\":{\"bindings\":{\"description\":\"bindings de…",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//scrapeconfigs.monitoring.coreos.com",
+          "path": "spec.versions[name=v1alpha1].schema.openAPIV3Schema.properties.status",
+          "change": "field-added",
+          "after": "{\"description\":\"status defines the status subresource. It is under active development and is updated only when the\\n\\\"StatusForConfigurationResources\\\" feature gate is enabled.\\n\\nMost recent observed status of the ScrapeConfig. Read-only.\\nMore info:\\nhttps://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status\",\"properties\":{\"bindings\":{\"description\":\"bindings defines the list of workload resources (Prometheus, PrometheusAgent, ThanosRuler or Alertmanager) which select the configuration resource.\",\"items\":{\"description\":\"WorkloadBinding is a link between a configuration resource and a workload resource.\",\"properties\":{\"conditions\":{\"description\":\"conditions defines the current state of the configuration resource when bound to the referenced Workload object.\",\"items\":{\"description\":\"ConfigResourceCondition describes the status of configuration resources linked to Prometheus, PrometheusAgent, Alertmanager or ThanosRuler.\",\"properties\":{\"lastTransitionTime\":{\"description\":\"lastTransitionTime defines the time of the last update to the current status property.\",\"format\":\"date-time\",\"type\":\"string\"},\"message\":{\"description\":\"message defines the human-readable message indicating details for the condition's last transition.\",\"type\":\"string\"},\"observedGeneration\":{\"description\":\"observedGeneration defines the .metadata.generation that the\\ncondition was set based upon. For instance, if `.metadata.generation` is\\ncurrently 12, but the `.status.conditions[].observedGeneration` is 9, the\\ncondition is out of date with respect to the current state of the object.\",\"format\":\"int64\",\"type\":\"integer\"},\"reason\":{\"description\":\"reason for the condition's last transition.\",\"type\":\"string\"},\"status\":{\"description\":\"status of the condition.\",\"minLength\":1,\"type\":\"string\"},\"type\":{\"description\":\"type of the condition being reported.\\nCurrently, only \\\"Accepted\\\" is supported.\",\"enum\":[\"Accepted\"],\"minLength\":1,\"type\":\"string\"}},\"required\":[\"lastTransitionTime\",\"status\",\"type\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-map-keys\":[\"type\"],\"x-kubernetes-list-type\":\"map\"},\"group\":{\"description\":\"group defines the group of the referenced resource.\",\"enum\":[\"monitoring.coreos.com\"],\"type\":\"string\"},\"name\":{\"description\":\"name defines the name of the referenced object.\",\"minLength\":1,\"type\":\"string\"},\"namespace\":{\"description\":\"namespace defines the namespace of the referenced object.\",\"minLength\":1,\"type\":\"string\"},\"resource\":{\"description\":\"resource defines the type of resource being referenced (e.g. Prometheus, PrometheusAgent, ThanosRuler or Alertmanager).\",\"enum\":[\"prometheuses\",\"prometheusagents\",\"thanosrulers\",\"alertmanagers\"],\"type\":\"string\"}},\"required\":[\"group\",\"name\",\"namespace\",\"resource\"],\"type\":\"object\"},\"type\":\"array\",\"x-kubernetes-list-map-keys\":[\"group\",\"resource\",\"name\",\"namespace\"],\"x-kubernetes-list-type\":\"map\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:33Z"
+      },
+      {
+        "id": "ev-f240b6ac3b67",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/alertmanager/alertmanager.yaml · monitoring.coreos.com/v1/Alertmanager/prometheus-operator/prometheus-operator-kube-p-alertmanager spec.version",
+        "excerpt": "0.85.0 → 0.86.2: field-changed Alertmanager/prometheus-operator-kube-p-alertmanager (ns prometheus-operator) spec.version: \"v0.28.1\" → \"v0.29.0\"",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "monitoring.coreos.com/v1/Alertmanager/prometheus-operator/prometheus-operator-kube-p-alertmanager",
+          "path": "spec.version",
+          "change": "field-changed",
+          "before": "\"v0.28.1\"",
+          "after": "\"v0.29.0\""
+        },
+        "retrievedAt": "2026-10-02T16:10:33Z"
+      },
+      {
+        "id": "ev-83fc26f44be6",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://github.com/prometheus-community/helm-charts/releases/download/kube-prometheus-stack-79.12.0/kube-prometheus-stack-79.12.0.tgz",
+        "locator": "kube-prometheus-stack/templates/prometheus/prometheus.yaml · monitoring.coreos.com/v1/Prometheus/prometheus-operator/prometheus-operator-kube-p-prometheus spec.version",
+        "excerpt": "0.85.0 → 0.86.2: field-changed Prometheus/prometheus-operator-kube-p-prometheus (ns prometheus-operator) spec.version: \"v3.6.0\" → \"v3.8.0\"",
+        "contentDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+          "flags": [
+            "template",
+            "prometheus-operator",
+            "chart.tgz",
+            "--namespace",
+            "prometheus-operator",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "77.14.0",
+            "digest": "sha256:dd245c54c81425879df4ec7160bc6546d46cf431fe55925235c9f5bd6dcfd49b",
+            "outputDigest": "sha256:925f897457a5c3af0f59817643866674a065938de49aff3c20e3c9b41fee2618"
+          },
+          "toArtifact": {
+            "name": "kube-prometheus-stack",
+            "version": "79.12.0",
+            "digest": "sha256:36e42687f4cc57e18b400b7441bb21233a2b2457cc8d216155dd78b9e40f4ae0",
+            "outputDigest": "sha256:e70570e7090093d693cfebcc424af83301d52375432140bc1d787e93d7e3eab5"
+          },
+          "object": "monitoring.coreos.com/v1/Prometheus/prometheus-operator/prometheus-operator-kube-p-prometheus",
+          "path": "spec.version",
+          "change": "field-changed",
+          "before": "\"v3.6.0\"",
+          "after": "\"v3.8.0\""
+        },
+        "retrievedAt": "2026-10-02T16:10:33Z"
+      }
+    ],
+    "hints": [
+      "code:StatusForConfigurationResources",
+      "code:ServiceMonitor",
+      "code:PodMonitor",
+      "code:Scrapeconfig",
+      "code:Prometheus",
+      "code:--name-validation-scheme",
+      "code:metadata-wal-records",
+      "code:ScrapeConfig",
+      "code:PrometheusRule",
+      "flag:--name-validation-scheme",
+      "constraint:>=3.0.0",
+      "constraint:>=3.4",
+      "version:0.86.0",
+      "version:3.0.0",
+      "version:3.4"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:31Z"
+  }
+}

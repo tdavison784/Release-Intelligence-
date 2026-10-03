@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-79909874b385",
+    "candidateId": "sc-00c8dd09dcde",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "metric.prefix",
+        "component": "embedded-cache"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"querier_cache_\"",
+        "after": "\"loki_embeddedcache_\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "loki",
+          "state": "in-range",
+          "range": ">=3.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Monitoring configurations and queries using the old `querier_cache_` metric prefix will no longer match the renamed `loki_embeddedcache_` metrics; dashboards, alerts, and recording rules referencing the old prefix must be updated."
+      },
+      "statement": "The metric prefix for embedded cache metrics is renamed from `querier_cache_` to `loki_embeddedcache_`, and duplicate metrics are removed."
+    },
+    "citations": [
+      "ev-e4b24ba811ff"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:1bc9b03dffae0d8e858bdf38931a07de41f60ee2197acf7aa9eae877c2f7da87",
+      "inputEvidence": [
+        "ev-e4b24ba811ff"
+      ],
+      "generatedAt": "2026-10-02T16:11:15Z",
+      "callId": "cb82cb29-ce94-439f-a492-8e06132b9460"
+    }
+  }
+}

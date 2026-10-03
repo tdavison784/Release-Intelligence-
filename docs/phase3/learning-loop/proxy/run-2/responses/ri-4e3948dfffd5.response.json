@@ -1,0 +1,21 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-4e3948dfffd5",
+  "promptDigest": "sha256:99a8ce49901305f9f8e532ce41933c0198607e50b00b51d09ebeccaee4e61981",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "c9fd5ea0-24c9-4af7-b050-286f244fbf5a",
+  "startedAt": "2026-10-02T23:13:01.204Z",
+  "decidedAt": "2026-10-02T23:13:09.256Z",
+  "durationMs": 7158,
+  "costUSD": 0.04686,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "The cluster combines two separate upgrade-guide sections that were grouped only because their titles look alike. [ev-c569cd56f9ef] removes the compactor flags `-boltdb.shipper.compactor.shared-store` and `.key-prefix`; compaction then runs on all object stores in period configs with a tsdb or boltdb-shipper index. [ev-43cc6d389282] is a different change: it removes the shipper flags `-boltdb.shipper.shared-store` and `-tsdb.shipper.shared-store`, so chunks and index must share a bucket, which breaks setups that split them. These two changes have different subjects, exposure conditions and consequences, so no single assertion fits both, and the cluster needs to be split. Even then, the compactor section does not say what happens to a config that still sets the removed flags.",
+    "citations": [
+      "ev-c569cd56f9ef",
+      "ev-43cc6d389282"
+    ],
+    "confidence": "medium"
+  }
+}

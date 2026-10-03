@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-61bd20f96604",
+    "reviewItemId": "ri-4e4ce809ad3f",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "prometheus-operator",
+          "component": "prometheus-operator",
+          "state": "set"
+        }
+      },
+      "statement": "The prometheus-operator's RBAC permissions are fixed to allow the operator to emit Kubernetes events."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:bae52a75fe3fdd880035ea85383fa7562dfc96ad3f7fc7b52497cfbd8e2c106f",
+      "inputEvidence": [
+        "ev-3bbda3954fcf",
+        "ev-28316fb74c0f",
+        "ev-8247468c298e",
+        "ev-c90e35f857f5",
+        "ev-f1a64fa3899b",
+        "ev-b717c3338be5",
+        "ev-df0b9c64ea3c",
+        "ev-e59f6c1596ce",
+        "ev-25cf4daec27b",
+        "ev-7e18e362ec43",
+        "ev-835f6288ec0b",
+        "ev-84ddd688a00f",
+        "ev-f8233e3fcf69",
+        "ev-be3ca9c6446f"
+      ],
+      "generatedAt": "2026-10-02T23:13:19.221Z",
+      "callId": "21c1b776-5e06-4fbb-8915-99be65d3fefb"
+    },
+    "reason": "The proposed exposure checks for a container argument named \"prometheus-operator\". That is the product's name, not a flag, and the change involves no flag [ev-3bbda3954fcf]. The changelog only says the operator's permissions to emit events were fixed. The chart diff shows the operator ClusterRole gained events.k8s.io events create and patch, while create on core events was already present [ev-e59f6c1596ce][ev-25cf4daec27b][ev-f8233e3fcf69][ev-be3ca9c6446f]. The evidence names no setting or install path that decides exposure, so no correct condition follows from it.",
+    "startedAt": "2026-10-02T23:13:04.117Z",
+    "decidedAt": "2026-10-02T23:13:19.221Z"
+  }
+}

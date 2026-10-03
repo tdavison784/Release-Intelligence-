@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f1e6d0867616",
+    "reviewItemId": "ri-98e82a63f4d8",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "-boltdb.shipper.shared-store.key-prefix",
+          "state": "set"
+        }
+      },
+      "statement": "The boltdb.shipper.shared-store.key-prefix and tsdb.shipper.shared-store.key-prefix settings are removed; no action needed if never configured."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store.key-prefix",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.shared-store.key-prefix",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the Loki YAML config sets shared_store_key_prefix under the boltdb or tsdb shipper configuration (exact YAML path not given in evidence)"
+            }
+          ]
+        }
+      },
+      "statement": "Environments are exposed when they set -boltdb.shipper.shared-store.key-prefix, -tsdb.shipper.shared-store.key-prefix, or the corresponding YAML shipper setting (shared_store_key_prefix). Environments that set none of these need no changes."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:0f93b6592565b7f2b1f492664a68e55d9c65a8ace78ab062e16435d56afc8598",
+      "inputEvidence": [
+        "ev-76a46c52508c"
+      ],
+      "generatedAt": "2026-10-03T01:54:37.591Z",
+      "callId": "37a3b296-435d-49b2-9318-23148c7c4071"
+    },
+    "reason": "[ev-76a46c52508c] says no changes are needed only if the operator has not set -boltdb.shipper.shared-store.key-prefix, -tsdb.shipper.shared-store.key-prefix or the corresponding YAML setting. So any of the three exposes the environment. The proposed condition checks only the boltdb flag, which is too narrow: it misses the tsdb flag and YAML-only configurations. The evidence does not give the exact YAML key path, so the YAML case is marked undecidable instead of guessing a path.",
+    "startedAt": "2026-10-03T01:54:20.191Z",
+    "decidedAt": "2026-10-03T01:54:37.591Z"
+  }
+}

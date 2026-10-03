@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b20cb5d3404d",
+    "candidateId": "sc-a4e95a096f92",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "SECRET_GRACE_PERIOD_RATIO_JITTER"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"0.01\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "SECRET_GRACE_PERIOD_RATIO_JITTER",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificate renewal requests for proxies deployed at the same time will now be distributed with randomized jitter (±approximately 15 minutes around the default 12-hour renewal period) instead of occurring simultaneously.",
+        "severity": "medium"
+      },
+      "statement": "Environment variable `SECRET_GRACE_PERIOD_RATIO_JITTER` was added with default value `0.01` to introduce randomized jitter in certificate renewal timing, preventing synchronized renewal requests across proxies."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-d0223398edc4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4d683ea3e83fe0701ed81967fc23aab283e4156a8299f63dbb1661c799a58b04",
+      "inputEvidence": [
+        "ev-d0223398edc4"
+      ],
+      "generatedAt": "2026-10-02T05:56:07Z",
+      "callId": "7e6e509b-43de-4fa7-9be1-e18f49cc16d1"
+    }
+  }
+}

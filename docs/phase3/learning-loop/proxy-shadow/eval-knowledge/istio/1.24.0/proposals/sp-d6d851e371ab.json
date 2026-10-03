@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d6d851e371ab",
+    "candidateId": "sc-915466c133be",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "compatibility-boundary",
+        "product": "istio",
+        "name": "kubernetes-recommended-labels"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "kubernetes",
+              "state": "in-range",
+              "range": ">=1.0.0"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.24.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Istio resources now include standardized Kubernetes recommended labels; label selectors, filters, and monitoring rules that depend on these labels being absent or different may be affected.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 adds the Kubernetes recommended labels app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/part-of, app.kubernetes.io/version, app.kubernetes.io/managed-by, and helm.sh/chart to almost all resources."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-d4a0f83c6c05"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2b62e129cd9c5ef38ca85dfcd53f014201d3746a84b09792853e660327d2796f",
+      "inputEvidence": [
+        "ev-d4a0f83c6c05"
+      ],
+      "generatedAt": "2026-10-02T05:59:55Z",
+      "callId": "a33a0c7b-2b34-4065-a508-05abed4bb301"
+    }
+  }
+}

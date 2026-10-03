@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cd9b8e2209f2",
+    "candidateId": "sc-01dac2541bc1",
+    "proposalId": "sp-a073a97aa9fb",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether any HelmRepository v1beta2 object (or a status update written by a controller) has status.artifact set without status.artifact.digest; status is written by the controller at runtime and does not appear in static manifests"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "In the source.toolkit.fluxcd.io/v1beta2 HelmRepository schema, status.artifact.digest is now a required field, so the API server rejects objects or status writes that set status.artifact without a digest.",
+        "remediation": "Make sure every client or controller that writes HelmRepository v1beta2 status fills in status.artifact.digest.",
+        "severity": "low"
+      },
+      "statement": "The source.toolkit.fluxcd.io/v1beta2 HelmRepository CRD schema now requires status.artifact.digest, so objects that leave it out are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

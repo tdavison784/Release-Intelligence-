@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3e7dc43c77c4",
+    "candidateId": "sc-74b7134bdb51",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodePool",
+        "path": "spec.disruption"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"{\\\"consolidateAfter\\\":\\\"0s\\\"}\"",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.disruption",
+              "state": "unset"
+            }
+          ],
+          "group": "karpenter.sh",
+          "version": "v1",
+          "kind": "NodePool"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "NodePool resources with spec.disruption unset will no longer receive the default consolidateAfter value of 0s; disruption behavior for such NodePools will differ from the previous release.",
+        "severity": "medium"
+      },
+      "statement": "The default value for spec.disruption in karpenter.sh/v1 NodePool changed from {\"consolidateAfter\":\"0s\"} to none, affecting NodePools that do not explicitly set this field."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-09bbe26d2f4a",
+      "ev-760ae3491f13"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:14407da55ad57270ccf122737d9e188a2de5bd92065b7e13983ff79c29390847",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-02T06:07:59Z",
+      "callId": "1ae5a3c6-4f2f-4696-8ead-62e5b48ce171"
+    }
+  }
+}

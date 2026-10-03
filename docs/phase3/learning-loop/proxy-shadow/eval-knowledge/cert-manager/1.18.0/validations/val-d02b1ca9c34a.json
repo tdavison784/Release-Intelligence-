@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d02b1ca9c34a",
+    "candidateId": "sc-95b8b6a5377b",
+    "proposalId": "sp-dff3e0da360f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "ingress-pathtype"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"ImplementationSpecific\"",
+        "after": "\"Exact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the cert-manager-managed Kubernetes Ingress path whose pathType changed (e.g. during ingress-based ACME challenge solving) is exercised at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager now sets the Kubernetes Ingress pathType to Exact instead of ImplementationSpecific, so ingress controllers match the affected path exactly rather than in an implementation-specific way — described by the release as improving reliable handling of ingress controllers and security; no failure is stated.",
+        "remediation": "No action is stated by the release; verify that the ingress controller in use still routes the affected Ingress path as expected with pathType: Exact.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 changes the Kubernetes Ingress `pathType` it sets from `ImplementationSpecific` to `Exact`, for more reliable handling of ingress controllers and enhanced security."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/value-changed",
+        "detail": "no canonical exposure condition for protocol-behavior value-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

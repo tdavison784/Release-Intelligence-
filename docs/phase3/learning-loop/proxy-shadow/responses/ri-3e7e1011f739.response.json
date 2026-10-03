@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-3e7e1011f739",
+  "promptDigest": "sha256:e7ed441310e5f2fcdfa8219fb462009c1b7151f1504212ee96948255a58e1c55",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "a48d40e0-bed0-4e07-9ca1-4e9bb3f260b8",
+  "startedAt": "2026-10-03T02:16:16.770Z",
+  "decidedAt": "2026-10-03T02:16:27.282Z",
+  "durationMs": 9606,
+  "costUSD": 0.067416,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-7b76cb015d7e] says the `boltdb.shipper.compactor.deletion-mode` CLI flag and its YAML setting are removed, and that `compactor.deletion-mode` / `deletion_mode` in limits_config should be configured instead. The replacement is another Loki setting, not an upstream mechanism, so superseded-upstream is the wrong kind. A removed key whose configured value is no longer honoured is setting-ignored, which means mandatory work, not review. The evidence does not say whether startup fails, so this correction claims only that the value is ignored.",
+    "citations": [
+      "ev-7b76cb015d7e"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0 the `boltdb.shipper.compactor.deletion-mode` CLI flag and YAML setting are removed. Environments that set them lose that configured deletion mode until they move it to `compactor.deletion-mode` or `deletion_mode` in limits_config.",
+      "consequence": {
+        "kind": "setting-ignored",
+        "determination": "asserted",
+        "severity": "medium",
+        "statement": "The `boltdb.shipper.compactor.deletion-mode` CLI flag and the matching YAML setting are removed, so a deletion mode configured through them is no longer honoured.",
+        "remediation": "Configure the deletion mode with the `compactor.deletion-mode` CLI flag or the `deletion_mode` YAML setting in limits_config, and remove the old flag or setting."
+      }
+    }
+  }
+}

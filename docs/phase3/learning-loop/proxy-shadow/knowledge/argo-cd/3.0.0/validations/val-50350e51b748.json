@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-50350e51b748",
+    "candidateId": "sc-17607957b9fd",
+    "proposalId": "sp-92134ef55970",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "resource.exclusions",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "\"default exclusions for Endpoints, EndpointSlice, Lease, review kinds, CertificateSigningRequest, PolicyReport, CertificateRequest, Kyverno and Cilium kinds\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "configs.cm[\"resource.exclusions\"]",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "configs.cm[\"resource.exclusions\"]",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Resources of the listed kinds are excluded from Argo CD by default, so they are no longer tracked or managed unless resource.exclusions is overridden or removed in the configMap.",
+        "remediation": "Override or remove resource.exclusions in argocd-cm to preserve v2 behavior.",
+        "severity": "medium"
+      },
+      "statement": "The Argo CD manifest now ships a default resource.exclusions in argocd-cm that excludes high-churn controller-created kinds (Endpoints, EndpointSlice, Lease, Kyverno reports, Cilium identities, etc.); it can be overridden or removed to preserve v2 behavior."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/default-changed",
+        "detail": "no canonical exposure condition for config-key default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-3d269c45af93",
+    "candidateId": "sc-9bfef792f31d",
+    "product": "kyverno",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Storage version of `updaterequests.kyverno.io` changes v1beta1 → v2\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing UpdateRequest objects stay stored as v1beta1 until rewritten; the operator must run a storage version migration (re-write all objects) and update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "After upgrading, run a storage version migration for updaterequests.kyverno.io (re-write all UpdateRequest objects at the new storage version) and update the CRD's status.storedVersions before upgrading to a release that removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the updaterequests.kyverno.io CRD changed from v1beta1 to v2 (v1beta1.storage true→false, v2.storage false→true between 1.12.6 and 1.13.0), so existing UpdateRequest objects stay stored as v1beta1 until rewritten and a storage version migration plus a status.storedVersions update is required before a later release removes v1beta1."
+    },
+    "proposals": [
+      "sp-4c4ab6e41a5b",
+      "sp-7e7c1227d365",
+      "sp-d89b18bdf985",
+      "sp-e63a5b8f3514"
+    ],
+    "validations": [
+      "val-0e6d2d80e7c3",
+      "val-17bff20d2540",
+      "val-4381ec757f29",
+      "val-46545542ef71",
+      "val-4fa871957e94",
+      "val-70991528c211",
+      "val-75028a6b2828",
+      "val-7629c64aa741",
+      "val-8717db8976a2",
+      "val-933c9ae48a44",
+      "val-d291bf81d94b",
+      "val-e1febf28a4b1"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T21:01:54Z"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-26c67a5ab73a",
+    "candidateId": "sc-5dcbbe4e02ea",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "traefik",
+        "group": "traefik.io",
+        "kind": "IngressRouteTCP",
+        "path": "spec.routes[].services[].terminationDelay"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "traefik",
+          "group": "traefik.io",
+          "kind": "ServersTransportTCP",
+          "path": "spec.terminationDelay"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.routes[].services[].terminationDelay",
+              "state": "set"
+            }
+          ],
+          "group": "traefik.io",
+          "kind": "IngressRouteTCP"
+        }
+      },
+      "statement": "The TCP LoadBalancer terminationDelay option (IngressRouteTCP service level) is removed; it is now configured on the TCPServersTransport (ServersTransportTCP spec.terminationDelay)."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: Text says the option was removed and moved to the TCPServersTransport level, but does not state what happens to configurations that still set it.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d1948f134793"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:8ff451c476df515b317398d61bf23b1a366aaa496023deba302fd569a5cefb90",
+      "inputEvidence": [
+        "ev-d1948f134793"
+      ],
+      "generatedAt": "2026-10-02T16:14:59Z",
+      "callId": "d104a41b-078a-4786-aa87-c70f18560b37"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-515d6ecff980",
+    "candidateId": "sc-292ab9525adb",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.revisionHistoryLimit"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "null",
+        "after": "1"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.revisionHistoryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade to 1.18, cert-manager garbage-collects all stale CertificateRequest resources for Certificates that do not explicitly set revisionHistoryLimit. Only the latest revision is kept. The release notes flag this as a potentially breaking change.",
+        "remediation": "To keep more CertificateRequest history, set spec.revisionHistoryLimit explicitly on Certificate resources before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "In cert-manager 1.18.0 the default of Certificate spec.revisionHistoryLimit changed from nil (no limit) to 1, so on upgrade stale CertificateRequest resources are garbage collected for Certificates that do not set the field explicitly."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-bbe29a5fdc19",
+      "ev-04b3e69b5e24"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:1f8c11b196464298954817d0bf25d48d3a9fc7922be48d8ec166d041968786b7",
+      "inputEvidence": [
+        "ev-bbe29a5fdc19",
+        "ev-04b3e69b5e24"
+      ],
+      "generatedAt": "2026-10-02T06:11:14Z",
+      "callId": "73c3fbc3-aea3-479c-8810-a810371d6bcf"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8d6e4104832c",
+    "candidateId": "sc-76bef5a9be45",
+    "proposalId": "sp-4b400b7458f1",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "dnsProxy.endpointMaxIpPerHostname"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "50",
+        "after": "1000"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "dnsProxy.endpointMaxIpPerHostname",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "dnsProxy.endpointMaxIpPerHostname",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The maximum number of IPs cached per hostname for DNS proxy operations increases from 50 to 1000 by default, enabling improved scaling of toFQDNs policies and better handling of domains returning large numbers of IPs with short TTLs.",
+        "severity": "low"
+      },
+      "statement": "The default value of the Helm value `dnsProxy.endpointMaxIpPerHostname` has been increased from 50 to 1000 in Cilium 1.17.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/default-changed",
+        "detail": "release-level render failed (chart-unavailable): oci channel: oci: get manifest quay.io/cilium/charts/cilium:1.15.6: fetch https://quay.io/v2/cilium/charts/cilium/manifests/1.15.6: not in cache (offline mode); helm-repo channel: chart package https://helm.cilium.io/cilium-1.15.6.tgz: fetch https://helm.cilium.io/cilium-1.15.6.tgz: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}
