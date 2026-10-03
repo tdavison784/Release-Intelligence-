@@ -226,3 +226,32 @@ func readJSONFile(path string, v any) error {
 	}
 	return nil
 }
+
+// knowledgeProxyAgreement compares human decisions in the real store with the
+// proxy's shadow-pass decisions (`ri knowledge proxy-agreement`).
+func (c *cli) knowledgeProxyAgreement(args []string) error {
+	fs := c.flags("knowledge proxy-agreement", "")
+	dir := fs.String("dir", knowledge.DefaultDir, "the real knowledge directory (human decisions)")
+	shadow := fs.String("shadow", "docs/phase3/learning-loop/proxy-shadow/knowledge", "the shadow store (proxy decisions on the high items)")
+	output := fs.String("o", "text", "output format: text|json")
+	if _, err := parse(fs, args); err != nil {
+		return err
+	}
+	real, err := c.loadSnapshot(*dir, "")
+	if err != nil {
+		return err
+	}
+	sh, err := c.loadSnapshot(*shadow, "")
+	if err != nil {
+		return err
+	}
+	a := proxyreview.CompareShadow(real, sh)
+	switch *output {
+	case "text":
+		proxyreview.WriteAgreement(c.out, a)
+		return nil
+	case "json":
+		return c.writeJSON(a)
+	}
+	return fmt.Errorf("%w: unknown output format %q (want text or json)", app.ErrUsage, *output)
+}
