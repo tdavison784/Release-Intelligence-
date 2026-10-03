@@ -418,3 +418,29 @@ Uncertainties / for the commander:
   run README.
 - The staged run4 claude half (153 calls, fourth handoff) remains untouched and staged.
 - No eval/, gates, or expectations were touched; no merge/rebase/push; `.lane-lead` untouched.
+
+### semantic-4 step 3, completed (Claude agent, after the fifth GLM handoff)
+
+Handoff review (4d525e74, c3e18aa1, f8b0e63f, 6065cc59):
+- The run record, analyzer and import are sound.
+- Two corrections:
+  - The refusal records had been committed under `knowledge/<product>/failures/` and are moved to
+    `runs/semantic-v4/failures/`, as in v2/v3.
+  - The prompt-render drift GLM found is real (`bin/ri` was built before my last `configSourceLine`
+    edit). Rather than bump-and-rerun, the code now renders the entries the run saw byte-identically.
+    A rebuilt binary wrote no new request, so `semantic-full/v2` again names one rendering.
+- The 30 requests pending at the account limit were answered after the reset.
+
+Result: 449 property-selected candidates, 1 316 v2 proposals (Sonnet 446, Opus 448, GLM 422), 31
+refusals. Committed tree 1 194 / 3 999 / 0 invalid; eval-reference scan passes. Claude $70.72 (budget
+~$100). Every `undecidable` leaf with a v2-forbidden reason is gone: 90 → 0. On R1b, all leaves went
+108 → 20, 61/78 candidates are now undecidable-free and 36 of them carry a decidable predicate instead.
+122/210 all-abstained candidates and 35/102 new L4 candidates now carry assertions. Full record:
+`runs/semantic-v4/README.md`.
+
+Open for the commander:
+- The controlled with/without-render run's Claude half (153 staged calls, ~$8) is still staged.
+- `ri stats` reports the new `configSources` constructs as unaccounted (onboarding records are history;
+  not back-dated).
+- `knowledge.ProposalContext.ConfigSources` is a contract-marked additive field the proxy reviewer can
+  also use (L1 names both).

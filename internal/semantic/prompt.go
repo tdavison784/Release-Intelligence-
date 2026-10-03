@@ -289,6 +289,12 @@ func configSourceLine(h knowledge.ConfigSourceHint) string {
 			pred += fmt.Sprintf("; when installed by the chart: values-key{path: %s.<key>}", h.ValuesPath)
 		}
 	case "config-file":
+		if h.File != "" && h.Format != "" && h.ValuesPath == "" {
+			// the wording semantic-full/v2 shipped with (semantic-4 run); kept
+			// byte-identical so one prompt version names one rendering
+			pred = fmt.Sprintf("a %s file on disk (%s): decidable only when supplied as a ConfigMap (then text-line as above); otherwise applicability is undetermined", h.Format, h.File)
+			break
+		}
 		file := h.File
 		if file == "" {
 			file = "an operator-chosen path"

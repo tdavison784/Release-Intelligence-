@@ -116,6 +116,41 @@ What this does and does not mean:
   models ≈ 114 calls ≈ $6 Claude + 38 GLM) so one label means one prompt. Not done from the
   handoff — it moves measured ground and spends the limited account.
 
+### Drift resolved (Claude agent, after the handoff)
+
+The current code now renders a `config-file` entry with a file, a format and no chart key exactly as
+the run did (the wording the run shipped as `semantic-full/v2`). The newer wordings apply only to the
+forms the 7 later products introduced (no file, chart-set channels), and none of those products is in
+this run. Check: re-running every edge with a binary built at the fix wrote **no new request file**
+(898/449 unchanged), so one prompt version names one rendering again and the run's answers replay.
+No re-proposal was needed.
+
+## Final outcome (Claude agent, all 1 347 requests answered)
+
+The 30 Claude requests left pending at the account limit were answered after the reset (0 pending).
+Final: **1 316 v2 proposals** (Sonnet 446, Opus 448, GLM 422) and **31 refusals** (GLM 27, Sonnet 3,
+Opus 1; all typed-contract `rejected`, kept in `failures/`, not in `knowledge/`). Committed tree:
+1 194 candidates, 3 999 proposals, 0 invalid; the eval-reference scan passes.
+
+Cost: **Claude $70.72** (Sonnet $22.56 / 449 calls, Opus $48.16 / 449 calls), within the ~$100 budget.
+GLM: 449 calls billed by Z.AI (the CLI's $66.21 is an Anthropic-price estimate, not a bill).
+
+**Undecidable leaves replaced** (`analysis-v4.txt`, old = v1 proposals, new = v2, same candidates):
+
+| rule | leaves with a now-forbidden reason, old → new | all undecidable leaves, old → new | candidates whose every v2 proposal is undecidable-free | … of those with a decidable predicate instead |
+|---|---|---|---|---|
+| R1: leaf on a verified fact (59) | 25 → 0 | 51 → 56 (runtime 44, evidence 12) | 8 of 32 | 2 |
+| R1b: leaf on a proposal (78) | 65 → 0 | 108 → 20 | 61 of 78 | 36 |
+
+All **90** leaves with a reason v2 forbids (environment-visibility 87, cross-product 1,
+release-knowledge 2) are gone, and the validator refused no proposal for it: the schema enforcement
+of the `claude -p` transport and the prompt kept every model inside the rule. What remains is
+`runtime-behavior-gap` / `evidence-gap`, which v2 deliberately allows. On fact candidates (R1) GLM
+writes such runtime leaves often (37 of the 56).
+
+**All-abstained candidates (R2, 210):** 122 now carry an assertion (GLM asserts on 110, Opus on 68,
+Sonnet on 22). **L4 candidates (R3, 102):** 35 carry an assertion.
+
 ## Files
 
 - Selection + analysis: `select_candidates.py`, `merge_configsources.py`,
