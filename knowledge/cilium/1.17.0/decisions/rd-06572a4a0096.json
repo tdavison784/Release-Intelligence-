@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-06572a4a0096",
+    "reviewItemId": "ri-d54147bd5126",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After the upgrade the metric is exposed as doublewrite_crd_identities instead of doublewrite_identity_crd_total_count, so monitoring queries that use the old name no longer match it.",
+        "remediation": "Update dashboards, alerts and recording rules to use doublewrite_crd_identities.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_crd_total_count is renamed to doublewrite_crd_identities, so anything that queries the old name needs updating."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium keeps working, but after the upgrade the metric is no longer exposed as doublewrite_identity_crd_total_count. Dashboards, alerts and recording rules that query the old name stop matching it. The upgrade guide gives the new name as both doublewrite_crd_identities and doublewrite_identity_crd_total.",
+        "remediation": "Find which name the upgraded 1.17.0 deployment actually exposes (doublewrite_crd_identities or doublewrite_identity_crd_total). Then update dashboards, alerts and recording rules that use doublewrite_identity_crd_total_count to that name.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_crd_total_count is renamed, so queries using the old name stop matching. The upgrade guide gives two new names for it: doublewrite_crd_identities and doublewrite_identity_crd_total."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:80171d86ff1e73273be9590c6e06bb64ed3e18996bbb9218a6dfd2de45890590",
+      "inputEvidence": [
+        "ev-7ede52ce8bb8",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-6a341603b700",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:35:54.931Z",
+      "callId": "86996352-1b8f-4f00-ac1e-3b5a07b7d821",
+      "provider": "anthropic"
+    },
+    "reason": "The evidence states only that the metric was renamed, with no failure, rejection or migration step, so a review-class behavior-change at low severity is the right kind [ev-7ede52ce8bb8]. However, the same 1.17 Changed Metrics section gives a different new name for the same old metric: `doublewrite_identity_crd_total` [ev-eaf366d94d17]. The proposed statement and remediation present `doublewrite_crd_identities` as the only new name. The corrected consequence keeps the kind but drops that claim, because the upgrade guide contradicts itself on the new name.",
+    "startedAt": "2026-10-03T12:35:39.52Z",
+    "decidedAt": "2026-10-03T12:35:54.931Z"
+  }
+}

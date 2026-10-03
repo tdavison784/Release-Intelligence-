@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-cf066cdf7ee6",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-6c89819b37b0"
+        ],
+        "statementKeys": [
+          "sk-bf59f338259d"
+        ],
+        "changeIds": [
+          "chg-4a412a0d8c5f"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-7795416d8d95"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "querier-cache-metrics"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "loki",
+          "name": "loki-embeddedcache-metrics"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which dashboards, alerts or other metric consumers query the old embedded cache metric names (querier_cache_added_new_total, querier_cache_evicted_total, querier_cache_entries, querier_cache_memory_bytes)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Loki keeps running but exports the embedded cache metrics under the new loki_embeddedcache_* names, so any dashboard, alert or other consumer querying the old querier_cache_* names no longer matches those metrics.",
+        "remediation": "Update dashboards, alert rules and other metric consumers to the new loki_embeddedcache_* metric names.",
+        "severity": "low"
+      },
+      "statement": "The following embedded cache metrics are renamed: - `querier_cache_added_new_total` is renamed to `loki_embeddedcache_added_new_total` -…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-17c17a7f5bb9"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-17c17a7f5bb9"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-1e0d316a3d9f"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-a7ac97318e09"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-1f9807113c9e",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L658-L662 (3.0.0 › Loki 3.0.0 › Embedded cache metric changes)",
+        "excerpt": "- The following embedded cache metrics are renamed:\n  - `querier_cache_added_new_total` is renamed to `loki_embeddedcache_added_new_total`\n  - `querier_cache_evicted_total` is renamed to `loki_embeddedcache_evicted_total`\n  - `querier_cache_entries` is renamed to `loki_embeddedcache_entries`\n  - `querier_cache_memory_bytes` is renamed to `loki_embeddedcache_memory_bytes`",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:30:01.689Z"
+  }
+}

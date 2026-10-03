@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-dbf667a6cb75",
+    "reviewItemId": "ri-7391c3f3dcff",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cilium_ces_sync_errors_total disappears from Cilium's exported metrics in 1.16; anything scraping, charting, or alerting on it simply stops receiving data for it, though Cilium itself keeps running.",
+        "remediation": "Remove or update dashboards and alert rules that reference cilium_ces_sync_errors_total.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.16 removes the cilium_ces_sync_errors_total metric, listed under \"Removed Metrics\" in the 1.16 upgrade notes, so it is no longer exported."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:b339fad80a215c4004a582401217476ff26317301661d62871fbde8293afb56a",
+      "inputEvidence": [
+        "ev-36f95ff2158c"
+      ],
+      "generatedAt": "2026-10-03T12:27:01.781Z",
+      "callId": "b675bbeb-d3fc-466b-abf8-537b2f7c8be0",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-36f95ff2158c] lists `cilium_ces_sync_errors_total` under \"1.16 Upgrade Notes › Removed Metrics\", so in 1.16 the metric is no longer exported. Nothing in the evidence says that Cilium, an upgrade or any resource fails, so no action-eligible kind is justified. Because Cilium keeps running and only consumers of the metric stop getting data, behavior-change (review, low severity) is the cautious, fitting kind. Removing or updating dashboards and alert rules is the matching remediation.",
+    "startedAt": "2026-10-03T12:26:54.178Z",
+    "decidedAt": "2026-10-03T12:27:01.781Z"
+  }
+}

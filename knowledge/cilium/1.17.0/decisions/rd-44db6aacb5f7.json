@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-44db6aacb5f7",
+    "reviewItemId": "ri-37ba6a00d974",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which dashboards, alerts or recording rules query the metric doublewrite_identity_crd_only_count"
+        }
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_crd_only_count has been renamed to doublewrite_identity_crd_only_total."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:96dedb0832484ed019d8a2eaff756664d64c19327bc70e7ae92cae9ed95a27ea",
+      "inputEvidence": [
+        "ev-6a341603b700",
+        "ev-77f05428497a",
+        "ev-caf88a546536",
+        "ev-4024cb69f8ce",
+        "ev-b142822738f9",
+        "ev-3c947c36df35",
+        "ev-5d9f7bca7ba3",
+        "ev-9f3945740531",
+        "ev-f7021b9d3606",
+        "ev-0739bc6582ad",
+        "ev-2214fc54500d",
+        "ev-3fa40f2e19e8",
+        "ev-a70b049ef951",
+        "ev-eaf366d94d17",
+        "ev-d6005e84dee9",
+        "ev-a2a020af7830",
+        "ev-2e2ab2d37845",
+        "ev-875bb56564b0",
+        "ev-1bf87d491deb",
+        "ev-dc171b318f79",
+        "ev-9a62461ebaa9",
+        "ev-7ede52ce8bb8",
+        "ev-2349d1c09109",
+        "ev-df8818f69d5e",
+        "ev-57fea1f2c18e"
+      ],
+      "generatedAt": "2026-10-03T12:22:41.68Z",
+      "callId": "4469e0d6-32c6-4772-b896-75e5715d4168",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-6a341603b700] says only that Cilium renamed the metric. Nothing changes in the product's own configuration. The environments affected are the ones whose monitoring (dashboards, alerts, recording rules) still queries doublewrite_identity_crd_only_count, and no Cilium setting, values key or field shows that. So an undecidable exposure that names this need is a fair condition. The section context also gives a different new name for the same metric [ev-df8818f69d5e]. That conflict is about the change aspect, not this one, because the old name, and so the exposure, is the same either way.",
+    "startedAt": "2026-10-03T12:22:25.97Z",
+    "decidedAt": "2026-10-03T12:22:41.68Z"
+  }
+}

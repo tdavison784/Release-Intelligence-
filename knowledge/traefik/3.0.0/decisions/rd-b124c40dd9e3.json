@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b124c40dd9e3",
+    "reviewItemId": "ri-bd01522649fd",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "improved-statement"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Router rules default to the new v3 syntax; existing rules using v2 syntax continue to work but environments should migrate to v3 syntax as v2 is deprecated and will be removed in the next major version.",
+        "severity": "medium"
+      },
+      "statement": "The default rule matchers syntax for HTTP and TCP routers changes from v2 to v3 in Traefik 3.0.0; v2 syntax is deprecated but remains functional through backward compatibility configuration."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "If the operator does nothing, existing router rules are read with the v3 matcher syntax instead of v2. Headers/HeadersRegexp are renamed to Header/HeaderRegexp, PathPrefix no longer uses regular expressions, regexp matchers use Go regexp syntax, and matchers take single values that must be combined explicitly, so v2-style rules may behave differently. The v2 syntax is deprecated and will be removed in the next major version.",
+        "remediation": "Migrate router rules to the v3 syntax, or set the defaultRuleSyntax static option (or the per-route syntax field on IngressRoute/IngressRouteTCP) to v2 for backward compatibility.",
+        "severity": "medium"
+      },
+      "statement": "In Traefik 3.0.0 the default router rule syntax (defaultRuleSyntax) is v3; HTTP and TCP router rules without an explicit syntax are read with v3 matchers, so v2-style rules may match differently. The v2 syntax is deprecated and still available only if configured."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:32a514c56ffe8cb9cf196627ed6a5250073025a39866a7960c860b6b79e7f00a",
+      "inputEvidence": [
+        "ev-48d8875989c1",
+        "ev-08274e476e86",
+        "ev-b15a80a9b42b"
+      ],
+      "generatedAt": "2026-10-03T01:59:26.198Z",
+      "callId": "7f3547a6-0875-484c-9199-c54299342c98",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-48d8875989c1] says `defaultRuleSyntax` is now automatically `v3`, and v2 syntax only applies for backward compatibility when configured. So the proposed statement that existing v2 rules \"continue to work\" if the operator does nothing is wrong: without configuration they are read with v3 syntax, where Headers/HeadersRegexp are renamed, PathPrefix no longer uses regex, regexp matchers use Go syntax and matchers take single values. The evidence never says such rules are rejected or fail (v2 stays supported if configured), so the kind stays behavior-change (review), with a corrected statement.",
+    "startedAt": "2026-10-03T01:59:06.025Z",
+    "decidedAt": "2026-10-03T01:59:26.198Z"
+  }
+}

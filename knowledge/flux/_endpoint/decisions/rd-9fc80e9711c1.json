@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9fc80e9711c1",
+    "reviewItemId": "ri-35e0a0e70582",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The deprecated setting continues to work but is scheduled for removal in v1; environments still using it must move to ProxySecretRef.",
+        "remediation": "Identify which field/key the notice is attached to by diffing the v2.6.4 and v2.7.0 install.yaml, and migrate it to ProxySecretRef before v1.",
+        "severity": "low"
+      },
+      "statement": "A line added to install.yaml in flux2 v2.7.0 states that an unidentified setting is deprecated in favour of ProxySecretRef and will be removed in v1."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:cd886f3ce9959eec03e354a0fa1a7fa285068aaf8ddb222f5979a97d9c579744",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T12:22:24.162Z",
+      "callId": "b78e2672-d8b6-48ee-a322-bed1bd222457",
+      "provider": "anthropic"
+    },
+    "reason": "The computed diff between [ev-782bc47d120d] (v2.6.4) and [ev-c2c6c790d6b2] (v2.7.0) adds the line \"Deprecated: Use ProxySecretRef instead. Will be removed in v1.\" It marks something as deprecated now, with removal planned for later, and names its replacement. That matches the deprecation kind: it still works today and is scheduled to break in a later version, so the class is review. The text doesn't say which field is deprecated, but that only limits subject and applicability; it doesn't change what this consequence is. Confidence is low because the evidence excerpts show only \"apiVersion: v1\", so the reading rests on the diffed line itself.",
+    "startedAt": "2026-10-03T12:22:15.606Z",
+    "decidedAt": "2026-10-03T12:22:24.162Z"
+  }
+}

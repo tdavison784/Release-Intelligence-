@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-0019c786b3d7",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-058c4f8ceda7"
+        ],
+        "statementKeys": [
+          "sk-df08c36b3769"
+        ],
+        "changeIds": [
+          "chg-4742096aafce"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-3e5ed0e52781"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store",
+        "component": "logcli"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "-schema-store",
+          "component": "logcli"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store",
+              "component": "logcli",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-remote-schema",
+              "component": "logcli",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "cli-flag",
+          "name": "-schema-store",
+          "component": "logcli",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "With -remote-schema=true, the store set in -boltdb.shipper.shared-store is no longer used for retrieving remote schema. The new -schema-store flag now configures that store.",
+        "remediation": "Set -schema-store on LogCLI to the store that -boltdb.shipper.shared-store pointed to for retrieving remote schema.",
+        "severity": "medium"
+      },
+      "statement": "Store for retrieving remote schema: Previously LogCLI used to fetch remote schema from the store configured in `-boltdb.shipper.shared-store` when…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-c07b2269a4b2"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-c07b2269a4b2"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-f43fa2133270"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-70233e29bcc0"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-eec682284370",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L742-L745 (3.0.0 › LogCLI › Store for retrieving remote schema)",
+        "excerpt": "#### Store for retrieving remote schema\n\nPreviously LogCLI used to fetch remote schema from the store configured in `-boltdb.shipper.shared-store` when `-remote-schema` is set to `true`.\nA new CLI flag `-schema-store` is introduced as a replacement to configure the store for retrieving remote schema.",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T12:38:38.199Z"
+  }
+}

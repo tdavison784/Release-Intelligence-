@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ebfc959eff62",
+    "reviewItemId": "ri-ba9305875d23",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ServiceAccount annotation keys and values are now run through the built-in Helm tpl function, so any {{ ... }} template expressions they contain are rendered by Helm instead of being written as literal text.",
+        "remediation": "Verify that any ServiceAccount annotation keys or values containing {{ ... }} expressions are intended to be rendered as Helm templates rather than emitted literally.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 runs the built-in Helm tpl function on ServiceAccount annotation keys and values, so the Helm chart's ServiceAccount annotations now support Helm templating, to aid with workload identity configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v3",
+      "promptDigest": "sha256:d1228662155660a0a4a39e4de24a02dbe5387424816f45f630b69fac88c58a39",
+      "inputEvidence": [
+        "ev-e7cf2f463686",
+        "ev-53fb690413df",
+        "ev-e3729e495e40",
+        "ev-772ebf21cd9f",
+        "ev-fe02a4220985",
+        "ev-fe0fca386a7a",
+        "ev-db955cc00d69",
+        "ev-cd466139dded",
+        "ev-c54ac338953d",
+        "ev-d308231cd8ab",
+        "ev-619c0cea3aa4"
+      ],
+      "generatedAt": "2026-10-03T12:33:13.072Z",
+      "callId": "47eba155-e142-4c95-b99e-802370b192e1",
+      "provider": "anthropic"
+    },
+    "reason": "[ev-e7cf2f463686] says the chart now runs Helm's built-in `tpl` function on ServiceAccount annotation keys and values. So any `{{ ... }}` text already in those annotations is rendered by Helm rather than written out literally, and nothing in the evidence says this fails, is rejected or stops being honoured. A low-severity behavior-change that needs review is the strongest consequence the evidence supports. Calling it mandatory work would over-claim, and 'none' would hide the change in how annotations are rendered.",
+    "startedAt": "2026-10-03T12:33:03.797Z",
+    "decidedAt": "2026-10-03T12:33:13.072Z"
+  }
+}
