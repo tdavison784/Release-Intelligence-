@@ -81,6 +81,7 @@ func (c *cli) semanticPropose(args []string) error {
 	cacheDir := fs.String("llm-cache", "", "answer cache `DIR` (default: <state>/llm-cache)")
 	out := fs.String("out", "", "write candidate/proposal records under `DIR` (knowledge/ layout)")
 	max := fs.Int("max", 0, "only the first N candidates (0 = all)")
+	only := fs.String("only", "", "file of candidate ids to propose, one per line ('#' comments; default all)")
 	parallel := fs.Int("parallel", 4, "concurrent requests per model")
 	output := fs.String("o", "text", "output format: text|json")
 	withRender := fs.Bool("render", false, "add release-level (chart-default) rendered-diff evidence to candidates (prompt version +rendered); use a separate -out store to compare with a run without it")
@@ -124,6 +125,16 @@ func (c *cli) semanticPropose(args []string) error {
 		}
 	}
 	cands := semantic.BuildCandidatesWith(edge, edge.GeneratedAt, copts).Candidates
+	if *only != "" {
+		var missed []string
+		if cands, missed, err = filterCandidates(cands, *only); err != nil {
+			return err
+		}
+		if len(missed) > 0 {
+			// ids, not titles: the driver script pairs this list with its store
+			fmt.Fprintf(c.err, "semantic: -only: %d id(s) not among this edge's candidates: %s\n", len(missed), strings.Join(missed, ", "))
+		}
+	}
 	if *max > 0 && len(cands) > *max {
 		cands = cands[:*max]
 	}
@@ -214,4 +225,47 @@ func trimTitle(s string, n int) string {
 		return string(r[:n]) + "…"
 	}
 	return s
+}
+
+// filterCandidates keeps the candidates whose id is listed in file (one per
+// line, '#' comments). Missed lists the wanted ids this edge did not build, in
+// file order, so a driver script can notice store/edge drift.
+func filterCandidates(cands []domain.SemanticCandidate, file string) (kept []domain.SemanticCandidate, missed []string, err error) {
+	ids, err := readIDList(file)
+	if err != nil {
+		return nil, nil, err
+	}
+	have := map[string]domain.SemanticCandidate{}
+	for _, c := range cands {
+		have[string(c.ID)] = c
+	}
+	seen := map[string]bool{}
+	for _, id := range ids {
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		if c, ok := have[id]; ok {
+			kept = append(kept, c)
+		} else {
+			missed = append(missed, id)
+		}
+	}
+	return kept, missed, nil
+}
+
+func readIDList(file string) ([]string, error) {
+	b, err := os.ReadFile(file)
+	if err != nil {
+		return nil, fmt.Errorf("read %s: %w", file, err)
+	}
+	var ids []string
+	for _, line := range strings.Split(string(b), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		ids = append(ids, line)
+	}
+	return ids, nil
 }

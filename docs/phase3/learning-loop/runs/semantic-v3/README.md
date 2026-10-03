@@ -104,6 +104,17 @@ Models commit more often when a render is shown, and consequence agreement is hi
 54 %). A controlled measurement would ask the same 51 candidates again *without* rendered evidence
 into a separate store (ids are member-derived). This is the open next step for the addendum.
 
+**run4 (prepared 2026-10-03, GLM handoff): that measurement, staged.** The 51 with-render
+candidate ids are committed in `run4-only/` (external-secrets 12, kyverno 28, prometheus-operator 8,
+traefik 3 — all SUB edges, so all four models). `run4.sh` re-proposes them with `-only` and **no**
+`-render` into `.ri/semantic-run-v3/run4/` (fresh store, fresh cache). Its deterministic pass 1 is
+done: 204 requests written (Sonnet/Haiku/Opus 51 each in `exchange-claude/`, GLM 51 in
+`exchange-zai/`), 51 plain `semantic-full/v1` candidates stored, 0 ids missed. Finishing it is:
+answer both exchanges (`scripts/semantic-exchange.sh`), re-run `run4.sh`'s two loops to ingest, then
+`python3 analyze_render_ab.py knowledge .ri/semantic-run-v3/run4/knowledge` (paired per-aspect flip
+table per model, abstentions, rendered-evidence citations on the with-side; repeated calls of one
+model collapse to the latest answer).
+
 ## Files
 
 - `knowledge/<product>/` (committed): 573 candidates + 1 423 proposals, written through
