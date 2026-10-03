@@ -184,3 +184,24 @@ lane ownership; no eval data, gates, expectations or knowledge facts edited.
   - lever L0 added (+5 from the stage-f links); ceiling arithmetic redone (0.77 without L1).
 - The temporary harness `cmd/ri/zz_diag_test.go` is deleted (never committed).
 - `go build ./... && go vet ./... && go test ./...` green.
+
+## Loop-diagnosis-2 (branch `p3ll/loop-diagnosis-2`)
+
+**State: DONE.** Deliverable `docs/phase3/learning-loop/LOOP-DIAGNOSIS-2.md`.
+
+- Traced all 41 unhit affected links against the proxy-incl-shadow view (265 facts). Stages:
+  0 = 2, a = 6, b = 5, c = 3, d = 15, e = 8, f = 2 (+2 hidden). The 8 stage-e facts are analysed
+  leaf by leaf: authored `undecidable` leaves (5), the wrong configuration channel (3), and a
+  missing `path` (1).
+- Honest ceiling measured by evaluating the dataset's own ground-truth exposure conditions against
+  the fixtures: about 0.93 (68 affected reachable + 30 NA). 4 links are honestly UNKNOWN; 4 GT
+  authoring errors are reported to groundtruth.
+- Engine fixes, generic, with tests:
+  - CRD removal/version changes use manifest group evidence without `--crds` (+2 links:
+    traefik E1, crossplane E6; 0 new violations);
+  - CRD documents are read as resources;
+  - feature gates are read as boolean values keys.
+
+  Proxy-level applicability goes 0.581 → 0.600 and knowledge-free 0.524 → 0.543. No regression
+  against eval/results; falseActionRate unchanged.
+- Temporary harness deleted (never committed). `go build/vet/test ./...` green.

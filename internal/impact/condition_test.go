@@ -494,3 +494,74 @@ spec:
 		t.Errorf("a false from a declared-complete environment must cite the declaration: %+v", r.Checks)
 	}
 }
+
+// A CustomResourceDefinition document is itself a resource: conditions over
+// its own fields (status.storedVersions, spec.versions[].served) must read
+// it. Regression (external-secrets-0.15-0.16 E3, flux-2.6-2.7 E2): CRD
+// documents fed only the installed-CRD inventory, so "resource
+// CustomResourceDefinition [status.storedVersions[] equals v1alpha1]" found no
+// resource of the kind and decided FALSE — a clear from never looking.
+func TestEvaluateConditionReadsCRDDocuments(t *testing.T) {
+	edge := newEdge().edge
+	dir := t.TempDir()
+	crd := `apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata: {name: secretstores.example.io}
+spec:
+  group: example.io
+  names: {kind: SecretStore, plural: secretstores}
+  scope: Namespaced
+  versions:
+  - {name: v1alpha1, served: true, storage: false}
+  - {name: v1beta1, served: true, storage: true}
+status:
+  storedVersions: [v1alpha1, v1beta1]
+`
+	crdsFile := writeFile(t, dir, "crds/crds.yaml", crd)
+	other := writeFile(t, dir, "manifests/cm.yaml", "apiVersion: v1\nkind: ConfigMap\nmetadata: {name: x}\ndata: {a: b}\n")
+	stored := func(v string) domain.Condition {
+		return domain.Condition{Op: domain.OpResource, Group: "apiextensions.k8s.io", Kind: "CustomResourceDefinition",
+			Of: []domain.Condition{field("status.storedVersions[]", domain.StateEquals, v)}}
+	}
+	for _, in := range []env.Inputs{
+		{CRDs: []string{crdsFile}, Manifests: []string{other}},                // the fixture shape: crds/ + manifests/
+		{Manifests: []string{writeFile(t, dir, "manifests2/crds.yaml", crd)}}, // a CRD inside the manifests
+	} {
+		e := loadEnv(t, in)
+		if r := EvaluateCondition(stored(`"v1alpha1"`), e, edge); r.Value != True {
+			t.Errorf("stored version read from the CRD document = %s (%v), want true", r.Value, r.Needed)
+		}
+		if r := EvaluateCondition(stored(`"v1"`), e, edge); r.Value != False {
+			t.Errorf("a stored version the CRD does not list = %s, want false", r.Value)
+		}
+	}
+	// CRDs alone: the resource dimension (manifests) is absent; never false.
+	e := loadEnv(t, env.Inputs{CRDs: []string{crdsFile}})
+	if r := EvaluateCondition(stored(`"v1alpha1"`), e, edge); r.Value == False {
+		t.Errorf("CRDs-only input must not decide false")
+	}
+}
+
+// A feature gate whose values key is a boolean leaf: the path may name the
+// gate's own key, or the map holding it with the gate's key spelled in
+// another case. Regression (karpenter-0.37.8-1.0.0--ci-buildfarm E7):
+// `settings.featureGates.drift: false` read as "Drift not disabled" (false)
+// because the leaf only understood a "Name=bool" list string or an exact,
+// case-sensitive "<path>.<Name>" key.
+func TestEvaluateConditionFeatureGateBoolLeaf(t *testing.T) {
+	edge := newEdge().edge
+	dir := t.TempDir()
+	e := loadEnv(t, env.Inputs{ValuesFiles: []string{writeFile(t, dir, "values.yaml", "settings:\n  featureGates:\n    drift: false\n    spotToSpotConsolidation: true\n")}})
+	for _, c := range []domain.Condition{
+		{Op: domain.OpFeatureGate, Name: "Drift", Path: "settings.featureGates.drift", State: domain.StateDisabled},
+		{Op: domain.OpFeatureGate, Name: "Drift", Path: "settings.featureGates", State: domain.StateDisabled},
+		{Op: domain.OpFeatureGate, Name: "SpotToSpotConsolidation", Path: "settings.featureGates", State: domain.StateEnabled},
+	} {
+		if r := EvaluateCondition(c, e, edge); r.Value != True {
+			t.Errorf("%s = %s (%v), want true", describe(c), r.Value, r.Needed)
+		}
+	}
+	if r := EvaluateCondition(domain.Condition{Op: domain.OpFeatureGate, Name: "Drift", Path: "settings.featureGates", State: domain.StateEnabled}, e, edge); r.Value == True {
+		t.Errorf("drift: false must not read as enabled")
+	}
+}

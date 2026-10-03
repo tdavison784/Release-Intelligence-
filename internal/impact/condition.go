@@ -1252,6 +1252,14 @@ func parseBool(s string) (bool, bool) {
 	return false, false
 }
 
+// gateKeyFold reports whether key is "<path>.<gate>" with the gate's key
+// spelled in another case (Helm values commonly lower-case gate names:
+// settings.featureGates.drift for the Drift gate).
+func gateKeyFold(path, name, key string) bool {
+	i := strings.LastIndexByte(key, '.')
+	return i > 0 && key[:i] == path && strings.EqualFold(key[i+1:], name)
+}
+
 func (ev *evaluator) featureGate(c domain.Condition) ConditionResult {
 	var obs []gateObservation
 	var unparsable []string
@@ -1288,6 +1296,11 @@ func (ev *evaluator) featureGate(c domain.Condition) ConditionResult {
 			switch {
 			case k.Path == c.Path:
 				examined = appendUnique(examined, k.Evidence...)
+				if on, ok := parseBool(plainValue(k.Value)); ok {
+					// the path names the gate's own boolean key
+					obs = append(obs, gateObservation{enabled: on, match: domain.ImpactMatch{Kind: domain.MatchValuesKey, Subject: k.Path + ": " + k.Value, Evidence: k.Evidence}})
+					continue
+				}
 				for _, tok := range tokens(k.Value, ",") {
 					kk, v, hasV := strings.Cut(tok, "=")
 					if strings.TrimSpace(kk) != c.Name {
@@ -1301,7 +1314,7 @@ func (ev *evaluator) featureGate(c domain.Condition) ConditionResult {
 						obs = append(obs, gateObservation{enabled: on, match: domain.ImpactMatch{Kind: domain.MatchValuesKey, Subject: k.Path + ": " + tok, Evidence: k.Evidence}})
 					}
 				}
-			case relate(c.Path+"."+c.Name, k.Path) == relExact:
+			case relate(c.Path+"."+c.Name, k.Path) == relExact || gateKeyFold(c.Path, c.Name, k.Path):
 				if on, ok := parseBool(plainValue(k.Value)); ok {
 					obs = append(obs, gateObservation{enabled: on, match: domain.ImpactMatch{Kind: domain.MatchValuesKey, Subject: k.Path + ": " + k.Value, Evidence: k.Evidence}})
 				} else {
