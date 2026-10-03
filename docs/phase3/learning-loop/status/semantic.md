@@ -397,6 +397,15 @@ existed. What I did (all `[glm-handoff] `):
    costs from the CLI envelopes, and the one-command resume for the pending 30 (4d525e74).
 4. Imported the run results into the committed `knowledge/` tree: 102 candidate records + 1 286
    proposals + 31 refusals (c3e18aa1).
+5. Found and measured **prompt-render drift**: `bin/ri` (02:03:16) predates 06ad59bd's
+   `configSourceLine` change (02:04:22, committed while pass 1 ran). Re-proposing every edge with
+   a HEAD-built binary against an exchange copy: 38/449 candidates (traefik 25, istio 6,
+   karpenter 5, argo-cd 2 — the config-file-channel products) get different prompt digests under
+   HEAD, all models; 3 of the 30 pending are drifted. Provenance is honest (per-proposal
+   promptDigest of what was seen; exchanges hold the request bodies) and within-run comparisons
+   are unaffected, but the label v2 spans two renders. Recorded in the run README § Prompt-render
+   drift with the resume warning (do not rebuild `bin/ri` before the 30 are answered); the
+   accept-vs-bump-and-rerun decision (≈114 calls ≈ $6) is the Claude agent's/commander's.
 
 Uncertainties / for the commander:
 - The 30 pending claude calls (≈$2.4) were left pending on purpose — the account was still inside

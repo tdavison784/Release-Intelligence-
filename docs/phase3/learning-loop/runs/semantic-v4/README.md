@@ -40,6 +40,11 @@ cd .ri/semantic-run-v4 && bash run4v2.sh . "$(cd ../.. && pwd)/knowledge"   # pa
 python3 docs/phase3/learning-loop/runs/semantic-v4/analyze_v4.py knowledge .ri/semantic-run-v4/only knowledge
 ```
 
+**Use the worktree's existing `bin/ri` (built 02:03:16) — do not rebuild it before the 30 are
+answered.** 06ad59bd changed prompt-rendering code after that binary was built (see
+*Prompt-render drift* below); a rebuilt binary changes some request digests, and the pending
+requests would stop matching their answers.
+
 ## Outcome
 
 | model | proposals | refusals | full abstention | all 4 aspects | subject | change | applicability | consequence | action-required | cost |
@@ -85,6 +90,31 @@ From `analyze_v4.py` (old = the candidates' v1 proposals, new = this run):
 - Rendered evidence reached only 34 proposals (13 opus, 13 sonnet, 8 glm) — the render
   correlation still rarely links rendered changes to selected members — and was cited
   once. The with/without render measurement remains run4's job (semantic-3 § run4).
+
+### Prompt-render drift (found at the GLM handoff)
+
+`bin/ri` was built at 02:03:16; the final prompt-rendering edit of the wave (`configSourceLine`,
+06ad59bd at 02:04:22 — config-file channel wording, "a file on disk (…) … text-line on its data
+key", file/configMap-optional loading) landed **after** the build and after pass 1 had started.
+The run therefore proposed under the pre-06ad59bd rendering. Re-running every edge with a binary
+built at HEAD against a copy of the exchange: **38 of the 449 candidates** (traefik 25, istio 6,
+karpenter 5, argo-cd 2 — the edge products whose CONFIG SOURCES include a `config-file` channel)
+produce different prompt digests under HEAD, for every model (claude ×2 each = 76 new claude
+request digests; the same 38 glm requests in `exchange-zai` are equally affected). 3 of the 30
+pending claude requests are for drifted candidates.
+
+What this does and does not mean:
+
+- The stored proposals are honest: each carries the `promptDigest` of the prompt its model
+  actually saw, and the exchanges hold the full request bodies. Within-run comparisons
+  (everything measured above) are unaffected — all models saw the same prompt per candidate.
+- The version label `semantic-full/v2` now spans two renders of the config-file channel line:
+  the run's (411 candidates identical to HEAD, 38 not) and HEAD's. Anyone re-proposing the 38
+  from source at HEAD gets new digests (the cache will not replay the run's answers for them).
+- Decision for the Claude agent / commander (prompt versions are the Claude agent's): accept and
+  document (this section), or bump the prompt version and re-propose the 38 candidates (38 × 3
+  models ≈ 114 calls ≈ $6 Claude + 38 GLM) so one label means one prompt. Not done from the
+  handoff — it moves measured ground and spends the limited account.
 
 ## Files
 
