@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ad35ebda34da",
+    "candidateId": "sc-664f60a3392a",
+    "proposalId": "sp-567938771dbb",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "content-type-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Content-Type header was auto-detected when not set by the backend\"",
+        "after": "\"Content-Type header is not auto-detected when not set by the backend\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the environment relies on automatic Content-Type header detection from backend responses that lack explicit Content-Type"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Backend responses without an explicit Content-Type header will no longer have the Content-Type automatically detected; the ContentType middleware must be explicitly configured to restore this behavior.",
+        "remediation": "Configure the ContentType middleware on routes that depend on automatic Content-Type detection from backends that do not set the Content-Type header.",
+        "severity": "medium"
+      },
+      "statement": "In Traefik 3.0, automatic Content-Type header detection is removed when the backend does not set the Content-Type header; the ContentType middleware must be explicitly used to enable this detection."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

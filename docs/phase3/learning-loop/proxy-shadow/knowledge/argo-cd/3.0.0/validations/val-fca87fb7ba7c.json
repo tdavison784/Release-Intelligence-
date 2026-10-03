@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fca87fb7ba7c",
+    "candidateId": "sc-28b034145d91",
+    "proposalId": "sp-4a018be05ce9",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "gitlab-system-hook-webhook"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "ApplicationSet"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1beta1",
+              "kind": "ApplicationSet"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "GitLab System Hook webhooks are now supported and can trigger ApplicationSet syncs, enabling previously unavailable GitLab webhook integrations to function.",
+        "severity": "low"
+      },
+      "statement": "Support for GitLab System Hook webhooks for ApplicationSets has been added to Argo CD."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/added",
+        "detail": "no canonical exposure condition for protocol-behavior added"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

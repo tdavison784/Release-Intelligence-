@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-0564d2273368",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "members": [
+      {
+        "changeId": "chg-a726b336f865",
+        "anchor": {
+          "release": "1.18.0",
+          "evidenceKeys": [
+            "ek-10b3d9d1aec5"
+          ],
+          "statementKeys": [
+            "sk-3faa15504c98"
+          ],
+          "changeIds": [
+            "chg-a726b336f865"
+          ]
+        }
+      },
+      {
+        "changeId": "chg-0e1cdbe373a9",
+        "anchor": {
+          "release": "1.18.0",
+          "evidenceKeys": [
+            "ek-6ac72496d3e0"
+          ],
+          "statementKeys": [
+            "sk-ab3b668136ca"
+          ],
+          "changeIds": [
+            "chg-0e1cdbe373a9"
+          ]
+        }
+      },
+      {
+        "changeId": "chg-fa4ce35f9a12",
+        "anchor": {
+          "release": "1.18.0",
+          "evidenceKeys": [
+            "ek-98ec328ca971"
+          ],
+          "statementKeys": [
+            "sk-d6817360f09b"
+          ],
+          "changeIds": [
+            "chg-fa4ce35f9a12"
+          ]
+        }
+      }
+    ],
+    "grouping": "title-jaccard",
+    "category": "migration",
+    "title": "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. > 📖 Read Release 1.18 notes for more information.",
+    "text": "- restated: The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`: We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. Why? Because the old default was unintuitive and insecure. For example, if a private key is exposed, users may (reasonably) assume that re-issuing a certificate (e.g. using `cmctl renew`) will generate a new private key, but it won't unless the user has explicitly set `rotationPolicy: Always` on the Certificate resource. This change is feature gated and is enabled by default, because it has been fast-tracked to beta status. Users who want to preserve the old default have two options: - Explicitly set `rotationPolicy: Never` on your Certificate resources. - Turn off the feature gate in this release and explicitly set `rotationPolicy: Never` on your Certificates before release 1.19. In release 1.19, the feature will be marked as GA and it will no longer be possible to turn off the feature. The following Helm chart values can be used to turn off the feature gate: ℹ️ The old default value `Never` was always intended to be changed before API `v1`, as can be seen in the description of the…\n- restated: The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always`. (`#7723`, `@wallrj`)",
+    "evidence": [
+      {
+        "id": "ev-9a2f8d3ec5e9",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md",
+        "locator": "L8-L10",
+        "excerpt": "1. We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`.\n\n   > 📖 Read [Release 1.18 notes](../release-notes/release-notes-1.18.md) for more information..",
+        "contentDigest": "sha256:b912bc94a476c562fe0ac9b77e0af0c4974bc90e9a994e84b5dcb41bcaf37e03",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-c92478af13c4",
+        "kind": "document",
+        "sourceId": "website-major-themes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L109-L148 (Major Themes › The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`)",
+        "excerpt": "### The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`\n\n> ⚠️ Breaking change\n\nWe have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`.\n\nWhy? Because the old default was unintuitive and insecure.\nFor example, if a private key is exposed, users may (reasonably) assume that\nre-issuing a certificate (e.g. using `cmctl renew`) will generate a new private\nkey, but it won't unless the user has explicitly set `rotationPolicy: Always` on the Certificate resource.\n\nThis change is feature gated and is enabled by default…",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-cf14b14073be",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L338-L338 (v1.18.0 › Feature)",
+        "excerpt": "- The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always`. ([`#7723`](https://github.com/cert-manager/cert-manager/pull/7723), [`@wallrj`](https://github.com/wallrj))",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "hints": [
+      "code:Certificate.Spec.PrivateKey.RotationPolicy",
+      "code:Never",
+      "code:Always",
+      "code:cmctl renew",
+      "code:rotationPolicy: Always",
+      "code:rotationPolicy: Never",
+      "code:v1",
+      "path:Certificate.Spec.PrivateKey.RotationPolicy",
+      "version:1.18",
+      "version:1.19"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

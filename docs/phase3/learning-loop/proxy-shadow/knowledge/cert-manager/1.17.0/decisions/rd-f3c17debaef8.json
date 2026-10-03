@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f3c17debaef8",
+    "reviewItemId": "ri-4262d06ebfc6",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any log pipeline, alerting rule, parser or dashboard matches on specific cert-manager log strings — this configuration is external to the chart and cluster manifests and no static input carries it"
+        }
+      },
+      "statement": "cert-manager's log messages that were not structured have been replaced with structured logs, which could break setups that match on specific log strings."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:0cd2791048f66a1c96f86068cb804155ff736eddb2fdf1dcf793fd84b6f69655",
+      "inputEvidence": [
+        "ev-df7847de6bcb"
+      ],
+      "generatedAt": "2026-10-03T02:16:47.572Z",
+      "callId": "961540a8-9227-4ea7-9ef6-ac752e36e00a"
+    },
+    "reason": "[ev-df7847de6bcb] says the only setups at risk are those \"matching on specific log strings\". That matching happens in log pipelines, alert rules, parsers or dashboards outside the chart values and cluster manifests, so no static predicate can express it. An undecidable exposure with an environment-visibility-gap reason, naming exactly that missing input, is neither broader nor narrower than the evidence.",
+    "startedAt": "2026-10-03T02:16:42.322Z",
+    "decidedAt": "2026-10-03T02:16:47.572Z"
+  }
+}

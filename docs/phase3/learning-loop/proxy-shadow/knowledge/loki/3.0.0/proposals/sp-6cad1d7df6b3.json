@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6cad1d7df6b3",
+    "candidateId": "sc-40aecbe6e0b2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "metrics_namespace"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"cortex\"",
+        "after": "\"loki\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Listed metrics are exposed with the `loki_` prefix instead of `cortex_`, so queries, dashboards or alerts using the old names will not match unless metrics_namespace is set to `cortex`.",
+        "remediation": "Set metrics_namespace to `cortex` to keep old names, or update dashboards and alerts.",
+        "severity": "medium"
+      },
+      "statement": "Some Loki metrics' prefix changes from `cortex_` to `loki_` by default (metrics_namespace default `loki`); set `metrics_namespace` to `cortex` to keep the old prefix."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Whether dashboards/alerts use the affected cortex_ metrics is not visible in config; metrics_namespace config not shown as a checkable input here.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-1f419676f177"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9c8692d1bd034fb8a5ea7d7b36e3d2dcde88138e99a5b5c1ffdec7b3505e70ea",
+      "inputEvidence": [
+        "ev-1f419676f177"
+      ],
+      "generatedAt": "2026-10-02T20:54:54Z",
+      "callId": "0fc827d3-0d72-434e-8736-f0f9c2f3af03"
+    }
+  }
+}

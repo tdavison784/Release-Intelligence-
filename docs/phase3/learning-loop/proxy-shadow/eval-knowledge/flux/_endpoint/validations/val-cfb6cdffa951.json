@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cfb6cdffa951",
+    "candidateId": "sc-f83f7d1d03e2",
+    "proposalId": "sp-1e3474b1321f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmChart",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmChart"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmChart objects submitted on source.toolkit.fluxcd.io/v1beta2 that omit status.artifact.digest are rejected by the tightened schema validation.",
+        "remediation": "Ensure HelmChart objects submitted on source.toolkit.fluxcd.io/v1beta2 include status.artifact.digest (the value the source controller records in status.artifact).",
+        "severity": "medium"
+      },
+      "statement": "The computed artifact diff between the v2.6.4 and v2.7.0 install bundles shows that status.artifact.digest is newly required in the source.toolkit.fluxcd.io/v1beta2 schema of helmcharts.source.toolkit.fluxcd.io, and HelmChart objects that omit it are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

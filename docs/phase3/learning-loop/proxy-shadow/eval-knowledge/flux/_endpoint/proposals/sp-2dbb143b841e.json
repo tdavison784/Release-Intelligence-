@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2dbb143b841e",
+    "candidateId": "sc-e9a6db7e6358",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "kustomize.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "Kustomization",
+        "path": "spec.sourceRef.kind"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "after": "\"ExternalArtifact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.sourceRef.kind",
+              "state": "set"
+            }
+          ],
+          "group": "kustomize.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Kustomization"
+        }
+      },
+      "statement": "In Kustomization v1, the allowed values for spec.sourceRef.kind changed: the value \"ExternalArtifact\" was added to the enum."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The evidence states that 'ExternalArtifact' was added to the enum, but does not describe what happens to existing Kustomizations when they are evaluated against the updated schema. The evidence does not clarify whether this is purely an additive change (new value allowed) or whether existing valid values are rejected.",
+    "suggestedClass": "unknown",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:884a4630c7f3f2022b5e64dd73269bbaffbc7ce0c964ac070a2b3fe447d15eaa",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T21:02:21Z",
+      "callId": "3bfc3f24-74f3-475a-a3b4-69ed977e9d5f"
+    }
+  }
+}

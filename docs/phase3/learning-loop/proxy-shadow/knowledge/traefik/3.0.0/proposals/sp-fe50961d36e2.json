@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fe50961d36e2",
+    "candidateId": "sc-377c29502c2a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "defaultRuleSyntax"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"v2\"",
+        "after": "\"v3\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "traefik.io",
+              "version": "v1alpha1",
+              "kind": "IngressRoute"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "traefik.io",
+              "version": "v1alpha1",
+              "kind": "IngressRouteTCP"
+            },
+            {
+              "op": "values-key",
+              "path": "core.defaultRuleSyntax",
+              "state": "set"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "core.defaultRuleSyntax",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Router rules default to the new v3 syntax; existing rules using v2 syntax continue to work but environments should migrate to v3 syntax as v2 is deprecated and will be removed in the next major version.",
+        "severity": "medium"
+      },
+      "statement": "The default rule matchers syntax for HTTP and TCP routers changes from v2 to v3 in Traefik 3.0.0; v2 syntax is deprecated but remains functional through backward compatibility configuration."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-48d8875989c1",
+      "ev-08274e476e86",
+      "ev-b15a80a9b42b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:91d98827c3ef2851e17ae8df8dd25f2e99cdffa8705dbc12c4d5ab01217b6a39",
+      "inputEvidence": [
+        "ev-48d8875989c1",
+        "ev-08274e476e86",
+        "ev-b15a80a9b42b"
+      ],
+      "generatedAt": "2026-10-02T16:11:15Z",
+      "callId": "39aeebe1-df8c-47f5-ae94-6c8ed3da1ccf"
+    }
+  }
+}

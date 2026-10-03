@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d23940b2747d",
+    "candidateId": "sc-91780e939ebc",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "flux",
+        "name": "--all-namespaces",
+        "component": "events"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run `flux events --all-namespaces` from the CLI (this is a client-side invocation that cluster manifests do not show)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "`flux events --all-namespaces` now honours the flag, so its output may differ from what earlier CLI versions printed.",
+        "remediation": "Check any scripts that parse `flux events --all-namespaces` output.",
+        "severity": "low"
+      },
+      "statement": "In Flux 2.7.0, the `flux events` CLI command now respects the `--all-namespaces` flag. This is a bugfix."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-b27c9d0a38d7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:1efe1ce1b14d28a763246433d49d4f74fe881a8d59458192f8aef39ccd061b44",
+      "inputEvidence": [
+        "ev-b27c9d0a38d7"
+      ],
+      "generatedAt": "2026-10-02T16:15:54Z",
+      "callId": "47c3b5dd-fe31-4ff5-b40f-250466edaea0"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-da26d63014a1",
+    "candidateId": "sc-eb856233046a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "zookeeper"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kafka.strimzi.io",
+              "version": "v1beta2",
+              "kind": "Kafka"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kafka.strimzi.io",
+              "version": "v1beta1",
+              "kind": "Kafka"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.zookeeper",
+                  "state": "set"
+                }
+              ],
+              "group": "kafka.strimzi.io",
+              "kind": "Kafka"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Kafka resources configured with ZooKeeper (spec.zookeeper field set) will be rejected during cluster reconciliation in Strimzi 0.46.0, as ZooKeeper-based cluster support has been removed. Environments running ZooKeeper-based Kafka clusters must migrate to KRaft mode before upgrading.",
+        "remediation": "Migrate all ZooKeeper-based Kafka clusters to KRaft (Kraft controller) mode before upgrading to Strimzi 0.46.0. This requires updating Kafka resources to remove the spec.zookeeper configuration and ensure spec.kraft is properly configured.",
+        "severity": "critical"
+      },
+      "statement": "Support for ZooKeeper-based Apache Kafka clusters and for KRaft migration has been removed from Strimzi 0.46.0."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-628f9c0eccb2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:bb3763bb10ca9b30d6ee68d07dfa22c13348d65605db2cc6ae5ba6d2174e190f",
+      "inputEvidence": [
+        "ev-628f9c0eccb2"
+      ],
+      "generatedAt": "2026-10-02T06:01:22Z",
+      "callId": "fd49b130-cb23-4747-b3eb-74b490ff621b"
+    }
+  }
+}

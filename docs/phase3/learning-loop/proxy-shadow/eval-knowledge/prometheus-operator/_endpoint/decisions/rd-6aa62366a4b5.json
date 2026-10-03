@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6aa62366a4b5",
+    "reviewItemId": "ri-d4d1b5640c4e",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:b45b9297d8e1e243a822848c39041049ec9dee380386eb50b68651453ee55351",
+      "inputEvidence": [
+        "ev-3cc85997b394",
+        "ev-e032811a0e26",
+        "ev-22d6be11fa2f",
+        "ev-04344c7b3dae",
+        "ev-7d96c48a5c71",
+        "ev-cc90e86e2643",
+        "ev-676b63c80565",
+        "ev-db02f66824cd",
+        "ev-7a53a3520025",
+        "ev-f22afebcad15",
+        "ev-197df9b33168",
+        "ev-84bcfc39962d",
+        "ev-e0e139d1a1a8",
+        "ev-dfadc763c00b",
+        "ev-4393a79e776d",
+        "ev-c87966ce90d5",
+        "ev-767e1a45572f",
+        "ev-e33dbbb0c01a",
+        "ev-13be12903c5c",
+        "ev-542432da4381"
+      ],
+      "generatedAt": "2026-10-03T02:31:40.84Z",
+      "callId": "fc9e4de0-4350-4d99-ad69-74c9295e63f0"
+    },
+    "reason": "The CRD evidence excerpts for both releases contain only \"---\" [ev-3cc85997b394] [ev-197df9b33168], so I cannot see the enum on spec.receivers[].opsgenieConfigs[].responders[].type in either release. The computed diff says the enum gained five values and lost none. The schema validator (semvalidate.crd) says the enum, required and type are unchanged. The evidence therefore does not show whether the field was unconstrained before, which would make this a real tightening, or whether nothing changed. If it is a tightening, the proposed condition still has two problems: the literals are written with embedded quotes (\"\\\"escalation\\\"\"), so they would not match the field's actual values, and it has no 'set' check, so a resource without the field would count as exposed. Deciding needs the actual openAPIV3Schema of this field in both CRD files.",
+    "startedAt": "2026-10-03T02:31:29.802Z",
+    "decidedAt": "2026-10-03T02:31:40.84Z"
+  }
+}

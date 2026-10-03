@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c38080abd60a",
+    "candidateId": "sc-cd58ebd83118",
+    "proposalId": "sp-68d1fae94060",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "ipsec-single-key-support"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment uses IPsec with single key configuration (+ sign in secrets)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "IPsec configurations using single key mode will automatically transition to per-tunnel keys; tunnel behavior may change depending on the per-tunnel key configuration.",
+        "severity": "medium"
+      },
+      "statement": "IPsec single key support (indicated by the + sign in secrets) has been removed; per-tunnel keys are now always used regardless of the + sign's presence."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/removed",
+        "detail": "no canonical exposure condition for protocol-behavior removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

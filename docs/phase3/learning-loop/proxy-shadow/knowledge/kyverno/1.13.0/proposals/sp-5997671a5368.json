@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5997671a5368",
+    "candidateId": "sc-194c2ca12ce9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"policy exceptions allowed in all namespaces\"",
+        "after": "\"policy exceptions disabled by default; only allowed in a specified namespace\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the installation explicitly enables policy exceptions and sets the allowed namespace; the controlling configuration key is not named in the evidence"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "With the new defaults, policy exceptions are disabled and only allowed in a specified namespace, so existing PolicyExceptions are not honoured unless the operator restores the configuration per the upgrade guidance.",
+        "remediation": "Follow the 1.13 upgrade guidance to explicitly enable policy exceptions and configure the namespace they may be created in.",
+        "severity": "high"
+      },
+      "statement": "Kyverno 1.13.0 changes its defaults so policy exceptions are disabled and may only be created in a specified namespace (previously allowed in all namespaces, CVE-2024-48921); environments relying on PolicyExceptions must follow the upgrade guidance to keep them working."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The evidence describes the changed default but does not name the Helm value, flag or config key that controls policy exceptions or their namespace.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2bd1a74f9c4a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:4d235d4ea314c7c34b9b3230ced111ec16e21bcf9c36c536fa3f9448f9c1ac87",
+      "inputEvidence": [
+        "ev-2bd1a74f9c4a",
+        "ev-d4e66123c4de",
+        "ev-9fdd5d1096ef",
+        "ev-b8120a2bb840",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4"
+      ],
+      "generatedAt": "2026-10-02T20:55:26Z",
+      "callId": "7a9bc321-d5ef-44e0-8c25-b14bf9ada978"
+    }
+  }
+}

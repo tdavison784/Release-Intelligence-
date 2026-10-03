@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-53c06dbdc999",
+    "candidateId": "sc-0c956892d9f3",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "Bucket",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Bucket"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "set"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Bucket"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Bucket objects using the source.toolkit.fluxcd.io/v1 schema that omit status.artifact.digest are rejected.",
+        "remediation": "Ensure Bucket objects carry status.artifact.digest (e.g. re-reconcile the Bucket so its artifact entry includes a digest) so writes are not rejected by the new v1 schema validation.",
+        "severity": "medium"
+      },
+      "statement": "The source.toolkit.fluxcd.io/v1 schema of buckets.source.toolkit.fluxcd.io newly requires the field status.artifact.digest (computed diff between the flux v2.6.4 and v2.7.0 install bundles), and Bucket objects that omit the field are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:05e09a8b1245287ba1056759d4eb3b6ae857467d357e944a6be3fad46451eb10",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:27:32Z",
+      "callId": "cd491e86-c07d-4aff-b4cc-69989970fdb2"
+    }
+  }
+}

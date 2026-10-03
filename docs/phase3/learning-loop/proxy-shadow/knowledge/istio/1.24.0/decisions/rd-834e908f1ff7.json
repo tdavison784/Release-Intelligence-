@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-834e908f1ff7",
+    "reviewItemId": "ri-e3596771c5eb",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "analyze",
+          "component": "istioctl",
+          "state": "set"
+        }
+      },
+      "statement": "istioctl analyze no longer incorrectly reports IST0145 validation errors when analyzing configurations that use wildcard hosts with specific subdomains."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operators run istioctl analyze against Istio configuration that combines a wildcard host with a specific subdomain host (the release note does not name the resource kind or field involved)"
+        }
+      },
+      "statement": "istioctl analyze no longer wrongly reports IST0145 when a wildcard host is used together with a specific subdomain. An environment is exposed only if its operators run istioctl analyze on configuration that combines a wildcard host with a specific subdomain host. Static inputs cannot show this, and the release note does not name the resource kind or field."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:79bd986dce496f97254573451f0654701a98c323867b07603bcc8a6b3ebad2b2",
+      "inputEvidence": [
+        "ev-a660cba27ffe"
+      ],
+      "generatedAt": "2026-10-02T16:01:46.354Z",
+      "callId": "cd9930d6-e400-4dca-b44e-f5ed1ef22899"
+    },
+    "reason": "[ev-a660cba27ffe] only says istioctl analyze no longer reports a false IST0145 error when a wildcard host and a specific subdomain are both used. The proposed leaf, cli-flag \"analyze\" set, is wrong. \"analyze\" is an istioctl subcommand that operators run themselves, not a container argument of the product's workloads, so the engine cannot evaluate it. The condition also ignores the wildcard host plus specific subdomain configuration that triggers the bug. The evidence does not name the resource kind or field involved, and whether anyone runs istioctl analyze is not visible in any static input, so exposure has to be undecidable.",
+    "startedAt": "2026-10-02T16:01:36.189Z",
+    "decidedAt": "2026-10-02T16:01:46.354Z",
+    "resultingFact": "vf-4e9c06aa7422"
+  }
+}

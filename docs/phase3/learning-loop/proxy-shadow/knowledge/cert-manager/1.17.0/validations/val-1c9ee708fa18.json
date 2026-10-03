@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1c9ee708fa18",
+    "candidateId": "sc-5c66197e4890",
+    "proposalId": "sp-112a7c2e262a",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.renewBeforePercentage"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.renewBeforePercentage",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificates that set spec.renewBeforePercentage will be renewed according to the field's specification instead of the previous incorrect behavior, so renewal timing may change; nothing fails and no resource is rejected.",
+        "remediation": "Review renewal timing for Certificate resources that set spec.renewBeforePercentage to confirm the corrected behavior is acceptable.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 fixes the behavior of the Certificate field spec.renewBeforePercentage so that it complies with its specification."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/behavior-changed",
+        "detail": "crd-field behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

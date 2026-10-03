@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-507714eb578f",
+    "reviewItemId": "ri-7ebec1000b2e",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "image.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "ImagePolicy"
+        }
+      },
+      "statement": "The storage version of the ImagePolicy CRD (image.toolkit.fluxcd.io) changes from v1beta2 to v1; existing objects stay stored as v1beta2 until rewritten, so a storage version migration is needed before a later release removes v1beta2."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "image.toolkit.fluxcd.io",
+          "kind": "ImagePolicy"
+        }
+      },
+      "statement": "Environments that have any ImagePolicy (image.toolkit.fluxcd.io) objects, whatever apiVersion their manifests use, are exposed. Those objects stay stored as v1beta2 until rewritten, so they need a storage version migration and a status.storedVersions update before a later release removes v1beta2."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:7e0bbabd4902f8a501184bc51e638caba2df3e7c7e73f80c3c1d3cfd626584eb",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T02:23:42.52Z",
+      "callId": "3e0cbc83-e940-4fe5-ad7f-a186c8e9a3ab"
+    },
+    "reason": "The validators confirm from the v2.6.4 and v2.7.0 install manifests [ev-782bc47d120d] [ev-c2c6c790d6b2] that the ImagePolicy storage version moves from v1beta2 to v1. The change text says existing ImagePolicy objects stay stored as v1beta2 until they are rewritten. Which version they are stored in depends on the CRD's storage version when they were written. It does not depend on the apiVersion the operator's manifests use. Requiring manifests to use v1beta2 is therefore too narrow: it misses environments whose manifests already say v1 but whose stored objects are still v1beta2. The exposure should be any ImagePolicy in use, with no version.",
+    "startedAt": "2026-10-03T02:23:27.388Z",
+    "decidedAt": "2026-10-03T02:23:42.52Z",
+    "resultingFact": "vf-c8e0859efee6"
+  }
+}

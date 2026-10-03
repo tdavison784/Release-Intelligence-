@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-364d730d726a",
+    "reviewItemId": "ri-ddfc1d660a4c",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "label-parsing-duplicate-extraction"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "Loki's label parsing for metrics and logs queries changed so that when multiple extractions into the same label are requested, the semantics were fixed (previously only the first label was parsed)."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "label-parsing-multiple-extractions"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"only parse the first label if multiple extractions into the same label are requested\""
+      },
+      "statement": "In Loki 3.0.0, label parsing in metrics and logs queries changed: when multiple extractions into the same label are requested, both now parse only the first label."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:22613ced58ca3cd2704fb0dd70e881aa6e3bd5d6330c3cfc3fd0fd2138dd05f5",
+      "inputEvidence": [
+        "ev-d6a898e57d04"
+      ],
+      "generatedAt": "2026-10-03T02:03:51.525Z",
+      "callId": "07c67e8f-7014-498f-920e-652faf5cbe45"
+    },
+    "reason": "[ev-d6a898e57d04] says the semantics of label parsing in metrics and logs queries were fixed so that both \"only parse the first label if multiple extractions into the same label are requested\". That is a runtime query-semantics change with the same configuration, so behavior-changed under protocol-behavior is right. The proposed name uses \"duplicate\", which does not appear in the evidence. Free-form names must be built only from the evidence's own key words, so the corrected name is label-parsing-multiple-extractions.",
+    "startedAt": "2026-10-03T02:03:40.882Z",
+    "decidedAt": "2026-10-03T02:03:51.525Z"
+  }
+}

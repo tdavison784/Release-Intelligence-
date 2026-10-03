@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2deaec6fc91c",
+    "reviewItemId": "ri-96c7ac637345",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Running `flux diff ks` on resources annotated with `force: enabled` may give different output than before, because the command now handles this annotation.",
+        "remediation": "Check `flux diff ks` output for resources annotated with `force: enabled` after upgrading the CLI.",
+        "severity": "low"
+      },
+      "statement": "In Flux 2.7.0, the `flux diff ks` CLI command handles the `force: enabled` annotation."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:831c1d3f99d0aade70a7d2da062ecc7fd4439e862c0e0faae5cac6fb2301976a",
+      "inputEvidence": [
+        "ev-5644801ced86"
+      ],
+      "generatedAt": "2026-10-03T01:54:19.476Z",
+      "callId": "c0d29d32-c679-4eec-b636-0393610d47d3"
+    },
+    "reason": "[ev-5644801ced86] says only that `flux diff ks` now handles the `force: enabled` annotation. That means the command's output can differ for resources carrying the annotation. Nothing in it says anything fails, is rejected or stops being honoured, so an action-eligible kind would over-claim. The proposed behavior-change at low severity is hedged (\"may give different output\") and does not go beyond this one changelog line, but because the evidence is so thin, confidence is low.",
+    "startedAt": "2026-10-03T01:54:12.392Z",
+    "decidedAt": "2026-10-03T01:54:19.476Z"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0e8eb00afa70",
+    "reviewItemId": "ri-b7650b5e0cf6",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "istio-io-gateway-name-label"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"istio.io/gateway-name\""
+      },
+      "statement": "The `istio.io/gateway-name` label was removed; use the `gateway.networking.k8s.io/gateway-name` label instead."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "istio-io-gateway-name-label"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"istio.io/gateway-name\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "istio",
+          "name": "gateway-networking-k8s-io-gateway-name-label"
+        }
+      },
+      "statement": "The istio.io/gateway-name label was removed; use the gateway.networking.k8s.io/gateway-name label instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:7316183116c676d2d90794e8c610d939a3c7fdabf7f94f84d94a908f201ba49c",
+      "inputEvidence": [
+        "ev-cb880878ba69"
+      ],
+      "generatedAt": "2026-10-03T02:29:18.012Z",
+      "callId": "4404ecc0-5bac-48f4-a7de-1c104ff76893"
+    },
+    "reason": "[ev-cb880878ba69] says the `istio.io/gateway-name` label was removed and that `gateway.networking.k8s.io/gateway-name` should be used instead. So \"removed\" is the right change type, and protocol-behavior is the closest family for a label convention, since the taxonomy has no family for labels. The proposed before value wraps the label in an extra pair of quotes, which is not how the text writes it. It also leaves out the replacement label that the text names, so the change gets the plain literal and a replacedBy entry.",
+    "startedAt": "2026-10-03T02:29:06.202Z",
+    "decidedAt": "2026-10-03T02:29:18.012Z"
+  }
+}

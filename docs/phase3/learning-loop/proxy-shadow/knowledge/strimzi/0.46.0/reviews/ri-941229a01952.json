@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-941229a01952",
+    "candidateId": "sc-b5bd8ce23049",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "questionType": "applicability",
+    "question": "For \"Kafka 4.0 and newer is using Log4j2 for logging instead of Reload4j/Log4j1\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=4.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether custom logging configuration is applied to Kafka brokers"
+            }
+          ]
+        }
+      },
+      "statement": "Kafka 4.0 and newer uses Log4j2 for logging instead of Reload4j/Log4j1, and custom logging configurations may need to be updated during the upgrade."
+    },
+    "proposals": [
+      "sp-0f00afa7f856",
+      "sp-32f1182bd4f0",
+      "sp-77734cf5002e",
+      "sp-99d9f2dda4d7"
+    ],
+    "validations": [
+      "val-60cd9227609f",
+      "val-7e17dc96b29c",
+      "val-95e1f437c58e",
+      "val-adbc3c76e129",
+      "val-bc1426c2c165",
+      "val-d5d8c8b14223",
+      "val-f108cf1c39a2"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T11:33:56Z"
+  }
+}

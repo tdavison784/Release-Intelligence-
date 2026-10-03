@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-82a9009e6935",
+    "product": "cilium",
+    "release": "1.16.0",
+    "anchors": [
+      {
+        "release": "1.16.0",
+        "evidenceKeys": [
+          "ek-c57d7f9d1bef"
+        ],
+        "statementKeys": [
+          "sk-98c1ff4c720b"
+        ],
+        "changeIds": [
+          "chg-253bc21602e7"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-c17c3673cf1d"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "terminatingtls-ca-crt-loading"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--use-full-tls-context",
+              "component": "cilium",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether environment uses L7 network policies with terminatingTLS that rely on ca.crt loading"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "L7 network policies with terminatingTLS will no longer load ca.crt from secrets by default, preventing Envoy from incorrectly requiring client certificates; environments relying on the old behavior must set --use-full-tls-context=true.",
+        "remediation": "If the old behavior is required for compatibility, set --use-full-tls-context=true when running cilium",
+        "severity": "medium"
+      },
+      "statement": "L7 network policy with terminatingTLS will not load the key `ca.crt` even if it is present in the secret"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-169518a4a84d"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-169518a4a84d"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-96ad239f05ad"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-e50cb5342bd8"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-b5190a359c10",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst",
+        "locator": "L326-L328 (1.16 Upgrade Notes)",
+        "excerpt": "* L7 network policy with terminatingTLS will not load the key `ca.crt` even if it is present in the\n  secret. This prevents Envoy from incorrectly requiring client certificates from pods when using TLS\n  termination. To retain old behaviour for bug compatibility, please set `--use-full-tls-context=true`.",
+        "contentDigest": "sha256:ee9d0cd6af8ac7e31ed1cb4cc0410c4d2cd1d95cc4f5e916fca918102866de83",
+        "retrievedAt": "2026-10-02T02:35:42Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T12:51:29.642Z"
+  }
+}

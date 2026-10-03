@@ -1,0 +1,42 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f58be787a1d7",
+  "promptDigest": "sha256:e6960411cd6ac1e835ba667b0849f52c1fb1e6f233d6b4c1f83a81781b2051be",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "cd09056c-5006-4775-bb37-8abbe2391953",
+  "startedAt": "2026-10-03T02:06:25.624Z",
+  "decidedAt": "2026-10-03T02:06:35.220Z",
+  "durationMs": 8732,
+  "costUSD": 0.09176,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-5b5fdbd0eddf] says the new object-level workload identity authentication covers both `Bucket` and `Provider`. The proposed exposure only checks Bucket, so it misses environments that use Provider objects. The evidence does not give API groups or versions, or say whether the feature is opt-in. The corrected condition therefore names only the two kinds, and this is low-confidence.",
+    "citations": [
+      "ev-5b5fdbd0eddf"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Flux 2.7.0 adds object-level workload identity authentication for Bucket and Provider objects; environments that use either kind touch the new capability.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Bucket"
+            },
+            {
+              "op": "gvk-in-use",
+              "kind": "Provider"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

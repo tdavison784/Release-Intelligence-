@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-20b0252d6859",
+    "candidateId": "sc-159bff8514d4",
+    "proposalId": "sp-8bf952a14fdb",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "SecretStore"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"storage version\"",
+        "after": "\"non-storage version\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "SecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing SecretStore objects stored as v1beta1 must be rewritten and status.storedVersions updated before v1beta1 is removed in a later release.",
+        "remediation": "Run a storage version migration to rewrite all SecretStore objects and update status.storedVersions on the CustomResourceDefinition.",
+        "severity": "high"
+      },
+      "statement": "The storage version of secretstores.external-secrets.io changes from v1beta1 to v1; existing v1beta1 objects remain stored in v1beta1 until rewritten via storage version migration."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:gvk/behavior-changed",
+        "detail": "no canonical exposure condition for gvk behavior-changed"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

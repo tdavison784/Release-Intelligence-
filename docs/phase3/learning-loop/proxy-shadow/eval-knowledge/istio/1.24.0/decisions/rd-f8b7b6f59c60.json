@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-f8b7b6f59c60",
+    "reviewItemId": "ri-eaab74fc1b9f",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The CRD upgrade procedure must change from kubectl apply -f manifests/charts/base/files/crd-all.gen.yaml to helm upgrade istio-base. CRD labels will be updated during the first helm upgrade command. Environments that previously used kubectl apply for CRD management must transition to Helm-based management.",
+        "remediation": "Change CRD upgrade procedure from kubectl apply to helm upgrade istio-base command for all Helm-based Istio installations.",
+        "severity": "high"
+      },
+      "statement": "Istio CRDs are now templated by default and managed via Helm; the recommended upgrade method changes from kubectl apply to helm upgrade istio-base, and CRD labels are updated to match Helm-installed resources."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Nothing fails if the operator does nothing. Upgrading CRDs with `kubectl apply -f manifests/charts/base/files/crd-all.gen.yaml` still works, and `helm upgrade istio-base` is now an allowed way to upgrade CRDs. The labels on Istio CRDs change to be consistent with other Helm-installed resources.",
+        "remediation": "Optionally switch CRD upgrades to `helm upgrade istio-base`. Check any tooling that selects or relies on labels of Istio CRDs.",
+        "severity": "low"
+      },
+      "statement": "Istio 1.24.0 templates CRDs in the istio-base chart by default, so they can be upgraded with `helm upgrade istio-base`. CRD labels change to match other Helm-installed resources. Upgrading CRDs with `kubectl apply` still works, so this is a behavior change to review, not a required migration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:6ee92a4a7bae8802d6d9a38f02b84317e5f5395dba819277aa79ab36bbe0bd99",
+      "inputEvidence": [
+        "ev-85eccdc718e3",
+        "ev-2941a875a468"
+      ],
+      "generatedAt": "2026-10-03T02:34:05.793Z",
+      "callId": "e201b66e-1c7b-4033-97ec-d4b121d0ecd9"
+    },
+    "reason": "[ev-85eccdc718e3] and [ev-2941a875a468] describe `helm upgrade istio-base` as something the change \"allows\". The change text also says operators who used `kubectl apply` \"can continue to do so\", so nothing is described as a required step. The only change that happens without any operator action is that CRD labels now match other Helm-installed resources. The CRDs still work after that, so this is a behavior-change to review, not migration-required.",
+    "startedAt": "2026-10-03T02:33:55.271Z",
+    "decidedAt": "2026-10-03T02:34:05.793Z"
+  }
+}

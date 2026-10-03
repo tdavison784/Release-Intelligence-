@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ec2ecb2b2392",
+    "reviewItemId": "ri-278946d2a750",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "ExternalArtifact"
+        }
+      },
+      "statement": "A new CRD externalartifacts.source.toolkit.fluxcd.io (ExternalArtifact, v1) has been added and requires installation if CRDs are managed separately from the release."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment installs and manages Flux CRDs separately from the release bundle"
+        }
+      },
+      "statement": "The new CRD externalartifacts.source.toolkit.fluxcd.io (ExternalArtifact, v1) is added in the target release. Only environments that manage CRDs separately from the release are exposed, because they must install the new CRD. No static input shows whether CRDs are managed separately."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:a89bebdbf32880443e8db666f82e2cd51f69c81324f2bfa132206d2599a9c5fe",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T02:14:04.395Z",
+      "callId": "ecf1a2fe-181a-4e38-a363-7d49cb7e7e12"
+    },
+    "reason": "The validators confirm that ExternalArtifact v1 is new in the target bundle [ev-c2c6c790d6b2] and not in the source bundle [ev-782bc47d120d]. That means no environment can use this kind before the upgrade, so gvk-in-use flags the wrong environments. The only exposure the change text names is operators who manage CRDs separately from the release and must install the new CRD. No static input shows how CRDs are managed, so the exposure has to be undecidable.",
+    "startedAt": "2026-10-03T02:13:55.125Z",
+    "decidedAt": "2026-10-03T02:14:04.395Z",
+    "resultingFact": "vf-95a4049b5703"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6ba361c19fa3",
+    "candidateId": "sc-541b56f9cad6",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1alpha1",
+        "kind": "PushSecret",
+        "path": "spec.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1alpha1",
+          "kind": "PushSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "After the upgrade, external-secrets.io/v1alpha1 PushSecret resources with spec.template.engineVersion set to \"v1\" are rejected by the API server, so applies/updates of such resources fail validation until the field is set to an allowed value.",
+        "remediation": "Change spec.template.engineVersion in any v1alpha1 PushSecret that still uses \"v1\" to a still-allowed value before or after upgrading; applies and updates of resources keeping \"v1\" will fail API server validation.",
+        "severity": "medium"
+      },
+      "statement": "In the external-secrets.io/v1alpha1 schema of pushsecrets.external-secrets.io, the value \"v1\" was removed from the allowed values of spec.template.engineVersion, and a resource using that removed value is rejected by the API server."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:49cc66c126bc8a7cc1e5783d3a204fff47e3fec165af326b91d9515c3b6226db",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-02T16:11:23Z",
+      "callId": "ab6c44d4-26b7-4cad-a4c8-bada8aec9347"
+    }
+  }
+}

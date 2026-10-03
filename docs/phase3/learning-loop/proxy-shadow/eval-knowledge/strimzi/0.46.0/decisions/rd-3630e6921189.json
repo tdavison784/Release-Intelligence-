@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-3630e6921189",
+    "reviewItemId": "ri-941229a01952",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=4.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether custom logging configuration is applied to Kafka brokers"
+            }
+          ]
+        }
+      },
+      "statement": "Kafka 4.0 and newer uses Log4j2 for logging instead of Reload4j/Log4j1, and custom logging configurations may need to be updated during the upgrade."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=4.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the Kafka cluster has custom logging configuration (the evidence does not name the CR field or ConfigMap that carries it)"
+            }
+          ]
+        }
+      },
+      "statement": "Exposed: environments that run Kafka 4.0.0 or newer under Strimzi 0.46.0 and have custom logging configuration written for Reload4j/Log4j1. The evidence does not say which setting holds that configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:e378a0657358c5852d7b75a97d319466ef381d9c4b009e547fe8b1c62bd87d48",
+      "inputEvidence": [
+        "ev-526028ea7180",
+        "ev-029b4f635db8",
+        "ev-e7a043486f16"
+      ],
+      "generatedAt": "2026-10-03T02:25:23.089Z",
+      "callId": "aa35f8c4-0a95-4afc-a76a-8a466a361e0a"
+    },
+    "reason": "[ev-526028ea7180] says only clusters running Kafka 4.0 or newer switch to Log4j2, and that custom logging configuration might need updating. That supports a Kafka >=4.0 condition combined with an undecidable leaf. The proposal puts the Kafka version in a cluster-version leaf, but cluster-version is for the platform version. Kafka is a separate product run by Strimzi, and its versions are listed in [ev-029b4f635db8] and [ev-e7a043486f16] (4.0.0 is newly supported in 0.46.0), so the leaf should be product-version. The changelog does not say which field or ConfigMap holds custom logging configuration, so the gap is in the evidence (evidence-gap), not in what the environment shows.",
+    "startedAt": "2026-10-03T02:25:10.017Z",
+    "decidedAt": "2026-10-03T02:25:23.089Z"
+  }
+}

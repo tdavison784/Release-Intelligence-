@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e32500f73a04",
+    "reviewItemId": "ri-2dce0bb55ba3",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "A bug fix: on Azure DevOps runners, `flux push artifact --provider azure` can now call the Azure CLI. Operators do not need to do anything.",
+        "remediation": "None needed. If your CI pipelines on Azure DevOps had a workaround for this, check that it is still needed.",
+        "severity": "low"
+      },
+      "statement": "In Flux 2.7.0, `flux push artifact --provider azure` is allowed to call the Azure CLI when it runs on Azure DevOps runners."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:306aa1a5715b020e8b6ad10cc6f2790005136a54b6f6c3d11dccd4319f875348",
+      "inputEvidence": [
+        "ev-b4b297bb4480"
+      ],
+      "generatedAt": "2026-10-02T23:09:15.314Z",
+      "callId": "b8cea13f-4b33-45eb-9571-659987b44689"
+    },
+    "reason": "[ev-b4b297bb4480] only says the fix allows Azure CLI calls in `flux push artifact --provider azure` on DevOps runners. That is a change in how the command behaves, and the evidence names nothing that fails, gets rejected or needs migrating, so no failure kind is supported. behavior-change at low severity fits, and the statement does not over-claim. 'none' would also be defensible, because the excerpt doesn't say what happened before the fix, so confidence is low.",
+    "startedAt": "2026-10-02T23:09:07.733Z",
+    "decidedAt": "2026-10-02T23:09:15.314Z"
+  }
+}

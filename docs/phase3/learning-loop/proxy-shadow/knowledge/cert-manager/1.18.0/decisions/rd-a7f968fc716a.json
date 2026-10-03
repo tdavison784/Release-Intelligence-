@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a7f968fc716a",
+    "reviewItemId": "ri-2c4013ebbc23",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:c618189c34d9b32645dc6177845f241354e937459426d80569a71a59675599d6",
+      "inputEvidence": [
+        "ev-565f3761f656",
+        "ev-717ddb6f40cd",
+        "ev-7a67f12867b2"
+      ],
+      "generatedAt": "2026-10-02T12:50:55.36Z",
+      "callId": "e044d749-632f-4090-ada3-ac41027131b5"
+    },
+    "reason": "The only upstream evidence is a one-line release note saying nodeSelector values are now quoted in the Helm chart [ev-565f3761f656]. It does not say which chart templates or resource kinds changed. The proposed exposure checks only Deployment nodeSelector, which could miss other rendered kinds if the fix also touched them, and nothing shown confirms or rules that out. The values-file validators only show that a nodeSelector key exists [ev-717ddb6f40cd][ev-7a67f12867b2], and the render check was inconclusive. The PR #7579 template diff, or a rendered diff across the chart's kinds, is needed to set the exposure scope.",
+    "startedAt": "2026-10-02T12:50:44.081Z",
+    "decidedAt": "2026-10-02T12:50:55.36Z"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-982333aba502",
+    "candidateId": "sc-e98ebd2741c8",
+    "proposalId": "sp-141e3726a31b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "cleanuppolicies-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "CleanupPolicy"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.13.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing CleanupPolicy objects stay stored as v2beta1 until rewritten, so the operator must run a storage version migration and update status.storedVersions on cleanuppolicies.kyverno.io before a later release removes v2beta1.",
+        "remediation": "After upgrading, rewrite every CleanupPolicy object so it is stored as v2. Then remove v2beta1 from status.storedVersions on the cleanuppolicies.kyverno.io CRD.",
+        "severity": "medium"
+      },
+      "statement": "From 1.12.6 to 1.13.0, the storage version of the cleanuppolicies.kyverno.io CRD changes from v2beta1 to v2, so existing CleanupPolicy objects need a storage version migration and a status.storedVersions update before v2beta1 is removed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

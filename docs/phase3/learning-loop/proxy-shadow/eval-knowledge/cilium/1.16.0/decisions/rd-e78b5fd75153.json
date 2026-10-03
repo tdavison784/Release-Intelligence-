@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e78b5fd75153",
+    "reviewItemId": "ri-3a17ef9d7a64",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "tofqdns-policy-implementation"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"IPs observed for toFQDNs selectors were each assigned separate cidr identities\"",
+        "after": "\"IPs observed in DNS lookups are labeled with the selectors toFQDNs matching them\""
+      },
+      "statement": "The implementation of toFQDNs selectors in policies has been overhauled to label IPs with matching selectors instead of creating separate cidr identities, requiring automatic state migration and potentially causing temporary packet drops during upgrade/downgrade unless upgrading from v1.15.6 or newer."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "tofqdns-policy-implementation"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"creating `cidr` identities for each allowed IP\"",
+        "after": "\"IPs observed in DNS lookups are now labeled with the selectors `toFQDNs` matching them\""
+      },
+      "statement": "In Cilium 1.16 the toFQDNs policy implementation changed: instead of creating `cidr` identities for each allowed IP, IPs observed in DNS lookups are now labeled with the selectors `toFQDNs` matching them."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:47958a4311302793da6a9a74eb2228f38c42532cc91e448dfc2a540037537cd0",
+      "inputEvidence": [
+        "ev-25984c3785d4"
+      ],
+      "generatedAt": "2026-10-03T02:16:06.994Z",
+      "callId": "ddac396a-e780-42b3-93ad-697517f83ce0"
+    },
+    "reason": "[ev-25984c3785d4] says the `toFQDNs` selector implementation was overhauled. Before, Cilium created `cidr` identities for each allowed IP. Now, IPs observed in DNS lookups are labeled with the `toFQDNs` selectors matching them, while policy configuration stays the same. So protocol-behavior/tofqdns-policy-implementation with behavior-changed is a fair mapping. However, the proposed before/after values reword the text, so they are replaced with the evidence's exact wording.",
+    "startedAt": "2026-10-03T02:15:54.677Z",
+    "decidedAt": "2026-10-03T02:16:06.994Z"
+  }
+}

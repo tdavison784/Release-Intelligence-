@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-efa181c04886",
+    "candidateId": "sc-f6734cfa890c",
+    "proposalId": "sp-9452a98f9ae9",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-structure",
+        "component": "kafka-operator"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kafka.strimzi.io",
+              "version": "v1beta2",
+              "kind": "Kafka"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "kafka.strimzi.io",
+              "version": "v1beta1",
+              "kind": "Kafka"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Event handling and monitoring logic that depends on the specific structure of Kubernetes events emitted during Pod restarts may need to be verified to work with the updated regardingObject and related field assignments.",
+        "severity": "medium"
+      },
+      "statement": "Kubernetes events emitted during Pod restart now have the Kafka resource as the regardingObject and the Pod in the related field, instead of the previous structure."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

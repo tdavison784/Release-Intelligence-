@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-85e5a1727206",
+    "candidateId": "sc-b81eb6a8063a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "version": "v2",
+        "kind": "CiliumLocalRedirectPolicy",
+        "path": "spec.skipRedirectFromBackend"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cilium.io",
+              "version": "v2",
+              "kind": "CiliumLocalRedirectPolicy"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.skipRedirectFromBackend",
+                  "state": "unset"
+                }
+              ],
+              "group": "cilium.io",
+              "version": "v2",
+              "kind": "CiliumLocalRedirectPolicy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Local Redirect Policies without an explicit skipRedirectFromBackend setting will now redirect traffic from node-local backends back to themselves when using socket-based load-balancing, changing the traffic forwarding behavior.",
+        "severity": "medium"
+      },
+      "statement": "Local Redirect Policy with socket-based load-balancing now redirects traffic from node-local backends destined to the policy's frontend back to the node-local backends by default; set skipRedirectFromBackend to true to override this."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-fbe2aedc4ddc"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:12b52ea5e6e5721f91d9691e14aeb00cd762c71f5b969cb9f49599a74ff62297",
+      "inputEvidence": [
+        "ev-fbe2aedc4ddc"
+      ],
+      "generatedAt": "2026-10-02T06:04:04Z",
+      "callId": "28bd783b-2a34-4955-96a8-816f412fcdf6"
+    }
+  }
+}

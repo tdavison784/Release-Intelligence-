@@ -1,0 +1,38 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-a195c1d1518b",
+  "promptDigest": "sha256:b1f9a5c8bd4194d9b99da2c7f676c4210dbfe2cdfe68964e67c8388b53131134",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "a96dddde-ec09-491b-9d01-7d774ecb3ba5",
+  "startedAt": "2026-10-03T01:55:03.420Z",
+  "decidedAt": "2026-10-03T01:55:13.531Z",
+  "durationMs": 9210,
+  "costUSD": 0.078232,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-e4b24ba811ff] says the prefix of the metrics that the embedded cache emits changed from `querier_cache_` to `loki_embeddedcache_`. Nothing in it shows a configuration key called `metric.prefix`, so the config-key subject is made up. The real change is to the metric names Loki exposes, which keeps the same configuration but changes what is emitted, so I record it as protocol-behavior / behavior-changed with the before and after prefixes exactly as the text gives them. No subject family fits metric names exactly, so this mapping is a judgement call and I set confidence to low.",
+    "citations": [
+      "ev-e4b24ba811ff"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "The metrics emitted by Loki's embedded cache change their name prefix from `querier_cache_` to `loki_embeddedcache_`, and duplicate metrics are removed.",
+      "subject": {
+        "family": "protocol-behavior",
+        "name": "embedded-cache-metric-prefix",
+        "determination": "asserted"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "querier_cache_",
+        "after": "loki_embeddedcache_",
+        "determination": "asserted"
+      }
+    },
+    "labels": [
+      "wrong-subject",
+      "wrong-change-type"
+    ]
+  }
+}

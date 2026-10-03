@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0e8e64b6eced",
+    "candidateId": "sc-bd6abae896a4",
+    "proposalId": "sp-b3c6e78bbcc1",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-s3.sse-encryption"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "-s3.sse.*"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "-s3.sse-encryption",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `-s3.sse-encryption` flag is no longer recognized or honored by Loki; configurations using this flag will be ignored and S3 encryption settings must be specified using the `-s3.sse.*` settings instead.",
+        "remediation": "Replace any `-s3.sse-encryption` configuration with the equivalent `-s3.sse.*` settings.",
+        "severity": "high"
+      },
+      "statement": "The deprecated CLI flag `-s3.sse-encryption` has been removed in favor of the `-s3.sse.*` settings."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:cli-flag/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

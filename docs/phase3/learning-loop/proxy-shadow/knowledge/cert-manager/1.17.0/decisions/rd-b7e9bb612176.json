@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b7e9bb612176",
+    "reviewItemId": "ri-c426e95ff3e0",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--kubeconfig",
+                  "component": "controller",
+                  "state": "unset"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "--master",
+                  "component": "controller",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "cli-flag",
+                  "name": "--kubeconfig",
+                  "component": "webhook",
+                  "state": "unset"
+                },
+                {
+                  "op": "cli-flag",
+                  "name": "--master",
+                  "component": "webhook",
+                  "state": "unset"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "cert-manager 1.17.0 no longer logs the `Neither --kubeconfig nor --master was specified` warning when the controller and webhook services boot with neither flag set; this is a log-only cleanup."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:f0a30bc4d12d6bcacb5a64b52c3673807607e7b81fc57d24dc28cdd917986094",
+      "inputEvidence": [
+        "ev-969cbf095c23"
+      ],
+      "generatedAt": "2026-10-02T15:57:10.868Z",
+      "callId": "d881b1de-f43c-4958-b409-54859323ce1a"
+    },
+    "reason": "[ev-969cbf095c23] says the warning `Neither --kubeconfig nor --master was specified` no longer appears when the controller and webhook boot. The message text implies it was only printed when neither flag was set. So the exposed environments are those where the controller or the webhook runs with both --kubeconfig and --master unset, and that is the proposed condition. This is inferred from the wording of the message rather than stated outright, and the only consequence is that a log line disappears.",
+    "startedAt": "2026-10-02T15:57:03.455Z",
+    "decidedAt": "2026-10-02T15:57:10.868Z"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-438ae80b2e3f",
+    "reviewItemId": "ri-a5c59db5fc45",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--config",
+              "component": "promtail",
+              "state": "unset"
+            },
+            {
+              "op": "image-in-use",
+              "name": "grafana/promtail"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "Promtail's default configuration in rpm/deb packages was improved to reduce CPU utilization when many files exist in /var/log."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether Promtail is installed from the rpm/deb packages on the host and runs the default configuration file shipped with them"
+        }
+      },
+      "statement": "Promtail's default configuration shipped with the rpm/deb packages was improved to avoid possible high CPU use when /var/log holds many files. Only hosts that installed Promtail from rpm/deb and run the shipped default config are exposed, and no static input shows that."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:b9f22bcc0c853236e8ca1c60d2cdf8addf78e64b7ec860ce2afee2f523174394",
+      "inputEvidence": [
+        "ev-d546fd91b679"
+      ],
+      "generatedAt": "2026-10-03T01:55:48.389Z",
+      "callId": "a2346dcc-2a88-43b3-aa6b-fce2eba5217f"
+    },
+    "reason": "[ev-d546fd91b679] limits the change to the default configuration shipped with Promtail's rpm/deb packages. The proposed condition is the wrong shape. It requires the grafana/promtail container image, which is not an rpm/deb install, so it flags container environments that are not exposed and misses package installs. It also relies on a \"--config\" flag that the evidence never mentions. Whether a host installed Promtail from rpm/deb and still runs the shipped default config is not visible in any static input, so the exposure has to be undecidable.",
+    "startedAt": "2026-10-03T01:55:38.942Z",
+    "decidedAt": "2026-10-03T01:55:48.389Z"
+  }
+}

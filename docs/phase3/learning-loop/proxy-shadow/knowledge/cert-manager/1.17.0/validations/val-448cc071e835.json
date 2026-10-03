@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-448cc071e835",
+    "candidateId": "sc-d2afc4a4ba4f",
+    "proposalId": "sp-7b7c665df04f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-signing-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"SHA-256\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether cert-manager signs with RSA keys of 3072 or 4096 bits (e.g. CA or self-signed issuer keys held in Secrets)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Signatures made with 3072-bit RSA keys now use SHA-384 and those made with 4096-bit RSA keys now use SHA-512 instead of SHA-256. The release notes expect minimal impact, but operators using larger RSA keys should be aware of the change.",
+        "remediation": "If you sign with 3072-bit or 4096-bit RSA keys, check that the systems relying on these certificates accept SHA-384 or SHA-512 signatures.",
+        "severity": "low"
+      },
+      "statement": "In v1.17.0, cert-manager stops always using SHA-256 when signing with RSA and picks the hash from the RSA key length: SHA-384 for 3072-bit keys and SHA-512 for 4096-bit keys."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

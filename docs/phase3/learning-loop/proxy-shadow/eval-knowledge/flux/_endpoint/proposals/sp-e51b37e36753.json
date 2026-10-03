@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e51b37e36753",
+    "candidateId": "sc-dc6014b3811a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "OCIRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any live source.toolkit.fluxcd.io/v1 OCIRepository object has a status.artifact without status.artifact.digest (status is written by the controller and is not in static manifests)"
+        }
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1 OCIRepository CRD schema, status.artifact.digest is now a required field (according to a computed install-bundle diff)."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: Only a computed schema diff supports this. It says objects that omit the field are rejected, but the field is under status, which the controller writes, and no source says what happens to existing objects or to status updates.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:252f08fd4b404c197d7474e3cdbdbd5ac7f0211258f0728431a95be98b4a7123",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:14:22Z",
+      "callId": "3f04855f-f53b-4eb9-a3a6-fbaf69d38b07"
+    }
+  }
+}

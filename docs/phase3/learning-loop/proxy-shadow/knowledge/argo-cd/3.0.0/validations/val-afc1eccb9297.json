@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-afc1eccb9297",
+    "candidateId": "sc-22716bcf1be8",
+    "proposalId": "sp-c045c5dae4e4",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "controller.resource.health.persist",
+        "component": "argocd-cmd-params-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "true",
+        "after": "false"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"controller.resource.health.persist\"]",
+              "state": "unset"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cmd-params-cm"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"controller.resource.health.persist\"]",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cmd-params-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Health status is no longer stored in the Application CR's .status.resources[].health by default; tools or CLI commands parsing that field must use the argocd CLI/API instead.",
+        "remediation": "Set controller.resource.health.persist to true in argocd-cmd-params-cm, or update tools to use the argocd CLI/API to get health status.",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0 no longer persists per-resource health under .status.resources[].health in the Application CR by default; set controller.resource.health.persist to true in argocd-cmd-params-cm to revert."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/default-changed",
+        "detail": "no canonical exposure condition for config-key default-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

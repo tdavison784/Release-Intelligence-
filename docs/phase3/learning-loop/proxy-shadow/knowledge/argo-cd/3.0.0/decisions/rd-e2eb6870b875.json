@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e2eb6870b875",
+    "reviewItemId": "ri-74e96f784d1d",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:1897d50faaf3082b9aa882b8a7b0a5818f9fa07acb3b7c4bdbf67827212631bd",
+      "inputEvidence": [
+        "ev-dd28456702c2"
+      ],
+      "generatedAt": "2026-10-02T12:59:58.076Z",
+      "callId": "cee42ea4-d699-49ff-80fc-7dcef624ea47"
+    },
+    "reason": "The only evidence, [ev-dd28456702c2], is one changelog line saying config management plugins now receive empty env vars. It doesn't say which env vars are affected (for example, application-specified plugin env entries or build environment variables) or how a plugin must be configured to be affected, so no exposure condition follows from it. The proposed condition is clearly too broad: it flags every environment that uses AppProject, which says nothing about CMP use. Its ConfigMap 'cmpServer' text match also has no basis in the evidence. To decide, we need the PR or upgrade-guide text (#18720/#22096) naming which env var source now passes empty values and where that is configured.",
+    "startedAt": "2026-10-02T12:59:47.048Z",
+    "decidedAt": "2026-10-02T12:59:58.076Z"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-57ea7f96adfe",
+    "candidateId": "sc-29fa48f19d84",
+    "product": "karpenter",
+    "questionType": "applicability",
+    "question": "For \"Storage version of `ec2nodeclasses.karpenter.k8s.aws` changes v1beta1 → v1\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "karpenter.k8s.aws",
+          "version": "v1beta1",
+          "kind": "EC2NodeClass"
+        }
+      },
+      "statement": "The storage version of the ec2nodeclasses.karpenter.k8s.aws CRD changes from v1beta1 to v1; existing objects remain stored as v1beta1 until rewritten, so a storage version migration and a status.storedVersions update are needed before a later release removes v1beta1."
+    },
+    "proposals": [
+      "sp-9d443570860e",
+      "sp-e7f03e41aa70",
+      "sp-e8a5e59ceaa7"
+    ],
+    "validations": [
+      "val-08ba49139e8e",
+      "val-3d82f783ec84",
+      "val-b441ac9c8143",
+      "val-bb871190e31f",
+      "val-d7db2cf2ea04",
+      "val-f5b0de01b9c1"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:13:34Z"
+  }
+}

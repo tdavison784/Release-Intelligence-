@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-528efd79dad1",
+    "candidateId": "sc-7560741348ad",
+    "proposalId": "sp-df7500fc302d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "version": "v2beta1",
+        "kind": "PolicyException"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "version": "v2beta1",
+              "kind": "PolicyException"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether existing PolicyException objects are stored in v2beta1 format in etcd"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing PolicyException objects remain stored in v2beta1 format and must be migrated by running a storage version migration to rewrite all objects and update status.storedVersions before v2beta1 support is removed in a later release."
+      },
+      "statement": "The storage version of policyexceptions.kyverno.io changes from v2beta1 to v2; existing objects stored as v2beta1 must be migrated by running a storage version migration before v2beta1 is removed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/behavior-changed",
+        "detail": "gvk behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

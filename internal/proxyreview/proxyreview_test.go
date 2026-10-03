@@ -285,3 +285,31 @@ func TestReportSplitsByProposer(t *testing.T) {
 		t.Errorf("relations: %v", rel)
 	}
 }
+
+func TestCompareShadow(t *testing.T) {
+	rc := fixture(domain.QuestionConsequence)
+	req, _ := Build(rc, Options{})
+	ev := string(req.InputEvidence[0])
+	pd, _, err := Decision(rc, req, respond(t, req, map[string]any{"action": "accept", "reason": "r", "citations": []string{ev}, "confidence": "medium"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	orig := rc.Item.Proposed
+	corr := orig
+	corr.Consequence = &domain.Consequence{Kind: domain.ConsequenceBehaviorChange, ExposedClass: domain.ImpactReviewRequired, Statement: "y"}
+	hd := domain.ReviewDecision{ReviewItemID: rc.Item.ID, Action: domain.ActionCorrect, Original: &orig, Corrected: &corr,
+		Reviewer: "po", ReviewerKind: domain.ReviewerHuman, DecidedAt: t0.Add(2 * time.Hour)}
+	copied := domain.ReviewDecision{ReviewItemID: "ri-copied", Action: domain.ActionAccept, Reviewer: "proxy:x", ReviewerKind: domain.ReviewerProxy, DecidedAt: t0}
+	real := &knowledge.Snapshot{ReviewItems: []domain.ReviewItem{rc.Item}, Decisions: []domain.ReviewDecision{hd, copied}}
+	shadow := &knowledge.Snapshot{ReviewItems: []domain.ReviewItem{rc.Item}, Decisions: []domain.ReviewDecision{pd, copied}}
+	a := CompareShadow(real, shadow)
+	if a.Pairs != 1 || a.SameAction != 0 || a.SameOutcome != 1 || a.ShadowOnly != 0 {
+		t.Fatalf("agreement: %+v", a)
+	}
+	if c := a.ByAspect[domain.AspectConsequence]; c == nil || c.N != 1 || c.Agree != 0 {
+		t.Errorf("aspect agreement: %+v", a.ByAspect)
+	}
+	if a.Confusion["correct"]["accept"] != 1 {
+		t.Errorf("confusion: %v", a.Confusion)
+	}
+}

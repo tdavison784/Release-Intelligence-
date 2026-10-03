@@ -1,0 +1,32 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-42a3a2a75778",
+  "promptDigest": "sha256:3f076298505bbace379aaf6f741efc499b89e2994eaf4b7e07137d501ea4124d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "340d7a6c-fe9c-4153-b9f3-5bd230c8dc4c",
+  "startedAt": "2026-10-03T02:16:48.241Z",
+  "decidedAt": "2026-10-03T02:17:00.270Z",
+  "durationMs": 11157,
+  "costUSD": 0.0685,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-d6d613eadc25] says the `etcd.managed` Helm option and related Helm settings \"have been removed\". A removed Helm key that is still set stops being honoured, so setting-ignored is the right kind. The proposed statement and remediation go further than the evidence: they say operators \"must migrate to an alternative etcd deployment method\", tell them to deploy etcd independently, and set severity to high. The evidence says none of this, so I narrowed the statement to what the text supports.",
+    "citations": [
+      "ev-d6d613eadc25"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Cilium 1.16.0 the Helm option etcd.managed (deploying a managed etcd instance) and related Helm settings were removed. If these values are still set, they are no longer honoured.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "statement": "The etcd.managed Helm value and related managed-etcd Helm settings have been removed in 1.16.0. If an environment still sets them, they are no longer honoured. The upgrade notes do not say what replaces them.",
+        "remediation": "Find any etcd.managed or related managed-etcd values in your Helm values and remove them before upgrading. Decide how etcd is provided without the removed Helm option."
+      }
+    }
+  }
+}

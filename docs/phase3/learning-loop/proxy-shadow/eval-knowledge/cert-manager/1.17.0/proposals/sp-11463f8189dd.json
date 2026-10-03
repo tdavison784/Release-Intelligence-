@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-11463f8189dd",
+    "candidateId": "sc-f5cebb7e0498",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether an issuer's linked Secret is updated at runtime, since that update event is what triggers the affected retry/back-off path"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading, an issuer whose linked Secret is updated is retried more quickly instead of waiting out the previous high back-off timeout; nothing fails and the configuration is unchanged, only the retry timing differs.",
+        "remediation": "No operator action required; optionally verify that issuers reconcile promptly after their linked Secret is updated.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0 the issuer now retries more quickly when its linked Secret is updated, fixing an issue that previously caused a high back-off timeout."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The evidence describes only the issuer controller's internal retry/back-off timing when its linked Secret is updated; it names no field, Helm value, flag, gate, endpoint, protocol surface, or other identity that maps to a supported subject family.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-10c8b1c28d66"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d284806180aa0d2d7e84de46b950578e60c308c64100c10eaa611171db757c30",
+      "inputEvidence": [
+        "ev-10c8b1c28d66"
+      ],
+      "generatedAt": "2026-10-02T11:40:19Z",
+      "callId": "953d3dd3-789c-47c6-8687-950e8d3852ea"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-0c0ae72af39b",
+  "promptDigest": "sha256:5ae99d39ec87dc7a923dc203e178a68726a1f10d395decc749d4b77baac830e0",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "95ba6347-bf92-4359-86fd-b30ac011b653",
+  "startedAt": "2026-10-03T02:11:05.854Z",
+  "decidedAt": "2026-10-03T02:11:26.523Z",
+  "durationMs": 19999,
+  "costUSD": 0.121284,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-793f1f2f3e70] describes `etcd.operator` as an option of `kvstore-opt` that is now a no-op and removed, not a Helm values key. The values validator found no key `etcd.operator.kvstore-opt` in either release's chart values [ev-28e0ccb5774a][ev-39a22d88e2f5], so a values-key condition can never match the exposed environments. Exposure is the `etcd.operator` key being set in the kvstore-opt option, either as a CLI argument or as configuration text. The evidence does not show which configuration surface carries kvstore-opt, so confidence is low.",
+    "citations": [
+      "ev-793f1f2f3e70",
+      "ev-28e0ccb5774a",
+      "ev-39a22d88e2f5"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The `etcd.operator` option of `kvstore-opt` is a no-op and has been removed in Cilium 1.16.0. Exposed environments are those that still set `etcd.operator` in `kvstore-opt`, either in the --kvstore-opt argument or in a ConfigMap kvstore-opt entry. Helm values do not carry it as a key.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--kvstore-opt",
+              "state": "has-token-key",
+              "values": [
+                "etcd.operator"
+              ]
+            },
+            {
+              "op": "resource",
+              "kind": "ConfigMap",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"kvstore-opt\"]",
+                  "state": "matches",
+                  "pattern": "etcd\\.operator"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

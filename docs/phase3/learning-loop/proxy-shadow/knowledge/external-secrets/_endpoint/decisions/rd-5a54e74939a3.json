@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5a54e74939a3",
+    "reviewItemId": "ri-7365aa0cb2de",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "external-secrets.io/v1beta1 SecretStore objects (and, per the same rendered diff, ClusterSecretStore objects) whose spec.provider.fake.data[] entries omit value are rejected by the tightened CRD schema validation.",
+        "remediation": "Add a value to every spec.provider.fake.data[] entry in external-secrets.io/v1beta1 SecretStore (and ClusterSecretStore) objects before applying them against the release carrying the tightened schema.",
+        "severity": "medium"
+      },
+      "statement": "Between external-secrets 0.15.0 and 0.16.0 the required list for spec.provider.fake.data items in the external-secrets.io/v1beta1 SecretStore schema changed from [key] to [key,value] (the same diff shows the identical change for ClusterSecretStore), so objects that omit spec.provider.fake.data[].value are rejected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:1091307203699892a6799d1a2f5e73361054646cf999851768606822374c5b6c",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-9fd85560a485",
+        "ev-fa52e4e4e831",
+        "ev-210dbd3942ad",
+        "ev-d98b7e27e53d"
+      ],
+      "generatedAt": "2026-10-03T02:21:54.185Z",
+      "callId": "e6c283a5-e056-49ef-be42-09d6fa1d5a74"
+    },
+    "reason": "[ev-210dbd3942ad] shows that from 0.15.0 to 0.16.0, the required list for spec.provider.fake.data items in the v1beta1 SecretStore CRD changes from [\"key\"] to [\"key\",\"value\"]. [ev-9fd85560a485] shows the same change for ClusterSecretStore, so including it in the statement is supported. Under the new schema, the API server's validation rejects objects whose fake data entries leave out value. That makes resource-rejected (action-required) the right kind. The statement and remediation correctly describe the rejection as happening when objects are applied, and medium severity is reasonable for a provider that only some environments use.",
+    "startedAt": "2026-10-03T02:21:46.109Z",
+    "decidedAt": "2026-10-03T02:21:54.185Z",
+    "resultingFact": "vf-f6b45512c7b6"
+  }
+}

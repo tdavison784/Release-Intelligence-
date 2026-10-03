@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6bbdcebe13a9",
+    "reviewItemId": "ri-bbf5188d9d4a",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "ambient-hostnetwork-handling"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "An issue causing pods with hostNetwork enabled to be ignored in Istio ambient mode has been fixed."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "ambient-hostnetwork-pods"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "In ambient mode, Istio no longer ignores pods that use hostNetwork; a bug that caused them to be ignored was fixed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:8614593b862d47c310a1f3d8eb91e80c088a0aa7fc41e000e08f58e834c20170",
+      "inputEvidence": [
+        "ev-93c0d3a62602"
+      ],
+      "generatedAt": "2026-10-02T15:55:56.828Z",
+      "callId": "6f032d7d-01bc-4dba-a72f-c284569eeb04"
+    },
+    "reason": "[ev-93c0d3a62602] says only that a bug that caused `hostNetwork` pods to be ignored in ambient mode was fixed. That is the same configuration with different runtime handling, so behavior-changed is the right change type. The proposed name \"ambient-hostnetwork-handling\" adds \"handling\", which does not appear in the evidence. Free-form names must use only the evidence's own key words, so the name should be \"ambient-hostnetwork-pods\".",
+    "startedAt": "2026-10-02T15:55:49.101Z",
+    "decidedAt": "2026-10-02T15:55:56.828Z",
+    "resultingFact": "vf-19247d97c855"
+  }
+}

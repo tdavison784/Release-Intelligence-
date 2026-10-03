@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-9f98808343b3",
+    "product": "loki",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-9eab02ce3499"
+        ],
+        "statementKeys": [
+          "sk-568c74c01100"
+        ],
+        "changeIds": [
+          "chg-3fbe32afe634"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-5996f84cf28b"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "experimental.ruler.enable-api"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "ruler.enable-api"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment's Loki configuration (config file or container arguments) still sets the removed option experimental.ruler.enable-api"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Configuration under `experimental.ruler.enable-api` will no longer be honored; the setting must be moved to `ruler.enable-api`.",
+        "severity": "high"
+      },
+      "statement": "`experimental.ruler.enable-api` is removed"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-3d30c27823f4"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-3d30c27823f4"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-e136465b4762"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-5943f9a3247a"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-8fea3a0e7308",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L592-L592 (3.0.0 › Loki 3.0.0 › Deprecated configuration options are removed)",
+        "excerpt": "1. `experimental.ruler.enable-api` is removed. Use `ruler.enable-api` instead.",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:35:19.385Z"
+  }
+}

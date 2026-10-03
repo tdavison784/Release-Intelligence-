@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d6215c8f7104",
+    "reviewItemId": "ri-608af5c39c24",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "CRD templating is now enabled by default in the base chart; previously it defaulted to disabled and required manual kubectl intervention to upgrade under certain install flag conditions.",
+        "remediation": "If the legacy behavior is required, explicitly set Values.base.enableCRDTemplates to false; prepare for this option's removal in a future release.",
+        "severity": "medium"
+      },
+      "statement": "The Helm value `base.enableCRDTemplates` now defaults to `true` instead of `false`, enabling templated CRD installation by default in the base chart and fixing a previous issue where certain install flags could require manual kubectl intervention."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:51be10909002c858c6564f01b2b61c84177469ec6a396ee9e27cc962f4c7938b",
+      "inputEvidence": [
+        "ev-fa194382072a",
+        "ev-41d780f6ab39",
+        "ev-ad95ec08c00b"
+      ],
+      "generatedAt": "2026-10-02T12:57:01.078Z",
+      "callId": "78804dbf-53bd-4a65-949c-fda1d926a26b"
+    },
+    "reason": "[ev-fa194382072a] says templated CRD installation in the base chart is now on by default. `Values.base.enableCRDTemplates` now defaults to `true`, and setting it to `false` still restores the legacy behavior. The values snapshots [ev-41d780f6ab39] and [ev-ad95ec08c00b] confirm the default changed from false to true. The evidence names nothing that fails, is rejected or must be migrated: environments that leave the key unset keep working, just differently. That makes this a behavior-change needing review, as proposed, and the statement and remediation match what the note says.",
+    "startedAt": "2026-10-02T12:56:52.768Z",
+    "decidedAt": "2026-10-02T12:57:01.078Z",
+    "resultingFact": "vf-8b0fde51e171"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d36642fac6d9",
+    "reviewItemId": "ri-eeda31208d77",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "image-in-use",
+          "name": "distroless/static"
+        }
+      },
+      "statement": "The distroless/static base image was updated from commit 95ea148 to 3d0f463."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<0.16.0"
+        }
+      },
+      "statement": "external-secrets 0.16.0 bumps the distroless/static dependency from 95ea148 to 3d0f463 (dependabot PR #4602). Every environment upgrading to 0.16.0 from an earlier release gets it, because manifests never reference distroless/static directly."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:a11f3aebec80caa2e3d48c440f737ce91e8c594ddb49e68418b7b597fe0b70db",
+      "inputEvidence": [
+        "ev-ade0be673ee4"
+      ],
+      "generatedAt": "2026-10-03T02:05:56.02Z",
+      "callId": "46785004-9ebb-4b3c-8ca5-5ea601ca2c7d"
+    },
+    "reason": "[ev-ade0be673ee4] records only a dependabot bump of distroless/static from 95ea148 to 3d0f463 as part of the 0.16.0 release. The image validator found that neither release's manifests reference distroless/static, so it is not an image operators deploy, and image-in-use{distroless/static} would never match. The change comes with the 0.16.0 build, so the environments exposed are the ones upgrading to 0.16.0 from an earlier version. That is what edge-from-version <0.16.0 expresses.",
+    "startedAt": "2026-10-03T02:05:42.691Z",
+    "decidedAt": "2026-10-03T02:05:56.02Z"
+  }
+}

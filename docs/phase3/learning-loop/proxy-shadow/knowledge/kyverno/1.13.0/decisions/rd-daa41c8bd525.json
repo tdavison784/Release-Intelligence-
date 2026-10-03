@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-daa41c8bd525",
+    "reviewItemId": "ri-855cbf58dc66",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.apiCall",
+              "state": "set"
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "GlobalContextEntry"
+        }
+      },
+      "statement": "GlobalContextEntry (kyverno.io/v2alpha1) gains an optional spec.apiCall.retryLimit field, default 3, controlling API call retries on failure."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.apiCall",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.apiCall.retryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "GlobalContextEntry"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.apiCall.retryLimit",
+              "state": "set"
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "GlobalContextEntry"
+        }
+      },
+      "statement": "Kyverno 1.13.0 adds an optional spec.apiCall.retryLimit field (default 3, minimum 1) to GlobalContextEntry. Entries that use apiCall without setting retryLimit now retry failed API calls 3 times by default. Entries that set retryLimit explicitly are shielded."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:cb38ce951738d7b9c4bc98ef0705d5692473a56af3ff90cea812601d2f93b768",
+      "inputEvidence": [
+        "ev-a6027c299092",
+        "ev-eb301d25a0b7",
+        "ev-043bcc5e9e57",
+        "ev-0b95f4d8b2b8",
+        "ev-388d68569c8a",
+        "ev-3f8a3adffa22",
+        "ev-495a542d4d66",
+        "ev-6032b12f614d",
+        "ev-64e559957f23",
+        "ev-6644b79acdaf",
+        "ev-705a5952643c",
+        "ev-72ae67cf1bd1",
+        "ev-7b96a5794081",
+        "ev-8acbbd901b75",
+        "ev-8ed706991976",
+        "ev-904a58b60df3",
+        "ev-a4c10d98e48c",
+        "ev-ab4f180a917e",
+        "ev-b077d5605267",
+        "ev-b3d07020d879",
+        "ev-c7493c8ebf56",
+        "ev-d55bb7c165b2",
+        "ev-e4d8d307c8bd",
+        "ev-e6f72293517f",
+        "ev-f4eb4632dd60",
+        "ev-f5ab4321b780",
+        "ev-fd8deebe9622",
+        "ev-ff8bc99281a6"
+      ],
+      "generatedAt": "2026-10-02T23:21:24.026Z",
+      "callId": "ea224587-fef9-4664-8b7a-58799de50c3b"
+    },
+    "reason": "[ev-a6027c299092] and [ev-eb301d25a0b7] show that 1.13.0 adds an optional spec.apiCall.retryLimit (minimum 1, default 3) to GlobalContextEntry. Only entries that use apiCall without setting retryLimit pick up the new default retry behaviour. The proposed condition matches every entry that has apiCall set, so it also flags entries that set retryLimit explicitly. Those entries are shielded and belong in overlap.",
+    "startedAt": "2026-10-02T23:21:06.152Z",
+    "decidedAt": "2026-10-02T23:21:24.026Z",
+    "resultingFact": "vf-5ecd45897aa3"
+  }
+}

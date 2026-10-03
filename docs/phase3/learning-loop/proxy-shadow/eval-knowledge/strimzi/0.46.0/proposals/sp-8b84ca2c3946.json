@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8b84ca2c3946",
+    "candidateId": "sc-c6c2d0c1e4f2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "zookeeper-to-kraft-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether any Kafka cluster managed by Strimzi is still ZooKeeper-based rather than KRaft; the evidence does not say which configuration identifies a ZooKeeper-based cluster"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Strimzi 0.46.0 no longer supports ZooKeeper-based clusters or migrating them from ZooKeeper to KRaft, so every cluster has to be on KRaft before the upgrade.",
+        "remediation": "Migrate all ZooKeeper-based clusters to KRaft using a Strimzi version older than 0.46.0, then upgrade to 0.46.0.",
+        "severity": "critical"
+      },
+      "statement": "Strimzi 0.46.0 drops support for ZooKeeper-based clusters and for ZooKeeper-to-KRaft migration, so all clusters must be on KRaft before upgrading."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-4c2676e4665a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2672824d40eb7d302ee869c44568475a4fd7692185489054e5033c5787722785",
+      "inputEvidence": [
+        "ev-4c2676e4665a"
+      ],
+      "generatedAt": "2026-10-02T06:12:02Z",
+      "callId": "8bdbdd73-63f7-4310-b275-d7e7f46fb462"
+    }
+  }
+}

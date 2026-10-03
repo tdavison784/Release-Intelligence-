@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7f529da98aae",
+    "candidateId": "sc-ca2150f671f2",
+    "proposalId": "sp-f4a02b6bd694",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "appset-refresh-reconciliation"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "argoproj.io",
+          "version": "v1alpha1",
+          "kind": "ApplicationSet"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ApplicationSet reconciliation now occurs only once per refresh operation instead of potentially multiple times, reducing redundant processing.",
+        "severity": "low"
+      },
+      "statement": "ApplicationSet controller reconciliation behavior changed to reconcile only once when an ApplicationSet is refreshed, instead of potentially multiple times."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-56c9b288f370",
+    "reviewItemId": "ri-13efaeaaf831",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the operator runs `flux create tenant` and wants a custom service-account name; operator CLI usage is not carried in manifests, values, or workload configuration"
+        }
+      },
+      "statement": "Flux 2.7.0 makes the service-account name configurable in the `flux create tenant` CLI command (an added capability); the release note names no specific flag and states no change to existing behavior."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:a2e9da4162ca2f41ad5f778a21f8540156d8bbd5425682266abc66a404da78d1",
+      "inputEvidence": [
+        "ev-7934fe792cbf"
+      ],
+      "generatedAt": "2026-10-02T23:06:31.98Z",
+      "callId": "082145f9-e2db-4ed0-aeb2-445c5dcc014f"
+    },
+    "reason": "[ev-7934fe792cbf] only says that the service-account name can now be set in the `flux create tenant` CLI command. It names no flag, and it does not mention any removal, changed default or failure. Whether someone runs a CLI command on their workstation does not appear in manifests, Helm values or workload configuration. So a static predicate cannot express exposure, and undecidable with environment-visibility-gap is the right shape. P2's cli-flag leaf is wrong: it treats the command name as a container argument of Flux's workloads.",
+    "startedAt": "2026-10-02T23:06:26.497Z",
+    "decidedAt": "2026-10-02T23:06:31.98Z"
+  }
+}

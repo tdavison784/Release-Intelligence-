@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-70233e29bcc0",
+    "reviewItemId": "ri-2c08b9087e61",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "LogCLI used the store from -boltdb.shipper.shared-store to fetch remote schema; the store for remote schema is now configured with -schema-store.",
+        "remediation": "Set -schema-store to the store used for retrieving remote schema."
+      },
+      "statement": "LogCLI no longer takes the remote schema store from -boltdb.shipper.shared-store when -remote-schema is true; the new -schema-store flag replaces it."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "With -remote-schema=true, the store set in -boltdb.shipper.shared-store is no longer used for retrieving remote schema. The new -schema-store flag now configures that store.",
+        "remediation": "Set -schema-store on LogCLI to the store that -boltdb.shipper.shared-store pointed to for retrieving remote schema.",
+        "severity": "medium"
+      },
+      "statement": "In Loki 3.0.0, LogCLI no longer uses -boltdb.shipper.shared-store to pick the store for retrieving remote schema when -remote-schema is true. The new -schema-store flag replaces it."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:cb73e48bd5f1eb2f91222c1399301b6901e1ce8cd03544707a07ec3aaffd5db0",
+      "inputEvidence": [
+        "ev-eec682284370"
+      ],
+      "generatedAt": "2026-10-02T23:09:07.461Z",
+      "callId": "a80e27d5-e572-40b1-982f-76f71084f855"
+    },
+    "reason": "[ev-eec682284370] says LogCLI \"previously\" took the remote schema store from `-boltdb.shipper.shared-store` when `-remote-schema` is true, and that the new `-schema-store` flag replaces it. That means the old flag is no longer honoured for this purpose, so this is setting-ignored, not a default change that keeps working. The evidence does not say what LogCLI does when `-schema-store` is unset, so the corrected statement claims only that the old setting stops being honoured.",
+    "startedAt": "2026-10-02T23:08:54.201Z",
+    "decidedAt": "2026-10-02T23:09:07.461Z"
+  }
+}

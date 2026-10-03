@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6341923a0e8f",
+    "reviewItemId": "ri-907c71d98f87",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--metrics",
+          "component": "cilium-agent",
+          "state": "set"
+        }
+      },
+      "statement": "The `doublewrite_identity_kvstore_total_count` metric has been renamed to `doublewrite_kvstore_identities`."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether monitoring dashboards, alerts or recording rules query the metric doublewrite_identity_kvstore_total_count"
+        }
+      },
+      "statement": "The metric `doublewrite_identity_kvstore_total_count` is renamed to `doublewrite_kvstore_identities` in Cilium 1.17.0. Exposed environments are those whose monitoring (dashboards, alerts, recording rules) queries the old metric name, which configuration does not show."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:270c95364c9a2ae52b1408c907ce0832af1ba5fd26bbe4774d2c3f4144121bb6",
+      "inputEvidence": [
+        "ev-2349d1c09109"
+      ],
+      "generatedAt": "2026-10-03T02:24:55.493Z",
+      "callId": "87bad9e4-fdaa-4fd2-9dd7-ee5e05f8eb15"
+    },
+    "reason": "[ev-2349d1c09109] says only that the metric `doublewrite_identity_kvstore_total_count` was renamed to `doublewrite_kvstore_identities`. It never mentions the `--metrics` agent flag or any other setting that controls whether this metric is emitted, so the proposed cli-flag condition is unsupported. The environments actually exposed are those whose dashboards, alerts or recording rules query the old metric name, and no configuration input shows that. Exposure therefore has to be undecidable.",
+    "startedAt": "2026-10-03T02:24:47.092Z",
+    "decidedAt": "2026-10-03T02:24:55.493Z"
+  }
+}

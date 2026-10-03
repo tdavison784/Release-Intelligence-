@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-333b4479359f",
+    "candidateId": "sc-8889b9efc2de",
+    "proposalId": "sp-dd3a618fb008",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1",
+        "kind": "ServiceMonitor",
+        "path": "spec.serviceDiscoveryRole"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "monitoring.coreos.com",
+          "version": "v1",
+          "kind": "ServiceMonitor"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence for existing setups: the field is optional and, when unset, service discovery defaults to the value defined in the Prometheus/PrometheusAgent resource, so existing ServiceMonitors continue to work unchanged; operators may optionally set the new field to 'Endpoints' or 'EndpointSlice'.",
+        "severity": "low"
+      },
+      "statement": "The monitoring.coreos.com/v1 ServiceMonitor CRD schema gained a new optional field spec.serviceDiscoveryRole, a string enum accepting \"Endpoints\" or \"EndpointSlice\" that defines the service discovery role used to discover targets and otherwise defaults to the value defined in the Prometheus/PrometheusAgent resource."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

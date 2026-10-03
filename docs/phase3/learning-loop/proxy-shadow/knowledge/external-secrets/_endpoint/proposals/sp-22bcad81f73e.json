@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-22bcad81f73e",
+    "candidateId": "sc-a975e3461f85",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "storage-version-migration",
+        "component": "clustersecretstores.external-secrets.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ClusterSecretStore"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ClusterSecretStore objects stay stored as v1beta1 until rewritten; a storage version migration (re-write all objects) and update of status.storedVersions must be done before a later release removes v1beta1.",
+        "remediation": "Re-write all ClusterSecretStore objects and update status.storedVersions on the CRD before a later release removes v1beta1.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the clustersecretstores.external-secrets.io CRD moves from v1beta1 to v1, so existing ClusterSecretStore objects remain stored as v1beta1 until rewritten and a storage version migration is needed before v1beta1 is removed."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d55f4ac0a53f"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:c9fe3d20e79cbd79e2d55a3c9629506ede412e7489606466b2e73a4f3e9ce231",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-a93bb3b1d26d",
+        "ev-d55f4ac0a53f",
+        "ev-10a72c580d6b",
+        "ev-f07fad593227"
+      ],
+      "generatedAt": "2026-10-02T21:01:38Z",
+      "callId": "18b50cb1-b739-4822-ad85-af6c63c4c5fc"
+    }
+  }
+}

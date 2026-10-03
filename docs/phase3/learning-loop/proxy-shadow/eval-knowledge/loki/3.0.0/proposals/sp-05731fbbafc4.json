@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-05731fbbafc4",
+    "candidateId": "sc-635ece4ca068",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--metrics-namespace"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"cortex\"",
+        "after": "\"loki\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--metrics-namespace",
+          "component": "loki",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Metrics emitted by Loki will use the 'loki' namespace by default instead of 'cortex', changing the metric namespace prefix unless explicitly configured otherwise.",
+        "remediation": "Verify that metric scrape configurations, dashboards, and alerting rules that reference metrics with the 'cortex' namespace are updated to use the 'loki' namespace, or explicitly set --metrics-namespace=cortex to retain the previous behavior.",
+        "severity": "medium"
+      },
+      "statement": "The `metrics-namespace` CLI flag is added to Loki with a default value changed to 'loki', replacing the previous default of 'cortex' for the namespace of emitted metrics."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-02fbed176b8e",
+      "ev-e38f07e9bdb1"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d988f5289be3b0e98950686d0f8470322aca76df284e7b0508a336d386086ff8",
+      "inputEvidence": [
+        "ev-02fbed176b8e",
+        "ev-e38f07e9bdb1"
+      ],
+      "generatedAt": "2026-10-02T20:55:12Z",
+      "callId": "dba89c63-6193-422c-a807-2e6fc8f10211"
+    }
+  }
+}

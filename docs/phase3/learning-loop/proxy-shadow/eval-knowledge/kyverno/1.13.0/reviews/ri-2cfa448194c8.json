@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-2cfa448194c8",
+    "candidateId": "sc-e1a977f0036f",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "questionType": "applicability",
+    "question": "For \"Removal of wildcard permissions: prior versions contained wildcard view permissions, which allowed Kyverno controllers to view all resources including secrets…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].generate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].generate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the custom resources matched by those mutate or generate policies are viewable through the cluster's default view role (for example via aggregated CRD permissions)"
+            }
+          ]
+        }
+      },
+      "statement": "Kyverno 1.13 removes the wildcard view permission that previously allowed Kyverno controllers to view all resources including secrets and adds a role binding to the default `view` role instead; policies during admission controls are unaffected, but reports may be impacted and the controller may no longer be able to view custom resources used by mutate and generate policies."
+    },
+    "proposals": [
+      "sp-0e4c60eb8737",
+      "sp-2f7bdb67a1b5",
+      "sp-87d76d3fdb12",
+      "sp-f3dfa4f6ec75"
+    ],
+    "validations": [
+      "val-1abc3640a7e7",
+      "val-3062f741a95f",
+      "val-60dd6d273603",
+      "val-672c46fc364a",
+      "val-827de8b14505",
+      "val-845ae2080369",
+      "val-beff65682658",
+      "val-ff55193d4b16"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree",
+        "validation-confirmed",
+        "validation-refuted"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:59:21Z"
+  }
+}

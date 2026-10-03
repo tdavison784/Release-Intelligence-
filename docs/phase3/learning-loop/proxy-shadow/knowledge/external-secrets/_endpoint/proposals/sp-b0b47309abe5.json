@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b0b47309abe5",
+    "candidateId": "sc-be31a2c6779c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ExternalSecret",
+        "path": "spec.target.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.target.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "The API server rejects external-secrets.io/v1beta1 ExternalSecret manifests that set spec.target.template.engineVersion to \"v1\", because that value is no longer in the schema's enum.",
+        "remediation": "Change spec.target.template.engineVersion away from \"v1\" (to a value the new schema allows) in v1beta1 ExternalSecret manifests before applying them after the upgrade.",
+        "severity": "high"
+      },
+      "statement": "In the external-secrets.io/v1beta1 ExternalSecret schema, \"v1\" was removed from the allowed values of spec.target.template.engineVersion, so the API server rejects manifests that still use it."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ad80059e4c5728da68deebb8d3f2291e64916f18291b95fae7a5a6b38530a73f",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-02T16:14:29Z",
+      "callId": "1e57902e-71f1-4bd2-9994-e6b09a1fc5d9"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-27e02ebf7426",
+    "reviewItemId": "ri-7da6f75f68bb",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:841bd7573c0c4c8c27a970357d109d3b3ec951cbf339763c24e287f95e9f7e42",
+      "inputEvidence": [
+        "ev-3f6039ca92c8"
+      ],
+      "generatedAt": "2026-10-03T02:23:15.639Z",
+      "callId": "9ac6f351-acd2-4f1d-8a91-0d4765259f7d"
+    },
+    "reason": "[ev-3f6039ca92c8] says only that `split_queries_by_interval` was removed from the `query_range` section of Loki's YAML config and now belongs in limits_config. Nothing shown maps that config key to a Helm values path. The proposed `loki.query_range.split_queries_by_interval` path is therefore unproven: config passed another way, such as a raw config file or structured overrides, would be missed. The overlap is also unsupported: setting limits_config does not shield an environment that still sets the removed query_range key. To decide, I need evidence of how the chart passes `query_range` into Loki's config, and whether a leftover key is rejected or ignored.",
+    "startedAt": "2026-10-03T02:23:02.355Z",
+    "decidedAt": "2026-10-03T02:23:15.639Z"
+  }
+}

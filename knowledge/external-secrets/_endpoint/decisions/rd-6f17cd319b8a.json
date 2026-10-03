@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6f17cd319b8a",
+    "reviewItemId": "ri-564f77ee5132",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "kind": "ClusterSecretStore"
+        }
+      },
+      "statement": "The CRD bundle diff between v0.15.0 and v0.16.0 shows that the ClusterSecretStore CRD now serves a new API version, external-secrets.io/v1."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:863955dc6a4199e61286ec3718c905281a527b192bf851629f07db770f8467bb",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47",
+        "ev-ab3b94da2f37",
+        "ev-4cac666b69f8",
+        "ev-acf4ed4bcd3b",
+        "ev-f978a29a8906",
+        "ev-df5c1e28cfbe",
+        "ev-3c2b0344d838",
+        "ev-4f0741c79dcb",
+        "ev-9c9b94e84fc4",
+        "ev-86c05ba517bb",
+        "ev-baa3e5ccbdf8",
+        "ev-0c5d4d2db4f4",
+        "ev-53fd686d248e",
+        "ev-304900c51821",
+        "ev-5d7196a16788",
+        "ev-9fd85560a485",
+        "ev-709f9d0ba0eb",
+        "ev-19003cc4b8d3",
+        "ev-c87d37e74506",
+        "ev-fa52e4e4e831",
+        "ev-d55f4ac0a53f",
+        "ev-4bda269d1e81",
+        "ev-bde2792c197a"
+      ],
+      "generatedAt": "2026-10-02T23:14:30.494Z",
+      "callId": "16d89b18-8ea0-4554-9bd4-73ae85f355ef"
+    },
+    "reason": "The render shows that external-secrets.io/v1 ClusterSecretStore did not exist in 0.15.0 and is served in 0.16.0 [ev-4bda269d1e81][ev-bde2792c197a][ev-acf4ed4bcd3b]. Adding a version takes nothing away, so the only environments it is relevant to are those that already use ClusterSecretStore under any version. The proposed condition, gvk-in-use for group external-secrets.io and kind ClusterSecretStore with no version pinned, expresses exactly that scope. The same bundle also removes v1alpha1, drops the conversion webhook and moves storage away from v1beta1 [ev-f978a29a8906][ev-4cac666b69f8][ev-d55f4ac0a53f], but those are separate changes and should not widen or narrow this item's condition.",
+    "startedAt": "2026-10-02T23:14:19.505Z",
+    "decidedAt": "2026-10-02T23:14:30.494Z"
+  }
+}

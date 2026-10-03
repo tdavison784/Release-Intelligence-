@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-844935ab5a43",
+    "candidateId": "sc-3d73e8a6dea6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "cilium",
+        "name": "dsr-service-connections-reestablish"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Service connections using Direct-Server-Return that were established prior to Cilium v1.13.3 will be disrupted and need to be re-established.",
+        "severity": "medium"
+      },
+      "statement": "Service connections using Direct-Server-Return that were established before Cilium v1.13.3 will be disrupted on upgrade and must be re-established."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on runtime state: whether DSR connections established before v1.13.3 exist; DSR configuration not named in the text.",
+    "citations": [
+      "ev-89034c5d2c74"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:7f46f76b62ebe45bac219623ec21658638fdff4349d63958c20fdec0cedb40ed",
+      "inputEvidence": [
+        "ev-89034c5d2c74"
+      ],
+      "generatedAt": "2026-10-02T05:59:35Z",
+      "callId": "fbd6116b-f3e2-4717-abbd-65c25748bccf"
+    }
+  }
+}

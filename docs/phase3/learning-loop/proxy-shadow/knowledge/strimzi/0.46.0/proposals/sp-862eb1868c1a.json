@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-862eb1868c1a",
+    "candidateId": "sc-5fc2da42c29c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "pod-restart-event-regardingobject"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Pod restart events no longer have the Pod as regardingObject, so field-selectors listing events by the Pod's regardingObject will no longer match them; the selector must specify the Kafka resource instead.",
+        "remediation": "Update event field-selectors to use the Kafka resource as regardingObject.",
+        "severity": "low"
+      },
+      "statement": "Kubernetes events for Pod restarts no longer have the Pod as the regardingObject; field-selectors on regardingObject must now target the Kafka resource."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Use of regardingObject as a field-selector by external clients or scripts is not visible in Helm values, manifests or cluster resources.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-2dffc916b09a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:4e151c83b21b18c54ac18ce0b89b8fdd1feb7b0c7d43e1183dbe86b982b70897",
+      "inputEvidence": [
+        "ev-2dffc916b09a"
+      ],
+      "generatedAt": "2026-10-02T06:03:14Z",
+      "callId": "be73dc9f-e253-4d33-b374-7f8e7a42b69c"
+    }
+  }
+}

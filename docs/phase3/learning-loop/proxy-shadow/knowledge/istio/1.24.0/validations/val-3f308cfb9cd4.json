@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3f308cfb9cd4",
+    "candidateId": "sc-ce76287c2361",
+    "proposalId": "sp-d448982f496c",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "istio",
+        "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+              "state": "unset"
+            },
+            {
+              "op": "env-var",
+              "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "MESH_EXTERNAL services will use Destination Rule certificates instead of metadata certificates by default. This changes TLS certificate handling behavior for external services unless the environment variable is explicitly set to false.",
+        "remediation": "Set PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES to 'false' to retain the previous metadata certificate behavior.",
+        "severity": "medium"
+      },
+      "statement": "Istio 1.24.0 adds support for using Destination Rule certificates instead of metadata certificates for MESH_EXTERNAL services, controlled via the PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES environment variable."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/behavior-changed",
+        "detail": "env-var behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:env-var/behavior-changed",
+        "detail": "env-var behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

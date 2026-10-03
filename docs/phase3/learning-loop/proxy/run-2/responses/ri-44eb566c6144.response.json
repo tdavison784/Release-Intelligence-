@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-44eb566c6144",
+  "promptDigest": "sha256:b2c8b7474d2944f8c190188226f380351af9dafbf29b5811edd2566d090de501",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "6d213708-6c06-4473-8e02-139d1ea89b9d",
+  "startedAt": "2026-10-02T23:11:53.463Z",
+  "decidedAt": "2026-10-02T23:12:03.355Z",
+  "durationMs": 9043,
+  "costUSD": 0.090536,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-3c60f5b1516b] only says compose function error messages were expanded for cases where an issue with the composite resource is detected. That is runtime-only diagnostic behaviour. The proposed condition matches every environment that uses any v1 Composition or CompositeResourceDefinition, which is too broad: an XRD alone does not run compose functions, and nothing in the evidence names an API version. Whether an environment is exposed depends on whether composition functions actually hit composite-resource errors at runtime, which no static input shows.",
+    "citations": [
+      "ev-3c60f5b1516b"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Compose function error messages are expanded when an issue with the composite resource is detected. An environment is only exposed when such errors happen at runtime, which no static configuration shows.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether composition functions run against composite resources that hit errors at runtime, which is when the expanded error messages appear"
+        }
+      }
+    }
+  }
+}

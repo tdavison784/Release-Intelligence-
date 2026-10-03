@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-35b0d0c23309",
+    "candidateId": "sc-297ce1bc839b",
+    "proposalId": "sp-5bb631d234c2",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "frontend-protobuf-encoding"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Requests wrapped in some envelope format\"",
+        "after": "\"Pure Protobuf requests sent directly\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--frontend.encoding",
+              "component": "frontend",
+              "state": "equals",
+              "values": [
+                "\"protobuf\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Requests from frontend v2 to querier via scheduler are now transmitted as pure Protobuf instead of wrapped when -frontend.encoding=protobuf is configured.",
+        "severity": "low"
+      },
+      "statement": "When -frontend.encoding=protobuf is set, Loki frontend v2 now sends pure Protobuf requests through the scheduler to the querier instead of wrapping them."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

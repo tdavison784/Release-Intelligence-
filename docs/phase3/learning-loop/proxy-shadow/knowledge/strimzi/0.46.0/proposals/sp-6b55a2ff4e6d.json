@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6b55a2ff4e6d",
+    "candidateId": "sc-a8771d6dc75d",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "enable-stable-connect-identities"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.39.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaConnect"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaMirrorMaker2"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators upgrading from Strimzi 0.38 or older with Kafka Connect or Kafka MirrorMaker 2 operands must enable the StableConnectIdentities feature gate and use StrimziPodSets before upgrading.",
+        "remediation": "Before upgrading to Strimzi 0.46.0, enable the StableConnectIdentities feature gate and use StrimziPodSets in the Strimzi 0.38-or-older cluster."
+      },
+      "statement": "Strimzi 0.46.0 requires that, when upgrading from Strimzi 0.38 or older with Kafka Connect or Kafka MirrorMaker 2 operands, the StableConnectIdentities feature gate is enabled and StrimziPodSets are in use before the upgrade."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-17b3774eb9ee"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e56e2cfa8d348d4ecd1c34c8164ae2973a3f015c552a83f0c304f0add4aea1bf",
+      "inputEvidence": [
+        "ev-17b3774eb9ee"
+      ],
+      "generatedAt": "2026-10-02T11:25:59Z",
+      "callId": "26fb3804-a139-45e8-9ecd-4a7c60d42345"
+    }
+  }
+}

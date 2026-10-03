@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-deb2d9954640",
+    "candidateId": "sc-b4d0f27d94a8",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "imagerepository-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "image.toolkit.fluxcd.io",
+          "kind": "ImageRepository"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If the operator does nothing, existing ImageRepository objects remain stored as v1beta2 and the required storage version migration (re-writing all objects and updating status.storedVersions) is left undone before a later release removes v1beta2.",
+        "remediation": "Run the storage version migration for imagerepositories.image.toolkit.fluxcd.io: re-write all ImageRepository objects and update status.storedVersions before upgrading to the later release that removes v1beta2.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of imagerepositories.image.toolkit.fluxcd.io changes from v1beta2 to v1, so existing ImageRepository objects stay stored as v1beta2 until an operator runs a storage version migration (re-writing all objects and updating status.storedVersions) before a later release removes v1beta2."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6314b84538498d7aadda6319db756bd0bdb3c4adeb2b86668e7879a74d747f39",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:13:22Z",
+      "callId": "9884abde-ccc4-4d06-b6ce-bc7d1b17cf8c"
+    }
+  }
+}

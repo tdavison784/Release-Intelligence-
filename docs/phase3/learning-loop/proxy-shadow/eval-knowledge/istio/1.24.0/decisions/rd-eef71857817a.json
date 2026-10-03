@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-eef71857817a",
+    "reviewItemId": "ri-603d3a932a40",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "istio",
+              "state": "in-range",
+              "range": "<=1.21.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "apiextensions.k8s.io",
+              "version": "v1beta1",
+              "kind": "CustomResourceDefinition"
+            }
+          ]
+        }
+      },
+      "statement": "Istio components updated to read v1 CRDs where applicable; no impact for supported version skew, but unsupported clusters running Istio CRDs from 1.21 or older may be affected."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "the Istio release (<1.22.0, i.e. 1.21 or older) that the Istio CRDs installed in the cluster come from"
+        }
+      },
+      "statement": "Istio components now read v1 CRDs where applicable. Only clusters whose installed Istio CRDs come from Istio 1.21 or older (<1.22.0, an unsupported version skew) are exposed. Which Istio version the installed CRDs come from is not visible in static inputs."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:9c5752db1540bfb802a87cdff326317518b08b2c68f1c4835c4fab12e7d20c3f",
+      "inputEvidence": [
+        "ev-9fb93117372e"
+      ],
+      "generatedAt": "2026-10-02T12:57:08.504Z",
+      "callId": "a4dc40cd-e4e4-40a2-b5de-22677f6bf3ea"
+    },
+    "reason": "[ev-9fb93117372e] says the only exposed state is a cluster \"using Istio CRDs from 1.21 or older\". The proposed condition adds a requirement that apiextensions.k8s.io/v1beta1 CustomResourceDefinitions are in use, which the evidence doesn't support: \"v1 CRDs\" means the Istio resource API versions. That extra requirement makes the condition too narrow. Its range \"<=1.21.0\" also leaves out 1.21.x patch releases. What actually decides exposure is which Istio version the installed CRDs come from, which can differ from the version Istio runs today. No static input shows that reliably, so I expressed it as an undecidable condition that names the missing input.",
+    "startedAt": "2026-10-02T12:56:47.864Z",
+    "decidedAt": "2026-10-02T12:57:08.504Z"
+  }
+}

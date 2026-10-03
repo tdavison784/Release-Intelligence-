@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ebb3b7d8c32e",
+    "candidateId": "sc-d73fe5dff82b",
+    "proposalId": "sp-dfc551917433",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "istiod-remote",
+        "name": "istiod-remote"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "istio",
+          "path": "profile",
+          "name": "istio-discovery"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "istiod-remote",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Helm installations referencing the istiod-remote chart must migrate to helm install istio-discovery --set profile=remote before upgrading to 1.24.0.",
+        "severity": "high"
+      },
+      "statement": "The istiod-remote Helm chart has been removed; use helm install istio-discovery --set profile=remote instead."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/removed",
+        "detail": "the subject and change are not both confirmed by an artifact validator (subject inconclusive)"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

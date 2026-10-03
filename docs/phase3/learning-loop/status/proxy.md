@@ -20,6 +20,8 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
 
 - Steps 4 and 6: done (below).
 - Step 5 (shadow pass on high items in `proxy-shadow/`): **waiting for the commander**.
+- Run-2 (the backlog after the semantic-3 / loop merges): in progress, paused by the account
+  session limit; resume scheduled just after the 20:50 CDT reset (see handoff log below).
 
 ## Decisions taken (local)
 
@@ -89,3 +91,49 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
     suggested.
 - Step 5 (shadow pass on the high items, in a copy at `proxy-shadow/`) **waits for the commander**: "the product
   owner has finished the high items".
+
+## GLM handoff log — takeover 2 (2026-10-02 18:23 CDT, glm-5.3 as glm-proxy)
+
+- Took over after the Claude agent paused for another usage-limit window (lane lead held since 18:21).
+- Audited run-2 state: the paused agent had launched it at 18:04 CDT over the 886 pending non-high items
+  (the backlog after the semantic-3 / loop merges). 478 answered: **471 decided** (163 accept / 42 correct /
+  32 reject / 214 need-more-evidence / 20 defer), 7 verdict refusals (6 "correction changes no aspect",
+  1 "an answer that asserts something must cite evidence" — the known open contract question, items stay
+  pending). 5 calls failed with "session limit · resets 8:50pm (America/Chicago)" (never reached the
+  model); the watchdog touched STOP and the runner exited cleanly. 403 items were never called.
+  The 499 modified store files and the ledger were uncommitted.
+- Committed the paused agent's uncommitted shadow-pass prep (`scripts/proxy-shadow-merge.py`,
+  `internal/knowledge/integrity_shadow_test.go`) unchanged after `go build ./... && go vet ./... &&
+  go test ./...` passed; then committed the run-2 WIP store + ledger.
+- Plan: a scheduled step at ~20:52 CDT probes the limit with one cheap call; if open it rotates the run
+  log (so the paused session's stale watchdog, which counts cumulative FAILs, cannot insta-STOP the
+  resume), deletes the 5 session-limit `.failed` markers and the STOP file, and resumes
+  `scripts/proxy-review.sh .ri/proxy-run-2 docs/phase3/learning-loop/proxy/run-2/ledger.jsonl 4` with a
+  fresh 3-new-failures watchdog. If the probe is still closed it reschedules ~30 min later. After the
+  run: proxy-report + metrics + REPORT.md + packaging like run-1, then commit with provenance.
+- Uncertain: nothing new. Open items unchanged: prose-only corrections (now 6 more in run-2, total 17
+  refused-at-recording items pending), `Provenance.Provider`, step 5 waits for the commander.
+
+## proxy-2 (branch `p3ll/proxy-2`, commander order 2026-10-02): Claude resumed 20:52 CDT
+
+- I reviewed GLM takeover 2: the merge script and integrity test are committed unchanged, and the run-2 WIP (471
+  decisions plus the ledger) is committed. Kept. Two corrections to its log:
+  - **Step 5 is no longer waiting.** The commander ordered the shadow pass (proxy-2 brief: run the non-high items in
+    the real store, shadow the high items in a COPY at `proxy-shadow/knowledge/`, build a merged
+    `proxy-shadow/eval-knowledge/` view labelled proxy-incl-shadow, and report).
+  - **The "must cite evidence" refusal is a runner gap, not the prose-only contract question.** The proxy cited only
+    validator artifact evidence. `semantic.ProposalFromAnswer` needs a candidate (upstream) citation, and the
+    runner keeps only those. Fix for a v3 prompt: tell the proxy that a correction must cite at least one UPSTREAM
+    EVIDENCE id. Citations are not invented.
+- Run-2 resumed at 20:52 after the 8:50pm reset: the 5 session-limit markers were cleared (those calls never reached
+  the model) and the log rotated to `proxy-review.log.1`.
+- **proxy-2 DONE (2026-10-02 ~22:30 CDT)**; see [proxy-shadow/REPORT.md](../proxy-shadow/REPORT.md).
+  - Run-2: 866 decisions in the real store, 20 refused, $59.07.
+  - Shadow pass: 538 decisions in the copy, 10 + 2 refused, 87 new proxy facts, $46.76. The real store's 550 high
+    items are untouched.
+  - Eval view: `proxy-shadow/eval-knowledge/` (proxy-incl-shadow, 265 facts).
+  - New: `ri knowledge proxy-agreement` (human vs shadow; 0 overlap today);
+    `internal/knowledge/integrity_shadow_test.go` (blind-authoring scan of both shadow stores).
+  - New knowledge-lane finding: composition proposes facts the domain rejects (migration-required on a gvk subject).
+  - Still open for the commander: prose-only corrections; `Provenance.Provider`.
+  - Later: proxy-vs-human agreement once the product owner finishes.

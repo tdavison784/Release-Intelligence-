@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-eefd0c6e6d0f",
+    "candidateId": "sc-91bdc6129fc9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "strimzi",
+        "name": "UseStrimziPodSets"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.34.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "feature-gate",
+                  "name": "UseStrimziPodSets",
+                  "state": "disabled"
+                },
+                {
+                  "op": "feature-gate",
+                  "name": "UseStrimziPodSets",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "core.strimzi.io",
+                  "version": "v1beta2",
+                  "kind": "StrimziPodSet"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Environments upgrading from Strimzi 0.34 or older must enable the UseStrimziPodSets feature gate and use StrimziPodSet resources before upgrading to 0.46.0."
+      },
+      "statement": "The UseStrimziPodSets feature gate is deprecated; environments upgrading from Strimzi 0.34 or older must enable it and use StrimziPodSet resources before upgrading."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-0fe6816db4bb"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e0ba90d6b46d2ac266f35af7e5d2309c13b73877cca7c02f049ae83e4238684d",
+      "inputEvidence": [
+        "ev-0fe6816db4bb"
+      ],
+      "generatedAt": "2026-10-02T05:58:27Z",
+      "callId": "55c5c23c-21c8-4e1f-a94d-e42030eabedd"
+    }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-fd3003d7466b",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-99be7d150d5d"
+        ],
+        "statementKeys": [
+          "sk-1caf4ef4af0b"
+        ],
+        "changeIds": [
+          "chg-f54820f8d4e4"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-a2b29fc53908"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "pem-data-parse-amount"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "the actual size of TLS trust bundles configured in the environment and whether they previously exceeded the PEM parsing limit"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A parsing limit was increased so larger trust bundles can be read; no operational failure is described."
+      },
+      "statement": "Increase the amount of PEM data `pki.DecodeX509CertificateSetBytes` is able to parse, to enable reading larger TLS trust bundles"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-840a78a11bd1"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-840a78a11bd1"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-181885648287"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-a265b4dfe856"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-db955cc00d69",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+        "locator": "L195-L195 (v1.17.0 › Feature)",
+        "excerpt": "- Increase the amount of PEM data `pki.DecodeX509CertificateSetBytes` is able to parse, to enable reading larger TLS trust bundles ([#7464](https://github.com/cert-manager/cert-manager/pull/7464), [@SgtCoDFish](https://github.com/SgtCoDFish))",
+        "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:01:12.36Z"
+  }
+}

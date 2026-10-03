@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-7a7610e69f29",
+  "promptDigest": "sha256:323ea51b1f370f7093f6de575e6c0dc341fa5099cd65371f23a9902a62bb8937",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "756795eb-9fb1-489f-8601-025c77024449",
+  "startedAt": "2026-10-03T02:22:31.846Z",
+  "decidedAt": "2026-10-03T02:22:45.071Z",
+  "durationMs": 12382,
+  "costUSD": 0.07337199999999999,
+  "output": {
+    "action": "correct",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "reason": "[ev-7482c113b845] and [ev-6c38c9ee7078] say the `endpoint.tls.CAOptional` option for both the ConsulCatalog and Nomad providers \"has been removed in v3\" and should be removed from static configuration. So a configured value stops being honoured, and setting-ignored (mandatory work) is the right kind. The evidence does not say whether a leftover key is silently ignored or rejected at startup. I therefore restated the consequence in the evidence's own terms rather than \"will be ignored\", and lowered severity from high to medium because the evidence gives nothing that supports high.",
+    "citations": [
+      "ev-7482c113b845",
+      "ev-6c38c9ee7078"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "The endpoint.tls.caOptional option of the ConsulCatalog and Nomad providers has been removed in v3; a value configured there is no longer honoured, as TLS client authentication is a server-side option.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "statement": "An endpoint.tls.caOptional value set in the ConsulCatalog or Nomad provider static configuration (file or CLI) is no longer honoured in v3 because the option has been removed.",
+        "remediation": "Remove the endpoint.tls.caOptional option from the ConsulCatalog and Nomad provider static configuration.",
+        "severity": "medium"
+      }
+    }
+  }
+}

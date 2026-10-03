@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9e83d4fd5d92",
+    "reviewItemId": "ri-7b24f8c88d05",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:40ffb800a7db8e69178304f883c56ef21a9e15822f1c3c8c1cd13951718236ce",
+      "inputEvidence": [
+        "ev-acec48f57273"
+      ],
+      "generatedAt": "2026-10-02T13:00:45.964Z",
+      "callId": "6419f8e3-59fb-4ee3-a1ce-82fa3a33a983"
+    },
+    "reason": "The only evidence is one changelog line [ev-acec48f57273], which says Kafka node certificates are now stored in separate Secrets, one per pod. It does not describe the previous layout. It does not say whether the old shared Secret is kept or removed, or whether anything that reads the old Secret stops working. Without that, the evidence cannot show whether this is a behavior-change that keeps working or a failure kind, such as a workload-failure for consumers of the old Secret. Accepting behavior-change could hide a real failure, and three of the four proposals left the consequence undetermined for this reason. Deciding needs the upgrade notes or docs for this change, giving the old Secret name, whether it is removed, and the impact on external consumers.",
+    "startedAt": "2026-10-02T13:00:32.787Z",
+    "decidedAt": "2026-10-02T13:00:45.964Z"
+  }
+}

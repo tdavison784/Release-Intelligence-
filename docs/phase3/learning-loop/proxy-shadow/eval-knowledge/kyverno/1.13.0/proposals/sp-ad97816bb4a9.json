@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ad97816bb4a9",
+    "candidateId": "sc-58a03c7aeac6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.rules[].verifyImages.items.properties.validate"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.rules[].verifyImages",
+              "state": "set"
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "ClusterPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kyverno policies using verifyImages rules can now include validate conditions to validate across multiple image verification attestations or context entries."
+      },
+      "statement": "A validate field was added to the verifyImages schema in the ClusterPolicy and Policy CRDs across API versions v1 and v2beta1 in both spec.rules[].verifyImages and status.autogen.rules[].verifyImages."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-a5eba5775d07",
+      "ev-4cd26225bffa",
+      "ev-52c07595c637",
+      "ev-54749e1a631c",
+      "ev-8dbdd0d2ff64",
+      "ev-e8169ff3d009",
+      "ev-892e45421732",
+      "ev-72f16d281831"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:d308d395bc00876c6ce84b544f77d591279ede6202aa827c299f2b1e955822e7",
+      "inputEvidence": [
+        "ev-b9ece170da60",
+        "ev-a5eba5775d07",
+        "ev-4cd26225bffa",
+        "ev-52c07595c637",
+        "ev-54749e1a631c",
+        "ev-8dbdd0d2ff64",
+        "ev-e8169ff3d009",
+        "ev-892e45421732",
+        "ev-72f16d281831"
+      ],
+      "generatedAt": "2026-10-02T16:13:51Z",
+      "callId": "51436b84-f310-41fe-ab2d-9974f8149bdd"
+    }
+  }
+}

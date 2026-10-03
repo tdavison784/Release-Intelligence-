@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c7da4fcb17f5",
+    "reviewItemId": "ri-36a9207b7194",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "consul",
+          "state": "in-range",
+          "range": ">=1.0.0"
+        }
+      },
+      "statement": "Support for Consul state synchronization, deprecated since v1.12, is removed and no longer available."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "the Cilium configuration key, flag or Helm value that selects Consul (e.g. as the kvstore backend), and whether this environment sets it"
+        }
+      },
+      "statement": "Cilium 1.17.0 removes support for Consul (deprecated since v1.12). Exposed: environments whose Cilium is configured to use Consul. The release notes do not name the setting that selects Consul, so exposure is undecidable from the evidence."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:baf7784c6ced8ee80fa2289ba1e37fad5e6300c7119d3b8ca08f30a2f45b27e6",
+      "inputEvidence": [
+        "ev-ddf5fd344d03"
+      ],
+      "generatedAt": "2026-10-03T02:15:40.922Z",
+      "callId": "cec37de9-bec8-4d07-b39d-b6300f4059f1"
+    },
+    "reason": "[ev-ddf5fd344d03] says only that Cilium's support for Consul has been removed. Customers are exposed only if they configured Cilium to use Consul, not just because a Consul product runs in their environment. The proposed condition (any Consul version >=1.0.0 present) is therefore too broad and would flag unaffected environments. The evidence does not name the config key, flag or value that selects Consul, so exposure can't be written as a predicate and has to be marked undecidable.",
+    "startedAt": "2026-10-03T02:15:29.246Z",
+    "decidedAt": "2026-10-03T02:15:40.922Z"
+  }
+}

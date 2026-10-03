@@ -1,0 +1,45 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1eb0537a3402",
+  "promptDigest": "sha256:9e6a2280ab53c6bed6911725e1543c57b79e2ca28865c3960099c044278f118c",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "3c64d1b4-0a0e-484b-a2b5-c85575722365",
+  "startedAt": "2026-10-03T02:12:58.061Z",
+  "decidedAt": "2026-10-03T02:13:11.808Z",
+  "durationMs": 12915,
+  "costUSD": 0.1034916,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-56c06982a6c5] and [ev-b01406e79da0] show that in 1.12.6 the CRD already served v2 (storage false) next to v2beta1 (storage true), and that 1.13.0 flips storage to v2. So every ClusterCleanupPolicy that exists before the upgrade is stored as v2beta1, whichever API version its manifest uses. The proposed exposure, gvk-in-use limited to v2beta1, is too narrow: it misses environments whose manifests already use v2. The exposure should be any use of ClusterCleanupPolicy when upgrading from a version below 1.13.0.",
+    "citations": [
+      "ev-56c06982a6c5",
+      "ev-b01406e79da0"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "From 1.12.6 to 1.13.0, the storage version of clustercleanuppolicies.kyverno.io moves from v2beta1 to v2. Any environment with ClusterCleanupPolicy objects (in any served API version) that upgrades from a version below 1.13.0 has objects stored as v2beta1. They need a storage version migration and a status.storedVersions update.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "kyverno.io",
+              "kind": "ClusterCleanupPolicy"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.13.0"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

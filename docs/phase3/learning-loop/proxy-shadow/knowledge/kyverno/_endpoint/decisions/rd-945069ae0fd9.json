@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-945069ae0fd9",
+    "reviewItemId": "ri-94b35decc9e2",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "clustercleanuppolicies-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "From 1.12.6 to 1.13.0, the storage version of the clustercleanuppolicies.kyverno.io CRD moves from v2beta1 to v2, so existing ClusterCleanupPolicy objects need a storage version migration and a status.storedVersions update before v2beta1 is removed in a later release."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:3be3e683271730473bb7982fe67ee71731e8f80fac24e21eb31aa7e8c439acec",
+      "inputEvidence": [
+        "ev-7b96a5794081",
+        "ev-495a542d4d66",
+        "ev-8ed706991976",
+        "ev-64e559957f23",
+        "ev-b3d07020d879",
+        "ev-b077d5605267",
+        "ev-a4c10d98e48c",
+        "ev-6032b12f614d",
+        "ev-6644b79acdaf",
+        "ev-e4d8d307c8bd",
+        "ev-c7493c8ebf56",
+        "ev-72ae67cf1bd1",
+        "ev-f4eb4632dd60",
+        "ev-ff8bc99281a6",
+        "ev-904a58b60df3",
+        "ev-0b95f4d8b2b8",
+        "ev-043bcc5e9e57",
+        "ev-e6f72293517f",
+        "ev-3f8a3adffa22",
+        "ev-fd8deebe9622",
+        "ev-f5ab4321b780",
+        "ev-d55bb7c165b2",
+        "ev-388d68569c8a",
+        "ev-ab4f180a917e",
+        "ev-705a5952643c",
+        "ev-8acbbd901b75",
+        "ev-5714a6388637",
+        "ev-0ab8730da6d7",
+        "ev-b01406e79da0",
+        "ev-56c06982a6c5",
+        "ev-094d5d8b0291",
+        "ev-f0f21b325fa6",
+        "ev-cf5b10ff8047",
+        "ev-d3850c78b94e"
+      ],
+      "generatedAt": "2026-10-03T02:25:43.806Z",
+      "callId": "77c5e5a5-d831-43f0-b2b6-44bed6b66e5f"
+    },
+    "reason": "[ev-b01406e79da0] and [ev-56c06982a6c5] show that the clustercleanuppolicies.kyverno.io CRD's storage moves from v2beta1 (true→false) to v2 (false→true) between 1.12.6 and 1.13.0. The change text says existing objects stay stored as v2beta1 until rewritten and that a storage version migration must be run before v2beta1 is removed. That operator step belongs in the migration family with change type migration-required. The name has to include clustercleanuppolicies because other CRDs also change storage version in this release ([ev-5714a6388637], [ev-094d5d8b0291], [ev-d3850c78b94e]).",
+    "startedAt": "2026-10-03T02:25:31.035Z",
+    "decidedAt": "2026-10-03T02:25:43.806Z",
+    "resultingFact": "vf-68bcabd89705"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-66a5800897cc",
+    "reviewItemId": "ri-47af6404afc6",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cluster-version",
+          "name": "traefik",
+          "state": "in-range",
+          "range": ">=3.0.0"
+        }
+      },
+      "statement": "Traefik 3.0.0 adds a Tailscale certificate resolver as a new capability."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:562e0ba0c7e15f876d7e8856528f6ca8ec6ce0669d00dadc3bc96b4a087f1b9a",
+      "inputEvidence": [
+        "ev-7d645bb4f295"
+      ],
+      "generatedAt": "2026-10-02T23:12:17.059Z",
+      "callId": "29c103ba-ef87-46e7-8fad-b0152a480932"
+    },
+    "reason": "[ev-7d645bb4f295] only lists the Tailscale certificate resolver as a new enhancement in 3.0.0. It names no configuration key and says nothing about existing setups being affected. The proposed exposure misuses cluster-version, which is meant for the platform version, to test Traefik's own version. That would flag every environment on 3.0.0 or later, which is far broader than any real exposure. No narrower, evidence-backed condition follows from the excerpt, because a new optional resolver does not expose any existing environment.",
+    "startedAt": "2026-10-02T23:12:08.537Z",
+    "decidedAt": "2026-10-02T23:12:17.059Z"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-af1dbc95623a",
+    "candidateId": "sc-2998e289998d",
+    "proposalId": "sp-e9635222f161",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "empty-env-vars-passed-to-cmp-plugins"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"empty environment variables are passed to plugins as ARGOCD_ENV_\\u003cNAME\\u003e=\\\"\\\"\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.source.plugin.env",
+              "state": "set"
+            }
+          ],
+          "group": "argoproj.io",
+          "kind": "Application"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Plugin env entries with empty values are now passed to the plugin as empty environment variables, which may change plugin behavior.",
+        "severity": "low"
+      },
+      "statement": "In Argo CD 3.0, plugin env entries with empty values are now passed to config management plugins (e.g. ARGOCD_ENV_DATA=\"\") instead of being omitted."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

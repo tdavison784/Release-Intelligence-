@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-9b9cfa5c9f5f",
+    "product": "cert-manager",
+    "release": "1.18.0",
+    "anchors": [
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-10b3d9d1aec5"
+        ],
+        "statementKeys": [
+          "sk-3faa15504c98"
+        ],
+        "changeIds": [
+          "chg-a726b336f865"
+        ]
+      },
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-6ac72496d3e0"
+        ],
+        "statementKeys": [
+          "sk-ab3b668136ca"
+        ],
+        "changeIds": [
+          "chg-0e1cdbe373a9"
+        ]
+      },
+      {
+        "release": "1.18.0",
+        "evidenceKeys": [
+          "ek-98ec328ca971"
+        ],
+        "statementKeys": [
+          "sk-d6817360f09b"
+        ],
+        "changeIds": [
+          "chg-fa4ce35f9a12"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-0564d2273368"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.privateKey.rotationPolicy"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"Never\"",
+        "after": "\"Always\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.privateKey.rotationPolicy",
+              "state": "unset"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.privateKey.rotationPolicy",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Certificate resources that do not explicitly set spec.privateKey.rotationPolicy will now default to Always, so re-issuing a certificate (e.g. via `cmctl renew`) will generate a new private key where it previously reused the old one; the change still functions but with different semantics for every Certificate relying on the old default.",
+        "remediation": "To preserve the old behavior, explicitly set `rotationPolicy: Never` on Certificate resources, or turn off the feature gate in this release and explicitly set `rotationPolicy: Never` on all Certificates before release 1.19 (in 1.19 the feature is GA and the gate can no longer be turned off).",
+        "severity": "medium"
+      },
+      "statement": "We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`. > 📖 Read Release 1.18 notes for more information."
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-7525eb69cfe5",
+          "val-9c6530d9fab0"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "consensus",
+        "basis": [
+          "sp-09407556c851",
+          "sp-0db89403a455",
+          "sp-d562278c8028",
+          "sp-eb5b8e91a9d0"
+        ],
+        "consensus": "cross-model"
+      },
+      {
+        "aspect": "applicability",
+        "level": "consensus",
+        "basis": [
+          "sp-0db89403a455",
+          "sp-d562278c8028",
+          "sp-eb5b8e91a9d0"
+        ],
+        "consensus": "cross-model"
+      },
+      {
+        "aspect": "consequence",
+        "level": "consensus",
+        "basis": [
+          "sp-0db89403a455",
+          "sp-d562278c8028",
+          "sp-eb5b8e91a9d0"
+        ],
+        "consensus": "cross-model"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9a2f8d3ec5e9",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/upgrading/upgrading-1.17-1.18.md",
+        "locator": "L8-L10",
+        "excerpt": "1. We have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`.\n\n   > 📖 Read [Release 1.18 notes](../release-notes/release-notes-1.18.md) for more information..",
+        "contentDigest": "sha256:b912bc94a476c562fe0ac9b77e0af0c4974bc90e9a994e84b5dcb41bcaf37e03",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-c92478af13c4",
+        "kind": "document",
+        "sourceId": "website-major-themes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L109-L148 (Major Themes › The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`)",
+        "excerpt": "### The default value of `Certificate.Spec.PrivateKey.RotationPolicy` is now `Always`\n\n> ⚠️ Breaking change\n\nWe have changed the default value of `Certificate.Spec.PrivateKey.RotationPolicy` from `Never` to `Always`.\n\nWhy? Because the old default was unintuitive and insecure.\nFor example, if a private key is exposed, users may (reasonably) assume that\nre-issuing a certificate (e.g. using `cmctl renew`) will generate a new private\nkey, but it won't unless the user has explicitly set `rotationPolicy: Always` on the Certificate resource.\n\nThis change is feature gated and is enabled by default…",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-cf14b14073be",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.18.md",
+        "locator": "L338-L338 (v1.18.0 › Feature)",
+        "excerpt": "- The default value of `Certificate.Spec.PrivateKey.RotationPolicy` changed from `Never` to `Always`. ([`#7723`](https://github.com/cert-manager/cert-manager/pull/7723), [`@wallrj`](https://github.com/wallrj))",
+        "contentDigest": "sha256:2d13485df448ff795f93c41ad450763a8da3e545cfd547c85aed67626912c52a",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-60054fcf0986",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:af6faeb6b75a13a70d0ac7f5db2b5b694f8cb9023c54bfbafd4d7d2fd95846d3",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-9b6164ce0df7",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.18.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:6c8d7fc0e16acf6a50a61b3ff2827d0a3ef95300de8f7fd1d2aa5f55b600a6ab",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:07:45Z"
+      }
+    ],
+    "status": "active",
+    "autoApproved": true,
+    "createdAt": "2026-10-02T11:37:33Z"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-64fe140fdb88",
+    "candidateId": "sc-d5050bdcb468",
+    "proposalId": "sp-1e88b5000e9d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "version": "v1",
+        "kind": "Composition",
+        "path": "spec.mode"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"Resources\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.mode",
+              "state": "equals",
+              "values": [
+                "\"Resources\""
+              ]
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "kind": "Composition"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Compositions with spec.mode set to \"Resources\" are rejected by the API server because that enum value was removed from the v1 schema.",
+        "remediation": "Migrate affected Compositions to a remaining supported spec.mode value before upgrading.",
+        "severity": "high"
+      },
+      "statement": "The Composition apiextensions.crossplane.io/v1 schema no longer allows the enum value \"Resources\" for spec.mode, so the API server rejects it."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

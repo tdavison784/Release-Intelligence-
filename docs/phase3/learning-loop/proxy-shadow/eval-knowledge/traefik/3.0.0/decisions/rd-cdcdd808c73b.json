@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-cdcdd808c73b",
+    "reviewItemId": "ri-77007a789002",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "metrics.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "tracing.addInternals",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "statement": "In v3, observability (access logs, metrics, tracing) for internal routers/services such as ping@internal is disabled by default and must be enabled with the new addInternals option."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the Helm values paths (if any) carrying addInternals for Metrics and Tracing, and whether they are unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "logs.access.addInternals",
+          "state": "set"
+        }
+      },
+      "statement": "In Traefik v3, observability for internal routers/services (e.g. ping@internal) is disabled by default; it is exposed wherever addInternals is not set for any of AccessLogs (logs.access.addInternals), Metrics or Tracing, each independently."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:07278d5b800ced8871650e2fb2af60e6eebd179180547f3a9798465f6530e5bb",
+      "inputEvidence": [
+        "ev-093b8f2b924f",
+        "ev-3bdc943d6be1",
+        "ev-bb4a9dd096f3"
+      ],
+      "generatedAt": "2026-10-02T23:18:58.045Z",
+      "callId": "c1844106-f3e4-40f9-8103-bd1ff7875900"
+    },
+    "reason": "[ev-093b8f2b924f] says internal-resource observability is disabled by default in v3 and is re-enabled separately for AccessLogs, Metrics or Tracing via addInternals. Each signal is affected independently, so exposure is when any of them is left unset, not only when all are; the proposed 'all' misses exposed environments. Only logs.access.addInternals is shown to be a chart values key [ev-3bdc943d6be1, ev-bb4a9dd096f3]. The evidence does not show the metrics and tracing Helm paths, so those are expressed as undecidable rather than guessed.",
+    "startedAt": "2026-10-02T23:18:37.94Z",
+    "decidedAt": "2026-10-02T23:18:58.045Z"
+  }
+}

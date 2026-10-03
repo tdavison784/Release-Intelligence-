@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-7605c380b3f2",
+    "reviewItemId": "ri-2bdd4c5624b8",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The User Operator no longer fails when the Cluster CA certificate Secret is missing in non-TLS configurations."
+      },
+      "statement": "The standalone User Operator was updated to gracefully handle the Cluster CA certificate Secret being absent when TLS is not needed."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The standalone User Operator now handles a missing Cluster CA cert Secret when TLS is not needed. The evidence states no previous failure and no operator action is required.",
+        "severity": "low"
+      },
+      "statement": "In Strimzi 0.46.0 the standalone User Operator handles the Cluster CA cert Secret being missing when TLS is not needed. The changelog describes no failure, rejection or required operator action."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:b48a64a4a4767e92f5b34bdc64fc29b4eac9fd2719dbcda903ae43fe43f3d0d6",
+      "inputEvidence": [
+        "ev-35ea1afad43d"
+      ],
+      "generatedAt": "2026-10-02T12:50:53.241Z",
+      "callId": "a288bdbb-457d-4417-a4c0-cecf2eed3a08"
+    },
+    "reason": "[ev-35ea1afad43d] only says the standalone User Operator was updated to handle a missing Cluster CA cert Secret when TLS is not needed. It does not say anything fails, is rejected or needs operator action, so a failure kind is not supported and \"none\" (informational) is the defensible kind. However, the proposed statement says the operator \"no longer fails\". The evidence never states the previous behaviour, so the statement must be limited to what the changelog says.",
+    "startedAt": "2026-10-02T12:50:43.386Z",
+    "decidedAt": "2026-10-02T12:50:53.241Z"
+  }
+}

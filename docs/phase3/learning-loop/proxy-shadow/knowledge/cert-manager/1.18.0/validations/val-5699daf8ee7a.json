@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5699daf8ee7a",
+    "candidateId": "sc-a7ff62a3be31",
+    "proposalId": "sp-859143e5cd2e",
+    "validator": "semvalidate.compat@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "operatorhub"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "operatorhub",
+              "state": "in-range",
+              "range": ">=1.0.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "operators.coreos.com",
+              "kind": "Subscription"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments using OperatorHub or Operator Lifecycle Manager (OLM) to deploy or update cert-manager can no longer obtain versions beyond v1.16.5 from those sources; updates must switch to alternative distribution methods.",
+        "remediation": "Switch to alternative cert-manager installation methods (Helm, direct manifests, or cloud-provider distributions) for versions after v1.16.5.",
+        "severity": "high"
+      },
+      "statement": "cert-manager no longer publishes packages to OperatorHub, with v1.16.5 being the last release available on OperatorHub and the cert-manager-olm repository archived."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "compatibility:row",
+        "detail": "no compatibility row for operatorhub in either release"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "compatibility:removed",
+        "detail": "only a requirement-changed change is decidable from compatibility rows"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

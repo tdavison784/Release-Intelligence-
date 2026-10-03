@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ec0d22635ca2",
+    "candidateId": "sc-9372be2b14b1",
+    "proposalId": "sp-4d141f3f662a",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "traefik",
+        "group": "traefik.io",
+        "version": "v1alpha1",
+        "kind": "Middleware",
+        "path": "spec.forwardAuth.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.forwardAuth.tls.caOptional",
+              "state": "set"
+            }
+          ],
+          "group": "traefik.io",
+          "version": "v1alpha1",
+          "kind": "Middleware"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ForwardAuth middleware resources with the `tls.caOptional` field set will be rejected during validation as this field no longer exists in the v1alpha1 Middleware schema.",
+        "severity": "high"
+      },
+      "statement": "The `tls.caOptional` option has been removed from the ForwardAuth middleware and from the HTTP, Consul, Etcd, Redis, ZooKeeper, Consul Catalog, and Docker providers."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/removed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/removed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

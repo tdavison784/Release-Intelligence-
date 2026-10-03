@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1b22a692182d",
+    "candidateId": "sc-5b167d635249",
+    "proposalId": "sp-3890c388cf1b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "strimzi",
+        "name": "ContinueReconciliationOnManualRollingUpdateFailure"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"enabled\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "ContinueReconciliationOnManualRollingUpdateFailure",
+          "state": "disabled"
+        },
+        "overlap": {
+          "op": "feature-gate",
+          "name": "ContinueReconciliationOnManualRollingUpdateFailure",
+          "state": "enabled"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments that had the ContinueReconciliationOnManualRollingUpdateFailure feature gate disabled will have it permanently enabled after the upgrade, since it is no longer possible to disable it.",
+        "remediation": "No operator step can keep the gate disabled; verify that the now-permanently-enabled gate behavior is acceptable.",
+        "severity": "low"
+      },
+      "statement": "The ContinueReconciliationOnManualRollingUpdateFailure feature gate moves to GA stage and is permanently enabled without the possibility to disable it."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/behavior-changed",
+        "detail": "feature-gate behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/behavior-changed",
+        "detail": "feature-gate behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

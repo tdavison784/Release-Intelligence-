@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-aa3bf719a0ad",
+    "candidateId": "sc-3bc79c41ad32",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "version": "v2",
+        "kind": "CompositeResourceDefinition",
+        "path": "spec.scope"
+      },
+      "change": {
+        "type": "added",
+        "after": "\"Namespaced\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.scope",
+              "state": "unset"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "version": "v2",
+          "kind": "CompositeResourceDefinition"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.scope",
+              "state": "set"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "version": "v2",
+          "kind": "CompositeResourceDefinition"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "XRDs using the v2 API without an explicit scope default to Namespaced XRs, which keep Crossplane fields under spec.crossplane and do not support claims; v1 XRDs default to LegacyCluster and keep claims.",
+        "remediation": "Set scope explicitly (Cluster or LegacyCluster) if cluster-scoped or claim-based XRs are needed.",
+        "severity": "medium"
+      },
+      "statement": "The v2 CompositeResourceDefinition API adds a spec.scope field that defaults to Namespaced, so XRs are namespaced by default (v1 XRDs default to LegacyCluster)."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4b260bcbe57b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0062f7844465b4304850b51343af6959962045693bd177029bcd6687ffdd51e4",
+      "inputEvidence": [
+        "ev-4b260bcbe57b"
+      ],
+      "generatedAt": "2026-10-02T21:01:18Z",
+      "callId": "6f8ffa71-c60d-451f-b177-d29c93b1fd33"
+    }
+  }
+}

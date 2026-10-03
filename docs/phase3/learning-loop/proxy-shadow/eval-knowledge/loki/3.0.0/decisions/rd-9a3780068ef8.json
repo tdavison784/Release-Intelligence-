@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9a3780068ef8",
+    "reviewItemId": "ri-63cdf26dd0d0",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--config.file",
+              "component": "promtail",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "PROMTAIL_CONFIG",
+              "component": "promtail",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 adds support for AWS WAF logs stored in S3 to Lambda-Promtail."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:75e00387992323a775865c1959c26f45896b40c233aedbdc14703d1ef0044ce3",
+      "inputEvidence": [
+        "ev-c63a71bf0be5"
+      ],
+      "generatedAt": "2026-10-02T23:16:00.338Z",
+      "callId": "74d59e7d-a3c5-4318-8403-0a03929f6ac8"
+    },
+    "reason": "[ev-c63a71bf0be5] only says that Lambda-Promtail gained support for WAF logs in S3. That is an additive, opt-in feature, and the evidence names no flag, key or configuration that would expose an environment. The proposed condition matches any promtail that has --config.file or PROMTAIL_CONFIG set. That is far too broad: it would flag almost every standard promtail deployment, which is not Lambda-Promtail and is not affected by a new log source. The evidence supports no correct exposure predicate, so no correction can be derived.",
+    "startedAt": "2026-10-02T23:15:53.545Z",
+    "decidedAt": "2026-10-02T23:16:00.338Z"
+  }
+}

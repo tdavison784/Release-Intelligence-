@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d27dfe59b765",
+    "candidateId": "sc-6069811be30d",
+    "proposalId": "sp-7c3a90a629cc",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Deployment"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "MTU changes on network devices are now detected continuously without requiring agent restart; this improves operational flexibility but represents a change in runtime behavior.",
+        "severity": "low"
+      },
+      "statement": "MTU auto-detection is now continuous during agent lifetime; changing device MTU no longer requires restarting the agent to pick up the new MTU."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

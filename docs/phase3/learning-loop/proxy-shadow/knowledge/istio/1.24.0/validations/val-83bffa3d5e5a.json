@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-83bffa3d5e5a",
+    "candidateId": "sc-e08e8f654c47",
+    "proposalId": "sp-0c95e085116d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "ambient-hostnetwork-handling"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.hostNetwork",
+                      "state": "equals",
+                      "values": [
+                        "true"
+                      ]
+                    }
+                  ],
+                  "kind": "Pod"
+                }
+              ]
+            },
+            {
+              "op": "feature-gate",
+              "name": "ambient",
+              "state": "enabled"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Pods with hostNetwork enabled are now properly handled in ambient mode instead of being ignored.",
+        "severity": "medium"
+      },
+      "statement": "An issue causing pods with hostNetwork enabled to be ignored in Istio ambient mode has been fixed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

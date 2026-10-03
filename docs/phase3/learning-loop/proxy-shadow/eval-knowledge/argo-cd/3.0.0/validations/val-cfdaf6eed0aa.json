@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cfdaf6eed0aa",
+    "candidateId": "sc-7f1597f2f593",
+    "proposalId": "sp-ec09a2114127",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "cluster-error-message-output"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"full cluster object in error message\"",
+        "after": "\"cluster URL in error message\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "argo-cd",
+              "state": "in-range",
+              "range": ">=3.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Error messages will contain cluster URL instead of the full cluster object, which may affect log parsing or debugging workflows that expect the full object details.",
+        "severity": "low"
+      },
+      "statement": "Error messages in Argo CD will return the cluster URL instead of the full cluster object."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

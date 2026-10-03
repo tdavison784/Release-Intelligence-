@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-200e1161d5eb",
+  "promptDigest": "sha256:fea3c9a7035c63895adbc01856aa2859887daf87191884f26a6e54b80146d2c6",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "e21fd804-5750-44e3-89e6-8d74748de789",
+  "startedAt": "2026-10-03T02:13:02.446Z",
+  "decidedAt": "2026-10-03T02:13:11.010Z",
+  "durationMs": 7593,
+  "costUSD": 0.08846399999999999,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-f0e757e54820] says the `istioctl profile` command was removed. That is an operator-side CLI subcommand, not a container argument of Istio's workloads. A cli-flag leaf named \"profile\" checks the wrong thing: it would almost never match, and it would miss the environments that are actually exposed. Those are environments where people, scripts or CI pipelines run `istioctl profile`, and no configuration or manifest shows that, so exposure has to be undecidable.",
+    "citations": [
+      "ev-f0e757e54820"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "The `istioctl profile` command was removed in Istio 1.24.0. Exposure depends on whether operators, scripts or CI run `istioctl profile`, and no configuration or manifests show that.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether operator scripts, CI pipelines or runbooks invoke the `istioctl profile` subcommand (client-side CLI usage, not visible in cluster configuration or Helm values)"
+        }
+      }
+    }
+  }
+}

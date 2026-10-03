@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-936f238d2f21",
+    "candidateId": "sc-23b472cbf6b3",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "querier.worker-parallelism"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "loki",
+          "name": "querier.max-concurrent"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "querier.worker-parallelism",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The removed `querier.worker-parallelism` flag/yaml setting is no longer honoured; concurrency should be limited with `querier.max-concurrent`.",
+        "remediation": "Remove querier.worker-parallelism and configure querier.max-concurrent to limit max concurrent requests processed by queriers.",
+        "severity": "medium"
+      },
+      "statement": "The `querier.worker-parallelism` CLI flag and its yaml setting are removed in Loki 3.0.0; configure `querier.max-concurrent` instead."
+    },
+    "citations": [
+      "ev-9f4292160fa2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:449adbc181d763485c702a699ea8e7be777537372c046596d071fc0cc72c4807",
+      "inputEvidence": [
+        "ev-9f4292160fa2"
+      ],
+      "generatedAt": "2026-10-02T20:55:15Z",
+      "callId": "1c959d5e-494c-40ac-b74c-5f8af36b9d64"
+    }
+  }
+}

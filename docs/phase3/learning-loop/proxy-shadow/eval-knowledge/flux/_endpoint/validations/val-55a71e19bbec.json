@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-55a71e19bbec",
+    "candidateId": "sc-1007e5d829a0",
+    "proposalId": "sp-85d55ba8e865",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "storage-version-migration",
+        "component": "imageupdateautomations.image.toolkit.fluxcd.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "image.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "ImageUpdateAutomation"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImageUpdateAutomation objects stay stored as v1beta2 until rewritten; a storage version migration must be run and status.storedVersions updated before a later release removes v1beta2.",
+        "remediation": "Re-write all ImageUpdateAutomation objects and update status.storedVersions on the CRD.",
+        "severity": "medium"
+      },
+      "statement": "The ImageUpdateAutomation CRD storage version changes from v1beta2 to v1, so existing objects stay stored as v1beta2 until a storage version migration is run and status.storedVersions is updated before a later release removes v1beta2."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

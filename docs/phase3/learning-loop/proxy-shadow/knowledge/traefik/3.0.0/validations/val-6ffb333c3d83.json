@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6ffb333c3d83",
+    "candidateId": "sc-f5465c1ac883",
+    "proposalId": "sp-706089db419f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "spiffe-mtls-backend"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--spiffe",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "the specific configuration keys, Helm values, CRD fields, or CLI flags used to enable SPIFFE mTLS support"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "SPIFFE mTLS support is a new optional feature; existing configurations without SPIFFE mTLS continue to operate unchanged."
+      },
+      "statement": "Traefik 3.0.0 adds support for SPIFFE mTLS between Traefik and backend servers."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/added",
+        "detail": "no canonical exposure condition for protocol-behavior added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

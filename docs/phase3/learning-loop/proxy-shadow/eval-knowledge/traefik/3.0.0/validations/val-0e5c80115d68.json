@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0e5c80115d68",
+    "candidateId": "sc-141ad9d4fd78",
+    "proposalId": "sp-ecdf369701a4",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "traefik",
+        "name": "--nomad.namespace"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "cli-flag",
+          "product": "traefik",
+          "name": "--nomad.namespaces"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--nomad.namespace",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "nomad.namespace",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will not start if the Nomad provider namespace option is configured.",
+        "severity": "critical"
+      },
+      "statement": "The Nomad provider `namespace` configuration option was removed in v3.0.0 and must be replaced with `namespaces`."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "cli-flag:traefik|name=--nomad.namespace: source render absent, target render absent — not visible with chart defaults"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/removed",
+        "detail": "cli-flag:traefik|name=--nomad.namespace: source render absent, target render absent — not visible with chart defaults"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

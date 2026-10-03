@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-526a85376833",
+    "candidateId": "sc-4db4d2628f85",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "rbac-permission",
+          "product": "istio",
+          "name": "gateway.networking.k8s.io/gateway-name"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "metadata.labels[\"istio.io/gateway-name\"]",
+              "state": "set"
+            }
+          ],
+          "group": "networking.k8s.io",
+          "kind": "Gateway"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Resources using the istio.io/gateway-name label will no longer be honored; the label is removed and must be replaced with gateway.networking.k8s.io/gateway-name.",
+        "severity": "high"
+      },
+      "statement": "The istio.io/gateway-name label has been removed; use gateway.networking.k8s.io/gateway-name instead."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The evidence refers to a Kubernetes label, but the subject family taxonomy does not have a direct mapping for resource labels. This could be modeled as a crd-field, rbac-permission, or a custom metadata field, but the evidence does not specify the exact family.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-cb880878ba69"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9c76315a3659f07047df4fe403785ca7103e207e1158b2cadf479d69837c2353",
+      "inputEvidence": [
+        "ev-cb880878ba69"
+      ],
+      "generatedAt": "2026-10-02T06:03:41Z",
+      "callId": "b1cd6610-9e41-4828-bad6-57714a0975e5"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-9775b89a7e82",
+    "reviewItemId": "ri-e744e528e54a",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether dashboards, alerts or scrapers query the old metric names"
+        }
+      },
+      "statement": "Prometheus metric name prefixes were renamed: crossplane_composition_controllers_* to engine_controllers_*, crossplane_composition_watches_* to engine_watches_*, and crossplane_composition_run_function_* to function_run_function_*."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:42491f8b1f50a23106603403df4c6783fa6f4bd06e179ce42937d5e785bc7cdf",
+      "inputEvidence": [
+        "ev-c3df0dece271"
+      ],
+      "generatedAt": "2026-10-03T02:05:04.081Z",
+      "callId": "b7eba86a-fc1c-4ab0-862e-6d16704ff779"
+    },
+    "reason": "[ev-c3df0dece271] says three Prometheus metric families were renamed (crossplane_composition_controllers_* → engine_controllers_*, crossplane_composition_watches_* → engine_watches_*, crossplane_composition_run_function_* → function_run_function_*). Only environments whose dashboards, alerts or scrapers query the old names are exposed. Those consumers sit outside the product's Helm values, manifests and rendered objects, so no static predicate fully captures them. A PrometheusRule-only check would be too narrow because it misses dashboards and external scrapers. The undecidable exposure with environment-visibility-gap is therefore the right condition.",
+    "startedAt": "2026-10-03T02:04:58.27Z",
+    "decidedAt": "2026-10-03T02:05:04.081Z",
+    "resultingFact": "vf-4dc68684e297"
+  }
+}

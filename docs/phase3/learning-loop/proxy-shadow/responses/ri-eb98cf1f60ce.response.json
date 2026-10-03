@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-eb98cf1f60ce",
+  "promptDigest": "sha256:19bd75d3e6c1c9349063a8e240241599b9325851fd5f8c1fab51e22dfd983540",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "1ccce7f7-b15e-4e21-ae46-f7a6b27f8f7e",
+  "startedAt": "2026-10-03T02:34:01.377Z",
+  "decidedAt": "2026-10-03T02:34:12.477Z",
+  "durationMs": 10211,
+  "costUSD": 0.099068,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-7b76cb015d7e] says the `boltdb.shipper.compactor.deletion-mode` CLI flag and \"the corresponding YAML setting\" are removed, so the CLI-flag leaf is right. The evidence never gives the YAML setting's path. The proposed values-key leaf just reuses the dotted CLI flag name as a Helm values path, which the evidence does not support and which would likely never match. That would miss environments that set the option in Loki's YAML config. I've kept the cli-flag leaf and replaced the guessed values-key leaf with an undecidable operand naming the missing YAML path.",
+    "citations": [
+      "ev-7b76cb015d7e"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Environments are exposed if they set the removed `--boltdb.shipper.compactor.deletion-mode` CLI flag or the corresponding YAML setting. The evidence does not give the YAML setting's path, so that branch cannot be checked against configuration yet.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--boltdb.shipper.compactor.deletion-mode",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "the Loki YAML config path (and any Helm values path) of the setting corresponding to the removed boltdb.shipper.compactor.deletion-mode flag"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

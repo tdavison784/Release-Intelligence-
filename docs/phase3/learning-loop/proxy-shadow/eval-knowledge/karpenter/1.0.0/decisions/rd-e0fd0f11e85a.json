@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e0fd0f11e85a",
+    "reviewItemId": "ri-178c656c154c",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Karpenter now uses a multizone deployment by default, so controller pods may be placed differently than before.",
+        "remediation": "Check how the Karpenter controller pods are spread across zones after the upgrade, and make sure the cluster has nodes in more than one zone that can run them.",
+        "severity": "low"
+      },
+      "statement": "In Karpenter 1.0.0, the Karpenter controller deployment is spread across multiple zones by default."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:3e7af16f79d0aa660b06877b073bcf9cc7a0ba1d424718fbc6039897c04fa956",
+      "inputEvidence": [
+        "ev-cb56353c3c4e"
+      ],
+      "generatedAt": "2026-10-02T12:48:22.536Z",
+      "callId": "76d595a9-70da-48ad-8739-17cc6643809c"
+    },
+    "reason": "[ev-cb56353c3c4e] only says the Karpenter deployment now defaults to multizone. That is a changed default. The evidence does not say that anything fails, is rejected or must be migrated, so a failure kind would not be supported. behavior-change (review) at low severity is the most the excerpt can justify. The proposed statement stays within that claim, and the remediation only suggests checking pod placement. The excerpt does not say whether a single-zone cluster still works, so this decision rests on inference.",
+    "startedAt": "2026-10-02T12:48:14.518Z",
+    "decidedAt": "2026-10-02T12:48:22.536Z"
+  }
+}

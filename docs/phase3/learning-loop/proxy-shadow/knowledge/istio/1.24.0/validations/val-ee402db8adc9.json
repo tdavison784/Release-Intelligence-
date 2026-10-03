@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ee402db8adc9",
+    "candidateId": "sc-170d39b565cd",
+    "proposalId": "sp-3428ddf8918e",
+    "validator": "semvalidate.values@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "env"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "env",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Environments using the istio-cni chart can now provide arbitrary environment variables; this is an optional additive feature with no operational consequence for existing deployments."
+      },
+      "statement": "Support for providing arbitrary environment variables to the istio-cni Helm chart was added in Istio 1.24.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "helm-values:exists",
+        "detail": "env is a values key in the target release only of chart istiod"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "helm-values:chart-ambiguous",
+        "detail": "the change is confirmed in chart istiod but refuted in chart gateway; name the chart in the subject"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-2139315891c3",
+        "kind": "structured",
+        "sourceId": "chart-istiod",
+        "uri": "https://github.com/istio/istio/blob/1.23.4/manifests/charts/istio-control/istio-discovery/values.yaml",
+        "locator": "manifests/charts/istio-control/istio-discovery/values.yaml",
+        "excerpt": "# \"defaults\" is a workaround for Helm limitations. Users should NOT set \".defaults\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:217a5d5592a8b23ac072f5061e18871f0f4ab35069779dc961f72dc5fa31174a",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T11:33:50Z"
+      },
+      {
+        "id": "ev-257bea760fce",
+        "kind": "structured",
+        "sourceId": "chart-istiod",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/manifests/charts/istio-control/istio-discovery/values.yaml",
+        "locator": "manifests/charts/istio-control/istio-discovery/values.yaml",
+        "excerpt": "# \"_internal_defaults_do_not_set\" is a workaround for Helm limitations. Users should NOT set \"._internal_defaults_do_not_set\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:f8511b9368491181e5237642da7dbce3dc08fcdab252fd72618038e0ef309b25",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:49Z"
+      },
+      {
+        "id": "ev-431a25873750",
+        "kind": "structured",
+        "sourceId": "chart-gateway",
+        "uri": "https://github.com/istio/istio/blob/1.23.4/manifests/charts/gateway/values.yaml",
+        "locator": "manifests/charts/gateway/values.yaml",
+        "excerpt": "# \"defaults\" is a workaround for Helm limitations. Users should NOT set \".defaults\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:1cf3d85c68011e8a5a975f7fbf0f47051784cda1ce8181e6bab7959a474bb38e",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T11:33:50Z"
+      },
+      {
+        "id": "ev-bf76c777b5f0",
+        "kind": "structured",
+        "sourceId": "chart-gateway",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/manifests/charts/gateway/values.yaml",
+        "locator": "manifests/charts/gateway/values.yaml",
+        "excerpt": "# \"_internal_defaults_do_not_set\" is a workaround for Helm limitations. Users should NOT set \"._internal_defaults_do_not_set\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:48ec2a97238c02e4f37ab0ddd3e86cbab4b26de474a92026d63ab3eec03c28eb",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:49Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

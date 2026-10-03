@@ -1,0 +1,381 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-58a03c7aeac6",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "members": [
+      {
+        "changeId": "chg-75a5fbb278e3",
+        "anchor": {
+          "release": "1.13.0",
+          "evidenceKeys": [
+            "ek-d143f63c63c8"
+          ],
+          "statementKeys": [
+            "sk-820b26c6ed61"
+          ],
+          "changeIds": [
+            "chg-75a5fbb278e3"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "feature",
+    "title": "Exceptions for ValidatingAdmissionPolicies: Kyverno 1.13 introduces the ability to leverage PolicyException declarations while auto-generating Kubernetes…",
+    "text": "Exceptions for ValidatingAdmissionPolicies: Kyverno 1.13 introduces the ability to leverage PolicyException declarations while auto-generating Kubernetes ValidatingAdmissionPolicies directly from Kyverno policies that use the `validate.cel` subrule. The resources specified within the PolicyException are then used to populate the `matchConstraints.excludeResourceRules` field of the generated ValidatingAdmissionPolicy, effectively creating exclusions for those resources. This functionality is illustrated below with an example of a Kyverno ClusterPolicy and a PolicyException, along with the resulting ValidatingAdmissionPolicy. Kyverno policy: PolicyException: The generated ValidatingAdmissionPolicy and its binding are as follows: In addition, Kyverno policies targeting resources within a specific namespace will now generate a ValidatingAdmissionPolicy that utilizes the `matchConstraints.namespaceSelector` field to scope its enforcement to that namespace. Policy snippet: The generated ValidatingAdmissionPolicy:",
+    "evidence": [
+      {
+        "id": "ev-b9ece170da60",
+        "kind": "document",
+        "sourceId": "release-notes-blog",
+        "uri": "https://github.com/kyverno/website/blob/main/src/content/blog/announcing-kyverno-release-1.13/index.md",
+        "locator": "L69-L219 (Major Features › Exceptions for ValidatingAdmissionPolicies)",
+        "excerpt": "### Exceptions for ValidatingAdmissionPolicies\n\nKyverno 1.13 introduces the ability to leverage PolicyException declarations while auto-generating Kubernetes ValidatingAdmissionPolicies directly from Kyverno policies that use the `validate.cel` subrule.\n\nThe resources specified within the PolicyException are then used to populate the `matchConstraints.excludeResourceRules` field of the generated ValidatingAdmissionPolicy, effectively creating exclusions for those resources. This functionality is illustrated below with an example of a Kyverno ClusterPolicy and a PolicyException, along with the …",
+        "contentDigest": "sha256:7003865f075ba01cdc5d733756c6473f3127141fc7a370118d60a3fe94c70652",
+        "retrievedAt": "2026-10-02T10:53:16Z"
+      },
+      {
+        "id": "ev-a5eba5775d07",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate: ∅ → {\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without `any`…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate",
+          "change": "field-added",
+          "after": "{\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without `any` or `all` statements) is also supported for backwards compatibility\\nbut will be deprecated in the next major release.\\nSee: https://kyverno.io/docs/writing-policies/validate/#deny-rules\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"message\":{\"description\":\"Message specifies a custom message to be displayed on failure.\",\"type\":\"string\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-4cd26225bffa",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate: ∅ → {\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof cond…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate",
+          "change": "field-added",
+          "after": "{\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without `any` or `all` statements) is also supported for backwards compatibility\\nbut will be deprecated in the next major release.\\nSee: https://kyverno.io/docs/writing-policies/validate/#deny-rules\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"message\":{\"description\":\"Message specifies a custom message to be displayed on failure.\",\"type\":\"string\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-52c07595c637",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate: ∅ → {\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without …",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate",
+          "change": "field-added",
+          "after": "{\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without `any` or `all` statements) is also supported for backwards compatibility\\nbut will be deprecated in the next major release.\\nSee: https://kyverno.io/docs/writing-policies/validate/#deny-rules\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"message\":{\"description\":\"Message specifies a custom message to be displayed on failure.\",\"type\":\"string\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-54749e1a631c",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_clusterpolicies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/clusterpolicies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate: ∅ → {\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//clusterpolicies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate",
+          "change": "field-added",
+          "after": "{\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without `any` or `all` statements) is also supported for backwards compatibility\\nbut will be deprecated in the next major release.\\nSee: https://kyverno.io/docs/writing-policies/validate/#deny-rules\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"message\":{\"description\":\"Message specifies a custom message to be displayed on failure.\",\"type\":\"string\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-8dbdd0d2ff64",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate: ∅ → {\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without `any` or `al…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate",
+          "change": "field-added",
+          "after": "{\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without `any` or `all` statements) is also supported for backwards compatibility\\nbut will be deprecated in the next major release.\\nSee: https://kyverno.io/docs/writing-policies/validate/#deny-rules\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"message\":{\"description\":\"Message specifies a custom message to be displayed on failure.\",\"type\":\"string\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-e8169ff3d009",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate: ∅ → {\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions …",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate",
+          "change": "field-added",
+          "after": "{\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without `any` or `all` statements) is also supported for backwards compatibility\\nbut will be deprecated in the next major release.\\nSee: https://kyverno.io/docs/writing-policies/validate/#deny-rules\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"message\":{\"description\":\"Message specifies a custom message to be displayed on failure.\",\"type\":\"string\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-892e45421732",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate: ∅ → {\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without `any` o…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.spec.properties.rules.items.properties.verifyImages.items.properties.validate",
+          "change": "field-added",
+          "after": "{\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without `any` or `all` statements) is also supported for backwards compatibility\\nbut will be deprecated in the next major release.\\nSee: https://kyverno.io/docs/writing-policies/validate/#deny-rules\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"message\":{\"description\":\"Message specifies a custom message to be displayed on failure.\",\"type\":\"string\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      },
+      {
+        "id": "ev-72f16d281831",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://kyverno.github.io/kyverno/kyverno-3.3.2.tgz",
+        "locator": "kyverno/charts/crds/templates/kyverno.io/kyverno.io_policies.yaml · apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate",
+        "excerpt": "1.12.6 → 1.13.0: field-added CustomResourceDefinition/policies.kyverno.io spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate: ∅ → {\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof condit…",
+        "contentDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+          "flags": [
+            "template",
+            "kyverno",
+            "chart.tgz",
+            "--namespace",
+            "kyverno",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "kyverno",
+            "version": "3.2.8",
+            "digest": "sha256:a27a2b40f9117e2b17c04ed22b5535a8620c7c6c5ddba290876516a10a22e437",
+            "outputDigest": "sha256:49c8b64825aeac3cec51ab86e00f395dc1da352ef1c2af3b4d29cb92abe963a5"
+          },
+          "toArtifact": {
+            "name": "kyverno",
+            "version": "3.3.2",
+            "digest": "sha256:35a4a3a0fee67a94f5d07b43bd67cf034c68cab7f9cd5a6166df8a7045c7139c",
+            "outputDigest": "sha256:c507d44526dbdc4d63050cb06bd4d8994adc36ff608ebe9a78fb82220c12ad2c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//policies.kyverno.io",
+          "path": "spec.versions[name=v2beta1].schema.openAPIV3Schema.properties.status.properties.autogen.properties.rules.items.properties.verifyImages.items.properties.validate",
+          "change": "field-added",
+          "after": "{\"description\":\"Validation checks conditions across multiple image\\nverification attestations or context entries\",\"properties\":{\"deny\":{\"description\":\"Deny defines conditions used to pass or fail a validation rule.\",\"properties\":{\"conditions\":{\"description\":\"Multiple conditions can be declared under an `any` or `all` statement. A direct list\\nof conditions (without `any` or `all` statements) is also supported for backwards compatibility\\nbut will be deprecated in the next major release.\\nSee: https://kyverno.io/docs/writing-policies/validate/#deny-rules\",\"x-kubernetes-preserve-unknown-fields\":true}},\"type\":\"object\"},\"message\":{\"description\":\"Message specifies a custom message to be displayed on failure.\",\"type\":\"string\"}},\"type\":\"object\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:28Z"
+      }
+    ],
+    "hints": [
+      "code:validate.cel",
+      "code:matchConstraints.excludeResourceRules",
+      "code:matchConstraints.namespaceSelector",
+      "path:validate.cel",
+      "path:matchConstraints.excludeResourceRules",
+      "path:matchConstraints.namespaceSelector",
+      "version:1.13"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:27Z"
+  }
+}

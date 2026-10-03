@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-77239a9f7745",
+    "candidateId": "sc-387f5d4316ab",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "external-secrets",
+        "path": "installCRDs"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "installCRDs",
+              "state": "unset"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.16.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Helm upgrade of external-secrets with installCRDs=true (the default) works without manual intervention during upgrade to 0.16.0.",
+        "severity": "low"
+      },
+      "statement": "The external-secrets Helm chart continues to support installation of CRDs with the default setting installCRDs=true during upgrade to 0.16.0."
+    },
+    "undetermined": [
+      "change"
+    ],
+    "undeterminedReason": "change: The evidence describes upgrade guidance for existing installCRDs=true installations but does not state what changed about this value between releases.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-dcd7685c65da"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0dd6591b3054798ccc378292a29bb343b85c1da1cc463bc424521887b478524c",
+      "inputEvidence": [
+        "ev-dcd7685c65da"
+      ],
+      "generatedAt": "2026-10-02T16:11:30Z",
+      "callId": "1594d65b-e6f1-4900-adfa-2a7c247c62fa"
+    }
+  }
+}

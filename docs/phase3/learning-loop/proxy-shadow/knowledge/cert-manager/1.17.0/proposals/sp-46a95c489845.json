@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-46a95c489845",
+    "candidateId": "sc-d2afc4a4ba4f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "rsa-signature-hash-algorithm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"SHA-256 always used when signing with RSA\"",
+        "after": "\"3072-bit keys use SHA-384, 4096-bit keys use SHA-512\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Signing with RSA 3072-bit or 4096-bit keys now uses SHA-384 or SHA-512 rather than SHA-256; the notes expect minimal impact but advise users of larger RSA keys to be aware.",
+        "severity": "low"
+      },
+      "statement": "From v1.17.0 cert-manager picks the RSA signing hash by key length (3072-bit uses SHA-384, 4096-bit uses SHA-512) instead of always using SHA-256."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on RSA key sizes of Certificates (privateKey.size), which the text does not tie to a specific field path; text only says larger RSA keys are affected.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-c76ce5c9366c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:8cb375be17c09f7baa1ee792bae7844d40255f0a73f54c716730902b92a76901",
+      "inputEvidence": [
+        "ev-c76ce5c9366c"
+      ],
+      "generatedAt": "2026-10-02T05:57:49Z",
+      "callId": "057b8e87-0b56-4007-8056-4d73aa2e94f1"
+    }
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-377c29502c2a",
+    "product": "traefik",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-6f55ca308853",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-44e253115d5e"
+          ],
+          "statementKeys": [
+            "sk-4af9ccc93a2d"
+          ],
+          "changeIds": [
+            "chg-6f55ca308853"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "Router Rule Matchers: In v3, a new rule matchers syntax has been introduced for HTTP and TCP routers",
+    "text": "Router Rule Matchers: In v3, a new rule matchers syntax has been introduced for HTTP and TCP routers. The default rule matchers syntax is now the v3 one, but for backward compatibility this can be configured. The v2 rule matchers syntax is deprecated and its support will be removed in the next major version. For this reason, we encourage migrating to the new syntax. By default, the `defaultRuleSyntax` static option is automatically set to `v3`, meaning that the default rule is the new one. New V3 Syntax Notable Changes: The `Headers` and `HeadersRegexp` matchers have been renamed to `Header` and `HeaderRegexp` respectively. `PathPrefix` no longer uses regular expressions to match path prefixes. `QueryRegexp` has been introduced to match query values using a regular expression. `HeaderRegexp`, `HostRegexp`, `PathRegexp`, `QueryRegexp`, and `HostSNIRegexp` matchers now uses the Go regexp syntax. All matchers now take a single value (except `Header`, `HeaderRegexp`, `Query`, and `QueryRegexp` which take two) and should be explicitly combined using logical operators to mimic previous behavior. `Query` can take a single value to match is the query value that has no value (e.g.…",
+    "evidence": [
+      {
+        "id": "ev-48d8875989c1",
+        "kind": "document",
+        "sourceId": "upgrade-guide-v2-to-v3",
+        "uri": "https://github.com/traefik/traefik/blob/v3.0.0/docs/content/migration/v2-to-v3.md",
+        "locator": "L557-L650 (Migration Guide: From v2 to v3 › Dynamic configuration › Router Rule Matchers)",
+        "excerpt": "### Router Rule Matchers\n\nIn v3, a new rule matchers syntax has been introduced for HTTP and TCP routers.\nThe default rule matchers syntax is now the v3 one, but for backward compatibility this can be configured.\nThe v2 rule matchers syntax is deprecated and its support will be removed in the next major version.\nFor this reason, we encourage migrating to the new syntax.\n\nBy default, the `defaultRuleSyntax` static option is automatically set to `v3`, meaning that the default rule is the new one.\n\n#### New V3 Syntax Notable Changes\n\nThe `Headers` and `HeadersRegexp` matchers have been renamed to…",
+        "contentDigest": "sha256:74e08bc87289852ae4e98325bf5042c63001b3b5f3af2b04e3b27e90dfe63f7a",
+        "retrievedAt": "2026-10-02T03:56:11Z"
+      },
+      {
+        "id": "ev-08274e476e86",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://traefik.github.io/charts/traefik/traefik-28.1.0.tgz",
+        "locator": "apiextensions.k8s.io/v1/CustomResourceDefinition//ingressroutes.traefik.io spec.versions[name=v1alpha1].schema.openAPIV3Schema.properties.spec.properties.routes.items.properties.syntax",
+        "excerpt": "2.11.2 → 3.0.0: field-added CustomResourceDefinition/ingressroutes.traefik.io spec.versions[name=v1alpha1].schema.openAPIV3Schema.properties.spec.properties.routes.items.properties.syntax: ∅ → {\"description\":\"Syntax defines the router's rule syntax.\\nMore info: https://doc.traefik.io/traefik/v3.0/routing/routers/#rulesyntax\",\"type\":\"string\"}",
+        "contentDigest": "sha256:7718622354de56601518ebe8d08d1d9a26688f5555ae777e8f6587dc36d0e07c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:7f4cde5f7d9fc79d8217df4ff9753daafb744b7480f33971a4b66dc702de36c0",
+          "flags": [
+            "template",
+            "traefik",
+            "chart.tgz",
+            "--namespace",
+            "traefik",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "traefik",
+            "version": "27.0.2",
+            "digest": "sha256:271298d9b089b502eeb93552034ee6767b3529af57c8f9e60665c3a61c15c974",
+            "outputDigest": "sha256:e600638c0076578e41201c9abe46af3f9b272049c8f98f11d383456d86c1ee7e"
+          },
+          "toArtifact": {
+            "name": "traefik",
+            "version": "28.1.0",
+            "digest": "sha256:7f4cde5f7d9fc79d8217df4ff9753daafb744b7480f33971a4b66dc702de36c0",
+            "outputDigest": "sha256:7718622354de56601518ebe8d08d1d9a26688f5555ae777e8f6587dc36d0e07c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//ingressroutes.traefik.io",
+          "path": "spec.versions[name=v1alpha1].schema.openAPIV3Schema.properties.spec.properties.routes.items.properties.syntax",
+          "change": "field-added",
+          "after": "{\"description\":\"Syntax defines the router's rule syntax.\\nMore info: https://doc.traefik.io/traefik/v3.0/routing/routers/#rulesyntax\",\"type\":\"string\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:34Z"
+      },
+      {
+        "id": "ev-b15a80a9b42b",
+        "kind": "rendered-diff",
+        "sourceId": "render@v1",
+        "uri": "https://traefik.github.io/charts/traefik/traefik-28.1.0.tgz",
+        "locator": "apiextensions.k8s.io/v1/CustomResourceDefinition//ingressroutetcps.traefik.io spec.versions[name=v1alpha1].schema.openAPIV3Schema.properties.spec.properties.routes.items.properties.syntax",
+        "excerpt": "2.11.2 → 3.0.0: field-added CustomResourceDefinition/ingressroutetcps.traefik.io spec.versions[name=v1alpha1].schema.openAPIV3Schema.properties.spec.properties.routes.items.properties.syntax: ∅ → {\"description\":\"Syntax defines the router's rule syntax.\\nMore info: https://doc.traefik.io/traefik/v3.0/routing/routers/#rulesyntax_1\",\"type\":\"string\"}",
+        "contentDigest": "sha256:7718622354de56601518ebe8d08d1d9a26688f5555ae777e8f6587dc36d0e07c",
+        "render": {
+          "scope": "release",
+          "tool": "helm",
+          "toolVersion": "v3.16.1",
+          "chartDigest": "sha256:7f4cde5f7d9fc79d8217df4ff9753daafb744b7480f33971a4b66dc702de36c0",
+          "flags": [
+            "template",
+            "traefik",
+            "chart.tgz",
+            "--namespace",
+            "traefik",
+            "--include-crds",
+            "--skip-tests"
+          ],
+          "fromArtifact": {
+            "name": "traefik",
+            "version": "27.0.2",
+            "digest": "sha256:271298d9b089b502eeb93552034ee6767b3529af57c8f9e60665c3a61c15c974",
+            "outputDigest": "sha256:e600638c0076578e41201c9abe46af3f9b272049c8f98f11d383456d86c1ee7e"
+          },
+          "toArtifact": {
+            "name": "traefik",
+            "version": "28.1.0",
+            "digest": "sha256:7f4cde5f7d9fc79d8217df4ff9753daafb744b7480f33971a4b66dc702de36c0",
+            "outputDigest": "sha256:7718622354de56601518ebe8d08d1d9a26688f5555ae777e8f6587dc36d0e07c"
+          },
+          "object": "apiextensions.k8s.io/v1/CustomResourceDefinition//ingressroutetcps.traefik.io",
+          "path": "spec.versions[name=v1alpha1].schema.openAPIV3Schema.properties.spec.properties.routes.items.properties.syntax",
+          "change": "field-added",
+          "after": "{\"description\":\"Syntax defines the router's rule syntax.\\nMore info: https://doc.traefik.io/traefik/v3.0/routing/routers/#rulesyntax_1\",\"type\":\"string\"}"
+        },
+        "retrievedAt": "2026-10-02T16:10:34Z"
+      }
+    ],
+    "hints": [
+      "code:defaultRuleSyntax",
+      "code:v3",
+      "code:Headers",
+      "code:HeadersRegexp",
+      "code:Header",
+      "code:HeaderRegexp",
+      "code:PathPrefix",
+      "code:QueryRegexp",
+      "code:HostRegexp",
+      "code:PathRegexp",
+      "code:HostSNIRegexp",
+      "code:Query"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:34Z"
+  }
+}

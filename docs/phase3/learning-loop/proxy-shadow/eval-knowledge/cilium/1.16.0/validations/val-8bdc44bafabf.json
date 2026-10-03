@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8bdc44bafabf",
+    "candidateId": "sc-4441d51bbce9",
+    "proposalId": "sp-b77276cd4d36",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cilium",
+        "name": "cilium-cli"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": ">=0.15.0"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "cilium-cli",
+              "state": "out-of-range",
+              "range": "<0.15.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "cilium.io",
+              "version": "v1",
+              "kind": "CiliumInstallation"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Cilium v1.16 cannot be installed or managed with Cilium CLI versions prior to v0.15.0. Classic installation mode is not supported with Cilium v1.16. Existing classic mode installations must be uninstalled using classic mode Cilium CLI and reinstalled using Helm mode Cilium CLI v0.15.0 or later.",
+        "remediation": "Upgrade Cilium CLI to v0.15.0 or later and use Helm installation mode. For existing classic mode installations, uninstall using the old CLI version, then reinstall using Helm mode with the upgraded CLI.",
+        "severity": "critical"
+      },
+      "statement": "Cilium CLI must be upgraded to v0.15.0 or later and switched to Helm installation mode to install and manage Cilium v1.16; classic installation mode is no longer supported, and migrating from classic to Helm mode requires uninstalling with classic mode CLI and reinstalling with Helm mode CLI."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/requirement-changed",
+        "detail": "product-relationship requirement-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/requirement-changed",
+        "detail": "product-relationship requirement-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

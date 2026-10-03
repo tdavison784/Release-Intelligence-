@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-095cc71e146a",
+    "candidateId": "sc-a4114b258331",
+    "proposalId": "sp-730c8a28fea9",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "cilium_api_limiter_processed_requests_total"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"has label return_code\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric now carries an additional return_code label, so series gain a new dimension; dashboards or queries that aggregate on it may need review.",
+        "severity": "low"
+      },
+      "statement": "The cilium_api_limiter_processed_requests_total metric gains a new label return_code carrying the HTTP code of the request."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

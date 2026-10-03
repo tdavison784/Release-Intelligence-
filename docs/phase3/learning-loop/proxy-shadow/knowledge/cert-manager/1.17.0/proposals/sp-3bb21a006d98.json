@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3bb21a006d98",
+    "candidateId": "sc-1f4684fab7fb",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "webhook.extraEnv"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "webhook.extraEnv",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "Purely additive: an environment that sets webhook.extraEnv gets the custom environment variables applied to the webhook Pod as documented, and an environment that does not set it is unaffected; nothing fails and no operator action is required.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds a new Helm value `webhook.extraEnv` that allows setting custom environment variables in the webhook Pod (the same release note / PR #7317 also adds the analogous values `cainjector.extraEnv` and `startupapicheck.extraEnv`, which are separate subjects of the same addition)."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-fe0fca386a7a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f5b81e23b054563539da2b5a5a80ba5c23d6555ed27462a44b3decfaf8ca2406",
+      "inputEvidence": [
+        "ev-fe0fca386a7a"
+      ],
+      "generatedAt": "2026-10-02T11:45:32Z",
+      "callId": "a9d3935b-3f3b-4d2f-89e1-27267ec31a93"
+    }
+  }
+}

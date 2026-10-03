@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9ddfa9eba5b4",
+    "candidateId": "sc-43d7d231eb46",
+    "proposalId": "sp-a8f306962f4b",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether Kyverno is upgraded without Helm or with Helm hooks disabled, and whether existing Kyverno custom resources are still stored at a dropped deprecated API version (the evidence's list of affected CRDs is truncated; rendered diffs show v2alpha1 removed from cleanuppolicies, clustercleanuppolicies and policyexceptions)"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Kyverno 1.13 drops deprecated API versions of its managed CRDs. A Helm hook handles the migration automatically, but installs upgraded without Helm or without the Helm hook must migrate existing resources themselves.",
+        "remediation": "If you upgrade without Helm or with Helm hooks disabled, migrate existing Kyverno resources to the served API versions with kube-storage-version-migrator.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 drops deprecated API versions of its managed CRDs. A Helm hook migrates stored resources automatically, but installs upgraded without Helm or without the Helm hook need to migrate existing resources with kube-storage-version-migrator."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

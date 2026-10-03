@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3bb3f8e1ad3e",
+    "candidateId": "sc-3aa4cb777553",
+    "proposalId": "sp-708985edc218",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "strimzi",
+        "name": "jmx-ipv4-preference"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--jmx",
+          "component": "kafka",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "JMX configuration will now use JVM defaults for IP version preference instead of implicitly preferring IPv4, which enables correct cluster boot in IPv6-only environments.",
+        "severity": "medium"
+      },
+      "statement": "Implicit IPv4 preference when enabling JMX has been removed and will now use JVM defaults."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/removed",
+        "detail": "protocol-behavior removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6e3d451238c3",
+    "candidateId": "sc-6292fc5118f9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "crossplane",
+        "name": "sequential-minor-upgrade-via-v1.20"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "out-of-range",
+          "range": ">=1.20.0 <2.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators must upgrade sequentially one minor version at a time and be on a v1.20 version before upgrading to v2.0, so CRD migrations run at each minor release.",
+        "remediation": "Upgrade sequentially through each v1 minor up to v1.20, then upgrade to v2.0."
+      },
+      "statement": "Upgrading to Crossplane v2.0 should be done from v1.20, going sequentially through each v1 minor version, because each minor upgrade migrates CRDs so the latest versions are stored."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-8df0afdc905e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:24cffeb12601cd97ad42831387157ea7329a20e19509c7e4c1bf3f4dea40dda3",
+      "inputEvidence": [
+        "ev-8df0afdc905e"
+      ],
+      "generatedAt": "2026-10-02T16:15:27Z",
+      "callId": "cd6073db-b641-4f89-88e3-e1118bb8f693"
+    }
+  }
+}

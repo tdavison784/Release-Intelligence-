@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d74e26de32a5",
+    "candidateId": "sc-4d86bb805e56",
+    "proposalId": "sp-d4fa8f26db82",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "selfheal-backoff-calculation"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--self-heal",
+              "state": "set"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "argoproj.io",
+              "version": "v1alpha1",
+              "kind": "Application"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Self-healing backoff delay calculation now correctly handles cases exceeding the maximum delay value, fixing incorrect behavior in the previous version.",
+        "severity": "medium"
+      },
+      "statement": "SelfHealBackOff delay calculation when exceeding maximum is fixed to work correctly."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

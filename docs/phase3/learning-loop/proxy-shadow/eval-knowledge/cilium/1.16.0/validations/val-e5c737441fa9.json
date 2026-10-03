@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e5c737441fa9",
+    "candidateId": "sc-3d73e8a6dea6",
+    "proposalId": "sp-8c8974b2cb0b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "direct-server-return"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.13.3"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the environment has active service connections using Direct-Server-Return that were established before the upgrade"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Existing service connections using Direct-Server-Return established before v1.13.3 will be disrupted and require manual re-establishment.",
+        "remediation": "Re-establish service connections using Direct-Server-Return after upgrading to v1.16.0.",
+        "severity": "high"
+      },
+      "statement": "Service connections using Direct-Server-Return that were established prior to Cilium v1.13.3 will be disrupted during the upgrade to v1.16.0 and must be re-established."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

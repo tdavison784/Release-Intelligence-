@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f1e170eccdfd",
+    "candidateId": "sc-00c8dd09dcde",
+    "proposalId": "sp-79909874b385",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "metric.prefix",
+        "component": "embedded-cache"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"querier_cache_\"",
+        "after": "\"loki_embeddedcache_\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "loki",
+          "state": "in-range",
+          "range": ">=3.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Monitoring configurations and queries using the old `querier_cache_` metric prefix will no longer match the renamed `loki_embeddedcache_` metrics; dashboards, alerts, and recording rules referencing the old prefix must be updated."
+      },
+      "statement": "The metric prefix for embedded cache metrics is renamed from `querier_cache_` to `loki_embeddedcache_`, and duplicate metrics are removed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/value-changed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/value-changed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

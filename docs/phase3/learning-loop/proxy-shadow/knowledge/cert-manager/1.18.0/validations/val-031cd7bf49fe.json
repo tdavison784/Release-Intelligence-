@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-031cd7bf49fe",
+    "candidateId": "sc-53468e9ccf05",
+    "proposalId": "sp-6af9f2bfa475",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cert-manager",
+        "path": "serviceAccount.annotations"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "serviceAccount.annotations",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Service account annotations are now properly rendered when containing boolean values, where they were previously mishandled by the template.",
+        "severity": "medium"
+      },
+      "statement": "The service account Helm template is fixed to properly incorporate boolean values in annotations."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

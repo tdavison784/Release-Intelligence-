@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3d6e82ebc10f",
+    "candidateId": "sc-c9b238032880",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "bgp"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "bgp.enabled",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "bgp.announce.podCIDR",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "bgp.announce.loadbalancerIP",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Values set for bgp.enabled, bgp.announce.podCIDR and bgp.announce.loadbalancerIP no longer take effect, so metallb-bgp based BGP announcements stop.",
+        "remediation": "Remove these keys and configure BGP announcements via the bgpControlPlane options.",
+        "severity": "high"
+      },
+      "statement": "The metallb-bgp Helm options bgp.enabled, bgp.announce.podCIDR and bgp.announce.loadbalancerIP were removed in 1.17.0; BGP announcements must use the bgpControlPlane options."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-42d13e5eb7d7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:d389bf75ffb29af71328aa6b799aa94dad64bbf860043a3c445ebec834e2659c",
+      "inputEvidence": [
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5",
+        "ev-42d13e5eb7d7"
+      ],
+      "generatedAt": "2026-10-02T05:57:37Z",
+      "callId": "2eca4767-60b6-4820-b3b4-60e690318d62"
+    }
+  }
+}

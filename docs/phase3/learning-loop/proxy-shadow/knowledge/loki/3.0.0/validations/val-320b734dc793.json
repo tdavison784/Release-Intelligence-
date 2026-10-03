@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-320b734dc793",
+    "candidateId": "sc-7c1c8b55ce03",
+    "proposalId": "sp-3c73b12f1c39",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "loki",
+        "path": "extraContainers"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "extraContainers",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new extraContainers Helm value is optional; environments not explicitly setting it will see no operational change."
+      },
+      "statement": "The Loki Helm chart adds an extraContainers field to write pods, allowing operators to inject additional containers into write pod definitions."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/added",
+        "detail": "no canonical exposure condition for helm-value added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator (subject refuted)"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

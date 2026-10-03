@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-7e8c911f3597",
+    "candidateId": "sc-3d6c61af6db3",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "applicability",
+    "question": "For \"Added Allow users to put extra white spaces between namespaces in networking.istio.io/exportTo annotation\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "VirtualService"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "DestinationRule"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "ServiceEntry"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "metadata.annotations[\"networking.istio.io/exportTo\"]",
+                  "state": "set"
+                }
+              ],
+              "group": "networking.istio.io",
+              "kind": "Gateway"
+            }
+          ]
+        }
+      },
+      "statement": "The networking.istio.io/exportTo annotation now accepts extra white spaces between namespaces."
+    },
+    "proposals": [
+      "sp-41c4c04c4244",
+      "sp-a9956bd1ff57"
+    ],
+    "validations": [
+      "val-120a7715bd1b",
+      "val-2b7bb7156696",
+      "val-daf6054d0622"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "needs-evidence",
+    "createdAt": "2026-10-02T05:59:01Z"
+  }
+}

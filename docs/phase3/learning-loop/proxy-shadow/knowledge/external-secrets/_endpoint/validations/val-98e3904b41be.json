@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-98e3904b41be",
+    "candidateId": "sc-be31a2c6779c",
+    "proposalId": "sp-323c65c501ae",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1beta1",
+        "kind": "ExternalSecret",
+        "path": "spec.target.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.target.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ExternalSecret v1beta1 resources with spec.target.template.engineVersion set to v1 are rejected by the API server since the value is removed from the enum.",
+        "remediation": "Change engineVersion to an allowed value (e.g. remove v1 setting) before applying.",
+        "severity": "high"
+      },
+      "statement": "The value \"v1\" is removed from the allowed enum of spec.target.template.engineVersion in the ExternalSecret external-secrets.io/v1beta1 schema, so ExternalSecrets setting engineVersion: v1 are rejected by the API server."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field",
+        "detail": "external-secrets.io ExternalSecret spec.target.template.engineVersion is in the schema of both releases"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "crd-schema:tightened",
+        "detail": "external-secrets.io ExternalSecret spec.target.template.engineVersion in v1beta1: enum lost \"v1\""
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

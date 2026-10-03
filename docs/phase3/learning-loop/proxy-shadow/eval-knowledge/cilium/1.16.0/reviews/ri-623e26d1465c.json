@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-623e26d1465c",
+    "candidateId": "sc-4441d51bbce9",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "applicability",
+    "question": "For \"Cilium CLI: Upgrade Cilium CLI to v0.15.0 or later to switch to Helm installation mode to install and manage Cilium v1.16\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "cilium-cli",
+              "state": "out-of-range",
+              "range": "<0.15.0"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "cilium.io",
+              "version": "v1",
+              "kind": "CiliumInstallation"
+            }
+          ]
+        }
+      },
+      "statement": "Cilium CLI must be upgraded to v0.15.0 or later and switched to Helm installation mode to install and manage Cilium v1.16; classic installation mode is no longer supported, and migrating from classic to Helm mode requires uninstalling with classic mode CLI and reinstalling with Helm mode CLI."
+    },
+    "proposals": [
+      "sp-b77276cd4d36",
+      "sp-ffdb49ada945"
+    ],
+    "validations": [
+      "val-133820149a54",
+      "val-5ee4c5569c74",
+      "val-6a368facec1c",
+      "val-8bdc44bafabf"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:04:26Z"
+  }
+}

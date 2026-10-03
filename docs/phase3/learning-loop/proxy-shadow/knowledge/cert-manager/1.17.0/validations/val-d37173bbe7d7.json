@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d37173bbe7d7",
+    "candidateId": "sc-f5cebb7e0498",
+    "proposalId": "sp-20e6ddcff0e5",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "issuer-secret-update-retry"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"high back-off timeout\"",
+        "after": "\"more quickly retry\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether an issuer is in back-off at runtime and its linked Secret then gets updated"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "When an issuer's linked Secret is updated, the issuer retries sooner instead of waiting out a long back-off timeout.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0, an issuer retries sooner after its linked Secret is updated, which fixes a bug that caused a long back-off timeout."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

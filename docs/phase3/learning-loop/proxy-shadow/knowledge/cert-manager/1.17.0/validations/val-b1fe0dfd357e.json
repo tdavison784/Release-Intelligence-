@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b1fe0dfd357e",
+    "candidateId": "sc-22be35218702",
+    "proposalId": "sp-ea47c3a621a0",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "NameConstraints",
+        "component": "controller"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"disabled (alpha)\"",
+        "after": "\"enabled (beta)\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "NameConstraints",
+              "state": "unset"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.nameConstraints",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Certificate"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The NameConstraints feature is now enabled by default; Certificate resources with nameConstraints configuration will have the feature automatically active without requiring explicit gate enablement.",
+        "severity": "medium"
+      },
+      "statement": "The CA NameConstraints feature gate is promoted from Alpha to Beta and is now enabled by default."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/behavior-changed",
+        "detail": "feature-gate behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:feature-gate/behavior-changed",
+        "detail": "feature-gate behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

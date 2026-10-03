@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-5b7c2fb918ba",
+    "candidateId": "sc-c9e607a2cdf4",
+    "proposalId": "sp-ad793190fd1c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "log-message-structured-data"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether any log pipeline, alert rule, dashboard, or automation matches on literal strings in cert-manager log lines"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager keeps working, but log lines now include additional contextual structured data, so tooling that matches on literal strings in cert-manager log lines may break (the upgrade guide says it's possible that may break).",
+        "remediation": "Review alert rules, dashboards, and log parsers that match literal strings in cert-manager log lines and update them to match on the structured fields instead.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 log messages have been augmented with better contextual structured data, which may break tooling that matches on literal strings in log lines."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

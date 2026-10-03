@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-08e362bb81b6",
+    "candidateId": "sc-f68243010efc",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "applicability",
+    "question": "For \"The clustermesh-apiserver `podSecurityContext` and `securityContext` settings now default to drop all capabilities and run as non-root user\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.securityContext",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.podSecurityContext",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.securityContext",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "clustermesh.apiserver.podSecurityContext",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The clustermesh-apiserver podSecurityContext and securityContext Helm settings now default to dropping all capabilities and running as a non-root user."
+    },
+    "proposals": [
+      "sp-6fccfeb6e8fd",
+      "sp-9367e16ce804"
+    ],
+    "validations": [
+      "val-2aa6e39812dc",
+      "val-369829dbf4de",
+      "val-3c62c462e512",
+      "val-60a2e7c450e1",
+      "val-716c08840ef8",
+      "val-a5d4b4ac9e8c",
+      "val-c390c5b92cb8",
+      "val-d03514bdadaa"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:05:21Z"
+  }
+}

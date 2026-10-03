@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b0902bf6586b",
+    "candidateId": "sc-4ad98c3722c5",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "doublewrite_identity_kvstore_total_count",
+        "component": "cilium-agent"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "cilium",
+          "path": "doublewrite_identity_kvstore_total",
+          "component": "cilium-agent"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--prometheus-serve-addr",
+              "component": "cilium-agent",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "CILIUM_PROMETHEUS_SERVE_ADDR",
+              "component": "cilium-agent",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Prometheus scrape configurations or monitoring queries that reference the metric `doublewrite_identity_kvstore_total_count` will no longer find that metric; the metric is only available under its new name `doublewrite_identity_kvstore_total`.",
+        "remediation": "Update Prometheus scrape configurations, dashboards, and alerting rules to reference the new metric name `doublewrite_identity_kvstore_total` instead of the old name `doublewrite_identity_kvstore_total_count`.",
+        "severity": "medium"
+      },
+      "statement": "The Prometheus metric `doublewrite_identity_kvstore_total_count` has been renamed to `doublewrite_identity_kvstore_total` in Cilium 1.17.0."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-d6005e84dee9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:1e34a22734d4ff678eb9237ed7c39df801744bc2612c83be51bd15d704e97511",
+      "inputEvidence": [
+        "ev-d6005e84dee9"
+      ],
+      "generatedAt": "2026-10-02T06:01:49Z",
+      "callId": "ac6deeee-3b41-4537-883d-e5dd3c62b88e"
+    }
+  }
+}

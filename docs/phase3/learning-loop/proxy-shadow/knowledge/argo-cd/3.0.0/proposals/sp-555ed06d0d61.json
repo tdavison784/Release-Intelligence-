@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-555ed06d0d61",
+    "candidateId": "sc-91d1feb7a7d7",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "repositories",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data.repositories",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "data[\"repository.credentials\"]",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "data[\"helm.repositories\"]",
+                  "state": "set"
+                }
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Repositories configured in argocd-cm (repositories, repository.credentials, helm.repositories) are no longer supported in Argo CD 3.0 and will not be honoured.",
+        "remediation": "Convert the repositories to Secrets following the documentation for declarative management of repositories.",
+        "severity": "high"
+      },
+      "statement": "Legacy repository configuration in the argocd-cm ConfigMap (repositories, repository.credentials, helm.repositories) is removed in Argo CD 3.0; repositories must be converted to Secrets."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-ea324615706c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:61e9a07ff1d773360580adadf3c32e0e12561176b3de561dd9dd6eadb0678a1d",
+      "inputEvidence": [
+        "ev-ea324615706c"
+      ],
+      "generatedAt": "2026-10-02T06:00:15Z",
+      "callId": "f8967534-0091-40f6-a076-fb895439ba1e"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-36cb02617234",
+    "candidateId": "sc-5e752deccd94",
+    "proposalId": "sp-4839c2a2939c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "skip-release-candidates-on-updates"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether an operator runs the flux CLI update flow at a time when a release candidate is the latest available version"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The flux CLI update flow keeps working but now skips release candidate versions, so updates no longer pick them up.",
+        "severity": "low"
+      },
+      "statement": "The Flux 2.7.0 CLI now skips release candidate versions when updating (fluxcd/flux2 PR #5507)."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

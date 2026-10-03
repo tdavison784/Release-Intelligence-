@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-37c43795b82e",
+    "reviewItemId": "ri-3dbeab1a1432",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.crossplane.connectionDetails",
+              "state": "set"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "kind": "CompositeResource"
+        }
+      },
+      "statement": "The `.status.crossplane.connectionDetails` field is removed from the modern XR (Composite Resource) schema in Crossplane 2.0.0."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which user-defined modern XR kinds the environment has and whether any client or tooling reads .status.crossplane.connectionDetails on them"
+        }
+      },
+      "statement": "Crossplane 2.0.0 removes `.status.crossplane.connectionDetails` from the modern XR schema. Which environments are exposed cannot be decided from static inputs: it depends on which modern XR kinds exist and whether any tooling reads that status field."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:ddb04538299dfe52383a8baa03d38e67969d3b2a303cfd839ed38057c9521a21",
+      "inputEvidence": [
+        "ev-685e81f5b751"
+      ],
+      "generatedAt": "2026-10-03T02:16:21.93Z",
+      "callId": "2fc46833-a71c-4965-bdba-7394583e67f5"
+    },
+    "reason": "[ev-685e81f5b751] says only that `.status.crossplane.connectionDetails` was removed from the \"modern XR schema\". It does not name a group or kind. XR kinds are user-defined, and the validator found no CRD that defines apiextensions.crossplane.io CompositeResource, so the proposed resource condition points at a kind the evidence doesn't support. Because the field is under status, exposure depends on which consumers read it on modern XRs, and neither the evidence nor static configuration shows that. So the condition should be undecidable rather than a guessed predicate.",
+    "startedAt": "2026-10-03T02:16:12.151Z",
+    "decidedAt": "2026-10-03T02:16:21.93Z"
+  }
+}

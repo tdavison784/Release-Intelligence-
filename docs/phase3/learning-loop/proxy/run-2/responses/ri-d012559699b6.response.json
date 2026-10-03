@@ -1,0 +1,62 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d012559699b6",
+  "promptDigest": "sha256:145eb06283da32042d37110f9d19e816fa86379ec59f453b3f199237df7b8704",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "1ddff096-c6c0-4c11-81df-000d15dd40d7",
+  "startedAt": "2026-10-03T02:01:43.182Z",
+  "decidedAt": "2026-10-03T02:01:57.041Z",
+  "durationMs": 12985,
+  "costUSD": 0.17922,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-726387f7887e] describes `foreach` as a new, opt-in declaration in generate rules. The rendered diffs [ev-a5105c99211a] [ev-0c9dcecb69f5] [ev-80a3d7b119e2] [ev-484cd9db978a] show `generate.foreach` added to both the ClusterPolicy and Policy schemas, so only policies that set it touch the change. The proposed condition matches any use of ClusterPolicy or Policy, which marks every Kyverno policy user as exposed. That is too broad. Exposure should be limited to a ClusterPolicy or Policy that sets spec.rules[].generate.foreach.",
+    "citations": [
+      "ev-726387f7887e",
+      "ev-a5105c99211a",
+      "ev-0c9dcecb69f5",
+      "ev-80a3d7b119e2",
+      "ev-484cd9db978a"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Kyverno 1.13.0 adds the optional spec.rules[].generate.foreach field to ClusterPolicy and Policy generate rules. Only policies that set this field use the new behaviour, which generates multiple target resources from a list of sub-elements.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].generate.foreach",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "kyverno.io",
+              "kind": "Policy",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.rules[].generate.foreach",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-12bc714efeb4",
+    "reviewItemId": "ri-e143e56dafb6",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "topologySpreadConstraints",
+          "state": "unset"
+        }
+      },
+      "statement": "The Helm chart now allows configuring topologySpreadConstraints as a new optional Helm value."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:b6719f042054c991a8b4c85edeea083b149a93091637666dd94110c529e37e71",
+      "inputEvidence": [
+        "ev-bd0a479f2437",
+        "ev-6b828f5bc194",
+        "ev-72c19aa86056"
+      ],
+      "generatedAt": "2026-10-03T02:04:17.468Z",
+      "callId": "5fd5521c-d569-4283-b2d0-4b7165905c29"
+    },
+    "reason": "[ev-bd0a479f2437] only says the Helm chart now allows topologySpreadConstraints. It gives no values path and states no consequence for operators who do nothing. The deterministic values validator refuted the key: a top-level `topologySpreadConstraints` is in neither release's chart values [ev-6b828f5bc194][ev-72c19aa86056]. A `values-key unset` condition on a key that does not exist would mark every environment as exposed to an optional addition, and the evidence gives no correct path to replace it.",
+    "startedAt": "2026-10-03T02:04:07.27Z",
+    "decidedAt": "2026-10-03T02:04:17.468Z"
+  }
+}

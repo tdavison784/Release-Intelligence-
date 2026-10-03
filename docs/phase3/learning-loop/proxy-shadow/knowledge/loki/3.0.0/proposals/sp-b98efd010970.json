@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-b98efd010970",
+    "candidateId": "sc-69152174e9e5",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "product-relationship",
+          "product": "loki",
+          "name": "loki-replacement-metrics"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "which metrics are currently being scraped or used in dashboards/alerts in the environment"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Monitoring scrape configurations, dashboards, and alerts that reference the removed metrics querier_cache_added_total, querier_cache_gets_total, and querier_cache_misses_total will no longer receive data from those metrics after upgrade to 3.0.0.",
+        "remediation": "Update monitoring configurations, dashboards, and alert rules to use the replacement metrics: loki_cache_fetched_keys, loki_cache_hits, and loki_cache_request_duration_seconds, which provide equivalent instrumentation for the configured cache layer (embeddedcache, memcached, or redis).",
+        "severity": "high"
+      },
+      "statement": "Three Loki querier cache metrics (querier_cache_added_total, querier_cache_gets_total, querier_cache_misses_total) are removed in 3.0.0 and replaced by three new metrics (loki_cache_fetched_keys, loki_cache_hits, loki_cache_request_duration_seconds) that instrument requests to the configured cache backend."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: metrics are operational outputs rather than configuration subjects; no family in the schema covers removed metrics",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-dd7907f24ce5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:5419c8d9c96d63f84832054d041aadb6c9af9b3b684d9fbed6ad5b40c855a403",
+      "inputEvidence": [
+        "ev-dd7907f24ce5"
+      ],
+      "generatedAt": "2026-10-02T16:16:38Z",
+      "callId": "56792047-7a86-4889-aff9-76d062fbea4b"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-969410729273",
+    "candidateId": "sc-3fcd67ae459f",
+    "proposalId": "sp-62a6a9b8176e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "s3.sse-encryption"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "sse.type"
+        }
+      },
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The `s3.sse-encryption` option is removed; AWS now defaults bucket encryption to SSE-S3, and `sse.type` should be used to set the SSE type.",
+        "remediation": "Use `sse.type` to set the SSE type.",
+        "severity": "low"
+      },
+      "statement": "The `s3.sse-encryption` configuration option is removed; use `sse.type` to set the SSE type instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

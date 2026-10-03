@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-5c5ddb682bdf",
+    "reviewItemId": "ri-61f0eb610ce4",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "s3.sse-encryption"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "sse.type"
+        }
+      },
+      "statement": "The `s3.sse-encryption` configuration key is removed in Loki 3.0.0; use `sse.type` instead to configure SSE type, as AWS now defaults encryption of all buckets to SSE-S3."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:175984e0a47ea0379f1f1773e18cf64060308d93d39a7299e29600cca8be0100",
+      "inputEvidence": [
+        "ev-c8a8a9c16d41"
+      ],
+      "generatedAt": "2026-10-03T02:19:43.439Z",
+      "callId": "94048ea3-3249-4738-8fc3-7d06fe0c556a"
+    },
+    "reason": "[ev-c8a8a9c16d41] appears under \"Deprecated configuration options are removed\" and says \"`s3.sse-encryption` is removed ... Use `sse.type` to set SSE type.\" That supports the subject, a config-key with path s3.sse-encryption spelled as in the text. It also supports change type removed, with replacedBy config-key sse.type. The validators were inconclusive and do not contradict this.",
+    "startedAt": "2026-10-03T02:19:35.802Z",
+    "decidedAt": "2026-10-03T02:19:43.439Z"
+  }
+}

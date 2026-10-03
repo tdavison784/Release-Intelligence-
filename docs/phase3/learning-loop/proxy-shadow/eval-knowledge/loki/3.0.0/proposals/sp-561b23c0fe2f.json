@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-561b23c0fe2f",
+    "candidateId": "sc-cf7c7afd323f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "loki",
+        "name": "POST /ingester/flush_shutdown",
+        "component": "ingester"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--ingester.flush-on-shutdown",
+          "component": "ingester",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Requests to the `/ingester/flush_shutdown` endpoint will no longer be processed; this endpoint no longer exists.",
+        "remediation": "Update any scripts or monitoring that call `/ingester/flush_shutdown` to use alternative shutdown mechanisms or rely on the default ingester shutdown behavior configured via `--ingester.flush-on-shutdown`.",
+        "severity": "medium"
+      },
+      "statement": "The legacy ingester shutdown handler endpoint `/ingester/flush_shutdown` has been removed."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-a1ca6a9f17f1"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:0077d6d7f1ffc224bbe6d02f5008dce4803de8768406d466a5586d59fbdfbc50",
+      "inputEvidence": [
+        "ev-a1ca6a9f17f1"
+      ],
+      "generatedAt": "2026-10-02T16:11:46Z",
+      "callId": "d053d75b-731f-4668-b385-06ce9f353791"
+    }
+  }
+}

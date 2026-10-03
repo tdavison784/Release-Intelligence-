@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-eb31ad4d3f87",
+    "candidateId": "sc-1fdd85cb942b",
+    "proposalId": "sp-f638c442a6df",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "mirrormaker-1"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "product-relationship",
+          "product": "strimzi",
+          "name": "mirrormaker-2"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "whether the environment still runs MirrorMaker 1; the evidence names neither the API kind/resource nor an image through which MirrorMaker 1 is deployed, so no static predicate can be built from it"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "An environment still using MirrorMaker 1 must migrate to MirrorMaker 2 before upgrading to Strimzi 0.46 or newer, because MirrorMaker 1 support is no longer available in 0.46.",
+        "remediation": "Migrate all MirrorMaker 1 usage to MirrorMaker 2 before upgrading to Strimzi 0.46 or newer.",
+        "severity": "high"
+      },
+      "statement": "Strimzi 0.46.0 removes support for MirrorMaker 1, and users must migrate to MirrorMaker 2 before upgrading to Strimzi 0.46 or newer."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/removed",
+        "detail": "product-relationship removed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:product-relationship/removed",
+        "detail": "product-relationship removed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

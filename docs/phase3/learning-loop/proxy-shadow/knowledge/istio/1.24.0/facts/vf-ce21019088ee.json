@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-ce21019088ee",
+    "product": "istio",
+    "release": "1.24.0",
+    "anchors": [
+      {
+        "release": "1.24.0",
+        "evidenceKeys": [
+          "ek-9df35834e728"
+        ],
+        "statementKeys": [
+          "sk-12d800ba926a"
+        ],
+        "changeIds": [
+          "chg-08109275799b"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-2122e380f43d"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "kube-virt-rules-removal",
+        "component": "istio-clean-iptables"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether kube-virt-related iptables rules are installed on the environment's nodes when istio-clean-iptables runs; the release notes name no configuration setting that produces them"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The istio-clean-iptables tool will now remove kube-virt-related iptables rules, whereas previously such rules were not being removed.",
+        "remediation": "No action required; check that cleanup runs that previously left kube-virt-related rules in place now remove them as expected.",
+        "severity": "low"
+      },
+      "statement": "Fixed kube-virt-related rules not being removed by istio-clean-iptables tool"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-d52b4642dda4"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-d52b4642dda4"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-e8117d07ec91"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-69538bca49c7"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-18ac53d77b4b",
+        "kind": "document",
+        "sourceId": "structured-notes",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/releasenotes/notes/48368.yaml",
+        "locator": "48368.yaml L7-L8",
+        "excerpt": "- |\n    **Fixed** kube-virt-related rules not being removed by istio-clean-iptables tool.",
+        "contentDigest": "sha256:b298dff5079b9745c8831aabbf450fbed6243ad6c4359a4be78c62aa8a3cbf41",
+        "retrievedAt": "2026-10-02T02:35:51Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:01:03.149Z"
+  }
+}

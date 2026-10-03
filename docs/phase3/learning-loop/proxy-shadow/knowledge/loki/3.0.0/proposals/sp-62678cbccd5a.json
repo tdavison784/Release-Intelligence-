@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-62678cbccd5a",
+    "candidateId": "sc-895e84ff5606",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "structured-metadata-default"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"enabled by default; requires tsdb and v13 schema\""
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "If the schema is not tsdb with v13, Loki won't start because structured metadata is enabled by default.",
+        "remediation": "Use tsdb and v13 schema (see Structured Metadata, Open Telemetry, Schemas and Indexes) before upgrading.",
+        "severity": "high"
+      },
+      "statement": "Structured metadata is now enabled by default and requires the tsdb index and v13 schema, otherwise Loki won't start."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: text does not name the config keys or schema settings that identify environments not using tsdb and v13",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-5dacaee98643"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:acde833a286ece652920f30edb972b29fb8910f836401420469a8061ebec6677",
+      "inputEvidence": [
+        "ev-5dacaee98643"
+      ],
+      "generatedAt": "2026-10-02T20:58:36Z",
+      "callId": "c6da6945-b319-40e3-b4ff-939e1bce4f3a"
+    }
+  }
+}

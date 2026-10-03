@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8d76d2d59c96",
+    "reviewItemId": "ri-a63c8fd43987",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "extraContainers",
+          "state": "unset"
+        }
+      },
+      "statement": "The Loki Helm chart adds an extraContainers field to write pods, allowing operators to inject additional containers into write pod definitions."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "write.extraContainers",
+          "state": "set"
+        }
+      },
+      "statement": "The Loki Helm chart offers write.extraContainers to add extra containers to the write pods. Only environments that set write.extraContainers use this option. Environments that leave it unset see no change."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:1b000580a1635202b58a7dc2cee34eee490e11d556253ba724ce442db7bd8506",
+      "inputEvidence": [
+        "ev-25aeb771ff2f",
+        "ev-6b828f5bc194",
+        "ev-72c19aa86056"
+      ],
+      "generatedAt": "2026-10-03T01:56:00.114Z",
+      "callId": "dee4aab1-16ba-48ed-9348-3d38a01f27ad"
+    },
+    "reason": "[ev-25aeb771ff2f] describes only an optional new capability: extraContainers for the write pods. The artifact validator confirms that the key is write.extraContainers. It also finds no top-level extraContainers key in either release [ev-6b828f5bc194][ev-72c19aa86056], so the proposed path is wrong. The proposed 'unset' state would also flag every environment that does not use the option. Only environments that set write.extraContainers use the new option; for the rest nothing changes.",
+    "startedAt": "2026-10-03T01:55:47.35Z",
+    "decidedAt": "2026-10-03T01:56:00.114Z"
+  }
+}

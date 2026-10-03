@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-07e183247d6b",
+    "reviewItemId": "ri-5b502607aff1",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"only the primary interface was considered\"",
+        "after": "\"lowest MTU of all external interfaces is used\""
+      },
+      "statement": "Cilium MTU auto-detection now uses the lowest MTU of all external interfaces instead of only the primary interface (ENI secondary interfaces excluded); manual MTU configuration still works."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "mtu-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"only the primary interface was considered\"",
+        "after": "\"the lowest MTU of all external interfaces\""
+      },
+      "statement": "Cilium MTU auto-detection now uses the lowest MTU of all external interfaces; before, only the primary interface was considered. In ENI mode, secondary interfaces are not considered."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:d8f9c80b103aa041677cf65d9a2330c37737f9c3850e141137943a9e36cdaf1e",
+      "inputEvidence": [
+        "ev-b37407b60520"
+      ],
+      "generatedAt": "2026-10-02T12:56:14.337Z",
+      "callId": "c28aec3c-70ad-48c4-9451-3dd5977fa067"
+    },
+    "reason": "The subject and change type are right. [ev-b37407b60520] says MTU auto-detection \"will now use the lowest MTU of all external interfaces\" where \"before, only the primary interface was considered\". That is the same configuration with different meaning, so behavior-changed applies, and protocol-behavior \"mtu-auto-detection\" is built from the evidence's own key words. The proposed \"after\" value paraphrases the text by adding \"is used\", and both values are wrapped in extra quotes. I have replaced them with the exact wording from the evidence.",
+    "startedAt": "2026-10-02T12:56:04.696Z",
+    "decidedAt": "2026-10-02T12:56:14.337Z"
+  }
+}

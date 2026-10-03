@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-18806b3c80d5",
+    "candidateId": "sc-2a33dcd96146",
+    "product": "cilium",
+    "release": "1.16.0",
+    "questionType": "applicability",
+    "question": "For \"The implementation of `toFQDNs` selectors in policies has been overhauled to improve performance when many different IPs are observed for a selector: Instead…\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.15.6"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.egress[].toFQDNs[]",
+                  "state": "set"
+                }
+              ],
+              "group": "cilium.io",
+              "kind": "CiliumNetworkPolicy"
+            }
+          ]
+        }
+      },
+      "statement": "Upgrading to Cilium 1.16 from a version older than 1.15.6 with toFQDNs policies may cause temporary packet drops during initial endpoint regeneration; run v1.15.6 or newer first."
+    },
+    "proposals": [
+      "sp-47d5a927246c",
+      "sp-f13b8a4410cb"
+    ],
+    "validations": [
+      "val-625000fde4b9",
+      "val-9878ef131259",
+      "val-d09f76bd9871",
+      "val-fc3a6ca663fa"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:03:53Z"
+  }
+}

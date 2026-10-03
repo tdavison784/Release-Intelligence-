@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-60dd6d273603",
+    "candidateId": "sc-e1a977f0036f",
+    "proposalId": "sp-87d76d3fdb12",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "kyverno",
+        "name": "*"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether mutate/generate policies or reports act on custom resources that the default view role does not let Kyverno controllers read"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "permission-lost",
+        "exposedClass": "action-required",
+        "statement": "Kyverno controllers lose the wildcard view permission. Admission-time policies are not affected, but reports may be, and mutate and generate policies on custom resources may stop working because the controller may no longer be able to view those custom resources.",
+        "remediation": "Follow the Role Based Access Controls documentation and grant Kyverno controllers view access to the custom resources your mutate/generate policies and reports depend on.",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 removes the wildcard view permission from its controllers and adds a role binding to the default `view` role instead. As a result, reports and mutate/generate policies on custom resources may break because the controller may no longer be able to view those resources."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:rbac-permission/removed",
+        "detail": "no canonical exposure condition for rbac-permission removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

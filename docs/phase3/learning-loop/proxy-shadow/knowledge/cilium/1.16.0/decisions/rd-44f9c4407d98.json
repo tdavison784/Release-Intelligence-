@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-44f9c4407d98",
+    "reviewItemId": "ri-6d26dac888aa",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "cilium_api_limiter_processed_requests_total"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"has label return_code\""
+      },
+      "statement": "The cilium_api_limiter_processed_requests_total metric gains a new label return_code carrying the HTTP code of the request."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:619309c376e8ad98fe7199e7b012ccf08c9dda9581bc033e10b5d392536d1e2d",
+      "inputEvidence": [
+        "ev-af23565ba695"
+      ],
+      "generatedAt": "2026-10-02T12:58:56.648Z",
+      "callId": "e5847efe-377f-4b30-9b44-5a9784b5084a"
+    },
+    "reason": "[ev-af23565ba695] is listed under \"Changed Metrics\". It says the Prometheus metric `cilium_api_limiter_processed_requests_total` now has a `return_code` label. That makes the subject a metric name. It is not a key of a configuration file or ConfigMap, so the config-key subject misreads the evidence. None of the defined subject families covers a metric's label set, so no correct assertion can be built from this evidence. P2 flagged the same gap.",
+    "startedAt": "2026-10-02T12:58:49.805Z",
+    "decidedAt": "2026-10-02T12:58:56.648Z"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0635951fa1ce",
+    "candidateId": "sc-d3794906bf05",
+    "proposalId": "sp-69962b0248c9",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "external-secrets",
+        "name": "storage-version-migration",
+        "component": "externalsecrets.external-secrets.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "external-secrets.io",
+          "version": "v1beta1",
+          "kind": "ExternalSecret"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ExternalSecret objects stay stored as v1beta1 until rewritten; the operator must re-write all objects and update status.storedVersions before a later release removes v1beta1.",
+        "remediation": "Run a storage version migration (re-write all ExternalSecret objects) and update status.storedVersions.",
+        "severity": "medium"
+      },
+      "statement": "The ExternalSecret CRD's v1beta1 version stops being the storage version (true → false), so objects stay stored as v1beta1 until rewritten and a storage version migration is needed before v1beta1 is removed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

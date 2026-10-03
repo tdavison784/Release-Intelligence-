@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-30ea2f68859e",
+    "candidateId": "sc-3e520936a5c1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "namespace",
+        "component": "consulCatalog"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "namespaces",
+          "component": "consulCatalog"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--consulCatalog.namespace",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the static configuration file sets consulCatalog.namespace"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "The option is unsupported in v3 and would prevent Traefik from starting if still configured.",
+        "remediation": "Replace the `namespace` option with the `namespaces` option.",
+        "severity": "high"
+      },
+      "statement": "The ConsulCatalog provider `namespace` option is removed in Traefik v3 (use `namespaces` instead); leaving it configured prevents Traefik from starting."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-3faa5287ea4e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:376f4b80bda73009efb394858f26be6c02eef4b9f3658ce3fe5bddabe5fb3eaf",
+      "inputEvidence": [
+        "ev-3faa5287ea4e"
+      ],
+      "generatedAt": "2026-10-02T16:14:15Z",
+      "callId": "b1ceae30-fcb6-47b7-a3fb-d5deec2f45a7"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4fe5ad0722bb",
+    "reviewItemId": "ri-c38721756b8c",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--nomad.namespace",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "nomad.namespace",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The Nomad provider `namespace` configuration option was removed in v3.0.0 and must be replaced with `namespaces`."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--nomad.namespace",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "nomad.namespace",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the Traefik static configuration file (YAML/TOML) sets namespace under the nomad provider section"
+            }
+          ]
+        }
+      },
+      "statement": "Traefik 3.0.0 removed the Nomad provider `namespace` option. Exposed environments set it with the --nomad.namespace CLI flag, the nomad.namespace values key, or the `namespace` key under `nomad` in a static File (YAML/TOML) configuration. If it is set, Traefik will not start; use `namespaces` instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:f0517bdde5714dd51a5fcb56ba61f54c9e1c6e7d236b585f2aa41c566951c8c6",
+      "inputEvidence": [
+        "ev-482dffeba461"
+      ],
+      "generatedAt": "2026-10-03T02:30:27.73Z",
+      "callId": "0f3ae944-1293-422e-ac5d-bf7fb3683045"
+    },
+    "reason": "[ev-482dffeba461] says that setting the Nomad provider `namespace` option stops Traefik from starting. It shows three ways to set it: a static File (YAML) config (`nomad: namespace:`), a File (TOML) config (`[nomad] namespace=`) and the CLI flag (`--nomad.namespace=`). The proposed cli-flag leaf covers the CLI case. The values-key leaf only checks Helm values, so it misses a static configuration file that sets the option, and no static input can check that file. The corrected exposure keeps both leaves and adds an undecidable operand for the static file, so the condition is not narrower than the exposed environments.",
+    "startedAt": "2026-10-03T02:30:11.059Z",
+    "decidedAt": "2026-10-03T02:30:27.73Z"
+  }
+}

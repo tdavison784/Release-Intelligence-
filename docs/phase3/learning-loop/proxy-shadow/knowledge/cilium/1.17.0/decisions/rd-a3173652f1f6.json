@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a3173652f1f6",
+    "reviewItemId": "ri-9ad3e8026eb6",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "kvstore-subsystem-status-reporting"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"OK state with Disabled message\"",
+        "after": "\"Disabled state\""
+      },
+      "statement": "The Cilium status API now reports the KVStore subsystem with Disabled state instead of OK state with Disabled message."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "kvstore-subsystem-status-reporting"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"OK\"",
+        "after": "\"Disabled\""
+      },
+      "statement": "When the KVStore is disabled, the Cilium status API now reports the KVStore subsystem with state `Disabled` instead of state `OK` (with message `Disabled`)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:3309614bf653fe31065c9872dca06ae6ccd7cd7934b8cb300f40d2cb22b834e6",
+      "inputEvidence": [
+        "ev-e6b268264713"
+      ],
+      "generatedAt": "2026-10-02T13:05:01.595Z",
+      "callId": "39d4c32d-d01f-4b8e-ace3-63c85a25db56"
+    },
+    "reason": "[ev-e6b268264713] says the Cilium status API now reports the KVStore subsystem with `Disabled` state when the KVStore is disabled, instead of `OK` state with a `Disabled` message. The same configuration now gives a different reported state, so the subject and the behavior-changed type are right. A protocol-behavior subject fits because the evidence names no METHOD /path for an api-endpoint. The before/after values are wrong, though: \"OK state with Disabled message\" paraphrases the text, so I replaced them with the state values the text gives, `OK` → `Disabled`.",
+    "startedAt": "2026-10-02T13:04:50.929Z",
+    "decidedAt": "2026-10-02T13:05:01.595Z"
+  }
+}

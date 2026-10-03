@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4cbc0da99eff",
+    "candidateId": "sc-370b61e2abdd",
+    "proposalId": "sp-f39bfc6d64c9",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "GlobalContextEntry",
+        "path": "spec.apiCall.retryLimit"
+      },
+      "change": {
+        "type": "added",
+        "after": "3"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.apiCall",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "spec.apiCall.retryLimit",
+              "state": "unset"
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "GlobalContextEntry"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "GlobalContextEntry API calls that do not set retryLimit now use the default of 3, so Kyverno retries a failed call instead of failing on the first attempt.",
+        "remediation": "To control how many times a failed API call is retried, set spec.apiCall.retryLimit explicitly (minimum 1).",
+        "severity": "low"
+      },
+      "statement": "Kyverno 1.13.0 adds an optional retryLimit field to GlobalContextEntry apiCall (spec.apiCall.retryLimit, integer, minimum 1, default 3), so failed API calls are now retried by default."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

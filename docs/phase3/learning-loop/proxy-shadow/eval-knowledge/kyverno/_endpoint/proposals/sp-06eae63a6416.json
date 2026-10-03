@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-06eae63a6416",
+    "candidateId": "sc-e98ebd2741c8",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "version": "v2",
+        "kind": "CleanupPolicy"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"v2beta1 is storage version\"",
+        "after": "\"v2 is storage version\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "apiVersion",
+                  "state": "equals",
+                  "values": [
+                    "\"kyverno.io/v2beta1\""
+                  ]
+                }
+              ]
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "CleanupPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "A storage version migration must be run to rewrite all CleanupPolicy objects from v2beta1 to v2 and update status.storedVersions before a later release removes v2beta1 support.",
+        "severity": "high"
+      },
+      "statement": "The storage version of cleanuppolicies.kyverno.io changes from v2beta1 to v2; existing objects remain stored as v2beta1 until rewritten via a storage version migration before v2beta1 is removed."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-5714a6388637",
+      "ev-0ab8730da6d7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1+rendered",
+      "promptDigest": "sha256:6e7b5b3a778fc6252783635e7ad1719c7a68d70736456f63f54418e96b093d95",
+      "inputEvidence": [
+        "ev-7b96a5794081",
+        "ev-495a542d4d66",
+        "ev-8ed706991976",
+        "ev-64e559957f23",
+        "ev-b3d07020d879",
+        "ev-b077d5605267",
+        "ev-a4c10d98e48c",
+        "ev-6032b12f614d",
+        "ev-6644b79acdaf",
+        "ev-e4d8d307c8bd",
+        "ev-c7493c8ebf56",
+        "ev-72ae67cf1bd1",
+        "ev-f4eb4632dd60",
+        "ev-ff8bc99281a6",
+        "ev-904a58b60df3",
+        "ev-0b95f4d8b2b8",
+        "ev-043bcc5e9e57",
+        "ev-e6f72293517f",
+        "ev-3f8a3adffa22",
+        "ev-fd8deebe9622",
+        "ev-f5ab4321b780",
+        "ev-d55bb7c165b2",
+        "ev-388d68569c8a",
+        "ev-ab4f180a917e",
+        "ev-705a5952643c",
+        "ev-8acbbd901b75",
+        "ev-5714a6388637",
+        "ev-0ab8730da6d7",
+        "ev-b01406e79da0",
+        "ev-56c06982a6c5",
+        "ev-094d5d8b0291",
+        "ev-f0f21b325fa6",
+        "ev-cf5b10ff8047",
+        "ev-d3850c78b94e"
+      ],
+      "generatedAt": "2026-10-02T21:00:46Z",
+      "callId": "79998286-80c6-42a5-a6e6-c8c5ef7df225"
+    }
+  }
+}

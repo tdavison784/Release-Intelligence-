@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-5b8c150e0c3e",
+    "product": "karpenter",
+    "release": "1.0.0",
+    "members": [
+      {
+        "changeId": "chg-83798dffd925",
+        "anchor": {
+          "release": "1.0.0",
+          "evidenceKeys": [
+            "ek-1c61de8caf76"
+          ],
+          "statementKeys": [
+            "sk-fa861eb54222"
+          ],
+          "changeIds": [
+            "chg-83798dffd925"
+          ]
+        }
+      }
+    ],
+    "grouping": "single",
+    "category": "migration",
+    "title": "Behavior Changes: * Expiration is now forceful and begins draining as soon as it’s expired",
+    "text": "Behavior Changes: * Expiration is now forceful and begins draining as soon as it’s expired. Karpenter does not wait for replacement capacity to be available before draining, but will start provisioning a replacement as soon as the node is expired and begins draining. * Karpenter's generated NodeConfig now takes precedence when generating UserData with the AL2023 `amiFamily`. If you're setting any values managed by Karpenter in your AL2023 UserData, configure these through Karpenter natively (e.g. kubelet configuration fields). * Karpenter now adds a `karpenter.sh/unregistered:NoExecute` taint to nodes in injected UserData when using alias in AMISelectorTerms or non-Custom AMIFamily. When using `amiFamily: Custom`, users will need to add this taint into their UserData, where Karpenter will automatically remove it when provisioning nodes. * Karpenter now waits for underlying instances to be completely terminated before removing the associated nodes. This means it may take longer for nodes to be deleted and for nodeclaims to get cleaned up.",
+    "evidence": [
+      {
+        "id": "ev-f91dbd14d0cc",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/aws/karpenter-provider-aws/blob/v1.0.0/website/content/en/preview/upgrading/upgrade-guide.md",
+        "locator": "L52-L56 (Upgrading to `1.0.0`+)",
+        "excerpt": "* Behavior Changes:\n  * Expiration is now forceful and begins draining as soon as it’s expired. Karpenter does not wait for replacement capacity to be available before draining, but will start provisioning a replacement as soon as the node is expired and begins draining.\n  * Karpenter's generated NodeConfig now takes precedence when generating UserData with the AL2023 `amiFamily`. If you're setting any values managed by Karpenter in your AL2023 UserData, configure these through Karpenter natively (e.g. kubelet configuration fields).\n  * Karpenter now adds a `karpenter.sh/unregistered:NoExecu…",
+        "contentDigest": "sha256:95be50527b8b1cab258c86b9fc665dc9657fa30655d6de614fe8527fcc341da5",
+        "retrievedAt": "2026-10-02T02:35:54Z"
+      }
+    ],
+    "hints": [
+      "code:amiFamily",
+      "code:karpenter.sh/unregistered:NoExecute",
+      "code:amiFamily: Custom"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T05:53:28Z"
+  }
+}

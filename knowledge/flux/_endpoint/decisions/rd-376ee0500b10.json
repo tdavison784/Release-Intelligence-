@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-376ee0500b10",
+    "reviewItemId": "ri-66e67692a032",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "GitRepository"
+        }
+      },
+      "statement": "The source.toolkit.fluxcd.io/v1 GitRepository CRD schema (gitrepositories.source.toolkit.fluxcd.io) gains a new field, spec.serviceAccountName, in the flux2 v2.7.0 install bundle compared with v2.6.4."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:3108c42721b24314f50056b398a5a91a2bf1381e3b777dee763b788a233cb652",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T23:16:24.179Z",
+      "callId": "e97f4487-7758-4b9c-b176-fb6334cd2ceb"
+    },
+    "reason": "The validators confirmed, using the two install bundles [ev-782bc47d120d] and [ev-c2c6c790d6b2], that spec.serviceAccountName exists only in the target release's source.toolkit.fluxcd.io/v1 GitRepository schema. The evidence states no failure, so the consequence is none. That makes the exposure scope the environments that use GitRepository v1, which is what gvk-in-use(source.toolkit.fluxcd.io, v1, GitRepository) expresses. A narrower field-level condition would not fit, because no existing environment could have relied on a field that did not exist before; the excerpts do not show any such dependence.",
+    "startedAt": "2026-10-02T23:16:16.604Z",
+    "decidedAt": "2026-10-02T23:16:24.179Z"
+  }
+}

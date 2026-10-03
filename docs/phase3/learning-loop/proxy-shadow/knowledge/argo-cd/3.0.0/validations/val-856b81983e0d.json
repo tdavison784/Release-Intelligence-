@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-856b81983e0d",
+    "candidateId": "sc-88f18e36ba8f",
+    "proposalId": "sp-ca95bcaf4b7e",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "argo-cd",
+        "path": "redis-ha.securityContext",
+        "name": "redis-ha"
+      },
+      "change": {
+        "type": "removed",
+        "before": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "redis-ha.securityContext",
+              "state": "set"
+            },
+            {
+              "op": "product-version",
+              "name": "helm",
+              "state": "in-range",
+              "range": ">=3.17.1"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "With Helm 3.17.1, the null security context value in redis-ha subchart values.yaml would be rejected during chart validation, preventing successful chart deployment or upgrade.",
+        "remediation": "Upgrade to Argo CD 3.0.0 or later which removes the problematic null value, allowing Helm 3.17.1 to successfully validate and deploy the chart.",
+        "severity": "high"
+      },
+      "statement": "Argo CD 3.0.0 removes a null security context value from the redis-ha Helm subchart values to resolve validation errors with Helm 3.17.1."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: fetch https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://raw.githubusercontent.com/argoproj/argo-helm/gh-pages/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/argoproj/argo-helm/argo-cd:7.8.11: fetch https://ghcr.io/v2/argoproj/argo-helm/argo-cd/manifests/7.8.11: not in cache (offline mode)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (chart-unavailable): helm-repo channel: chart package https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: fetch https://github.com/argoproj/argo-helm/releases/download/argo-cd-7.8.11/argo-cd-7.8.11.tgz: not in cache (offline mode); helm-repo channel: helm-repo: fetch index: fetch https://raw.githubusercontent.com/argoproj/argo-helm/gh-pages/index.yaml: not in cache (offline mode); oci channel: oci: get manifest ghcr.io/argoproj/argo-helm/argo-cd:7.8.11: fetch https://ghcr.io/v2/argoproj/argo-helm/argo-cd/manifests/7.8.11: not in cache (offline mode)"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

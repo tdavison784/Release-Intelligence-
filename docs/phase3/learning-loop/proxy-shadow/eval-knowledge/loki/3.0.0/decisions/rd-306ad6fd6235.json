@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-306ad6fd6235",
+    "reviewItemId": "ri-eecbc06f1de5",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Operators can now configure resource requests and limits for GrafanaAgent pods through Helm values; previously this was not configurable.",
+        "severity": "low"
+      },
+      "statement": "The Loki Helm chart now allows defining resource requests and limits for GrafanaAgent pods."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence if the operator does nothing: the change adds an optional Helm setting for GrafanaAgent pod resources, and the evidence describes no changed default or broken behaviour.",
+        "severity": "low"
+      },
+      "statement": "The Loki Helm chart now lets operators optionally define resource requests/limits for GrafanaAgent pods; environments that do not use the new option are unaffected."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:7b3027aa6c9b7dd2a98d31957dbc1c8b0664acc5ad951cf2143a789f92417c46",
+      "inputEvidence": [
+        "ev-ef448e5a23b4"
+      ],
+      "generatedAt": "2026-10-03T02:05:46.615Z",
+      "callId": "0ea24d96-b45c-4704-8b07-5990c88264d2"
+    },
+    "reason": "[ev-ef448e5a23b4] lists this under Features and says only that the Helm chart now \"allows the definition\" of resources for GrafanaAgent pods. That is an opt-in capability. Nothing in it says a default or existing behaviour changes for an operator who does nothing. The proposed statement describes the new option, not something that happens to an exposed environment, so behavior-change (review) claims more than the evidence supports. The fitting consequence is none (informational).",
+    "startedAt": "2026-10-03T02:05:38.811Z",
+    "decidedAt": "2026-10-03T02:05:46.615Z"
+  }
+}

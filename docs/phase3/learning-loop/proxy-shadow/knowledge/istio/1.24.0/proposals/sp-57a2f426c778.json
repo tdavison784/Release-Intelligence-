@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-57a2f426c778",
+    "candidateId": "sc-d676f61f0b1c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "istio",
+        "name": "istio-clean-iptables",
+        "component": "pilot-agent"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"ISTIO_OUTPUT iptables chain not removed\"",
+        "after": "\"ISTIO_OUTPUT iptables chain removed\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "istio-clean-iptables",
+          "component": "pilot-agent",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The pilot-agent istio-clean-iptables command now correctly removes the ISTIO_OUTPUT iptables chain instead of leaving it in place.",
+        "severity": "low"
+      },
+      "statement": "The pilot-agent istio-clean-iptables command now correctly removes the ISTIO_OUTPUT iptables chain, fixing a previous issue where it was not being removed."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-dd94d38ea856"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:70450e065e17277468453ee026f013f21c86457e720e65ef03f7ba1a15f3ccb7",
+      "inputEvidence": [
+        "ev-dd94d38ea856"
+      ],
+      "generatedAt": "2026-10-02T06:04:11Z",
+      "callId": "1104708e-0f61-4061-92f9-f947c1ffab8c"
+    }
+  }
+}

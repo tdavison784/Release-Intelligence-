@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a3b248391cf6",
+    "candidateId": "sc-4cf375704f66",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "Bucket",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "Bucket"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "set"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "Bucket"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "A buckets.source.toolkit.fluxcd.io/v1beta2 Bucket object that omits status.artifact.digest is rejected by schema validation after the upgrade, per the computed diff of the install bundles.",
+        "severity": "medium"
+      },
+      "statement": "In the source.toolkit.fluxcd.io/v1beta2 schema of buckets.source.toolkit.fluxcd.io, the Bucket field status.artifact.digest is newly required, and Bucket objects that omit it are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f301deea57eaa0ee0ad75ec51c17391fbf88e4df57b87e5d19b48823fc9d21a4",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:51:38Z",
+      "callId": "ac91a431-568d-4145-ac7c-a1e989a03469"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4f8949ae5a01",
+    "reviewItemId": "ri-55561befe5fc",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "enableCiliumEndpointSlice",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "ciliumEndpointSlice.enabled",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "ciliumEndpointSlice.enabled",
+          "state": "set"
+        }
+      },
+      "statement": "Helm option `enableCiliumEndpointSlice` is deprecated and will be removed in a future release; use `ciliumEndpointSlice.enabled` instead."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:fc1cc51d7f659177008ae714c98adfe01bbbb63e86c6c014e433c951b1f2ec3b",
+      "inputEvidence": [
+        "ev-79276bab0c0a",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T12:55:25.59Z",
+      "callId": "b1cc5a0a-6ec3-4085-9b7f-1afef40fe58c"
+    },
+    "reason": "[ev-79276bab0c0a] says the Helm option `enableCiliumEndpointSlice` is deprecated and replaced by `ciliumEndpointSlice.enabled`. This is a deprecated Helm value with a named replacement. The proposed exposure (old key set and new key unset) and overlap (new key set) follow the canonical shape for that case. The subject check confirmed the key exists in the values files on both sides of the upgrade [ev-28e0ccb5774a][ev-39a22d88e2f5], and nothing in the evidence suggests a narrower or broader condition.",
+    "startedAt": "2026-10-02T12:55:19.085Z",
+    "decidedAt": "2026-10-02T12:55:25.59Z"
+  }
+}

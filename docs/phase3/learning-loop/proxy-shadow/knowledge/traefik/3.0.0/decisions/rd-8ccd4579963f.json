@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8ccd4579963f",
+    "reviewItemId": "ri-6f459a8ab589",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "content-type-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"Content-Type header was auto-detected when not set by the backend\"",
+        "after": "\"Content-Type header is not auto-detected when not set by the backend\""
+      },
+      "statement": "In Traefik 3.0, automatic Content-Type header detection is removed when the backend does not set the Content-Type header; the ContentType middleware must be explicitly used to enable this detection."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "content-type-auto-detection"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "In Traefik v3, the Content-Type header is no longer auto-detected when the backend does not set it; the ContentType middleware must be used to enable Content-Type auto-detection."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:9c6e61b4fa22acec7ad665735b2a08a89d22844a078cba11a32b52b40ab30e05",
+      "inputEvidence": [
+        "ev-be4f90e8abf9"
+      ],
+      "generatedAt": "2026-10-02T23:17:54.727Z",
+      "callId": "edfcb6a8-2fa9-4582-af01-69039ffa20d1"
+    },
+    "reason": "[ev-be4f90e8abf9] says that in v3 Traefik no longer auto-detects the `Content-Type` header when the backend does not set it, and that the `ContentType` middleware must be used to turn auto-detection back on. The subject and the behavior-changed type are therefore right. However, the proposed before/after values are reworded statements wrapped in extra quote marks, not literal values from the text. They are optional for behavior-changed, so I removed them rather than keep invented literals.",
+    "startedAt": "2026-10-02T23:17:45.91Z",
+    "decidedAt": "2026-10-02T23:17:54.727Z",
+    "resultingFact": "vf-95808009f4bd"
+  }
+}

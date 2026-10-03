@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-178d331a8300",
+    "candidateId": "sc-3fcd67ae459f",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "s3.sse-encryption"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "loki",
+          "path": "sse.type"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "s3.sse-encryption",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `s3.sse-encryption` configuration setting is no longer honoured; environments must migrate to `sse.type` to explicitly configure SSE type.",
+        "severity": "high"
+      },
+      "statement": "The `s3.sse-encryption` configuration key is removed in Loki 3.0.0; use `sse.type` instead to configure SSE type, as AWS now defaults encryption of all buckets to SSE-S3."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-c8a8a9c16d41"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:49c51c60a3805f602d58c3723ff6519bf5bd8ab6e9fa3e07877ce1fcc8b014cb",
+      "inputEvidence": [
+        "ev-c8a8a9c16d41"
+      ],
+      "generatedAt": "2026-10-02T21:00:33Z",
+      "callId": "687dd4f4-c819-43cb-9086-09ced3523380"
+    }
+  }
+}

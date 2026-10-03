@@ -1,0 +1,22 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-ccf579ab2262",
+  "promptDigest": "sha256:b61081c784aff20a4cf3bcc25a8da51255a648673ac7fa30b4b32d78c41c0620",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "df325500-58d9-464c-821f-328dab5f963a",
+  "startedAt": "2026-10-03T02:01:04.991Z",
+  "decidedAt": "2026-10-03T02:01:18.287Z",
+  "durationMs": 12393,
+  "costUSD": 0.11019999999999999,
+  "output": {
+    "action": "need-more-evidence",
+    "reason": "[ev-48d8875989c1] calls the setting the `defaultRuleSyntax` static option. Nothing shown proves that the Helm chart exposes it at the values path `core.defaultRuleSyntax`. That option, or the per-route `syntax` field added to IngressRoute and IngressRouteTCP [ev-08274e476e86][ev-b15a80a9b42b], could also be set through other means. The bigger problem is that, per [ev-48d8875989c1], only routers whose rules use v2-only matchers are exposed: `Headers`, regex in `PathPrefix`, multi-value matchers and non-Go regexps. So \"the key is unset\" flags far too many environments, and it also misses routers configured outside Helm values. To write a precise condition, I'd need evidence of the chart's values key for this option and of where router rules are configured (CRD `match` fields or other providers).",
+    "citations": [
+      "ev-48d8875989c1",
+      "ev-08274e476e86",
+      "ev-b15a80a9b42b"
+    ],
+    "confidence": "low"
+  }
+}

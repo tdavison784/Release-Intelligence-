@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-135ff29041a2",
+    "candidateId": "sc-26c1a428f564",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "strimzi",
+        "name": "kafka"
+      },
+      "change": {
+        "type": "requirement-changed",
+        "after": ">=4.0.0"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "kafka",
+              "state": "in-range",
+              "range": ">=3.8.0,<4.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Environments running Kafka 3.8.0 or 3.8.1 will not be supported by Strimzi 0.46.0; the operator will not function with unsupported Kafka versions.",
+        "severity": "high"
+      },
+      "statement": "Strimzi 0.46.0 changes the supported Kafka versions: adds support for Kafka 4.0.0 and removes support for Kafka 3.8.0 and 3.8.1."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-a7c9af863980"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ab074872f12ec3595447685997962b7a59c06545ccc56a8494ca64fa7d209f48",
+      "inputEvidence": [
+        "ev-a7c9af863980"
+      ],
+      "generatedAt": "2026-10-02T06:06:21Z",
+      "callId": "da5831ff-3ef4-4185-b657-09c6f74508c3"
+    }
+  }
+}

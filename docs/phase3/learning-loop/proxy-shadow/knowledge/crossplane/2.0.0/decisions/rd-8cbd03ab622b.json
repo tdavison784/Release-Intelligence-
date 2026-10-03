@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8cbd03ab622b",
+    "reviewItemId": "ri-1d36cb22e208",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.scope",
+              "state": "unset"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "version": "v2",
+          "kind": "CompositeResourceDefinition"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.scope",
+              "state": "set"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "version": "v2",
+          "kind": "CompositeResourceDefinition"
+        }
+      },
+      "statement": "The v2 CompositeResourceDefinition API adds a spec.scope field that defaults to Namespaced, so XRs are namespaced by default (v1 XRDs default to LegacyCluster)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:b425c011827bcaac73ea4ef73f01e384d480498180324e158044dad0309dde82",
+      "inputEvidence": [
+        "ev-4b260bcbe57b",
+        "ev-024ae1616362",
+        "ev-067b435b635b",
+        "ev-0d3738246a50",
+        "ev-13bb08e10750",
+        "ev-13f94d4596b3",
+        "ev-147c26b74d68",
+        "ev-1f38a21f6bdd",
+        "ev-270c9e3fe130",
+        "ev-28c27515399d",
+        "ev-2cf0a7dd0095",
+        "ev-30934c6c9b63",
+        "ev-3b5cfc1e9589",
+        "ev-497295c94a3d",
+        "ev-4cb106f172c6",
+        "ev-4fbe071b2844",
+        "ev-5957f2297008",
+        "ev-6e79b5dc61ae",
+        "ev-754e8c2767c7",
+        "ev-7b1bee6d2352",
+        "ev-81b24803c1c9",
+        "ev-8b680076ce65",
+        "ev-9422233ca172",
+        "ev-95c4d9181c78",
+        "ev-9734c97600b9",
+        "ev-9b2aa10ff338",
+        "ev-9b42493c58c4",
+        "ev-a3bca45d2477",
+        "ev-a51a53aa04ee",
+        "ev-ac8a7bba9777",
+        "ev-b12db1ba30d3",
+        "ev-b44a4511845b",
+        "ev-d5a5794a9446",
+        "ev-d8a9fd80558b",
+        "ev-dfd597f842c9",
+        "ev-e2735e756cbf",
+        "ev-ef56bb524889",
+        "ev-f83c864e3d52"
+      ],
+      "generatedAt": "2026-10-02T23:07:38.7Z",
+      "callId": "486def6e-8b77-43e7-a871-137f6271861f"
+    },
+    "reason": "[ev-4b260bcbe57b] says the XRD `scope` field defaults to `Namespaced` in the new v2 XRD API. It also says v1 XRDs default to `LegacyCluster`, keep claims and don't use `spec.crossplane`. So only v2 XRDs that leave `spec.scope` unset get namespaced XRs by default. That is exactly the proposed exposure. v2 XRDs that set the scope explicitly (for example `Cluster`) choose their behaviour themselves, which fits the proposed overlap. The validator confirms that `spec.scope` exists in the v2.0.0 XRD schema and appears with the new v2 API version [ev-8b680076ce65].",
+    "startedAt": "2026-10-02T23:07:29.903Z",
+    "decidedAt": "2026-10-02T23:07:38.7Z"
+  }
+}

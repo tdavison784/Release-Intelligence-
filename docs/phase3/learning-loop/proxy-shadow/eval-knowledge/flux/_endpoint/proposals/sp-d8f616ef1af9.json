@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d8f616ef1af9",
+    "candidateId": "sc-d3c98f01eaa1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "imagepolicy-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "image.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "ImagePolicy"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImagePolicy objects remain stored as v1beta2 until rewritten; a storage version migration (re-write all objects) and update of status.storedVersions must be done before a later release removes v1beta2.",
+        "remediation": "Re-write all ImagePolicy objects and update status.storedVersions on the CRD to drop v1beta2.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the ImagePolicy CRD (image.toolkit.fluxcd.io) changes from v1beta2 to v1; existing objects stay stored as v1beta2 until rewritten, so a storage version migration is needed before a later release removes v1beta2."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:2e060a8060c38e4b813573bb5658ad245193e479d6823f891a21bffd54d01947",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T20:57:17Z",
+      "callId": "9df1e077-53de-4d7d-a111-383146aca9c9"
+    }
+  }
+}

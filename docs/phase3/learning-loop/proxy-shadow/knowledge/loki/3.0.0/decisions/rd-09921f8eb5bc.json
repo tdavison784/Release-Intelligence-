@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-09921f8eb5bc",
+    "reviewItemId": "ri-fcae4fb38785",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "superseded-upstream",
+        "exposedClass": "review-required",
+        "statement": "The flag is removed and no longer honoured; results caching interval is now determined by querier.split-queries-by-interval.",
+        "remediation": "Remove the flag and verify querier.split-queries-by-interval gives the desired caching interval.",
+        "severity": "medium"
+      },
+      "statement": "The frontend.cache-split-interval CLI flag is removed; results caching interval is now determined by querier.split-queries-by-interval."
+    },
+    "corrected": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Environments that set the frontend.cache-split-interval CLI flag lose that setting: the flag is removed, and the results caching interval is now set by querier.split-queries-by-interval instead.",
+        "remediation": "Remove the frontend.cache-split-interval flag. Set querier.split-queries-by-interval to get the results caching interval you want.",
+        "severity": "medium"
+      },
+      "statement": "In Loki 3.0.0 the frontend.cache-split-interval CLI flag is removed, so a value set for it is no longer honoured. The results caching interval is now set by querier.split-queries-by-interval."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:0a9b7facce24ae787320805d60df1a3fe750626aab1c1b985f3e6ef423c5938d",
+      "inputEvidence": [
+        "ev-f5a61f629314"
+      ],
+      "generatedAt": "2026-10-03T02:35:42.234Z",
+      "callId": "08b41388-541f-4784-822b-e07e2d691498"
+    },
+    "reason": "[ev-f5a61f629314] says the `frontend.cache-split-interval` CLI flag \"is removed\" and that the results caching interval \"is now determined by `querier.split-queries-by-interval`\". A removed key whose value no longer controls anything fits setting-ignored. superseded-upstream does not fit: the replacement is another Loki flag, not an upstream mechanism, and the proposal's own statement says the flag is \"no longer honoured\". The evidence does not say startup fails, so I am not claiming workload-failure or upgrade-blocked.",
+    "startedAt": "2026-10-03T02:35:29.273Z",
+    "decidedAt": "2026-10-03T02:35:42.234Z",
+    "resultingFact": "vf-7554e1105bda"
+  }
+}

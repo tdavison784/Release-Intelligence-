@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e0cf69509797",
+    "reviewItemId": "ri-e978278b8499",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "metrics.influxDB",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--metrics.influxDB",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "The InfluxDB v1 metrics provider (metrics.influxDB) was removed in Traefik v3; leaving its static configuration in place prevents Traefik from starting."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:d18460a7be3e871c5aefcadb230d0d7f87d212bdaf3375a14221b173d4aab304",
+      "inputEvidence": [
+        "ev-a8010075f3de"
+      ],
+      "generatedAt": "2026-10-03T02:34:17.448Z",
+      "callId": "35a9c133-a48a-45e5-801a-13e7f9745a5c"
+    },
+    "reason": "[ev-a8010075f3de] says the InfluxDB v1 metrics provider is removed in v3. Its static configuration (`metrics.influxDB` in YAML/TOML, or `--metrics.influxDB=true` on the CLI) is unsupported and stops Traefik from starting. The proposed exposure flags environments that set `metrics.influxDB` or pass the `--metrics.influxDB` flag, which are the forms the evidence shows. Confidence is low for three reasons. The values check could not confirm `metrics.influxDB` as a chart key. Sub-option flags such as `--metrics.influxDB.address` may not match a flag-name check. File-based static configuration is not covered, and the evidence gives no basis to encode any of these more precisely.",
+    "startedAt": "2026-10-03T02:33:49.143Z",
+    "decidedAt": "2026-10-03T02:34:17.448Z",
+    "resultingFact": "vf-3652eb281640"
+  }
+}

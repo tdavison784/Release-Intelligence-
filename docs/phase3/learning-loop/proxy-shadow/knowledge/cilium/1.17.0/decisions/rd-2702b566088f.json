@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2702b566088f",
+    "reviewItemId": "ri-618290ce0131",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Without --enable-k8s=false, Cilium in lb-only datapath mode under plain Docker assumes Kubernetes is present.",
+        "remediation": "Add --enable-k8s=false to the command line."
+      },
+      "statement": "Running Cilium with --datapath-mode=lb-only in plain Docker mode now requires adding --enable-k8s=false, otherwise Kubernetes is assumed to be present."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:a5542a4b86a44a8538be49383c3119d8d3f2b0a8a198ac7db7d03f4c6985a785",
+      "inputEvidence": [
+        "ev-09d5e26554e5"
+      ],
+      "generatedAt": "2026-10-03T02:19:42.82Z",
+      "callId": "239c6e4d-45ae-461b-8f6f-3bfcfb2be741"
+    },
+    "reason": "[ev-09d5e26554e5] says that if `--enable-k8s=false` is not added in lb-only plain Docker mode, \"it is assumed that Kubernetes is present.\" It does not say that anything fails, is rejected or stops working. So the proposed behavior-change kind, the statement that closely follows the evidence and the remediation are supported. P2's workload-failure (\"operational failures\") goes beyond what the evidence says. Confidence is low because the evidence also says the flag is \"now required\", and it does not say whether assuming Kubernetes is present leads to a failure.",
+    "startedAt": "2026-10-03T02:19:35.054Z",
+    "decidedAt": "2026-10-03T02:19:42.82Z"
+  }
+}

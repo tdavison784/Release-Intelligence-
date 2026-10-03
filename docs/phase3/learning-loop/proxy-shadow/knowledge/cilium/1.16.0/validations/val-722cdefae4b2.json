@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-722cdefae4b2",
+    "candidateId": "sc-b00d0f605f87",
+    "proposalId": "sp-447b68aa6280",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "wireguard.userspaceFallback"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "wireguard.userspaceFallback",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The wireguard.userspaceFallback setting is deprecated and will be removed in a future release; users relying on WireGuard userspace-mode fallback must migrate to using Linux kernel WireGuard support.",
+        "remediation": "Ensure your Linux kernel has native WireGuard support enabled and remove or disable the wireguard.userspaceFallback helm value in your Cilium configuration.",
+        "severity": "medium"
+      },
+      "statement": "The Helm value wireguard.userspaceFallback is deprecated and will be removed in a future version of Cilium; users must have Linux kernel WireGuard support."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/deprecated",
+        "detail": "no canonical exposure condition for helm-value deprecated"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

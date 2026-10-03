@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-b94e21e0ee12",
+    "reviewItemId": "ri-24be3cab626d",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "unset"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "unset"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Cilium MTU auto-detection now uses the lowest MTU of all external interfaces instead of only the primary interface (ENI secondary interfaces excluded); manual MTU configuration still works."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "unset"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "unset"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether nodes have more than one external interface where a non-primary interface (excluding ENI secondary interfaces in ENI mode) has a lower MTU than the primary interface, and whether the CNI configuration sets the mtu option"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "MTU",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--mtu",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "An environment is exposed only if it does not set MTU manually (no `MTU` helm value, no `--mtu` agent flag, no `mtu` in CNI configuration) and its nodes have a non-primary external interface with a lower MTU than the primary one. In ENI mode, secondary interfaces do not count. On those nodes, auto-detection now picks that lower MTU. Environments that set MTU manually are shielded."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:8c052d0d120429460de769c3a1fe42498a2cc515720dead0b0baf02c137f47f6",
+      "inputEvidence": [
+        "ev-b37407b60520"
+      ],
+      "generatedAt": "2026-10-02T12:50:00.435Z",
+      "callId": "1943dcd8-d294-4ff8-942d-11be0f42c96d"
+    },
+    "reason": "[ev-b37407b60520] says only auto-detection changed: it now uses the lowest MTU of all external interfaces instead of just the primary one, ENI secondary interfaces are not considered, and MTU can still be set manually with the `MTU` helm option, the `--mtu` flag or `mtu` in CNI configuration. The proposed exposure flags every environment that has neither the `MTU` value nor the `--mtu` flag set. That is too broad. The detected MTU only changes on nodes where a non-primary external interface (not an ENI secondary) has a lower MTU than the primary. Neither host interface layout nor CNI-config `mtu` can be checked by a static predicate, so the exposure needs an undecidable operand alongside the two manual-override checks, which stay correct.",
+    "startedAt": "2026-10-02T12:49:46.494Z",
+    "decidedAt": "2026-10-02T12:50:00.435Z"
+  }
+}

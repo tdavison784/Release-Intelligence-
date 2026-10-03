@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-58ef93caa616",
+    "reviewItemId": "ri-6bc010eb8a37",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--spiffe",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "the specific configuration keys, Helm values, CRD fields, or CLI flags used to enable SPIFFE mTLS support"
+            }
+          ]
+        }
+      },
+      "statement": "Traefik 3.0.0 adds support for SPIFFE mTLS between Traefik and backend servers."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "the static configuration option, CLI flag, Helm value or ServersTransport field that enables SPIFFE mTLS to backends (not named in the changelog entry)"
+        }
+      },
+      "statement": "Traefik 3.0.0 adds optional SPIFFE mTLS between Traefik and backend servers. The evidence names no configuration key that enables it, so exposure cannot be decided from the release text."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:9cef766f263f96e203f3a0d6ffffe19f5c316afd167ee7f7af36b6ec6580b3d1",
+      "inputEvidence": [
+        "ev-e60b03c8ec6d"
+      ],
+      "generatedAt": "2026-10-02T23:17:26.143Z",
+      "callId": "5e4be7c9-c6e6-4adf-bfeb-c23892ef879b"
+    },
+    "reason": "The changelog entry [ev-e60b03c8ec6d] only says Traefik now supports SPIFFE mTLS between Traefik and backend servers. It names no CLI flag, configuration key or resource field. The proposed '--spiffe' cli-flag leaf is not in the evidence, so it is a guessed predicate. Until release evidence shows how the feature is enabled, the only supportable exposure is an undecidable leaf that says which configuration key is needed.",
+    "startedAt": "2026-10-02T23:17:17.128Z",
+    "decidedAt": "2026-10-02T23:17:26.143Z",
+    "resultingFact": "vf-418ae1105c4d"
+  }
+}

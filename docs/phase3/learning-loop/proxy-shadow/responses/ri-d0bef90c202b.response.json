@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-d0bef90c202b",
+  "promptDigest": "sha256:7ced793b99c77467109fbfd85df0df7964b91b5d64b66600941cbff031baa89d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "ba097e52-16e5-456d-825d-dd4e422d2e7e",
+  "startedAt": "2026-10-03T02:31:10.335Z",
+  "decidedAt": "2026-10-03T02:31:20.691Z",
+  "durationMs": 9401,
+  "costUSD": 0.096584,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-9f4292160fa2] says both the `querier.worker-parallelism` CLI flag and its corresponding yaml setting are removed. An exposure that checks only the CLI flag is too narrow: it misses environments that set the value through the Loki config file. The evidence does not name the yaml key or say where it sits in Helm values, so that part of the condition has to be undecidable rather than a guessed values-key path.",
+    "citations": [
+      "ev-9f4292160fa2"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Loki 3.0.0 removes the querier.worker-parallelism CLI flag and its corresponding yaml setting. Exposed: environments that set the CLI flag, or that set the matching yaml setting in the Loki config (the evidence does not name that key).",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "querier.worker-parallelism",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "release-knowledge-gap",
+              "needed": "the yaml key/path that corresponds to querier.worker-parallelism (not named in the evidence) and whether the environment's Loki config sets it"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

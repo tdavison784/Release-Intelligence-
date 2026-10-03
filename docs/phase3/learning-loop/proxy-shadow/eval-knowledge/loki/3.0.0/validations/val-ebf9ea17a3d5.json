@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ebf9ea17a3d5",
+    "candidateId": "sc-b5410801d8a4",
+    "proposalId": "sp-e4ee0aa99739",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "drop_labels",
+        "component": "lambda-promtail"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "PROMTAIL_CONFIG",
+              "component": "lambda-promtail",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Empty strings in drop_labels configuration are no longer evaluated, which corrects the handling of this configuration parameter in lambda-promtail.",
+        "severity": "low"
+      },
+      "statement": "The lambda-promtail tool no longer evaluates empty strings when processing drop_labels configuration."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

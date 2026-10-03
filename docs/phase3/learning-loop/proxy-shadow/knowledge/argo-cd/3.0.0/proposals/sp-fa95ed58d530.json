@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fa95ed58d530",
+    "candidateId": "sc-a1d88092526a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "cluster.inClusterEnabled"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "null",
+        "after": "null"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "cluster.inClusterEnabled",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Applications configured to sync on the in-cluster cluster will enter Unknown state without the possibility to sync resources; new Applications cannot be created using the in-cluster cluster; and deleting Applications will not delete the previously managed resources.",
+        "remediation": "Perform cleanup or migration of existing in-cluster Applications before upgrading when in-cluster is disabled. To perform post-migration cleanup, the in-cluster will need to be enabled temporarily.",
+        "severity": "high"
+      },
+      "statement": "When cluster.inClusterEnabled is set to \"false\", Applications currently configured to sync on the in-cluster cluster will enter Unknown state and cannot sync; new Applications cannot use the in-cluster cluster; and deleting Applications will not delete their previously managed resources."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-adf2ed32df1c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:9c4e0f733b7ec4a8b475b6e4a3241aeadb28ea4953647ac7026a4590b0fa954b",
+      "inputEvidence": [
+        "ev-adf2ed32df1c"
+      ],
+      "generatedAt": "2026-10-02T06:01:57Z",
+      "callId": "6d164bd2-d48d-4f0c-809d-3ce1e3f54699"
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-af57372932c7",
+    "reviewItemId": "ri-d74edb29ba87",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "traefik.io",
+              "kind": "TCPServersTransport"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.kubernetesCRD",
+              "component": "traefik",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "statement": "Traefik v3.0.0 introduces TCPServersTransport support; when using the KubernetesCRD provider, RBAC and CRD manifests must be updated to recognize this new resource type."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.kubernetescrd",
+              "component": "traefik",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the KubernetesCRD provider is enabled through Traefik static configuration (file) rather than a CLI flag"
+            }
+          ]
+        }
+      },
+      "statement": "In Traefik v3.0.0, TCPServersTransport support was introduced. Every environment using the KubernetesCRD provider must update its RBAC and CRD manifests, whether or not it already uses TCPServersTransport."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:a0813ca23a1c91b0d197332b5b189619b4dfd9200a35cac228844be716419e1b",
+      "inputEvidence": [
+        "ev-c160fecc6f71"
+      ],
+      "generatedAt": "2026-10-03T02:31:59.67Z",
+      "callId": "354abd73-4ec8-40eb-97bc-6f8a09e4480e"
+    },
+    "reason": "[ev-c160fecc6f71] says the RBAC and CRD manifests must be updated \"when using the KubernetesCRD provider\". The only condition it gives is that the provider is in use. The proposed exposure also requires the TCPServersTransport kind to already be in use. That kind is new in v3, so v2 environments upgrading would almost never have it, and the condition would miss the environments that are actually exposed. The corrected exposure is \"KubernetesCRD provider enabled\". The CLI flag is one detectable signal. Enabling the provider through a static config file cannot be seen from the static inputs shown, so it is marked undecidable.",
+    "startedAt": "2026-10-03T02:31:46.392Z",
+    "decidedAt": "2026-10-03T02:31:59.67Z"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0ec595b4786b",
+    "reviewItemId": "ri-459f7672041e",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Responses whose backend does not set Content-Type no longer get an auto-detected Content-Type header unless the ContentType middleware is used.",
+        "remediation": "Use the ContentType middleware to enable Content-Type auto-detection.",
+        "severity": "medium"
+      },
+      "statement": "In v3, Traefik no longer auto-detects the Content-Type header when the backend doesn't set it; the ContentType middleware must be used to enable auto-detection."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:290b1f8c8f2d0c137afcb8ea4edc32cc7a8b28309ce8dd5eefd58c2ffb63b56f",
+      "inputEvidence": [
+        "ev-be4f90e8abf9"
+      ],
+      "generatedAt": "2026-10-02T23:12:08.884Z",
+      "callId": "4f57eeee-94f5-49e5-b0a4-942e580ac08a"
+    },
+    "reason": "[ev-be4f90e8abf9] says that in v3 the Content-Type header is no longer auto-detected when the backend does not set it, and that the ContentType middleware turns auto-detection back on. The evidence does not say that anything fails, is rejected or stops being honoured. Responses are still served, just without an inferred header, so this is behavior-change, which needs review, not a failure kind. The proposed statement and remediation (use the ContentType middleware) match the evidence.",
+    "startedAt": "2026-10-02T23:12:03.989Z",
+    "decidedAt": "2026-10-02T23:12:08.884Z"
+  }
+}

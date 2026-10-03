@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-1382fdb977bc",
+  "promptDigest": "sha256:f60845538054792eb16389399d68bafbfa7edf9d3878b9ba72615cfa2ead3b5d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d5f82f7a-18f1-44ca-a5b5-6a6f7fb82a0b",
+  "startedAt": "2026-10-03T02:11:41.299Z",
+  "decidedAt": "2026-10-03T02:11:59.524Z",
+  "durationMs": 17555,
+  "costUSD": 0.187968,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-f0f21b325fa6] and [ev-094d5d8b0291] show the storage flag for policyexceptions.kyverno.io moving from v2beta1 to v2 between 1.12.6 and 1.13.0. In 1.12.6 v2beta1 was the storage version, so every PolicyException that exists at upgrade time is stored as v2beta1, whichever apiVersion the manifest used. The change text says it is the existing objects that need rewriting. A condition limited to manifests that use apiVersion v2beta1 is too narrow: it misses objects written as v2, which are still stored as v2beta1, so the exposure should be any PolicyException in use, with no version filter.",
+    "citations": [
+      "ev-f0f21b325fa6",
+      "ev-094d5d8b0291",
+      "ev-e4d8d307c8bd",
+      "ev-f5ab4321b780"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In 1.13.0 the storage version of policyexceptions.kyverno.io moves from v2beta1 to v2. Any environment with existing PolicyException objects, whatever apiVersion they were written in, still has them stored as v2beta1. Those objects need a storage version migration and a status.storedVersions update before a later release removes v2beta1.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "kyverno.io",
+          "kind": "PolicyException"
+        }
+      }
+    }
+  }
+}

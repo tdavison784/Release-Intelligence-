@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-5dafd23ce853",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-5ae6ec151baa"
+        ],
+        "statementKeys": [
+          "sk-85c98393f7e7"
+        ],
+        "changeIds": [
+          "chg-3716abdee086"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-431b73602cf8"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Certificate",
+        "path": "spec.keystores.jks.password"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.keystores",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A new optional way to set keystore passwords is added; existing passwordSecretRef usage is not stated to change."
+      },
+      "statement": "Easier Keystore Passwords for PKCS#12 and JKS: Specifying passwords on PKCS#12 and JKS keystores is supported in cert-manager for compatibility reasons with…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "deterministic",
+        "basis": [
+          "val-1ff7e5204a92",
+          "val-52fff941f65c",
+          "val-8c3952789931",
+          "val-e3402fedfe29"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "deterministic",
+        "basis": [
+          "val-1ff7e5204a92",
+          "val-52fff941f65c",
+          "val-8c3952789931",
+          "val-e3402fedfe29"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-c99abdc54c8f"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-ba59fc806a29"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-4c3d690d4f9d",
+        "kind": "document",
+        "sourceId": "website-major-themes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+        "locator": "L39-L71 (Major Themes › Easier Keystore Passwords for PKCS#12 and JKS)",
+        "excerpt": "### Easier Keystore Passwords for PKCS#12 and JKS\n\nSpecifying passwords on PKCS#12 and JKS keystores is supported in cert-manager\nfor compatibility reasons with software which expects or requires passwords to be set; however, these passwords are [not relevant to security](../../faq/README.md#why-are-passwords-on-jks-or-pkcs12-files-not-helpful) and never have been in cert-manager.\n\nThe initial implementation of the `keystores` feature required these \"passwords\" to be stored in a Kubernetes secret, which would then be read by cert-manager when creating the keystore after a certificate was issue…",
+        "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-60054fcf0986",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:af6faeb6b75a13a70d0ac7f5db2b5b694f8cb9023c54bfbafd4d7d2fd95846d3",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-84061d76ea1b",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.16.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:6b81e668c80301955ea3c618a0e29ceb98b54d1d80a7b0082c77e5c7d827b41b",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:50:00Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T15:58:45.607Z"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-573a75302854",
+  "promptDigest": "sha256:39d9a83e9b589f607be1261ed1769c8dd9925d0497029c3ce7084999059dbd7e",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "2bb29d94-d10c-4bbf-a4d3-1e6b24ecdfba",
+  "startedAt": "2026-10-02T23:14:27.932Z",
+  "decidedAt": "2026-10-02T23:14:44.314Z",
+  "durationMs": 15666,
+  "costUSD": 0.074908,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-5b58f5805519] says that in v3 the Kubernetes Gateway API provider no longer enables support for the experimental channel resources (TLSRoute and TCPRoute) by default. The migration guide gives a remediation: enable `experimentalChannel`. So these resources are no longer supported. They do not keep working in a different way, which is what behavior-change would mean. For an environment that relies on TLSRoute or TCPRoute, routing stops working unless the operator enables the option, so this is a workload failure and needs action, not just review.",
+    "citations": [
+      "ev-5b58f5805519"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In v3 the Kubernetes Gateway API provider no longer supports experimental channel resources (TLSRoute, TCPRoute) by default. Environments relying on them lose that routing unless providers.kubernetesGateway.experimentalChannel is set to true.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "workload-failure",
+        "severity": "high",
+        "statement": "Unless experimentalChannel is enabled, the Kubernetes Gateway API provider does not support TLSRoute and TCPRoute resources, so routing defined by them is no longer provided after the upgrade to v3.",
+        "remediation": "Set providers.kubernetesGateway.experimentalChannel: true in the static configuration."
+      }
+    }
+  }
+}

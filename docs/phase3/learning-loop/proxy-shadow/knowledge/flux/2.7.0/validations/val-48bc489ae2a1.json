@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-48bc489ae2a1",
+    "candidateId": "sc-44bc196bb744",
+    "proposalId": "sp-42bd2644e277",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "configmap-secret-reference-watch"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "kind": "Kustomization"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "helm.toolkit.fluxcd.io",
+              "kind": "HelmRelease"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kustomization and HelmRelease controllers now watch for changes in referenced ConfigMaps and Secrets, so changes to those objects are detected and can trigger reconciliation rather than waiting for the next scheduled interval; nothing fails.",
+        "remediation": "Verify whether changes to ConfigMaps and Secrets referenced by your Kustomizations and HelmReleases now trigger the expected reconciliations; no operator action is otherwise required.",
+        "severity": "low"
+      },
+      "statement": "Flux 2.7.0 now watches for changes in ConfigMaps and Secrets referenced by Kustomization and HelmRelease resources."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

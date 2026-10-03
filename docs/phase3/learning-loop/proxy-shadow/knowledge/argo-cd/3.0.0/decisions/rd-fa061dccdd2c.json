@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-fa061dccdd2c",
+    "reviewItemId": "ri-893997fb13fa",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Applications configured to sync on the in-cluster cluster will enter Unknown state without the possibility to sync resources; new Applications cannot be created using the in-cluster cluster; and deleting Applications will not delete the previously managed resources.",
+        "remediation": "Perform cleanup or migration of existing in-cluster Applications before upgrading when in-cluster is disabled. To perform post-migration cleanup, the in-cluster will need to be enabled temporarily.",
+        "severity": "high"
+      },
+      "statement": "When cluster.inClusterEnabled is set to \"false\", Applications currently configured to sync on the in-cluster cluster will enter Unknown state and cannot sync; new Applications cannot use the in-cluster cluster; and deleting Applications will not delete their previously managed resources."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:bf7e17cb71696bc77af96155b325ceeec723f9a23c63291c64b81ff1e268cd58",
+      "inputEvidence": [
+        "ev-adf2ed32df1c"
+      ],
+      "generatedAt": "2026-10-03T02:24:19.55Z",
+      "callId": "c29fd78a-9fbb-462c-a410-fcd2767bfff1"
+    },
+    "reason": "[ev-adf2ed32df1c] says that when `cluster.inClusterEnabled: \"false\"` is set, Applications that target the in-cluster cluster go into an Unknown state and cannot sync resources. It also says new in-cluster Applications cannot be created, and deleting an Application leaves its managed resources behind. Those Applications stop working, so workload-failure (mandatory work) fits. The cleanup or migration is only \"recommended\", so migration-required would claim more than the evidence says. The statement and remediation match the evidence closely, and severity high fits Applications that can no longer sync.",
+    "startedAt": "2026-10-03T02:24:12.986Z",
+    "decidedAt": "2026-10-03T02:24:19.55Z"
+  }
+}

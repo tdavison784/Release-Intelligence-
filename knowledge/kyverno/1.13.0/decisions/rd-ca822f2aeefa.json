@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-ca822f2aeefa",
+    "reviewItemId": "ri-41442b63cdc4",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:69538df8f1c29a7b7e2a2844e81090c76223f2012288d22d10621b1f07a2b035",
+      "inputEvidence": [
+        "ev-7f40c22f3620"
+      ],
+      "generatedAt": "2026-10-02T23:11:52.823Z",
+      "callId": "e526c6f2-2695-48ce-abf8-e6f7b1c07521"
+    },
+    "reason": "The proposed cli-flag subject is not supported: [ev-7f40c22f3620] describes no command-line flag, and \"global-context-injection-via-values-file\" is an invented name rather than a flag. The evidence describes keys in a cli.kyverno.io/v1alpha1 Value file instead. Its example shows globalValues carrying request.operation, which is a request variable rather than a global context entry. The rule-specific value (deploymentCount for the gctx policy), which carries the injected global context entry, is cut off at \"policies: - name: gc…\", so the correct subject key path cannot be spelled from the evidence. To fix the subject and confirm \"added\", I need the full Values file example, or the CLI schema or PR that defines the field holding the per-rule global context values.",
+    "startedAt": "2026-10-02T23:11:39.871Z",
+    "decidedAt": "2026-10-02T23:11:52.823Z"
+  }
+}

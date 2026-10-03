@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-981c14e1e162",
+    "reviewItemId": "ri-4373621eb885",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--querier.engine.timeout",
+          "component": "querier",
+          "state": "set"
+        }
+      },
+      "statement": "The -querier.engine.timeout CLI flag and the querier.query_timeout YAML setting are removed in Loki 3.0.0."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--querier.engine.timeout",
+              "component": "querier",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the environment's Loki YAML configuration sets the YAML form of -querier.engine.timeout or querier.query_timeout; the evidence does not name the Helm values or ConfigMap path that carries them"
+            }
+          ]
+        }
+      },
+      "statement": "Loki 3.0.0 removes the deprecated -querier.engine.timeout CLI flag, its corresponding YAML setting and the querier.query_timeout YAML setting. Exposed: environments that pass the CLI flag, or whose Loki config sets either removed YAML setting."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:daa65385607b7196f84504dc6517a0207b190bcdf81e67ff8cb10af2722aad50",
+      "inputEvidence": [
+        "ev-583967e3eaf6"
+      ],
+      "generatedAt": "2026-10-03T02:17:18.678Z",
+      "callId": "37cd86f1-7078-4579-8a39-eed510ddfa74"
+    },
+    "reason": "[ev-583967e3eaf6] says three things were removed: the `-querier.engine.timeout` CLI flag, its corresponding YAML setting, and the `querier.query_timeout` YAML setting. The proposed exposure only checks the CLI flag, so it misses environments that set either removed setting in the Loki YAML config. The evidence does not say which Helm values path or ConfigMap path holds those YAML keys, so the YAML part is written as undecidable rather than as a guessed predicate.",
+    "startedAt": "2026-10-03T02:17:00.952Z",
+    "decidedAt": "2026-10-03T02:17:18.678Z"
+  }
+}

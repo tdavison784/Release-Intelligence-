@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d66bf2cf9a28",
+    "candidateId": "sc-dc6014b3811a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "OCIRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "OCIRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "OCIRepository v1 resources without status.artifact.digest are rejected.",
+        "severity": "high"
+      },
+      "statement": "The status.artifact.digest field is now required in OCIRepository v1; objects omitting it are rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:b026d94048134ebdbb51d4faea46ae75231411efe8352455017338878725c5de",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T16:13:00Z",
+      "callId": "3ac90726-18c9-407b-8fd7-a1d69a165089"
+    }
+  }
+}

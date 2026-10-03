@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-bd0a86fe7f38",
+    "candidateId": "sc-a7ff62a3be31",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "operatorhub"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether cert-manager in this environment is installed or updated through OperatorHub (RedHat OpenShift OperatorHub or operatorhub.io, via OLM) rather than another distribution method"
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "An installation that gets cert-manager from OperatorHub cannot be upgraded to v1.18.0 through OperatorHub: cert-manager no longer publishes packages there and v1.16.5 is the last release available on RedHat OpenShift OperatorHub and operatorhub.io, so it remains on v1.16.5 unless the operator switches to another distribution method.",
+        "remediation": "Move the cert-manager installation off OperatorHub/OLM to another distribution method to upgrade past v1.16.5; the cert-manager-olm repository is archived.",
+        "severity": "high"
+      },
+      "statement": "cert-manager 1.18.0 no longer publishes packages to OperatorHub: v1.16.5 is the last release offered on RedHat OpenShift OperatorHub and on operatorhub.io, and the cert-manager-olm repository is archived."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-c3d5e62490c3"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:89e414e77bca39fee85e975665fe979c0a5ac88ce3d7551eca7b5b8f350f8dea",
+      "inputEvidence": [
+        "ev-c3d5e62490c3"
+      ],
+      "generatedAt": "2026-10-02T11:18:56Z",
+      "callId": "1577ff5c-952e-4778-8892-ed36b4ae6033"
+    }
+  }
+}

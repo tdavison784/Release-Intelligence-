@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3226be426f3f",
+    "candidateId": "sc-a8771d6dc75d",
+    "proposalId": "sp-6b55a2ff4e6d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "strimzi",
+        "name": "enable-stable-connect-identities"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<0.39.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaConnect"
+                },
+                {
+                  "op": "gvk-in-use",
+                  "group": "kafka.strimzi.io",
+                  "kind": "KafkaMirrorMaker2"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators upgrading from Strimzi 0.38 or older with Kafka Connect or Kafka MirrorMaker 2 operands must enable the StableConnectIdentities feature gate and use StrimziPodSets before upgrading.",
+        "remediation": "Before upgrading to Strimzi 0.46.0, enable the StableConnectIdentities feature gate and use StrimziPodSets in the Strimzi 0.38-or-older cluster."
+      },
+      "statement": "Strimzi 0.46.0 requires that, when upgrading from Strimzi 0.38 or older with Kafka Connect or Kafka MirrorMaker 2 operands, the StableConnectIdentities feature gate is enabled and StrimziPodSets are in use before the upgrade."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

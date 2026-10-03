@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c99abdc54c8f",
+    "reviewItemId": "ri-ceb9a7276cbc",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.keystores",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Certificate"
+        }
+      },
+      "statement": "A new password field is added to PKCS#12 and JKS keystores in the Certificate resource, allowing passwords to be specified as literal strings, mutually exclusive with the existing passwordSecretRef field."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:3c092eecf731b1e7a71d33850e3d5527b8ede0bdcfb9d341518ba94e4923654f",
+      "inputEvidence": [
+        "ev-4c3d690d4f9d",
+        "ev-60054fcf0986",
+        "ev-84061d76ea1b"
+      ],
+      "generatedAt": "2026-10-02T15:58:45.607Z",
+      "callId": "96fb14b6-98e7-4d1d-abb3-582b8dbea70b"
+    },
+    "reason": "[ev-4c3d690d4f9d] describes an optional new literal `password` field for the Certificate `keystores` feature, as an alternative to `passwordSecretRef`. It names no failure for existing configurations. The CRD diff [ev-60054fcf0986][ev-84061d76ea1b] confirms that `spec.keystores.jks.password` and `spec.keystores.pkcs12.password` are newly added. The consequence is none, so the only environments the change touches are those that already have Certificates with `spec.keystores` set. The proposed condition expresses exactly that, without claiming mandatory work. P4's narrower `passwordSecretRef` condition comes to roughly the same thing, because in the prior release keystores carried their password through `passwordSecretRef`.",
+    "startedAt": "2026-10-02T15:58:34.983Z",
+    "decidedAt": "2026-10-02T15:58:45.607Z",
+    "resultingFact": "vf-5dafd23ce853"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-df4169cd20cc",
+    "candidateId": "sc-64939cd9016f",
+    "proposalId": "sp-5139109128cf",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "rbac-permission",
+        "product": "prometheus-operator",
+        "name": "events/create"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "prometheus-operator",
+          "component": "prometheus-operator",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The operator can now properly emit Kubernetes events; this is a fix enabling correct operation."
+      },
+      "statement": "The prometheus-operator's RBAC permissions are fixed to allow the operator to emit Kubernetes events."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:rbac-permission/added",
+        "detail": "no canonical exposure condition for rbac-permission added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

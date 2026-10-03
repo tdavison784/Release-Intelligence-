@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c9c4dbca296a",
+    "candidateId": "sc-87d161c59ee8",
+    "proposalId": "sp-57d8f67ccb99",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "http01-ingress-pathtype"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"Exact\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "product-version",
+              "name": "ingress-nginx",
+              "state": "in-range",
+              "range": ">=1.12.0"
+            },
+            {
+              "op": "all",
+              "of": [
+                {
+                  "op": "product-version",
+                  "name": "ingress-nginx",
+                  "state": "in-range",
+                  "range": ">=1.8.0"
+                },
+                {
+                  "op": "undecidable",
+                  "reason": "environment-visibility-gap",
+                  "needed": "whether the ingress-nginx strict-validate-path-type configuration option is enabled"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "With ingress-nginx strict-validate-path-type enabled (the default in ingress-nginx >= 1.12.0), the validate.nginx.ingress.kubernetes.io admission webhook rejects the HTTP01 challenge Ingress because its path contains a dot. The controller then logs 'Error presenting challenge: admission webhook ... denied the request', and the HTTP01 challenge cannot be solved.",
+        "severity": "high"
+      },
+      "statement": "cert-manager 1.18.0 creates ACME HTTP01 challenge Ingress routes with PathType Exact. ingress-nginx's strict-validate-path-type option (available from 1.8.0 and on by default from 1.12.0) rejects these routes, so presenting the challenge fails with an admission webhook denial."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-03f9af58a9a5",
+    "reviewItemId": "ri-359f59a7bcb8",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "feature-gate",
+          "name": "CAInjectorMerging",
+          "component": "ca-injector",
+          "state": "enabled"
+        }
+      },
+      "statement": "A new CAInjectorMerging feature gate is added to the ca-injector; when enabled, the injector merges new CA certificates instead of replacing the existing one."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:33db2bc7e16771d5106fa8bc314b84da6bf7bdfc718a4ad3da608856b92d4dbe",
+      "inputEvidence": [
+        "ev-e3729e495e40"
+      ],
+      "generatedAt": "2026-10-02T12:51:43.522Z",
+      "callId": "04a94cce-feb6-449f-9331-91c708fd60b5"
+    },
+    "reason": "[ev-e3729e495e40] says the new `CAInjectorMerging` gate is added to the ca-injector, and that \"enabling this\" makes the ca-injector merge in new CA certificates instead of replacing the existing one. So the only environments that see the changed behaviour are those that enable the gate on the ca-injector. The proposed exposure, feature-gate CAInjectorMerging (component ca-injector) in state enabled, matches that exactly: it does not flag environments that leave the gate off and does not miss any that turn it on.",
+    "startedAt": "2026-10-02T12:51:37.705Z",
+    "decidedAt": "2026-10-02T12:51:43.522Z"
+  }
+}

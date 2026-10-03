@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-fc4ba30484c0",
+    "candidateId": "sc-e08e8f654c47",
+    "proposalId": "sp-0c95e085116d",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "ambient-hostnetwork-handling"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.hostNetwork",
+                      "state": "equals",
+                      "values": [
+                        "true"
+                      ]
+                    }
+                  ],
+                  "kind": "Pod"
+                }
+              ]
+            },
+            {
+              "op": "feature-gate",
+              "name": "ambient",
+              "state": "enabled"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Pods with hostNetwork enabled are now properly handled in ambient mode instead of being ignored.",
+        "severity": "medium"
+      },
+      "statement": "An issue causing pods with hostNetwork enabled to be ignored in Istio ambient mode has been fixed."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

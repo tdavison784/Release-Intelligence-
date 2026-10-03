@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-7f7ef84fe742",
+    "reviewItemId": "ri-b0099d565e64",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "DROP_LABELS",
+          "component": "lambda-promtail",
+          "state": "set"
+        }
+      },
+      "statement": "lambda-promtail no longer panics when the DROP_LABELS environment variable is empty."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "DROP_LABELS",
+          "component": "lambda-promtail",
+          "state": "equals",
+          "values": [
+            "\"\""
+          ]
+        }
+      },
+      "statement": "lambda-promtail no longer panics when the DROP_LABELS environment variable is empty; exposed environments are those running lambda-promtail with DROP_LABELS set to an empty value."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:42c71c92a701b1371186505b4ad35502d5aa50d3dad4fab5bb470e91a8df508d",
+      "inputEvidence": [
+        "ev-4f0f13cefd09"
+      ],
+      "generatedAt": "2026-10-03T01:57:20.735Z",
+      "callId": "be1784a9-76b2-4bef-88f1-4ef72fffda13"
+    },
+    "reason": "[ev-4f0f13cefd09] says only that lambda-promtail panicked when the DROP_LABELS env var was empty. The proposed exposure, DROP_LABELS \"set\", is too broad because it would also flag environments with a non-empty DROP_LABELS value, and the evidence does not say those were affected. The exposure should be DROP_LABELS equal to the empty string. Unlike P1, the value should be a true empty string, not literal quote characters. The evidence does not say whether an unset variable also triggered the panic, so confidence is low.",
+    "startedAt": "2026-10-03T01:57:10.788Z",
+    "decidedAt": "2026-10-03T01:57:20.735Z",
+    "resultingFact": "vf-b446bc665090"
+  }
+}

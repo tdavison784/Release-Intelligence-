@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-e9851c5565c4",
+    "product": "argo-cd",
+    "release": "3.0.0",
+    "anchors": [
+      {
+        "release": "3.0.0",
+        "evidenceKeys": [
+          "ek-16c3c8ff5d08"
+        ],
+        "statementKeys": [
+          "sk-9c9e3a52e713"
+        ],
+        "changeIds": [
+          "chg-178f5e1223b0"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-df479e04bf5f"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "argo-cd",
+        "group": "argoproj.io",
+        "kind": "ApplicationSet",
+        "path": "spec.applyNestedSelectors"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.applyNestedSelectors",
+                      "state": "unset"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.applyNestedSelectors",
+                      "state": "equals",
+                      "values": [
+                        "false",
+                        "\"false\""
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "group": "argoproj.io",
+              "kind": "ApplicationSet"
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether that ApplicationSet has one or more nested selectors (the evidence does not give the field path of nested selectors); the 'ignoring nested selector' line in the ApplicationSet controller logs is the upstream detection signal"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "An ApplicationSet that has nested selectors and leaves spec.applyNestedSelectors unset or set to false no longer has that value honoured after the upgrade: the field is ignored and its nested selectors are always applied, where before they were not applied.",
+        "remediation": "Before upgrading, check the ApplicationSet controller logs for 'ignoring nested selector' to find affected ApplicationSets. Remove the nested selectors from any ApplicationSet where applyNestedSelectors is not explicitly set to true, then upgrade.",
+        "severity": "medium"
+      },
+      "statement": "Ignoring ApplicationSet `applyNestedSelectors` field: Setting the `spec.applyNestedSelectors` field in an ApplicationSet resolves counter-intuitive behavior…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-5023ac53f494"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-5023ac53f494"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-b393dfeefab8"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-a674254bd1f9"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-e24f6e836412",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/argoproj/argo-cd/blob/v3.0.0/docs/operator-manual/upgrading/2.14-3.0.md",
+        "locator": "L149-L219 (v2.14 to 3.0 › Breaking Changes › Ignoring ApplicationSet `applyNestedSelectors` field)",
+        "excerpt": "### Ignoring ApplicationSet `applyNestedSelectors` field\n\nSetting the `spec.applyNestedSelectors` field in an ApplicationSet resolves counter-intuitive behavior where filters in\nnested selectors were not applied. Starting in Argo CD 3.0, the field is ignored, and behavior is always the same as if\n`applyNestedSelectors` was set to `true`. In other words, nested selectors are always applied.\n\n#### Detection\n\nTo detect if you are impacted, search your ApplicationSet controller logs for this string: `ignoring nested selector`.\nIf there are no logs with this string, you are not impacted.\n\nAnother w…",
+        "contentDigest": "sha256:dd7d03fd482596a3b110535bed1d0d1c975e1f013cd7cac90ad99d9fe8684b2f",
+        "retrievedAt": "2026-10-02T02:35:33Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T16:01:54.189Z"
+  }
+}

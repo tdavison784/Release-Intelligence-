@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d7294731b582",
+    "candidateId": "sc-5211de5a6cde",
+    "proposalId": "sp-da69437286f1",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-metric-rename"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_ips_used_total\"",
+        "after": "\"lbipam_ips_used\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-metric-rename"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment monitors lbipam metrics or has Prometheus scrape configurations referencing the old metric name"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Monitoring systems, dashboards, and alerting rules that reference the metric lbipam_ips_used_total will no longer find the metric under its previous name, causing metric collection and alerts to fail or stop reporting.",
+        "remediation": "Update all Prometheus scrape configurations, Grafana dashboards, alerting rules, and any monitoring queries to use the new metric name lbipam_ips_used instead of lbipam_ips_used_total.",
+        "severity": "high"
+      },
+      "statement": "The Cilium metric lbipam_ips_used_total has been renamed to lbipam_ips_used."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/renamed",
+        "detail": "no canonical exposure condition for protocol-behavior renamed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

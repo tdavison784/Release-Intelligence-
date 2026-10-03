@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-ee9a54e0f8d8",
+    "candidateId": "sc-f89eaa0e2fb3",
+    "proposalId": "sp-69cc3343a582",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "traefik",
+        "name": "internal-resources-observability"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"enabled\"",
+        "after": "\"disabled by default\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "logs.access.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "metrics.addInternals",
+              "state": "unset"
+            },
+            {
+              "op": "values-key",
+              "path": "tracing.addInternals",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Access logs, metrics and traces for internal routers/services (e.g. ping@internal) are no longer produced unless addInternals is set.",
+        "remediation": "Set the addInternals option for AccessLogs, Metrics or Tracing if internal resource observability is needed.",
+        "severity": "low"
+      },
+      "statement": "In v3, observability (access logs, metrics, tracing) for internal routers/services such as ping@internal is disabled by default and must be enabled with the new addInternals option."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

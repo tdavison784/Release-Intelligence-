@@ -1,0 +1,44 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-4138a18d426c",
+  "promptDigest": "sha256:c433fcbd8de41d48e571a71778b87f3419cfccdb3bbf102da671c98be8547f67",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "0b3e1123-47d3-42f5-a66b-318ffb05ea67",
+  "startedAt": "2026-10-02T23:11:39.087Z",
+  "decidedAt": "2026-10-02T23:11:49.017Z",
+  "durationMs": 9024,
+  "costUSD": 0.09536,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-e4b24ba811ff] only says that embedded cache metrics are renamed from the `querier_cache_` prefix to `loki_embeddedcache_`, and that duplicate metrics are removed. The only environments exposed are ones upgrading from before 3.0.0 that use the embedded cache and whose dashboards, alerts or recording rules refer to the old metric names. The proposed product-version loki >=3.0.0 condition is wrong: it flags every environment running Loki, and product-version is meant for other products, not the product's own upgrade edge. Whether monitoring refers to the old names is not visible in any static input, and the evidence does not name the config key that turns on the embedded cache, so that part must stay undecidable.",
+    "citations": [
+      "ev-e4b24ba811ff"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "In Loki 3.0.0, embedded cache metrics are renamed from the `querier_cache_` prefix to `loki_embeddedcache_`, and duplicate metrics are removed. Exposed: environments upgrading from before 3.0.0 that use the embedded cache and whose dashboards, alerts or rules refer to `querier_cache_` metric names.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the embedded cache is in use and whether dashboards, alerts or recording rules refer to `querier_cache_` metric names (or the removed duplicate metrics)"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

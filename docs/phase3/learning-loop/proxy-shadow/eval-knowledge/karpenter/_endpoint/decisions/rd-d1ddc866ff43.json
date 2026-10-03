@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d1ddc866ff43",
+    "reviewItemId": "ri-742656b8aac5",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "ec2nodeclasses-storage-version-upgrade-v1beta1-to-v1"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "A storage version migration of EC2NodeClass from v1beta1 to v1 is required; existing objects remain in v1beta1 storage until explicitly migrated, and v1beta1 will be removed in a later release."
+    },
+    "corrected": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "ec2nodeclasses-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "statement": "The storage version of the ec2nodeclasses.karpenter.k8s.aws CRD changes from v1beta1 to v1. Existing EC2NodeClass objects must be rewritten through a storage version migration, and status.storedVersions updated, before a later release removes v1beta1."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:59ba83d74e696a302372b54b3a52105355f9392f1d28c64c258fc63a3d575cd1",
+      "inputEvidence": [
+        "ev-8998581760b8",
+        "ev-881d131e594e",
+        "ev-760ae3491f13",
+        "ev-451bd6a12e72",
+        "ev-fef279f378b5",
+        "ev-09bbe26d2f4a"
+      ],
+      "generatedAt": "2026-10-03T02:22:01.213Z",
+      "callId": "27fee2a8-3fe8-4835-83b7-8b7cea3ca81e"
+    },
+    "reason": "The computed CRD diff between [ev-8998581760b8] (v0.37.8) and [ev-451bd6a12e72] (v1.0.0) says existing EC2NodeClass objects stay stored as v1beta1. It says to run a storage version migration and update status.storedVersions before a later release removes v1beta1. That supports a migration-required change on a migration subject. The proposed name uses \"upgrade\", which is not in the evidence, and adds a version suffix it does not need. The shortest unambiguous kebab-case name built from the evidence's own words is \"ec2nodeclasses-storage-version-migration\". Confidence is low because the evidence excerpts themselves are empty and the decision rests on the change text derived from the diff.",
+    "startedAt": "2026-10-03T02:21:49.553Z",
+    "decidedAt": "2026-10-03T02:22:01.213Z"
+  }
+}

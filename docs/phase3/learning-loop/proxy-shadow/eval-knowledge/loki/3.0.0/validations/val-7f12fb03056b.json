@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-7f12fb03056b",
+    "candidateId": "sc-9a0c088f99f9",
+    "proposalId": "sp-68b2d987f792",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "loki",
+        "path": "querier.query_timeout"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "helm-value",
+          "product": "loki",
+          "path": "limits_config.query_timeout"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "querier.query_timeout",
+          "state": "set"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "limits_config.query_timeout",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `querier.query_timeout` configuration key is no longer honored; environments must move this setting to `limits_config.query_timeout`.",
+        "severity": "high"
+      },
+      "statement": "The `query_timeout` configuration key is removed from the `querier` YAML section and must now be configured under `limits_config` instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:helm-value/removed",
+        "detail": "release-level render failed (template-error): Error: template: loki/templates/write/statefulset-write.yaml:46:28: executing \"loki/templates/write/statefulset-write.yaml\" at <include (print .Template.BasePath \"/config.yaml\") .>: error calling include: template: loki/templates/config.yaml:19:7: executing \"loki/templates/config.yaml\" at <include \"loki.calculatedConfig\" .>: error calling include: template: loki/templates/_helpers.tpl:454:24: exec…"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

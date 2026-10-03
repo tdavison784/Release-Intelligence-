@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-9c5dba5c7375",
+    "candidateId": "sc-935aa75dc232",
+    "proposalId": "sp-8296b5f6f239",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "ztunnel.securityContext.allowPrivilegeEscalation"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "null",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "version": "apps/v1",
+          "kind": "Deployment"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The allowPrivilegeEscalation setting is now explicitly declared as true in the ztunnel pod specification, making the actual runtime behavior explicit in the configuration for clarity and proper Kubernetes validation.",
+        "severity": "low"
+      },
+      "statement": "The allowPrivilegeEscalation field in the ztunnel security context is now explicitly set to true in the configuration, matching its actual enforced runtime behavior."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:helm-value/value-changed",
+        "detail": "no canonical exposure condition for helm-value value-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

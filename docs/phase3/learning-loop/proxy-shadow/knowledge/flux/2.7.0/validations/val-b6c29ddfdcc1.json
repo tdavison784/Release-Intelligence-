@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b6c29ddfdcc1",
+    "candidateId": "sc-54fbd7bb2a92",
+    "proposalId": "sp-446b212d6f03",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "flux",
+        "name": "latest-version-determination",
+        "component": "fluxcd/flux2/action"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "which CI workflows reference the fluxcd/flux2 GitHub Action (e.g. .github/workflows files using fluxcd/flux2/action)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For environments using the fluxcd/flux2 GitHub Action, the latest version is now determined without calling the GitHub API; the action otherwise continues to work.",
+        "remediation": "No operator action required; if the mechanism by which the action resolves the latest Flux version matters to your CI setup, verify the workflow behaves as expected.",
+        "severity": "low"
+      },
+      "statement": "The fluxcd/flux2 GitHub Action now determines the latest version without using the GitHub API."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

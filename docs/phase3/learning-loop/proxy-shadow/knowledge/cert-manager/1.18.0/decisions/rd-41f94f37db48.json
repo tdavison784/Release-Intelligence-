@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-41f94f37db48",
+    "reviewItemId": "ri-3056241c0eb3",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Ingresses that cert-manager creates now use pathType Exact instead of ImplementationSpecific, so path matching by the ingress controller may work differently.",
+        "remediation": "Check that your ingress controller handles Exact pathType Ingresses created by cert-manager as expected.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 changes the pathType of the Kubernetes Ingress it creates from ImplementationSpecific to Exact, so that ingress controllers handle it reliably and for better security."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:364c815af4a62836bcf12a8f6279a8411f12edc60acf9d819d99a8463892daed",
+      "inputEvidence": [
+        "ev-4faa7ca81b54"
+      ],
+      "generatedAt": "2026-10-02T12:51:12.966Z",
+      "callId": "30b68f5a-a8fc-4ec3-9a15-801a3648394b"
+    },
+    "reason": "[ev-4faa7ca81b54] says only that the Kubernetes Ingress pathType changes from ImplementationSpecific to Exact, to make ingress controller handling more reliable and improve security. It says nothing fails, is rejected or must be migrated, so an action-eligible kind is not supported. A changed value that the evidence presents as still working is behavior-change, so it goes to review. The proposed statement and low severity stay within what the excerpt says.",
+    "startedAt": "2026-10-02T12:51:06.535Z",
+    "decidedAt": "2026-10-02T12:51:12.966Z"
+  }
+}

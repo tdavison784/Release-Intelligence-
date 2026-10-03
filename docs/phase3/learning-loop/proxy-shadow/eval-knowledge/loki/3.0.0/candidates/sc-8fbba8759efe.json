@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "candidate",
+  "candidate": {
+    "id": "sc-8fbba8759efe",
+    "product": "loki",
+    "release": "3.0.0",
+    "members": [
+      {
+        "changeId": "chg-cb48fbf378e3",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-3261cb91071c"
+          ],
+          "statementKeys": [
+            "sk-2b743268ef68"
+          ],
+          "changeIds": [
+            "chg-cb48fbf378e3"
+          ]
+        }
+      },
+      {
+        "changeId": "chg-9858b792da3b",
+        "anchor": {
+          "release": "3.0.0",
+          "evidenceKeys": [
+            "ek-b5f9a30c1739"
+          ],
+          "statementKeys": [
+            "sk-384cdac613ea"
+          ],
+          "changeIds": [
+            "chg-9858b792da3b"
+          ]
+        }
+      }
+    ],
+    "grouping": "title-jaccard",
+    "category": "other",
+    "title": "Removed `shared_store` and `shared_store_key_prefix` from compactor configuration: The following CLI flags and the corresponding YAML settings to configure the…",
+    "text": "Removed `shared_store` and `shared_store_key_prefix` from compactor configuration: The following CLI flags and the corresponding YAML settings to configure the shared store and path prefix for compactor are now removed: Going forward compactor will run compaction and retention on all the object stores configured in [period configs](/docs/loki/<LOKI_VERSION>/configure/#period_config) where the index type is either `tsdb` or `boltdb-shipper`.\n- restated: Removed `shared_store` and `shared_store_key_prefix` from shipper configuration: The following CLI flags and the corresponding YAML settings to configure shared store for TSDB and BoltDB shippers are now removed: Going forward the `object_store` setting in the [period_config](/docs/loki/<LOKI_VERSION>/configure/#period_config) will be used to configure the store for the index. This enforces chunks and index files to reside together in the same storage bucket for a given period. We are removing the shared store setting in an effort to simplify storage configuration and reduce the possibility for misconfiguration. With this change Loki no longer allows storing chunks and indexes for a given period in different storage buckets. This is a breaking change for setups that store chunks and indexes in different storage buckets by setting `-boltdb.shipper.shared-store` or `-tsdb.shipper.shared-store` to a value different from `object_store` in `period_config`. The following CLI flags and the corresponding YAML settings to configure a path prefix for TSDB and BoltDB shippers are now removed: Path prefix for storing the index can now be configured by setting `path_prefix` under `index` key…",
+    "evidence": [
+      {
+        "id": "ev-c569cd56f9ef",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L535-L542 (3.0.0 › Loki 3.0.0 › Removed `shared_store` and `shared_store_key_prefix` from compactor configuration)",
+        "excerpt": "#### Removed `shared_store` and `shared_store_key_prefix` from compactor configuration\n\nThe following CLI flags and the corresponding YAML settings to configure the shared store and path prefix for compactor are now removed:\n\n- `-boltdb.shipper.compactor.shared-store`\n- `-boltdb.shipper.compactor.shared-store.key-prefix`\n\nGoing forward compactor will run compaction and retention on all the object stores configured in [period configs](/docs/loki/<LOKI_VERSION>/configure/#period_config) where the index type is either `tsdb` or `boltdb-shipper`.",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      },
+      {
+        "id": "ev-43cc6d389282",
+        "kind": "document",
+        "sourceId": "upgrade-guide",
+        "uri": "https://github.com/grafana/loki/blob/main/docs/sources/setup/upgrade/_index.md",
+        "locator": "L483-L529 (3.0.0 › Loki 3.0.0 › Removed `shared_store` and `shared_store_key_prefix` from shipper configuration)",
+        "excerpt": "#### Removed `shared_store` and `shared_store_key_prefix` from shipper configuration\n\nThe following CLI flags and the corresponding YAML settings to configure shared store for TSDB and BoltDB shippers are now removed:\n\n- `-boltdb.shipper.shared-store`\n- `-tsdb.shipper.shared-store`\n\nGoing forward the `object_store` setting in the [period_config](/docs/loki/<LOKI_VERSION>/configure/#period_config) will be used to configure the store for the index.\nThis enforces chunks and index files to reside together in the same storage bucket for a given period.\n\nWe are removing the shared store setting in a…",
+        "contentDigest": "sha256:baf08d0601db4c194c9da0ecfa42e37e9c7a54d35b7dce9f744da93660cd1d26",
+        "retrievedAt": "2026-10-02T10:53:19Z"
+      }
+    ],
+    "hints": [
+      "code:shared_store",
+      "code:shared_store_key_prefix",
+      "code:tsdb",
+      "code:boltdb-shipper",
+      "code:object_store",
+      "code:-boltdb.shipper.shared-store",
+      "code:-tsdb.shipper.shared-store",
+      "code:period_config",
+      "code:path_prefix",
+      "code:index",
+      "env:LOKI_VERSION"
+    ],
+    "producer": "semantic.candidates@v1",
+    "createdAt": "2026-10-02T16:10:29Z"
+  }
+}

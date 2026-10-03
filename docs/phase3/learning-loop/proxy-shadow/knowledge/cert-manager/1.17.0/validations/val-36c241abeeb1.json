@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-36c241abeeb1",
+    "candidateId": "sc-d9778d71f629",
+    "proposalId": "sp-01cd23b508b2",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "cert-manager",
+        "name": "venafi-vcert"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"version with RSA 3072 bit key bug\"",
+        "after": "\"version with RSA 3072 bit key bug fixed\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.venafi",
+                  "state": "set"
+                },
+                {
+                  "op": "field",
+                  "path": "spec.venafi.tpp",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "RSA 3072 bit key enrollment with Venafi TPP now works correctly, fixing a previously broken feature.",
+        "severity": "medium"
+      },
+      "statement": "Venafi vCert library upgraded to fix RSA 3072 bit key size handling in TPP certificate enrollment."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:product-relationship/value-changed",
+        "detail": "no canonical exposure condition for product-relationship value-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

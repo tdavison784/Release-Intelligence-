@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-730c8a28fea9",
+    "candidateId": "sc-a4114b258331",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "cilium",
+        "path": "cilium_api_limiter_processed_requests_total"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "after": "\"has label return_code\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric now carries an additional return_code label, so series gain a new dimension; dashboards or queries that aggregate on it may need review.",
+        "severity": "low"
+      },
+      "statement": "The cilium_api_limiter_processed_requests_total metric gains a new label return_code carrying the HTTP code of the request."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether monitoring queries or alerts consume this metric; not visible in configuration.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-af23565ba695"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:52a357e3198f8a15772bfa6b7a461bd6b6589701f10d97634fed6db3a7432724",
+      "inputEvidence": [
+        "ev-af23565ba695"
+      ],
+      "generatedAt": "2026-10-02T06:05:14Z",
+      "callId": "eba41980-f47f-4308-a822-6624b7e51979"
+    }
+  }
+}

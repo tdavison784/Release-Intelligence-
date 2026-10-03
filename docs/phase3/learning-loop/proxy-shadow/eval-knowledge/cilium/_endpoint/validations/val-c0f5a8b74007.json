@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-c0f5a8b74007",
+    "candidateId": "sc-3b0268ba22af",
+    "proposalId": "sp-65cbc24cdf53",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "version": "v2",
+        "kind": "CiliumClusterwideEnvoyConfig",
+        "path": "spec.resources[]"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.resources[]",
+              "state": "unset"
+            }
+          ],
+          "group": "cilium.io",
+          "version": "v2",
+          "kind": "CiliumClusterwideEnvoyConfig"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.resources[]",
+              "state": "set"
+            }
+          ],
+          "group": "cilium.io",
+          "version": "v2",
+          "kind": "CiliumClusterwideEnvoyConfig"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "CiliumClusterwideEnvoyConfig resources that omit spec.resources[] are rejected by the API server.",
+        "severity": "high"
+      },
+      "statement": "The spec.resources[] field of CiliumClusterwideEnvoyConfig (cilium.io/v2) is now required; resources omitting it will be rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

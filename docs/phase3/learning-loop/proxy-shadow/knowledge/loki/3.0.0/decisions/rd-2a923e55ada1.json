@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-2a923e55ada1",
+    "reviewItemId": "ri-cab3ac12f213",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether dashboards, alerts or recording rules reference querier_cache_added_total, querier_cache_gets_total or querier_cache_misses_total"
+        }
+      },
+      "statement": "The embedded cache metrics querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total are removed in favour of loki_cache_fetched_keys, loki_cache_hits and loki_cache_request_duration_seconds."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:9f1abc3831543ba9665d6263211d5fa32af427a203711bff8f9fcd50dde67cb3",
+      "inputEvidence": [
+        "ev-dd7907f24ce5"
+      ],
+      "generatedAt": "2026-10-03T02:30:47.646Z",
+      "callId": "06c769fc-674f-4e21-8f94-f171f39f4364"
+    },
+    "reason": "[ev-dd7907f24ce5] says three metrics are removed: querier_cache_added_total, querier_cache_gets_total and querier_cache_misses_total. It also names the loki_cache_* metrics to use instead. The only environments affected are those whose dashboards, alerts or recording rules query the removed metrics. Static Helm values, manifests or flags do not show those consumers, so an undecidable exposure with environment-visibility-gap, naming exactly those three metrics, is correct and neither too broad nor too narrow.",
+    "startedAt": "2026-10-03T02:30:39.368Z",
+    "decidedAt": "2026-10-03T02:30:47.646Z"
+  }
+}

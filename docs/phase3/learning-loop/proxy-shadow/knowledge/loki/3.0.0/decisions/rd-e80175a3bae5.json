@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-e80175a3bae5",
+    "reviewItemId": "ri-31ce2bda5aa4",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Write pods now use the `/ingester/shutdown` endpoint for graceful shutdown during termination.",
+        "severity": "low"
+      },
+      "statement": "The Helm chart for Loki 3.0.0 uses `/ingester/shutdown` for the preStop hook in write pods."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:e3a3dcb0d96c20a57fe0bb11dac4a762951bd96de959335f4e1517f1308bd7a9",
+      "inputEvidence": [
+        "ev-73055e956e96",
+        "ev-6b828f5bc194",
+        "ev-72c19aa86056"
+      ],
+      "generatedAt": "2026-10-02T23:10:02.17Z",
+      "callId": "86d9a618-0b62-4765-a237-bc2250d90b5b"
+    },
+    "reason": "[ev-73055e956e96] lists this under Features: the Helm chart now uses `/ingester/shutdown` for the `preStop` hook in write pods. That changes how write pods terminate, but nothing says anything fails, is rejected, stops being honoured or must be migrated. So behavior-change (review) with low severity is the strongest kind the evidence supports, and it does not over-claim mandatory work. The values snapshots [ev-6b828f5bc194] [ev-72c19aa86056] only refute P1's subject path, which is not one of the aspects under review here. The phrase \"graceful shutdown\" adds a little wording the excerpt does not contain.",
+    "startedAt": "2026-10-02T23:09:52.173Z",
+    "decidedAt": "2026-10-02T23:10:02.17Z"
+  }
+}

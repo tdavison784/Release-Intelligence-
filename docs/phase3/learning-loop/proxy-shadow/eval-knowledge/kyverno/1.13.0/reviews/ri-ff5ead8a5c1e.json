@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-ff5ead8a5c1e",
+    "candidateId": "sc-43d7d231eb46",
+    "product": "kyverno",
+    "release": "1.13.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Dropped API versions: Kyverno 1.13 drops deprecated API versions for its managed CustomResourceDefinitions\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing resources at the dropped kyverno.io/v2alpha1 API versions (CleanupPolicy, ClusterCleanupPolicy, PolicyException) must be migrated: the Helm chart performs this migration automatically through its hook, but installations upgraded without Helm (or without the hook) must migrate existing resources themselves, e.g. via kube-storage-version-migrator.",
+        "remediation": "Upgrade through the Helm chart so its migration hook runs automatically, or run kube-storage-version-migrator to migrate existing resources when upgrading without Helm (or without the hook).",
+        "severity": "medium"
+      },
+      "statement": "Kyverno 1.13 drops the deprecated kyverno.io/v2alpha1 API versions of the CleanupPolicy, ClusterCleanupPolicy and PolicyException CRDs, and existing resources at the dropped versions must be migrated — automatically by the Helm chart's migration hook, or via kube-storage-version-migrator when upgrading without Helm (or without the hook)."
+    },
+    "proposals": [
+      "sp-026eb8ef8f6e",
+      "sp-4f50ec574a33",
+      "sp-89f67a99347e",
+      "sp-a8f306962f4b"
+    ],
+    "validations": [
+      "val-0df63c9319f3",
+      "val-39608829e27a",
+      "val-7c93eede3f9b",
+      "val-9ddfa9eba5b4"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:56:59Z"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-1a7ee6c0dd28",
+    "candidateId": "sc-a121f4492c54",
+    "proposalId": "sp-fa48b0bdc837",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "version": "v1alpha1",
+        "kind": "AlertmanagerConfig",
+        "path": "spec.receivers[].opsgenieConfigs[].responders[].type"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.receivers[].opsgenieConfigs[].responders[].type",
+              "state": "set"
+            }
+          ],
+          "group": "monitoring.coreos.com",
+          "version": "v1alpha1",
+          "kind": "AlertmanagerConfig"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "AlertmanagerConfig resources with responder types not in the new enum will be rejected by the API server.",
+        "severity": "high"
+      },
+      "statement": "The enum values for spec.receivers[].opsgenieConfigs[].responders[].type in AlertmanagerConfig v1alpha1 have been restricted to escalation, schedule, team, teams, and user; previously used values outside this set are no longer accepted by the API server."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/validation-tightened",
+        "detail": "crd-field validation-tightened is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

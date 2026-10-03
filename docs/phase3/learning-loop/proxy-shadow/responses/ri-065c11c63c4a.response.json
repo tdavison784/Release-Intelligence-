@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-065c11c63c4a",
+  "promptDigest": "sha256:63becee20683dbe07371bcf9400246e3a028e4c14f430966399ceb75d75da6e2",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "de14910d-311f-4860-a140-f35f0d7b7024",
+  "startedAt": "2026-10-03T02:10:28.387Z",
+  "decidedAt": "2026-10-03T02:10:41.156Z",
+  "durationMs": 11813,
+  "costUSD": 0.071828,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-a8010075f3de] says the InfluxDB v1 metrics provider was removed in v3 and that its configuration \"is now unsupported and would prevent Traefik to start\", so this needs action. But the evidence doesn't say the upgrade or install step itself fails (no version gate, hook or precondition). It says the upgraded Traefik process won't start, so workload-failure fits better than upgrade-blocked. Both kinds lead to the same action-required class. The remediation is to remove all InfluxDB v1 metrics configuration from the static configuration.",
+    "citations": [
+      "ev-a8010075f3de"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Traefik v3.0.0 the InfluxDB v1 metrics provider (metrics.influxDB) was removed. If its static configuration is left in place, Traefik will not start.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "workload-failure",
+        "statement": "The InfluxDB v1 metrics configuration (metrics.influxDB / --metrics.influxDB) is now unsupported, and leaving it in the static configuration prevents Traefik from starting.",
+        "remediation": "Remove all InfluxDB v1 metrics provider configuration from the static configuration.",
+        "severity": "critical"
+      }
+    }
+  }
+}

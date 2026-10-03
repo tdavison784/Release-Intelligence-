@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-9c6cc37341e0",
+    "candidateId": "sc-ee8d17efbe0b",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "-boltdb.shipper.shared-store"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "-boltdb.shipper.shared-store",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "If `-boltdb.shipper.shared-store` does not match the `object_store` configuration for periods using boltdb-shipper, the operator loses access to indexes for those periods and must manually move or copy index tables to the store configured in `object_store` to make them queryable.",
+        "severity": "high"
+      },
+      "statement": "The `-boltdb.shipper.shared-store` configuration option and its YAML setting have been removed; operators lose access to indexes for periods where the old value does not match `object_store`."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-7d2769e8c602"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:84b693481f5e1370dd2e784f3bceeb0ba153535e8e7467e35ca2208efe3d00d8",
+      "inputEvidence": [
+        "ev-7d2769e8c602"
+      ],
+      "generatedAt": "2026-10-02T20:56:20Z",
+      "callId": "e67a4588-1b76-4c94-ab86-381a6faf0b9f"
+    }
+  }
+}

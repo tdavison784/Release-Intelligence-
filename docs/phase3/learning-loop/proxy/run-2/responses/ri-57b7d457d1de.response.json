@@ -1,0 +1,132 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-57b7d457d1de",
+  "promptDigest": "sha256:1c465aa0da2317627acdd00f4104f30ae7389e8a324c7942a8589d6904df262b",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "570d94f3-5bc8-4e29-8238-bd40a3d3a90c",
+  "startedAt": "2026-10-02T23:14:29.563Z",
+  "decidedAt": "2026-10-02T23:14:49.719Z",
+  "durationMs": 19540,
+  "costUSD": 0.292068,
+  "output": {
+    "action": "correct",
+    "reason": "The proposed exposure only checks spec.rules[].context[].apiCall on ClusterPolicy and Policy, so it is too narrow. The rendered diffs show that apiCall.default was added to more places: context entries under rules[].mutate.foreach[], rules[].mutate.targets[] and rules[].validate.foreach[] [ev-13c3ac894c61, ev-e0d064dacf28, ev-e25376a41cf1, ev-d0b8f312ef56, ev-f4d7f536bf4a, ev-1096286e1c4f], and spec.context[].apiCall on CleanupPolicy and ClusterCleanupPolicy [ev-9348cb2d7f00, ev-a77e0fc2c18d]. The field is an optional fallback used only when the API call returns an error [ev-bed2899bb4db, ev-e0408f021210]. So the relevant environments are those that define an apiCall context entry in any of these places, and the corrected condition covers all of them.",
+    "citations": [
+      "ev-bed2899bb4db",
+      "ev-e0408f021210",
+      "ev-13c3ac894c61",
+      "ev-e0d064dacf28",
+      "ev-e25376a41cf1",
+      "ev-4569f14ea82d",
+      "ev-d0b8f312ef56",
+      "ev-f4d7f536bf4a",
+      "ev-1096286e1c4f",
+      "ev-9348cb2d7f00",
+      "ev-a77e0fc2c18d"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Kyverno 1.13.0 adds an optional apiCall.default fallback to API call context entries. This is relevant to environments with ClusterPolicy or Policy rules that use apiCall context entries (at rule level or under mutate/validate foreach or mutate targets), or with CleanupPolicy or ClusterCleanupPolicy that use spec.context[].apiCall.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "group": "kyverno.io",
+              "kind": "ClusterPolicy",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].context[].apiCall",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate.foreach[].context[].apiCall",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate.targets[].context[].apiCall",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].validate.foreach[].context[].apiCall",
+                      "state": "set"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "kyverno.io",
+              "kind": "Policy",
+              "of": [
+                {
+                  "op": "any",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].context[].apiCall",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate.foreach[].context[].apiCall",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate.targets[].context[].apiCall",
+                      "state": "set"
+                    },
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].validate.foreach[].context[].apiCall",
+                      "state": "set"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "kyverno.io",
+              "kind": "CleanupPolicy",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.context[].apiCall",
+                  "state": "set"
+                }
+              ]
+            },
+            {
+              "op": "resource",
+              "group": "kyverno.io",
+              "kind": "ClusterCleanupPolicy",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.context[].apiCall",
+                  "state": "set"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

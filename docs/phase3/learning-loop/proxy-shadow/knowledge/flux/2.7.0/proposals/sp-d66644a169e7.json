@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-d66644a169e7",
+    "candidateId": "sc-55aa41cb3e29",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "flux",
+        "name": "--provider"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment runs `flux push artifact --provider azure` on Azure DevOps runners (CI pipeline invocation of the flux CLI is not visible in chart, manifest, or cluster inputs)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "On Azure DevOps runners, `flux push artifact --provider azure` now performs Azure CLI calls that the command previously did not allow; operators who push OCI artifacts from DevOps runners should verify the command authenticates via the Azure CLI as expected.",
+        "remediation": "No action required; if pushing artifacts with `flux push artifact --provider azure` from Azure DevOps runners, verify the command authenticates via the Azure CLI as intended.",
+        "severity": "low"
+      },
+      "statement": "flux 2.7.0 fixes `flux push artifact --provider azure` to allow Azure CLI calls on Azure DevOps runners, which the command previously did not permit."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b4b297bb4480"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:fc4987ae1d934c63099df7a576ab6d8430611e5a5ed5eb20e217fabb021ee5cf",
+      "inputEvidence": [
+        "ev-b4b297bb4480"
+      ],
+      "generatedAt": "2026-10-02T16:42:15Z",
+      "callId": "9a0701fe-fc2c-4ecd-aa86-8bfe0e9fffc1"
+    }
+  }
+}

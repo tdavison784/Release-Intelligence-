@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-873ab663c740",
+    "candidateId": "sc-b5b05e113509",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Removed the `default` section of the runtime overrides config file: This was introduced in 2.9 and likely not widely used\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Values populated in the runtime config file's `default` block are no longer honoured because the block was removed; defaults must be set in `operational_config`.",
+        "remediation": "Move default values into the top-level `operational_config` in the standard Loki config."
+      },
+      "statement": "The `default` block of the runtime overrides config file (added in 2.9) was removed; set default values in the top-level `operational_config` of the standard Loki config instead."
+    },
+    "proposals": [
+      "sp-5e32c953ce7f"
+    ],
+    "validations": [
+      "val-fdc3c3b0ff9f"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "single-model"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:57:37Z"
+  }
+}

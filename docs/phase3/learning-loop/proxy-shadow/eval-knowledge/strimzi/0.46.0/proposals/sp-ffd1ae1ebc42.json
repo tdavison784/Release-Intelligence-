@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ffd1ae1ebc42",
+    "candidateId": "sc-5851fd4cdacf",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "strimzi",
+        "path": "metric.reporters",
+        "component": "kafka"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "product-version",
+          "name": "kafka",
+          "state": "in-range",
+          "range": ">=4.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "From Kafka 4.0.0, the JMXReporter is only enabled if metrics are explicitly configured in spec.kafka.metrics or JMXReporter is explicitly added to metric.reporters; previously it may have been enabled differently or by default.",
+        "severity": "medium"
+      },
+      "statement": "From Kafka 4.0.0, enabling the JMXReporter requires explicit configuration either in spec.kafka.metrics or by adding JMXReporter to metric.reporters."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-f432b7205700"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:39a5e649d15dbdb6369e61bfb9ea21bfc7e527721fa6dd447385816034a108db",
+      "inputEvidence": [
+        "ev-f432b7205700"
+      ],
+      "generatedAt": "2026-10-02T05:58:02Z",
+      "callId": "265affa2-db0d-4e88-b97b-7589f21eb9c0"
+    }
+  }
+}

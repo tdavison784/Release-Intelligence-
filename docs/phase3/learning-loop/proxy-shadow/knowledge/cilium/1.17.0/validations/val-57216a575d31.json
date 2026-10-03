@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-57216a575d31",
+    "candidateId": "sc-30c676d7c5e6",
+    "proposalId": "sp-d7f6bb25a1b9",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--cluster",
+        "component": "hubble"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "`hubble observe --cluster foo` now also shows flows from nodes outside cluster foo that go to or come from it; use `--node-name foo/` to get the previous result.",
+        "remediation": "Replace `--cluster foo` with `--node-name foo/` where the previous behavior is needed.",
+        "severity": "low"
+      },
+      "statement": "The Hubble CLI `--cluster` flag now also shows flows emitted from nodes outside the named cluster (to or from the target cluster); the old behavior can be reproduced with `--node-name foo/`."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:cli-flag/behavior-changed",
+        "detail": "cli-flag behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

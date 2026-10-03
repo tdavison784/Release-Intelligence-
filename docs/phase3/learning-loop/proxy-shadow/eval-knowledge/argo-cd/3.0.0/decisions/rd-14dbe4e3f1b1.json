@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-14dbe4e3f1b1",
+    "reviewItemId": "ri-de1dc0e7a514",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "helm-null-values-override"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"null object in values.yaml warned 'cannot overwrite table with non table' and the resulting K8s object was not overridden\"",
+        "after": "\"warning still shown but the resulting K8s object is overridden with the invalid null value\""
+      },
+      "statement": "Helm was upgraded to 3.17.1, so a null object in subchart values.yaml now overrides the rendered K8s object with the invalid null value (previously it was not overridden)."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "helm-null-values-override"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "With Helm upgraded to 3.17.1, a null object in subchart values.yaml still triggers the 'cannot overwrite table with non table' warning on helm template. The rendered K8s object is now overridden with the invalid null value instead of being left unchanged."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:09cef2d0401027aaeaf4367642a57354ced0664317fc1f1d6263d72b51a7e10a",
+      "inputEvidence": [
+        "ev-b8041528e3f8"
+      ],
+      "generatedAt": "2026-10-02T16:00:33.836Z",
+      "callId": "4133ad50-5b2b-4675-b23a-2bf094e3f145"
+    },
+    "reason": "[ev-b8041528e3f8] says that after the bundled Helm moved to 3.17.1, the same subchart values.yaml with a `null` object renders differently. Before, the K8s object was not overridden; now it is overridden with the invalid `null` value. The subject protocol-behavior helm-null-values-override with type behavior-changed is right. However, the proposed before/after strings are paraphrased summaries with embedded quotes, not literal values from the text. Because before/after are optional for behavior-changed, they are dropped.",
+    "startedAt": "2026-10-02T16:00:20.035Z",
+    "decidedAt": "2026-10-02T16:00:33.836Z"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-312ed01449ff",
+    "candidateId": "sc-9cd4a1953216",
+    "proposalId": "sp-8c9710c59882",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Issuer",
+        "path": "spec.acme.solvers[].dns01.azureDNS.tenantID"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "Issuer"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "cert-manager.io",
+              "version": "v1",
+              "kind": "ClusterIssuer"
+            },
+            {
+              "op": "gvk-in-use",
+              "group": "acme.cert-manager.io",
+              "version": "v1",
+              "kind": "Challenge"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "The new optional field enables enhanced flexibility for multi-tenant Azure environments using managed identities; existing configurations are unaffected."
+      },
+      "statement": "A new optional `tenantID` configuration field is added to the AzureDNS provider in Issuer, ClusterIssuer, and Challenge resources for specifying the tenant ID when using managed identities with service principals."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

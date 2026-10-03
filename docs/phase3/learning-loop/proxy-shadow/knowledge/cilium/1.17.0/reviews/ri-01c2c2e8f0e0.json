@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-01c2c2e8f0e0",
+    "candidateId": "sc-d8211760345d",
+    "product": "cilium",
+    "release": "1.17.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Cilium now supports services protocol differentiation, which allows the agent to distinguish two services on the same port with different protocols (e.g. TCP…\", what happens, and is that review or action? proposed: migration-required",
+    "proposed": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "After upgrade to 1.17.0, existing services without a protocol set will be preserved but require deletion and recreation for protocol differentiation to take effect. On downgrade from 1.17.0 to earlier versions, services with protocol set will be deleted and recreated without the protocol, causing connection disruptions.",
+        "remediation": "After upgrading to 1.17.0, identify and recreate services without protocol set to enable protocol differentiation. Before downgrading, plan for service recreation with potential connection disruptions.",
+        "severity": "medium"
+      },
+      "statement": "The --bpf-lb-proto-diff flag enables services protocol differentiation by default in Cilium 1.17.0, allowing distinction of services on the same port with different protocols; existing services without a protocol set are preserved but require deletion and recreation to enable protocol differentiation, and downgrades cause protocol-aware services to lose protocol information and be recreated."
+    },
+    "proposals": [
+      "sp-8db3c52b148b",
+      "sp-ccd5bf20c213"
+    ],
+    "validations": [
+      "val-0bf11c108678",
+      "val-4f52c8cb15e4",
+      "val-f729cc5941d1"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:03:24Z"
+  }
+}

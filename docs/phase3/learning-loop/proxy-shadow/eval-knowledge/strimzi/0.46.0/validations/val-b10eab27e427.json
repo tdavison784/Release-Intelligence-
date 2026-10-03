@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b10eab27e427",
+    "candidateId": "sc-91bdc6129fc9",
+    "proposalId": "sp-eefd0c6e6d0f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "strimzi",
+        "name": "UseStrimziPodSets"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<=0.34.0"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "feature-gate",
+                  "name": "UseStrimziPodSets",
+                  "state": "disabled"
+                },
+                {
+                  "op": "feature-gate",
+                  "name": "UseStrimziPodSets",
+                  "state": "unset"
+                }
+              ]
+            },
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "gvk-in-use",
+                  "group": "core.strimzi.io",
+                  "version": "v1beta2",
+                  "kind": "StrimziPodSet"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Environments upgrading from Strimzi 0.34 or older must enable the UseStrimziPodSets feature gate and use StrimziPodSet resources before upgrading to 0.46.0."
+      },
+      "statement": "The UseStrimziPodSets feature gate is deprecated; environments upgrading from Strimzi 0.34 or older must enable it and use StrimziPodSet resources before upgrading."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:feature-gate/deprecated",
+        "detail": "no canonical exposure condition for feature-gate deprecated"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

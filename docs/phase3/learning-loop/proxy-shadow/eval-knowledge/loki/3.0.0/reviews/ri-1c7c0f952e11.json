@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-1c7c0f952e11",
+    "candidateId": "sc-ee8d17efbe0b",
+    "product": "loki",
+    "release": "3.0.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"If you have configured `-boltdb.shipper.shared-store` or its YAML setting: - If it matches the value of `object_store` for all the periods that use…\", what happens, and is that review or action? proposed: setting-ignored",
+    "proposed": {
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "If `-boltdb.shipper.shared-store` does not match the `object_store` configuration for periods using boltdb-shipper, the operator loses access to indexes for those periods and must manually move or copy index tables to the store configured in `object_store` to make them queryable.",
+        "severity": "high"
+      },
+      "statement": "The `-boltdb.shipper.shared-store` configuration option and its YAML setting have been removed; operators lose access to indexes for periods where the old value does not match `object_store`."
+    },
+    "proposals": [
+      "sp-9c6cc37341e0",
+      "sp-bc11977e05ac"
+    ],
+    "validations": [
+      "val-31867b13c41e",
+      "val-506b55831a0a",
+      "val-ed0690798992",
+      "val-f12015e91d91"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "high",
+      "signals": [
+        "high-impact",
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T20:58:34Z"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-7b57b6826555",
+  "promptDigest": "sha256:b6a092e935c0378e57a3b47c7a41b971baa22f2fa29a5eb943b104f55a42dcbb",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "db893aa7-656e-47d9-81b4-41be842fe3a5",
+  "startedAt": "2026-10-03T02:22:38.228Z",
+  "decidedAt": "2026-10-03T02:22:53.840Z",
+  "durationMs": 14823,
+  "costUSD": 0.11426800000000001,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-d0cda25040fe] says that in v3, policies granting `update` or `delete` on an application no longer cover its sub-resources, and that setting `server.rbac.disableApplicationFineGrainedRBACInheritance` to `false` in `argocd-cm` keeps the v2 behaviour. So the proposed negated key check is the right shielding part, but it has two problems. First, it compares against the literal \"\\\"false\\\"\" (with embedded quotes) instead of the ConfigMap string value false. Second, it is too broad: it flags every environment that has not set the key, even ones with no application update/delete policies. The evidence does not say where those policies are stored, so that part of the condition is left undecidable instead of guessed.",
+    "citations": [
+      "ev-d0cda25040fe"
+    ],
+    "confidence": "low",
+    "correction": {
+      "statement": "Exposed: Argo CD environments that have RBAC policies granting update or delete on Applications, unless argocd-cm sets server.rbac.disableApplicationFineGrainedRBACInheritance to \"false\". Environments that set the key to \"false\" keep the v2 inheritance behaviour and appear safe.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "not",
+              "of": [
+                {
+                  "op": "resource",
+                  "kind": "ConfigMap",
+                  "name": "argocd-cm",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "data[\"server.rbac.disableApplicationFineGrainedRBACInheritance\"]",
+                      "state": "equals",
+                      "values": [
+                        "false"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "op": "undecidable",
+              "reason": "evidence-gap",
+              "needed": "whether the environment defines RBAC policies granting update or delete on Applications (evidence does not state where such policies are stored)"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "kind": "ConfigMap",
+          "name": "argocd-cm",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"server.rbac.disableApplicationFineGrainedRBACInheritance\"]",
+              "state": "equals",
+              "values": [
+                "false"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "labels": [
+      "wrong-applicability"
+    ]
+  }
+}

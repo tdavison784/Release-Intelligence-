@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-6537c3fbf034",
+    "candidateId": "sc-0c956892d9f3",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "Bucket",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "Bucket"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "Existing or newly applied Bucket objects in source.toolkit.fluxcd.io/v1 that omit the status.artifact.digest field will be rejected by the API server.",
+        "remediation": "Ensure all Bucket resources include a status.artifact.digest field value before upgrading, or update resources after upgrading to include this required field.",
+        "severity": "high"
+      },
+      "statement": "The status.artifact.digest field of source.toolkit.fluxcd.io/v1 Bucket resources is now required; existing Bucket objects that omit this field will be rejected."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:7386d19fdc87cea46daa29176163085ce8ee4d7d5f239cd8134f6c9b43f494c0",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T20:58:14Z",
+      "callId": "379982d0-337c-42d8-bcee-cd3f4244da89"
+    }
+  }
+}

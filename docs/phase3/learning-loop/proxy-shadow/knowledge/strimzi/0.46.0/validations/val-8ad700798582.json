@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-8ad700798582",
+    "candidateId": "sc-121156407f0b",
+    "proposalId": "sp-9bf86ceea288",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "strimzi",
+        "group": "kafka.strimzi.io",
+        "kind": "Kafka",
+        "path": "spec.kafka.authorization.type"
+      },
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.kafka.authorization.type",
+              "state": "equals",
+              "values": [
+                "\"opa\""
+              ]
+            }
+          ],
+          "group": "kafka.strimzi.io",
+          "kind": "Kafka"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "Kafka resources configured with `type: opa` authorization keep working in 0.46.0, but the Open Policy Agent authorization is deprecated and will be removed in a future release; the Open Policy Agent authorizer can instead be used through `type: custom` authorization.",
+        "remediation": "Change the Kafka authorization from `type: opa` to `type: custom` to keep using the Open Policy Agent authorizer.",
+        "severity": "low"
+      },
+      "statement": "The Open Policy Agent authorization (`type: opa` on the Kafka resource's authorization type field) has been deprecated and will be removed in a future release; the Open Policy Agent authorizer can be used through `type: custom` authorization instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

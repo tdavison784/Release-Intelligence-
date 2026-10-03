@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-d491cd8ecdb3",
+    "candidateId": "sc-ace4f1a895e7",
+    "proposalId": "sp-d9ae4d165bbc",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "crossplane",
+        "group": "apiextensions.crossplane.io",
+        "kind": "Composition",
+        "path": "spec.mode"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"Resources\"",
+        "after": "\"Pipeline\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.mode",
+              "state": "unset"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "kind": "Composition"
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.mode",
+              "state": "set"
+            }
+          ],
+          "group": "apiextensions.crossplane.io",
+          "kind": "Composition"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Compositions that leave spec.mode unset now default to Pipeline instead of Resources, so they are interpreted differently.",
+        "remediation": "Set spec.mode explicitly (e.g. Resources) on Compositions that rely on the old default, or verify they work as Pipeline.",
+        "severity": "medium"
+      },
+      "statement": "The default of Composition spec.mode (apiextensions.crossplane.io/v1) changed from \"Resources\" to \"Pipeline\" for objects that leave it unset."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/default-changed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:22Z"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-df5f7ffcc87d",
+    "reviewItemId": "ri-8e889941eff8",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Monitoring configurations and queries using the old `querier_cache_` metric prefix will no longer match the renamed `loki_embeddedcache_` metrics; dashboards, alerts, and recording rules referencing the old prefix must be updated."
+      },
+      "statement": "The metric prefix for embedded cache metrics is renamed from `querier_cache_` to `loki_embeddedcache_`, and duplicate metrics are removed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:38b5402dcd475db24dee6df16c558029da125d9b66e46292f34255d7085af644",
+      "inputEvidence": [
+        "ev-e4b24ba811ff"
+      ],
+      "generatedAt": "2026-10-03T01:53:19.86Z",
+      "callId": "87f13296-9f39-4e51-839d-f26508639231"
+    },
+    "reason": "[ev-e4b24ba811ff] says only that the embedded cache metric prefix changes from `querier_cache_` to `loki_embeddedcache_` and that duplicate metrics are removed. Loki itself keeps working; only the metric names change. Monitoring queries that use the old prefix would stop matching, but the evidence does not describe this as a failure, a rejection or a required migration. So behavior-change (review) is the strongest kind the evidence supports, and a failure kind would over-claim mandatory work.",
+    "startedAt": "2026-10-03T01:53:11.446Z",
+    "decidedAt": "2026-10-03T01:53:19.86Z"
+  }
+}

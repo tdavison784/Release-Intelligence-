@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-175d078aa177",
+    "candidateId": "sc-a847d032ada6",
+    "proposalId": "sp-e8221c98dc16",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "base.enableCRDTemplates"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "false",
+        "after": "true"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "base.enableCRDTemplates",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "base.enableCRDTemplates",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "CRD templating is now enabled by default in the base chart; previously it defaulted to disabled and required manual kubectl intervention to upgrade under certain install flag conditions.",
+        "remediation": "If the legacy behavior is required, explicitly set Values.base.enableCRDTemplates to false; prepare for this option's removal in a future release.",
+        "severity": "medium"
+      },
+      "statement": "The Helm value `base.enableCRDTemplates` now defaults to `true` instead of `false`, enabling templated CRD installation by default in the base chart and fixing a previous issue where certain install flags could require manual kubectl intervention."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "confirmed",
+        "rule": "canonical:helm-value/default-changed",
+        "detail": "the exposure and overlap is the canonical condition for a default-changed of a helm-value"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-41d780f6ab39",
+        "kind": "structured",
+        "sourceId": "chart-base",
+        "uri": "https://github.com/istio/istio/blob/1.23.4/manifests/charts/base/values.yaml",
+        "locator": "manifests/charts/base/values.yaml",
+        "excerpt": "# \"defaults\" is a workaround for Helm limitations. Users should NOT set \".defaults\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:42c5370ac7e870722655a08a30a64e1bde0b2e4b65f2786e97dca0395fdcd3b3",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T11:33:50Z"
+      },
+      {
+        "id": "ev-ad95ec08c00b",
+        "kind": "structured",
+        "sourceId": "chart-base",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/manifests/charts/base/values.yaml",
+        "locator": "manifests/charts/base/values.yaml",
+        "excerpt": "# \"_internal_defaults_do_not_set\" is a workaround for Helm limitations. Users should NOT set \"._internal_defaults_do_not_set\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:98cdc4bb9ffa308db45d96e8a773624f18069ee56a84d72a57ba2ff32e24e6e0",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:49Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b150ca000a91",
+    "candidateId": "sc-9fcef0a0f5eb",
+    "proposalId": "sp-ac32d9159afd",
+    "validator": "semvalidate.values@v1",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "istio",
+        "path": "kube-gateway.containers"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "kube-gateway.containers",
+          "state": "unset"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The kube-gateway containers will now include a metrics port in their specification, enabling metrics exposure that was previously missing."
+      },
+      "statement": "The istio-discovery Helm chart's kube-gateway containers spec now includes a metrics port."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "refuted",
+        "rule": "helm-values:exists",
+        "detail": "kube-gateway.containers is in the values of no chart of either release (e.g. 13 keys at the source, 10 at the target)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "refuted",
+        "rule": "helm-values:added",
+        "detail": "kube-gateway.containers is not in the target values"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-41d780f6ab39",
+        "kind": "structured",
+        "sourceId": "chart-base",
+        "uri": "https://github.com/istio/istio/blob/1.23.4/manifests/charts/base/values.yaml",
+        "locator": "manifests/charts/base/values.yaml",
+        "excerpt": "# \"defaults\" is a workaround for Helm limitations. Users should NOT set \".defaults\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:42c5370ac7e870722655a08a30a64e1bde0b2e4b65f2786e97dca0395fdcd3b3",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T11:33:50Z"
+      },
+      {
+        "id": "ev-ad95ec08c00b",
+        "kind": "structured",
+        "sourceId": "chart-base",
+        "uri": "https://github.com/istio/istio/blob/1.24.0/manifests/charts/base/values.yaml",
+        "locator": "manifests/charts/base/values.yaml",
+        "excerpt": "# \"_internal_defaults_do_not_set\" is a workaround for Helm limitations. Users should NOT set \"._internal_defaults_do_not_set\" explicitly, but rather directly set the fields internally.",
+        "contentDigest": "sha256:98cdc4bb9ffa308db45d96e8a773624f18069ee56a84d72a57ba2ff32e24e6e0",
+        "representation": "source-tree",
+        "retrievedAt": "2026-10-02T02:35:49Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

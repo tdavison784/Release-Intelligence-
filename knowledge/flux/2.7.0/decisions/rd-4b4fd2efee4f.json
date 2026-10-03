@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-4b4fd2efee4f",
+    "reviewItemId": "ri-616800f089f1",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the operator runs `flux uninstall` on a cluster where `ArtifactGenerators` exist"
+        }
+      },
+      "statement": "The Flux CLI's `uninstall` command now removes `ArtifactGenerators` during uninstall (fluxcd/flux2#5531)."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:a1e1128cfbdd9e353f413699d01f2a629c37e59ce4722933017a9921ccb89c58",
+      "inputEvidence": [
+        "ev-ca5d9cebd770"
+      ],
+      "generatedAt": "2026-10-02T23:15:41.287Z",
+      "callId": "9cadf4e3-694c-43d3-b888-dd4c9f77e458"
+    },
+    "reason": "[ev-ca5d9cebd770] says only that `flux uninstall` now removes ArtifactGenerators. An environment is affected only when an operator actually runs the uninstall command while ArtifactGenerator objects exist. Running the command is an action taken at runtime, and no configuration records it. The evidence also gives no API group or version for ArtifactGenerator, so a gvk-in-use predicate could not be written. That makes undecidable with reason runtime-behavior-gap the right exposure, and the 'needed' text describes it accurately.",
+    "startedAt": "2026-10-02T23:15:35.225Z",
+    "decidedAt": "2026-10-02T23:15:41.287Z"
+  }
+}

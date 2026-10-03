@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-98a0fd5eecdb",
+    "candidateId": "sc-ce76287c2361",
+    "product": "istio",
+    "release": "1.24.0",
+    "questionType": "applicability",
+    "question": "For \"Added support for honouring Destination Rule Certificates for MESH_EXTERNAL services instead of Metadata certificates\", which environments are exposed? Confirm or correct the exposure condition.",
+    "proposed": {
+      "applicability": {
+        "exposure": {
+          "op": "not",
+          "of": [
+            {
+              "op": "env-var",
+              "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+              "state": "equals",
+              "values": [
+                "\"false\""
+              ]
+            }
+          ]
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES",
+          "state": "equals",
+          "values": [
+            "\"false\""
+          ]
+        }
+      },
+      "statement": "Istio now honours DestinationRule certificates over metadata certificates for MESH_EXTERNAL services; setting env var PREFER_DESTINATIONRULE_TLS_FOR_EXTERNAL_SERVICES to false reverts this."
+    },
+    "proposals": [
+      "sp-cf334e6537d5",
+      "sp-d448982f496c"
+    ],
+    "validations": [
+      "val-344c2ab2c286",
+      "val-3f308cfb9cd4",
+      "val-f3b013248878",
+      "val-fc90062275d8"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T06:07:29Z"
+  }
+}

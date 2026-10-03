@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-bb5c4310ec59",
+    "reviewItemId": "ri-89f160dbb1ad",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "An exposed environment whose operator does nothing is unaffected: the removed-values list is empty, so no previously accepted spec.chartRef.kind value is rejected; the previously invalid value ExternalArtifact simply becomes accepted.",
+        "severity": "low"
+      },
+      "statement": "In the helm.toolkit.fluxcd.io/v2 HelmRelease schema, the enum of spec.chartRef.kind gained the allowed value ExternalArtifact (computed artifact diff between the v2.6.4 and v2.7.0 install bundles), with no values removed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:d034472053f28477da64f0341fe02dbcd48cea453e6a49ae1a64e2ef76e3ae09",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T02:24:24.588Z",
+      "callId": "a911bcdf-a313-44a9-8c00-741c5b87b2aa"
+    },
+    "reason": "The computed diff between the v2.6.4 [ev-782bc47d120d] and v2.7.0 [ev-c2c6c790d6b2] install bundles reports spec.chartRef.kind as removed [], added [\"ExternalArtifact\"]. The enum was only widened, so no value that was accepted before is now rejected, and an environment that does nothing is unaffected (none, informational). P2's reading of \"removed []\" as removing an empty value is wrong. The validator that reports the enum as unchanged also shows no removed value. Confidence is low because the excerpts themselves only show \"apiVersion: v1\".",
+    "startedAt": "2026-10-03T02:24:13.84Z",
+    "decidedAt": "2026-10-03T02:24:24.588Z"
+  }
+}

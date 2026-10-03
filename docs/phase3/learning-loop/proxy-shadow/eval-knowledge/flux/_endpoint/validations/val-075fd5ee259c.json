@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-075fd5ee259c",
+    "candidateId": "sc-01dac2541bc1",
+    "proposalId": "sp-68425397f65c",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"required\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmRepository v1beta2 objects that omit status.artifact.digest are rejected by the schema.",
+        "severity": "low"
+      },
+      "statement": "In the HelmRepository v1beta2 CRD schema, status.artifact.digest is now required, and objects that omit it are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "restatement:crd:field-required",
+        "detail": "computed change chg-885cce3828cb names crd-field:flux|group=source.toolkit.fluxcd.io|version=v1beta2|kind=HelmRepository|path=status.artifact.digest"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "restatement:crd:field-required",
+        "detail": "computed change chg-885cce3828cb states the same now-required: \"HelmRepository v1beta2 schema: 1 field now required: `status.artifact.digest`\""
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

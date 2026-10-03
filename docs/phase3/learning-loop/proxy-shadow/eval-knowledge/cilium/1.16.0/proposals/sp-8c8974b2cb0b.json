@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8c8974b2cb0b",
+    "candidateId": "sc-3d73e8a6dea6",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "direct-server-return"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.13.3"
+            },
+            {
+              "op": "undecidable",
+              "reason": "runtime-behavior-gap",
+              "needed": "whether the environment has active service connections using Direct-Server-Return that were established before the upgrade"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Existing service connections using Direct-Server-Return established before v1.13.3 will be disrupted and require manual re-establishment.",
+        "remediation": "Re-establish service connections using Direct-Server-Return after upgrading to v1.16.0.",
+        "severity": "high"
+      },
+      "statement": "Service connections using Direct-Server-Return that were established prior to Cilium v1.13.3 will be disrupted during the upgrade to v1.16.0 and must be re-established."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-89034c5d2c74"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:91fe379958a0366f8383358c170c374129e70cccd62103fa9fa9ef8dda8b1c3a",
+      "inputEvidence": [
+        "ev-89034c5d2c74"
+      ],
+      "generatedAt": "2026-10-02T05:57:53Z",
+      "callId": "3dd13465-9f32-44f0-aa7a-b934e0a1f963"
+    }
+  }
+}

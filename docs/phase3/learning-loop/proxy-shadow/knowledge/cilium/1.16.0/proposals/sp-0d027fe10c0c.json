@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0d027fe10c0c",
+    "candidateId": "sc-5a3964f250c2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "remoteNodeIdentity"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "remoteNodeIdentity",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Remote nodes always use the remote-node identity; no impact for users on the default true, but network policies based on enable-remote-node-identity=false need updating.",
+        "remediation": "Update network policies that rely on enable-remote-node-identity=false."
+      },
+      "statement": "The deprecated Helm value remoteNodeIdentity was removed in 1.16; remote nodes now always use the remote-node identity, and network policies based on enable-remote-node-identity=false must be updated."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-40ebe1cf329c"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e34b59c63bd333311bcce10eab816893eb9ace913751f91c7ab7d3a653b7d314",
+      "inputEvidence": [
+        "ev-40ebe1cf329c",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T06:01:26Z",
+      "callId": "bb695916-4499-4560-abe6-b1197f7bb013"
+    }
+  }
+}

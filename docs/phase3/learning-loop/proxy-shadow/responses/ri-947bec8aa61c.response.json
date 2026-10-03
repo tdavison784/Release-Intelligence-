@@ -1,0 +1,33 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-947bec8aa61c",
+  "promptDigest": "sha256:717258622989ab0bf00f57c10e40480211408b3c474c8944858fe96e1f067a77",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "d6cbad56-9e9c-49a9-8cf4-2cdbf3db5e4e",
+  "startedAt": "2026-10-03T02:25:26.336Z",
+  "decidedAt": "2026-10-03T02:25:37.834Z",
+  "durationMs": 10583,
+  "costUSD": 0.065604,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-9f184d231baf] says the Redis provider `tls.CAOptional` option \"has been removed in v3\" and that it should be removed from the static configuration. A removed key whose value stops being honoured is setting-ignored, so the kind and the action-required class are right. However, the evidence does not say the value is silently \"ignored\" rather than causing some other error. It also explains that the option had no real client-side effect, because client authentication is a server-side setting, which does not support \"high\" severity. I keep the kind, phrase the statement in the evidence's own terms, add the documented remediation and lower the severity to low.",
+    "citations": [
+      "ev-9f184d231baf"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-consequence"
+    ],
+    "correction": {
+      "statement": "In Traefik v3.0.0 the Redis provider static option tls.caOptional (providers.redis.tls.caOptional) has been removed, so a configured value is no longer honoured; it should be removed from the static configuration.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "setting-ignored",
+        "statement": "The removed providers.redis.tls.caOptional option is no longer honoured in v3, because TLS client authentication is a server-side option; the migration guide says it should be removed from the Redis provider static configuration.",
+        "remediation": "Remove tls.caOptional (File YAML/TOML providers.redis.tls.caOptional, or CLI --providers.redis.tls.caOptional) from the Redis provider static configuration.",
+        "severity": "low"
+      }
+    }
+  }
+}

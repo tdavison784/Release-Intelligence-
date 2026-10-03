@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6688200dc59e",
+    "candidateId": "sc-91d1feb7a7d7",
+    "proposalId": "sp-e50e99392d9c",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "repositories",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data.repositories",
+              "state": "set"
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Repositories configured in argocd-cm ConfigMap will no longer be honored in Argo CD 3.0, as this legacy configuration method has been removed.",
+        "remediation": "Migrate repositories from argocd-cm ConfigMap to repository Secrets following the declarative management documentation.",
+        "severity": "high"
+      },
+      "statement": "The argocd-cm ConfigMap keys for repositories (repositories, repository.credentials, helm.repositories) have been removed and are no longer supported in Argo CD 3.0."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:config-key/removed",
+        "detail": "no canonical exposure condition for config-key removed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

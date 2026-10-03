@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-0c12351fc39e",
+    "candidateId": "sc-0e7e63699f83",
+    "proposalId": "sp-750c65a13cd0",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-available-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_ips_available_total\"",
+        "after": "\"lbipam_ips_available\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-available-metric"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which monitoring systems or alerting rules actively reference the old metric name lbipam_ips_available_total at runtime"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Monitoring queries, dashboards, or alerting rules that reference the metric name lbipam_ips_available_total will no longer receive data and will stop functioning.",
+        "remediation": "Update all monitoring systems, Prometheus queries, dashboards, and alert rules to use the new metric name lbipam_ips_available instead of lbipam_ips_available_total.",
+        "severity": "medium"
+      },
+      "statement": "The metric lbipam_ips_available_total has been renamed to lbipam_ips_available."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/renamed",
+        "detail": "no canonical exposure condition for protocol-behavior renamed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

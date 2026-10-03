@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-a137445ebd02",
+    "reviewItemId": "ri-3cc61e79e2f4",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cluster-version",
+              "name": "kubernetes",
+              "state": "in-range",
+              "range": ">=1.0.0"
+            }
+          ]
+        }
+      },
+      "statement": "Kyverno 1.13 adds the --enableReporting container flag to admission-controller, background-controller, and reports-controller deployments with default value enabling reporting for validate, mutate, mutateExisting, imageVerify, and generate rule types."
+    },
+    "corrected": {
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].generate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "ClusterPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].mutate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.rules[].generate",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "kyverno.io",
+                  "kind": "Policy"
+                }
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enableReporting",
+              "state": "has-token",
+              "values": [
+                "mutate",
+                "mutateExisting",
+                "generate"
+              ]
+            }
+          ]
+        }
+      },
+      "statement": "Kyverno 1.13 adds the --enableReporting container flag; its chart default (validate,mutate,mutateExisting,imageVerify,generate) makes Kyverno also report on mutate, mutateExisting and generate rules. This affects environments that have Policy or ClusterPolicy objects with mutate or generate rules, as long as those rule types are still enabled in --enableReporting."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:bdb244d4a83d5412c644a96f22a6b327f7b2108de5921717993582e94bb20d45",
+      "inputEvidence": [
+        "ev-2835c7c71165",
+        "ev-a5eba5775d07",
+        "ev-4cd26225bffa",
+        "ev-52c07595c637",
+        "ev-54749e1a631c",
+        "ev-8dbdd0d2ff64",
+        "ev-e8169ff3d009",
+        "ev-892e45421732",
+        "ev-72f16d281831",
+        "ev-b2a444d8e5e6",
+        "ev-bc837634eaa2",
+        "ev-ff42ab09a455",
+        "ev-ea3f83a6e087",
+        "ev-bcf9822c2eb4",
+        "ev-d4375a636f55",
+        "ev-b39e8c27b4a6",
+        "ev-2986b5476a52",
+        "ev-7992af33049e",
+        "ev-d45f46947747",
+        "ev-cdbad5f10029",
+        "ev-1a780fc7f788",
+        "ev-91ec4fc92ad3",
+        "ev-e599ee1bf192",
+        "ev-296f51353996",
+        "ev-55e1be7f7ede",
+        "ev-89fe173dc4ac",
+        "ev-0982f2d9b2c6",
+        "ev-2bba844b2e5c",
+        "ev-a2edfd9b1fee",
+        "ev-d18fb0498594",
+        "ev-206280e3108c"
+      ],
+      "generatedAt": "2026-10-02T23:11:25.041Z",
+      "callId": "30b05d32-afaa-4b34-80c3-aad2c67dda36"
+    },
+    "reason": "The proposed exposure (any Kubernetes >=1.0.0) matches every environment, which is too broad. [ev-2835c7c71165] says the change adds reporting for mutate (including mutateExisting) and generate rules. Environments with no such rules see no new report entries. [ev-b2a444d8e5e6], [ev-bc837634eaa2], [ev-ff42ab09a455] and [ev-206280e3108c] show that the chart default turns on `--enableReporting` for those rule types, so exposure is: the environment has a Policy or ClusterPolicy with mutate or generate rules, and those rule types are still enabled in the flag.",
+    "startedAt": "2026-10-02T23:10:58.957Z",
+    "decidedAt": "2026-10-02T23:11:25.041Z"
+  }
+}

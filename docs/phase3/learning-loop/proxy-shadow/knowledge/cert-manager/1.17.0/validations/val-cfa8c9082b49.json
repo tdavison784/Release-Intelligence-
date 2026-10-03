@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-cfa8c9082b49",
+    "candidateId": "sc-9cd4a1953216",
+    "proposalId": "sp-d40dbe41614d",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Issuer",
+        "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "Issuer"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity",
+                  "state": "set"
+                }
+              ],
+              "group": "cert-manager.io",
+              "kind": "ClusterIssuer"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "No operational consequence: the new tenantID option is optional, existing AzureDNS solver configuration keeps working unchanged, and operators in multi-tenant environments may set it to specify the tenant ID when using managed identities.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.17.0 adds a new optional configuration option `tenantID` on the AzureDNS DNS-01 solver's managed identity configuration (spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID on Issuer/ClusterIssuer), letting users specify the tenant ID when using managed identities with service principals in multi-tenant environments."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "restatement:crd:fields-added",
+        "detail": "computed change chg-8d5050bf3851 names crd-field:cert-manager|group=cert-manager.io|kind=Issuer|path=spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "restatement:crd:fields-added",
+        "detail": "computed change chg-8d5050bf3851 states the same added: \"Issuer v1 schema: 1 field added: `spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID`\""
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-60054fcf0986",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:af6faeb6b75a13a70d0ac7f5db2b5b694f8cb9023c54bfbafd4d7d2fd95846d3",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-84061d76ea1b",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.16.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:6b81e668c80301955ea3c618a0e29ceb98b54d1d80a7b0082c77e5c7d827b41b",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:50:00Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

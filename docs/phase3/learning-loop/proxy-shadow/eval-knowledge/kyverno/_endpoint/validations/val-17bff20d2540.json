@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-17bff20d2540",
+    "candidateId": "sc-9bfef792f31d",
+    "proposalId": "sp-d89b18bdf985",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "kyverno",
+        "name": "updaterequests-storage-version-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the cluster has existing UpdateRequest (kyverno.io) objects stored as v1beta1 in etcd, and whether status.storedVersions of updaterequests.kyverno.io still lists v1beta1"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing UpdateRequest objects stay stored as v1beta1 until rewritten. A storage version migration and an update of status.storedVersions must be done before a later release removes v1beta1.",
+        "remediation": "After upgrading, rewrite all updaterequests.kyverno.io objects so they are stored as v2. Then remove v1beta1 from the CRD's status.storedVersions.",
+        "severity": "medium"
+      },
+      "statement": "From 1.12.6 to 1.13.0, the storage version of the updaterequests.kyverno.io CRD moves from v1beta1 to v2. Existing UpdateRequest objects stay stored as v1beta1 until they are rewritten, so a storage version migration and an update of status.storedVersions are needed before a later release removes v1beta1."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:migration/migration-required",
+        "detail": "no canonical exposure condition for migration migration-required"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

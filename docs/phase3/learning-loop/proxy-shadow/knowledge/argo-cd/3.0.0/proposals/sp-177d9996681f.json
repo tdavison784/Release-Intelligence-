@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-177d9996681f",
+    "candidateId": "sc-13bd4e122a89",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "legacy-controller-metrics"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "argo-cd",
+          "name": "argocd-app-info"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "ARGOCD_LEGACY_CONTROLLER_METRICS",
+          "state": "equals",
+          "values": [
+            "\"true\""
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "If the legacy metrics are in use (ARGOCD_LEGACY_CONTROLLER_METRICS=true), monitoring dashboards and alerts must be updated to use argocd_app_info labels before upgrading, since the old metrics are removed.",
+        "remediation": "Update dashboards and alerts to use the labels on argocd_app_info before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "The legacy metrics argocd_app_sync_status, argocd_app_health_status and argocd_app_created_time are removed in 3.0.0; use labels on argocd_app_info instead, which matters if ARGOCD_LEGACY_CONTROLLER_METRICS is set to true."
+    },
+    "citations": [
+      "ev-06e920b4a3dd"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:ac65fc231a5e11bb5846033663ce2f31452bfb5d1173c5cf77b1f879321bb515",
+      "inputEvidence": [
+        "ev-06e920b4a3dd"
+      ],
+      "generatedAt": "2026-10-02T06:04:32Z",
+      "callId": "b8c9ec2c-c1b9-408d-ac62-920ce7a03822"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-62ad00c8079a",
+  "promptDigest": "sha256:c8fa8ede08a2213537fcd4fedcb94d2af1d5ae83f019f7f61bbbe49069046551",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "6e7b4815-862e-4ac2-8d6a-d18b4c86b947",
+  "startedAt": "2026-10-03T02:19:44.318Z",
+  "decidedAt": "2026-10-03T02:19:53.902Z",
+  "durationMs": 8737,
+  "costUSD": 0.0779388,
+  "output": {
+    "action": "correct",
+    "reason": "The validators confirm that ManagedResourceActivationPolicy v1alpha1 exists only in the target release [ev-7b1bee6d2352]. No environment can use a GVK before it exists, so the proposed exposure, not gvk-in-use, matches every environment and is too broad. The change text names only one exposed group: environments that manage CRDs separately from the release and so must install the new CRD themselves. No static input in the evidence shows whether an environment does that, so the exposure must be undecidable.",
+    "citations": [
+      "ev-7b1bee6d2352"
+    ],
+    "confidence": "low",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Crossplane adds the ManagedResourceActivationPolicy CRD (apiextensions.crossplane.io/v1alpha1). Only environments that manage CRDs separately from the release are exposed, because they must install the new CRD before upgrading. Static inputs cannot show whether an environment does this.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the environment installs and manages Crossplane CRDs separately from the release (for example, outside the Helm chart), instead of letting the release install them"
+        }
+      }
+    }
+  }
+}

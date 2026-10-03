@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-c492bb409210",
+    "reviewItemId": "ri-d45e79d3e3c5",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "traefik.io",
+          "version": "v1alpha1",
+          "kind": "ServersTransport"
+        }
+      },
+      "statement": "The ServersTransport v1alpha1 CRD schema adds three new fields under spec.spiffe: ids (an array of strings) and trustDomain (a string), defining SPIFFE configuration with trustDomain as the allowed SPIFFE trust domain and ids taking precedence when specified."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:d171b06d11e6a99709f9d03db012443e0acf70fb8d710cdcb0d943cc7114620a",
+      "inputEvidence": [
+        "ev-71fc22d68581",
+        "ev-48d1ecd4b134",
+        "ev-7e05fc1e5c59",
+        "ev-eb26399b5dbb",
+        "ev-198744ef4096",
+        "ev-788272feab62",
+        "ev-49bacb044ac2",
+        "ev-74031352b156",
+        "ev-37cc33b409c3",
+        "ev-d68d5c203df6",
+        "ev-caea0ddc58f9",
+        "ev-e737e9be0d13",
+        "ev-4fd00a8d9fd6",
+        "ev-e664bb0d9d26",
+        "ev-84f68d4b0c26",
+        "ev-501210bb2f62",
+        "ev-54d04bd3a614",
+        "ev-6662f8dd5e6e",
+        "ev-100ba7419139",
+        "ev-8a887e659370",
+        "ev-61dcce2c74af",
+        "ev-f7d1f0ce407c",
+        "ev-b4a823a5e4dc",
+        "ev-0842f8f3bd9d",
+        "ev-ecec44679e9d",
+        "ev-d1fdfd690e23",
+        "ev-ee88e8f5ea66",
+        "ev-011956bb7059",
+        "ev-72be921dc163",
+        "ev-cfca42b941d5",
+        "ev-393f10c2c1ea"
+      ],
+      "generatedAt": "2026-10-03T02:02:34.155Z",
+      "callId": "a4c5b049-539b-47ea-bef1-a9295846f79c"
+    },
+    "reason": "[ev-393f10c2c1ea] shows that spec.spiffe (with ids[] and trustDomain) is a new optional object in the traefik.io/v1alpha1 ServersTransport schema between 2.11.2 and 3.0.0. No existing resource can already set it. The only environments the change touches are the ones that use ServersTransport v1alpha1, which is exactly what the gvk-in-use condition selects. Because the consequence is fixed at none/informational, this condition does not create mandatory work. Confidence is low because the canonical validator found no standard exposure condition for an added CRD field.",
+    "startedAt": "2026-10-03T02:02:24.736Z",
+    "decidedAt": "2026-10-03T02:02:34.155Z",
+    "resultingFact": "vf-a7b0e1abf21b"
+  }
+}

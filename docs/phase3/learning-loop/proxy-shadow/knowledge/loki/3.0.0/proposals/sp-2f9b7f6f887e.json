@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2f9b7f6f887e",
+    "candidateId": "sc-d79c5b534d98",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "loki",
+        "name": "GET /prometheus/api/v1/rules",
+        "component": "ruler"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--ruler.enable-api",
+              "component": "ruler",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "RULER_ENABLE_API",
+              "component": "ruler",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The `/prometheus/api/v1/rules` endpoint now accepts optional filtering query parameters (rule_name, rule_group, file, type) to narrow results; existing queries without these parameters continue to work unchanged.",
+        "severity": "low"
+      },
+      "statement": "Loki Ruler's `/prometheus/api/v1/rules` API endpoint now supports filtering results by rule_name, rule_group, file, and type query parameters."
+    },
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-d93690b5448d"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:12cfd065eded903c2135422258e22362411ba0200b242dd4477e44d8b04ad885",
+      "inputEvidence": [
+        "ev-d93690b5448d"
+      ],
+      "generatedAt": "2026-10-02T16:15:33Z",
+      "callId": "2a0d46f5-b0e3-4999-84c9-325ab3ed78df"
+    }
+  }
+}

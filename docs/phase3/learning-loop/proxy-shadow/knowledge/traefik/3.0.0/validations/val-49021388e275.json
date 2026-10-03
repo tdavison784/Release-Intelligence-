@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-49021388e275",
+    "candidateId": "sc-5dcbbe4e02ea",
+    "proposalId": "sp-e56e60d275e7",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "traefik",
+        "group": "traefik.io",
+        "version": "v1alpha1",
+        "kind": "IngressRouteTCP",
+        "path": "spec.routes[].services[].terminationDelay"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "crd-field",
+          "product": "traefik",
+          "group": "traefik.io",
+          "version": "v1alpha1",
+          "kind": "ServersTransportTCP",
+          "path": "spec.terminationDelay"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.routes[].services[].terminationDelay",
+              "state": "set"
+            }
+          ],
+          "group": "traefik.io",
+          "version": "v1alpha1",
+          "kind": "IngressRouteTCP"
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The terminationDelay field on IngressRouteTCP services will be ignored; the configuration must be moved to the corresponding TCPServersTransport resource.",
+        "remediation": "Migrate terminationDelay configuration from IngressRouteTCP spec.routes[].services[].terminationDelay to the referenced TCPServersTransport spec.terminationDelay.",
+        "severity": "high"
+      },
+      "statement": "The TCP LoadBalancer terminationDelay option has been removed from IngressRouteTCP service configuration and must now be configured on TCPServersTransport instead."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/removed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/removed",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

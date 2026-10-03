@@ -1,0 +1,155 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-c7e40030d679",
+    "product": "cilium",
+    "release": "1.16.0",
+    "anchors": [
+      {
+        "release": "1.16.0",
+        "evidenceKeys": [
+          "ek-dedc62205851"
+        ],
+        "statementKeys": [
+          "sk-bf9b67a1e5d1"
+        ],
+        "changeIds": [
+          "chg-23a43a125719"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-2a33dcd96146"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "tofqdns-policy-implementation"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"creating `cidr` identities for each allowed IP\"",
+        "after": "\"IPs observed in DNS lookups are now labeled with the selectors `toFQDNs` matching them\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.15.6"
+            },
+            {
+              "op": "any",
+              "of": [
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cilium.io",
+                  "kind": "CiliumNetworkPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "specs[].egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cilium.io",
+                  "kind": "CiliumNetworkPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "spec.egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cilium.io",
+                  "kind": "CiliumClusterwideNetworkPolicy"
+                },
+                {
+                  "op": "resource",
+                  "of": [
+                    {
+                      "op": "field",
+                      "path": "specs[].egress[].toFQDNs[]",
+                      "state": "set"
+                    }
+                  ],
+                  "group": "cilium.io",
+                  "kind": "CiliumClusterwideNetworkPolicy"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Temporary packet drops may occur for connections allowed by toFQDNs policies during the initial endpoint regeneration on Cilium v1.16 when upgrading from a version older than v1.15.6.",
+        "remediation": "Upgrade to Cilium v1.15.6 or newer before upgrading to v1.16.",
+        "severity": "medium"
+      },
+      "statement": "The implementation of `toFQDNs` selectors in policies has been overhauled to improve performance when many different IPs are observed for a selector: Instead…"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-e78b5fd75153"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "proxy",
+        "basis": [
+          "rd-e78b5fd75153"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-e9a5b42197ac"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "proxy",
+        "basis": [
+          "rd-cab175175bbc"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-25984c3785d4",
+        "kind": "document",
+        "sourceId": "upgrade-notes",
+        "uri": "https://github.com/cilium/cilium/blob/v1.16.0/Documentation/operations/upgrade.rst",
+        "locator": "L310-L322 (1.16 Upgrade Notes)",
+        "excerpt": "* The implementation of `toFQDNs` selectors in policies has been overhauled to improve\n  performance when many different IPs are observed for a selector: Instead of creating\n  `cidr` identities for each allowed IP, IPs observed in DNS lookups are now labeled\n  with the selectors `toFQDNs` matching them. This reduces tail latency significantly for\n  FQDNs with a highly dynamic set of IPs, such as e.g. content delivery networks and\n  cloud object storage services.\n  Cilium automatically migrates its internal state for `toFQDNs` policy entries upon\n  upgrade or downgrade. To avoid drops during up…",
+        "contentDigest": "sha256:ee9d0cd6af8ac7e31ed1cb4cc0410c4d2cd1d95cc4f5e916fca918102866de83",
+        "retrievedAt": "2026-10-02T02:35:42Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-03T02:16:54.207Z"
+  }
+}

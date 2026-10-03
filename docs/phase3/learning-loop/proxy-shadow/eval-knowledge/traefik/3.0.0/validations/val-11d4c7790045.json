@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-11d4c7790045",
+    "candidateId": "sc-ea68fa62a919",
+    "proposalId": "sp-707c8fc04fee",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.rancher"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.rancher",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--providers.rancher",
+              "state": "equals",
+              "values": [
+                "\"true\""
+              ]
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "Traefik will not start if the static configuration still contains the Rancher provider configuration.",
+        "remediation": "Remove all Rancher provider configuration from the static configuration; Rancher 2.x users should use the Kubernetes CRD provider directly.",
+        "severity": "high"
+      },
+      "statement": "The Rancher v1 provider (providers.rancher) was removed in Traefik v3; leaving its configuration in place prevents Traefik from starting, and Rancher 2.x users should use the Kubernetes CRD provider."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/removed",
+        "detail": "config-key subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:34Z"
+  }
+}

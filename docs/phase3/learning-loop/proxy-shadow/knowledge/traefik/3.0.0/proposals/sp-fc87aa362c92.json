@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fc87aa362c92",
+    "candidateId": "sc-06671e62c675",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.docker.swarmMode"
+      },
+      "change": {
+        "type": "removed",
+        "before": "\"true\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--providers.docker.swarmMode",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "upgrade-blocked",
+        "exposedClass": "action-required",
+        "statement": "A configuration using the Docker provider with swarmMode is unsupported in v3 and prevents Traefik from starting.",
+        "remediation": "Do not use swarmMode with the Docker provider; use the Swarm provider instead.",
+        "severity": "high"
+      },
+      "statement": "In v3 the Docker provider's swarmMode option is unsupported (Swarm moved to a separate Swarm provider), and configuring providers.docker.swarmMode prevents Traefik from starting."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-c6ee7d3b73da"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:8c30724c841be1c07b6802c9531084eb63c2d4dbc98613be528499c812061812",
+      "inputEvidence": [
+        "ev-c6ee7d3b73da"
+      ],
+      "generatedAt": "2026-10-02T16:16:37Z",
+      "callId": "2d4ee249-5c69-4a03-9e38-e3ac0b1a8bc4"
+    }
+  }
+}

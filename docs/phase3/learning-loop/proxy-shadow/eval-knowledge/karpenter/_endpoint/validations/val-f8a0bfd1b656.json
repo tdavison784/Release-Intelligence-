@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-f8a0bfd1b656",
+    "candidateId": "sc-42373ba011a8",
+    "proposalId": "sp-74e05846520b",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "gvk",
+        "product": "karpenter",
+        "group": "karpenter.sh",
+        "version": "v1",
+        "kind": "NodePool"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"v1beta1\"",
+        "after": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "karpenter.sh",
+              "version": "v1beta1",
+              "kind": "NodePool"
+            },
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.0.0"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing NodePool objects stored as v1beta1 must be rewritten and status.storedVersions must be updated before a later release removes v1beta1 support."
+      },
+      "statement": "The storage version of nodepools.karpenter.sh changes from v1beta1 to v1, requiring a storage version migration to rewrite existing objects."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/value-changed",
+        "detail": "gvk value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:gvk/value-changed",
+        "detail": "gvk value-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

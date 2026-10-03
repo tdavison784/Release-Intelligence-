@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-6c6a131e435d",
+    "reviewItemId": "ri-bad3f3a52028",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-applicability"
+    ],
+    "original": {
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.solver.dns01.azureDNS.managedIdentity",
+              "state": "set"
+            }
+          ],
+          "group": "acme.cert-manager.io",
+          "version": "v1",
+          "kind": "Challenge"
+        }
+      },
+      "statement": "A new optional field `spec.solver.dns01.azureDNS.managedIdentity.tenantID` has been added to the Challenge resource schema for Azure DNS01 solver configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:50abb1f4bec40a2b3f4a5f9a568c2ed38cc0d8c05a6bc49e67197bbb3bb01d96",
+      "inputEvidence": [
+        "ev-84061d76ea1b",
+        "ev-60054fcf0986"
+      ],
+      "generatedAt": "2026-10-02T15:55:46.639Z",
+      "callId": "8553c9d6-2d91-4752-b077-72ede8d24eac"
+    },
+    "reason": "The only evidence is the two CRD artifacts [ev-84061d76ea1b] [ev-60054fcf0986]. The validators confirmed from them that spec.solver.dns01.azureDNS.managedIdentity.tenantID exists only in the target schema, and that a newly added field has no consequence for existing environments. Because nothing happens to anyone, no environment state can be shown to be exposed. The proposed condition would flag every Challenge that sets azureDNS.managedIdentity, which is broader than any supported consequence, and the evidence supports no other exposure predicate (the canonical validator found none for an added CRD field).",
+    "startedAt": "2026-10-02T15:55:33.908Z",
+    "decidedAt": "2026-10-02T15:55:46.639Z"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-6b451991fce7",
+    "candidateId": "sc-1dc9088fb8f9",
+    "proposalId": "sp-0105f448b66f",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "karpenter",
+        "name": "v1-migration-upgrade-procedure"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<1.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "The upgrade guide says not to upgrade to 1.0.0+ without following the v1 Migration Upgrade Procedure. Conversion webhooks serve stored v1beta1 NodePools, EC2NodeClasses and NodeClaims as v1 for now. v1beta1 stops being served at v1.1.0, when the webhooks are dropped.",
+        "remediation": "Follow the v1 Migration Upgrade Procedure and migrate all stored manifests to v1 API versions on Karpenter v1.0+.",
+        "severity": "high"
+      },
+      "statement": "Upgrading to Karpenter 1.0.0+ introduces v1 APIs and requires following the v1 Migration Upgrade Procedure; stored v1beta1 manifests must be migrated to v1 before v1beta1 stops being served at v1.1.0."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:migration/migration-required",
+        "detail": "migration migration-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

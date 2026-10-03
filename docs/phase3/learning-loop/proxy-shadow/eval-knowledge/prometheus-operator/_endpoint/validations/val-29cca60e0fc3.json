@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-29cca60e0fc3",
+    "candidateId": "sc-4a8f24a699e3",
+    "proposalId": "sp-4906ca2be7f9",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "prometheus-operator",
+        "group": "monitoring.coreos.com",
+        "kind": "Probe",
+        "path": "status"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "monitoring.coreos.com",
+          "version": "v1",
+          "kind": "Probe"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "A new read-only status subresource field becomes available on Probe resources (containing bindings and their conditions); the schema description states it is under active development and is only populated when the \"StatusForConfigurationResources\" feature gate is enabled — the evidence states no failure or rejection for existing Probe resources.",
+        "severity": "low"
+      },
+      "statement": "The monitoring.coreos.com/v1 Probe CRD schema gained a new top-level status field (a read-only status subresource with nested bindings[].{group,name,namespace,resource} and bindings[].conditions[].{lastTransitionTime,message,observedGeneration,reason,status,type}) between prometheus-operator 0.85.0 and 0.86.2."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/added",
+        "detail": "crd-field subjects have no rendered representation this validator reads"
+      }
+    ],
+    "renderRelation": "not-visible-in-render",
+    "checkedAt": "2026-10-02T16:10:31Z"
+  }
+}

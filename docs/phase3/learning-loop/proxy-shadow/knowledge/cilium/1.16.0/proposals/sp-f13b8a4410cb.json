@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f13b8a4410cb",
+    "candidateId": "sc-2a33dcd96146",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "cilium",
+        "name": "tofqdns-selector-identity-migration"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<1.15.6"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "spec.egress[].toFQDNs[]",
+                  "state": "set"
+                }
+              ],
+              "group": "cilium.io",
+              "kind": "CiliumNetworkPolicy"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Temporary packet drops may occur for connections allowed by toFQDNs policies during the initial endpoint regeneration on Cilium v1.16 when upgrading from a version older than v1.15.6.",
+        "remediation": "Upgrade to Cilium v1.15.6 or newer before upgrading to v1.16.",
+        "severity": "medium"
+      },
+      "statement": "Upgrading to Cilium 1.16 from a version older than 1.15.6 with toFQDNs policies may cause temporary packet drops during initial endpoint regeneration; run v1.15.6 or newer first."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-25984c3785d4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:90b871af3a7d3f36aee3f52c74c7bd19474a442bc4dfdf5ea89c786d75002154",
+      "inputEvidence": [
+        "ev-25984c3785d4"
+      ],
+      "generatedAt": "2026-10-02T05:59:53Z",
+      "callId": "49de79eb-baf9-4fa9-bc6c-63cc639b1e19"
+    }
+  }
+}

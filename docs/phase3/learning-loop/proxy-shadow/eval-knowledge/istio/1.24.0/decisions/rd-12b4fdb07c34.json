@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-12b4fdb07c34",
+    "reviewItemId": "ri-83b49216b0aa",
+    "action": "accept",
+    "labels": [
+      "accepted"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Pods with hostNetwork enabled are now properly handled in ambient mode instead of being ignored.",
+        "severity": "medium"
+      },
+      "statement": "An issue causing pods with hostNetwork enabled to be ignored in Istio ambient mode has been fixed."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:f999920ef1d76325159e42c5149bedc5afb1ef009160bbf3fc0f05a1461e0b1d",
+      "inputEvidence": [
+        "ev-93c0d3a62602"
+      ],
+      "generatedAt": "2026-10-02T13:02:04.161Z",
+      "callId": "9a0b5ab2-6820-4b90-bdd6-352e9972b8ab"
+    },
+    "reason": "[ev-93c0d3a62602] says only that a bug was fixed: `hostNetwork` pods were being ignored in ambient mode and no longer are. So exposed pods are now handled differently, but nothing is said to fail, be rejected or need migrating. That makes behavior-change (review) the right kind; a failure kind would over-claim, and \"none\" would hide a real change in how these pods are handled. The note does not say what \"ignored\" meant in practice, so the medium severity cannot be checked against the text, and confidence is low.",
+    "startedAt": "2026-10-02T13:01:56.94Z",
+    "decidedAt": "2026-10-02T13:02:04.161Z"
+  }
+}

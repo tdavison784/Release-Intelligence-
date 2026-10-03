@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-67b9a00cd031",
+    "reviewItemId": "ri-1153ea96bcec",
+    "action": "reject",
+    "labels": [
+      "rejected",
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "original": {
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Operators upgrading to 3.0.0 must enable WAL replay to replace the removed max_transfer_retries mechanism; optionally enable flush_on_shutdown to flush ingester data to long-term storage on shutdowns.",
+        "severity": "high"
+      },
+      "statement": "Loki 3.0.0 recommends enabling WAL and optionally enabling flush_on_shutdown to handle the removal of max_transfer_retries configuration."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:153da7c6bf4bda69d76b790c9fba0867f033c6b6ad798ea1e1f7c79f9bdbbbbc",
+      "inputEvidence": [
+        "ev-b19cd3bb8e8b"
+      ],
+      "generatedAt": "2026-10-03T02:11:36.525Z",
+      "callId": "9cd9bb25-f4ef-4c15-9b4e-815a25e2d8ff"
+    },
+    "reason": "[ev-b19cd3bb8e8b] is one remediation option, labelled \"A. (Preferred)\", under the heading saying `max_transfer_retries` is removed. It is not a change of its own, and it does not say what fails if the operator does nothing. The proposal says operators \"must enable WAL replay\", but the excerpt only presents this as the preferred choice among alternatives, so calling it mandatory work (migration-required) goes beyond the evidence. Any real consequence belongs to the removal of `max_transfer_retries`, which is a separate change, and this excerpt does not describe that consequence.",
+    "startedAt": "2026-10-03T02:11:27.187Z",
+    "decidedAt": "2026-10-03T02:11:36.525Z"
+  }
+}

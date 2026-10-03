@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ab03d504ccc7",
+    "candidateId": "sc-f6497dd8df3e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "consul.namespace"
+      },
+      "change": {
+        "type": "removed",
+        "replacedBy": {
+          "family": "config-key",
+          "product": "traefik",
+          "path": "consul.namespaces"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--consul.namespace",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "The removed Consul `namespace` option is unsupported and would prevent Traefik from starting if still configured.",
+        "remediation": "Replace the `namespace` option with `namespaces` in the Consul provider static configuration.",
+        "severity": "high"
+      },
+      "statement": "The Consul provider `namespace` option (deprecated in v2) is removed in v3; leaving it set prevents Traefik from starting, and `namespaces` must be used instead."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-3ab5da393af7"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f8d94980a6038afd9febc9e3831ae61237c964189111276506bea0f55342ab80",
+      "inputEvidence": [
+        "ev-3ab5da393af7"
+      ],
+      "generatedAt": "2026-10-02T20:58:40Z",
+      "callId": "6beb4735-f8e2-43dc-bd2b-b45cee0e1a49"
+    }
+  }
+}

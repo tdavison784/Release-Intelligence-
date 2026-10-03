@@ -1,0 +1,37 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-769409c2ceb6",
+  "promptDigest": "sha256:80b8dbdbb4331bc8ba16cff0f4b2e87a7622bdf766fb304db8c1d88a47bee49d",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "078c2429-02e4-449c-8a93-42052ab4a9bf",
+  "startedAt": "2026-10-03T02:22:15.352Z",
+  "decidedAt": "2026-10-03T02:22:29.489Z",
+  "durationMs": 13298,
+  "costUSD": 0.097134,
+  "output": {
+    "action": "correct",
+    "reason": "The rendered diffs only show the storage flag moving from v2beta1 to v2 in 1.12.6 → 1.13.0 [ev-f0f21b325fa6] [ev-094d5d8b0291]. A validator confirmed that v2beta1 PolicyException is still an API version in both releases [ev-e4d8d307c8bd] [ev-f5ab4321b780], so it is still served and nothing fails, gets rejected or stops working in this upgrade. The change text puts the migration \"before a later release removes v2beta1\", so this upgrade does not require it. That makes the consequence a deprecation for review, not migration-required, which would wrongly classify it as mandatory work.",
+    "citations": [
+      "ev-f0f21b325fa6",
+      "ev-094d5d8b0291",
+      "ev-e4d8d307c8bd",
+      "ev-f5ab4321b780"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-consequence",
+      "wrong-classification"
+    ],
+    "correction": {
+      "statement": "In 1.13.0 the storage version of policyexceptions.kyverno.io moves from v2beta1 to v2. v2beta1 is still served, and existing PolicyException objects keep working while still stored as v2beta1. They must be migrated before a later release removes v2beta1.",
+      "consequence": {
+        "determination": "asserted",
+        "kind": "deprecation",
+        "severity": "medium",
+        "statement": "Nothing fails in this release because v2beta1 is still served. Existing PolicyException objects stay stored as v2beta1 until they are rewritten. They will need a storage version migration and a status.storedVersions update before a later release removes v2beta1.",
+        "remediation": "Before upgrading to a release that removes v2beta1, rewrite all policyexceptions.kyverno.io objects so they are stored as v2. Then remove v2beta1 from the CRD's status.storedVersions."
+      }
+    }
+  }
+}

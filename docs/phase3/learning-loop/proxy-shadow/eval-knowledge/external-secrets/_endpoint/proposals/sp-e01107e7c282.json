@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e01107e7c282",
+    "candidateId": "sc-42ee0d13e402",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1alpha1",
+        "kind": "ClusterPushSecret",
+        "path": "spec.pushSecretSpec.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.pushSecretSpec.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1alpha1",
+          "kind": "ClusterPushSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "ClusterPushSecret resources with spec.pushSecretSpec.template.engineVersion set to v1 will be rejected by the API server.",
+        "severity": "high"
+      },
+      "statement": "The enum value \"v1\" was removed from the spec.pushSecretSpec.template.engineVersion field of ClusterPushSecret v1alpha1, causing resources with this value to be rejected by the API server."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-9889c9b8706d",
+      "ev-e08924afdc47"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:db458974cdb97fa16eab8b333a12adf193ef4eb39a91063ea3139771afeef261",
+      "inputEvidence": [
+        "ev-9889c9b8706d",
+        "ev-e08924afdc47"
+      ],
+      "generatedAt": "2026-10-02T20:57:25Z",
+      "callId": "186b4e2f-e5db-4398-8407-db0f8e4a2c0a"
+    }
+  }
+}

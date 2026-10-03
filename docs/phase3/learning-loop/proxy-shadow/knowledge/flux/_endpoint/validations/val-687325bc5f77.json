@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-687325bc5f77",
+    "candidateId": "sc-1adce9d9216f",
+    "proposalId": "sp-416dd8bbac34",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "notification.toolkit.fluxcd.io",
+        "version": "v1beta3",
+        "kind": "Provider",
+        "path": "spec.proxySecretRef"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "gvk-in-use",
+          "group": "notification.toolkit.fluxcd.io",
+          "version": "v1beta3",
+          "kind": "Provider"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "An operator who does nothing sees no operational change; the optional field spec.proxySecretRef simply becomes available for new or existing Provider resources (notification.toolkit.fluxcd.io/v1beta3).",
+        "severity": "low"
+      },
+      "statement": "A computed artifact diff between the flux2 v2.6.4 and v2.7.0 install bundles shows the notification.toolkit.fluxcd.io/v1beta3 Provider CRD schema gains the new field spec.proxySecretRef (with subfield spec.proxySecretRef.name); it is an additive schema change with no stated behavior or consequence for existing resources."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "restatement:crd:fields-added",
+        "detail": "computed change chg-7b924a18de0d names crd-field:flux|group=notification.toolkit.fluxcd.io|version=v1beta3|kind=Provider|path=spec.proxySecretRef"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "restatement:crd:fields-added",
+        "detail": "computed change chg-7b924a18de0d states the same added: \"Provider v1beta3 schema: 1 field added: `spec.proxySecretRef`\""
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}

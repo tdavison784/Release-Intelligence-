@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-73d856efa702",
+    "candidateId": "sc-c98f7db578f9",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "loki",
+        "name": "embedded-cache-default-enablement"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "edge-from-version",
+              "state": "in-range",
+              "range": "<3.0.0"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether an explicit cache backend is configured in the Loki configuration"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Deployments without an explicit cache backend configuration will automatically use the embedded cache instead of potentially running without one.",
+        "severity": "low"
+      },
+      "statement": "Loki now automatically enables an embedded cache if no other cache backend is explicitly configured."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-629a38c6f4b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:665105b9a4b70b69a34d9693b5741cdb3627693b99179b7efc0ebe26a6e0d01e",
+      "inputEvidence": [
+        "ev-629a38c6f4b2"
+      ],
+      "generatedAt": "2026-10-02T20:55:43Z",
+      "callId": "d2a7c655-ab4a-4095-8586-67d39f241041"
+    }
+  }
+}

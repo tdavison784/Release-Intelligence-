@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-615af81d4ee0",
+    "candidateId": "sc-df4d0167852e",
+    "proposalId": "sp-f7e4e41dbb6d",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "gateway-tls-passthrough-listeners"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.listeners[].tls.mode",
+              "state": "equals",
+              "values": [
+                "\"Passthrough\""
+              ]
+            }
+          ],
+          "group": "gateway.networking.k8s.io",
+          "kind": "Gateway"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "cert-manager now skips Gateway TLS listeners in Passthrough mode, so Gateways with a TLS listener in Passthrough mode are handled differently than in previous releases.",
+        "remediation": "Review Gateway TLS listeners configured with Passthrough mode if you relied on cert-manager processing them.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, Gateway TLS listeners configured in Passthrough mode are skipped by cert-manager instead of being processed."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:protocol-behavior/behavior-changed",
+        "detail": "protocol-behavior behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

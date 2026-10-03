@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-4b997b5506cd",
+    "candidateId": "sc-d1ce6cfcdaf0",
+    "proposalId": "sp-aa424cd04b59",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "excludepath",
+        "component": "promtail"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"excludepath not evaluated on newly added files\"",
+        "after": "\"excludepath evaluated on newly added files\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "cli-flag",
+          "name": "--excludepath",
+          "component": "promtail",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Promtail now correctly evaluates the excludepath setting on newly added files, fixing incorrect behavior in previous versions where these files were not filtered according to the excludepath rules.",
+        "severity": "low"
+      },
+      "statement": "Promtail's excludepath configuration is now correctly evaluated on newly added files, fixing a bug where it was previously ignored."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "format": "ri.dev/proxy-review/response/v1",
+  "itemId": "ri-f0062cec624d",
+  "promptDigest": "sha256:f074a4bf56c86cd20bbd518037e88d85be2e224fc8fa524606067fbd494a9d77",
+  "model": "claude-opus-5-5",
+  "modelVersion": "claude-opus-5-5",
+  "callId": "018aedd2-e6e9-4154-ba6e-14469142de4c",
+  "startedAt": "2026-10-03T02:34:18.239Z",
+  "decidedAt": "2026-10-03T02:34:34.929Z",
+  "durationMs": 16033,
+  "costUSD": 0.114516,
+  "output": {
+    "action": "correct",
+    "reason": "[ev-82be76c03b0e] says that unless Flux Operator deploys the Flux controllers, you must run `flux migrate` on clusters before upgrading. The only exemption it gives is Flux Operator. It does not make the migration depend on which kinds or groups a cluster uses at v1beta1/v2beta1. The proposed first condition about affected kinds therefore narrows exposure without support. Exposure turns only on whether Flux Operator deploys the controllers, and the evidence gives no configuration check for that.",
+    "citations": [
+      "ev-82be76c03b0e"
+    ],
+    "confidence": "medium",
+    "labels": [
+      "wrong-applicability"
+    ],
+    "correction": {
+      "statement": "Flux 2.7.0 removes the v1beta1 and v2beta1 Flux APIs from the CRDs. Every cluster whose Flux controllers are not deployed by Flux Operator must run `flux migrate` before upgrading. Exposure depends only on whether Flux Operator deploys the controllers.",
+      "applicability": {
+        "determination": "asserted",
+        "exposure": {
+          "op": "undecidable",
+          "reason": "environment-visibility-gap",
+          "needed": "whether the Flux controllers are deployed by Flux Operator (controlplaneio-fluxcd/flux-operator); every cluster not deployed by Flux Operator must run `flux migrate` before upgrading to 2.7.0"
+        }
+      }
+    }
+  }
+}

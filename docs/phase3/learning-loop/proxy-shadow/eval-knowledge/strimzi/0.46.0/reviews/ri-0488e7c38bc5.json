@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "review-item",
+  "reviewItem": {
+    "id": "ri-0488e7c38bc5",
+    "candidateId": "sc-5fc2da42c29c",
+    "product": "strimzi",
+    "release": "0.46.0",
+    "questionType": "consequence",
+    "question": "If an exposed environment does nothing about \"Kubernetes events for Pod restarts no longer have the Pod as the `regardingObject`. If you are using `regardingObject` as a `field-selector` for listing events…\", what happens, and is that review or action? proposed: behavior-change",
+    "proposed": {
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kubernetes events for Pod restarts now have the Kafka resource as the regardingObject instead of the Pod; field-selectors filtering by Pod regardingObject will no longer match these events.",
+        "severity": "medium"
+      },
+      "statement": "Kubernetes events for Pod restarts no longer have the Pod as the regardingObject; they now reference the Kafka resource instead."
+    },
+    "proposals": [
+      "sp-3d6a89408dfb",
+      "sp-648458afca7a",
+      "sp-862eb1868c1a",
+      "sp-926b4f2f6e52"
+    ],
+    "validations": [
+      "val-289df6abfed5",
+      "val-2c15a868bcba",
+      "val-529ebe80ebfe",
+      "val-5b90344648d0",
+      "val-872e91a71c37",
+      "val-91b5692ce54c"
+    ],
+    "routing": {
+      "route": "review",
+      "priority": "normal",
+      "signals": [
+        "models-disagree"
+      ]
+    },
+    "status": "decided",
+    "createdAt": "2026-10-02T11:19:26Z"
+  }
+}

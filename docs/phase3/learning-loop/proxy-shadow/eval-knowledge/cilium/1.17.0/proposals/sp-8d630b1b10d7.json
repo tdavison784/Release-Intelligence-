@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8d630b1b10d7",
+    "candidateId": "sc-26c0f5e20104",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "helm-value",
+        "product": "cilium",
+        "path": "hubble.tls.auto.certValidityDuration"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "1095",
+        "after": "365"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "values-key",
+          "path": "hubble.tls.auto.certValidityDuration",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "values-key",
+          "path": "hubble.tls.auto.certValidityDuration",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Hubble TLS certificates will have a shorter validity duration (365 days instead of 1095 days), preventing validation failures on recent macOS versions that reject certificates with expirations longer than 825 days.",
+        "severity": "medium"
+      },
+      "statement": "The default value of Helm value hubble.tls.auto.certValidityDuration has been lowered from 1095 days to 365 days to prevent certificate validation failures on recent versions of macOS."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0debb0d83ac2",
+      "ev-39a22d88e2f5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:13d9e496f7cb7732a8bef657e9541f88c0f3691a26e81ba31b768bb5e8a0c958",
+      "inputEvidence": [
+        "ev-0debb0d83ac2",
+        "ev-28e0ccb5774a",
+        "ev-39a22d88e2f5"
+      ],
+      "generatedAt": "2026-10-02T06:02:47Z",
+      "callId": "010e1f77-6d3d-4a7d-9830-b9b7fab02cb0"
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2e95c5c4da59",
+    "candidateId": "sc-d2d1162bac6e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "feature-gate",
+        "product": "cert-manager",
+        "name": "ValidateCAA"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "feature-gate",
+              "name": "ValidateCAA",
+              "state": "enabled"
+            },
+            {
+              "op": "feature-gate",
+              "name": "ValidateCAA",
+              "state": "disabled"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Setting the ValidateCAA feature gate is now a no-op that does nothing except print a warning log line.",
+        "remediation": "Remove ValidateCAA from the configured feature gates.",
+        "severity": "low"
+      },
+      "statement": "cert-manager 1.18.0 removes the deprecated ValidateCAA feature gate; setting it is now a no-op that only prints a warning log line."
+    },
+    "citations": [
+      "ev-853844eb542e"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f43401ccf807c89c1ea00ca3d918e998ad14ced66848ef5766039d952c87c40a",
+      "inputEvidence": [
+        "ev-853844eb542e"
+      ],
+      "generatedAt": "2026-10-02T06:10:56Z",
+      "callId": "aead19cc-1b5f-4833-bd0a-321f7a835470"
+    }
+  }
+}

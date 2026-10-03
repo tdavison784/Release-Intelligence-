@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-613f6981b782",
+    "candidateId": "sc-3b0268ba22af",
+    "proposalId": "sp-81612d4ab579",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cilium",
+        "group": "cilium.io",
+        "version": "v2",
+        "kind": "CiliumClusterwideEnvoyConfig",
+        "path": "spec.resources[]"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.resources[]",
+              "state": "unset"
+            }
+          ],
+          "group": "cilium.io",
+          "version": "v2",
+          "kind": "CiliumClusterwideEnvoyConfig"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "CiliumClusterwideEnvoyConfig objects (cilium.io/v2) that omit spec.resources[] are rejected.",
+        "remediation": "Add spec.resources[] to every CiliumClusterwideEnvoyConfig before upgrading.",
+        "severity": "medium"
+      },
+      "statement": "In the cilium.io/v2 CiliumClusterwideEnvoyConfig schema, spec.resources[] is now required, and objects that omit it are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:crd-field/now-required",
+        "detail": "crd-field now-required is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T05:53:28Z"
+  }
+}

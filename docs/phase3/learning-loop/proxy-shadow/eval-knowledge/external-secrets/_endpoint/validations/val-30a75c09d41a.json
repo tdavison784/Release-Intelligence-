@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-30a75c09d41a",
+    "candidateId": "sc-541b56f9cad6",
+    "proposalId": "sp-a1ee1df82040",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "external-secrets",
+        "group": "external-secrets.io",
+        "version": "v1alpha1",
+        "kind": "PushSecret",
+        "path": "spec.template.engineVersion"
+      },
+      "change": {
+        "type": "validation-tightened",
+        "before": "\"v1\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.template.engineVersion",
+              "state": "equals",
+              "values": [
+                "\"v1\""
+              ]
+            }
+          ],
+          "group": "external-secrets.io",
+          "version": "v1alpha1",
+          "kind": "PushSecret"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "PushSecret v1alpha1 resources setting spec.template.engineVersion to \"v1\" are rejected by the API server because that enum value was removed.",
+        "remediation": "Change spec.template.engineVersion to a still-allowed value before upgrading.",
+        "severity": "high"
+      },
+      "statement": "The enum value \"v1\" was removed from spec.template.engineVersion in the PushSecret external-secrets.io/v1alpha1 schema, so PushSecrets using it are rejected by the API server."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field",
+        "detail": "external-secrets.io PushSecret spec.template.engineVersion is in the schema of both releases"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "crd-schema:tightened",
+        "detail": "external-secrets.io PushSecret spec.template.engineVersion in v1alpha1: enum lost \"v1\""
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-9889c9b8706d",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.15.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:7d13f38a5284e00434711d3a253eae5f474602c27fb7757e9102ce57795ba347",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:40Z"
+      },
+      {
+        "id": "ev-e08924afdc47",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://raw.githubusercontent.com/external-secrets/external-secrets/v0.16.0/deploy/crds/bundle.yaml",
+        "excerpt": "apiVersion: apiextensions.k8s.io/v1",
+        "contentDigest": "sha256:2a3baba94c0768dda34c269b23dec4e110d16c55cf3750f95351aa22a17ac77f",
+        "representation": "http-document",
+        "retrievedAt": "2026-10-02T03:55:41Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:23Z"
+  }
+}

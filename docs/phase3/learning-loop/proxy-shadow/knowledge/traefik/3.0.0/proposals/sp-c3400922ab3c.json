@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c3400922ab3c",
+    "candidateId": "sc-193bebd104fa",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "metrics.influxDB"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "values-key",
+              "path": "metrics.influxDB",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--metrics.influxDB",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "The configuration is unsupported and would prevent Traefik from starting.",
+        "remediation": "Remove all InfluxDB v1 metrics provider configuration from the static configuration.",
+        "severity": "critical"
+      },
+      "statement": "The InfluxDB v1 metrics provider (metrics.influxDB) was removed in Traefik v3; leaving its static configuration in place prevents Traefik from starting."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-a8010075f3de"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:23d5972b1d19e124a55d75342e85b49c5d4705491245049424a3e6b85544d25e",
+      "inputEvidence": [
+        "ev-a8010075f3de"
+      ],
+      "generatedAt": "2026-10-02T16:13:47Z",
+      "callId": "0f4380f8-acbb-4754-9088-42f25d73ecb4"
+    }
+  }
+}

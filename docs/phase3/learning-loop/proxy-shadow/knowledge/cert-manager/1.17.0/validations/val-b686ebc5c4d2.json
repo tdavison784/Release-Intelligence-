@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-b686ebc5c4d2",
+    "candidateId": "sc-a2b29fc53908",
+    "proposalId": "sp-865029a2c735",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "pem-data-parsing-capacity",
+        "component": "pki"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "the actual size of TLS trust bundles configured in the environment and whether they previously exceeded the PEM parsing limit"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Environments with TLS trust bundles that previously exceeded the PEM parsing limit can now successfully read larger trust bundles, enabling previously failing configurations to work."
+      },
+      "statement": "The pki.DecodeX509CertificateSetBytes function increases its capacity to parse PEM data, enabling support for reading larger TLS trust bundles."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:protocol-behavior/behavior-changed",
+        "detail": "no canonical exposure condition for protocol-behavior behavior-changed"
+      }
+    ],
+    "checkedAt": "2026-10-02T05:53:27Z"
+  }
+}

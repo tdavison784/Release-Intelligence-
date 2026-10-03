@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-d52b4642dda4",
+    "reviewItemId": "ri-dd3592624e7d",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-subject"
+    ],
+    "original": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "istio-clean-iptables-kube-virt-rules-removal"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "The istio-clean-iptables tool now removes kube-virt-related iptables rules that it previously failed to remove."
+    },
+    "corrected": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "kube-virt-rules-removal",
+        "component": "istio-clean-iptables"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "The istio-clean-iptables tool now removes kube-virt-related iptables rules that it previously failed to remove."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:5478c69f776b9b1f2d696ecf81972202965566b0860cb92d7422e8b95a7c4109",
+      "inputEvidence": [
+        "ev-18ac53d77b4b"
+      ],
+      "generatedAt": "2026-10-02T16:00:17.592Z",
+      "callId": "aa228166-ef34-468a-8989-d77cc4e301c3"
+    },
+    "reason": "[ev-18ac53d77b4b] says istio-clean-iptables used to leave kube-virt-related rules in place and now removes them. With the same invocation, the tool now does something different, so behavior-changed is the right change type. The text names a specific Istio binary, istio-clean-iptables, as the owner of this behaviour. Under the identity rules that tool belongs in the component field, not in the free-form name. The corrected subject is protocol-behavior with component istio-clean-iptables and name kube-virt-rules-removal.",
+    "startedAt": "2026-10-02T16:00:08.247Z",
+    "decidedAt": "2026-10-02T16:00:17.592Z"
+  }
+}

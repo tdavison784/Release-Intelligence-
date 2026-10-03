@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-3485d3ccba69",
+    "candidateId": "sc-2d320e39b53a",
+    "proposalId": "sp-27e290936b78",
+    "validator": "render.rendered-diff@v1",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "limits_config.discover_service_name"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Ingested logs get an automatically assigned service_name label (or unknown_service if no listed label matches) unless a service_label already exists or discover_service_name is set to empty.",
+        "remediation": "Set discover_service_name to an empty value in limits_config to disable, or customize the label list."
+      },
+      "statement": "Loki 3.0 now automatically assigns a service_name label to all ingested logs by default, discovered from a list of labels configurable via limits_config.discover_service_name (empty value disables it)."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "rendered-diff:config-key/behavior-changed",
+        "detail": "config-key behavior-changed is not render-verifiable (runtime-only or no rendered shape)"
+      }
+    ],
+    "renderRelation": "render-not-applicable",
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

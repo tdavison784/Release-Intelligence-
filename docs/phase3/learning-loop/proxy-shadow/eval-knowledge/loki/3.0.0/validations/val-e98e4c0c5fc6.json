@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e98e4c0c5fc6",
+    "candidateId": "sc-ed4386e2f1b5",
+    "proposalId": "sp-e099b116a71f",
+    "validator": "semvalidate.canonical@v1",
+    "assertion": {
+      "subject": {
+        "family": "api-endpoint",
+        "product": "loki",
+        "name": "GET /ingester/shutdown",
+        "component": "ingester"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--target=ingester",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "--target=all",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "GET requests to /ingester/shutdown are now accepted; this is an additive feature that does not break existing functionality."
+      },
+      "statement": "The /ingester/shutdown endpoint now supports GET requests in addition to any previously supported methods."
+    },
+    "checks": [
+      {
+        "aspect": "applicability",
+        "outcome": "inconclusive",
+        "rule": "canonical:api-endpoint/added",
+        "detail": "no canonical exposure condition for api-endpoint added"
+      },
+      {
+        "aspect": "consequence",
+        "outcome": "inconclusive",
+        "rule": "canonical:added/none",
+        "detail": "the subject and change are not both confirmed by an artifact validator"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:29Z"
+  }
+}

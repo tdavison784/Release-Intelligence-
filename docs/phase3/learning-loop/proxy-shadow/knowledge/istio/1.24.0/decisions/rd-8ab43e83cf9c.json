@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-8ab43e83cf9c",
+    "reviewItemId": "ri-d37ac3ee3e5a",
+    "action": "correct",
+    "labels": [
+      "corrected",
+      "wrong-change-type"
+    ],
+    "original": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "security.istio.io",
+        "kind": "AuthorizationPolicy",
+        "path": "status.conditions"
+      },
+      "change": {
+        "type": "added"
+      },
+      "statement": "Istio now writes a status condition on AuthorizationPolicy indicating binding to a waypoint proxy; the condition format is experimental and policies with multiple targetRefs get a single condition."
+    },
+    "corrected": {
+      "subject": {
+        "family": "crd-field",
+        "product": "istio",
+        "group": "security.istio.io",
+        "kind": "AuthorizationPolicy",
+        "path": "status.conditions"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "statement": "Istio now writes a status condition on AuthorizationPolicy recording its binding to a waypoint proxy (status.conditions behaviour changed); the condition format is experimental and will change, and policies with multiple targetRefs receive a single condition."
+    },
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v1",
+      "promptDigest": "sha256:fe06048bacf3560589df6edcb1637c2fd9c3b00fa0648d51393b62d0c709575a",
+      "inputEvidence": [
+        "ev-1fd772318bb8"
+      ],
+      "generatedAt": "2026-10-02T15:59:12.802Z",
+      "callId": "bc0e8799-fa35-47a1-9e56-e021f222c8eb"
+    },
+    "reason": "[ev-1fd772318bb8] says Istio now writes a status condition for an AuthorizationPolicy bound to a waypoint proxy. It does not say a status.conditions field was added to the CRD schema. The CRD and rendered-diff validators were inconclusive (no snapshots), so nothing shows a schema addition. The change is better described as behavior-changed on AuthorizationPolicy status.conditions: the controller now writes a new, experimental condition.",
+    "startedAt": "2026-10-02T15:58:57.237Z",
+    "decidedAt": "2026-10-02T15:59:12.802Z"
+  }
+}

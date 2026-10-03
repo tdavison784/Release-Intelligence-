@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8c090d4611b2",
+    "candidateId": "sc-930198f08f58",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "loki",
+        "name": "--ingester.max-transfer-retries",
+        "component": "ingester"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--ingester.max-transfer-retries",
+              "component": "ingester",
+              "state": "set"
+            },
+            {
+              "op": "values-key",
+              "path": "ingester.max_transfer_retries",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "The `max_transfer_retries` setting will be ignored and no longer honored during chunk transfer operations when ingesters shut down during rolling restarts, requiring reliance on the Write Ahead Log (WAL) instead.",
+        "severity": "high"
+      },
+      "statement": "The ingester configuration setting `max_transfer_retries` and its corresponding CLI flag `-ingester.max-transfer-retries` are removed in Loki 3.0.0 in favor of the Write Ahead Log (WAL)."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-c6e07f70e7d9"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:3b8c19580b6f55ab0dbf8df2eae3c558dae9bacb7daaca71f2d7f52600336ae3",
+      "inputEvidence": [
+        "ev-c6e07f70e7d9"
+      ],
+      "generatedAt": "2026-10-02T20:54:43Z",
+      "callId": "7d6e7655-1622-43fe-b356-fce5f89a0c61"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-59450539c516",
+    "candidateId": "sc-58a03c7aeac6",
+    "proposalId": "sp-ad97816bb4a9",
+    "validator": "semvalidate.restatement@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "kyverno",
+        "group": "kyverno.io",
+        "kind": "ClusterPolicy",
+        "path": "spec.rules[].verifyImages.items.properties.validate"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.rules[].verifyImages",
+              "state": "set"
+            }
+          ],
+          "group": "kyverno.io",
+          "kind": "ClusterPolicy"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Kyverno policies using verifyImages rules can now include validate conditions to validate across multiple image verification attestations or context entries."
+      },
+      "statement": "A validate field was added to the verifyImages schema in the ClusterPolicy and Policy CRDs across API versions v1 and v2beta1 in both spec.rules[].verifyImages and status.autogen.rules[].verifyImages."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      },
+      {
+        "aspect": "change",
+        "outcome": "inconclusive",
+        "rule": "restatement:none",
+        "detail": "no computed diff of the edge mentions this subject"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:27Z"
+  }
+}

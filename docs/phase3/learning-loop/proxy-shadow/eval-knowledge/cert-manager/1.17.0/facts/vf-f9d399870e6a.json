@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "fact",
+  "fact": {
+    "id": "vf-f9d399870e6a",
+    "product": "cert-manager",
+    "release": "1.17.0",
+    "anchors": [
+      {
+        "release": "1.17.0",
+        "evidenceKeys": [
+          "ek-5b36cba6937a"
+        ],
+        "statementKeys": [
+          "sk-25114412c7a9"
+        ],
+        "changeIds": [
+          "chg-6045339adc1b"
+        ]
+      }
+    ],
+    "candidates": [
+      "sc-9cd4a1953216"
+    ],
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "cert-manager",
+        "group": "cert-manager.io",
+        "kind": "Issuer",
+        "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity.tenantID"
+      },
+      "change": {
+        "type": "added"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "spec.acme.solvers[].dns01.azureDNS.managedIdentity",
+              "state": "set"
+            }
+          ],
+          "group": "cert-manager.io",
+          "kind": "Issuer"
+        }
+      },
+      "consequence": {
+        "kind": "none",
+        "exposedClass": "informational",
+        "statement": "This adds an optional AzureDNS managed-identity setting, `tenantID`, for multi-tenant environments. Existing configurations do not need to change.",
+        "severity": "low"
+      },
+      "statement": "Adds a new configuration option - `tenantID` - for the AzureDNS provider when using managed identities with service principals"
+    },
+    "verification": [
+      {
+        "aspect": "subject",
+        "level": "proxy",
+        "basis": [
+          "rd-cd7d6607cf73"
+        ]
+      },
+      {
+        "aspect": "change",
+        "level": "deterministic",
+        "basis": [
+          "val-26d8a922f8d5",
+          "val-7fed7c03aeb0",
+          "val-a03343cfe382",
+          "val-cfa8c9082b49"
+        ]
+      },
+      {
+        "aspect": "applicability",
+        "level": "proxy",
+        "basis": [
+          "rd-47b4dbe82287"
+        ]
+      },
+      {
+        "aspect": "consequence",
+        "level": "deterministic",
+        "basis": [
+          "val-7fb1a9ad8d34",
+          "val-886ac3c63687"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-cd466139dded",
+        "kind": "document",
+        "sourceId": "website-release-notes",
+        "uri": "https://github.com/cert-manager/website/blob/master/content/docs/releases/release-notes/release-notes-1.17.md",
+        "locator": "L196-L196 (v1.17.0 › Feature)",
+        "excerpt": "- Adds a new configuration option - `tenantID` - for the AzureDNS provider when using managed identities with service principals. This enhancement allows users to specify the tenant ID when using managed identities, offering better flexibility in multi-tenant environments. ([#7376](https://github.com/cert-manager/cert-manager/pull/7376), [@jochenrichter](https://github.com/jochenrichter))",
+        "contentDigest": "sha256:527709180263b18c26c966eb0890d6ed7dbe47df7254d4d0d6a8abb578f1944b",
+        "retrievedAt": "2026-10-02T02:35:39Z"
+      },
+      {
+        "id": "ev-60054fcf0986",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:af6faeb6b75a13a70d0ac7f5db2b5b694f8cb9023c54bfbafd4d7d2fd95846d3",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:07:44Z"
+      },
+      {
+        "id": "ev-84061d76ea1b",
+        "kind": "structured",
+        "sourceId": "crds",
+        "uri": "https://github.com/cert-manager/cert-manager/releases/download/v1.16.0/cert-manager.crds.yaml",
+        "excerpt": "# Copyright 2022 The cert-manager Authors.",
+        "contentDigest": "sha256:6b81e668c80301955ea3c618a0e29ceb98b54d1d80a7b0082c77e5c7d827b41b",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-01T14:50:00Z"
+      }
+    ],
+    "status": "active",
+    "createdAt": "2026-10-02T12:48:09.719Z"
+  }
+}

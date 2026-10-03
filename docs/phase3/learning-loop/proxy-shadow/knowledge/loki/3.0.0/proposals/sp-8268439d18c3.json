@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-8268439d18c3",
+    "candidateId": "sc-006852306c28",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "loki",
+        "name": "set-period-config-path-prefix"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "-boltdb.shipper.shared-store.key-prefix",
+              "state": "set"
+            },
+            {
+              "op": "cli-flag",
+              "name": "-tsdb.shipper.shared-store.key-prefix",
+              "state": "set"
+            },
+            {
+              "op": "undecidable",
+              "reason": "environment-visibility-gap",
+              "needed": "whether the YAML shared_store_key_prefix setting is configured to a value other than index/"
+            }
+          ]
+        }
+      },
+      "statement": "If shared-store key-prefix was set to something other than `index/` for boltdb-shipper or tsdb, set `path_prefix` on all existing period configs using that index to the previously configured value."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: evidence does not state what happens if the step is skipped",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-8ceba924ad20",
+      "ev-632a3911583a"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:f79ea195cde84eb12ee4194e28338c24b830d95ee764715843f4b997e87ba7ed",
+      "inputEvidence": [
+        "ev-8ceba924ad20",
+        "ev-632a3911583a"
+      ],
+      "generatedAt": "2026-10-02T16:17:25Z",
+      "callId": "e15e27e3-b1a7-4786-bf59-61e415dcf08d"
+    }
+  }
+}

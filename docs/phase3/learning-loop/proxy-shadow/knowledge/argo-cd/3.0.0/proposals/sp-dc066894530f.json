@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-dc066894530f",
+    "candidateId": "sc-12312c24ca44",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "argo-cd",
+        "path": "application.resourceTrackingMethod",
+        "component": "argocd-cm"
+      },
+      "change": {
+        "type": "default-changed",
+        "before": "\"label\"",
+        "after": "\"annotation\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"application.resourceTrackingMethod\"]",
+                  "state": "unset"
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "data[\"application.resourceTrackingMethod\"]",
+                  "state": "equals",
+                  "values": [
+                    "\"label\""
+                  ]
+                }
+              ],
+              "kind": "ConfigMap",
+              "name": "argocd-cm"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "data[\"application.resourceTrackingMethod\"]",
+              "state": "equals",
+              "values": [
+                "\"annotation\""
+              ]
+            }
+          ],
+          "kind": "ConfigMap",
+          "name": "argocd-cm"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Tracking switches to annotation-based; labels are replaced with annotations on the next sync, and in a known edge case (a resource deleted in the first sync after switching) resources may be orphaned.",
+        "remediation": "Verify tracking after upgrade, or set application.resourceTrackingMethod explicitly to label to keep prior behavior.",
+        "severity": "medium"
+      },
+      "statement": "The default resource tracking method in argocd-cm (application.resourceTrackingMethod) changes from label to annotation in Argo CD 3.0; labels are replaced with annotations on next sync."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-07e8b4d1d6f1"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:697a1c98ac1f85a737fb50e996a47a50baa019fbec2ae9bb1ded1a299b98e39f",
+      "inputEvidence": [
+        "ev-07e8b4d1d6f1"
+      ],
+      "generatedAt": "2026-10-02T05:58:50Z",
+      "callId": "e64286bf-bfbc-4569-b758-5c90c138d7b7"
+    }
+  }
+}

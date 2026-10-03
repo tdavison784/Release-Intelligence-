@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7ae8b2ed042a",
+    "candidateId": "sc-33ac5d9ad65e",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "HelmRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"required\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact",
+              "state": "set"
+            },
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "unset"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1",
+          "kind": "HelmRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmRepository v1 objects whose status.artifact omits digest are rejected by the CRD schema.",
+        "remediation": "Ensure status.artifact.digest is populated (e.g. let the source-controller reconcile) on existing HelmRepository objects.",
+        "severity": "medium"
+      },
+      "statement": "In the HelmRepository source.toolkit.fluxcd.io/v1 CRD schema, status.artifact.digest is now required; objects that omit it are rejected."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:e790262fb675fbc19e1c377e7dac8fcdb69a93beb87a8f96b2869c8ac6d2affc",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-02T20:56:11Z",
+      "callId": "1d0adfc5-099d-4fb4-bc2e-6132edce1b8f"
+    }
+  }
+}

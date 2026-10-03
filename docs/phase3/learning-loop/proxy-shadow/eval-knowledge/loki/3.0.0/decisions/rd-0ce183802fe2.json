@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "decision",
+  "decision": {
+    "id": "rd-0ce183802fe2",
+    "reviewItemId": "ri-4d6a084033ed",
+    "action": "need-more-evidence",
+    "labels": [
+      "insufficient-evidence"
+    ],
+    "reviewer": "proxy:claude-opus-5-5",
+    "reviewerKind": "proxy",
+    "proxyProvenance": {
+      "method": "ai",
+      "producer": "knowledge.proxy@v1",
+      "rule": "provider:anthropic",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "proxy-review/v2",
+      "promptDigest": "sha256:d3fa90b62ecea36b8bccf5a9f14a71d5d6f20f672a3bf151c13a0a82e1d02dc2",
+      "inputEvidence": [
+        "ev-e598abf2a6cd"
+      ],
+      "generatedAt": "2026-10-03T02:17:54.391Z",
+      "callId": "7d7d2cb5-8515-46bf-98bf-7fcedda994d0"
+    },
+    "reason": "[ev-e598abf2a6cd] says `-compactor.delete-request-store` \"or its YAML setting\" must be explicitly configured when retention is enabled. It never names the setting that enables retention, so the proposed `-compactor.retention-enabled` leaf comes from outside the evidence. That leaf also uses state \"set\", which would match a value of false. The condition only checks CLI flags, so it gets YAML-configured environments wrong both ways: it wrongly flags setups that set delete_request_store in YAML, and it misses setups that enable retention in YAML. To decide this, we need the key name (CLI flag and YAML path) for enabling retention and the YAML path for delete_request_store.",
+    "startedAt": "2026-10-03T02:17:45.843Z",
+    "decidedAt": "2026-10-03T02:17:54.391Z"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5b051b1a50a2",
+    "candidateId": "sc-05b7e96dd774",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "cli-flag",
+        "product": "cilium",
+        "name": "--enable-k8s"
+      },
+      "change": {
+        "type": "now-required",
+        "after": "\"false\""
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--datapath-mode",
+              "component": "cilium",
+              "state": "equals",
+              "values": [
+                "\"lb-only\""
+              ]
+            },
+            {
+              "op": "cli-flag",
+              "name": "--enable-k8s",
+              "component": "cilium",
+              "state": "unset"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "workload-failure",
+        "exposedClass": "action-required",
+        "statement": "Cilium will incorrectly assume Kubernetes is present when running in --datapath-mode=lb-only for plain Docker mode without the --enable-k8s=false flag, causing operational failures.",
+        "remediation": "Add --enable-k8s=false to the Cilium command line when operating in --datapath-mode=lb-only for plain Docker mode.",
+        "severity": "high"
+      },
+      "statement": "Operating Cilium in --datapath-mode=lb-only for plain Docker mode now requires an additional --enable-k8s=false flag on the command line; without it, Kubernetes is assumed to be present."
+    },
+    "suggestedClass": "action-required",
+    "citations": [
+      "ev-09d5e26554e5"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-haiku-4-5",
+      "modelVersion": "claude-haiku-4-5",
+      "promptVersion": "semantic-full/v1",
+      "promptDigest": "sha256:6ffe14cff53c1f6ef46dbf57ff2940171947b142f50e174a37af6a7be462dd2a",
+      "inputEvidence": [
+        "ev-09d5e26554e5"
+      ],
+      "generatedAt": "2026-10-02T06:00:07Z",
+      "callId": "77693247-fe7b-48e7-a155-213914bb2685"
+    }
+  }
+}

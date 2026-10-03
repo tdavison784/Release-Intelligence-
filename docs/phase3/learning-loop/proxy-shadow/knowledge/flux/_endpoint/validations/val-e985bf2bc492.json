@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "validation",
+  "validation": {
+    "id": "val-e985bf2bc492",
+    "candidateId": "sc-01dac2541bc1",
+    "proposalId": "sp-45bb458efb41",
+    "validator": "semvalidate.crd@v1",
+    "assertion": {
+      "subject": {
+        "family": "crd-field",
+        "product": "flux",
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1beta2",
+        "kind": "HelmRepository",
+        "path": "status.artifact.digest"
+      },
+      "change": {
+        "type": "now-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "all",
+          "of": [
+            {
+              "op": "gvk-in-use",
+              "group": "source.toolkit.fluxcd.io",
+              "version": "v1beta2",
+              "kind": "HelmRepository"
+            },
+            {
+              "op": "resource",
+              "of": [
+                {
+                  "op": "field",
+                  "path": "status.artifact.digest",
+                  "state": "unset"
+                }
+              ],
+              "group": "source.toolkit.fluxcd.io",
+              "version": "v1beta2",
+              "kind": "HelmRepository"
+            }
+          ]
+        },
+        "overlap": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.artifact.digest",
+              "state": "set"
+            }
+          ],
+          "group": "source.toolkit.fluxcd.io",
+          "version": "v1beta2",
+          "kind": "HelmRepository"
+        }
+      },
+      "consequence": {
+        "kind": "resource-rejected",
+        "exposedClass": "action-required",
+        "statement": "HelmRepository v1beta2 resources that omit status.artifact.digest are rejected during creation or updates.",
+        "severity": "high"
+      },
+      "statement": "The field status.artifact.digest is now required in HelmRepository v1beta2 schema; objects omitting it are rejected."
+    },
+    "checks": [
+      {
+        "aspect": "subject",
+        "outcome": "confirmed",
+        "rule": "crd-schema:field",
+        "detail": "source.toolkit.fluxcd.io HelmRepository status.artifact.digest is in the schema of both releases"
+      },
+      {
+        "aspect": "change",
+        "outcome": "confirmed",
+        "rule": "crd-schema:required",
+        "detail": "source.toolkit.fluxcd.io HelmRepository status.artifact.digest becomes required in the v1beta2 schema"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "ev-782bc47d120d",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.6.4/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:7cd043a823666727b4b9de408346148b28741b47eb0b3e4237ab7259d4ad3ab8",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:43Z"
+      },
+      {
+        "id": "ev-c2c6c790d6b2",
+        "kind": "structured",
+        "sourceId": "install-bundle",
+        "uri": "https://github.com/fluxcd/flux2/releases/download/v2.7.0/install.yaml",
+        "excerpt": "apiVersion: v1",
+        "contentDigest": "sha256:e74d08f2ebf42df7ec676f4e636e529427cedda77405d8fcc7e2f643599db552",
+        "representation": "release-asset",
+        "retrievedAt": "2026-10-02T03:55:44Z"
+      }
+    ],
+    "checkedAt": "2026-10-02T16:10:25Z"
+  }
+}
