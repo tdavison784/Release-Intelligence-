@@ -14,8 +14,10 @@ import (
 type ConfigChannel string
 
 const (
-	// ChannelConfigMapFile: a config file conventionally supplied as a
-	// ConfigMap data key (File); tested by text-line / field on the ConfigMap.
+	// ChannelConfigMapFile: configuration supplied in a ConfigMap: one config
+	// file embedded as a data key (File + Format; tested by text-line), or,
+	// without File, one setting per data key (ConfigMap required; tested by
+	// field data.<key>).
 	ChannelConfigMapFile ConfigChannel = "configmap-file"
 	// ChannelConfigFile: a config file read from disk that is not
 	// conventionally a ConfigMap (VMs, images).
@@ -111,8 +113,7 @@ func (v *validator) configSources(d *ProductDefinition) {
 		}
 		// channel-specific fields: required ones present, foreign ones absent
 		need := map[ConfigChannel][]string{
-			ChannelConfigMapFile:  {"file", "format"},
-			ChannelConfigFile:     {"file", "format"},
+			ChannelConfigFile: {"file", "format"},
 			ChannelHelmValues:     {"valuesPath"},
 			ChannelCustomResource: {"resource"},
 		}[s.Channel]
@@ -139,6 +140,16 @@ func (v *validator) configSources(d *ProductDefinition) {
 				if isSet && !containsStr(allowed, f) {
 					v.errf(p+"."+f, "not a field of channel %s", s.Channel)
 				}
+			}
+		}
+		if s.Channel == ChannelConfigMapFile {
+			switch {
+			case s.File != "" && s.Format == "":
+				v.errf(p+".format", "required with file (the embedded file's format)")
+			case s.File == "" && s.ConfigMap == "":
+				v.errf(p+".configMap", "required when settings are the ConfigMap's data keys (no file)")
+			case s.File == "" && s.Format != "":
+				v.errf(p+".format", "only with file")
 			}
 		}
 		if s.Format != "" && !containsStr(ConfigFormats, s.Format) {

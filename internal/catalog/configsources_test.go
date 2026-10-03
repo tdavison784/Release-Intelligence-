@@ -21,6 +21,7 @@ func configDef(cs ...ConfigSource) *ProductDefinition {
 func TestConfigSourcesValid(t *testing.T) {
 	d := configDef(
 		ConfigSource{ID: "server-config", Channel: ChannelConfigMapFile, Component: "server", Summary: "main config", File: "config.yaml", Format: "yaml", ConfigMap: "demo-config", References: ref},
+		ConfigSource{ID: "keys", Channel: ChannelConfigMapFile, Summary: "one setting per data key", ConfigMap: "demo", References: ref},
 		ConfigSource{ID: "chart", Channel: ChannelHelmValues, Summary: "chart values", ValuesPath: ".", References: ref},
 		ConfigSource{ID: "flags", Channel: ChannelCLIFlags, Component: "server", Summary: "flags", References: ref},
 		ConfigSource{ID: "gates", Channel: ChannelFeatureGates, Summary: "gates", Flag: "--feature-gates", ValuesPath: "featureGates", References: ref},
@@ -44,7 +45,7 @@ func TestConfigSourcesValidationErrors(t *testing.T) {
 	got := lifecycleErrors(d)
 	for _, w := range []string{
 		"configSources[0].id", "configSources[0].channel", "configSources[0].summary", "configSources[0].references",
-		"configSources[1].file", "configSources[1].format", "configSources[1].flag",
+		"configSources[1].configMap", "configSources[1].format", "configSources[1].flag",
 		"configSources[2].id", "configSources[2].references[0].url", "configSources[2].references[1].url", "configSources[2].references[1].quote",
 		"configSources[3].flag",
 	} {

@@ -280,7 +280,11 @@ func configSourceLine(h knowledge.ConfigSourceHint) string {
 		if h.ConfigMap != "" {
 			name = ", name: " + h.ConfigMap
 		}
-		pred = fmt.Sprintf(`resource{kind: ConfigMap%s, of:[text-line{path: 'data["%s"]', pattern: <RE2 for the setting's %s line>, state: exists|none}]}`, name, h.File, h.Format)
+		if h.File != "" {
+			pred = fmt.Sprintf(`resource{kind: ConfigMap%s, of:[text-line{path: 'data["%s"]', pattern: <RE2 for the setting's %s line>, state: exists|none}]}`, name, h.File, h.Format)
+		} else {
+			pred = fmt.Sprintf(`resource{kind: ConfigMap%s, of:[field{path: data.<setting key>, state: set|unset|equals…}]} (one setting per data key)`, name)
+		}
 		if h.ValuesPath != "" {
 			pred += fmt.Sprintf("; when installed by the chart: values-key{path: %s.<key>}", h.ValuesPath)
 		}
