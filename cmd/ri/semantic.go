@@ -125,6 +125,10 @@ func (c *cli) semanticPropose(args []string) error {
 		}
 	}
 	cands := semantic.BuildCandidatesWith(edge, edge.GeneratedAt, copts).Candidates
+	var hints []knowledge.ConfigSourceHint
+	if def, derr := a.Product(pos[0]); derr == nil {
+		hints = semantic.ConfigSourceHints(def.ConfigSources)
+	}
 	if *only != "" {
 		var missed []string
 		if cands, missed, err = filterCandidates(cands, *only); err != nil {
@@ -173,7 +177,9 @@ func (c *cli) semanticPropose(args []string) error {
 	fmt.Fprintf(c.err, "semantic: %d candidates × %d task(s) × %d model(s) via %s (cache %s)\n", len(cands), len(ts), len(ps), backend, client.Dir)
 	props, fails := semantic.ProposeAllWith(c.ctx, cands, ps, ts, semantic.ProposeOptions{
 		Context: func(cand domain.SemanticCandidate) knowledge.ProposalContext {
-			return semantic.ArtifactContext(toRel, cand)
+			pctx := semantic.ArtifactContext(toRel, cand)
+			pctx.ConfigSources = hints // the product's upstream-documented config channels (prompt v2)
+			return pctx
 		},
 		Parallel: *parallel,
 	})
