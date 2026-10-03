@@ -56,6 +56,15 @@ type Minted struct {
 // question verifies, with two guards: a value a validator confirmed stays
 // deterministic when a reviewer decides the same value, and a proxy never
 // overrides an aspect a trusted level already holds.
+//
+// The accumulated aspects must also compose: aspects verified independently
+// (on different items of the same candidate) can each be sound alone yet
+// conflict as a tuple — e.g. a change the domain allows only on another
+// subject family (migration-required on a gvk subject). Such a tuple cannot
+// become a fact, and refusing the decision would lose the reviewer's verdict
+// on a question they did answer. The state is instead repaired: the least
+// trusted non-trusted aspects go back to open (see repairState), so follow-up
+// review re-asks them coherently against the surviving aspects.
 func candidateState(seed map[domain.Aspect]aspectState, vs []domain.ValidationResult, items map[string]domain.ReviewItem, ds []domain.ReviewDecision) map[domain.Aspect]aspectState {
 	validated := stateFromValidations(vs)
 	state := map[domain.Aspect]aspectState{}
@@ -115,7 +124,110 @@ func candidateState(seed map[domain.Aspect]aspectState, vs []domain.ValidationRe
 			state[x] = aspectState{part: partOf(*fin, x), digest: dg, level: lvl, basis: []string{d.ID}}
 		}
 	}
+	repairState(state)
 	return state
+}
+
+// composeValid reports whether the verified aspects, minus drop, compose into
+// an assertion the domain accepts. Each aspect may be sound on its own while
+// the tuple is not (a change the subject family forbids, a condition the
+// subject cannot carry), because the aspects were verified by different items.
+func composeValid(state map[domain.Aspect]aspectState, drop ...domain.Aspect) bool {
+	skip := map[domain.Aspect]bool{}
+	for _, x := range drop {
+		skip[x] = true
+	}
+	var a domain.SemanticAssertion
+	for _, x := range domain.Aspects {
+		if skip[x] {
+			continue
+		}
+		if st, ok := state[x]; ok {
+			mergeAspect(&a, st.part, x)
+		}
+	}
+	return a.Validate(false) == nil
+}
+
+// dropRank orders verification levels for conflict repair: the larger, the
+// more giveable (deterministic and human are trusted and never dropped).
+var dropRank = map[domain.VerificationLevel]int{
+	domain.VerifiedDeterministic: 0,
+	domain.VerifiedHuman:         0,
+	domain.VerifiedConsensus:     1,
+	domain.VerifiedProxy:         2,
+}
+
+func aspectIndex(x domain.Aspect) int {
+	for i, a := range domain.Aspects {
+		if a == x {
+			return i
+		}
+	}
+	return -1
+}
+
+// repairState reopens aspects when the accumulated tuple does not validate:
+// it drops the aspects repairDrops chooses. Trusted (deterministic/human)
+// aspects are never dropped — a conflict between them is an inconsistency
+// that must surface through buildFact's error, not be silently re-asked.
+func repairState(state map[domain.Aspect]aspectState) {
+	if composeValid(state) {
+		return
+	}
+	for _, x := range repairDrops(state) {
+		delete(state, x)
+	}
+}
+
+// repairDrops chooses the aspects to give up when the verified tuple does not
+// validate: the smallest set of non-trusted aspects whose removal restores a
+// valid composition. Among equally small sets it drops the least trusted (the
+// larger sum of dropRank), and, still tied, the latest aspects of
+// domain.Aspects (the subject is the fact's identity). nil when no non-trusted
+// subset helps. domain.Aspects is small and fixed, so the subset scan is
+// bounded by it.
+func repairDrops(state map[domain.Aspect]aspectState) []domain.Aspect {
+	var droppable []domain.Aspect
+	for _, x := range domain.Aspects {
+		if st, ok := state[x]; ok && !st.level.Trusted() {
+			droppable = append(droppable, x)
+		}
+	}
+	type dropSet struct {
+		xs   []domain.Aspect
+		rank int // sum of dropRank: larger = the dropped aspects were less trusted
+		late int // sum of aspect indexes: larger = later aspects dropped
+	}
+	var valid []dropSet
+	for mask := 1; mask < 1<<len(droppable); mask++ {
+		var ds dropSet
+		for i, x := range droppable {
+			if mask&(1<<i) == 0 {
+				continue
+			}
+			ds.xs = append(ds.xs, x)
+			ds.rank += dropRank[state[x].level]
+			ds.late += aspectIndex(x)
+		}
+		if composeValid(state, ds.xs...) {
+			valid = append(valid, ds)
+		}
+	}
+	sort.Slice(valid, func(i, j int) bool {
+		a, b := valid[i], valid[j]
+		if len(a.xs) != len(b.xs) {
+			return len(a.xs) < len(b.xs)
+		}
+		if a.rank != b.rank {
+			return a.rank > b.rank
+		}
+		return a.late > b.late
+	})
+	if len(valid) == 0 {
+		return nil
+	}
+	return valid[0].xs
 }
 
 // buildFact composes a fact from fully verified aspect state. The evidence is
