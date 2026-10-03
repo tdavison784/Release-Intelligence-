@@ -65,18 +65,22 @@ environment:
         op: any
         of:
           - op: resource
+            group: apps
             kind: Deployment
             of:
               - {op: field, path: 'spec.template.metadata.annotations["karpenter.sh/do-not-evict"]', state: set}
           - op: resource
+            group: apps
             kind: DaemonSet
             of:
               - {op: field, path: 'spec.template.metadata.annotations["karpenter.sh/do-not-evict"]', state: set}
           - op: resource
+            group: apps
             kind: Deployment
             of:
               - {op: field, path: 'spec.template.metadata.annotations["karpenter.sh/do-not-consolidate"]', state: set}
           - op: resource
+            group: apps
             kind: DaemonSet
             of:
               - {op: field, path: 'spec.template.metadata.annotations["karpenter.sh/do-not-consolidate"]', state: set}
@@ -90,6 +94,7 @@ environment:
         the collector is evicted with the node instead of shipping final logs
       exposure:
         op: resource
+        group: apps
         kind: DaemonSet
         of: [{op: field, path: 'spec.template.spec.tolerations[].key', state: equals, values: ['"karpenter.sh/disruption"']}]
       environmentEvidence: [manifests/daemonset.yaml#L18-L22]

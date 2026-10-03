@@ -64,7 +64,7 @@ environment:
         v1.17.0 (features.go), so the 1.17 deprecation warning ("In 1.17,
         enabling this feature gate will print a warning") and the v1.18
         removal change nothing here.
-      exposure: {op: feature-gate, name: ValidateCAA, state: unset, path: featureGates}
+      exposure: {op: feature-gate, name: ValidateCAA, state: enabled, path: featureGates}
       environmentEvidence: values.yaml#L4-L8
     - expected: E3
       relevance: not-affected
@@ -78,11 +78,11 @@ environment:
         true, PreRelease: featuregate.Beta}", "UseDomainQualifiedFinalizer:
         {Default: true, PreRelease: featuregate.Beta}"), so the default flip
         does not change this cluster's behaviour.
-      exposure:
-        op: all
+      exposure:          # refined 2026-10-03 (eval/CHANGELOG.md (i)): the base item's canonical default-changed exposure, gate left to its default
+        op: any
         of:
-          - {op: feature-gate, name: NameConstraints, state: disabled, path: featureGates}
-          - {op: feature-gate, name: UseDomainQualifiedFinalizer, state: disabled, path: featureGates}
+          - {op: feature-gate, name: NameConstraints, state: unset, path: featureGates}
+          - {op: feature-gate, name: UseDomainQualifiedFinalizer, state: unset, path: featureGates}
       environmentEvidence: values.yaml#L8
     - expected: E4
       relevance: informational

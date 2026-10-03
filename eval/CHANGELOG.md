@@ -295,3 +295,128 @@ primary checkout's warm cache):
 
 classificationAccuracy (0.438 over 112) and recall are unchanged. There are no stored-result regressions.
 
+
+## 2026-10-02 (f) — GT exposure predicate errors (LOOP-DIAGNOSIS-2 §8.1–§8.2) — **motivated by pipeline analysis (loop-diagnosis-2)**
+
+Disclosure: LOOP-DIAGNOSIS-2 evaluated the dataset's own ground-truth exposure conditions against
+the fixtures with the engine and found four links whose predicate is authored wrong (plus one latent
+case of the same bug). Each fix below is a predicate correction only — no label, relevance,
+classification or matcher changed — and each was verified by re-evaluating the corrected exposure
+against the unchanged fixture with the engine (the method of LOOP-DIAGNOSIS-2 §6). The convention
+applied is the one every other not-affected link already follows (FORMAT.md: exposure is "the
+applicability condition for THIS environment"; on a not-affected link it evaluates FALSE on the
+fixture — cf. cilium-1.15 E1, external-secrets E1, strimzi-edge E1).
+
+| Case · link | Field | Before | After | Why (engine + upstream) | Verified after |
+|---|---|---|---|---|---|
+| cert-manager-1.16-1.17--eu-platform · E2 (not-affected) | exposure | `{feature-gate ValidateCAA unset @ featureGates}` | `{feature-gate ValidateCAA enabled @ featureGates}` | The condition described the *clearing* state and evaluated TRUE on the fixture, contradicting the not-affected label. The would-be-affected state is the gate enabled (1.17 prints the deprecation warning only "if you're manually enabling this feature gate", upgrading-1.16-1.17.md). | **false** (NA-consistent) |
+| cert-manager-1.16-1.17--eu-platform · E3 (not-affected) | exposure | `all[NConstraints disabled, UDQF disabled]` | `not(all[…disabled, …disabled])` | Same inversion: both gates pinned off is why the link is NOT affected, so the exposure must be its negation (affected iff at least one promoted gate is not explicitly disabled — the v1.17.0 features.go defaults flip to Beta/true). | **false** (NA-consistent) |
+| istio-1.23-1.24 · E6 (action-required) | exposure path | `spec.metrics[].overrides[].tagOverrides.*.value` | `spec.metrics[].overrides[].tagOverrides.peer_namespace.value` | `*` is a map wildcard the condition path syntax does not define, so the field leaf looked for a literal key `*` and evaluated false from never matching. The fixture's Telemetry CR overrides exactly `peer_namespace` (telemetry.yaml#L18-L21). A real map wildcard stays a contract request (groundtruth status). | **true** (action-consistent) |
+| karpenter-0.37.8-1.0.0--ci-buildfarm · E4 (action-required) | exposure | `resource DaemonSet …` | `resource {group: apps} DaemonSet …` | `kind` without `group` reads the core API group, where DaemonSet does not exist; the condition was false from never looking (LOOP-DIAGNOSIS-2 §8.2). The fixture's DaemonSet is apps/v1 (daemonset.yaml). | **true** (action-consistent) |
+| karpenter-0.37.8-1.0.0--ci-buildfarm · E3 (not-affected) | exposure (4 leaves) | `resource Deployment/DaemonSet …` | `+ group: apps` on all four leaves | Latent instance of the same bug found by the same survey (the false was labelled-consistent only because no leaf could ever fire). Metric-neutral: still false on this fixture, now for the right reason. | **false** (NA-consistent) |
+
+Engine verification (condition evaluation against the unchanged fixtures): every other labelled link
+of the three touched cases decides as labelled both before and after — eu-platform E1/E4, karpenter-ci
+E1/E2/E5/E6/E7/E8 unchanged. `ri eval` does not evaluate GT exposures, so stored results and all
+gate numbers are unchanged by this entry (panels in (g)/(h) cover the runs after later entries).
+
+## 2026-10-02 (g) — fixture completion for four honestly-UNKNOWN links (LOOP-DIAGNOSIS-2 §8.3, lever L7) — **motivated by pipeline analysis (loop-diagnosis-2)**
+
+Disclosure: LOOP-DIAGNOSIS-2 §4c found argo-cd E1/E2/E3 and cert-manager-1.17 E3 honestly UNKNOWN on
+the fixtures as supplied (their labels claim affected), and left the route — complete the fixture or
+relabel to `undecidedImpact` — to this lane. Choice: **complete the fixtures**. Rationale: each
+environment's own description commits to the affected state ("no explicit logs policy exists";
+"strict-validate-path-type default rejects Exact paths"), the deciding object exists in every real
+cluster running the product, and its omission was an authoring gap, not a withheld input (contrast
+eu-platform E5, where the Fluent Bit config is genuinely owned elsewhere and the link IS undecided).
+Fixture completion changes no label, no matcher and no denominator; relabelling four links to
+undecidedImpact would change the applicability denominator, which needs pre-registration. Every
+added object is the verbatim upstream shape at the version the environment runs, with no
+story-relevant key set — chosen from the upstream documents and the committed environment stories,
+never from pipeline output.
+
+| Case | Addition | Upstream grounding | Engine-verified |
+|---|---|---|---|
+| argo-cd-2.14-3.0 | `manifests/argocd-cm.yaml`: argocd-cm present, **no data keys**; E1/E2 environmentEvidence now cite it | manifests/base/config/argocd-cm.yaml at v2.14.5 — the ConfigMap ships empty (all keys optional); the declarative install this environment describes applies it as-is | E1/E2/E3: unknown → **true** (action/action/review, as labelled) |
+| cert-manager-1.17-1.18 | `manifests/ingress-nginx-cm.yaml`: ingress-nginx-controller present, **no data keys** (strict-validate-path-type at its enabled-by-default) | the ConfigMap in controller-v1.12.1 deploy/static/provider/cloud/deploy.yaml — present, empty; PR 11819 "makes validation enabled by default" | E3 conjunct 4: unknown → **true** |
+| cert-manager-1.17-1.18 · link E3 | exposure `path: config.featureGates` → `path: featureGates` | the chart's live values key is the top-level `featureGates` string (values.yaml L133-135 at v1.17.0; deployment.yaml renders it via `--feature-gates`); `config.featureGates` exists only in a commented-out block (L222-241) | E3 conjunct 3: unknown → **true** |
+| cert-manager-1.17-1.18 | `values.yaml`: `featureGates: ""` (the chart default, set explicitly) | same values.yaml L133-135; the platform enables no controller gates | same leaf: the empty list is examined, the gate is not disabled |
+
+The four links' honest-UNKNOWN status was the diagnosis's finding; after this entry their
+ground-truth exposures decide as labelled on the fixture, so they count as reachable in the
+LOOP-DIAGNOSIS-2 §6 ceiling without any denominator change.
+
+## 2026-10-02 (h) — cilium-1.15-1.17 E1 matcher narrowed (LOOP-DIAGNOSIS-2 §8.5, lever L3) — **motivated by pipeline analysis (loop-diagnosis-2)**
+
+Disclosure: LOOP-DIAGNOSIS-2 §8.5 (and UNKNOWN-ANALYSIS D12 before it) reported that E1's bare
+`(?i)toFQDNs` alternative selects changes the item is not about, and that a correct dnsProxy finding
+reached the link's not-affected label through it. Verified on this branch's store: the alternative
+matched three unrelated changes in the 1.15.6→1.17.0 edge — the `dnsProxy.endpointMaxIpPerHostname`
+default note (chg-e45fbe2aa651), the `cilium_fqdn_selectors` metric note (chg-dcf178959a37) and the
+`dnsProxy.endpointMaxIpPerHostname` values change (chg-71a525926294) — while the item's subject is
+the version precondition its own upstream quote states verbatim ("To avoid drops during upgrades in
+clusters with toFQDNs policies, it is required to run Cilium v1.15.6 or newer", upgrade.rst v1.16.0),
+which the first alternative already selects (chg-23a43a125719). The bare alternative is removed; the
+quote-anchored alternative is kept unchanged. This narrows a matcher (the class of change the
+product owner approved for crossplane in 2026-10-02 (c) and was asked about again by
+LOOP-DIAGNOSIS-2 L3); veto welcome.
+
+**Panel BEFORE** (branch p3ll/groundtruth-6 @ 6affc2b + predicate/fixture entries (f)/(g); state =
+primary checkout's warm cache):
+
+| run | applicabilityAccuracy | detail |
+|---|---|---|
+| plain `ri eval` | 0.505 ✗ | affected 23/75; not-affected 30, 0 violations |
+| `-knowledge proxy-shadow/eval-knowledge -min-verification proxy` | 0.571 ✗ | affected 32/75; NA 28 clean, **2 violations**: cilium-1.15 E1 (imp-9ece4ee85ee9), kyverno E4 (umbrella, §8.4) |
+
+**Panel AFTER** (only this matcher change):
+
+| run | applicabilityAccuracy | detail |
+|---|---|---|
+| plain `ri eval` | 0.505 ✗ | unchanged; matched changes 430 → 428, labelled findings 300 → 298 (attribution only) |
+| `-knowledge proxy-shadow/eval-knowledge -min-verification proxy` | 0.581 ✗ | affected 32/75; NA 29 clean, **1 violation**: kyverno E4 (unchanged; the umbrella question is a contract decision, LOOP-DIAGNOSIS-2 §8.4) |
+
+cilium-1.15 E1 goes `! violated (imp-9ece4ee85ee9)` → `✗ clean`. No stored-result regressions in
+either run; recall, falseActionRate and classification accuracy unchanged.
+
+Stored results: `ri eval -update` rewritten after this change — cilium-1.15-1.17.json only
+(matchedChanges 26 → 24, evidenceCovered 26 → 24; the two over-selected dnsProxy/metric changes no
+longer attribute to E1). All other stored files byte-identical.
+
+## 2026-10-03 (i) — review of the GLM groundtruth-6 window; L3 outcome; gate panel
+
+The returning Claude agent reviewed entries (f)–(h) and the commits behind them.
+
+| Entry | Verdict | What changed now |
+|---|---|---|
+| (f) four predicate errors (eu-platform E2/E3, istio E6, karpenter-ci E4 + latent E3) | **kept**, one refinement | eu-platform E3: `not(all[NameConstraints disabled, UDQF disabled])` would also fire for a cluster that pins both gates **on** (not exposed to a default flip). Replaced by the base item's canonical default-changed exposure `any[NameConstraints unset, UseDomainQualifiedFinalizer unset]` (`@ featureGates`), which is false on this fixture (both pinned off, values.yaml L8). istio E6's `tagOverrides.peer_namespace.value` is the supported, environment-specific form. A generic map wildcard stays a contract request. |
+| (g) fixture completion for argo-cd E1/E2/E3 and cert-manager-1.17 E3 (lever L7) | **withdrawn** (reverted) | L7 was not part of the groundtruth-6 tasking. LOOP-DIAGNOSIS-2 offers "fixture completion **or** undecided relabel", and choosing between them after reading pipeline analysis is the product owner's call. The revert also restores cm-1.17 E3's gate path `config.featureGates`, the path the upstream 1.18 release notes give for the workaround ("config: featureGates: ACMEHTTP01IngressPathTypeExact: false"). The chart's top-level `featureGates` string is a second, equally real channel; a complete exposure would test both (`any` of the two paths). That is noted for the same decision. The proposal is in status/groundtruth.md. |
+| (h) cilium-1.15 E1 matcher narrowed to its quote-anchored alternative | **kept** | Same class as the approved crossplane narrowing (2026-10-02 (c)), and the remaining alternative is anchored on the item's own quote. The `ri eval -update` of `eval/results/cilium-1.15-1.17.json` is **reverted**: accepting stored snapshots is the commander's step. The next run will show matchedChanges 26 → 24 for that entry; it is not flagged as a regression. |
+
+**L3 matcher/attribution items (LOOP-DIAGNOSIS-2 §7), under the verbatim-quote policy:**
+
+| Link | Outcome | Why |
+|---|---|---|
+| cilium-1.15 E1 violation | fixed by (h) | quote-anchored narrowing |
+| prometheus-operator E2 | **no matcher fix possible** | The finding sits on the 0.86.0 `[!NOTE]` release-note block, which restates both E2 (its quote: "This release introduces the status subresource (behind the `StatusForConfigurationResources` feature gate) …") and E5 (its quote: "This release enables automatic UTF-8 character support …"). Both matches are legitimate, and last-wins attribution (D13) gives the change to E5. Only evaluator multi-attribution (to be pre-registered) or splitting the umbrella note resolves it. |
+| kyverno E3 / E4 violation | **no matcher fix possible** | The umbrella change `chg-d645fe77075d` lists E3's and E4's deprecated settings in one note (LOOP-DIAGNOSIS-2 §8.4). It is the same multi-attribution / `IsUmbrella` contract question. |
+| karpenter-ci E7, strimzi-edge E2 | **left** (unchanged since groundtruth-5) | The items' quotes name `FEATURE_GATES.DRIFT` and "MirrorMaker 1", not the computed subjects `settings.featureGates.drift` / `kafkamirrormakers`. |
+
+**Gate panel** (plain `ri eval`, state = primary checkout's warm cache). BEFORE = branch HEAD with
+the GLM window (6202738e); AFTER = this entry (reverts + E3 refinement):
+
+| Gate | Before | After |
+|---|---|---|
+| criticalRecall | 1.00 ✓ (50, 0 missed) | 1.00 ✓ |
+| importantRecall | 0.97 ✓ (100, 3 missed) | 0.97 ✓ |
+| applicabilityAccuracy | 0.505 ✗ (affected 23/75; NA 30, 0 violations) | 0.505 ✗ (identical) |
+| falseActionRate | 0.059 ✗ (17, 1 wrong: kyverno E9, pending) | 0.059 ✗ |
+| actionFindingEvidence | 1.00 ✓ | 1.00 ✓ |
+| unsupported | 0 ✓ | 0 ✓ |
+| pipelineFailures | 0 ✓ | 0 ✓ |
+
+The plain run does not evaluate ground-truth exposures, and the reverted fixture objects decided no
+plain-run finding, so the panel is unchanged. The effect of (g) was only on the LOOP-DIAGNOSIS-2
+ceiling (four links counted reachable). Without it they remain honestly UNKNOWN pending the PO's L7
+decision.
+

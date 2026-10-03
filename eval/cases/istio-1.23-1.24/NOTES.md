@@ -52,3 +52,12 @@ Authored blind from the upstream sources above (no pipeline output read); correc
 - E2 is a `product-relationship` to istio-csr: the fix (istio-csr PR 422, merged 2024-10-25) first shipped in v0.13.0 (2024-11-25), so the required range is `>=0.13.0`; the exposure also names the documented workaround (`meshConfig.defaultConfig.proxyMetadata.GRPC_ENFORCE_ALPN_ENABLED: "false"`).
 - E6 corrected to action-required: upstream says the expressions "must" use the standard attributes and the old ones no longer hold the peer metadata; the fixture's Telemetry CR uses exactly the old attribute. The exposure path uses `tagOverrides.*.value` — a map wildcard the condition path syntax does not define yet (raised with the contract owner).
 - E4 is labelled on the istio-base chart value `base.enableCRDTemplates` (default false → true), which the notes name as the opt-out.
+
+## E6 exposure path fix (2026-10-02, groundtruth-6; LOOP-DIAGNOSIS-2 §8.2)
+
+The map wildcard `tagOverrides.*.value` was never part of the condition path
+syntax, so the exposure could only evaluate false ("no such literal key `*`").
+Narrowed to the concrete key the fixture's Telemetry CR actually overrides
+(`peer_namespace`, telemetry.yaml#L18-L21). A real map wildcard remains a
+contract request (status file); this fix makes the label decidable with the
+language that exists. See eval/CHANGELOG.md "2026-10-02 (f)".
