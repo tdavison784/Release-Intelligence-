@@ -29,7 +29,7 @@ import (
 
 // PromptVersion names the prompt templates and the verdict schema. Change it
 // whenever either changes; it is recorded in every proxy decision.
-const PromptVersion = "proxy-review/v2"
+const PromptVersion = "proxy-review/v3"
 
 // Producer is the provenance producer of proxy decisions (the same string
 // `ri knowledge decide` records for proxy decisions).
@@ -247,7 +247,9 @@ Your task: answer the QUESTION by deciding on the PROPOSED ASSERTION, judging on
   (kind/statement), wrong-classification (the kind's class is wrong: e.g. action-eligible vs review).
   A correction goes through the proposers' length checks and is REFUSED when it breaks one: the "statement"
   at most 400 characters, a consequence statement or remediation at most 600 characters, an aspect reason at
-  most 400 characters, at most 12 citations.
+  most 400 characters, at most 12 citations. A correction records only citations from the EVIDENCE (upstream)
+  section, so it must cite at least one upstream evidence id — ids appearing only under the validation
+  results do not count — and ids are copied exactly, never invented.
 - reject: the proposed assertion is wrong and no correct assertion follows from the evidence (it is not a
   change, it misreads the text, it bundles unrelated changes). Optional wrong-* labels say what was wrong.
   With "duplicateOf": the change is the same upstream change as one of the KNOWN FACTS shown.

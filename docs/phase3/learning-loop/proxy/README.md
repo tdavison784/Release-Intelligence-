@@ -83,6 +83,9 @@ bin/ri knowledge proxy-report -ledger <ledger.jsonl>       # decisions, per-mode
 - `run-1/`: every pending non-high item of `knowledge/` (2026-10-02). It holds `ledger.jsonl`,
   `responses/` (the verdicts with call metadata), `requests.tar.gz` (the exact prompts), `proxy-report.{txt,json}`,
   `metrics.txt` and `REPORT.md`. Prompt v1. Later runs use `proxy-review/v2`, which states the correction length limits.
+  The current prompt is `proxy-review/v3`, which additionally tells the reviewer that a correction's citations
+  must include at least one upstream evidence id (the recorder keeps only upstream ids; a correction citing
+  only validator evidence refused).
 - `run-2/`: every pending non-high item of the real store after the loop-run-3 merge (proxy-2, prompt v2).
 - `../proxy-shadow/`: the **shadow pass**. The high items were decided in a COPY of the store, never the real one.
   `eval-knowledge/` is the merged evaluation view, labelled **proxy-incl-shadow**, built by

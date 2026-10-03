@@ -108,16 +108,19 @@ func TestBuildIsBlindAndSelfContained(t *testing.T) {
 
 // v2: the decision prompt states the correction's hard length limits (a v1
 // correction was refused for a >400-character statement the model could not
-// know was too long); the gate prompt has no correction and no limits.
+// know was too long); v3 adds the citation rule (a v2 correction citing only
+// validator evidence recorded nothing: the recorder keeps only upstream ids).
+// The gate prompt has no correction and neither rule.
 func TestPromptStatesCorrectionLimits(t *testing.T) {
 	req, err := Build(fixture(domain.QuestionConsequence), Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if req.PromptVersion != "proxy-review/v2" {
+	if req.PromptVersion != "proxy-review/v3" {
 		t.Errorf("prompt version %s", req.PromptVersion)
 	}
-	for _, want := range []string{"at most 400 characters", "at most 600 characters", "at most 12 citations"} {
+	for _, want := range []string{"at most 400 characters", "at most 600 characters", "at most 12 citations",
+		"at least one upstream evidence id", "never invented"} {
 		if !strings.Contains(req.Request.System, want) {
 			t.Errorf("system prompt lacks %q", want)
 		}
@@ -126,7 +129,7 @@ func TestPromptStatesCorrectionLimits(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Contains(gate.Request.System, "at most 400 characters") {
+	if strings.Contains(gate.Request.System, "at most 400 characters") || strings.Contains(gate.Request.System, "at least one upstream evidence id") {
 		t.Error("gate prompt states correction limits it cannot use")
 	}
 }
