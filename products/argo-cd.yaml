@@ -229,3 +229,71 @@ provenance:
     Authored from docs/research/argo-cd.md. quay.io, argoproj.github.io and
     the GitHub API were unreachable; the chart index is read from the
     gh-pages branch and the image is cross-checked against install.yaml.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: argocd-cm
+  channel: configmap-file
+  component: argocd-server, argocd-repo-server, argocd-application-controller
+  summary: 'General Argo CD settings are flat data keys of the fixed-name argocd-cm ConfigMap (labelled app.kubernetes.io/part-of:
+    argocd); the argo-helm chart renders them from configs.cm.'
+  configMap: argocd-cm
+  valuesPath: configs.cm
+  references:
+  - url: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/
+    quote: General Argo CD configuration
+  - url: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/
+    quote: For each specific kind of ConfigMap and Secret resource, there is only a single supported resource name
+      (as listed in the above table)
+  - url: https://raw.githubusercontent.com/argoproj/argo-helm/main/charts/argo-cd/values.yaml
+    quote: '# General Argo CD configuration. Any values you put under `.configs.cm` are passed to argocd-cm ConfigMap.'
+- id: argocd-rbac-cm
+  channel: configmap-file
+  component: argocd-server
+  summary: RBAC policy is a CSV document in the policy.csv key (plus policy.default and additional policy.*.csv
+    keys) of the argocd-rbac-cm ConfigMap; the chart renders it from configs.rbac.
+  file: policy.csv
+  format: csv
+  configMap: argocd-rbac-cm
+  valuesPath: configs.rbac
+  references:
+  - url: https://argo-cd.readthedocs.io/en/stable/operator-manual/rbac/
+    quote: It is possible to provide additional entries in the argocd-rbac-cm configmap to compose the final policy
+      csv.
+  - url: https://raw.githubusercontent.com/argoproj/argo-helm/main/charts/argo-cd/values.yaml
+    quote: '# -- Create the argocd-rbac-cm configmap with ([Argo CD RBAC policy]) definitions.'
+- id: argocd-cmd-params-cm
+  channel: configmap-file
+  component: argocd-server, argocd-repo-server, argocd-application-controller
+  summary: Component command-line options set as flat keys of the argocd-cmd-params-cm ConfigMap, prefixed per component
+    (server., reposerver., controller.; unprefixed keys are shared) and injected as env variables; chart key configs.params.
+  configMap: argocd-cmd-params-cm
+  valuesPath: configs.params
+  references:
+  - url: https://argo-cd.readthedocs.io/en/stable/operator-manual/server-commands/additional-configuration-method/
+    quote: The commands can also be configured by setting the respective flag of the available options in argocd-cmd-params-cm.yaml.
+      Each component has a specific prefix associated with it.
+  - url: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/
+    quote: Argo CD env variables configuration
+  - url: https://raw.githubusercontent.com/argoproj/argo-helm/main/charts/argo-cd/values.yaml
+    quote: '# -- Create the argocd-cmd-params-cm configmap'
+- id: helm-values
+  channel: helm-values
+  summary: 'The community argo-helm argo-cd chart: product ConfigMaps under configs.* (cm, params, rbac), workload
+    settings under per-component keys (controller, server, repoServer, ...).'
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/argoproj/argo-helm/main/charts/argo-cd/values.yaml
+    quote: '# General Argo CD configuration. Any values you put under `.configs.cm` are passed to argocd-cm ConfigMap.'
+- id: controller-flags
+  channel: cli-flags
+  component: argocd-application-controller
+  summary: Each Argo CD binary (argocd-application-controller, argocd-server, argocd-repo-server, ...) accepts command-line
+    flags documented in the server-commands reference; most are also settable via argocd-cmd-params-cm.
+  references:
+  - url: https://argo-cd.readthedocs.io/en/stable/operator-manual/server-commands/argocd-application-controller/
+    quote: This command runs Application Controller in the foreground. It can be configured by following options.
+  - url: https://argo-cd.readthedocs.io/en/stable/operator-manual/server-commands/argocd-application-controller/
+    quote: --app-resync int Time period in seconds for application resync. (default 120)

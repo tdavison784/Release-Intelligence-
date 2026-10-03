@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-f3636fb1d169",
+    "candidateId": "sc-6c62cef5daa7",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "env-var",
+        "product": "flux",
+        "name": "GOMAXPROCS"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "env-var",
+          "name": "GOMAXPROCS",
+          "state": "unset"
+        },
+        "overlap": {
+          "op": "env-var",
+          "name": "GOMAXPROCS",
+          "state": "set"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Where GOMAXPROCS is not explicitly set, the Go runtime now sets it dynamically for the controller pods, so controller CPU concurrency is no longer fixed; the release notes state no failure.",
+        "remediation": "No operator action required; if the previous fixed GOMAXPROCS behavior is needed, set the GOMAXPROCS environment variable explicitly on the controller containers.",
+        "severity": "low"
+      },
+      "statement": "Flux 2.7.0 lets the Go runtime dynamically set GOMAXPROCS for the Flux controllers, changing how controller CPU concurrency is determined."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-0a0493889871"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:79089920eec455124f79839be2c189d12cfe6fa649e5155aba86c0475b868c98",
+      "inputEvidence": [
+        "ev-0a0493889871"
+      ],
+      "generatedAt": "2026-10-03T07:57:14Z",
+      "callId": "9613eb9b-b986-41f1-85df-94bef044f997"
+    }
+  }
+}

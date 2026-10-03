@@ -332,3 +332,54 @@ provenance:
     charts/releases/cli.crossplane.io and the GitHub API answer; the canonical
     chart channel (declared first) validates. xpkg.* answers 401 (anonymous
     pulls denied), not an egress block.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: helm-values
+  channel: helm-values
+  component: crossplane (core pod and RBAC manager)
+  summary: The official crossplane chart configures the core and RBAC manager deployments at the values root (replicas,
+    image, args, extraEnvVarsCrossplane, packageCache, rbacManager, provider.packages).
+  valuesPath: .
+  references:
+  - url: https://docs.crossplane.io/latest/get-started/install/
+    quote: Crossplane supports customizations at install time by configuring the Helm chart.
+  - url: https://raw.githubusercontent.com/crossplane/crossplane/main/cluster/charts/crossplane/values.yaml
+    quote: '# -- Add custom arguments to the Crossplane pod.'
+  - url: https://raw.githubusercontent.com/crossplane/crossplane/main/cluster/charts/crossplane/values.yaml
+    quote: '# -- Add custom environmental variables to the Crossplane pod deployment application container'
+- id: feature-flags
+  channel: feature-gates
+  component: crossplane
+  summary: Alpha/beta features are toggled by individual --enable-<feature> flags on the Crossplane pod (e.g. --enable-operations,
+    --enable-signature-verification), passed through the chart's args value.
+  flag: --enable-<feature>
+  valuesPath: args
+  references:
+  - url: https://docs.crossplane.io/latest/get-started/install/
+    quote: To enable a feature flag, set the args value in the Helm chart.
+- id: deployment-runtime-config
+  channel: custom-resource
+  component: crossplane package manager
+  summary: A DeploymentRuntimeConfig (pkg.crossplane.io/v1beta1) referenced from a Provider or Function customizes
+    the runtime Deployment/Service/ServiceAccount the package manager creates for that package.
+  resource:
+    group: pkg.crossplane.io
+    kind: DeploymentRuntimeConfig
+  references:
+  - url: https://docs.crossplane.io/latest/packages/providers/
+    quote: Runtime configuration is a generalized mechanism for configuring the runtime for Crossplane packages
+      with a runtime, namely Providers and Functions.
+- id: image-config
+  channel: custom-resource
+  component: crossplane package manager
+  summary: ImageConfig (pkg.crossplane.io/v1beta1) centrally configures how package images are pulled and verified
+    (pull secrets, signature verification, image rewriting) by image prefix.
+  resource:
+    group: pkg.crossplane.io
+    kind: ImageConfig
+  references:
+  - url: https://docs.crossplane.io/latest/packages/image-configs/
+    quote: ImageConfig is an API for centralized control over the configuration of Crossplane package images.

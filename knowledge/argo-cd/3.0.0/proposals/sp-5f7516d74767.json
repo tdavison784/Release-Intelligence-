@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5f7516d74767",
+    "candidateId": "sc-74e353f1150c",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "tracking-annotation",
+        "component": "controller"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether the environment's Argo CD Applications manage malformed resources — those manifests live in source repositories whose contents are not carried by any static configuration input, and the changelog line does not define what counts as 'malformed'"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "For Applications whose manifests include malformed resources, the controller wrote the wrong tracking annotation before this release; after upgrading to 3.0.0 it writes the correct tracking annotation for them.",
+        "remediation": "No operator action is required; if malformed resources were managed, verify their tracking annotation is now as expected.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 fixes the controller writing a wrong tracking annotation for malformed resources, so the correct tracking annotation is now written for them."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-9fdf3ef2828b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:1a77ad3474c20e1e6ffd48d11523d06677c6dad81517c3abd40b7cbb4d9a2409",
+      "inputEvidence": [
+        "ev-9fdf3ef2828b"
+      ],
+      "generatedAt": "2026-10-03T07:25:29Z",
+      "callId": "7efe9ef0-cb4c-40d9-92e7-79f5383b0f06"
+    }
+  }
+}

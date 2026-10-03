@@ -377,3 +377,51 @@ provenance:
     the one-release chart lag in the source tree); the upgrade guide and the
     compatibility matrix come from the website tree with main-branch
     fallbacks; SUPPORT.md backs two end-of-life statements.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: helm-values
+  channel: helm-values
+  component: controller
+  summary: The karpenter chart; global settings under settings.* (clusterName, featureGates, ...) are rendered into
+    controller environment variables. Before 0.33.0 settings could also come from the karpenter-global-settings
+    ConfigMap.
+  valuesPath: settings
+  references:
+  - url: https://raw.githubusercontent.com/aws/karpenter-provider-aws/main/charts/karpenter/values.yaml
+    quote: '# -- Global Settings to configure Karpenter'
+  - url: https://karpenter.sh/docs/upgrading/upgrade-guide/
+    quote: 0.33.0 drops support for passing settings through the karpenter-global-settings ConfigMap.
+- id: controller-env
+  channel: env-vars
+  component: controller
+  summary: Global controller settings as environment variables on the Karpenter deployment (e.g. CLUSTER_NAME),
+    each with an equivalent CLI flag.
+  references:
+  - url: https://karpenter.sh/docs/reference/settings/
+    quote: Karpenter surfaces environment variables and CLI parameters to allow you to configure certain global
+      settings on the controllers.
+  - url: https://karpenter.sh/docs/upgrading/upgrade-guide/
+    quote: You should pass settings through the container environment variables in the Karpenter deployment manifest.
+- id: controller-flags
+  channel: cli-flags
+  component: controller
+  summary: The same global settings as controller command-line flags (e.g. --cluster-name).
+  references:
+  - url: https://karpenter.sh/docs/reference/settings/
+    quote: CLUSTER_NAME--cluster-name[REQUIRED] The kubernetes cluster name for resource discovery.
+- id: feature-gates
+  channel: feature-gates
+  component: controller
+  summary: Feature gates via --feature-gates or the FEATURE_GATES environment variable; chart key settings.featureGates.
+  flag: --feature-gates
+  valuesPath: settings.featureGates
+  references:
+  - url: https://karpenter.sh/docs/reference/settings/
+    quote: You can enable the feature gates through the --feature-gates CLI environment variable or the FEATURE_GATES
+      environment variable in the Karpenter deployment.
+  - url: https://raw.githubusercontent.com/aws/karpenter-provider-aws/main/charts/karpenter/values.yaml
+    quote: '# -- Feature Gate configuration values. Feature Gates will follow the same graduation process and requirements
+      as feature gates'

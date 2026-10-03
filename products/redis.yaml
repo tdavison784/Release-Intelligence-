@@ -236,3 +236,41 @@ provenance:
     APT packaging and the Bitnami chart are out of scope (gaps). The
     setext-H1 section headers of 00-RELEASENOTES needed a generic scanner fix
     (CommonMark setext headings), not a new construct.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: redis-conf
+  channel: config-file
+  component: redis-server
+  summary: Server directives (keyword argument ... lines) in redis.conf, passed as the first argument to redis-server;
+    runtime CONFIG SET changes are not persisted unless CONFIG REWRITE writes them back into the file.
+  file: redis.conf
+  format: text
+  references:
+  - url: https://redis.io/docs/latest/operate/oss_and_stack/management/config/
+    quote: The proper way to configure Redis is by providing a Redis configuration file, usually called redis.conf.
+  - url: https://raw.githubusercontent.com/redis/redis/unstable/redis.conf
+    quote: '# Note that in order to read the configuration file, Redis must be'
+  - url: https://redis.io/docs/latest/operate/oss_and_stack/management/config/
+    quote: Note that modifying the configuration on the fly does not affect the redis.conf and redis-full.conf files
+- id: redis-full-conf
+  channel: config-file
+  component: redis-server
+  summary: In Redis Open Source 8.0 - 8.8.x, redis-full.conf (which starts with include redis.conf) additionally
+    loads and configures the bundled modules; from 8.10 only redis.conf is used.
+  file: redis-full.conf
+  format: text
+  references:
+  - url: https://redis.io/docs/latest/operate/oss_and_stack/management/config/
+    quote: 'Redis 8.10 and later use only one configuration file: redis.conf.'
+- id: redis-server-args
+  channel: cli-flags
+  component: redis-server
+  summary: Any redis.conf directive can be passed on the redis-server command line as --<keyword> <args> (e.g. --port
+    6380), merged into an in-memory config.
+  references:
+  - url: https://redis.io/docs/latest/operate/oss_and_stack/management/config/
+    quote: The format of the arguments passed using the command line is exactly the same as the one used in the
+      redis.conf file, with the exception that the keyword is prefixed with --.

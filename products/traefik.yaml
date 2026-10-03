@@ -337,3 +337,49 @@ provenance:
     missed the ea prerelease family and excluded every image candidate).
     Docker Hub itself is unreachable from the sandbox (anonymous 401); the
     image is verified through the daily ghcr.io mirror of the official image.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: helm-values
+  channel: helm-values
+  component: traefik (traefik-helm-chart)
+  summary: The official traefik/traefik-helm-chart sets install configuration through structured values at the chart
+    root (ports, providers, experimental, ...) plus raw additionalArguments CLI flags and env variables passed to
+    the binary.
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/values.yaml
+    quote: '# -- Additional arguments to be passed at Traefik''s binary'
+  - url: https://raw.githubusercontent.com/traefik/traefik-helm-chart/master/traefik/values.yaml
+    quote: '# -- Additional Environment variables to be passed to Traefik''s binary'
+- id: install-cli-flags
+  channel: cli-flags
+  component: traefik
+  summary: Install (formerly static) configuration as command-line arguments (e.g. --entrypoints.web.address, --providers.kubernetescrd);
+    one of three mutually exclusive install-config sources.
+  references:
+  - url: https://doc.traefik.io/traefik/reference/install-configuration/boot-environment/
+    quote: Using the CLI, you can pass install configuration directly as command-line arguments when starting Traefik.
+  - url: https://doc.traefik.io/traefik/getting-started/configuration-overview/
+    quote: 'There are three different, mutually exclusive (i.e. you can use only one at the same time), ways to
+      define install configuration options in Traefik:'
+- id: install-config-file
+  channel: config-file
+  component: traefik
+  summary: Install configuration in traefik.yml / traefik.yaml / traefik.toml, searched in /etc/traefik/, $XDG_CONFIG_HOME/,
+    $HOME/.config/ and the working directory.
+  file: traefik.yml
+  format: yaml
+  references:
+  - url: https://doc.traefik.io/traefik/reference/install-configuration/boot-environment/
+    quote: 'At startup, Traefik searches for install configuration in a file named traefik.yml (or traefik.yaml
+      or traefik.toml) in the following directories:'
+- id: install-env-vars
+  channel: env-vars
+  component: traefik
+  summary: Install configuration as TRAEFIK_-prefixed environment variables, one per option (e.g. TRAEFIK_ENTRYPOINTS_WEB_ADDRESS).
+  references:
+  - url: https://doc.traefik.io/traefik/reference/install-configuration/boot-environment/
+    quote: Each option corresponds to an environment variable prefixed with TRAEFIK_.

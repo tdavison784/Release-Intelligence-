@@ -40,6 +40,18 @@ Rules that keep clusters honest (DESIGN.md §2.1):
 - the clustering is deliberately conservative: a missed join costs one extra review (the `duplicate`
   task and reviewers catch it); a wrong join would attach a fact to a change it does not describe.
 
+**L4 (semantic-4).** Two more kinds of change become candidates:
+
+- **Captured statement lines** (`lines:added` / `lines:removed`, an artifact's own "Deprecated: …"
+  lines): one line is one subject, so each is a singleton.
+- **Routine notes that name a subject** (non-empty subject signature; any routine kind but
+  `dependency`). For example, a metric rename changes what operators monitor. Dependency bumps stay
+  skipped, because they name packages, not configuration; security bumps are the
+  `impact:security-fix` rule's.
+
+Admitted routine notes cluster only among themselves and never take computed members, so admitting
+them never changes an existing cluster's members or id.
+
 Skips are recorded with a reason (`BuildCandidates(...).Skipped`): `routine`, `security-fix`,
 `umbrella` (`domain.IsUmbrella`: facts never attach to bundles), `multi-subject-computed` (a computed
 diff spanning several subject roots — one fact has one subject), `no-evidence`, `invalid-candidate`.
@@ -84,6 +96,30 @@ Prompt stance (study `prompt.go`; the model-comparison findings shaped it):
   action-eligible consequence (upgrade-blocked, resource-rejected, …) and takes effect only through
   separate-call consensus or an engineer (docs/ACTION_CLASSIFICATION.md §8, DECISIONS PO-2). A model can
   never suggest `not-affected`: clearing is decided from verified knowledge only.
+
+### Prompt v2 (semantic-4): config sources and the `undecidable` rule
+
+`semantic-<task>/v2` adds two things (LOOP-DIAGNOSIS-2 lever L1):
+
+- **CONFIG SOURCES.** For the candidate's product, the catalog's `configSources` (where it reads
+  configuration, from upstream docs; `docs/ARCHITECTURE.md` § definition constructs) are listed with the
+  predicate that reads each channel:
+  - configmap-file → `resource{ConfigMap, of:[text-line{path: data["file"]}]}`
+  - helm-values → `values-key`
+  - cli-flags → `cli-flag`
+  - env-vars → `env-var`
+  - feature-gates → `feature-gate{path}`
+  - custom-resource → `field`
+
+  They reach the prompt through `knowledge.ProposalContext.ConfigSources` (release-level data, never
+  environment data).
+- **`undecidable` only for what no configuration can show.** Its reason must be runtime-behavior-gap,
+  evidence-gap or semantic-ambiguity (`UndecidableReasons`). environment-visibility-gap and
+  cross-product-context-gap are the engine's verdicts about one environment's missing inputs (a
+  decidable predicate exists), and release-knowledge-gap describes the absence of a fact. The schema
+  does not offer those reasons, and the answer validator refuses them (`ErrAvoidableUndecidable`,
+  recorded as a failure with the leaf named). If no predicate can express a condition that is not
+  runtime behaviour, the applicability aspect is undetermined instead.
 
 ## Answers become proposals — or refusals
 

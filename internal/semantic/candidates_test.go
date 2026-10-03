@@ -188,3 +188,33 @@ func TestLeadSentenceRestatements(t *testing.T) {
 		t.Errorf("lead = %q", got)
 	}
 }
+
+// L4: captured statement lines and subject-naming routine notes become
+// candidates; dependency bumps do not; admitted routine notes never join an
+// existing (non-routine) cluster, so existing candidate ids are stable.
+func TestL4Candidates(t *testing.T) {
+	b := newEdge()
+	b.note("chg-prose", "The default of `widget_requests_total` changed", notesURI, "L1")
+	b.note("chg-metric", "Renamed metric `widget_requests_total` to `widget_http_requests_total`", notesURI, "L2",
+		func(c *domain.Change) { c.Routine = true; c.RoutineKind = upgrade.RoutineMetrics })
+	b.note("chg-ci", "Update CI workflow", notesURI, "L3", func(c *domain.Change) { c.Routine = true; c.RoutineKind = upgrade.RoutineHousekeeping })
+	b.note("chg-dep", "Bump `golang.org/x/net` to v0.30.0", notesURI, "L4", func(c *domain.Change) { c.Routine = true; c.RoutineKind = upgrade.RoutineDependency })
+	b.computed("chg-line", upgrade.RuleLinesAdded, "Line added to install.yaml: Deprecated: Use spec.proxyRef instead.", "Deprecated: Use spec.proxyRef instead.")
+	rep := BuildCandidates(b.edge(), t0)
+	got := map[string]int{}
+	for _, c := range rep.Candidates {
+		for _, m := range c.Members {
+			got[m.ChangeID] = len(c.Members)
+		}
+	}
+	for id, n := range map[string]int{"chg-prose": 1, "chg-metric": 1, "chg-line": 1} {
+		if got[id] != n {
+			t.Errorf("%s: cluster size %d, want %d (%v)", id, got[id], n, got)
+		}
+	}
+	for _, id := range []string{"chg-ci", "chg-dep"} {
+		if _, ok := got[id]; ok {
+			t.Errorf("%s must stay skipped", id)
+		}
+	}
+}

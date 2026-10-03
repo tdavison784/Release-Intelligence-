@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ab959a6e9b0c",
+    "candidateId": "sc-82dd4a1a796f",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "doublewrite-identity-crd-only-count"
+      },
+      "change": {
+        "type": "renamed",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "doublewrite-identity-crd-only-total"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which dashboards, alerts or recording rules query the metric doublewrite_identity_crd_only_count"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium now exposes this metric under the name doublewrite_identity_crd_only_total; the old name doublewrite_identity_crd_only_count is no longer used, so any monitoring referencing the old name must be updated to the new name.",
+        "remediation": "Update dashboards, alerts and recording rules to reference doublewrite_identity_crd_only_total instead of doublewrite_identity_crd_only_count.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17.0 the metric doublewrite_identity_crd_only_count has been renamed to doublewrite_identity_crd_only_total."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-6a341603b700"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:0ab0f0b447d04d8fe716539ea85feb2eacd15931ccf9a5b32484644e97882128",
+      "inputEvidence": [
+        "ev-6a341603b700"
+      ],
+      "generatedAt": "2026-10-03T07:31:10Z",
+      "callId": "3eaec529-f1ae-4680-b907-0192ebcc32ec"
+    }
+  }
+}

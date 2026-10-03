@@ -323,3 +323,59 @@ provenance:
     single cluster-operator manifest (discovery had proposed four install
     manifests; packaging/install is the source and the image-refs content is
     what carries them).
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: cluster-operator-env
+  channel: env-vars
+  component: cluster-operator
+  summary: The Cluster Operator is configured with STRIMZI_* environment variables (STRIMZI_NAMESPACE, STRIMZI_FULL_RECONCILIATION_INTERVAL_MS,
+    ...) on its Deployment (060-Deployment-strimzi-cluster-operator.yaml).
+  references:
+  - url: https://strimzi.io/docs/operators/latest/deploying
+    quote: Use environment variables to configure the Cluster Operator.
+  - url: https://strimzi.io/docs/operators/latest/deploying
+    quote: Specify the environment variables for the container image of the Cluster Operator in its Deployment configuration
+      file.
+- id: helm-values
+  channel: helm-values
+  component: cluster-operator
+  summary: The strimzi-kafka-operator chart; root-level keys (watchNamespaces, fullReconciliationIntervalMs, featureGates,
+    logConfiguration, extraEnvs, ...) map onto the Cluster Operator's environment and logging ConfigMap.
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/packaging/helm-charts/helm3/strimzi-kafka-operator/README.md
+    quote: The following table lists the configurable parameters of the Strimzi chart and their default values.
+  - url: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/packaging/helm-charts/helm3/strimzi-kafka-operator/README.md
+    quote: Extra environment variables for the Cluster operator container
+- id: feature-gates
+  channel: feature-gates
+  component: cluster-operator
+  summary: Feature gates as a comma-separated +Gate/-Gate list in the STRIMZI_FEATURE_GATES environment variable
+    (not a CLI flag); chart key featureGates.
+  flag: STRIMZI_FEATURE_GATES
+  valuesPath: featureGates
+  references:
+  - url: https://strimzi.io/docs/operators/latest/deploying
+    quote: To modify a feature gate’s default state, use the STRIMZI_FEATURE_GATES environment variable in the operator’s
+      configuration.
+  - url: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/packaging/helm-charts/helm3/strimzi-kafka-operator/README.md
+    quote: Feature Gates configuration
+- id: cluster-operator-logging
+  channel: configmap-file
+  component: cluster-operator
+  summary: Cluster Operator logging is a log4j2 properties file in the log4j2.properties key of the strimzi-cluster-operator
+    ConfigMap; the chart overrides it via logConfiguration (ConfigMap name via logConfigMap).
+  file: log4j2.properties
+  format: text
+  configMap: strimzi-cluster-operator
+  valuesPath: logConfiguration
+  references:
+  - url: https://strimzi.io/docs/operators/latest/deploying
+    quote: Cluster Operator logging is controlled through a ConfigMap named strimzi-cluster-operator.
+  - url: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/packaging/install/cluster-operator/050-ConfigMap-strimzi-cluster-operator.yaml
+    quote: 'log4j2.properties: |'
+  - url: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/packaging/helm-charts/helm3/strimzi-kafka-operator/values.yaml
+    quote: 'logConfigMap: strimzi-cluster-operator'

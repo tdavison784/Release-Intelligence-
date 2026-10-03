@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-235984d97093",
+    "candidateId": "sc-cc1a2a90f761",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "envoy-cilium-policymap-control-plane-rate-limit-enforced"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"envoy_cilium_policymap_\\u003cnode-ip\\u003e_\\u003cnode-id\\u003e_control_plane_rate_limit_enforced\"",
+        "after": "\"envoy_cilium_npds_control_plane_rate_limit_enforced\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "envoy-cilium-npds-control-plane-rate-limit-enforced"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which dashboards, alerts or scrapers query the old metric name envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_rate_limit_enforced"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is no longer exposed under the name envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_rate_limit_enforced and is instead exposed as envoy_cilium_npds_control_plane_rate_limit_enforced, so metric consumers still querying the old name no longer receive it.",
+        "remediation": "Update dashboards, alerts and queries that reference the old metric name to use envoy_cilium_npds_control_plane_rate_limit_enforced.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17 renames the metric `envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_rate_limit_enforced` to `envoy_cilium_npds_control_plane_rate_limit_enforced`."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-caf88a546536"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:85558b5faeeedac5b253d7be0dc567a3040a209a15c9c0a39d760cba12732ce6",
+      "inputEvidence": [
+        "ev-caf88a546536"
+      ],
+      "generatedAt": "2026-10-03T07:22:10Z",
+      "callId": "18557af6-381f-49e9-803c-a8be8a74590a"
+    }
+  }
+}

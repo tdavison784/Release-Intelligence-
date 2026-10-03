@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-5a76f71e87ad",
+    "candidateId": "sc-d3c98f01eaa1",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "migration",
+        "product": "flux",
+        "name": "storage-version-migration",
+        "component": "imagepolicies.image.toolkit.fluxcd.io"
+      },
+      "change": {
+        "type": "migration-required"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "field",
+              "path": "status.storedVersions[]",
+              "state": "equals",
+              "values": [
+                "\"v1beta2\""
+              ]
+            }
+          ],
+          "group": "apiextensions.k8s.io",
+          "kind": "CustomResourceDefinition",
+          "name": "imagepolicies.image.toolkit.fluxcd.io"
+        }
+      },
+      "consequence": {
+        "kind": "migration-required",
+        "exposedClass": "action-required",
+        "statement": "Existing ImagePolicy objects remain stored as v1beta2 until rewritten; a storage version migration must be run and status.storedVersions updated before a later release removes v1beta2.",
+        "remediation": "Re-write all ImagePolicy objects (storage version migration) and update status.storedVersions on the CRD.",
+        "severity": "medium"
+      },
+      "statement": "The storage version of the imagepolicies.image.toolkit.fluxcd.io CRD changes from v1beta2 to v1, so existing ImagePolicy objects stay stored as v1beta2 until a storage version migration is run."
+    },
+    "citations": [
+      "ev-782bc47d120d",
+      "ev-c2c6c790d6b2"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:3985a73f645c51c54f54aebc46ad9a682b37dbc8c8f34835f067de99346d188b",
+      "inputEvidence": [
+        "ev-782bc47d120d",
+        "ev-c2c6c790d6b2"
+      ],
+      "generatedAt": "2026-10-03T07:08:00Z",
+      "callId": "79090f11-2bc6-4d8c-b86d-64798b119fa4"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-e388f86b5dce",
+    "candidateId": "sc-03aa929e64d5",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "product-relationship",
+        "product": "argo-cd",
+        "name": "helm"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"prior to Helm 3.17.1, a `null` object in values.yaml resulted in the warning `cannot overwrite table with non table` on `helm template`, and the resulting K8s object was not overridden with the invalid `null` value\"",
+        "after": "\"with Helm 3.17.1, a `null` object in values.yaml still results in the warning `cannot overwrite table with non table` on `helm template`, but the resulting K8s object is overridden with the invalid `null` value\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Charts rendered through the upgraded Helm now have their resulting K8s object overridden with the invalid `null` value when a values.yaml subchart section is null (previously the null was ignored with only the `cannot overwrite table with non table` warning), so previously-fine renderings change output; the guide directs operators to remove such null values from values.yaml.",
+        "remediation": "Identify values.yaml files with `null` object values and remove those `null` values (per the upgrade guide).",
+        "severity": "medium"
+      },
+      "statement": "Argo CD 3.0 upgrades Helm to 3.17.1, which changes rendering behavior: a `null` object in a subchart's values.yaml still triggers the `cannot overwrite table with non table` warning during `helm template`, but now the resulting K8s object is overridden with the invalid `null` value instead of being left unoverridden; the fix is to remove such `null` values from values.yaml."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: the exposed state is a section with a `null` object in the values.yaml files of Helm subcharts; the evidence does not identify where those values live among Argo CD's environment inputs (chart repositories, Application-supplied Helm values/values files), and no listed config source covers them, so no reliable predicate can be written",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-b8041528e3f8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:0728bb5e5220e3ec72afb61c7090a6f7b0ed757640fc28c442c4bf29450ec738",
+      "inputEvidence": [
+        "ev-b8041528e3f8"
+      ],
+      "generatedAt": "2026-10-03T08:20:59Z",
+      "callId": "601b38cf-418c-43f2-897d-c9fdc368c761"
+    }
+  }
+}

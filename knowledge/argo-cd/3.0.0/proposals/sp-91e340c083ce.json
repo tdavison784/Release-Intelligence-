@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-91e340c083ce",
+    "candidateId": "sc-dc1b8ad7b73a",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "argo-cd",
+        "name": "gitlab-scm-haspath",
+        "component": "appset"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "ApplicationSets relying on GitLab SCM path checks will behave differently after the upgrade: the HasPath search implementation is reverted to the earlier one, and GitLab 404 responses are now considered as file not found.",
+        "remediation": "After upgrading to Argo CD 3.0.0, verify that ApplicationSets relying on GitLab SCM path matching still select the expected files/repositories.",
+        "severity": "low"
+      },
+      "statement": "Argo CD 3.0.0 changes the ApplicationSet GitLab SCM path-existence (HasPath) behavior: the search-based implementation is reverted and GitLab 404 errors are now considered as file not found."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The changelog line names the affected area (appset, Gitlab SCM HasPath) but states no setting, flag, values key, or field path whose presence identifies GitLab SCM usage in ApplicationSet manifests; writing an exposure predicate would require inventing a field path (e.g. a guessed ApplicationSet generator schema path).",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-dc295e9fc56b"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:bae94665c5c1466acbe1d31cc59ad8609025b9593f70c1d381accc7d1ece5520",
+      "inputEvidence": [
+        "ev-dc295e9fc56b"
+      ],
+      "generatedAt": "2026-10-03T07:09:22Z",
+      "callId": "aa991094-4d9b-4541-903d-d429fe9ddc59"
+    }
+  }
+}

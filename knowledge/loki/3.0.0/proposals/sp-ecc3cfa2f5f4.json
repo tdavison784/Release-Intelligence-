@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ecc3cfa2f5f4",
+    "candidateId": "sc-a6585a7675ea",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "shared_store"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "resource",
+          "of": [
+            {
+              "op": "text-line",
+              "path": "data[\"config.yaml\"]",
+              "state": "exists",
+              "pattern": "^\\s*shared_store\\s*:"
+            }
+          ],
+          "kind": "ConfigMap"
+        }
+      },
+      "statement": "Loki 3.0.0 removes the `shared_store` shipper configuration setting."
+    },
+    "undetermined": [
+      "consequence"
+    ],
+    "undeterminedReason": "consequence: The evidence says only that the setting is removed. It does not say whether a config that still sets it is ignored or fails to load; the details are in the linked section, which is not in the evidence.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-1d0876135bde"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:2238dcfee0d4a96516737c710d66a2780bbca952d03d6f204de1e50e5805fb0d",
+      "inputEvidence": [
+        "ev-1d0876135bde"
+      ],
+      "generatedAt": "2026-10-03T07:15:05Z",
+      "callId": "bde6c6b9-fb66-4863-9b98-e2c6f659c99e"
+    }
+  }
+}

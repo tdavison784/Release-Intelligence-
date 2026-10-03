@@ -68,7 +68,7 @@ func TestProposeFullAnswer(t *testing.T) {
 		t.Errorf("the class follows the kind: %s", a.Consequence.ExposedClass)
 	}
 	pv := p.Provenance
-	if pv.Method != domain.MethodAI || pv.Model != "claude-sonnet-5-5" || pv.PromptVersion != "semantic-full/v1" ||
+	if pv.Method != domain.MethodAI || pv.Model != "claude-sonnet-5-5" || pv.PromptVersion != "semantic-full/v2" ||
 		pv.PromptDigest == "" || len(pv.InputEvidence) != len(c.Evidence) || pv.GeneratedAt == nil || p.Provider != "anthropic" {
 		t.Errorf("incomplete provenance %+v", pv)
 	}
@@ -322,5 +322,38 @@ func TestSeparateCallsAreDistinctProposals(t *testing.T) {
 	}
 	if a.ID == b.ID || !domain.SeparateCalls(*a, *b) {
 		t.Errorf("two calls must be two proposals: %s %s", a.ID, b.ID)
+	}
+}
+
+// L1: an undecidable leaf may only state a runtime/evidence/identity gap.
+// "configuration not visible" is the engine's verdict, never a model's.
+func TestAvoidableUndecidableIsRefused(t *testing.T) {
+	c := rotationCandidate(t)
+	withLeaf := func(reason string) string {
+		return fullAnswer(c, func(m map[string]any) {
+			m["applicability"] = map[string]any{"determination": "asserted", "exposure": map[string]any{"op": "all", "of": []any{
+				map[string]any{"op": "values-key", "path": "a.b", "state": "set"},
+				map[string]any{"op": "undecidable", "reason": reason, "needed": "whether the config file sets x"},
+			}}}
+		})
+	}
+	// through a non-enforcing transport the schema refusal is the first line…
+	if _, err := propose(t, c, domain.TaskFull, withLeaf("environment-visibility-gap")); err == nil || !strings.Contains(err.Error(), "schema") {
+		t.Fatalf("environment-visibility-gap must be refused: %v", err)
+	}
+	// …and the validator is the second, for typed answers that skip the schema
+	a, err := DecodeAnswer(domain.TaskFull, withLeaf("runtime-behavior-gap"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.Applicability.Exposure.Of[1].Reason = "cross-product-context-gap"
+	meta := AnswerMeta{Provider: "typesafe", Model: "m", ModelVersion: "m", PromptVersion: "semantic-full/v2", PromptDigest: "sha256:x",
+		CallID: "c1", Input: []domain.EvidenceID{c.Evidence[0].ID}, GeneratedAt: t0}
+	if _, err := ProposalFromAnswer(c, domain.TaskFull, a, meta); !errors.Is(err, ErrAvoidableUndecidable) {
+		t.Fatalf("want ErrAvoidableUndecidable, got %v", err)
+	}
+	// a genuinely runtime condition stays expressible
+	if p, err := propose(t, c, domain.TaskFull, withLeaf("runtime-behavior-gap")); err != nil || p.Assertion.Applicability == nil {
+		t.Fatalf("runtime-behavior-gap must be accepted: %v", err)
 	}
 }

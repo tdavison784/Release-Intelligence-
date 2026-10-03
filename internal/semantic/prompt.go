@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/tdavison784/release-intelligence/internal/catalog"
 	"github.com/tdavison784/release-intelligence/internal/domain"
 	"github.com/tdavison784/release-intelligence/internal/knowledge"
 	"github.com/tdavison784/release-intelligence/internal/llm"
@@ -15,7 +16,11 @@ import (
 // Prompt versions: one per task. Change the version whenever the task's
 // system prompt, user-prompt layout or answer schema changes; it is recorded
 // in every proposal's provenance and is part of the prompt digest.
-const promptVersionSuffix = "/v1"
+//
+// v2 (semantic-4, LOOP-DIAGNOSIS-2 L1): CONFIG SOURCES shown per product with
+// the predicate that reads each channel; `undecidable` restricted to
+// UndecidableReasons (schema + validator).
+const promptVersionSuffix = "/v2"
 
 // renderedSuffix marks prompts that showed release-level rendered-diff
 // evidence (the render lane's addendum), so the effect of that evidence is
@@ -241,6 +246,13 @@ func renderUser(req knowledge.ProposalRequest, excerpt int) (string, []domain.Ev
 		writeList(&b, "image repositories", ctx.Images)
 	}
 
+	if hs := req.Context.ConfigSources; len(hs) > 0 && req.Task != domain.TaskDuplicate {
+		b.WriteString("\nCONFIG SOURCES (where this product reads its configuration, from its upstream documentation; the\npredicate after → reads that place)\n")
+		for _, h := range hs {
+			fmt.Fprintf(&b, "- %s\n", configSourceLine(h))
+		}
+	}
+
 	if req.Task == domain.TaskDuplicate {
 		b.WriteString("\nKNOWN FACTS (verified release knowledge of this product)\n")
 		for i, f := range req.KnownFacts {
@@ -252,6 +264,112 @@ func renderUser(req knowledge.ProposalRequest, excerpt int) (string, []domain.Ev
 	}
 	b.WriteString("\nAnswer with JSON matching the schema.\n")
 	return b.String(), input
+}
+
+// configSourceLine renders one config source with the predicate that reads
+// it (the channel → predicate mapping is generic; the data is the catalog's).
+func configSourceLine(h knowledge.ConfigSourceHint) string {
+	who := ""
+	if h.Component != "" {
+		who = " [" + h.Component + "]"
+	}
+	var pred string
+	switch h.Channel {
+	case "configmap-file":
+		name := ""
+		if h.ConfigMap != "" {
+			name = ", name: " + h.ConfigMap
+		}
+		if h.File != "" {
+			pred = fmt.Sprintf(`resource{kind: ConfigMap%s, of:[text-line{path: 'data["%s"]', pattern: <RE2 for the setting's %s line>, state: exists|none}]}`, name, h.File, h.Format)
+		} else {
+			pred = fmt.Sprintf(`resource{kind: ConfigMap%s, of:[field{path: data.<setting key>, state: set|unset|equals…}]} (one setting per data key)`, name)
+		}
+		if h.ValuesPath != "" {
+			pred += fmt.Sprintf("; when installed by the chart: values-key{path: %s.<key>}", h.ValuesPath)
+		}
+	case "config-file":
+		if h.File != "" && h.Format != "" && h.ValuesPath == "" {
+			// the wording semantic-full/v2 shipped with (semantic-4 run); kept
+			// byte-identical so one prompt version names one rendering
+			pred = fmt.Sprintf("a %s file on disk (%s): decidable only when supplied as a ConfigMap (then text-line as above); otherwise applicability is undetermined", h.Format, h.File)
+			break
+		}
+		file := h.File
+		if file == "" {
+			file = "an operator-chosen path"
+		}
+		pred = fmt.Sprintf("a file on disk (%s): decidable only when supplied as a ConfigMap (then text-line on its data key); otherwise applicability is undetermined", file)
+		if h.ValuesPath != "" {
+			pred += "; the chart sets it under values-key " + h.ValuesPath
+		}
+	case "helm-values":
+		p := h.ValuesPath
+		if p == "." {
+			pred = "values-key{path: <key>}"
+		} else {
+			pred = fmt.Sprintf("values-key{path: %s.<key>}", p)
+		}
+	case "cli-flags":
+		pred = "cli-flag{name: --<flag>" + compOf(h) + "}"
+		if h.ValuesPath != "" {
+			pred += "; the chart sets them under values-key " + h.ValuesPath
+		}
+	case "env-vars":
+		pred = "env-var{name: <VAR>" + compOf(h) + "}"
+		if h.ValuesPath != "" {
+			pred += "; the chart sets them under values-key " + h.ValuesPath
+		}
+	case "feature-gates":
+		if h.Flag != "" && !strings.HasPrefix(h.Flag, "-") {
+			// gates passed in an environment variable: its token list
+			pred = fmt.Sprintf("env-var{name: %s%s, state: has-token|has-token-key, values: [<Gate token as the docs spell it>]}", h.Flag, compOf(h))
+			break
+		}
+		pred = "feature-gate{name: <Gate>, state: enabled|disabled|unset"
+		if h.ValuesPath != "" {
+			pred += ", path: " + h.ValuesPath
+		}
+		pred += "}"
+		if h.Flag != "" {
+			pred += " (gates are passed as " + h.Flag + ")"
+		}
+	case "custom-resource":
+		g := ""
+		if h.Group != "" {
+			g = "group: " + h.Group + ", "
+		}
+		pred = fmt.Sprintf("resource{%skind: %s, of:[field{path: <field>, state: …}]}", g, h.Kind)
+	default:
+		pred = "(unknown channel)"
+	}
+	where := ""
+	if h.File != "" && h.Channel != "config-file" && h.Channel != "configmap-file" {
+		where = " " + h.File
+	}
+	return fmt.Sprintf("%s%s%s: %s → %s", h.Channel, who, where, oneLine(h.Summary), pred)
+}
+
+func compOf(h knowledge.ConfigSourceHint) string {
+	if h.Component == "" {
+		return ""
+	}
+	return ", component: <container of " + h.Component + ">"
+}
+
+// ConfigSourceHints converts catalog config sources into prompt hints
+// (citations stay in the catalog).
+func ConfigSourceHints(cs []catalog.ConfigSource) []knowledge.ConfigSourceHint {
+	out := make([]knowledge.ConfigSourceHint, 0, len(cs))
+	for _, c := range cs {
+		h := knowledge.ConfigSourceHint{Channel: string(c.Channel), Component: c.Component, Summary: c.Summary,
+			File: c.File, Format: c.Format, ConfigMap: c.ConfigMap, ValuesPath: c.ValuesPath, Flag: c.Flag}
+		if c.Resource != nil {
+			h.Group, h.Kind = c.Resource.Group, c.Resource.Kind
+		}
+		out = append(out, h)
+	}
+	return out
 }
 
 func writeList(b *strings.Builder, label string, xs []string) {

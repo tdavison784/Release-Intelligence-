@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fc8138dc2fc6",
+    "candidateId": "sc-fecf1190dad2",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "change": {
+        "type": "deprecated"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "whether dashboards, alerts or recording rules query the metric cilium_node_connectivity_latency_seconds"
+        }
+      },
+      "consequence": {
+        "kind": "deprecation",
+        "exposedClass": "review-required",
+        "statement": "The metric cilium_node_connectivity_latency_seconds is deprecated in 1.17. Anything that queries it should move to cilium_node_health_connectivity_latency_seconds.",
+        "remediation": "Update dashboards, alerts and queries to use cilium_node_health_connectivity_latency_seconds.",
+        "severity": "low"
+      },
+      "statement": "In Cilium 1.17 the metric cilium_node_connectivity_latency_seconds is deprecated, and users should use cilium_node_health_connectivity_latency_seconds instead."
+    },
+    "undetermined": [
+      "subject"
+    ],
+    "undeterminedReason": "subject: The subject is a Prometheus metric (cilium_node_connectivity_latency_seconds), and none of the subject families covers metrics, so its identity cannot be spelled in a comparable way.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-ac4018b89668"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:acf2212d32c2e3a8a8a2b69eb4365829f8da26a9eb858cbb12513215a201975a",
+      "inputEvidence": [
+        "ev-ac4018b89668"
+      ],
+      "generatedAt": "2026-10-03T07:04:06Z",
+      "callId": "22e3aa00-e1f6-49c4-b350-f2e9d981eb0d"
+    }
+  }
+}

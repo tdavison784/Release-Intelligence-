@@ -33,6 +33,12 @@ type ProductDefinition struct {
 	// Lifecycle states that the product (or some of its releases) is
 	// deprecated or end-of-life; see Lifecycle.
 	Lifecycle []Lifecycle `yaml:"lifecycle,omitempty" json:"lifecycle,omitempty"`
+	// ConfigSources state where the product reads its configuration
+	// (config files in ConfigMaps, chart values, flags, env vars, feature
+	// gates, custom resources), each citing upstream documentation. The
+	// learning loop shows them to proposers so applicability conditions use
+	// a decidable predicate instead of `undecidable` (configsources.go).
+	ConfigSources []ConfigSource `yaml:"configSources,omitempty" json:"configSources,omitempty"`
 
 	// Provenance documents how this definition was produced and validated.
 	Provenance *DefinitionProvenance `yaml:"provenance,omitempty" json:"provenance,omitempty"`

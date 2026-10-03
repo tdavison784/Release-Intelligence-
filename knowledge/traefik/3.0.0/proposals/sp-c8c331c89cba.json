@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-c8c331c89cba",
+    "candidateId": "sc-9819c3b5051d",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "traefik",
+        "path": "providers.consul.tls.caOptional"
+      },
+      "change": {
+        "type": "removed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "any",
+          "of": [
+            {
+              "op": "cli-flag",
+              "name": "--providers.consul.tls.caOptional",
+              "state": "set"
+            },
+            {
+              "op": "env-var",
+              "name": "TRAEFIK_PROVIDERS_CONSUL_TLS_CAOPTIONAL",
+              "state": "set"
+            }
+          ]
+        }
+      },
+      "consequence": {
+        "kind": "setting-ignored",
+        "exposedClass": "action-required",
+        "statement": "Traefik v3 no longer has the Consul provider option `tls.caOptional`, so a configured `caOptional` value is not honoured.",
+        "remediation": "Remove the `tls.caOptional` option from the Consul provider static configuration (file, CLI or environment).",
+        "severity": "low"
+      },
+      "statement": "Traefik v3 removes the Consul provider's static option `tls.caOptional` (providers.consul.tls.caOptional), because TLS client authentication is a server-side option, so remove it from the Consul provider's static configuration."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4685c9dd4dac"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:ccaf7e8dc398af00803cb343144dfec5ecee7cc741581bceb19442ffd080de77",
+      "inputEvidence": [
+        "ev-4685c9dd4dac"
+      ],
+      "generatedAt": "2026-10-03T07:04:20Z",
+      "callId": "253babb0-4b1d-4d02-a83d-c2a668009fc3"
+    }
+  }
+}

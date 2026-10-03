@@ -269,6 +269,57 @@ Uncertainties / for the commander:
   them via vocabulary examples is a prompt-version change I did not make unilaterally — it
   would move the ground the just-finished run measured.
 
+## GLM handoff log (fourth handoff)
+
+GLM-5.3 again; the Claude agent is paused for a fresh usage-limit window. Takeover state: the
+semantic-3 run was fully complete (committed, recorded, imported), but the working tree held an
+uncommitted, **build-breaking** context sync — the paused agent (or the handoff prep) had copied
+integration content (proxy-agreement CLI wiring, loop-diagnosis-2 docs, proxy-shadow view) without
+`internal/proxyreview/agreement.go`. What I did (all `[glm-handoff] `):
+
+1. `14b1de6a` restored the green build by landing `agreement.go` + its two test files verbatim from
+   p3-learning-loop (258d9490) — the file the copy was missing. `go build/vet/test ./...` green.
+2. `5c5fee3c` committed the rest of the sync verbatim (LOOP-DIAGNOSIS-2.md, proxy-shadow view,
+   lines/ref-resolution docs) — all byte-identical to integration, so the commander's later merge
+   is a no-op for these paths. This is how this branch learned of the L1–L8 levers without a merge.
+3. `5754899e` delivered the two offline analyses the diagnosis's semantic levers need
+   (`runs/semantic-v3/PROMPT-LEVERS.md` + `analyze_undecidable.py`): 157 undecidable exposure
+   leaves on 152/995 exposure-bearing proposals (106 pure; Opus writes 39 — a prompt gap, not a
+   weak-model artifact); the `needed` texts split into decidable-with-the-right-operator (the L1
+   channel-context fix; `text-line` is used by only 13 leaves) vs genuinely-runtime (55, must stay
+   undecidable). L4 is **blocked on integration** (no `lines:*` kinds, no `cc:feat` classifier on
+   this branch; ES/prom-op skip 0 routine notes) and its cost is measured for when it lands
+   (admitting all routine notes = +20 % candidates, dominated by loki's 68 metrics notes).
+4. `18cf2eb8` staged **run4**, the controlled with/without rendered-evidence measurement the run
+   README names as the addendum's open step: `ri semantic propose -only FILE` (new, tested) +
+   `run4.sh` + committed id lists (`run4-only/`, 51 candidates — ES 12, kyverno 28, prom-op 8,
+   traefik 3, all SUB edges) + `analyze_render_ab.py` (synthetic-store smoke-tested). Pass 1 ran
+   offline: 204 plain `semantic-full/v1` requests written, 51 candidates in the run4 store, 0
+   missed ids, no rendered evidence in any prompt (verified; the schema's `rendered-change` enum
+   and the verb "rendering" are the only occurrences).
+5. Answered the **GLM half** of run4 via the zai exchange (51 stateless calls, 51/51, 0 failures;
+   the claude half stays untouched while the account sits in its limit window) and ingested it:
+   **45 proposals + 6 recorded refusals** (the familiar typed-constraint shapes). Interim GLM pair
+   (33 candidates answered both ways): aspect decisions barely depend on the render — 1–2 flips per
+   aspect out of 33, both directions, abstention 10 vs 10 — while the render is cited 22/33 when
+   shown. The claude half (153 calls ≈ $6–8) completes the measurement; see the run README.
+
+Remaining to finish run4 (one command each, any session): answer
+`.ri/semantic-run-v3/run4/exchange-claude` with `scripts/semantic-exchange.sh <dir> "" 8 anthropic`
+(153 calls ≈ $6–8), re-run `run4.sh`'s two loops to ingest, then
+`python3 analyze_render_ab.py knowledge .ri/semantic-run-v3/run4/knowledge`.
+
+Uncertainties / for the commander:
+- **Merge p3-learning-loop into this lane before L4 work** — both halves of L4 (lines:* changes
+  and the cc:feat classifier) exist only there. FLEET says wait for your word.
+- The L1/L5 prompt redesign (channel context per product, vocabulary for decidable shapes) is
+  deliberately NOT started: the brief reserves prompt design to the Claude agent, and a prompt
+  change without budget to re-measure would move the ground the runs measure. PROMPT-LEVERS.md is
+  the input for that session.
+- run4's claude half (~$6–8) was left pending rather than spending the limited account from a
+  handoff; the GLM half was answered because the zai path is the FLEET's documented optional
+  provider and completes the opus↔glm pair.
+
 ## semantic-3 (Claude agent, after the third GLM handoff)
 
 - Reviewed the handoff commits (a46206e, d4cfeb9, 5873b0f). The analyzers were committed verbatim and
@@ -284,3 +335,112 @@ Uncertainties / for the commander:
   (change 79 %, consequence 70 %), and free-form subject names remain the bottleneck. Rendered evidence
   is cited in 57–68 % of proposals where shown; a controlled with/without measurement is the open next
   step. Full record: `runs/semantic-v3/README.md`.
+
+## semantic-4 (L1 + L4) — Claude agent, after the fourth GLM handoff
+
+Review of the fourth handoff (on `p3ll/semantic-3`, carried into `p3ll/semantic-4`):
+- 14b1de6a / 5c5fee3c: files copied in from integration. Verified byte-identical to `p3-learning-loop`.
+- 5754899e (undecidable-leaf analysis, PROMPT-LEVERS.md): sound, and it is the design input for L1. Its
+  "L4 blocked" note was measured before the integration merge; on the merged branch `lines:*` diffs and
+  the routine classifier exist.
+- 18cf2eb8 / 0caf8055 / 6e320cd9 (`-only` filter; the controlled with/without-render run, GLM half
+  answered): kept. The Claude half (153 staged calls) is not part of this wave's order, so it stays
+  staged until the ordered steps are done.
+
+Step 1, code, committed (8c935d2f, d1e01ebe): configSources format + validation + docs; prompt v2 with
+CONFIG SOURCES and the `undecidable` rule (schema + `ErrAvoidableUndecidable`); L4 candidates
+(lines:* + subject-naming non-dependency routine notes, clustered only among themselves). Checked on all
+15 environment edges against the pre-change binary: L4 removes no existing candidate id. Product config
+data from upstream docs: in progress (research agents; committed separately with citations).
+
+Step 2, sizing of the property-selected v2 re-proposal (`runs/semantic-v4/select_candidates.py`; each
+candidate assigned to the first environment edge that generates it; never by eval link):
+
+| rule | candidates |
+|---|---|
+| R1: `undecidable` leaf on an existing VERIFIED FACT | 59 |
+| R1b: `undecidable` leaf on an existing proposal (no fact leaf) | 78 |
+| R2: has proposals, all fully abstained | 210 |
+| R3: new L4 candidate (a member is `lines:*` or a routine note) | 102 |
+| **total** | **449** |
+
+Undecidable leaf reasons on R1/R1b: environment-visibility-gap 90, runtime-behavior-gap 52,
+evidence-gap 22, release-knowledge-gap 4, cross-product-context-gap 1. So 95 leaves now have a reason v2
+forbids. New candidates *not* from L4 (integration edge drift, no proposals yet; not selected):
+external-secrets 24, prometheus-operator 18, cilium 13, istio 2.
+
+Estimate: 449 × (Sonnet + Opus + GLM) = 1 347 calls. Claude side at the semantic-3 per-call rates
+(Sonnet $0.047, Opus $0.102) is about $67, ~$75 with v2's longer prompts: **within the ~$100 budget,
+so no priority cut**. GLM: 449 calls, billed by Z.AI.
+
+Step 3, the v2 re-proposal run: **complete and recorded** (`runs/semantic-v4/README.md`) — 868/898
+claude + 449/449 zai answered, 1 286 v2 proposals (sonnet 428, opus 436, glm 422) + 31 refusals
+imported into the committed tree (now 1 194 candidates / 3 969 proposals / 0 invalid), Claude $68.36.
+The L1 lever works: environment-visibility-gap leaves 87 → 0 on R1+R1b, R1b undecidable 108 → 20
+(61/78 candidates cleared, 36 with a decidable predicate instead). 30 claude requests (18 sonnet,
+12 opus, ≈$2.4) sit pending on the account session limit — resume command in the run README.
+
+## GLM handoff log (fifth handoff)
+
+GLM-5.3 again; the Claude agent is paused for a fresh usage-limit window. Takeover state: the
+semantic-4 step-3 run (`run4v2.sh`) had finished on disk (log ends `RUN4V2 DONE`) with the claude
+exchange stopped at the session limit — 30 pending — but nothing was committed and no run record
+existed. What I did (all `[glm-handoff] `):
+
+1. Verified the run state end to end before touching anything: build/vet/tests green; pending
+   count 30 in the exchange matches the pass-2 reports; 868 + 449 answered = 1 286 proposals +
+   31 refusals recorded in the worktree knowledge tree, every per-model count reconciled.
+2. `SEMANTIC_STORE=knowledge TestStoreIntegrity`: 1 194 candidates / 3 969 proposals / 0 invalid
+   (relative-path footgun: the test's cwd is the package dir — pass an absolute store path).
+3. Ran the paused agent's `analyze_v4.py` (committed verbatim) and wrote the run record
+   `runs/semantic-v4/README.md` incl. per-rule old→new undecidable tables, per-model outcomes,
+   costs from the CLI envelopes, and the one-command resume for the pending 30 (4d525e74).
+4. Imported the run results into the committed `knowledge/` tree: 102 candidate records + 1 286
+   proposals + 31 refusals (c3e18aa1).
+5. Found and measured **prompt-render drift**: `bin/ri` (02:03:16) predates 06ad59bd's
+   `configSourceLine` change (02:04:22, committed while pass 1 ran). Re-proposing every edge with
+   a HEAD-built binary against an exchange copy: 38/449 candidates (traefik 25, istio 6,
+   karpenter 5, argo-cd 2 — the config-file-channel products) get different prompt digests under
+   HEAD, all models; 3 of the 30 pending are drifted. Provenance is honest (per-proposal
+   promptDigest of what was seen; exchanges hold the request bodies) and within-run comparisons
+   are unaffected, but the label v2 spans two renders. Recorded in the run README § Prompt-render
+   drift with the resume warning (do not rebuild `bin/ri` before the 30 are answered); the
+   accept-vs-bump-and-rerun decision (≈114 calls ≈ $6) is the Claude agent's/commander's.
+
+Uncertainties / for the commander:
+- The 30 pending claude calls (≈$2.4) were left pending on purpose — the account was still inside
+  its limit window at takeover (resets 6:50 America/Chicago), and prior handoffs' pattern is not to
+  spend the limited account from a handoff. Resume is one command (run README § Commands); after
+  it, re-run the analyzer — the record's tables will shift by at most 30 cells.
+- R1's undecidable-leaf total rose 51 → 55 (runtime-behavior-gap from opus 17 / glm 27; sonnet 0
+  in v2). The reason is one v2 keeps (genuinely runtime per PROMPT-LEVERS.md), so this is model
+  disagreement, not lost ground — but it is an observation for the review lane, recorded in the
+  run README.
+- The staged run4 claude half (153 calls, fourth handoff) remains untouched and staged.
+- No eval/, gates, or expectations were touched; no merge/rebase/push; `.lane-lead` untouched.
+
+### semantic-4 step 3, completed (Claude agent, after the fifth GLM handoff)
+
+Handoff review (4d525e74, c3e18aa1, f8b0e63f, 6065cc59):
+- The run record, analyzer and import are sound.
+- Two corrections:
+  - The refusal records had been committed under `knowledge/<product>/failures/` and are moved to
+    `runs/semantic-v4/failures/`, as in v2/v3.
+  - The prompt-render drift GLM found is real (`bin/ri` was built before my last `configSourceLine`
+    edit). Rather than bump-and-rerun, the code now renders the entries the run saw byte-identically.
+    A rebuilt binary wrote no new request, so `semantic-full/v2` again names one rendering.
+- The 30 requests pending at the account limit were answered after the reset.
+
+Result: 449 property-selected candidates, 1 316 v2 proposals (Sonnet 446, Opus 448, GLM 422), 31
+refusals. Committed tree 1 194 / 3 999 / 0 invalid; eval-reference scan passes. Claude $70.72 (budget
+~$100). Every `undecidable` leaf with a v2-forbidden reason is gone: 90 → 0. On R1b, all leaves went
+108 → 20, 61/78 candidates are now undecidable-free and 36 of them carry a decidable predicate instead.
+122/210 all-abstained candidates and 35/102 new L4 candidates now carry assertions. Full record:
+`runs/semantic-v4/README.md`.
+
+Open for the commander:
+- The controlled with/without-render run's Claude half (153 staged calls, ~$8) is still staged.
+- `ri stats` reports the new `configSources` constructs as unaccounted (onboarding records are history;
+  not back-dated).
+- `knowledge.ProposalContext.ConfigSources` is a contract-marked additive field the proxy reviewer can
+  also use (L1 names both).

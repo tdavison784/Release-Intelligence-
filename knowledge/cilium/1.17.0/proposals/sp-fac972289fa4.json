@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-fac972289fa4",
+    "candidateId": "sc-0e7e63699f83",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "lbipam-ips-available-total"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"lbipam_ips_available_total\"",
+        "after": "\"lbipam_ips_available\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "lbipam-ips-available"
+        }
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "evidence-gap",
+          "needed": "which dashboards, alerting/recording rules, or other metric consumers query the metric name lbipam_ips_available_total"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metric is exposed under the new name lbipam_ips_available; monitoring that still queries lbipam_ips_available_total no longer receives that metric series.",
+        "remediation": "Update dashboards, alerting and recording rules, and any other metric consumers to query lbipam_ips_available instead of lbipam_ips_available_total.",
+        "severity": "low"
+      },
+      "statement": "Cilium 1.17.0 renames the LB-IPAM metric lbipam_ips_available_total to lbipam_ips_available, so anything querying the old metric name must be updated to the new name."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-875bb56564b0"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:190d9010b8880d0408ffdd321ce837a42447a0ea616da032915d8973f55c416e",
+      "inputEvidence": [
+        "ev-875bb56564b0"
+      ],
+      "generatedAt": "2026-10-03T07:46:29Z",
+      "callId": "74c24f5e-9bb1-4139-b5e1-1d386ba1c7d4"
+    }
+  }
+}

@@ -308,3 +308,60 @@ provenance:
     three image registries, the two Lucene pin eras and the track-two-releases
     lifecycle policy. Docker Hub is canonical with two reachable mirrors; no
     host was blocked.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: opensearch-yml
+  channel: configmap-file
+  component: opensearch
+  summary: Node settings live in opensearch.yml in the config directory; the community Helm chart renders each file
+    under its config values key (opensearch.yml, optionally log4j2.properties) into a ConfigMap mounted into the
+    config directory.
+  file: opensearch.yml
+  format: yaml
+  valuesPath: config
+  references:
+  - url: https://raw.githubusercontent.com/opensearch-project/documentation-website/main/_install-and-configure/configuring-opensearch/index.md
+    quote: You can find `opensearch.yml` in `/usr/share/opensearch/config/opensearch.yml` (Docker) or `/etc/opensearch/opensearch.yml`
+      (most Linux distributions) on each node.
+  - url: https://raw.githubusercontent.com/opensearch-project/helm-charts/main/charts/opensearch/values.yaml
+    quote: '# such as opensearch.yml and log4j2.properties'
+- id: helm-values
+  channel: helm-values
+  component: opensearch (community Helm chart)
+  summary: The opensearch-project chart sets workload-level configuration at the values root, e.g. opensearchJavaOpts
+    for JVM options and extraEnvs for additional container environment variables.
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/opensearch-project/helm-charts/main/charts/opensearch/values.yaml
+    quote: 'opensearchJavaOpts: "-Xmx512M -Xms512M"'
+  - url: https://raw.githubusercontent.com/opensearch-project/helm-charts/main/charts/opensearch/values.yaml
+    quote: '# Extra environment variables to append to this nodeGroup'
+- id: docker-setting-env-vars
+  channel: env-vars
+  component: opensearch (Docker image)
+  summary: The Docker image turns every environment variable named like a setting (e.g. discovery.type) into an
+    -E flag, so any node setting can be passed as a container environment variable.
+  references:
+  - url: https://raw.githubusercontent.com/opensearch-project/documentation-website/main/_install-and-configure/configuring-opensearch/index.md
+    quote: The OpenSearch Docker image converts each environment variable whose name has the form of a setting into
+      an `-E` flag.
+- id: startup-env-vars
+  channel: env-vars
+  component: opensearch
+  summary: Startup environment variables OPENSEARCH_JAVA_OPTS (JVM options) and OPENSEARCH_PATH_CONF (config directory),
+    plus custom variables referenced from opensearch.yml with ${ENV_VAR}.
+  references:
+  - url: https://raw.githubusercontent.com/opensearch-project/documentation-website/main/_install-and-configure/configuring-opensearch/index.md
+    quote: OpenSearch reads environment variables that configure the startup process, such as `OPENSEARCH_JAVA_OPTS`
+      for JVM options and `OPENSEARCH_PATH_CONF` for the configuration directory location.
+- id: cli-settings
+  channel: cli-flags
+  component: bin/opensearch
+  summary: Any node setting can be passed at startup with -E<setting>=<value>; it applies only to the node being
+    started.
+  references:
+  - url: https://raw.githubusercontent.com/opensearch-project/documentation-website/main/_install-and-configure/configuring-opensearch/index.md
+    quote: 'To pass a setting directly to OpenSearch at startup, use the `-E` flag:'

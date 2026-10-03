@@ -371,3 +371,50 @@ provenance:
     pkg/operator/defaults.go with version.strategy: pattern, the Kubernetes
     compatibility section attached at minors, and the two appVersion chart
     lookups added as the operator side of the kube-prometheus-stack join.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: operator-flags
+  channel: cli-flags
+  component: operator
+  summary: The operator binary is configured by command-line arguments (watched namespaces, instance selectors,
+    default images, config-reloader resources, kubelet service, log level).
+  references:
+  - url: https://prometheus-operator.dev/docs/platform/operator/
+    quote: Command line arguments for the operator binary
+  - url: https://prometheus-operator.dev/docs/platform/operator/
+    quote: Namespaces to scope the interaction of the Prometheus Operator and the apiserver (allow list).
+- id: feature-gates
+  channel: feature-gates
+  component: operator
+  summary: Optional operator features (e.g. PrometheusAgentDaemonSet, RemoteWriteCustomResourceDefinition) are toggled
+    with the --feature-gates key=value list; kube-prometheus-stack renders prometheusOperator.featureGates into
+    it.
+  flag: --feature-gates
+  valuesPath: prometheusOperator.featureGates
+  references:
+  - url: https://prometheus-operator.dev/docs/platform/operator/
+    quote: Feature gates are a set of key=value pairs that describe Prometheus-Operator features.
+  - url: https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml
+    quote: '## Feature gates to enable/disable operator features, rendered as --feature-gates=<key>=<value>.'
+- id: kube-prometheus-stack-values
+  channel: helm-values
+  component: operator (via kube-prometheus-stack chart)
+  summary: There is no chart in the operator repository; the Helm install path is the prometheus-community kube-prometheus-stack
+    chart, whose prometheusOperator.* values configure the operator deployment (e.g. extraArgs, featureGates).
+  valuesPath: prometheusOperator
+  references:
+  - url: https://prometheus-operator.dev/docs/getting-started/installation/
+    quote: is no longer part of Prometheus-Operator and is now maintained by Prometheus Community Helm Charts
+  - url: https://raw.githubusercontent.com/prometheus-community/helm-charts/main/charts/kube-prometheus-stack/values.yaml
+    quote: '## Extra arguments to pass to prometheusOperator'
+- id: admission-webhook-flags
+  channel: cli-flags
+  component: admission-webhook
+  summary: The separate admission webhook (validates PrometheusRule and AlertmanagerConfig objects) is configured
+    by its own flags, e.g. --web.enable-tls, --web.cert-file and --web.key-file.
+  references:
+  - url: https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/Documentation/platform/webhook.md
+    quote: '- --web.enable-tls=true'

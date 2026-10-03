@@ -442,3 +442,72 @@ provenance:
     templates were corrected to otelcol[_-contrib]_<version>_<os>_<arch>,
     and the .deb/.rpm packages and docker.io/mirror channels were added by
     research. Verified with `ri check -n 6` plus an earlier-era run.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: collector-configmap
+  channel: configmap-file
+  component: otelcol
+  summary: In the official opentelemetry-collector Helm chart the collector configuration (receivers, processors,
+    exporters, extensions, service pipelines) is given under config and rendered into the relay key of a ConfigMap,
+    which the pod loads with --config=/conf/relay.yaml.
+  file: relay
+  format: yaml
+  valuesPath: config
+  references:
+  - url: https://raw.githubusercontent.com/open-telemetry/opentelemetry-helm-charts/main/charts/opentelemetry-collector/values.yaml
+    quote: '# The ConfigMap MUST include the collector configuration via a key named ''relay'' or the collector
+      will not start.'
+  - url: https://raw.githubusercontent.com/open-telemetry/opentelemetry-helm-charts/main/charts/opentelemetry-collector/templates/configmap.yaml
+    quote: 'relay: |'
+- id: collector-config-file
+  channel: config-file
+  component: otelcol
+  summary: Outside the chart the collector reads one or more YAML configuration files passed with --config, by default
+    /etc/<otel-directory>/config.yaml (otelcol, otelcol-contrib, ...).
+  file: config.yaml
+  format: yaml
+  references:
+  - url: https://opentelemetry.io/docs/collector/configuration/
+    quote: By default, the Collector configuration is located in /etc/<otel-directory>/config.yaml
+  - url: https://opentelemetry.io/docs/collector/configuration/
+    quote: You can provide one or more configurations using the --config option.
+- id: feature-gates
+  channel: feature-gates
+  component: otelcol
+  summary: Collector feature gates are enabled or disabled with the --feature-gates flag as a comma-delimited list
+    (prefix - disables, + or none enables).
+  flag: --feature-gates
+  references:
+  - url: https://raw.githubusercontent.com/open-telemetry/opentelemetry-collector/main/featuregate/README.md
+    quote: Feature gates can be enabled or disabled via the CLI, with the `--feature-gates` flag.
+- id: collector-flags
+  channel: cli-flags
+  component: otelcol
+  summary: Command-line flags of the collector binary (--config, --set key::path=value overrides merged after all
+    --config sources, --feature-gates); the chart appends extra arguments via command.extraArgs.
+  valuesPath: command.extraArgs
+  references:
+  - url: https://opentelemetry.io/docs/collector/configuration/
+    quote: You can override Collector settings using the --set option.
+  - url: https://raw.githubusercontent.com/open-telemetry/opentelemetry-helm-charts/main/charts/opentelemetry-collector/values.yaml
+    quote: '# OpenTelemetry Collector executable'
+- id: env-expansion
+  channel: env-vars
+  component: otelcol
+  summary: Configuration values can reference environment variables with ${env:NAME} (with :- defaults); the chart
+    injects variables via extraEnvs.
+  valuesPath: extraEnvs
+  references:
+  - url: https://opentelemetry.io/docs/collector/configuration/
+    quote: The use and expansion of environment variables is supported in the Collector configuration.
+- id: chart-values
+  channel: helm-values
+  summary: The opentelemetry-collector Helm chart selects the deployment mode (daemonset, deployment, statefulset),
+    image/distribution and the ConfigMap (create or existingName) from its values root.
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/open-telemetry/opentelemetry-helm-charts/main/charts/opentelemetry-collector/values.yaml
+    quote: '# Valid values are "daemonset", "deployment", and "statefulset".'

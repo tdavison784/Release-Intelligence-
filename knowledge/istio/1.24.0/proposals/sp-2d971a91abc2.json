@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-2d971a91abc2",
+    "candidateId": "sc-d676f61f0b1c",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "istio",
+        "name": "istio-clean-iptables-istio-output-chain",
+        "component": "pilot-agent"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Running `pilot-agent istio-clean-iptables` now also removes the `ISTIO_OUTPUT` iptables chain, which it previously left behind.",
+        "severity": "low"
+      },
+      "statement": "The `pilot-agent istio-clean-iptables` command now removes the `ISTIO_OUTPUT` iptables chain; before this fix, the chain was left in place."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether an operator runs the `pilot-agent istio-clean-iptables` command. That is an operational action, and no configuration predicate can express it.",
+    "suggestedClass": "informational",
+    "citations": [
+      "ev-dd94d38ea856"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "claude-opus-5-5",
+      "modelVersion": "claude-opus-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:7dd6b9d2642a6ba84cf5098fa4ead8ad49a7fcb25cfe00bbb54b6b5737714b3f",
+      "inputEvidence": [
+        "ev-dd94d38ea856"
+      ],
+      "generatedAt": "2026-10-03T07:05:03Z",
+      "callId": "5f7e3d8f-9376-4377-b5f9-5a7a179de345"
+    }
+  }
+}

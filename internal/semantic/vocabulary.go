@@ -273,8 +273,21 @@ const canonicalGuide = `Canonical shapes (use them when they fit; they are what 
 - cli-flag/env-var removed/renamed: exposure cli-flag/env-var{name, set}
 - product-relationship requirement-changed: exposure product-version{name, out-of-range, range: the new requirement}
 - compatibility-boundary requirement-changed: exposure cluster-version{name, out-of-range, range}
-If exposure depends on runtime behaviour no configuration shows, use undecidable{reason, needed} (alone or as
-an operand) instead of guessing a predicate.
+- a setting in a config file supplied as ConfigMap data key F: resource{kind: ConfigMap, of:[text-line{path:
+  'data["F"]', pattern: an RE2 matching the setting's line, state: exists}]} (none = no line sets it)
+- a CRD whose stored objects must be migrated: resource{group: apiextensions.k8s.io, kind:
+  CustomResourceDefinition, name: <plural.group>, of:[field{path: status.storedVersions[], state: equals,
+  values: [old version]}]}
+
+UNDECIDABLE (strict). undecidable{reason, needed} is ONLY for exposure that no configuration can show:
+runtime behaviour or state (reason runtime-behavior-gap: live traffic, stored data, which clients connect),
+evidence that does not state the condition (evidence-gap), or an identity that cannot be pinned
+(semantic-ambiguity). It is NEVER for "the configuration might not be visible": whether an environment
+supplied its values, manifests, ConfigMaps or product inventory is decided later by the engine, which reports
+missing inputs itself. If the change names a setting, flag, env var, feature gate, values key, field or
+ConfigMap key, write the predicate that reads it (see CONFIG SOURCES when listed: they say where this product
+reads configuration and which predicate reads each place). If no predicate can express the condition and
+it is not runtime behaviour, mark applicability undetermined instead of asserting an undecidable leaf.
 `
 
 const consequenceGuide = `The class an exposed environment receives follows from the kind (you do not choose it):

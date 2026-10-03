@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7843f35970bb",
+    "candidateId": "sc-95b8b6a5377b",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "ingress-pathtype"
+      },
+      "change": {
+        "type": "value-changed",
+        "before": "\"ImplementationSpecific\"",
+        "after": "\"Exact\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Path handling by ingress controllers changes: paths now require an exact match (pathType: Exact) instead of the previous controller-specific matching (pathType: ImplementationSpecific); the evidence frames this as more reliable and more secure and reports no failure.",
+        "remediation": "Verify that the ingress controllers handling the affected Ingress resources behave correctly with pathType: Exact.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.18.0, the Kubernetes Ingress pathType is changed from ImplementationSpecific to Exact for more reliable handling of ingress controllers and enhanced security."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: the evidence only states that the Kubernetes Ingress pathType changes from ImplementationSpecific to Exact; it does not say which cert-manager feature creates these Ingress resources, under what configuration, or which environments are affected, so no exposure condition can be asserted",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-4faa7ca81b54"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:0ed589c92e0c74fe14c1ceb1ae28a42379e433df82260344acce9b915075f99d",
+      "inputEvidence": [
+        "ev-4faa7ca81b54"
+      ],
+      "generatedAt": "2026-10-03T07:07:47Z",
+      "callId": "2604883d-be55-4fc1-9ea9-fa4db3164de3"
+    }
+  }
+}

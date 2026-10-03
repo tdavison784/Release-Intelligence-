@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-0b8f9bc59534",
+    "candidateId": "sc-f5cebb7e0498",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cert-manager",
+        "name": "issuer-secret-retry-backoff"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "undecidable",
+          "reason": "runtime-behavior-gap",
+          "needed": "which issuers have their linked Secret updated at runtime (live Secret writes/rotations)"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading, when an issuer's linked Secret is updated the issuer will retry more quickly instead of being delayed by the previous high back-off timeout; nothing is rejected or fails, only the timing of reconciliation after Secret updates changes.",
+        "remediation": "No operator action required; expect issuer reconciliation to happen sooner after a linked Secret is updated than in previous releases.",
+        "severity": "low"
+      },
+      "statement": "In cert-manager 1.17.0, the issuer retries more quickly when its linked Secret is updated, fixing an issue that previously caused a high back-off timeout."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-10c8b1c28d66"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:f524340fcc08089447e75503eb449ff81f2899013b45a2a216d3f68748ff69ed",
+      "inputEvidence": [
+        "ev-10c8b1c28d66"
+      ],
+      "generatedAt": "2026-10-03T07:22:30Z",
+      "callId": "2ee4a8aa-3862-4811-89c5-9f99eda16387"
+    }
+  }
+}

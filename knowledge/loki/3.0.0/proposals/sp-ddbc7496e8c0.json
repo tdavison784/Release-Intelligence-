@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-ddbc7496e8c0",
+    "candidateId": "sc-8f899185ace7",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "config-key",
+        "product": "loki",
+        "path": "query_range.results_cache"
+      },
+      "change": {
+        "type": "behavior-changed"
+      },
+      "applicability": {
+        "exposure": {
+          "op": "edge-from-version",
+          "state": "in-range",
+          "range": "<3.0.0"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "After upgrading to Loki 3.0.0, 'stats' and 'volume' query results (TSDB index) and 'label' and 'series' requests are cached by default even with unchanged configuration, and environments that have not configured a results_cache will cache these results in an in-memory cache by default.",
+        "remediation": "Review the results_cache configuration in the query_range section of the Loki config; note that by default an in-memory cache is used.",
+        "severity": "low"
+      },
+      "statement": "In Loki 3.0.0, caching of results for 'stats' and 'volume' queries (TSDB index type) and of 'label' and 'series' requests is enabled by default, with all of these cached to the results_cache configured in the query_range config section, and an in-memory cache used by default."
+    },
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-959df790f1d4"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:64037f569745b1b7bead5cb461b3a86f59db139c3d2ea2e54c5bcd73a4dee5a1",
+      "inputEvidence": [
+        "ev-959df790f1d4"
+      ],
+      "generatedAt": "2026-10-03T08:02:00Z",
+      "callId": "d83a32a2-26d9-40c2-96e0-af2e9b75677c"
+    }
+  }
+}

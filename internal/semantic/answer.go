@@ -3,6 +3,7 @@ package semantic
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -367,6 +368,9 @@ func assertAspect(as *domain.SemanticAssertion, x domain.Aspect, aa *AspectAnswe
 			}
 			ap.Overlap = &ov
 		}
+		if err := avoidableUndecidable(ap); err != nil {
+			return err
+		}
 		as.Applicability = &ap
 	case domain.AspectConsequence:
 		k := domain.ConsequenceKind(aa.Kind)
@@ -463,6 +467,46 @@ func conditionOf(c ConditionAnswer) (domain.Condition, error) {
 func containsString(xs []string, s string) bool {
 	for _, x := range xs {
 		if x == s {
+			return true
+		}
+	}
+	return false
+}
+
+// ErrAvoidableUndecidable marks a refused answer whose condition contains an
+// `undecidable` leaf with a reason a model may not assert (LOOP-DIAGNOSIS-2
+// L1; see UndecidableReasons). The refusal is recorded like any other.
+var ErrAvoidableUndecidable = errors.New("avoidable undecidable leaf")
+
+// avoidableUndecidable refuses an undecidable leaf whose reason is the
+// engine's (missing inputs, missing inventory) or the absence of a fact: a
+// decidable predicate exists for it (values-key, field, text-line, cli-flag,
+// env-var, feature-gate, product-version), or the aspect is undetermined.
+func avoidableUndecidable(ap domain.Applicability) error {
+	var bad []string
+	var walk func(c domain.Condition, where string)
+	walk = func(c domain.Condition, where string) {
+		if c.Op == domain.OpUndecidable && !containsReason(UndecidableReasons, c.Reason) {
+			bad = append(bad, fmt.Sprintf("%s: undecidable{reason: %s, needed: %q}", where, c.Reason, shorten(c.Needed, 120)))
+		}
+		for i, sub := range c.Of {
+			walk(sub, fmt.Sprintf("%s.%s[%d]", where, c.Op, i))
+		}
+	}
+	walk(ap.Exposure, "exposure")
+	if ap.Overlap != nil {
+		walk(*ap.Overlap, "overlap")
+	}
+	if len(bad) > 0 {
+		return fmt.Errorf("%w: %s; undecidable is only for %v. Write the predicate that reads the configuration (the engine reports missing inputs itself), or mark applicability undetermined",
+			ErrAvoidableUndecidable, strings.Join(bad, "; "), UndecidableReasons)
+	}
+	return nil
+}
+
+func containsReason(xs []domain.UnknownReason, r domain.UnknownReason) bool {
+	for _, x := range xs {
+		if x == r {
 			return true
 		}
 	}

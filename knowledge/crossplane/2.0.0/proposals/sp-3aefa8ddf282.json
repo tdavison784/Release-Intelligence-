@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-3aefa8ddf282",
+    "candidateId": "sc-e51e65327713",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "crossplane",
+        "name": "prometheus-metric-names"
+      },
+      "change": {
+        "type": "behavior-changed",
+        "before": "\"crossplane_composition_controllers_*, crossplane_composition_watches_*, crossplane_composition_run_function_*\"",
+        "after": "\"engine_controllers_*, engine_watches_*, function_run_function_*\""
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "The metrics are exposed under new names, so anything querying the old names will no longer match them.",
+        "remediation": "Update dashboards, alerts and queries to the new metric names.",
+        "severity": "low"
+      },
+      "statement": "Crossplane's Prometheus metric name prefixes were renamed: crossplane_composition_controllers_* to engine_controllers_*, crossplane_composition_watches_* to engine_watches_*, and crossplane_composition_run_function_* to function_run_function_*."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether external dashboards, alerts or scrapers consume the old metric names; no values or manifests carry that.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-c3df0dece271"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:0ce2fe4bf1aff686e006cbe743745e38bf9319624b69c24d07456d1bd3dab4a5",
+      "inputEvidence": [
+        "ev-c3df0dece271"
+      ],
+      "generatedAt": "2026-10-03T07:06:09Z",
+      "callId": "c923b0e3-e5b3-43af-b494-1cc4e9c78317"
+    }
+  }
+}

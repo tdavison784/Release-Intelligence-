@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-a943107d75ae",
+    "candidateId": "sc-f9466f268c0b",
+    "task": "full",
+    "provider": "zai",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "doublewrite-identity-crd-total-count-metric"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"doublewrite_identity_crd_total_count\"",
+        "after": "\"doublewrite_crd_identities\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "doublewrite-crd-identities-metric"
+        }
+      },
+      "consequence": {
+        "kind": "behavior-change",
+        "exposedClass": "review-required",
+        "statement": "Cilium keeps running, but the metric formerly exposed as doublewrite_identity_crd_total_count is now exposed as doublewrite_crd_identities, so anything still querying the old metric name will no longer receive data for it.",
+        "remediation": "Update any dashboards, alerts or recording rules that query doublewrite_identity_crd_total_count to use doublewrite_crd_identities.",
+        "severity": "low"
+      },
+      "statement": "The Cilium metric `doublewrite_identity_crd_total_count` has been renamed to `doublewrite_crd_identities` in 1.17.0."
+    },
+    "undetermined": [
+      "applicability"
+    ],
+    "undeterminedReason": "applicability: The consequence only affects environments whose external monitoring (dashboards, alerts, recording rules, scrapers) references the old metric name doublewrite_identity_crd_total_count; the evidence states no condition for this and no supported predicate reads external monitoring configuration or metric usage.",
+    "suggestedClass": "review-required",
+    "citations": [
+      "ev-7ede52ce8bb8"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "medium",
+      "model": "glm-5.3",
+      "modelVersion": "glm-5.3",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:8bc19e59612cfdf1b92a6e2786187a21167116c208e3698773f5fcb9f00fc844",
+      "inputEvidence": [
+        "ev-7ede52ce8bb8"
+      ],
+      "generatedAt": "2026-10-03T07:43:11Z",
+      "callId": "4333e1ab-d1c3-43c8-92a9-e932f679f11c"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "ri.dev/knowledge/v1alpha1",
+  "kind": "proposal",
+  "proposal": {
+    "id": "sp-7af1aac6f6cc",
+    "candidateId": "sc-b5cb4b3d8d8a",
+    "task": "full",
+    "provider": "anthropic",
+    "assertion": {
+      "subject": {
+        "family": "protocol-behavior",
+        "product": "cilium",
+        "name": "envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_connected_state"
+      },
+      "change": {
+        "type": "renamed",
+        "before": "\"envoy_cilium_policymap_\\u003cnode-ip\\u003e_\\u003cnode-id\\u003e_control_plane_connected_state\"",
+        "after": "\"envoy_cilium_npds_control_plane_connected_state\"",
+        "replacedBy": {
+          "family": "protocol-behavior",
+          "product": "cilium",
+          "name": "envoy_cilium_npds_control_plane_connected_state"
+        }
+      },
+      "statement": "The Envoy metric envoy_cilium_policymap_<node-ip>_<node-id>_control_plane_connected_state is renamed to envoy_cilium_npds_control_plane_connected_state."
+    },
+    "undetermined": [
+      "applicability",
+      "consequence"
+    ],
+    "undeterminedReason": "applicability: Exposure depends on whether monitoring/dashboards/alerts consume this metric, which no configuration predicate expresses.; consequence: Evidence only lists the metric rename; it does not state what happens to consumers.",
+    "citations": [
+      "ev-4024cb69f8ce"
+    ],
+    "provenance": {
+      "method": "ai",
+      "producer": "semantic.proposer@v1",
+      "rule": "task:full",
+      "confidence": "low",
+      "model": "claude-sonnet-5-5",
+      "modelVersion": "claude-sonnet-5-5",
+      "promptVersion": "semantic-full/v2",
+      "promptDigest": "sha256:d839afee299a8636f907ddf45abe94765b0f57697ec01eb731c8501af6f7ccc4",
+      "inputEvidence": [
+        "ev-4024cb69f8ce"
+      ],
+      "generatedAt": "2026-10-03T11:55:30Z",
+      "callId": "d24968f3-083c-4e12-aab5-cd914ab64cf6"
+    }
+  }
+}
