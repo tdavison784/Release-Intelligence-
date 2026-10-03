@@ -378,3 +378,7 @@ primary checkout's warm cache):
 
 cilium-1.15 E1 goes `! violated (imp-9ece4ee85ee9)` → `✗ clean`. No stored-result regressions in
 either run; recall, falseActionRate and classification accuracy unchanged.
+
+Stored results: `ri eval -update` rewritten after this change — cilium-1.15-1.17.json only
+(matchedChanges 26 → 24, evidenceCovered 26 → 24; the two over-selected dnsProxy/metric changes no
+longer attribute to E1). All other stored files byte-identical.
