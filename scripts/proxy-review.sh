@@ -18,6 +18,8 @@
 # ledger line (stage "call"); a refused verdict keeps its response and gets a ledger line from `ri` (stage
 # "verdict"/"record"). Re-running answers only requests with neither a response nor a .failed marker.
 # Create <exchange-dir>/STOP to stop launching new calls (in-flight ones finish and are recorded).
+# BUDGET_USD=<n> [BUDGET_LEDGERS=a.jsonl:b.jsonl] stops launching calls (writes STOP) once the CLI-reported spend
+# in those ledgers comes within $0.80 of the cap.
 set -uo pipefail
 DIR=$(cd "$1" && pwd) || { echo "usage: $0 <exchange-dir> <ledger.jsonl> [parallel] [knowledge-dir] [ri]" >&2; exit 2; }
 LEDGER=$(cd "$(dirname "$2")" && pwd)/$(basename "$2")
@@ -40,14 +42,25 @@ review_one() {
   resp="$DIR/$item.response.json"
   [ -e "$resp" ] || [ -e "$DIR/$item.failed" ] || [ -e "$DIR/$item.skipped" ] && return 0
   [ -e "$DIR/STOP" ] && return 0
+  # budget guard: BUDGET_USD caps the CLI-reported spend summed over BUDGET_LEDGERS (colon-separated
+  # ledgers of the same campaign, this run's included); a reserve covers the calls already in flight
+  if [ -n "${BUDGET_USD:-}" ]; then
+    spent=$(IFS=:; for l in ${BUDGET_LEDGERS:-$LEDGER}; do [ -e "$l" ] && cat "$l"; done | jq -s 'map(.costUSD // 0) | add // 0')
+    if [ "$(jq -n --argjson s "$spent" --argjson b "$BUDGET_USD" '$s + 0.8 >= $b')" = true ]; then
+      echo "BUDGET $item: spent \$$spent of \$$BUDGET_USD; not called" >>"$LOG"
+      touch "$DIR/STOP"
+      return 0
+    fi
+  fi
   # an item decided since its prompt was built (by a human, or as a side effect) is not called for
   rel=$(jq -r '.release // ""' "$req"); [ -n "$rel" ] || rel=_endpoint
   st=$(jq -r '.reviewItem.status // "missing"' "$KDIR/$(jq -r .product "$req")/$rel/reviews/$item.json" 2>/dev/null || echo missing)
-  if [ "$st" != pending ]; then
+  want=$(jq -r '.itemStatus // "pending"' "$req")
+  if [ "$st" != "$want" ]; then
     echo "$st" >"$DIR/$item.skipped"
     jq -nc --arg i "$item" --arg st "$st" --slurpfile r "$req" \
       '{itemId:$i, candidateId:$r[0].candidateId, product:$r[0].product, release:$r[0].release, questionType:$r[0].questionType,
-        priority:$r[0].priority, outcome:"skipped", stage:"call", error:("item is " + $st + ", not pending; not called"),
+        priority:$r[0].priority, outcome:"skipped", stage:"call", error:("item is " + $st + ", not the status the prompt was built for; not called"),
         selfModel:false, selfFamily:false, humanDecisionsShown:0}' \
       | { while ! mkdir "$LOCK" 2>/dev/null; do sleep 0.2; done; cat >>"$LEDGER"; rmdir "$LOCK"; }
     echo "SKIP $item: $st" >>"$LOG"

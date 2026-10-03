@@ -174,8 +174,8 @@ func Decision(rc *knowledge.ReviewContext, req *Request, resp *Response) (domain
 		return d, nil, fmt.Errorf("response/request/item ids differ (%s, %s, %s)", resp.ItemID, req.ItemID, it.ID)
 	case it.Proposed.Digest() != req.ProposedDigest:
 		return d, nil, fmt.Errorf("item %s changed since the prompt was built", it.ID)
-	case it.Status != domain.ReviewPending:
-		return d, nil, fmt.Errorf("item %s is %s, not pending", it.ID, it.Status)
+	case it.Status != wantStatus(req) || !Reviewable(it.Status):
+		return d, nil, fmt.Errorf("item %s is %s, the prompt was built for %s", it.ID, it.Status, wantStatus(req))
 	case strings.TrimSpace(resp.Model) == "" || strings.TrimSpace(resp.ModelVersion) == "":
 		return d, nil, errors.New("response does not report the model and model version")
 	case strings.TrimSpace(resp.CallID) == "":
@@ -394,4 +394,20 @@ func consequenceProse(a domain.SemanticAssertion) string {
 		return ""
 	}
 	return a.Consequence.Statement + "\x00" + a.Consequence.Remediation
+}
+
+// Reviewable reports whether the proxy may decide an item of this status:
+// pending, or closed without a verdict on the assertion (need-more-evidence,
+// defer), which a re-review may reopen. Decided and superseded items never.
+func Reviewable(st domain.ReviewStatus) bool {
+	return st == domain.ReviewPending || st == domain.ReviewNeedsEvidence || st == domain.ReviewDeferred
+}
+
+// wantStatus is the status the request was built for (pending for requests
+// written before ItemStatus existed).
+func wantStatus(req *Request) domain.ReviewStatus {
+	if req.ItemStatus == "" {
+		return domain.ReviewPending
+	}
+	return req.ItemStatus
 }

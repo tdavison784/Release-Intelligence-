@@ -83,9 +83,13 @@ type Request struct {
 	QuestionType   domain.QuestionType   `json:"questionType"`
 	Priority       domain.ReviewPriority `json:"priority,omitempty"`
 	ProposedDigest string                `json:"proposedDigest"`
-	PromptVersion  string                `json:"promptVersion"`
-	PromptDigest   string                `json:"promptDigest"`
-	Request        llm.Request           `json:"request"`
+	// ItemStatus is the item's status when the prompt was built: pending, or a
+	// closed-but-reviewable status (needs-evidence, deferred) for a re-review.
+	// The verdict is recorded only while the item still has it.
+	ItemStatus    domain.ReviewStatus `json:"itemStatus,omitempty"`
+	PromptVersion string              `json:"promptVersion"`
+	PromptDigest  string              `json:"promptDigest"`
+	Request       llm.Request         `json:"request"`
 	// InputEvidence are every evidence id the prompt showed (citable).
 	InputEvidence []domain.EvidenceID `json:"inputEvidence"`
 	// CandidateEvidence ⊆ InputEvidence: the candidate's own evidence (the
@@ -141,7 +145,7 @@ func Build(rc *knowledge.ReviewContext, opts Options) (*Request, error) {
 	}
 	req := &Request{
 		Format: RequestFormat, ItemID: it.ID, CandidateID: it.CandidateID, Product: it.Product, Release: it.Release,
-		QuestionType: it.QuestionType, Priority: it.Routing.Priority, ProposedDigest: it.Proposed.Digest(),
+		QuestionType: it.QuestionType, Priority: it.Routing.Priority, ProposedDigest: it.Proposed.Digest(), ItemStatus: it.Status,
 		PromptVersion: PromptVersion,
 	}
 	for _, e := range rc.Candidate.Evidence {

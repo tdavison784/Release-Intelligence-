@@ -409,3 +409,31 @@ func TestPromptShowsLiteralsDecoded(t *testing.T) {
 		t.Error("prompt still shows an encoded literal")
 	}
 }
+
+// proxy-4: a re-review may decide an item closed as need-more-evidence or
+// defer, but only while it still has the status the prompt was built for.
+func TestReReviewOfClosedItems(t *testing.T) {
+	rc := fixture(domain.QuestionConsequence)
+	rc.Item.Status = domain.ReviewNeedsEvidence
+	req, err := Build(rc, Options{})
+	if err != nil || req.ItemStatus != domain.ReviewNeedsEvidence {
+		t.Fatalf("request: %v %+v", err, req)
+	}
+	ev := string(req.InputEvidence[0])
+	ok := map[string]any{"action": "accept", "reason": "r", "citations": []string{ev}, "confidence": "medium"}
+	if _, _, err := Decision(rc, req, respond(t, req, ok)); err != nil {
+		t.Errorf("re-review of a needs-evidence item: %v", err)
+	}
+	moved := *rc
+	moved.Item.Status = domain.ReviewPending
+	if _, _, err := Decision(&moved, req, respond(t, req, ok)); err == nil {
+		t.Error("a verdict was recorded on an item whose status changed since the prompt")
+	}
+	decided := *rc
+	decided.Item.Status = domain.ReviewDecided
+	dreq := *req
+	dreq.ItemStatus = domain.ReviewDecided
+	if _, _, err := Decision(&decided, &dreq, respond(t, &dreq, ok)); err == nil {
+		t.Error("a decided item was reviewed")
+	}
+}
