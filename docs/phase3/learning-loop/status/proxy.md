@@ -18,10 +18,15 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
 
 ## Next
 
-- Steps 4 and 6: done (below).
-- Step 5 (shadow pass on high items in `proxy-shadow/`): **waiting for the commander**.
-- Run-2 (the backlog after the semantic-3 / loop merges): in progress, paused by the account
-  session limit; resume scheduled just after the 20:50 CDT reset (see handoff log below).
+- Nothing runnable on this branch: proxy-2 (run-2 + shadow pass + eval view) is done — see the
+  proxy-2 section and [../proxy-shadow/REPORT.md](../proxy-shadow/REPORT.md).
+- Waiting on the commander: the prose-only-corrections contract question; `Provenance.Provider`;
+  and whether to re-run the 4 run-2 items refused for validator-only citations now that prompt v3
+  states the rule (the prompt changed, so that is not a blind retry — the commander's call, since
+  it spends calls and the prose-only decision may change the recorder too).
+- Waiting on the product owner: `ri knowledge proxy-agreement` once the high items are decided.
+- A new backlog (anything merged into `p3-learning-loop` since) needs a commander-ordered merge
+  into this branch first.
 
 ## Decisions taken (local)
 
@@ -137,3 +142,25 @@ Brief: [briefs/proxy.md](../briefs/proxy.md). Branch `p3ll/proxy`. Design and us
   - New knowledge-lane finding: composition proposes facts the domain rejects (migration-required on a gvk subject).
   - Still open for the commander: prose-only corrections; `Provenance.Provider`.
   - Later: proxy-vs-human agreement once the product owner finishes.
+
+## GLM handoff log — takeover 3 (2026-10-02 ~22:40 CDT, glm-5.3 as glm-proxy)
+
+- Took over with the lane lead (held since 22:06). Audit: working tree clean at 258d9490; proxy-2
+  already complete and committed (run-2 866 decisions in the real store, shadow pass 538 in the copy,
+  eval view, `proxy-agreement`, integrity test). `.ri/proxy-run-2` and `.ri/proxy-shadow` hold no STOP
+  file and no `.failed` markers — nothing to resume, nothing scheduled against a reset window.
+- The one identified-but-unbuilt item was the v3 prompt fix the proxy-2 notes prescribe for the
+  "corrections citing only validator evidence" refusals. Built it (commit 30504441): the `correct`
+  action now says a correction's citations must include at least one id from the EVIDENCE (upstream)
+  section (validation-only ids do not count; ids are copied exactly, never invented). This matches the
+  recorder exactly: `correctedAssertion` keeps only candidate ids, so a validator-only citation set
+  reached `ProposalFromAnswer` empty and was refused. `PromptVersion` is now `proxy-review/v3`.
+  No model calls were made and no recorded decision changes: decisions re-hash the request file's own
+  on-disk prompt, and run-1/v2, run-2 and the shadow requests are files on disk.
+- Verified `go build ./... && go vet ./... && go test ./...` pass, and read-only
+  `ri knowledge metrics` (178 active facts: consensus 31, proxy 147 — matches the reports).
+- Numbers for the v3 decision: of run-2's 20 recording refusals, 4 were validator-only citations
+  (v3-recoverable); the other 16 and all 10 shadow refusals are prose-only corrections, the open
+  contract question.
+- Uncertain: nothing new. Open items unchanged and with the commander: prose-only corrections,
+  `Provenance.Provider`, the v3 re-run order above; proxy-agreement waits for the product owner.
