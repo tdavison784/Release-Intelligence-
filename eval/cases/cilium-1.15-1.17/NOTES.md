@@ -56,7 +56,7 @@ finding reach this link's not-affected label at the knowledge view. The item's o
 about one thing — "run Cilium v1.15.6 or newer before upgrading to v1.16" — so the matcher now
 requires that subject (the `toFQDNs.*1\.15\.6|1\.15\.6 or newer` alternative, unchanged) and the bare
 `toFQDNs` alternative is gone. Verified on the current store: plain metrics unchanged except this
-case's matched changes (26 → 24, snapshots accepted); at the proxy view the dnsProxy finding no longer
+case's matched changes (26 → 24; the stored snapshot is left for the commander to accept); at the proxy view the dnsProxy finding no longer
 violates the not-affected label (applicability 0.571 → 0.581, cilium-1.15 E1 `!` → `✗`), and the item
 still recalls on chg-23a43a125719, which carries the quote verbatim.
 

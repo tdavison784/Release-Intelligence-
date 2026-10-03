@@ -137,6 +137,21 @@ calls on a cache-refreshing first run. Flagged for the pipeline owner.
   28→29; honesty 0.90. Note the current store has drifted from loop-diagnosis-2's snapshot —
   plant-edge E3 is clean now, cilium-1.15 E1 was still violated until this narrowing.
 
+## groundtruth-6 (2026-10-03, branch p3ll/groundtruth-6 from p3-learning-loop @ af0d911d)
+- GLM window reviewed (eval/CHANGELOG.md (i)): (f) predicate fixes kept (eu-platform E3 refined to the
+  canonical `unset` form); (h) cilium-1.15 E1 narrowing kept; **(g) L7 fixture completion reverted**
+  (out of scope, a PO decision); the `eval/results` snapshot update reverted (commander's step).
+- L3: cilium-1.15 E1 fixed; prom-op E2 and kyverno E3/E4 are umbrella notes restating two items each
+  (last-wins attribution), so no matcher fix exists; karpenter-ci E7 / strimzi-edge E2 stay under the
+  verbatim policy. Plain panel unchanged (applicability 0.505).
+- **Proposal for the PO (L7):** for argo-cd E1/E2/E3 and cert-manager-1.17 E3, either (A) complete the
+  fixtures with the deciding objects as shipped upstream (an empty argocd-cm, as in
+  manifests/base/config/argocd-cm.yaml at v2.14.5; the ingress-nginx v1.12.1 controller ConfigMap; for cm
+  E3 an exposure testing both gate channels, `config.featureGates` and top-level `featureGates`). The
+  draft is in commit 6affc2b2 (reverted). Or (B) move the four links to `undecidedImpact`
+  (environment-visibility-gap), which changes the denominator. A keeps the denominator but shapes
+  fixtures after the analysis; B keeps the fixtures as authored.
+
 ## Open for the commander
 - Decide on docs/phase3/learning-loop/UNDECIDED-SCORING.md (do not pre-register from this lane), and report applicabilityAccuracy split into
   affected-hit and not-affected-clean (the headline number is denominator-sensitive).

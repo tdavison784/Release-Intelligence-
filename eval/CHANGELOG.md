@@ -382,3 +382,41 @@ either run; recall, falseActionRate and classification accuracy unchanged.
 Stored results: `ri eval -update` rewritten after this change — cilium-1.15-1.17.json only
 (matchedChanges 26 → 24, evidenceCovered 26 → 24; the two over-selected dnsProxy/metric changes no
 longer attribute to E1). All other stored files byte-identical.
+
+## 2026-10-03 (i) — review of the GLM groundtruth-6 window; L3 outcome; gate panel
+
+The returning Claude agent reviewed entries (f)–(h) and the commits behind them.
+
+| Entry | Verdict | What changed now |
+|---|---|---|
+| (f) four predicate errors (eu-platform E2/E3, istio E6, karpenter-ci E4 + latent E3) | **kept**, one refinement | eu-platform E3: `not(all[NameConstraints disabled, UDQF disabled])` would also fire for a cluster that pins both gates **on** (not exposed to a default flip). Replaced by the base item's canonical default-changed exposure `any[NameConstraints unset, UseDomainQualifiedFinalizer unset]` (`@ featureGates`), which is false on this fixture (both pinned off, values.yaml L8). istio E6's `tagOverrides.peer_namespace.value` is the supported, environment-specific form. A generic map wildcard stays a contract request. |
+| (g) fixture completion for argo-cd E1/E2/E3 and cert-manager-1.17 E3 (lever L7) | **withdrawn** (reverted) | L7 was not part of the groundtruth-6 tasking. LOOP-DIAGNOSIS-2 offers "fixture completion **or** undecided relabel", and choosing between them after reading pipeline analysis is the product owner's call. The revert also restores cm-1.17 E3's gate path `config.featureGates`, the path the upstream 1.18 release notes give for the workaround ("config: featureGates: ACMEHTTP01IngressPathTypeExact: false"). The chart's top-level `featureGates` string is a second, equally real channel; a complete exposure would test both (`any` of the two paths). That is noted for the same decision. The proposal is in status/groundtruth.md. |
+| (h) cilium-1.15 E1 matcher narrowed to its quote-anchored alternative | **kept** | Same class as the approved crossplane narrowing (2026-10-02 (c)), and the remaining alternative is anchored on the item's own quote. The `ri eval -update` of `eval/results/cilium-1.15-1.17.json` is **reverted**: accepting stored snapshots is the commander's step. The next run will show matchedChanges 26 → 24 for that entry; it is not flagged as a regression. |
+
+**L3 matcher/attribution items (LOOP-DIAGNOSIS-2 §7), under the verbatim-quote policy:**
+
+| Link | Outcome | Why |
+|---|---|---|
+| cilium-1.15 E1 violation | fixed by (h) | quote-anchored narrowing |
+| prometheus-operator E2 | **no matcher fix possible** | The finding sits on the 0.86.0 `[!NOTE]` release-note block, which restates both E2 (its quote: "This release introduces the status subresource (behind the `StatusForConfigurationResources` feature gate) …") and E5 (its quote: "This release enables automatic UTF-8 character support …"). Both matches are legitimate, and last-wins attribution (D13) gives the change to E5. Only evaluator multi-attribution (to be pre-registered) or splitting the umbrella note resolves it. |
+| kyverno E3 / E4 violation | **no matcher fix possible** | The umbrella change `chg-d645fe77075d` lists E3's and E4's deprecated settings in one note (LOOP-DIAGNOSIS-2 §8.4). It is the same multi-attribution / `IsUmbrella` contract question. |
+| karpenter-ci E7, strimzi-edge E2 | **left** (unchanged since groundtruth-5) | The items' quotes name `FEATURE_GATES.DRIFT` and "MirrorMaker 1", not the computed subjects `settings.featureGates.drift` / `kafkamirrormakers`. |
+
+**Gate panel** (plain `ri eval`, state = primary checkout's warm cache). BEFORE = branch HEAD with
+the GLM window (6202738e); AFTER = this entry (reverts + E3 refinement):
+
+| Gate | Before | After |
+|---|---|---|
+| criticalRecall | 1.00 ✓ (50, 0 missed) | 1.00 ✓ |
+| importantRecall | 0.97 ✓ (100, 3 missed) | 0.97 ✓ |
+| applicabilityAccuracy | 0.505 ✗ (affected 23/75; NA 30, 0 violations) | 0.505 ✗ (identical) |
+| falseActionRate | 0.059 ✗ (17, 1 wrong: kyverno E9, pending) | 0.059 ✗ |
+| actionFindingEvidence | 1.00 ✓ | 1.00 ✓ |
+| unsupported | 0 ✓ | 0 ✓ |
+| pipelineFailures | 0 ✓ | 0 ✓ |
+
+The plain run does not evaluate ground-truth exposures, and the reverted fixture objects decided no
+plain-run finding, so the panel is unchanged. The effect of (g) was only on the LOOP-DIAGNOSIS-2
+ceiling (four links counted reachable). Without it they remain honestly UNKNOWN pending the PO's L7
+decision.
+
