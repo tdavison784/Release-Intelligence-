@@ -118,3 +118,11 @@ replicas):
 - The base values fixture's `crds: {enabled: true}` and top-level
   `featureGates` string are both chart-valid (verified against the v1.16.0
   chart), so no correction is needed there.
+
+## Exposure direction corrections (2026-10-02, groundtruth-6; LOOP-DIAGNOSIS-2 §8.1)
+
+E2/E3 exposures were authored as the *clearing* state (the state that makes the
+link not-affected) instead of the would-be-affected state every other
+not-affected link in the dataset expresses (they must evaluate FALSE on the
+fixture). Inverted with the engine's own evaluation as the check; labels,
+whys and evidence unchanged. See eval/CHANGELOG.md "2026-10-02 (f)".

@@ -176,3 +176,13 @@ Differences from the base environment and why:
    note the default is *renamed* too (WhenUnderutilized →
    WhenEmptyOrUnderutilized) with identical behavior; the label's
    before/after values capture that correctly.
+
+## E3/E4 resource group fixes (2026-10-02, groundtruth-6; LOOP-DIAGNOSIS-2 §8.2)
+
+`resource Deployment/DaemonSet` without `group` reads the *core* API group,
+where those kinds do not exist — E4's would-be-affected condition could never
+fire on any fixture (it evaluated false from never looking), and E3's four
+leaves had the same latent bug (its false was labelled-consistent only by
+accident). Both now carry `group: apps`. Labels unchanged; verified with the
+engine (E4 true, E3 false, both as labelled). See eval/CHANGELOG.md
+"2026-10-02 (f)".

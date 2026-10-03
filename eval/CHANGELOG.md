@@ -295,3 +295,27 @@ primary checkout's warm cache):
 
 classificationAccuracy (0.438 over 112) and recall are unchanged. There are no stored-result regressions.
 
+
+## 2026-10-02 (f) — GT exposure predicate errors (LOOP-DIAGNOSIS-2 §8.1–§8.2) — **motivated by pipeline analysis (loop-diagnosis-2)**
+
+Disclosure: LOOP-DIAGNOSIS-2 evaluated the dataset's own ground-truth exposure conditions against
+the fixtures with the engine and found four links whose predicate is authored wrong (plus one latent
+case of the same bug). Each fix below is a predicate correction only — no label, relevance,
+classification or matcher changed — and each was verified by re-evaluating the corrected exposure
+against the unchanged fixture with the engine (the method of LOOP-DIAGNOSIS-2 §6). The convention
+applied is the one every other not-affected link already follows (FORMAT.md: exposure is "the
+applicability condition for THIS environment"; on a not-affected link it evaluates FALSE on the
+fixture — cf. cilium-1.15 E1, external-secrets E1, strimzi-edge E1).
+
+| Case · link | Field | Before | After | Why (engine + upstream) | Verified after |
+|---|---|---|---|---|---|
+| cert-manager-1.16-1.17--eu-platform · E2 (not-affected) | exposure | `{feature-gate ValidateCAA unset @ featureGates}` | `{feature-gate ValidateCAA enabled @ featureGates}` | The condition described the *clearing* state and evaluated TRUE on the fixture, contradicting the not-affected label. The would-be-affected state is the gate enabled (1.17 prints the deprecation warning only "if you're manually enabling this feature gate", upgrading-1.16-1.17.md). | **false** (NA-consistent) |
+| cert-manager-1.16-1.17--eu-platform · E3 (not-affected) | exposure | `all[NConstraints disabled, UDQF disabled]` | `not(all[…disabled, …disabled])` | Same inversion: both gates pinned off is why the link is NOT affected, so the exposure must be its negation (affected iff at least one promoted gate is not explicitly disabled — the v1.17.0 features.go defaults flip to Beta/true). | **false** (NA-consistent) |
+| istio-1.23-1.24 · E6 (action-required) | exposure path | `spec.metrics[].overrides[].tagOverrides.*.value` | `spec.metrics[].overrides[].tagOverrides.peer_namespace.value` | `*` is a map wildcard the condition path syntax does not define, so the field leaf looked for a literal key `*` and evaluated false from never matching. The fixture's Telemetry CR overrides exactly `peer_namespace` (telemetry.yaml#L18-L21). A real map wildcard stays a contract request (groundtruth status). | **true** (action-consistent) |
+| karpenter-0.37.8-1.0.0--ci-buildfarm · E4 (action-required) | exposure | `resource DaemonSet …` | `resource {group: apps} DaemonSet …` | `kind` without `group` reads the core API group, where DaemonSet does not exist; the condition was false from never looking (LOOP-DIAGNOSIS-2 §8.2). The fixture's DaemonSet is apps/v1 (daemonset.yaml). | **true** (action-consistent) |
+| karpenter-0.37.8-1.0.0--ci-buildfarm · E3 (not-affected) | exposure (4 leaves) | `resource Deployment/DaemonSet …` | `+ group: apps` on all four leaves | Latent instance of the same bug found by the same survey (the false was labelled-consistent only because no leaf could ever fire). Metric-neutral: still false on this fixture, now for the right reason. | **false** (NA-consistent) |
+
+Engine verification (condition evaluation against the unchanged fixtures): every other labelled link
+of the three touched cases decides as labelled both before and after — eu-platform E1/E4, karpenter-ci
+E1/E2/E5/E6/E7/E8 unchanged. `ri eval` does not evaluate GT exposures, so stored results and all
+gate numbers are unchanged by this entry (panels in (g)/(h) cover the runs after later entries).
