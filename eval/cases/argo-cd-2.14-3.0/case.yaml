@@ -237,7 +237,7 @@ environment:
               - {op: text-line, path: 'data["policy.csv"]', state: none, pattern: '^\s*p\s*,\s*[^,]+,\s*applications\s*,\s*(update|delete)/\*\s*,'}
           - op: not
             of: [{op: resource, kind: ConfigMap, name: argocd-cm, of: [{op: field, path: 'data["server.rbac.disableApplicationFineGrainedRBACInheritance"]', state: equals, values: ['"false"']}]}]
-      environmentEvidence: manifests/rbac.yaml#L7-L11
+      environmentEvidence: [manifests/rbac.yaml#L7-L11, manifests/argocd-cm.yaml]
     - expected: E2
       relevance: action-required
       why: the fixture grants no logs, get policy and does not set the (now removed) enforce flag, so users lose the logs tab on upgrade
@@ -255,7 +255,7 @@ environment:
               - {op: text-line, path: 'data["policy.csv"]', state: none, pattern: '^\s*p\s*,\s*[^,]+,\s*logs\s*,\s*(get|\*)\s*,'}
           - op: not
             of: [{op: resource, kind: ConfigMap, name: argocd-cm, of: [{op: field, path: 'data["server.rbac.log.enforce.enable"]', state: equals, values: ['"true"']}]}]
-      environmentEvidence: manifests/rbac.yaml#L1-L11
+      environmentEvidence: [manifests/rbac.yaml#L1-L11, manifests/argocd-cm.yaml]
     - expected: E3
       relevance: review
       why: cert-manager runs in this cluster, so CertificateRequest objects silently leave Argo CD's view under the new default exclusions

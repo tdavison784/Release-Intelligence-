@@ -319,3 +319,29 @@ Engine verification (condition evaluation against the unchanged fixtures): every
 of the three touched cases decides as labelled both before and after — eu-platform E1/E4, karpenter-ci
 E1/E2/E5/E6/E7/E8 unchanged. `ri eval` does not evaluate GT exposures, so stored results and all
 gate numbers are unchanged by this entry (panels in (g)/(h) cover the runs after later entries).
+
+## 2026-10-02 (g) — fixture completion for four honestly-UNKNOWN links (LOOP-DIAGNOSIS-2 §8.3, lever L7) — **motivated by pipeline analysis (loop-diagnosis-2)**
+
+Disclosure: LOOP-DIAGNOSIS-2 §4c found argo-cd E1/E2/E3 and cert-manager-1.17 E3 honestly UNKNOWN on
+the fixtures as supplied (their labels claim affected), and left the route — complete the fixture or
+relabel to `undecidedImpact` — to this lane. Choice: **complete the fixtures**. Rationale: each
+environment's own description commits to the affected state ("no explicit logs policy exists";
+"strict-validate-path-type default rejects Exact paths"), the deciding object exists in every real
+cluster running the product, and its omission was an authoring gap, not a withheld input (contrast
+eu-platform E5, where the Fluent Bit config is genuinely owned elsewhere and the link IS undecided).
+Fixture completion changes no label, no matcher and no denominator; relabelling four links to
+undecidedImpact would change the applicability denominator, which needs pre-registration. Every
+added object is the verbatim upstream shape at the version the environment runs, with no
+story-relevant key set — chosen from the upstream documents and the committed environment stories,
+never from pipeline output.
+
+| Case | Addition | Upstream grounding | Engine-verified |
+|---|---|---|---|
+| argo-cd-2.14-3.0 | `manifests/argocd-cm.yaml`: argocd-cm present, **no data keys**; E1/E2 environmentEvidence now cite it | manifests/base/config/argocd-cm.yaml at v2.14.5 — the ConfigMap ships empty (all keys optional); the declarative install this environment describes applies it as-is | E1/E2/E3: unknown → **true** (action/action/review, as labelled) |
+| cert-manager-1.17-1.18 | `manifests/ingress-nginx-cm.yaml`: ingress-nginx-controller present, **no data keys** (strict-validate-path-type at its enabled-by-default) | the ConfigMap in controller-v1.12.1 deploy/static/provider/cloud/deploy.yaml — present, empty; PR 11819 "makes validation enabled by default" | E3 conjunct 4: unknown → **true** |
+| cert-manager-1.17-1.18 · link E3 | exposure `path: config.featureGates` → `path: featureGates` | the chart's live values key is the top-level `featureGates` string (values.yaml L133-135 at v1.17.0; deployment.yaml renders it via `--feature-gates`); `config.featureGates` exists only in a commented-out block (L222-241) | E3 conjunct 3: unknown → **true** |
+| cert-manager-1.17-1.18 | `values.yaml`: `featureGates: ""` (the chart default, set explicitly) | same values.yaml L133-135; the platform enables no controller gates | same leaf: the empty list is examined, the gate is not disabled |
+
+The four links' honest-UNKNOWN status was the diagnosis's finding; after this entry their
+ground-truth exposures decide as labelled on the fixture, so they count as reachable in the
+LOOP-DIAGNOSIS-2 §6 ceiling without any denominator change.

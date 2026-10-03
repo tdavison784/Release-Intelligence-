@@ -51,3 +51,22 @@ Authored blind from the upstream sources above (no pipeline output read); correc
 - E1/E2 use the canonical crd-field default-changed shape (exposure: a Certificate leaves the field unset; overlap: sets it).
 - E3 is a `product-relationship` to ingress-nginx with `requirement-changed`; the required range is the default-configuration window from the 1.18 release notes ("resolved in ingress-nginx versions v1.13.2 and v1.12.6"). The exposure also names the two documented workarounds (the ACMEHTTP01IngressPathTypeExact gate disabled; strict-validate-path-type false in ingress-nginx's ConfigMap) and requires an HTTP01 ingress solver on an Issuer/ClusterIssuer (the fixture's ClusterIssuer, lines 23–36 — the solvers on the Certificate are not valid Certificate fields, D14).
 - E4 (OperatorHub) is labelled as a `migration` subject: OLM-managed installs must move to Helm or static manifests.
+
+## Fixture completion + E3 channel fix (2026-10-02, groundtruth-6; LOOP-DIAGNOSIS-2 §8.3/L7)
+
+E3 was honestly UNKNOWN against its action label for two missing inputs and
+one wrong path, all three fixed here (labels unchanged):
+1. the ingress-nginx controller ConfigMap was absent although the inventory
+   declares ingress-nginx v1.12.1 — added verbatim from the v1.12.1 static
+   deploy (present, no data keys), so strict-validate-path-type sits at its
+   enabled-by-default (PR 11819), i.e. the "false" opt-out is NOT set;
+2. the feature-gate leaf read `path: config.featureGates`, but `config:` with
+   a `featureGates:` map only exists inside a commented-out block of the
+   chart's values.yaml (L222-241); the live key is the top-level
+   `featureGates` string (values.yaml L133-135, rendered verbatim by
+   deployment.yaml's `--feature-gates`) — path corrected;
+3. the customer values now set `featureGates: ""` (the chart default,
+   explicitly): the platform enables no controller gates, so the
+   ACMEHTTP01IngressPathTypeExact escape hatch is not used.
+Engine-verified: E3 decides true as labelled. See eval/CHANGELOG.md
+"2026-10-02 (g)".

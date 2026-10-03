@@ -129,10 +129,10 @@ environment:
               - {op: resource, group: cert-manager.io, kind: ClusterIssuer, of: [{op: field, path: 'spec.acme.solvers[].http01.ingress', state: set}]}
               - {op: resource, group: cert-manager.io, kind: Issuer, of: [{op: field, path: 'spec.acme.solvers[].http01.ingress', state: set}]}
           - op: not
-            of: [{op: feature-gate, name: ACMEHTTP01IngressPathTypeExact, state: disabled, path: config.featureGates}]
+            of: [{op: feature-gate, name: ACMEHTTP01IngressPathTypeExact, state: disabled, path: featureGates}]
           - op: not
             of: [{op: resource, kind: ConfigMap, of: [{op: field, path: 'data["strict-validate-path-type"]', state: equals, values: ['"false"']}]}]
-      environmentEvidence: [inventory.yaml#L2-L3, manifests/certificate.yaml#L23-L36, values.yaml]
+      environmentEvidence: [inventory.yaml#L2-L3, manifests/certificate.yaml#L23-L36, manifests/ingress-nginx-cm.yaml, values.yaml]
   expectedFindings:            # impact findings the join should emit for THIS environment
     - id: F1
       match:
