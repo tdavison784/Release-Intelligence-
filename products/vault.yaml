@@ -269,3 +269,76 @@ provenance:
     helm.releases.hashicorp.com, developer.hashicorp.com and
     discuss.hashicorp.com are reachable; the helm-repo channel (declared
     first) validates, helm-git remains the fallback.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: server-config-configmap
+  channel: configmap-file
+  component: vault server
+  summary: With the official vault-helm chart the server configuration (HCL or JSON) is a raw string in server.ha.raft.config
+    (or server.ha.config / server.standalone.config), rendered into the extraconfig-from-values.hcl key of the <fullname>-config
+    ConfigMap.
+  file: extraconfig-from-values.hcl
+  format: text
+  valuesPath: server.ha.raft.config
+  references:
+  - url: https://raw.githubusercontent.com/hashicorp/vault-helm/main/values.yaml
+    quote: '# Note: Configuration files are stored in ConfigMaps so sensitive data'
+  - url: https://raw.githubusercontent.com/hashicorp/vault-helm/main/templates/server-config-configmap.yaml
+    quote: 'extraconfig-from-values.hcl: |-'
+- id: server-config-file
+  channel: config-file
+  component: vault server
+  summary: Outside dev mode a Vault server is configured by HCL or JSON files (storage, listener, seal, telemetry,
+    ...) passed with vault server -config, which accepts a file or a directory and may be repeated.
+  format: text
+  references:
+  - url: https://developer.hashicorp.com/vault/docs/configuration
+    quote: Outside of development mode, Vault servers are configured using a file. The format of this file is HCL
+      or JSON.
+  - url: https://developer.hashicorp.com/vault/docs/commands/server
+    quote: Path to a configuration file or directory of configuration files. This flag can be specified multiple
+      times to load multiple configurations.
+- id: chart-values
+  channel: helm-values
+  summary: The vault-helm chart (separate repository, independent 0.x versions) configures the server, agent injector,
+    UI and CSI provider from its values (global, injector, server, ui, csi, serverTelemetry).
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/hashicorp/vault-helm/main/README.md
+    quote: Please see the many options supported in the `values.yaml` file.
+- id: server-env
+  channel: env-vars
+  component: vault server
+  summary: Some configuration parameters can be supplied as environment variables (e.g. VAULT_API_ADDR for api_addr);
+    the chart sets extra variables via server.extraEnvironmentVars.
+  valuesPath: server.extraEnvironmentVars
+  references:
+  - url: https://developer.hashicorp.com/vault/docs/configuration
+    quote: This can also be provided via the environment variable VAULT_API_ADDR
+  - url: https://raw.githubusercontent.com/hashicorp/vault-helm/main/values.yaml
+    quote: '# extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These
+      could be'
+- id: server-flags
+  channel: cli-flags
+  component: vault server
+  summary: Command options of vault server (-config, -experiment, log options, ...); the chart appends extra arguments
+    via server.extraArgs.
+  valuesPath: server.extraArgs
+  references:
+  - url: https://developer.hashicorp.com/vault/docs/commands/server
+    quote: Path to a configuration file or directory of configuration files.
+  - url: https://raw.githubusercontent.com/hashicorp/vault-helm/main/values.yaml
+    quote: '# extraArgs is a string containing additional Vault server arguments.'
+- id: experiments
+  channel: feature-gates
+  component: vault server
+  summary: Experimental features are enabled per node with the repeatable -experiment flag, the VAULT_EXPERIMENTS
+    environment variable (comma-separated) or the experiments config key.
+  flag: -experiment
+  references:
+  - url: https://developer.hashicorp.com/vault/docs/commands/server
+    quote: Additional experiments can also be specified via the VAULT_EXPERIMENTS environment variable as a comma-separated
+      list, or via the experiments config key.

@@ -378,3 +378,73 @@ provenance:
     changelog and upgrade guides are merged after the tag is cut, so they are
     read at main; the chart's canonical index is the community repository the
     chart moved to in January 2026. Verified with `ri check grafana`.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: grafana-ini
+  channel: configmap-file
+  component: grafana-server
+  summary: The main INI configuration file (packages read /etc/grafana/grafana.ini, defaults in conf/defaults.ini);
+    in the Helm chart the grafana.ini values map is converted to INI and rendered into the grafana.ini key of the
+    chart's ConfigMap.
+  file: grafana.ini
+  format: ini
+  valuesPath: grafana.ini
+  references:
+  - url: https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/
+    quote: If you installed Grafana using the deb or RPM packages, then your configuration file is located at /etc/grafana/grafana.ini
+  - url: https://raw.githubusercontent.com/grafana-community/helm-charts/main/charts/grafana/README.md
+    quote: The `grafana.ini` key in `values.yaml` maps directly to the Grafana configuration file
+  - url: https://raw.githubusercontent.com/grafana-community/helm-charts/main/charts/grafana/values.yaml
+    quote: '## NOTE: values in map will be converted to ini format'
+- id: gf-env-overrides
+  channel: env-vars
+  component: grafana-server
+  summary: Any existing grafana.ini option can be overridden with an environment variable named GF_<SECTION NAME>_<KEY>
+    (uppercase, periods and dashes as underscores); the chart sets them via env (or envFromSecret).
+  valuesPath: env
+  references:
+  - url: https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/
+    quote: Where <SECTION NAME> is the text within the square brackets ([ and ]) in the configuration file. All
+      letters must be uppercase, periods (.) and dashes (-) must replaced by underscores (_).
+  - url: https://raw.githubusercontent.com/grafana-community/helm-charts/main/charts/grafana/values.yaml
+    quote: '## Extra environment variables that will be pass onto deployment pods'
+- id: feature-toggles
+  channel: feature-gates
+  component: grafana-server
+  summary: Feature toggles are set in the [feature_toggles] section of grafana.ini as individual FEATURE_NAME =
+    <value> entries (the older space-separated enable key is deprecated), or via GF_FEATURE_TOGGLES_* variables;
+    in the chart under grafana.ini.feature_toggles.
+  valuesPath: grafana.ini.feature_toggles
+  references:
+  - url: https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/
+    quote: Use a key-value pair to set feature flag values explicitly, overriding any default values.
+  - url: https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/
+    quote: This option is deprecated and will be removed in a future major release. Use individual toggle entries
+      instead.
+  - url: https://grafana.com/docs/grafana/latest/setup-grafana/configure-grafana/
+    quote: export GF_FEATURE_TOGGLES_newNavigation=true
+- id: provisioning
+  channel: configmap-file
+  component: grafana-server
+  summary: Data sources and dashboard providers are provisioned from YAML files in the provisioning/datasources
+    and provisioning/dashboards directories; the chart renders them from its datasources and dashboardProviders
+    values.
+  format: yaml
+  valuesPath: datasources
+  references:
+  - url: https://grafana.com/docs/grafana/latest/administration/provisioning/
+    quote: You can manage data sources in Grafana by adding YAML configuration files in the provisioning/datasources
+      directory.
+  - url: https://raw.githubusercontent.com/grafana-community/helm-charts/main/charts/grafana/values.yaml
+    quote: '## Configure grafana datasources'
+- id: chart-values
+  channel: helm-values
+  summary: The Grafana Helm chart (now maintained in grafana-community/helm-charts) configures the deployment, plugins,
+    sidecars and the grafana.ini/env/provisioning channels above from its values root.
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/grafana-community/helm-charts/main/charts/grafana/README.md
+    quote: To install plugins, use the chart's `plugins` value or `env.GF_PLUGINS_PREINSTALL_SYNC` instead of `env.GF_INSTALL_PLUGINS`.

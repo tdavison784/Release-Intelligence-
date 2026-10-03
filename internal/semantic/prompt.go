@@ -289,7 +289,14 @@ func configSourceLine(h knowledge.ConfigSourceHint) string {
 			pred += fmt.Sprintf("; when installed by the chart: values-key{path: %s.<key>}", h.ValuesPath)
 		}
 	case "config-file":
-		pred = fmt.Sprintf("a %s file on disk (%s): decidable only when supplied as a ConfigMap (then text-line as above); otherwise applicability is undetermined", h.Format, h.File)
+		file := h.File
+		if file == "" {
+			file = "an operator-chosen path"
+		}
+		pred = fmt.Sprintf("a file on disk (%s): decidable only when supplied as a ConfigMap (then text-line on its data key); otherwise applicability is undetermined", file)
+		if h.ValuesPath != "" {
+			pred += "; the chart sets it under values-key " + h.ValuesPath
+		}
 	case "helm-values":
 		p := h.ValuesPath
 		if p == "." {
@@ -299,8 +306,14 @@ func configSourceLine(h knowledge.ConfigSourceHint) string {
 		}
 	case "cli-flags":
 		pred = "cli-flag{name: --<flag>" + compOf(h) + "}"
+		if h.ValuesPath != "" {
+			pred += "; the chart sets them under values-key " + h.ValuesPath
+		}
 	case "env-vars":
 		pred = "env-var{name: <VAR>" + compOf(h) + "}"
+		if h.ValuesPath != "" {
+			pred += "; the chart sets them under values-key " + h.ValuesPath
+		}
 	case "feature-gates":
 		if h.Flag != "" && !strings.HasPrefix(h.Flag, "-") {
 			// gates passed in an environment variable: its token list

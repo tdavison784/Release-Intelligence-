@@ -61,8 +61,9 @@ type ConfigSource struct {
 	// ConfigMap is the conventional ConfigMap name (configmap-file).
 	ConfigMap string `yaml:"configMap,omitempty" json:"configMap,omitempty"`
 	// ValuesPath is the chart values key: the prefix of product settings
-	// (helm-values; "." = chart root), or the key that sets this source
-	// (feature-gates, configmap-file).
+	// (helm-values; "." = chart root), or, on every other channel but
+	// custom-resource, the key through which the chart sets this source
+	// (e.g. controller.extraArgs for flags, env for env vars).
 	ValuesPath string `yaml:"valuesPath,omitempty" json:"valuesPath,omitempty"`
 	// Flag carries the gate list (feature-gates): a command-line flag
 	// ("--feature-gates") or an environment variable ("STRIMZI_FEATURE_GATES").
@@ -116,16 +117,15 @@ func (v *validator) configSources(d *ProductDefinition) {
 		}
 		// channel-specific fields: required ones present, foreign ones absent
 		need := map[ConfigChannel][]string{
-			ChannelConfigFile: {"file", "format"},
 			ChannelHelmValues:     {"valuesPath"},
 			ChannelCustomResource: {"resource"},
 		}[s.Channel]
 		allowed := map[ConfigChannel][]string{
 			ChannelConfigMapFile:  {"file", "format", "configMap", "valuesPath"},
-			ChannelConfigFile:     {"file", "format"},
+			ChannelConfigFile:     {"file", "format", "valuesPath"},
 			ChannelHelmValues:     {"valuesPath"},
-			ChannelCLIFlags:       nil,
-			ChannelEnvVars:        nil,
+			ChannelCLIFlags:       {"valuesPath"},
+			ChannelEnvVars:        {"valuesPath"},
 			ChannelFeatureGates:   {"flag", "valuesPath"},
 			ChannelCustomResource: {"resource"},
 		}[s.Channel]
@@ -145,14 +145,12 @@ func (v *validator) configSources(d *ProductDefinition) {
 				}
 			}
 		}
-		if s.Channel == ChannelConfigMapFile {
-			switch {
-			case s.File != "" && s.Format == "":
-				v.errf(p+".format", "required with file (the embedded file's format)")
-			case s.File == "" && s.ConfigMap == "":
-				v.errf(p+".configMap", "required when settings are the ConfigMap's data keys (no file)")
-			case s.File == "" && s.Format != "":
-				v.errf(p+".format", "only with file")
+		// a named file declares its format (a directory or an operator-chosen
+		// path may still state the format of its files). Chart-generated ConfigMap names are
+		// left out rather than guessed.
+		if s.Channel == ChannelConfigMapFile || s.Channel == ChannelConfigFile {
+			if s.File != "" && s.Format == "" {
+				v.errf(p+".format", "required with file (the file's format)")
 			}
 		}
 		if s.Format != "" && !containsStr(ConfigFormats, s.Format) {

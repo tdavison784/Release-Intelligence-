@@ -323,3 +323,72 @@ provenance:
     in-tree Chart.yaml is mid-cycle at tags), and the driver/libs/falcoctl
     pins, the download.falco.org packages and the source archive were added
     from research.
+
+# Where this product reads its configuration, from its upstream documentation (semantic-4,
+# LOOP-DIAGNOSIS-2 L1): every reference was fetched and its quote checked verbatim. Used by the
+# learning loop's prompts only (docs/ARCHITECTURE.md, definition constructs); never from eval data.
+configSources:
+- id: falco-yaml
+  channel: configmap-file
+  component: falco
+  summary: The main falco.yaml configuration file (/etc/falco/falco.yaml on hosts); on Kubernetes the chart renders
+    the falco values section into the falco.yaml key of a ConfigMap named after the release fullname.
+  file: falco.yaml
+  format: yaml
+  valuesPath: falco
+  references:
+  - url: https://falco.org/docs/reference/daemon/config-options/
+    quote: Depending on your installation type the configuration file could be located in /etc/falco/falco.yaml
+      or loaded as a configmap in Kubernetes deployments.
+  - url: https://raw.githubusercontent.com/falcosecurity/falco/master/chart/falco/values.yaml
+    quote: '# -- Directly set values in the falco.yaml configuration file.'
+  - url: https://raw.githubusercontent.com/falcosecurity/falco/master/chart/falco/templates/configmap.yaml
+    quote: 'falco.yaml: |-'
+- id: config-d
+  channel: config-file
+  component: falco
+  summary: Since Falco 0.38.0 additional configuration files are loaded after falco.yaml via the config_files entry
+    (default /etc/falco/config.d), with append/override/add-only merge strategies; the chart sets it under falco.config_files.
+  format: yaml
+  valuesPath: falco.config_files
+  references:
+  - url: https://falco.org/docs/reference/daemon/config-options/
+    quote: Since Falco 0.38.0 you can also load additional configuration files after the main one with the config_files
+      configuration entry, which can accept both files and directories.
+  - url: https://raw.githubusercontent.com/falcosecurity/falco/master/chart/falco/values.yaml
+    quote: '# -- Allow to load additional configs files, beside the main one.'
+- id: custom-rules
+  channel: configmap-file
+  component: falco
+  summary: Custom rule files are given as a filename-to-content map in the chart's customRules value and rendered
+    as keys of the <fullname>-rules ConfigMap.
+  format: yaml
+  valuesPath: customRules
+  references:
+  - url: https://raw.githubusercontent.com/falcosecurity/falco/master/chart/falco/values.yaml
+    quote: applications they run. This feature can be handled in this section.
+  - url: https://raw.githubusercontent.com/falcosecurity/falco/master/chart/falco/templates/rules-configmap.yaml
+    quote: 'name: {{ include "falco.fullname" . }}-rules'
+- id: option-overrides
+  channel: cli-flags
+  component: falco
+  summary: Any falco.yaml option can be overridden on the falco command line with -o/--option key=value; the chart
+    passes extra arguments via extra.args.
+  valuesPath: extra.args
+  references:
+  - url: https://falco.org/docs/reference/daemon/config-options/
+    quote: Any configuration option can be overridden on the command line via the -o/--option key=value flag.
+  - url: https://raw.githubusercontent.com/falcosecurity/falco/master/chart/falco/values.yaml
+    quote: '# -- Extra command-line arguments.'
+- id: chart-values
+  channel: helm-values
+  summary: The Falco Helm chart (developed in chart/falco of the falco repository; also published from falcosecurity/charts)
+    configures the driver (driver.kind), deployment and integrations at the values root, with falco.yaml content
+    under falco.
+  valuesPath: .
+  references:
+  - url: https://raw.githubusercontent.com/falcosecurity/falco/master/chart/falco/values.yaml
+    quote: '# -- kind tells Falco which driver to use. Available options: kmod (kernel driver), modern_ebpf (modern
+      eBPF probe).'
+  - url: https://raw.githubusercontent.com/falcosecurity/charts/master/charts/falco/values.yaml
+    quote: '# Default values for Falco.'

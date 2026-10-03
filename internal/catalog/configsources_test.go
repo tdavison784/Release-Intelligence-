@@ -36,7 +36,7 @@ func TestConfigSourcesValid(t *testing.T) {
 func TestConfigSourcesValidationErrors(t *testing.T) {
 	d := configDef(
 		ConfigSource{ID: "Bad_ID", Channel: "secrets", Summary: " ", References: nil},
-		ConfigSource{ID: "cm", Channel: ChannelConfigMapFile, Summary: "x", Format: "xml", Flag: "--x", References: ref},
+		ConfigSource{ID: "cm", Channel: ChannelConfigMapFile, Summary: "x", File: "a.xml", Format: "xml", Flag: "--x", References: ref},
 		ConfigSource{ID: "cm", Channel: ChannelCLIFlags, Summary: "x", References: []ConfigReference{
 			{URL: "http://example.io/docs", Quote: "q"},
 			{URL: "https://github.com/me/repo/blob/main/eval/cases/x/case.yaml", Quote: ""},
@@ -46,7 +46,7 @@ func TestConfigSourcesValidationErrors(t *testing.T) {
 	got := lifecycleErrors(d)
 	for _, w := range []string{
 		"configSources[0].id", "configSources[0].channel", "configSources[0].summary", "configSources[0].references",
-		"configSources[1].configMap", "configSources[1].format", "configSources[1].flag",
+		"configSources[1].format", "configSources[1].flag",
 		"configSources[2].id", "configSources[2].references[0].url", "configSources[2].references[1].url", "configSources[2].references[1].quote",
 		"configSources[3].flag",
 	} {
